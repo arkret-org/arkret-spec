@@ -36,6 +36,8 @@ Agent／Applet 管理 Policy 的 `ak.policy.set` payload **MUST** 携精确 null
 仅当前有本 scope `ak.policy.set` 权限者可读 Agent／Applet Policy。真正不存在返回 exact `never_written`，无权或隐藏返回 not_found；不提供 Policy 枚举。
 写入者须有该 scope 当前 `ak.policy.set` 权限；用户例外不是成员自行修改管理员 Policy 的入口。
 
+Policy 的协议语法合法性、目标 Station 已实现的 matcher／review carrier 支持范围、以及当次操作的实际授权，**MUST** 分别判定。客户端配置预检 **SHOULD** 使用目标后端已知的支持事实；预检成功 **MUST NOT** 代替 Station 在实际接纳事务内独立核验语法、实现支持与当前权限。后端缺少某种 matcher 或 review carrier 时 **MUST NOT** 静默忽略该规则；该实现的暂时限制也 **MUST NOT** 被表述为所有实现的协议语法禁令或完整支持声明。共享校验实现不改变本规范已规定的审批操作边界。
+
 ## 2. 操作分离
 
 Agent 管理操作为 `join/authorize/execute/read/deliver/publish/serve`。join 包括初次加入与离群重入，
