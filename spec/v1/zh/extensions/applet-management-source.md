@@ -160,10 +160,14 @@ material 最多64 grants／256 current results；source最多8 authority bundles
 ## 6. 审批、幂等与恢复
 
 review request_id、候选、requester／producer／subject、scope／operation、初始期限和批准依据耐久固定。
-full body摘要用于单次传输幂等；不可变 intent_digest 是上述源证明投影再剔除 approval_signatures 的摘要。
+full body摘要用于单次传输幂等；本文managed Event-target申请的不可变 intent_digest 是§5操作锚投影的摘要，
+保留configuration_ref及完整原签Event。既有creation申请继续按原最终RequestBody仅剔除其approval_signatures求业务target摘要，
+再沿既有私有intent绑定，不能把嵌套的可追加creation审批票纳入不可变intent或误改原业务批准目标。
 同request入口可更新 fresh来源，不能修改intent、重置TTL、重建pending或重新扣业务quota。
 传输nonce／签名时间更新不supersede；Policy／Profile／membership／Device授权实例／安装epoch／任期等真实批准绑定变化使未消费批准superseded。
-同id异intent返回duplicate_conflict。批准仍签原实际Event／RequestBody，不签来源附件或改写ApprovalContext.initiating_actor。
+同id异intent返回duplicate_conflict。Event-target批准仍签原实际Event，不额外签私有review的来源附件；
+operation-target批准仍签对应实际RequestBody，按§5仅剔除approval_signatures并保留该请求自己的来源附件。
+两者均不得改写ApprovalContext.initiating_actor，不得把私有review envelope当成原业务批准目标。
 configuration_ref 若存在须命中B本地同scope配置结果的Account／intent；B按本地配置意图与具体Account关联取得原操作者，不能仅依赖C可省略的configuration_ref；
 B将原操作者纳入禁止自批集合，
 不能因C代理抹去原操作者。其它请求人／producer／受益人自批禁令、threshold和同principal跨站去重保持。
