@@ -37,6 +37,9 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
             self.assertTrue(set(r['actions']) <= actions)
             self.assertIn(r['mode'], ['all_actions', 'device_control', 'submitted_business_actions'])
             self.assertEqual(bool(r['actions']), r['mode'] == 'all_actions')
+            self.assertEqual('control_rule' in r, r['mode'] == 'device_control')
+        material = next(r for r in rules if r['operation_id'] == 'ak.self.realm_actor.read.material.v1')
+        self.assertEqual(material['control_rule'], 'own_exact_device_authorization_material_read')
         self.assertEqual(sum(r['mode'] == 'device_control' for r in rules), 5)
 
     def test_payload_and_possession_use_the_same_pairs(self):

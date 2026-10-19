@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-20.2",
   "suite": "realm_actor_signature_transcripts",
   "fixture_kind": "semantic",
   "runner": {
@@ -11,7 +11,7 @@
     "ak.vector.realm_actor.contract.v1"
   ],
   "generated_by": "tools/regenerate_realm_actor_fixture.py",
-  "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material.",
+  "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material. MLS claim handoff hosts verify distinct real signers with synthetic ledger digests, not an actual authority import.",
   "cases": [
     {
       "context": "ak.realm_actor_creation_signature.v1",
@@ -767,6 +767,132 @@
           }
         ]
       }
+    ]
+  },
+  "mls_claim_handoff": {
+    "description": "Independent real Ed25519 signatures over closed claim and Add hosts. Ledger digests and governance refs are synthetic; no native method history, live handoff, actual claim or RFC MLS admission is asserted.",
+    "claim_receipt": {
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
+      "request_digest": "sha256:5fb9860f798b77c2005d7075b09e242d465992bfb91ea9adc4fbe63f1ee56976",
+      "claims_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "source_id": "ak:did_core:web:old-governor.example",
+      "destination_id": "ak:did_core:web:old-governor.example",
+      "request": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
+        "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1"
+        ],
+        "expires_at": "2026-09-29T00:01:00.000Z",
+        "target_device_ids": [
+          "ak:device:019a0000-0000-7000-8000-000000000001"
+        ],
+        "target_actor_id": {
+          "kind": "realm",
+          "realm_actor_id": {
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "principal_id": "ak:did_core:webvh:zRealmActorFixture"
+          }
+        }
+      },
+      "claimed_at": "2026-09-29T00:00:00.000Z",
+      "expires_at": "2026-09-29T00:01:00.000Z",
+      "signature": {
+        "kid": "did:web:old-governor.example#claim",
+        "signature_algorithm": "Ed25519",
+        "sig": "iz0CWzZXYPxkFodcNXmK406zh0YtZznEdqMYtnI-EZ41I7cW4Ab5iu2V2QChlZOZJTH-31HSrIVBsNFVsHjIDg"
+      },
+      "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
+    },
+    "attestation": {
+      "attestor_station_id": "ak:did_core:web:new-governor.example",
+      "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+      },
+      "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+      "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+      "commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+      "commit_stream_position": 2,
+      "epoch": 1,
+      "welcome_id": "ak:mls_welcome_delivery:019a0000-0000-7000-8000-000000000002",
+      "claim_id": "ak:keypackage_claim:019a0000-0000-7000-8000-000000000003",
+      "actor_id": {
+        "kind": "realm",
+        "realm_actor_id": {
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "principal_id": "ak:did_core:webvh:zRealmActorFixture"
+        }
+      },
+      "endpoint": {
+        "kind": "device",
+        "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+      },
+      "authorization_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+      "leaf_signature_key_b64u": "7UkoxijRwsbq6QM4kFmVYSlZJzpcY_k2NsFGFKyHN9E",
+      "claim_record_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "claim_receipt": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
+        "request_digest": "sha256:5fb9860f798b77c2005d7075b09e242d465992bfb91ea9adc4fbe63f1ee56976",
+        "claims_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "source_id": "ak:did_core:web:old-governor.example",
+        "destination_id": "ak:did_core:web:old-governor.example",
+        "request": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
+          "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+          "claim_purpose": "realm_membership",
+          "required_capabilities": [
+            "ak.content.v1"
+          ],
+          "expires_at": "2026-09-29T00:01:00.000Z",
+          "target_device_ids": [
+            "ak:device:019a0000-0000-7000-8000-000000000001"
+          ],
+          "target_actor_id": {
+            "kind": "realm",
+            "realm_actor_id": {
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+              "principal_id": "ak:did_core:webvh:zRealmActorFixture"
+            }
+          }
+        },
+        "claimed_at": "2026-09-29T00:00:00.000Z",
+        "expires_at": "2026-09-29T00:01:00.000Z",
+        "signature": {
+          "kid": "did:web:old-governor.example#claim",
+          "signature_algorithm": "Ed25519",
+          "sig": "iz0CWzZXYPxkFodcNXmK406zh0YtZznEdqMYtnI-EZ41I7cW4Ab5iu2V2QChlZOZJTH-31HSrIVBsNFVsHjIDg"
+        },
+        "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
+      },
+      "attested_at": "2026-09-29T00:00:30.000Z",
+      "signature": {
+        "kid": "did:web:new-governor.example#add",
+        "signature_algorithm": "Ed25519",
+        "sig": "PsZoUGWnp4HQ5jEeXppfm5tydhaEOUBtmAaIcpkcuOBz-Am44LbNByko9pVjGYHd1JtEY4yAk-ggyjQxGQFzDg"
+      },
+      "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
+    },
+    "claim_receipt_signing_key": {
+      "verification_method": "did:web:old-governor.example#claim",
+      "public_key_b64u": "4oqJcHUzMr1y_vQT5rCy7xtKrdp6osFB8jNxKmh2s1E"
+    },
+    "attestation_signing_key": {
+      "verification_method": "did:web:new-governor.example#add",
+      "public_key_b64u": "1O7Bhp-xuKToF1Fq1akxVXy1aAXD6xbo86gD1kffeGk"
+    },
+    "required_scenarios": [
+      "RA-CLAIM-1",
+      "RA-HANDOFF-1",
+      "RA-HANDOFF-2",
+      "RA-HANDOFF-3",
+      "RA-HANDOFF-4",
+      "RA-HANDOFF-5",
+      "RA-HANDOFF-6"
     ]
   }
 }

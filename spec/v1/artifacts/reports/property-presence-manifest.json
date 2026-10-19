@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9920,
+    "total_properties": 9946,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2294,
+      "optional": 2305,
       "optional_defaulted": 48,
-      "required": 7067,
-      "required_nullable": 316,
-      "tristate": 195
+      "required": 7076,
+      "required_nullable": 318,
+      "tristate": 199
     },
-    "tristate_occurrences": 195,
-    "tristate_audit_targets": 154,
+    "tristate_occurrences": 199,
+    "tristate_audit_targets": 157,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 142,
+      "absent_null_equivalent": 145,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -152,6 +152,10 @@
     "message.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event",
     "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event",
+    "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/else/properties/claim_receipt",
+    "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt",
+    "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt/properties/request",
+    "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint",
     "morph.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "object-addressing.schema.json/$defs/signed_address_link_token_claims/allOf/1/properties/target_descriptor",
     "patch.schema.json/additionalProperties/oneOf/1/properties/value",
@@ -1119,6 +1123,37 @@
       "occurrences": [
         "/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event",
         "/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "mls-roster-authority.schema.json",
+      "shape": "/$defs/mls_add_authority_attestation",
+      "instance_path": "/claim_receipt",
+      "occurrences": [
+        "/$defs/mls_add_authority_attestation/allOf/0/else/properties/claim_receipt",
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "mls-roster-authority.schema.json",
+      "shape": "/$defs/mls_add_authority_attestation",
+      "instance_path": "/claim_receipt/request",
+      "occurrences": [
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt/properties/request"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "mls-roster-authority.schema.json",
+      "shape": "/$defs/mls_add_authority_attestation",
+      "instance_path": "/endpoint",
+      "occurrences": [
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -8519,6 +8554,7 @@
         "/$defs/keypackages_claim_request_body/allOf/0/then/properties/last_resort_allowed": "optional",
         "/$defs/keypackages_claim_request_body/allOf/2/then/properties/last_resort_allowed": "optional",
         "/$defs/keypackages_claim_request_body/allOf/2/then/properties/target_device_ids": "tristate",
+        "/$defs/keypackages_claim_request_body/allOf/4/then/properties/claim_purpose": "optional",
         "/$defs/keypackages_claim_request_body/properties/claim_purpose": "required",
         "/$defs/keypackages_claim_request_body/properties/claim_request_id": "required",
         "/$defs/keypackages_claim_request_body/properties/expires_at": "required",
@@ -8527,11 +8563,13 @@
         "/$defs/keypackages_claim_request_body/properties/mls_group_id": "required",
         "/$defs/keypackages_claim_request_body/properties/pair_key": "optional",
         "/$defs/keypackages_claim_request_body/properties/requester_account_id": "optional",
+        "/$defs/keypackages_claim_request_body/properties/requester_actor_id": "optional",
         "/$defs/keypackages_claim_request_body/properties/requester_authorization": "required",
         "/$defs/keypackages_claim_request_body/properties/required_capabilities": "required",
         "/$defs/keypackages_claim_request_body/properties/service_binding": "required",
         "/$defs/keypackages_claim_request_body/properties/strand_id": "optional",
         "/$defs/keypackages_claim_request_body/properties/target_account_id": "optional",
+        "/$defs/keypackages_claim_request_body/properties/target_actor_id": "optional",
         "/$defs/keypackages_claim_request_body/properties/target_agent_id": "optional",
         "/$defs/keypackages_claim_request_body/properties/target_agent_key_authorize_event_id": "optional",
         "/$defs/keypackages_claim_request_body/properties/target_agent_verification_method": "optional",
@@ -8565,6 +8603,9 @@
         "/$defs/keypackages_upload_request_body/properties/mls_group_id": "optional",
         "/$defs/keypackages_upload_request_body/properties/principal_id": "optional",
         "/$defs/keypackages_upload_request_body/properties/strand_id": "optional",
+        "/$defs/peer_keypackage_claim_receipt/allOf/0/if/properties/request": "required_nullable",
+        "/$defs/peer_keypackage_claim_receipt/allOf/0/if/properties/request/properties/target_actor_id": "required",
+        "/$defs/peer_keypackage_claim_receipt/properties/claim_authority_ref": "optional",
         "/$defs/peer_keypackage_claim_receipt/properties/claim_request_id": "required",
         "/$defs/peer_keypackage_claim_receipt/properties/claimed_at": "required",
         "/$defs/peer_keypackage_claim_receipt/properties/claims_digest": "required",
@@ -8593,6 +8634,7 @@
         "/$defs/peer_keypackages_claim_unsigned_request/allOf/0/then/properties/last_resort_allowed": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/allOf/2/then/properties/last_resort_allowed": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/allOf/2/then/properties/target_device_ids": "tristate",
+        "/$defs/peer_keypackages_claim_unsigned_request/allOf/4/then/properties/claim_purpose": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/claim_purpose": "required",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/claim_request_id": "required",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/expires_at": "required",
@@ -8601,9 +8643,11 @@
         "/$defs/peer_keypackages_claim_unsigned_request/properties/mls_group_id": "required",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/pair_key": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/requester_account_id": "optional",
+        "/$defs/peer_keypackages_claim_unsigned_request/properties/requester_actor_id": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/required_capabilities": "required",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/strand_id": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_account_id": "optional",
+        "/$defs/peer_keypackages_claim_unsigned_request/properties/target_actor_id": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_id": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_key_authorize_event_id": "optional",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_verification_method": "optional",
@@ -8640,6 +8684,12 @@
         "/$defs/requester_authorization/oneOf/1/properties/signature": "required",
         "/$defs/requester_authorization/oneOf/1/properties/signed_at": "required",
         "/$defs/requester_authorization/oneOf/1/properties/verification_method": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/device_authorize_event_id": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/kind": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/requester_device_id": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/signature": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/signed_at": "required",
+        "/$defs/requester_authorization/oneOf/2/properties/verification_method": "required",
         "/$defs/signature/properties/kid": "required",
         "/$defs/signature/properties/sig": "required",
         "/$defs/signature/properties/signature_algorithm": "optional"
@@ -8655,6 +8705,7 @@
         "/$defs/keypackages_claim_request_body/properties/pair_key",
         "/$defs/keypackages_claim_request_body/properties/strand_id",
         "/$defs/keypackages_claim_request_body/properties/target_account_id",
+        "/$defs/keypackages_claim_request_body/properties/target_actor_id",
         "/$defs/keypackages_claim_request_body/properties/target_agent_id",
         "/$defs/keypackages_claim_request_body/properties/target_agent_key_authorize_event_id",
         "/$defs/keypackages_claim_request_body/properties/target_agent_verification_method",
@@ -8663,6 +8714,7 @@
         "/$defs/keypackages_upload_request_body/properties/agent_verification_method",
         "/$defs/keypackages_upload_request_body/properties/device_id",
         "/$defs/keypackages_upload_request_body/properties/principal_id",
+        "/$defs/peer_keypackage_claim_receipt/properties/claim_authority_ref",
         "/$defs/peer_keypackages_claim_query_outcome/properties/claim_outcome",
         "/$defs/peer_keypackages_claim_query_outcome/properties/consume_receipt",
         "/$defs/peer_keypackages_claim_query_outcome/properties/error_code",
@@ -8671,6 +8723,7 @@
         "/$defs/peer_keypackages_claim_unsigned_request/properties/pair_key",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/strand_id",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_account_id",
+        "/$defs/peer_keypackages_claim_unsigned_request/properties/target_actor_id",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_id",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_key_authorize_event_id",
         "/$defs/peer_keypackages_claim_unsigned_request/properties/target_agent_verification_method",
@@ -9340,10 +9393,18 @@
         "/$defs/member_roster_read_request/properties/realm_id": "required",
         "/$defs/member_roster_read_request/properties/target_commit_event_ref": "required",
         "/$defs/member_roster_read_request/properties/target_epoch": "required",
+        "/$defs/mls_add_authority_attestation/allOf/0/else/properties/claim_receipt": "tristate",
+        "/$defs/mls_add_authority_attestation/allOf/0/else/properties/claim_receipt/properties/request": "optional",
+        "/$defs/mls_add_authority_attestation/allOf/0/if/properties/actor_id": "required",
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt": "tristate",
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt/properties/request": "tristate",
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint": "tristate",
+        "/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint/properties/kind": "optional",
         "/$defs/mls_add_authority_attestation/properties/actor_id": "required",
         "/$defs/mls_add_authority_attestation/properties/attested_at": "required",
         "/$defs/mls_add_authority_attestation/properties/attestor_station_id": "required",
         "/$defs/mls_add_authority_attestation/properties/authorization_event_ref": "required",
+        "/$defs/mls_add_authority_attestation/properties/claim_authority_ref": "optional",
         "/$defs/mls_add_authority_attestation/properties/claim_id": "required",
         "/$defs/mls_add_authority_attestation/properties/claim_receipt": "required",
         "/$defs/mls_add_authority_attestation/properties/claim_record_digest": "required",
@@ -9358,8 +9419,11 @@
         "/$defs/mls_add_authority_attestation/properties/realm_id": "required",
         "/$defs/mls_add_authority_attestation/properties/signature": "required",
         "/$defs/mls_add_authority_attestation/properties/welcome_id": "required",
+        "/$defs/roster_add_record/allOf/0/if/properties/attestation": "required_nullable",
+        "/$defs/roster_add_record/allOf/0/if/properties/attestation/properties/actor_id": "required",
         "/$defs/roster_add_record/properties/attestation": "required",
         "/$defs/roster_add_record/properties/attestor_resolution": "required",
+        "/$defs/roster_add_record/properties/claim_issuer_resolution": "optional",
         "/$defs/roster_add_record/properties/commit_event_ref": "required",
         "/$defs/roster_add_record/properties/consumed_proposal_ordinal": "required",
         "/$defs/roster_add_record/properties/kind": "required",
@@ -9407,7 +9471,11 @@
         "/$defs/self_roster_read_outcome/properties/add_signing_keys": "required",
         "/$defs/self_roster_read_outcome/properties/manifest_signing_key": "required",
         "/$defs/self_roster_read_outcome/properties/roster": "required"
-      }
+      },
+      "conditionally_required": [
+        "/$defs/mls_add_authority_attestation/properties/claim_authority_ref",
+        "/$defs/roster_add_record/properties/claim_issuer_resolution"
+      ]
     },
     "mls-welcome-delivery.schema.json": {
       "schema_ids": [

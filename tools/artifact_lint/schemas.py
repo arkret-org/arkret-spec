@@ -4236,13 +4236,14 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     expected_boundary_ids = {
         "human_or_organization_pcr_genesis",
         "agent_pcr_genesis",
-        "applet_ghost_pcr_genesis",
+        "applet_realm_actor_creation",
         "principal_resolution_record",
         "service_resolution",
         "did_method_evidence",
         "third_party_proof",
         "ordinary_identity_reference",
         "mls_roster_retained_attestor_history",
+        "mls_roster_retained_claim_issuer_history",
     }
     boundary_ids: set[str] = set()
     for index, row in enumerate(boundaries if isinstance(boundaries, list) else []):

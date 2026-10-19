@@ -304,6 +304,10 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 每个 MLS effective scope 属于其对应 Realm、Circle 或 Sidecar stream。`key_access_revision` 只由该 scope stream 上改变 current joined 成员集合的 membership Event 在同一事务加一；endpoint authorization 与 policy 变化不推进它，已撤销 endpoint 的发送由 send gate 同 cut 拒绝。encrypted application Event 的 epoch、group state ref 和 key-access revision 必须都等于 current，否则拒绝。
 
 Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-signed Welcome deliveries。治理 Station 在同一事务中提交 Commit、更新 public state、写本站 recipient queues 和 outbox；跨站 recipient 的 Welcome 写入指向其 routing service 的 outbox intent，随 Commit 的 committed-replication item 由成员站在同一 replica 事务按本地 claim ledger 复核入队；任一本站可判定的 Welcome 无效则零写入。Handoff 迁移 public tree、epoch、revision、claim 状态和 Welcome queues，但不迁移任何成员 private MLS state。
+Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，必须按
+[Realm actors §11](../extensions/realm-actors.md#11-mls-领取与跨治理交接续跑)
+分别验证原签名、两份历史方法、领取来源和同 Realm 连续交接；原件、claim／consume ledger、Welcome 绑定及结果
+全部实际导入后才可激活。management 私有导出及其现有双签加盐摘要覆盖这些域，不公开私态。
 
 ## Account Device signer fact commitment and transfer (Normative)
 

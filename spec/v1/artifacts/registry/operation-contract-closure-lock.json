@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-20.1",
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "version": "2026-10-20.3",
+  "generated_at": "2026-10-20T04:37:07+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -293,11 +293,11 @@
     },
     {
       "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:44e6479580fa3a564ee051676930aae00174b8eeeaa83578ef62c6373f8f96d5"
+      "sha256": "sha256:fffb7e5632d3fc0b3d066173ef8524a6d32a8db2b39049082ad41ffed1952c60"
     },
     {
       "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
-      "sha256": "sha256:de391762823179127591a109525c7ae312eb0f44d52175eb673c84419bdaf8e4"
+      "sha256": "sha256:a334fc4f48c75a8b9131723c5b093370f8cb7f2a453871be07c70f370a27099e"
     },
     {
       "operation_id": "ak.peer.keys.read.lookup.v1",
@@ -305,7 +305,7 @@
     },
     {
       "operation_id": "ak.peer.mls.command.attest_add.v1",
-      "sha256": "sha256:e8c5902b0cf9608c307e134a01bb5193e7b793f9075222c966db815c3a9532af"
+      "sha256": "sha256:eb452e5f04518a0b56b37fc8507d5e4501e036d6c6e57359da9025894f2ab39b"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
@@ -313,7 +313,7 @@
     },
     {
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
-      "sha256": "sha256:7f64de9081f087604ddb3be60eceb93c73b7287e34d063a85d68b82d65d167ca"
+      "sha256": "sha256:7fe3a93d572da1079209415afc87a3ba46da5bb7792df7bdf1a285c33c6072e5"
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
@@ -749,11 +749,11 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:c1ce67611e413e6b9dd58ee27f718c5c20fb39aaf3635fae1ed17260a43b7f48"
+      "sha256": "sha256:0e57b6681cefbe3fb54c544eae2d00624f5e4d05fb51fa42f0e0e23e95337b22"
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.consume.v1",
-      "sha256": "sha256:cfaaef75d975527a1d6e57d440835694a76058e7c7030cbf2a6e64fe98ec7d9d"
+      "sha256": "sha256:22680944d96136413e8aa322620f0cca550228226da356f015032cc35b23259c"
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
@@ -761,7 +761,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.read.claim.v1",
-      "sha256": "sha256:59e128452996f40d07a60d3591d8f2bd9f326cecbca8d370d3f1405e28ac3296"
+      "sha256": "sha256:0d202b28b6472cd0fe4de5688cfdd7956e0991b6b78b35f6e6816ec83975ba5f"
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",
@@ -805,7 +805,7 @@
     },
     {
       "operation_id": "ak.self.mls.read.roster_authority.v1",
-      "sha256": "sha256:591371331603556dc9b44f5a07188f21f8712354f6e20d32f125aa4947b0bb3f"
+      "sha256": "sha256:8a378ff02e4b1338128d25dfd1edc12e4ba41b55525f8298c08361bde3e47620"
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",

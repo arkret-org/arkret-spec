@@ -9591,7 +9591,7 @@
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, whose shared device_authorize_possession_core registers it as a signed member; those transcripts cover the authorization core plus the injected account_id and exclude every signature and digest member of this payload, so they are not an allOf of this payload. The accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
+          "description": "Exact actor-local accepted generation, bound by the signed control and Device CAS. Never inferred from a DID version, Station epoch or PCR."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -9604,7 +9604,7 @@
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id",
-          "description": "Required only for applet_managed_delegation and forbidden otherwise. Exact owning Applet from accepted provision provenance. Each new business use independently requires the current active installation at its actual effective_scope and its original signed scope/action pair; creation provenance is not a global installation fence."
+          "description": "Exact owning Applet from accepted Realm actor identity; every authorized business scope independently requires its current active installation and grant."
         },
         "expected_control_revision": {
           "$ref": "./typed-current-result.schema.json#/$defs/revision"

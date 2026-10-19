@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:17:05+08:00",
+  "generated_at": "2026-10-20T04:33:51+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -31,13 +31,13 @@
       "route_evidence": "accepted_agent_provision_and_initial_resolution"
     },
     {
-      "boundary_id": "applet_ghost_pcr_genesis",
+      "boundary_id": "applet_realm_actor_creation",
       "responsibility": "registration_genesis",
       "schema_ref": "schemas/event-envelope.schema.json",
-      "did_path": "payload.object.initial_resolution.did",
+      "did_path": "payload.initial_resolution.did",
       "did_requirement": "required",
-      "expected_core_path": "actor_id",
-      "route_evidence": "accepted_applet_managed_actor_provision"
+      "expected_core_path": "payload.actor_id.realm_actor_id.principal_id",
+      "route_evidence": "verified_creation_service_and_initial_resolution"
     },
     {
       "boundary_id": "principal_resolution_record",
@@ -97,6 +97,20 @@
         "governance_station",
         "independent_auditor"
       ]
+    },
+    {
+      "boundary_id": "mls_roster_retained_claim_issuer_history",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_add_record",
+      "did_path": "claim_issuer_resolution.normalized_did_document.did",
+      "did_requirement": "required",
+      "expected_core_path": "attestation.claim_receipt.destination_id",
+      "route_evidence": "authorized inline frozen closure only; no network request",
+      "verification_roles": [
+        "account_station",
+        "governance_station",
+        "independent_auditor"
+      ]
     }
   ],
   "metadata_authority": "contract_registry_section",
@@ -117,13 +131,14 @@
       },
       "account_station": {
         "method_history_verifier": true,
-        "history_source": "inline_frozen_attestor_resolution",
+        "history_source": "inline_frozen_attestor_resolution_and_realm_claim_issuer_resolution",
         "checks": [
           "governance_authority_generation_and_manifest",
           "dual_cut_scope_membership_history_policy",
           "method_native_history_and_station_role_core",
           "assertion_method_at_claimed_at_and_attested_at",
-          "original_recipient_signatures"
+          "original_recipient_signatures",
+          "realm_claim_authority_and_add_authority_same_realm_verified_succession"
         ],
         "output": "self_roster_read_outcome",
         "failure_code": "revision_unavailable"
@@ -153,6 +168,13 @@
       "requires_client_prejoin_genesis_or_complete_current_baseline": false,
       "manifest_governance_and_head_source": "authenticated_own_station_authorized_original_signed_manifest",
       "conflicting_or_missing_authorized_provenance": "revision_unavailable"
+    },
+    "realm_actor_claim_handoff": {
+      "claim_key_core": "claim_receipt.destination_id",
+      "attestation_key_core": "attestation.attestor_station_id",
+      "same_issuer_required": false,
+      "authority_check": "verified_same_realm_chain_and_frozen_original_claim_authority_ref",
+      "private_ledger_disclosure": false
     }
   },
   "governance_result_consumption_contract": {

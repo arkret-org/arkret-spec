@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-20",
-  "generated_at": "2026-10-20T00:02:42+08:00",
+  "version": "2026-10-20.1",
+  "generated_at": "2026-10-20T04:33:51+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3367,13 +3367,14 @@
       },
       "mls_roster_verification": {
         "method_history_verifier": true,
-        "history_source": "inline_frozen_attestor_resolution",
+        "history_source": "inline_frozen_attestor_resolution_and_realm_claim_issuer_resolution",
         "checks": [
           "governance_authority_generation_and_manifest",
           "dual_cut_scope_membership_history_policy",
           "method_native_history_and_station_role_core",
           "assertion_method_at_claimed_at_and_attested_at",
-          "original_recipient_signatures"
+          "original_recipient_signatures",
+          "realm_claim_authority_and_add_authority_same_realm_verified_succession"
         ],
         "output": "self_roster_read_outcome",
         "failure_code": "revision_unavailable"

@@ -5056,6 +5056,16 @@
       ]
     },
     {
+      "schema_path": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/2/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "keys-operations.schema.json#/$defs/account_device_algorithm_entries/items/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",

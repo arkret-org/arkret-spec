@@ -448,3 +448,110 @@ recovery.set 将 enabled 设为相同值的新 Event 以 failed_precondition 拒
 | 缺发布、必需 witness、确切依赖或 MLS 安全收尾 | dependency_missing |
 
 验收必须覆盖 KR-1～KR-12：完整身份、native真实签验与错误commitment、key职责、持续权限、字段签名、prepare原子性、发布崩溃续跑、撤销竞态、Device／MLS门、原生管理交接、治理交接实际库存、隐私及普通账号范围。参考模型不替代生产事务或真实多站联调。
+
+## 11. MLS 领取与跨治理交接续跑
+
+本节只补充 Realm Bot／Ghost 的 Device 分支。普通 Account／Agent 的账号所属 Station、领取／入群证明
+与 consume 规则保持原合同。本节是 device-lifecycle §9、encryption-and-audit §2.2 中固定账号 Station
+规则的明确 Realm actor 分支；不能把“固定账号站”检查直接应用到 Realm actor，也不能全局删除该检查。
+
+### 11.1 完整领取身份与原生授权
+
+`keypackages_claim_request_body` 与 `peer_keypackages_claim_unsigned_request` 的 Realm target
+使用 `target_actor_id`（完整 realm ActorId）与非空 `target_device_ids`；与 Account／Agent target
+严格互斥。Realm requester 使用 `requester_actor_id`，其 `requester_authorization.kind=realm_device`，
+仍携真实 requester_device_id、device_authorize_event_id、verification_method、signed_at 与 signature。
+不得携 requester_account_id 或 Agent 身份；完整 ActorId 位于原 unsigned request 中，不能只签裸 principal。
+Account Device 与 Agent 原分支不得携 Realm 身份字段；缺身份或混合分支必须拒绝。
+
+任一端为 Realm actor 时，claim_purpose 必须是 realm_membership；所属 RealmId 必须等于
+intended_realm_id，实际 group／effective scope 只可为该 Realm 或其获准 Circle。禁止个人 PCR、
+DirectConversation、Sidecar 和 realm_control。原 requester 签名与服务请求签名覆盖完整 closed 请求及
+现有 service_binding；新增字段不得从签名投影、request digest、幂等或限速键中排除。双方继续核真实
+Device key、授权实例、generation、双 gate、manager、当前安装／grant、成员／邀请条件与 Policy。
+同 Realm 并不自动授予读取、领取或加入权限。
+
+Realm target 的领取 CAS 权威是该 Realm 当时的 current governor。它在领取成功事务中从已验证治理状态
+派生 `claim_authority_ref`，写入原 `peer_keypackage_claim_receipt` 并纳入现有 receipt 签名。
+该引用复用 RealmCommit.authority_ref 类型，不由 requester 自报；必须能通过原 governance genesis／change
+和连续 handoff 证明在 claimed_at 确实由 receipt.destination_id 治理该 Realm。Account／Agent target 的
+receipt 不携该字段。首次领取必须将 exact request、receipt、claim records、当时的完整已验签发 Station
+方法历史与原治理来源同时耐久保存；只保存一个 authority ID 或未签名 verified 标记不够。
+
+### 11.2 分别验证领取与入群证明
+
+Realm actor 的 Add 仍由有权 MLS 参与方生成并签署，治理 Station 不取得成员 secret 或代签。
+实际接受该 Add 的治理 Station 在原接受事务内核验 exact claim、原 receipt、授权实例、public MLS
+transition 和全部 Welcome，原子生成 `mls_add_authority_attestation`。其 attestor_station_id 必须是
+该 accepted Add Commit 的治理权威；新增受签的 claim_authority_ref 必须逐字等于原 claim receipt 的字段。
+不能由当下治理方重写领取日期、领取权威或原回执，也不能用当前允许代替 Add 接纳时的历史依据。
+
+realm 分支的 `roster_add_record` 必须分别保留：
+
+- `claim_issuer_resolution`：原领取时完整验证并冻结的 Station 方法历史，service_id 等于
+  claim_receipt.destination_id，在 claimed_at 验原领取回执。
+- `attestor_resolution`：Add attestation 签发时完整验证并冻结的 Station 方法历史，service_id 等于
+  attestation.attestor_station_id，在 attested_at 验原入群证明。
+
+两者即使同站也分别绑定其职责；正常 key 轮换不能以今日 DID key 替换原历史方法。Account／Agent
+record 仍只携 attestor_resolution，按固定 Station 合同验证双签；不得携 Realm 专用 claim_issuer_resolution
+或 claim_authority_ref。所有实际存在的 record 字段均进入原 ordered records_digest 和 manifest 签名。
+
+领取方与 Add 接受方不同，必须属于**同 Realm 已验证的连续治理历史**：原领取 ref 与 claimed_at 对应
+旧治理方；Add Commit 的 authority_ref／原签名与接受截点对应新治理方。治理方、own Station 和获准审计方
+必须验证原 authority bundle／完整交接链及 exact Add 来源，缺失／分叉／错误 Realm／时点不符均拒绝。
+新治理方还必须在激活前实际导入完整私有 claim ledger，接受 Add 时锁内核 exact claim 尚有效且未被消费、
+取消或绑定别的 Welcome。只验两份 Station 签名、只比较 ID、只持交接摘要，均不能代替这些检查。
+相同签发 Station 也必须检查原领取与 Add 的治理来源，不能靠 core 相等忽略中间换任或原件冲突。
+
+原领取完整历史随同私态交接，不能要求已退出的旧站在交接后再次在线签发新证明。受权 roster read 仅披露
+该 record 的必要历史 closure；不披露完整 claim batch、私有移交 manifest、nonce、其它主体库存或私钥。
+原 authority bundle 的签名承诺和来源验证不因此获得普通私态读取权。
+
+普通客户端仍从已绑定的自己 Station（Realm Device 为当前已验证治理站）的认证 self 结果消费
+claim_receipt_signing_key 与 attestation_signing_key，分别将原 kid 的无网络 core 投影绑定到
+claim_receipt.destination_id 与 attestation.attestor_station_id；不能再要求 realm 分支两个 core 相同。
+两份历史签名、完整记录摘要、原请求 selector、Add Proposal／完整 ActorId／Device／leaf key 和 RFC MLS
+验证仍全部独立执行。客户端不执行方法历史 verifier，也不因本合同接受第三方自报公钥；Station 必须先完成
+上述历史治理验证。缺证时整份受权 roster 为 revision_unavailable，不能只返回容易验证的记录。
+
+已有 2 MiB peer／完整 self 页双预算、每页最多8条与不能拆单条 record 的规则保持；计算边界必须包含
+两份实际 closure、实际签名、所有引用及公钥投影。单条超限仍整体 revision_unavailable，不截断历史、
+不跳项或引入由 kid 猜路由的网络补证。realm record 的新增字段不得绕过 records_digest。
+
+### 11.3 Consume、未知结果与连续交接
+
+claim 接受后响应丢失时，继续使用原 peer claims/query 的 claim_request_id 与 request_digest 精确恢复。
+若 Realm target 的目的站已经交接，请求发往当前治理方；若 Realm requester 的来源站也已交接，当前来源
+治理方可凭该 original request 的完整 requester_actor_id、同 Realm 连续治理链及自己的实际导入请求账本
+恢复结果。接收方从已移交的原请求核该资格；不能仅凭新 source 身份、相同 request_id 或相同 AppletId 放行。
+原 source_id／destination_id／参与者签名／request digest 保持原字节，查询采用当前传输认证；这只恢复
+已登记的精确结果，不允许旧 destination 的未知原请求在新站作为 fresh claim 执行。未知仍返回 unknown，
+不得伪造 never_claimed、把未到期意图重造为新领取或凭过期 HTTP 凭据继续请求。
+
+Realm recipient 的 durable receipt 中 `recipient_id` 固定等于该 claim 原 receipt.destination_id，
+表示历史领取权威；完整 recipient_actor_id 和 Device／authorization／claim／Welcome 绑定照旧。
+它不是 HTTP 目的地。新的 consume 请求及结果恢复直达已验证当前治理 Station，以新鲜凭据按现有
+HTTP 场景认证；不得为了适配新路由改写已经签署的 payload、请求摘要、claim_id 或旧回执。
+Account／Agent 的 recipient_id 仍按原固定 Station 合同。
+
+新治理方在同一接受事务核实际导入的原 claim、Welcome digest／binding、Device、当前 generation／撤销、
+Realm scope、授权、claim 期限与未终结状态。未接受的请求不得因交接延长期限或免除当前权限；
+已接受 exact consume 重试先核当前认证和披露权，再返回原首次 consume receipt 字节，不再次消费、
+不重签原结果、不从当前投影补造过去成功。响应丢失不等于未执行，不能换 claim 或换请求来猜测结果。
+新签发 consume receipt 由实际当前治理方签署，历史 recipient_id 仍指原 claim issuer。
+
+已接受 Add／attestation／Welcome 在交接中保持原件；后继 governor 不重新接受历史 Add。
+原 claim receipt、unsigned request、原历史方法、领取治理来源、未终结和终结 ledger、accepted Add／
+attestation、Welcome 绑定、queue／ACK／cursor 与 consume 原结果都必须在同一冻结 cut 纳入实际导出、
+导入与重新导出比对。management_private_state 的私有 canonical 导出包括这些域，即使某域为空也要
+可验证；其现有加盐摘要由双签 handoff 覆盖，不新增公开库存面。
+
+旧站冻结后不能接受新的 claim／Add／consume；新站实际完整导入并激活前不能接受。未迁入原件／
+方法历史／ledger、重复消费、缺 Welcome 绑定、原权限失效或与当前 scope 不符均零效果拒绝。
+多次交接保留原领取权威及全部连续交接证明，不把最近旧站冒充原签发者。治理转移本身不增删 MLS leaf、
+不撤销合法 Device、不自动重新领取，不改变主体身份，也不豁免独立 MLS 安全收尾门。
+
+具名验收为 RA-CLAIM-1 和 RA-HANDOFF-1～6：完整身份正反例、旧 claim／新 Add、已接受 Add 的后继读取、
+consume 未知结果精确恢复、错误链／缺库存／过期／撤销零效果、连续交接与冻结竞态、普通账号回归及隐私预算。
+schema／真实双签 KAT／参考状态机分别报告，不算真实数据库或双站生产联调通过。

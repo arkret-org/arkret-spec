@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.3",
+  "version": "2026-10-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "generated_at": "2026-10-20T04:55:02+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -219,7 +219,8 @@
       {
         "operation_id": "ak.self.realm_actor.read.material.v1",
         "mode": "device_control",
-        "actions": []
+        "actions": [],
+        "control_rule": "own_exact_device_authorization_material_read"
       }
     ]
   },

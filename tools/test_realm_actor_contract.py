@@ -5,6 +5,7 @@ import json
 import unittest
 
 from tools.artifact_lint import core
+from tools.test_realm_actor_mls_contract import RealmActorMlsTests
 from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, actor, canonical, committed, digest, signature_fixture, token, verify, native_recovery_fixture, verify_native_recovery, native_verify
 
 

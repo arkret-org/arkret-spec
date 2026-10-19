@@ -66,7 +66,7 @@
     },
     "mls_add_authority_attestation": {
       "type": "object",
-      "description": "Signed by the exact recipient Account Station after the accepted Commit and Welcome have been verified in its replica transaction. The original claim outcome may then expire; this immutable attestation remains replayable until governance installation is acknowledged.",
+      "description": "For Account/Agent recipients, signed by the owning Account Station. For Realm actors, signed by the governance Station that actually accepts the Add; claim_authority_ref equals the original receipt's signed claim authority. Different claim and Add issuers require verified same-Realm authority succession and complete exact ledger import.",
       "required": [
         "attestor_station_id",
         "realm_id",
@@ -138,6 +138,9 @@
         "claim_receipt": {
           "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt"
         },
+        "claim_authority_ref": {
+          "$ref": "./realm-commit.schema.json#/properties/authority_ref"
+        },
         "attested_at": {
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
         },
@@ -145,7 +148,71 @@
           "$ref": "./keypackage-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+              }
+            },
+            "required": [
+              "actor_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "claim_authority_ref"
+            ],
+            "properties": {
+              "endpoint": {
+                "properties": {
+                  "kind": {
+                    "const": "device"
+                  }
+                }
+              },
+              "claim_receipt": {
+                "required": [
+                  "claim_authority_ref"
+                ],
+                "properties": {
+                  "request": {
+                    "required": [
+                      "target_actor_id"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_authority_ref"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "claim_receipt": {
+                "properties": {
+                  "request": {
+                    "not": {
+                      "required": [
+                        "target_actor_id"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "attest_add_request": {
       "type": "object",
@@ -331,12 +398,53 @@
         "attestation": {
           "$ref": "#/$defs/mls_add_authority_attestation"
         },
+        "claim_issuer_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+          "description": "Required only for Realm actor Add records, even when both issuers are equal. Immutable complete Station method history frozen from the actual claim; service_id equals claim_receipt.destination_id and validates its signature at claimed_at. Not a current route."
+        },
         "attestor_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution",
-          "description": "Complete method-native Station history verified and durably frozen with this exact Add attestation. Its service_id must equal attestation.attestor_station_id and its historical assertion methods must verify both the original claim receipt and the Add attestation. This evidence is not a current delivery route."
+          "description": "Immutable complete Station method history frozen with the Add. service_id equals attestation.attestor_station_id and validates its signature at attested_at. Account/Agent also verifies the same Station claim signature using this closure; Realm actor uses its separate claim_issuer_resolution. Not a current route."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "attestation": {
+                "properties": {
+                  "actor_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                  }
+                },
+                "required": [
+                  "actor_id"
+                ]
+              }
+            },
+            "required": [
+              "attestation"
+            ]
+          },
+          "then": {
+            "required": [
+              "claim_issuer_resolution"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_issuer_resolution"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "roster_record": {
       "oneOf": [

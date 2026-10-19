@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.5",
+  "version": "2026-10-20.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T16:48:01+08:00",
+  "generated_at": "2026-10-20T00:31:37+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2874,7 +2874,9 @@
         "properties": [
           "claim_request_id",
           "target_account_id",
+          "target_actor_id",
           "requester_account_id",
+          "requester_actor_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",
@@ -7407,7 +7409,9 @@
         "properties": [
           "claim_request_id",
           "target_account_id",
+          "target_actor_id",
           "requester_account_id",
+          "requester_actor_id",
           "intended_realm_id",
           "mls_group_id",
           "claim_purpose",

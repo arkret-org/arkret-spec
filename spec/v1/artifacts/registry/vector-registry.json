@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-20T04:37:07+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5317,7 +5317,7 @@
       "applies_to_fixtures": [
         "realm-actor-signature-kat-fixture.json"
       ],
-      "description": "ak.realm.actor.create, ak.realm.actor.control.update, ak.realm.actor.status.set, ak.realm.actor.devices.reset, ak.realm.actor.manager.change, ak.realm.actor.recovery.begin, ak.realm.actor.control.reset and ak.realm.actor.recovery.set: closed schemas, five detached-signature KATs, bounded real native SCID/hash/pre-rotation/proof/witness verification, typed CAS, dual gates, same-identity recovery with prepare/finish fences and revocation/supersession, native management transfer and complete private handoff reference model. No production SUT, network resolver or database transaction claim.",
+      "description": "ak.realm.actor.create, ak.realm.actor.control.update, ak.realm.actor.status.set, ak.realm.actor.devices.reset, ak.realm.actor.manager.change, ak.realm.actor.recovery.begin, ak.realm.actor.control.reset and ak.realm.actor.recovery.set: closed schemas, five detached-signature KATs, bounded real native SCID/hash/pre-rotation/proof/witness verification, typed CAS, dual gates, same-identity recovery with prepare/finish fences and revocation/supersession, native management transfer and complete private handoff reference model. No production SUT, network resolver or database transaction claim. Realm claim/requester closed branches, two distinct Station signature KATs and immutable claim/consume continuation ledger model; real authority-chain and multistation acceptance remain named implementation obligations.",
       "source_refs": [
         "spec/v1/zh/extensions/realm-actors.md",
         "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"

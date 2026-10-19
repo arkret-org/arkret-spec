@@ -154,6 +154,11 @@ Commit Event 的 `actor_id`；Add 的目标 ActorId 和 leaf signature key 必�
 Event ref 和 ordinal 构成新 provenance。PSK 无 leaf target，不得为它伪造目标。以上冻结与
 Event／RealmCommit／public group current 在同一接纳事务完成；拒绝时四者均不写入。
 
+**Realm actor 的明确分支（normative）**：本节下列 Account Station、同一签发站与单份 attestor_resolution
+规则适用于 Account／Agent。Realm Bot／Ghost 按 [Realm actors §11](../extensions/realm-actors.md#11-mls-领取与跨治理交接续跑)
+分别验证 claim_issuer_resolution 与 attestor_resolution、原领取 authority ref、Add 的实际治理权威及合法连续交接；
+完整原件和私有 ledger 未实际导入不得续跑。普通客户端仍验证两份精确历史公钥和原双签，不执行方法历史验证。
+
 **Welcome 后的完整 leaf authority 取证（normative）**：接收方不得用 RFC `BasicCredential.identity`、leaf
 位置或自己的 KeyPackage claim 推断其它已占用 leaf 的 endpoint 授权。治理 Station 在原 accepted Commit
 事务冻结每条 Add 的 consumed Proposal、目标 ActorId、leaf signature key 与 Commit 坐标；这不改变跨站
@@ -190,7 +195,7 @@ attestation 在同一持久事务冻结。`roster_add_record.attestor_resolution
 `service_id` MUST 等于 `attestation.attestor_station_id`，`service_kind` MUST 为 `station`。
 首次取证不得从裸 `attestor_station_id` 或签名 `kid` 的 DID 托管域猜测 Station URL；`kid` 只选历史
 verification method，不授予当前服务路由。已冻结 resolution 是历史验签材料，MUST NOT 被客户端当作
-当前业务投递 endpoint。治理 Station 对每条 Add 在受权 roster read 中原样返回该 closure，并与 Add
+当前业务投递 endpoint。治理 Station 对每条 Add 在受权 roster read 中原样返回对应 closure（Realm actor 还含独立 claim_issuer_resolution），并与 Add
 attestation 保留至同一历史 cut 不再可读；重放同一 attestation 不得替换旧 closure，缺失、损坏、
 历史方法或任一原签名无效时整份 roster `revision_unavailable`。
 
@@ -283,7 +288,8 @@ SHA-256，两个 key 分别在原 `claimed_at` 与 `attested_at` 选取，verifi
 对应原签名的 `kid`，且同 core 的 Station 在对应时点拥有 `assertionMethod`。Genesis 没有 Add
 key row；缺项、重复、额外 key row 或不同记录绑定 MUST 拒绝。客户端还 MUST 对原 kid
 做无网络的注册 adapter 投影，逐字匹配 manifest 的 governance_station_id 或 attestation 的
-attestor_station_id，并核对 receipt.destination_id 与该 attestor 相同；该确定性标识投影不是
+attestor_station_id；Account／Agent 再核 receipt.destination_id 与该 attestor 相同，Realm actor 的 claim key
+则独立绑定原 receipt.destination_id，并由本站预先验证同 Realm 的领取来源及治理交接；该确定性标识投影不是
 方法历史验证。公钥可以因历史轮换而不同。
 
 客户端 MUST 只从持久接纳的自己 Station 认证会话取得该 self 结果，并核对完整 AccountId／

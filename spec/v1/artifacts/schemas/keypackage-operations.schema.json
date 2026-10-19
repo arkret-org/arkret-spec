@@ -253,7 +253,7 @@
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Complete KeyPackage holder ActorId. Its account principal MUST equal principal_id, and its exact RFC 8785/JCS UTF-8 bytes MUST equal the BasicCredential identity in keypackage."
+          "description": "Complete holder ActorId; exact RFC 8785/JCS UTF-8 bytes equal the KeyPackage BasicCredential. Realm actor is bound to its owning Realm."
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -301,7 +301,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists. actor_id is the authoritative complete holder identity and is preserved byte-for-byte through the BasicCredential and Welcome delivery; principal_id remains only the branch selector projection and MUST equal actor_id.account_id.principal_id.",
+      "description": "Complete holder identity is actor_id. Account/Agent retains its principal projection. Realm actor carries only its full RealmActorId and Device authorization; no principal mirror or Account fallback.",
       "allOf": [
         {
           "if": {
@@ -519,7 +519,7 @@
       "additionalProperties": false
     },
     "requester_authorization": {
-      "description": "Closed human-device or Agent detached authorization by the requesting participant.",
+      "description": "Closed Account Device, Realm actor Device or Agent authorization. Full Realm requester identity is signed in requester_actor_id on the unsigned request, never a parallel principal mirror.",
       "oneOf": [
         {
           "type": "object",
@@ -584,6 +584,38 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "verification_method",
+            "requester_device_id",
+            "device_authorize_event_id",
+            "signed_at",
+            "signature"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_device"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "requester_device_id": {
+              "$ref": "#/$defs/device_id"
+            },
+            "device_authorize_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "signed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "signature": {
+              "$ref": "#/$defs/signature"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -607,9 +639,15 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent targets."
         },
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
         "requester_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent requesters."
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -718,7 +756,20 @@
                     ]
                   }
                 ]
-              }
+              },
+              "allOf": [
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "target_actor_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             },
             {
               "required": [
@@ -736,6 +787,49 @@
                   {
                     "required": [
                       "target_device_ids"
+                    ]
+                  }
+                ]
+              },
+              "allOf": [
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "target_actor_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "required": [
+                "target_actor_id",
+                "target_device_ids"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
                     ]
                   }
                 ]
@@ -757,6 +851,51 @@
               "last_resort_allowed": {
                 "const": false
               }
+            }
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "requester_account_id",
+              "requester_actor_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "required": [
+                  "target_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "requester_actor_id"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "claim_purpose": {
+                "const": "realm_membership"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "strand_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "pair_key"
+                  ]
+                }
+              ]
             }
           }
         }
@@ -802,9 +941,15 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent targets."
         },
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
         "requester_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent requesters."
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -919,7 +1064,20 @@
                     ]
                   }
                 ]
-              }
+              },
+              "allOf": [
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "target_actor_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             },
             {
               "required": [
@@ -937,6 +1095,49 @@
                   {
                     "required": [
                       "target_device_ids"
+                    ]
+                  }
+                ]
+              },
+              "allOf": [
+                {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "target_actor_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "required": [
+                "target_actor_id",
+                "target_device_ids"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_verification_method"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "target_agent_key_authorize_event_id"
                     ]
                   }
                 ]
@@ -960,36 +1161,128 @@
               }
             }
           }
+        },
+        {
+          "not": {
+            "required": [
+              "requester_account_id",
+              "requester_actor_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "required": [
+                  "target_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "requester_actor_id"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "claim_purpose": {
+                "const": "realm_membership"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "strand_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "pair_key"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ],
       "dependentSchemas": {
         "requester_authorization": {
-          "if": {
-            "properties": {
-              "requester_authorization": {
-                "properties": {
-                  "kind": {
-                    "const": "device"
+          "oneOf": [
+            {
+              "properties": {
+                "requester_authorization": {
+                  "properties": {
+                    "kind": {
+                      "const": "device"
+                    }
                   }
-                },
-                "required": [
-                  "kind"
+                }
+              },
+              "required": [
+                "requester_account_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "requester_actor_id"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "requester_authorization": {
+                  "properties": {
+                    "kind": {
+                      "const": "realm_device"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "requester_actor_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "requester_account_id"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "requester_authorization": {
+                  "properties": {
+                    "kind": {
+                      "const": "agent"
+                    }
+                  }
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "requester_account_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "requester_actor_id"
+                    ]
+                  }
                 ]
               }
             }
-          },
-          "then": {
-            "required": [
-              "requester_account_id"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "requester_account_id"
-              ]
-            }
-          }
+          ]
         }
       },
       "additionalProperties": false
@@ -1025,6 +1318,9 @@
         "destination_id": {
           "$ref": "#/$defs/did_core_id"
         },
+        "claim_authority_ref": {
+          "$ref": "./realm-commit.schema.json#/properties/authority_ref"
+        },
         "request": {
           "$ref": "#/$defs/peer_keypackages_claim_unsigned_request",
           "description": "The exact participant-authorized unsigned request fields. Together with request_digest, this lets the destination bind a later Welcome and Direct Conversation binding to the durable claim without trusting source-service assertions."
@@ -1040,7 +1336,44 @@
         }
       },
       "additionalProperties": false,
-      "description": "Destination-service-signed durable receipt. source_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization."
+      "description": "Destination-service-signed durable receipt. source_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization. Realm target receipts additionally sign claim_authority_ref from the actual claim acceptance cut; it must resolve to destination_id as that Realm's authority at claimed_at. Originals remain immutable across governance handoff.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "request": {
+                "properties": {
+                  "target_actor_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                  }
+                },
+                "required": [
+                  "target_actor_id"
+                ]
+              }
+            },
+            "required": [
+              "request"
+            ]
+          },
+          "then": {
+            "required": [
+              "claim_authority_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_authority_ref"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "keypackage_claim_terminal_receipt": {
       "type": "object",
@@ -1503,7 +1836,8 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "recipient_id": {
-          "$ref": "#/$defs/did_core_id"
+          "$ref": "#/$defs/did_core_id",
+          "description": "For a Realm actor recipient, the original claim_receipt.destination_id (historical claim issuer), preserved across handoff and never used as the current HTTP route. Account/Agent retains its owning Station rule."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1534,7 +1868,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device carries recipient_account_id plus device evidence; Agent carries recipient_agent_id plus current authorization. Neither branch carries a parallel principal mirror.",
+      "description": "Recipient signs every field except signature after durable MLS installation. Closed XOR of Account Device, Agent, or Realm actor Device. Realm recipient_id binds the original claim issuer; the current governor consumes only a completely imported exact claim ledger.",
       "x-arkret-signature-domain": "ak.mls.recipient_durable_receipt.v1"
     },
     "keypackage_consume_receipt": {
