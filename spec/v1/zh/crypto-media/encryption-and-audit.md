@@ -34,7 +34,7 @@ signature；失败只返回不泄露库存细节的 `claim_failed`。
 尝试多个 suite 后择一通过，也 MUST NOT 在本地把外部 suite 标识改写成登记值。
 
 recipient endpoint 与 KeyPackage 的持有者身份是**完整 ActorId**：account 分支携带包含 `station_id` 的
-AccountId，service 分支携带 `service_id`。claim、Welcome delivery 与 leaf credential MUST 逐字保留该完整身份，
+AccountId，service 分支携带 `service_id`，realm 分支携带完整 RealmActorId。claim、Welcome delivery 与 leaf credential MUST 逐字保留该完整身份，
 MUST NOT 折叠为签名 principal、裸 DID、device id 或 handle。RFC 9420 `BasicCredential.identity` 的 v1
 字节合同唯一固定为 `UTF8(RFC8785_JCS(actor_id))`，其中 `actor_id` 必须是
 [`common-ids.schema.json#/$defs/actor_id`](../../artifacts/schemas/common-ids.schema.json) 的闭合实例；不得改用

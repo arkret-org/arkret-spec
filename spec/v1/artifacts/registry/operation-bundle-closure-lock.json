@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.2",
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "version": "2026-10-19.4",
+  "generated_at": "2026-10-19T16:48:02+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -103,11 +103,11 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.applet_ghost.v1",
-      "sha256": "sha256:0447d176a867f36f55ab22a26c4cc80bc29752b67eb2ad01c60125472f3969eb"
+      "sha256": "sha256:09401c4e0c1b3b7a44595a2172297806efce02920d2b7650d53b13fc771f0ae6"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
-      "sha256": "sha256:8bd6b6c633959fad03229d144f5813a6ea3a41d02ce3a8f9cc1330e6f2ad9891"
+      "sha256": "sha256:85e74c13c15ba8550ae57a6118eda0dfa076ba1282439991150f35a99659e8be"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.describe.v1",

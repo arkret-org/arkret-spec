@@ -1,0 +1,494 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-actor.schema.json",
+  "title": "Arkret Realm Actor Control",
+  "$defs": {
+    "ghost_external_tuple": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "instance_id",
+        "external_id"
+      ],
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "instance_id": {
+          "allOf": [
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "external_id": {
+          "allOf": [
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_scope": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_control"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "create_payload": {
+      "type": "object",
+      "required": [
+        "schema",
+        "actor_id",
+        "applet_id",
+        "service_id",
+        "actor_role",
+        "request_id",
+        "creation_scope",
+        "registration_ref",
+        "creation_authorization_ref",
+        "initial_resolution",
+        "method_history_evidence",
+        "control_method_kid",
+        "expires_at",
+        "control_signature"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.realm_actor_create.v1"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_role": {
+          "enum": [
+            "bot",
+            "ghost"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "creation_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "creation_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "initial_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/ghost_external_tuple"
+        },
+        "control_signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_creation_signature"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_role": {
+                "const": "ghost"
+              }
+            },
+            "required": [
+              "actor_role"
+            ]
+          },
+          "then": {
+            "required": [
+              "external_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "external_ref"
+              ]
+            }
+          }
+        }
+      ],
+      "x-arkret-signature-domain": "ak.realm_actor_creation_signature.v1"
+    },
+    "creation_transcript": {
+      "type": "object",
+      "required": [
+        "schema",
+        "actor_id",
+        "applet_id",
+        "service_id",
+        "actor_role",
+        "request_id",
+        "creation_scope",
+        "registration_ref",
+        "creation_authorization_ref",
+        "initial_resolution",
+        "method_history_evidence",
+        "control_method_kid",
+        "expires_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.realm_actor_create.v1"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_role": {
+          "enum": [
+            "bot",
+            "ghost"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "creation_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "creation_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "initial_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/ghost_external_tuple"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_role": {
+                "const": "ghost"
+              }
+            },
+            "required": [
+              "actor_role"
+            ]
+          },
+          "then": {
+            "required": [
+              "external_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "external_ref"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "control_update_payload": {
+      "type": "object",
+      "required": [
+        "expected_revision",
+        "next_resolution",
+        "method_history_evidence",
+        "next_control_method_kid",
+        "next_method_signature"
+      ],
+      "properties": {
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "next_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "next_control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "next_method_signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_control_acceptance_signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_acceptance_transcript": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "expected_revision",
+        "next_resolution",
+        "method_history_evidence",
+        "next_control_method_kid"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "next_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "next_control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.realm_actor_control_acceptance_signature.v1"
+    },
+    "status_set_payload": {
+      "type": "object",
+      "required": [
+        "target_actor_id",
+        "gate",
+        "expected_revision",
+        "state"
+      ],
+      "properties": {
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "gate": {
+          "enum": [
+            "governance",
+            "owner"
+          ]
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "state": {
+          "enum": [
+            "active",
+            "paused",
+            "retired"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "devices_reset_payload": {
+      "type": "object",
+      "required": [
+        "expected_revision",
+        "expected_generation",
+        "new_generation"
+      ],
+      "properties": {
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_generation": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "manager_change_payload": {
+      "type": "object",
+      "required": [
+        "expected_manager_revision",
+        "expected_control_revision",
+        "expected_device_generation_revision",
+        "expected_generation",
+        "new_generation",
+        "new_service_id",
+        "new_registration_ref",
+        "management_authorization_ref",
+        "new_service_signature"
+      ],
+      "properties": {
+        "expected_manager_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_generation_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "new_registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "management_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "new_service_signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_manager_acceptance_signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "manager_acceptance_transcript": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "applet_id",
+        "expected_manager_revision",
+        "expected_control_revision",
+        "expected_device_generation_revision",
+        "expected_generation",
+        "new_generation",
+        "new_service_id",
+        "new_registration_ref",
+        "management_authorization_ref"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "expected_manager_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_generation_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "new_registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "management_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.realm_actor_manager_acceptance_signature.v1"
+    },
+    "control_http_metadata": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "control_ref",
+        "nonce"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "control_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resource": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/$defs/create_payload"
+}

@@ -223,6 +223,9 @@
         },
         {
           "$ref": "#/$defs/current_agent_selector"
+        },
+        {
+          "$ref": "#/$defs/current_realm_device_selector"
         }
       ]
     },
@@ -236,6 +239,9 @@
         },
         {
           "$ref": "#/$defs/historical_service_selector"
+        },
+        {
+          "$ref": "#/$defs/historical_realm_device_selector"
         }
       ]
     },
@@ -254,7 +260,6 @@
       "required": [
         "request_id",
         "realm_id",
-        "recipient_account_id",
         "queries"
       ],
       "properties": {
@@ -275,10 +280,35 @@
           "items": {
             "$ref": "#/$defs/query_selector"
           }
+        },
+        "recipient_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 65536
+      "x-arkret-max-canonical-bytes": 65536,
+      "oneOf": [
+        {
+          "required": [
+            "recipient_account_id"
+          ],
+          "not": {
+            "required": [
+              "recipient_actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "recipient_actor_id"
+          ],
+          "not": {
+            "required": [
+              "recipient_account_id"
+            ]
+          }
+        }
+      ]
     },
     "current_outcome": {
       "oneOf": [
@@ -323,6 +353,26 @@
           },
           "additionalProperties": false,
           "x-arkret-max-canonical-bytes": 16384
+        },
+        {
+          "type": "object",
+          "required": [
+            "selector",
+            "status",
+            "key"
+          ],
+          "properties": {
+            "selector": {
+              "$ref": "#/$defs/current_realm_device_selector"
+            },
+            "status": {
+              "const": "resolved"
+            },
+            "key": {
+              "$ref": "#/$defs/current_device_signing_key"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -400,7 +450,6 @@
       "required": [
         "request_id",
         "realm_id",
-        "recipient_account_id",
         "results"
       ],
       "properties": {
@@ -434,13 +483,41 @@
               },
               {
                 "$ref": "#/$defs/historical_service_outcome"
+              },
+              {
+                "$ref": "#/$defs/historical_realm_device_outcome"
               }
             ]
           }
+        },
+        "recipient_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 1048576
+      "x-arkret-max-canonical-bytes": 1048576,
+      "oneOf": [
+        {
+          "required": [
+            "recipient_account_id"
+          ],
+          "not": {
+            "required": [
+              "recipient_actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "recipient_actor_id"
+          ],
+          "not": {
+            "required": [
+              "recipient_account_id"
+            ]
+          }
+        }
+      ]
     },
     "current_device_signing_key": {
       "type": "object",
@@ -559,6 +636,91 @@
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Original target governance Commit committed_at; frozen before signing its fact digest."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    },
+    "current_realm_device_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor_id",
+        "device_id",
+        "verification_method"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "current"
+        },
+        "sender_kind": {
+          "const": "realm_device"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_realm_device_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor_id",
+        "device_id",
+        "verification_method",
+        "committed_event_ref"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "historical"
+        },
+        "sender_kind": {
+          "const": "realm_device"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "committed_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_realm_device_outcome": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status",
+        "key",
+        "accepted_at"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/historical_realm_device_selector"
+        },
+        "status": {
+          "const": "resolved"
+        },
+        "key": {
+          "$ref": "#/$defs/current_device_signing_key"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,

@@ -9,147 +9,27 @@
     },
     {
       "$ref": "#/$defs/ghost_preview_outcome"
-    },
-    {
-      "$ref": "#/$defs/ghost_actor_provision_request_body"
-    },
-    {
-      "$ref": "#/$defs/ghost_actor_provision_outcome"
     }
   ],
   "$defs": {
-    "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-    },
-    "event_ref": {
-      "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
-    "grant_ref": {
-      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
-    },
     "ghost_preview_request_body": {
       "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
     },
     "ghost_preview_outcome": {
       "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_outcome"
     },
-    "ghost_actor_provision_request_body": {
-      "type": "object",
-      "required": [
-        "authoring_request"
-      ],
-      "properties": {
-        "authoring_request": {
-          "allOf": [
-            {
-              "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
-            },
-            {
-              "properties": {
-                "purpose": {
-                  "const": "provision_ghost"
-                }
-              }
-            }
-          ]
-        },
-        "managed_actor_bundle": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
-        },
-        "approval_signatures": {
-          "type": "array",
-          "items": {
-            "$ref": "./approval-signature.schema.json"
-          },
-          "minItems": 1
-        },
-        "existing_managed_actor": {
-          "$ref": "#/$defs/existing_managed_actor"
-        }
-      },
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "managed_actor_bundle"
-          ],
-          "not": {
-            "required": [
-              "existing_managed_actor"
-            ]
-          }
-        },
-        {
-          "required": [
-            "existing_managed_actor"
-          ],
-          "not": {
-            "required": [
-              "managed_actor_bundle"
-            ]
-          }
-        }
-      ]
-    },
-    "ghost_actor_provision_outcome": {
-      "type": "object",
-      "required": [
-        "ghost_actor_id",
-        "managed_actor_provision_ref",
-        "principal_control_realm_id",
-        "profile_event_ref",
-        "accountability_grant_ref",
-        "authorization_ref"
-      ],
-      "properties": {
-        "ghost_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "managed_actor_provision_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "principal_control_realm_id": {
-          "$ref": "#/$defs/realm_id"
-        },
-        "profile_event_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "accountability_grant_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "authorization_ref": {
-          "$ref": "#/$defs/grant_ref"
-        },
-        "display_name": {
-          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
-        }
-      },
-      "additionalProperties": false
-    },
     "existing_managed_actor": {
       "type": "object",
       "required": [
         "ghost_actor_id",
-        "managed_actor_provision_ref",
-        "principal_control_realm_id",
-        "profile_event_ref",
-        "accountability_grant_ref"
+        "creation_ref"
       ],
       "properties": {
         "ghost_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
-        "managed_actor_provision_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "principal_control_realm_id": {
-          "$ref": "#/$defs/realm_id"
-        },
-        "profile_event_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "accountability_grant_ref": {
-          "$ref": "#/$defs/event_ref"
+        "creation_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         }
       },
       "additionalProperties": false

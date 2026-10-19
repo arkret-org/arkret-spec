@@ -722,7 +722,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 违反窗口项 reducer MUST 返回 `failed_precondition` reason=`authority_expiry_widening`；违反 actions / resources / constraints 越界返回 `schema_violation`。
 
-受管 Service parent→本 Applet 已批准具体 Bot／Ghost terminal child 的 `applet_authority.executed_by` 唯一重绑定按 [managed-governance §4](./managed-governance.md) 校验。它不要求 Account child 继续携带 Service executor，不豁免其余约束收窄、真实 parent refs 或当前 Service 上界；普通 grant/delegation 不得复用此例外。
+受管 Service parent→本 Applet 已批准具体 Bot／Ghost terminal child 的 `applet_authority.executed_by` 唯一重绑定按 [managed-governance §4](./managed-governance.md) 校验。它不要求 Realm actor child 继续携带 Service executor，不豁免其余约束收窄、真实 parent refs 或当前 Service 上界；普通 grant/delegation 不得复用此例外。
 
 签发时的这组校验是 hygiene；**实际授权以求值时的 refs 存活判定为准**（见上文"求值时机"），两者并存不矛盾。
 

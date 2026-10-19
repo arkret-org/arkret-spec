@@ -1660,8 +1660,8 @@
                         }
                       },
                       "required": [
-                        "target_ref",
-                        "patch"
+                        "patch",
+                        "target_ref"
                       ]
                     }
                   }

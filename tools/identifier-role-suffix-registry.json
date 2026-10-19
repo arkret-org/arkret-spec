@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-17.1",
+  "version": "2026-10-19.1",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -214,6 +214,11 @@
       "field": "release_service_signer_evidence_ref",
       "role_stem": "release_service",
       "reason": "reference names signer evidence for the registered release_service authority"
+    },
+    {
+      "field": "new_service_signature",
+      "role_stem": "new_service",
+      "reason": "Acceptance signature of the next management Service over the exact Realm actor manager transfer transcript."
     }
   ],
   "registered_provenance_byline_fields": [
@@ -852,6 +857,30 @@
         "mixed[did_core_id,typed_object_id]"
       ],
       "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization typed current result (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
+    },
+    {
+      "file": "common-ids.schema.json",
+      "pointer": "/$defs/actor_id/oneOf/2/properties/realm_actor_id",
+      "terminal_categories": [
+        "composite_identifier"
+      ],
+      "reason": "Exact RealmActorId composite carrier; the outer ActorId discriminator supplies kind and the inner composite contains RealmId plus DID core."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/device_authorize_realm_actor_possession_transcript/properties/authorized_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "Exact projection of the common device authorization byline; the realm_managed_delegation discriminator narrows it to the controller principal."
+    },
+    {
+      "file": "typed-current-result.schema.json",
+      "pointer": "/$defs/realm_actor_device_authorization_value/properties/authorized_by",
+      "terminal_categories": [
+        "did_core_id"
+      ],
+      "reason": "Exact accepted realm delegation byline projected without renaming the signed payload field."
     }
   ]
 }

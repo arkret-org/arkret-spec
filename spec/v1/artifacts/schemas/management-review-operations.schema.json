@@ -34,46 +34,6 @@
             }
           },
           "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "applet_id",
-            "request_body"
-          ],
-          "properties": {
-            "kind": {
-              "const": "bot_creation"
-            },
-            "applet_id": {
-              "$ref": "./common-ids.schema.json#/$defs/applet_id"
-            },
-            "request_body": {
-              "$ref": "./applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "applet_id",
-            "request_body"
-          ],
-          "properties": {
-            "kind": {
-              "const": "ghost_creation"
-            },
-            "applet_id": {
-              "$ref": "./common-ids.schema.json#/$defs/applet_id"
-            },
-            "request_body": {
-              "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body"
-            }
-          },
-          "additionalProperties": false
         }
       ]
     },
@@ -107,9 +67,6 @@
         "target": {
           "$ref": "#/$defs/target"
         },
-        "managed_source": {
-          "$ref": "./applet-management-source.schema.json#/$defs/source"
-        },
         "configuration_ref": {
           "type": "object",
           "required": [
@@ -128,53 +85,8 @@
         }
       },
       "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4194304,
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "management_operation": {
-                "const": "create_bot"
-              }
-            },
-            "required": [
-              "management_operation"
-            ]
-          },
-          "then": {
-            "properties": {
-              "target": {
-                "properties": {
-                  "kind": {
-                    "const": "bot_creation"
-                  }
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "management_operation": {
-                "const": "map_ghost"
-              }
-            },
-            "required": [
-              "management_operation"
-            ]
-          },
-          "then": {
-            "properties": {
-              "target": {
-                "properties": {
-                  "kind": {
-                    "const": "ghost_creation"
-                  }
-                }
-              }
-            }
-          }
-        },
         {
           "if": {
             "properties": {
@@ -223,7 +135,7 @@
                             "$ref": "./common-ids.schema.json#/$defs/actor_id",
                             "properties": {
                               "kind": {
-                                "const": "account"
+                                "const": "realm"
                               }
                             },
                             "required": [
@@ -300,45 +212,72 @@
         },
         {
           "if": {
+            "properties": {
+              "management_operation": {
+                "const": "create_bot"
+              }
+            },
             "required": [
-              "managed_source"
+              "management_operation"
             ]
           },
           "then": {
             "properties": {
-              "management_operation": {
-                "enum": [
-                  "join",
-                  "publish"
-                ]
-              },
               "target": {
                 "properties": {
-                  "kind": {
-                    "const": "event"
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.realm.actor.create"
+                      },
+                      "payload": {
+                        "properties": {
+                          "actor_role": {
+                            "const": "bot"
+                          }
+                        }
+                      }
+                    }
                   }
                 }
-              },
-              "requester_actor_id": {
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "management_operation": {
+                "const": "map_ghost"
+              }
+            },
+            "required": [
+              "management_operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
                 "properties": {
-                  "kind": {
-                    "const": "service"
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.realm.actor.create"
+                      },
+                      "payload": {
+                        "properties": {
+                          "actor_role": {
+                            "const": "ghost"
+                          }
+                        }
+                      }
+                    }
                   }
-                },
-                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                }
               }
             }
           }
         }
-      ],
-      "x-arkret-max-canonical-bytes": 4194304,
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.realm.create",
-        "ak.profile.create",
-        "ak.profile.update",
-        "ak.identity.accountability_grant",
-        "ak.device.authorize",
-        "ak.realm.governance_station.change"
       ]
     },
     "lookup": {

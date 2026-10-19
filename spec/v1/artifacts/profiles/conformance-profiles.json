@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.2",
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "version": "2026-10-19.3",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2384,7 +2384,7 @@
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
-        "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs, or applet_managed_control for Applet-managed Bot/Ghost PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in all three cases.",
+        "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs,; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
         "A PCR MUST accept its ak.mls.genesis before any control content write; that accepted RealmCommit irreversibly activates standard RFC 9420 for the PCR scope and no plaintext PCR content write is admissible afterwards.",
         "history_access MUST equal since_join. A new same-principal endpoint starts at its own initial Add/Welcome admission; durable device-list and normalized principal views provide the control baseline, and decryption uses only MLS state held locally by that endpoint.",
@@ -2392,7 +2392,6 @@
         "An Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Agent PCR genesis created_by MUST equal the Agent DID and governance_station_id MUST name the generation-0 governance Station; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md §3.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
-        "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, resolved from the accepted current resolution typed current result, so the closed set of overlay units (PCR genesis and PCR-policy recovery) stays exactly two. Device business eligibility MUST intersect the active installation for the requested scope. Fencing the creation scope does not fence another independently authorized scope; no active scope permits new business. See Applet integration section 18.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision.",
         "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. The shared allowlist and required transfer support for independently verified Organization/Agent/Applet-managed provenance do not authorize Human handoff; pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
@@ -2438,11 +2437,6 @@
             "purpose": "agent_control",
             "genesis_admission": "delegated_pcr_genesis",
             "authority_evidence": "accepted_controller_provision"
-          },
-          {
-            "purpose": "applet_managed_control",
-            "genesis_admission": "applet_managed_pcr_genesis",
-            "authority_evidence": "accepted_managed_provision"
           }
         ],
         "transfer_preconditions": [
@@ -4202,7 +4196,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.applet.ghost.command.provision.v1",
+          "operation_id": "ak.self.events.command.submit.v1",
           "binding_kind": "http_json"
         }
       ],

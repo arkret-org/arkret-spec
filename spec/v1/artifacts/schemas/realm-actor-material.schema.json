@@ -1,0 +1,584 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-actor-material.schema.json",
+  "title": "Arkret Exact Realm Actor Material",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/outcome"
+    }
+  ],
+  "$defs": {
+    "selector": {
+      "oneOf": [
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_identity_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_control_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_manager_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_status_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_generation_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_selector"
+        }
+      ]
+    },
+    "request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "purpose",
+            "request_nonce",
+            "selectors"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            },
+            "purpose": {
+              "const": "current"
+            },
+            "request_nonce": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22,128}$"
+            },
+            "selectors": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/selector"
+              },
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "purpose",
+            "request_nonce",
+            "target"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            },
+            "purpose": {
+              "const": "event"
+            },
+            "request_nonce": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22,128}$"
+            },
+            "target": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "purpose",
+            "request_nonce",
+            "target_request_digest"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            },
+            "purpose": {
+              "const": "outcome"
+            },
+            "request_nonce": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22,128}$"
+            },
+            "target_request_digest": {
+              "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "x-arkret-max-canonical-bytes": 4194304
+    },
+    "current_entry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "row"
+          ],
+          "properties": {
+            "status": {
+              "const": "present"
+            },
+            "row": {
+              "oneOf": [
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_identity_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_control_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_manager_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_status_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_generation_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_result"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "selector"
+          ],
+          "properties": {
+            "status": {
+              "const": "never_written"
+            },
+            "selector": {
+              "oneOf": [
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_selector"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_selector"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "current_record": {
+      "type": "object",
+      "required": [
+        "entries"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/current_entry"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_record": {
+      "type": "object",
+      "required": [
+        "event",
+        "commit",
+        "producer_signer_fact"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "producer_signer_fact": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact"
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome_record": {
+      "type": "object",
+      "required": [
+        "target_request_digest",
+        "outcome"
+      ],
+      "properties": {
+        "target_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "outcome": {
+          "oneOf": [
+            {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/submit_outcome"
+            },
+            {
+              "type": "object",
+              "required": [
+                "status"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "pending",
+                    "unknown",
+                    "denied",
+                    "cancelled"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "actor_id",
+        "purpose",
+        "request_digest",
+        "request_nonce",
+        "requester_actor_id",
+        "governance_generation",
+        "authority_ref",
+        "control_stream_head",
+        "issued_at",
+        "expires_at",
+        "result",
+        "signature"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "purpose": {
+          "enum": [
+            "current",
+            "event",
+            "outcome"
+          ]
+        },
+        "request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "request_nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "authority_ref": {
+          "oneOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            {
+              "$ref": "./common-ids.schema.json#/$defs/realm_authority_handoff_id"
+            }
+          ]
+        },
+        "control_stream_head": {
+          "oneOf": [
+            {
+              "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "result": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/current_record"
+            },
+            {
+              "$ref": "#/$defs/event_record"
+            },
+            {
+              "$ref": "#/$defs/outcome_record"
+            }
+          ]
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_material_signature"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4194304,
+      "x-arkret-signature-domain": "ak.realm_actor_material_signature.v1",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "current"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/current_record"
+              },
+              "control_stream_head": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "event"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/event_record"
+              },
+              "control_stream_head": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "outcome"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/outcome_record"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unsigned_outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "actor_id",
+        "purpose",
+        "request_digest",
+        "request_nonce",
+        "requester_actor_id",
+        "governance_generation",
+        "authority_ref",
+        "control_stream_head",
+        "issued_at",
+        "expires_at",
+        "result"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "purpose": {
+          "enum": [
+            "current",
+            "event",
+            "outcome"
+          ]
+        },
+        "request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "request_nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "authority_ref": {
+          "oneOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            {
+              "$ref": "./common-ids.schema.json#/$defs/realm_authority_handoff_id"
+            }
+          ]
+        },
+        "control_stream_head": {
+          "oneOf": [
+            {
+              "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "result": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/current_record"
+            },
+            {
+              "$ref": "#/$defs/event_record"
+            },
+            {
+              "$ref": "#/$defs/outcome_record"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4194304,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "current"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/current_record"
+              },
+              "control_stream_head": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "event"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/event_record"
+              },
+              "control_stream_head": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "outcome"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "$ref": "#/$defs/outcome_record"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

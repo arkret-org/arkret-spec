@@ -90,7 +90,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只保留给外部协议或加密 transcript 自身的创建者 tuple，不得作为 object 创建主体字段的别名；v1 未登记任何 `creator_*` wire 字段，新增字段不得引入该形态。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；算法选择器只能使用 `<noun>_algorithm`，字节输出只能使用 `<noun>_digest`。复合 commitment 对象使用 `<noun>_commitment`：外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
 - 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
-- `recipient_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_id`；反之亦然。 对于 schema 已闭合为单一稳定责任主体 `DidCoreId` 的受众，使用 `audience_id`（例如 SessionGrant 与 Applet managed-actor request/bundle）；其类别、受众唯一性与身份绑定必须由各对象合同明确，不得因通用 proof 存在 `audience` 就去掉 `_id`。通用 proof 的字符串／数组 `audience` 不构成 typed identity 字段的命名例外。
+- `recipient_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_id`；反之亦然。 对于 schema 已闭合为单一稳定责任主体 `DidCoreId` 的受众，使用 `audience_id`（例如 SessionGrant 与 其它明确登记的单一稳定主体载体）；其类别、受众唯一性与身份绑定必须由各对象合同明确，不得因通用 proof 存在 `audience` 就去掉 `_id`。通用 proof 的字符串／数组 `audience` 不构成 typed identity 字段的命名例外。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`effective_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
 - ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且 MUST 与 snake_case `kind` 逐字相同——**不存在拼写例外**。`membership_compensation_delegation` 的 wire form 固定为 `ak:membership_compensation_delegation:`。artifact lint 对 segment ≠ kind 直接失败。
@@ -200,7 +200,7 @@ expected_<role>_<kind>_id
 - Realm State Snapshot 是签名协议 artifact，自身使用 closed `snapshot_id`；其它对象如需引用它必须使用各自 schema 登记的 typed ref。v1 不登记独立 Snapshot chunk payload 或由 `realm_state_snapshot_ref` 构造的泛化引用层。
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
-- protocol responsibility subject 的 carrier 与可验证主体类别必须同时反映在字段名：principal/service/Station/hardware module 的 `DidCoreId` 分别使用 `<role>_principal_id` / `<role>_service_id` / `<role>_station_id` / `<role>_hardware_module_id`；完整 account 使用 `<role>_account_id: AccountId`；account-or-service actor 使用 `<role>_actor_id: ActorId`。`actor_id`、`principal_id`、`agent_id` 等主体词本身已闭合 carrier 的既有 canonical 字段继续保留。
+- protocol responsibility subject 的 carrier 与可验证主体类别必须同时反映在字段名：principal/service/Station/hardware module 的 `DidCoreId` 分别使用 `<role>_principal_id` / `<role>_service_id` / `<role>_station_id` / `<role>_hardware_module_id`；完整 account 使用 `<role>_account_id: AccountId`；account/service/realm actor 使用 `<role>_actor_id: ActorId`。`actor_id`、`principal_id`、`agent_id` 等主体词本身已闭合 carrier 的既有 canonical 字段继续保留。
 - `DidCoreId` 只提供稳定 core carrier，不证明它属于 principal、Station、其它 service 或 hardware module。主体类别必须先由 schema/registry 与 admission evidence 闭合，字段名随后如实表达；需要实际解析 DID 时另用 `<role>_did`。`holder` / `controller` 是高风险责任角色，必须使用上述显式形态，禁止裸名。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
 
@@ -491,13 +491,13 @@ Station 永久停止服务时，其 Account 与 PCR 不提供跨 Station 延续�
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId（包括人类、Agent、Ghost 与 integration），service 分支携带 `service_id`。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
+| `actor_id` | Event Envelope、membership 与通用 actor-scoped 状态 | 完整 ActorId closed union；account 分支携带 exact AccountId（包括人类与个人 Agent），service 分支携带 `service_id`，realm 分支携带 Applet Bot／Ghost 的完整 RealmActorId。不得用并列 `actor_kind` 或裸 DID 补足语义。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 ActorId；字段名说明角色，值形态仍使用同一个 closed union。若专属 schema 明确只允许某一 DID-core 角色，必须使用该专属角色名而不是泛化 `actor_id`。 |
 | `principal_id` | Actor Profile | Profile 对应的密码学 principal `did_core_id`；不是完整账号身份，不产生跨 Station 权限关系。账号授权使用完整 AccountId / ActorId。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的完整 ActorId，由 reducer 从 Event `actor_id` 原样派生；不得只保存其中的 principal DID。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing actor 语义。 |
 | `issuer_id` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim、SessionGrant | 签发授权、receipt、claim 或 credential 的主体 `did_core_id`；必须持有签发权限。 |
 | `subject` | Capability Grant | 唯一登记的 closed polymorphic subject：principal `did_core_id` 或带 discriminator 的 condition selector。裸名表示整个闭合 union，不是稳定 ID 的别名。 |
-| `subject_account_id` | Handle claim、账号寻址与 mention target | 必须是 exact AccountId；不得降级为裸 principal DID。mention 节点的权威 target 就是本字段（[`../identity/identity-handles.md` §3.8](../identity/identity-handles.md)）。Agent Selector Claim 的 selector **namespace** 是 principal 级的，使用它自己登记的 `controller_subject_id`；但它选中的**目标**是账号级的，就是本字段 `subject_account_id`（[`2026-09-05-1310` 裁决](../identity/identity-handles.md)）。namespace 与目标是两个职责，谁也不从对方派生。 |
+| `subject_account_id` | Handle claim、账号寻址与普通账号 mention target | 必须是 exact AccountId；不得降级为裸 principal DID。mention 节点的权威 target 就是本字段（[`../identity/identity-handles.md` §3.8](../identity/identity-handles.md)）。Agent Selector Claim 的 selector **namespace** 是 principal 级的，使用它自己登记的 `controller_subject_id`；但它选中的**目标**是账号级的，就是本字段 `subject_account_id`（[`2026-09-05-1310` 裁决](../identity/identity-handles.md)）。namespace 与目标是两个职责，谁也不从对方派生。 |
 | `controller_subject_id` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal `did_core_id`；它只定 namespace，不定被选中的账号。事件 mention 的 controller audit metadata 另用账号级 `controller_subject_account_id`，两者不可互换。 |
 | `inviter_account_id` / `invitee_account_id` | Account-addressed Invite | 邀请方 / 被邀请方 exact AccountId；通用 membership target 使用 ActorId。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal `did_core_id`（每个条目须有对应 active `ak.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
@@ -505,12 +505,12 @@ Station 永久停止服务时，其 Account 与 PCR 不提供跨 Station 延续�
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
-ActorId 的服务路由投影是封闭且无状态的：account 分支取
-`account_id.station_id`，service 分支取
-`service_id`。任何需要按托管服务分桶、去重或解析 endpoint 的协议都 MUST 使用这个投影；不得再保存
-member-specific route object、route source、fallback 或 rebind 状态。路由刷新只更新对应 service
-DID core 的 `AuthenticatedServiceResolution`，不改变 ActorId；service DID core 变化会形成不同 ActorId，必须通过
-正常 membership / invitation transition 处理。
+ActorId 的服务路由按分支唯一确定：account 取 `account_id.station_id`，service 取
+`service_id`，realm 以 `realm_actor_id.realm_id` 查询经验证且当前生效的 Realm 治理权威。
+所有托管服务分桶、去重、endpoint 查找和交付 MUST 使用该规则。realm 分支只缓存可验证的治理链，
+不得保存成员自报的 route／fallback／rebind，或从主体 DID 的托管 host 推断治理服务。
+Account／Service 换 service core 会形成不同身份；Realm 治理交接不改变 realm ActorId。
+治理切换时须重新验证当前任期与目标服务，不得以旧路由的成功解析继续接受新操作。
 
 主体字段新增策略：
 

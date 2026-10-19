@@ -6,6 +6,7 @@ import json
 
 
 def field_guard(path: str, constraint: dict) -> dict:
+    path = path.removeprefix("envelope.")
     parts = path.split(".")
     if not constraint:
         constraint = {"required": [parts.pop()]}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "generated_at": "2026-10-19T23:17:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -366,7 +366,7 @@
       "schema_id": "ak.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+      "description": "Closed request/response DTO bundle for ak.self.events.command.submit.v1 (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
       "schema_id": "ak.schema.applet_install_authoring.v1",
@@ -399,18 +399,6 @@
       "description": "Canonical Applet InstallPlan nested in the Station-signed authoring request and recomputed by install commit before admission. plan_digest is calculated over this object with plan_digest omitted."
     },
     {
-      "schema_id": "ak.schema.applet_managed_actor_authoring_bundle.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/managed_actor_bundle",
-      "status": "active",
-      "description": "Exact four-Event service-authored managed-actor creation bundle returned by the Applet service after validating an authoring request.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Applet install author outcome managed_actor_bundle",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.applet_managed_actor_authoring_request.v1",
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/authoring_request",
@@ -419,17 +407,6 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install or Ghost preview and unified managed-actor author request",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_managed_actor_provision.v1",
-      "file": "schemas/applet-managed-actor.schema.json",
-      "status": "active",
-      "description": "Immutable service-authored Bot/Ghost creation authority cross-bound to an applet_managed_control PCR genesis.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.applet.managed_actor.provision",
         "normative_ref": "zh/extensions/applet-integration.md"
       }
     },
@@ -1808,16 +1785,32 @@
       "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
     },
     {
-      "schema_id": "ak.schema.applet_management_source.v1",
-      "status": "active",
-      "file": "schemas/applet-management-source.schema.json",
-      "description": "Operation-bound managed subject/review provenance and exact Device scope confirmation"
-    },
-    {
       "schema_id": "ak.schema.applet_configuration_operations.v1",
       "status": "active",
       "file": "schemas/applet-configuration-operations.schema.json",
       "description": "Bounded administrator configuration command, B-to-C execution and source result"
+    },
+    {
+      "schema_id": "ak.schema.realm_actor_create.v1",
+      "file": "schemas/realm-actor.schema.json",
+      "status": "active",
+      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.realm.actor.create",
+        "normative_ref": "zh/extensions/realm-actors.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.realm_actor_material.v1",
+      "file": "schemas/realm-actor-material.schema.json",
+      "status": "active",
+      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.self.realm_actor.read.material.v1",
+        "normative_ref": "zh/extensions/realm-actors.md"
+      }
     }
   ],
   "metadata_authority": "contract_registry_section"

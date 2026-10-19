@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-10-18.2",
+  "version": "2026-10-19.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -483,21 +483,12 @@
       "source_contract": {
         "evidence_schema_ref": "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
         "eligible_producer_sources": [
-          "human_device",
-          "applet_managed_device"
+          "human_device"
         ],
-        "role_resolution": "accepted_pcr_purpose_and_original_authorization_provenance",
+        "role_resolution": "accepted_regular_pcr_and_original_authorization_provenance",
         "human_source": "accepted_regular_or_accepted_device_authorization_in_original_human_pcr",
-        "managed_source": [
-          "accepted_managed_provision",
-          "applet_managed_control_pcr",
-          "principal_original_managed_device_authorization",
-          "current_generation_and_resolution",
-          "exact_authorization_instance_and_window"
-        ],
         "origin_cut": "same_locked_pcr_current_and_original_authorization_cut",
         "origin_event_verification": "actual_complete_producer_event_and_device_signature",
-        "managed_scope_actions": "every_actual_resource_scope_and_action_in_one_original_signed_pair",
         "event_binding": [
           "event_id",
           "verification_method",
@@ -510,8 +501,7 @@
         ],
         "source_accepted_time": "original_authorization_commit.committed_at",
         "unsigned_projection": "complete_wrapper_remove_only_proof",
-        "governor_business_gate": "independent_current_membership_service_lineage_terminal_child_applet_installation_policy_management_action_approval_quota_and_domain_revision",
-        "managed_provenance_at_governor": "independently_verified_accepted_source_not_applet_label_or_bare_fact",
+        "governor_business_gate": "independent_current_membership_capability_policy_approval_quota_and_domain_revision",
         "missing_or_conflicting_source": "reject_zero_writes_without_human_service_or_current_key_fallback",
         "exact_accepted_retry": "original_outcome_before_source_freshness",
         "new_attempt": "fresh_source_persist_before_send",
@@ -519,33 +509,7 @@
         "private_original": "accepted_at_audit_only",
         "member_delivery": "existing_full_disclosure_minimal_historical_fact_only",
         "directory_or_current_query_expanded": false,
-        "new_wire_role_session_pcr_read_or_authority_token": false,
-        "managed_provenance_contract": {
-          "member": "producer_managed_provenance",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance",
-          "max_canonical_bytes": 1048576,
-          "creation_slots": [
-            "provision",
-            "pcr_genesis",
-            "accountability",
-            "profile"
-          ],
-          "creation_event_count": 4,
-          "creation_commit_count": 4,
-          "current_families": [
-            "actor_profile",
-            "identity_accountability"
-          ],
-          "current_covering_commit_count": 2,
-          "original_producer": "exact_original_applet_service",
-          "accepted_commit_signer": "creation_producer_account_hosting_station_current_verified_realm_authority_generation",
-          "presence": "required_managed_device_event_or_complete_mls_only_forbidden_human_agent_service_native_pcr_atomic_replication",
-          "current_cut": "same_locked_cut_as_live_device_attestation",
-          "body_digest": "existing_complete_unsigned_peer_body_includes_sibling_remove_only_producer_device_evidence",
-          "retention": "atomic_private_first_admission_audit_only_never_member_replication_scan_snapshot",
-          "failures": "zero_writes_no_human_fallback_no_source_role_projection_no_new_pcr_read_surface",
-          "proof_context_policy": "existing_contexts_unchanged"
-        }
+        "new_wire_role_session_pcr_read_or_authority_token": false
       },
       "source_cases": [
         {
@@ -557,40 +521,40 @@
           "expected": "accept"
         },
         {
-          "name": "bot_original_source",
-          "source": "applet_managed_device",
+          "name": "realm_bot_not_account",
+          "source": "realm_device",
           "native_provenance": true,
           "pairs_match": true,
           "business_current": true,
-          "expected": "accept"
+          "expected": "reject_zero_writes"
         },
         {
-          "name": "ghost_original_source",
-          "source": "applet_managed_device",
+          "name": "realm_ghost_not_account",
+          "source": "realm_device",
           "native_provenance": true,
           "pairs_match": true,
           "business_current": true,
-          "expected": "accept"
+          "expected": "reject_zero_writes"
         },
         {
-          "name": "managed_missing_provision",
-          "source": "applet_managed_device",
+          "name": "missing_original_source",
+          "source": "realm_device",
           "native_provenance": false,
           "pairs_match": true,
           "business_current": true,
           "expected": "reject_zero_writes"
         },
         {
-          "name": "managed_pair_splicing",
-          "source": "applet_managed_device",
+          "name": "wrong_scope",
+          "source": "realm_device",
           "native_provenance": true,
           "pairs_match": false,
           "business_current": true,
           "expected": "reject_zero_writes"
         },
         {
-          "name": "managed_governor_business_lost",
-          "source": "applet_managed_device",
+          "name": "governor_business_lost",
+          "source": "realm_device",
           "native_provenance": true,
           "pairs_match": true,
           "business_current": false,

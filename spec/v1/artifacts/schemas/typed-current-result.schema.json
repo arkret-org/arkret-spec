@@ -258,6 +258,30 @@
     },
     {
       "$ref": "#/$defs/realm_freeze_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_identity_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_control_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_manager_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_status_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_device_generation_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_device_authorization_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_device_revocation_proposals_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_profile_result"
     }
   ],
   "$defs": {
@@ -3615,8 +3639,7 @@
           "enum": [
             "registration_anchor",
             "pcr_recovery",
-            "accepted_device",
-            "applet_managed_delegation"
+            "accepted_device"
           ]
         },
         "authorized_generation_ref": {
@@ -4813,6 +4836,508 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_identity_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_identity"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_identity_value": {
+      "type": "object",
+      "required": [
+        "applet_id",
+        "actor_role",
+        "creation_service_id",
+        "creation_ref"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "actor_role": {
+          "enum": [
+            "bot",
+            "ghost"
+          ]
+        },
+        "creation_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "creation_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_identity_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_identity_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_identity_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_control_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_control"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_control_value": {
+      "type": "object",
+      "required": [
+        "resolution",
+        "control_method_kid"
+      ],
+      "properties": {
+        "resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
+        },
+        "control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_control_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_control_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_control_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_manager_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_manager"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_manager_value": {
+      "type": "object",
+      "required": [
+        "service_id",
+        "registration_ref",
+        "binding_ref"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "registration_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "binding_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_manager_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_manager_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_manager_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_status_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "gate"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_status"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "gate": {
+          "enum": [
+            "governance",
+            "owner"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_status_value": {
+      "enum": [
+        "active",
+        "paused",
+        "retired"
+      ]
+    },
+    "realm_actor_status_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_status_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_status_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_generation_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_device_generation"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_generation_value": {
+      "type": "object",
+      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
+      "required": [
+        "current_device_generation_ref"
+      ],
+      "properties": {
+        "current_device_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_generation_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_device_generation_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_device_generation_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_authorization_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "device_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_device_authorization"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_authorization_value": {
+      "type": "object",
+      "description": "Exact accepted Realm actor Device authorization; selector binds full ActorId and DeviceId. Authorization EventId is preserved. Current CAS preconditions belong to the producer payload and are not business authority.",
+      "required": [
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "applet_id",
+        "device_signature",
+        "device_authorize_event_id"
+      ],
+      "properties": {
+        "device_public_key_did": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string",
+          "description": "The device signing key. Section 8.2 names this same value device_signing_key_did on the keys/query surface; that is one value under two surface names, never two facts."
+        },
+        "hpke_key": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+        },
+        "algorithms": {
+          "$ref": "./event-payload.schema.json#/$defs/string_list",
+          "description": "Already UTF-8 bytewise sorted and deduplicated by admission."
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519"
+        },
+        "authorized_by": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authorization_binding_kind": {
+          "const": "realm_managed_delegation"
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "The PCR generation this authorization was accepted under. Section 5.5.2 puts it on the wire rather than deriving it, because no expected_state_digest freezes this Event's pre-state."
+        },
+        "not_before": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "scopes": {
+          "$ref": "./event-payload.schema.json#/$defs/applet_managed_device_scopes"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "device_signature": {
+          "$ref": "./event-payload.schema.json#/$defs/signature_material"
+        },
+        "device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_authorization_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_device_authorization_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_device_authorization_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_revocation_proposals_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "device_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_device_revocation_proposals"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_device_revocation_proposals_value": {
+      "$ref": "./typed-current-result.schema.json#/$defs/device_revocation_proposals_value"
+    },
+    "realm_actor_device_revocation_proposals_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_device_revocation_proposals_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_device_revocation_proposals_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_profile_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_profile"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_profile_value": {
+      "type": "object",
+      "required": [
+        "profile_id",
+        "profile"
+      ],
+      "properties": {
+        "profile_id": {
+          "$ref": "./event-payload.schema.json#/$defs/actor_profile_id"
+        },
+        "profile": {
+          "$ref": "./actor-profile.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_profile_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_profile_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_profile_value"
         }
       },
       "additionalProperties": false

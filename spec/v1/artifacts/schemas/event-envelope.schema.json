@@ -116,9 +116,54 @@
         ]
       },
       "then": {
-        "required": [
-          "authorization_ref"
-        ]
+        "if": {
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            },
+            "kind": {
+              "enum": [
+                "ak.realm.actor.control.update",
+                "ak.realm.actor.status.set",
+                "ak.realm.actor.devices.reset",
+                "ak.realm.actor.manager.change",
+                "ak.device.authorize",
+                "ak.device.revoke",
+                "ak.profile.create",
+                "ak.profile.update"
+              ]
+            },
+            "scope_ref": {
+              "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+            }
+          },
+          "required": [
+            "actor_id",
+            "kind",
+            "scope_ref"
+          ]
+        },
+        "then": {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "executed_by"
+                ]
+              },
+              {
+                "required": [
+                  "authorization_ref"
+                ]
+              }
+            ]
+          }
+        },
+        "else": {
+          "required": [
+            "authorization_ref"
+          ]
+        }
       }
     },
     {
@@ -451,25 +496,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/applet_discovery_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.applet.managed_actor.provision"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/applet_managed_actor_provision_payload"
           }
         }
       }
@@ -2814,6 +2840,313 @@
           ]
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_create_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.control.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_control_update_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.status.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_status_set_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.devices.reset"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_devices_reset_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.manager.change"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_manager_change_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        },
+        "required": [
+          "scope_ref"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.realm.actor.create",
+              "ak.realm.actor.control.update",
+              "ak.realm.actor.status.set",
+              "ak.realm.actor.devices.reset",
+              "ak.realm.actor.manager.change",
+              "ak.device.authorize",
+              "ak.device.revoke",
+              "ak.profile.create",
+              "ak.profile.update"
+            ]
+          }
+        },
+        "required": [
+          "applet_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actor_id": {
+            "properties": {
+              "kind": {
+                "const": "service"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        },
+        "required": [
+          "applet_id",
+          "authorization_ref"
+        ],
+        "not": {
+          "required": [
+            "executed_by"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.realm.actor.control.update",
+              "ak.realm.actor.devices.reset",
+              "ak.realm.actor.manager.change"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actor_id": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+          }
+        },
+        "not": {
+          "required": [
+            "executed_by"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.realm.actor.status.set"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "if": {
+          "properties": {
+            "payload": {
+              "properties": {
+                "gate": {
+                  "const": "owner"
+                }
+              },
+              "required": [
+                "gate"
+              ]
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "actor_id": {
+              "allOf": [
+                {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "account"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "authorization_ref"
+          ]
+        },
+        "not": {
+          "required": [
+            "executed_by"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ak.device.authorize",
+                  "ak.device.revoke",
+                  "ak.profile.create",
+                  "ak.profile.update"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+              }
+            },
+            "required": [
+              "actor_id"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -2952,6 +3285,22 @@
           },
           "additionalProperties": false,
           "description": "Genesis scope for ak.realm.create only. It carries no realm_id because the receiver derives every Realm id, including Collaboration, Direct Conversation, human PCR, and Agent PCR, as retype(event_id, \"realm\") from this create Event (zh/models/realm-and-space.md section 2.5.0). The uniform omission also prevents the digest cycle."
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_control"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -3181,7 +3530,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ak.applet.managed_actor.provision"
+                "const": "ak.device.authorize"
               }
             },
             "required": [
@@ -3193,106 +3542,114 @@
               {
                 "allOf": [
                   {
-                    "allOf": [
-                      {
+                    "properties": {
+                      "scope_ref": {
                         "properties": {
-                          "payload": {
-                            "properties": {
-                              "actor_role": {
-                                "const": "bot"
-                              }
-                            },
-                            "required": [
-                              "actor_role"
-                            ]
+                          "kind": {
+                            "const": "realm_control"
                           }
                         },
                         "required": [
-                          "payload"
+                          "kind"
                         ]
                       }
+                    },
+                    "required": [
+                      "scope_ref"
                     ]
-                  },
-                  {
-                    "not": {
-                      "anyOf": [
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "actor_role": {
-                                      "const": "ghost"
-                                    }
-                                  },
-                                  "required": [
-                                    "actor_role"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
                   }
                 ]
               },
               {
-                "allOf": [
-                  {
-                    "allOf": [
-                      {
-                        "properties": {
-                          "payload": {
-                            "properties": {
-                              "actor_role": {
-                                "const": "ghost"
-                              }
-                            },
-                            "required": [
-                              "actor_role"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "payload"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "not": {
-                      "anyOf": [
+                "not": {
+                  "anyOf": [
+                    {
+                      "allOf": [
                         {
-                          "allOf": [
-                            {
+                          "properties": {
+                            "scope_ref": {
                               "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "actor_role": {
-                                      "const": "bot"
-                                    }
-                                  },
-                                  "required": [
-                                    "actor_role"
-                                  ]
+                                "kind": {
+                                  "const": "realm_control"
                                 }
                               },
                               "required": [
-                                "payload"
+                                "kind"
                               ]
                             }
+                          },
+                          "required": [
+                            "scope_ref"
                           ]
                         }
                       ]
                     }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.device.revoke"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "properties": {
+                      "scope_ref": {
+                        "properties": {
+                          "kind": {
+                            "const": "realm_control"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "scope_ref"
+                    ]
                   }
                 ]
+              },
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "properties": {
+                            "scope_ref": {
+                              "properties": {
+                                "kind": {
+                                  "const": "realm_control"
+                                }
+                              },
+                              "required": [
+                                "kind"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "scope_ref"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
               }
             ]
           }
@@ -3535,6 +3892,254 @@
           "if": {
             "properties": {
               "kind": {
+                "const": "ak.profile.create"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "properties": {
+                      "scope_ref": {
+                        "properties": {
+                          "kind": {
+                            "const": "realm_control"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "scope_ref"
+                    ]
+                  }
+                ]
+              },
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "properties": {
+                            "scope_ref": {
+                              "properties": {
+                                "kind": {
+                                  "const": "realm_control"
+                                }
+                              },
+                              "required": [
+                                "kind"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "scope_ref"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.profile.update"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "properties": {
+                      "scope_ref": {
+                        "properties": {
+                          "kind": {
+                            "const": "realm_control"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "scope_ref"
+                    ]
+                  }
+                ]
+              },
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "properties": {
+                            "scope_ref": {
+                              "properties": {
+                                "kind": {
+                                  "const": "realm_control"
+                                }
+                              },
+                              "required": [
+                                "kind"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "scope_ref"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.realm.actor.status.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "allOf": [
+                      {
+                        "properties": {
+                          "payload": {
+                            "properties": {
+                              "gate": {
+                                "const": "owner"
+                              }
+                            },
+                            "required": [
+                              "gate"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "payload"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "not": {
+                      "anyOf": [
+                        {
+                          "allOf": [
+                            {
+                              "properties": {
+                                "payload": {
+                                  "properties": {
+                                    "gate": {
+                                      "const": "governance"
+                                    }
+                                  },
+                                  "required": [
+                                    "gate"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "payload"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "allOf": [
+                      {
+                        "properties": {
+                          "payload": {
+                            "properties": {
+                              "gate": {
+                                "const": "governance"
+                              }
+                            },
+                            "required": [
+                              "gate"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "payload"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "not": {
+                      "anyOf": [
+                        {
+                          "allOf": [
+                            {
+                              "properties": {
+                                "payload": {
+                                  "properties": {
+                                    "gate": {
+                                      "const": "owner"
+                                    }
+                                  },
+                                  "required": [
+                                    "gate"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "payload"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
                 "const": "ak.realm.create"
               }
             },
@@ -3615,65 +4220,6 @@
                               },
                               "required": [
                                 "payload"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
                               ]
                             },
                             {
@@ -3947,378 +4493,6 @@
                                     "object": {
                                       "properties": {
                                         "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "principal_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "direct_conversation"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "direct_conversation_contact_round"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "direct_conversation"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "direct_conversation_agent_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "collaboration"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "allOf": [
-                  {
-                    "allOf": [
-                      {
-                        "properties": {
-                          "payload": {
-                            "properties": {
-                              "object": {
-                                "properties": {
-                                  "purpose": {
-                                    "const": "applet_managed_control"
-                                  }
-                                },
-                                "required": [
-                                  "purpose"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "object"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "payload"
-                        ]
-                      },
-                      {
-                        "properties": {
-                          "semantic_refs": {
-                            "contains": {
-                              "properties": {
-                                "role": {
-                                  "const": "applet_managed_actor_provision"
-                                },
-                                "critical": {
-                                  "const": true
-                                }
-                              },
-                              "required": [
-                                "role",
-                                "critical"
-                              ]
-                            },
-                            "minContains": 1,
-                            "maxContains": 1
-                          }
-                        },
-                        "required": [
-                          "semantic_refs"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "executed_by",
-                          "authorization_ref"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "not": {
-                      "anyOf": [
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "principal_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "not": {
-                                "required": [
-                                  "executed_by"
-                                ]
-                              }
-                            },
-                            {
-                              "not": {
-                                "required": [
-                                  "authorization_ref"
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "agent_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
                                           "const": "principal_control"
                                         }
                                       },
@@ -4588,65 +4762,6 @@
                               },
                               "required": [
                                 "payload"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
                               ]
                             },
                             {
@@ -4939,65 +5054,6 @@
                                     "object": {
                                       "properties": {
                                         "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
                                           "const": "principal_control"
                                         }
                                       },
@@ -5252,65 +5308,6 @@
                                     "object": {
                                       "properties": {
                                         "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
                                           "const": "principal_control"
                                         }
                                       },
@@ -5521,65 +5518,6 @@
                               },
                               "required": [
                                 "payload"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "executed_by",
-                                "authorization_ref"
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "allOf": [
-                            {
-                              "properties": {
-                                "payload": {
-                                  "properties": {
-                                    "object": {
-                                      "properties": {
-                                        "purpose": {
-                                          "const": "applet_managed_control"
-                                        }
-                                      },
-                                      "required": [
-                                        "purpose"
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "object"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "payload"
-                              ]
-                            },
-                            {
-                              "properties": {
-                                "semantic_refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "applet_managed_actor_provision"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "semantic_refs"
                               ]
                             },
                             {
@@ -5900,7 +5838,6 @@
                 "ak.agent.sidecar.exchange.control",
                 "ak.applet.bridge_error",
                 "ak.applet.discovery",
-                "ak.applet.managed_actor.provision",
                 "ak.applet.registration",
                 "ak.audit.accessed",
                 "ak.audit.erasure_receipt",
@@ -5964,6 +5901,11 @@
                 "ak.profile.update",
                 "ak.reaction.add",
                 "ak.reaction.remove",
+                "ak.realm.actor.control.update",
+                "ak.realm.actor.create",
+                "ak.realm.actor.devices.reset",
+                "ak.realm.actor.manager.change",
+                "ak.realm.actor.status.set",
                 "ak.realm.alias",
                 "ak.realm.archive",
                 "ak.realm.asset_privacy_policy",
@@ -6046,7 +5988,6 @@
             "ak.agent.sidecar.exchange.control",
             "ak.applet.bridge_error",
             "ak.applet.discovery",
-            "ak.applet.managed_actor.provision",
             "ak.applet.registration",
             "ak.audit.accessed",
             "ak.audit.erasure_receipt",
@@ -6112,6 +6053,11 @@
             "ak.reaction.add",
             "ak.reaction.remove",
             "ak.read_cursor.advance",
+            "ak.realm.actor.control.update",
+            "ak.realm.actor.create",
+            "ak.realm.actor.devices.reset",
+            "ak.realm.actor.manager.change",
+            "ak.realm.actor.status.set",
             "ak.realm.alias",
             "ak.realm.archive",
             "ak.realm.asset_privacy_policy",

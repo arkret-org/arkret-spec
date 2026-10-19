@@ -1724,6 +1724,7 @@ def check_event_admission_coverage(lint: Lint) -> None:
         lint.fail(event_path, "event registry missing closed-world admission_predicate_contract")
     validated_selectors = {
         "payload_path",
+        "envelope_path",
         "const",
         "not_const",
         "ref_role",
@@ -1796,8 +1797,15 @@ def check_event_admission_coverage(lint: Lint) -> None:
                                 comparison_selectors = {selector for selector in ("const", "not_const") if selector in when}
                                 if len(comparison_selectors) != 1:
                                     lint.fail(event_path, f"{kind}: admission_variants[{index}].when.payload_path requires exactly one of const/not_const")
+                            elif "envelope_path" in when:
+                                if when["envelope_path"] not in {"scope_ref.kind", "actor_id.kind"}:
+                                    lint.fail(event_path, f"{kind}: unregistered envelope admission selector")
+                                if ("const" in when) == ("not_const" in when):
+                                    lint.fail(event_path, f"{kind}: envelope selector requires exactly one comparison")
                             elif "const" in when or "not_const" in when:
                                 lint.fail(event_path, f"{kind}: admission_variants[{index}] const/not_const requires payload_path")
+                            if "payload_path" in when and "envelope_path" in when:
+                                lint.fail(event_path, f"{kind}: payload and envelope admission selectors are mutually exclusive")
                             for selector in ("const", "not_const"):
                                 if selector in when and not (when[selector] is None or isinstance(when[selector], (str, int, bool))):
                                     lint.fail(event_path, f"{kind}: admission_variants[{index}].when.{selector} MUST be a JSON scalar")

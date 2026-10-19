@@ -59,7 +59,8 @@ see_also:
 | Collaboration Realm | 协作 Realm（角色） | Realm 的一种用途，承载多方业务协作状态（Strand / Message / Space / Morph / Relation 等）。与 Principal Control Realm 互补。按是否含跨信任域成员再分 Internal / External 两类。 |
 | Internal Collaboration Realm | 域内协作 Realm | Collaboration Realm 的一种：`federation_policy ∈ {closed, restricted}` 且成员仅来自本部署 trust domain。组织主网络上的普通项目 / 团队 Realm 默认属于此类。 |
 | External Collaboration Realm | 跨域协作 Realm | Collaboration Realm 的一种：含跨信任域成员（external Organization DID / external principal）。Sovereign deployment 中其 policy 受 `ak.profile.sovereign_deployment.v1` 进一步约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent；见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）。 |
-| Principal Control Realm | 主体控制 Realm（PCR） | Realm 的另一用途：与某 principal DID 1:1 绑定，承载该 principal 的身份基础设施事件（device / session / KeyPackage / recovery / profile / consent）。schema 层仍是 `ak.schema.realm.v1`；类别由签名 genesis `purpose` 唯一决定（human / organization PCR 为 `principal_control`，Agent PCR 为 `agent_control`，Applet-managed PCR 为 `applet_managed_control`），materialized `fields.purpose` 只是该 purpose 的只读投影；事件类型 allowlist 使它与一般 Collaboration Realm 进一步区分。详见 [`identity/key-management.md` §4.1](../identity/key-management.md)。 |
+| RealmActorId | Realm 受管主体标识 | Applet Bot／Ghost 的 RealmId＋独立 DID core；不随治理 Station 改变，不具有独立 PCR。 |
+| Principal Control Realm | 主体控制 Realm（PCR） | Realm 的另一用途：与某 principal DID 1:1 绑定，承载该 principal 的身份基础设施事件（device / session / KeyPackage / recovery / profile / consent）。schema 层仍是 `ak.schema.realm.v1`；类别由签名 genesis `purpose` 唯一决定（human / organization PCR 为 `principal_control`，Agent PCR 为 `agent_control`），materialized `fields.purpose` 只是该 purpose 的只读投影；事件类型 allowlist 使它与一般 Collaboration Realm 进一步区分。详见 [`identity/key-management.md` §4.1](../identity/key-management.md)。 |
 | Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `ak:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
 | Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
 | Realm Link | Realm 关系边 | Realm 之间通过 `ak.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |
@@ -249,7 +250,8 @@ see_also:
 | 缩写 | 全称 | 中文 | 权威出处 |
 | --- | --- | --- | --- |
 | `authority-commit` | Authority-issued stream commitment | 权威签发的流承诺 | §2 `authority-commit` 条目；[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) |
-| `PCR` | Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
+| `PCR` | RealmActorId | Realm 受管主体标识 | Applet Bot／Ghost 的 RealmId＋独立 DID core；不随治理 Station 改变，不具有独立 PCR。 |
+| Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
 | `E2EE` | End-to-End Encryption | 端到端加密 | §3 CC-04（大小写规则）；[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `DM` | Direct Message | 直接会话 | [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) |
 | `3PID` | Third-Party Identifier | 第三方标识符 | §2 `3PID` 条目；[`../sync/third-party-invites.md`](../sync/third-party-invites.md) |

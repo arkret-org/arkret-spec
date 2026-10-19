@@ -418,7 +418,8 @@ mention reference / profile snapshot 的 normative shape：
 | 字段 | 类型 | 必填 | 用途 |
 | --- | --- | --- | --- |
 | `kind` | `const("mention")` | MUST | 节点判别器；`content_block.mentions[]` 只承载该一种 canonical 形态。 |
-| `subject_account_id` | `AccountId` | MUST | 被引用账号的完整稳定标识（含 principal 与 Station 分量）；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
+| `subject_account_id` | `AccountId` | 账号分支 MUST | 被引用账号的完整稳定标识（含 principal 与 Station 分量）；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
+| `subject_actor_id` | `ActorId.realm` | Realm 分支 MUST | 与 subject_account_id 互斥；只允许同 Realm 的 Bot／Ghost 完整身份，不支持全局 handle 寻址。 |
 | `display_name_at_time` | string | MAY | event 时刻 subject 的 display name 快照；持久化、不再更新；renderer MAY 直接显示。 |
 | `handle_at_time` | canonical handle string（§3.1 主形态） | MAY | event 时刻 subject 的 handle 快照；**仅** audit / debug / 全文搜索 / 历史回溯用途；**MUST NOT** 作为当前显示标识。 |
 | `controller_subject_account_id` | `AccountId` | MAY | 历史 Agent selector mention 或已知目标 picker 记录 controller 的完整账号标识；仅 audit / fallback metadata，权威 target 仍是 `subject_account_id`，不得由此恢复自由文本解析。 |

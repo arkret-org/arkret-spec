@@ -1255,7 +1255,7 @@
     },
     "EventAdmissionSubmission": {
       "type": "object",
-      "description": "One original producer-signed Event and applicable approval signatures. The sole additional private source carrier is subject_managed_source for an exact Service-produced terminal managed child; device_scope_confirmations is allowed only on an independently Principal-signed managed Device authorize into a foreign business scope. Neither field changes Event bytes or admits general proof bundles. All other branches forbid these fields.",
+      "description": "One complete original producer-signed Event plus applicable external approval signatures. Realm actor private control admission is resolved from its owning Realm accepted state, with no foreign Account/PCR source package. No arbitrary atomic Event list.",
       "required": [
         "event"
       ],
@@ -1270,103 +1270,9 @@
           },
           "minItems": 1,
           "description": "One ak.schema.approval_signature.v1 object per approver. An event-target signature binds approval_target.event_id equal to event.event_id. An operation-target signature is allowed only when capability-action-registry.json resolves its action to this exact carrier operation and binds request_canonical_digest to the original typed request with approval_signatures omitted. Every ingress that wraps EventAdmissionSubmission -- ordinary self submit, batch submission, control transactions, facade hand-off -- reuses this one field and MUST NOT define its own DTO. The array is omitted when no approval layer demands evidence; it MUST NOT be present and empty. The governance Station persists the evidence, the verification basis, the nonce consumption and the binding to this submission inside the same atomic acceptance transaction, and the shared Realm Event store keeps the original Event bytes unchanged."
-        },
-        "subject_managed_source": {
-          "$ref": "./applet-management-source.schema.json#/$defs/source"
-        },
-        "device_scope_confirmations": {
-          "type": "array",
-          "items": {
-            "$ref": "./applet-management-source.schema.json#/$defs/scope_confirmation"
-          },
-          "minItems": 1,
-          "maxItems": 64
         }
       },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "subject_managed_source"
-            ]
-          },
-          "then": {
-            "properties": {
-              "event": {
-                "properties": {
-                  "kind": {
-                    "const": "ak.capability.grant"
-                  },
-                  "actor_id": {
-                    "properties": {
-                      "kind": {
-                        "const": "service"
-                      }
-                    },
-                    "$ref": "./common-ids.schema.json#/$defs/actor_id"
-                  }
-                },
-                "not": {
-                  "required": [
-                    "executed_by"
-                  ]
-                }
-              }
-            },
-            "not": {
-              "required": [
-                "device_scope_confirmations"
-              ]
-            },
-            "x-arkret-max-canonical-bytes": 4194304
-          }
-        },
-        {
-          "if": {
-            "required": [
-              "device_scope_confirmations"
-            ]
-          },
-          "then": {
-            "properties": {
-              "event": {
-                "properties": {
-                  "kind": {
-                    "const": "ak.device.authorize"
-                  },
-                  "actor_id": {
-                    "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                    "properties": {
-                      "kind": {
-                        "const": "account"
-                      }
-                    }
-                  }
-                },
-                "not": {
-                  "required": [
-                    "executed_by"
-                  ]
-                }
-              }
-            },
-            "not": {
-              "required": [
-                "subject_managed_source"
-              ]
-            },
-            "x-arkret-max-canonical-bytes": 4194304
-          }
-        }
-      ],
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.realm.create",
-        "ak.profile.create",
-        "ak.profile.update",
-        "ak.identity.accountability_grant",
-        "ak.realm.governance_station.change"
-      ]
+      "additionalProperties": false
     },
     "EventSubmitEnvelope": {
       "$ref": "./event-envelope.schema.json",

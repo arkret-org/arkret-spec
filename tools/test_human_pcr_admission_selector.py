@@ -299,10 +299,20 @@ class HumanPcrAdmissionSelectorTest(unittest.TestCase):
             errors,
         )
 
+    def test_realm_envelope_selector_is_closed_and_preserves_missing_field_rejection(self):
+        for path in ["scope_ref.kind", "actor_id.kind"]:
+            guard = Draft202012Validator(predicate_schema({"envelope_path":path,"const":"realm"}))
+            first, second = path.split(".")
+            self.assertTrue(guard.is_valid({first:{second:"realm"}}))
+            self.assertFalse(guard.is_valid({}))
+            self.assertFalse(guard.is_valid({first:{second:"account"}}))
+        with self.assertRaises(ValueError):predicate_schema({"envelope_path":"authorization_ref","const":"x"})
+
     @staticmethod
     def sample_value(selector: str) -> object:
         return {
             "payload_path": "object.purpose",
+            "envelope_path": "scope_ref.kind",
             "const": "principal_control",
             "not_const": "agent_control",
             "ref_role": "attestation",

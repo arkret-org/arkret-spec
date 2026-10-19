@@ -158,11 +158,21 @@
                   "pattern": "^actor_kind(?:\\.|$)"
                 }
               }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^actor_id(?:\\.|$)"
+                }
+              }
             }
           ]
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
         }
       },
       "additionalProperties": false
@@ -1199,9 +1209,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "applet_managed_actor_provision_payload": {
-      "$ref": "./applet-managed-actor.schema.json#/$defs/applet_managed_actor_provision_payload"
     },
     "audience_mention_node": {
       "type": "object",
@@ -2291,8 +2298,8 @@
               },
               "then": {
                 "required": [
-                  "realm_id",
-                  "constraints"
+                  "constraints",
+                  "realm_id"
                 ],
                 "properties": {
                   "issuer_id": {
@@ -2784,7 +2791,7 @@
         },
         "mentions": {
           "type": "array",
-          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read mention_node.subject_account_id exclusively, and compare it as a complete AccountId (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
+          "description": "Structured direct mention AST nodes for this Content Block. This is the only carrier of a direct mention: authorization, notification routing and audit attribution read the exclusive mention_node.subject_account_id or Realm-only subject_actor_id, and compare the complete identity (zh/models/strand-and-message.md §9.4.1-§9.4.2).",
           "items": {
             "$ref": "#/$defs/mention_node"
           }
@@ -3010,10 +3017,10 @@
               "properties": {
                 "attachment": {
                   "required": [
+                    "size_bytes",
                     "scheme",
                     "nonce_prefix",
-                    "segment_bytes",
-                    "size_bytes"
+                    "segment_bytes"
                   ],
                   "properties": {
                     "blob_ref": {
@@ -3082,7 +3089,7 @@
     },
     "device_authorize_payload": {
       "type": "object",
-      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, accepted-device pairing, and Applet-managed delegation. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core bound to that exact AccountId; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. applet_managed_delegation is an ordinary successor Event inside an already accepted applet_managed_control PCR, signed by that principal's own controller method resolved from its accepted current resolution typed current result, so it needs no unit-local candidate overlay. None of these branches derives human authority from current DID state.",
+      "description": "Closed Device authorization. Ordinary Account branches retain their PCR rules. realm_managed_delegation is signed by the owning Realm actor current controller in realm_control; exact full ActorId is injected from the Event, never a payload mirror. Current control and Device row revisions are CAS preconditions. No generation is initialized by this branch.",
       "required": [
         "device_id",
         "device_public_key_did",
@@ -3115,7 +3122,7 @@
         },
         "authorized_by": {
           "$ref": "#/$defs/device_or_principal_ref",
-          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and account-local lineage. Under accepted_device it is the approving device id at the accepted generation. Under applet_managed_delegation it is the Applet-managed principal's own principal_id, equal to actor_id.account_id.principal_id: the managed PCR authorizes its own delegated device and no cross-principal authority is introduced."
+          "description": "For registration_anchor/pcr_recovery, the ordinary Account principal; for accepted_device, the approving DeviceId. For realm_managed_delegation, exactly actor_id.realm_actor_id.principal_id, verified through the accepted Realm control method."
         },
         "authorization_binding_kind": {
           "type": "string",
@@ -3123,13 +3130,13 @@
             "registration_anchor",
             "pcr_recovery",
             "accepted_device",
-            "applet_managed_delegation"
+            "realm_managed_delegation"
           ],
-          "description": "registration_anchor is valid only in accepted PCR genesis; pcr_recovery only in a recovery unit authorized by the accepted PCR recovery policy; accepted_device requires an active approving device; applet_managed_delegation is valid only as an ordinary successor Event inside an accepted applet_managed_control PCR and only with an active installation of the exact owning Applet at each scope being authorized. No branch permits a same-core foreign PCR lineage."
+          "description": "Ordinary Account branches retain PCR genesis, recovery and paired-device rules. realm_managed_delegation is exclusive to a Realm actor in its owning private realm_control stream, with current controller authority and exact active installation at every authorized business scope."
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, whose shared device_authorize_possession_core registers it as a signed member; those transcripts cover the authorization core plus the injected account_id and exclude every signature and digest member of this payload, so they are not an allOf of this payload. The accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
+          "description": "Exact current Account PCR or Realm actor generation, never DID version. registration_anchor=1; pcr_recovery equals sibling reanchor new generation; accepted_device equals Account current generation; realm_managed_delegation equals the actor-local current generation and signed CAS. The Device possession transcript covers it except accepted_device, where the approving Device Event proof covers it."
         },
         "scopes": {
           "oneOf": [
@@ -3140,7 +3147,7 @@
               "$ref": "#/$defs/applet_managed_device_scopes"
             }
           ],
-          "description": "applet_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority."
+          "description": "realm_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -3150,11 +3157,11 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 possession proof. It is the output of a possession transcript and therefore never a member of one. registration_anchor signs device_authorize_possession_transcript under ak.device_authorize_possession_proof.v1; pcr_recovery signs device_authorize_recovery_possession_transcript under ak.device_authorize_recovery_possession_proof.v1; applet_managed_delegation signs device_authorize_applet_managed_possession_transcript under ak.device_authorize_applet_managed_possession_proof.v1, the same device_authorize_possession_core plus applet_id; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
+          "description": "Ed25519 possession proof: registration_anchor uses device_authorize_possession_transcript; pcr_recovery uses device_authorize_recovery_possession_transcript; realm_managed_delegation uses the complete device_authorize_realm_actor_possession_transcript and its separate domain; accepted_device retains device_pairing_target_proof. No signature is included in its own transcript."
         },
         "recovery_session_id": {
           "$ref": "#/$defs/device_authorize_recovery_session_id",
-          "description": "Required by the pcr_recovery branch and omitted for registration_anchor, ordinary accepted_device pairing and applet_managed_delegation."
+          "description": "Required by the pcr_recovery branch and omitted for registration_anchor, ordinary accepted_device pairing and realm_managed_delegation."
         },
         "pairing_challenge_transcript_digest": {
           "$ref": "#/$defs/digest",
@@ -3162,7 +3169,20 @@
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id",
-          "description": "Required only for applet_managed_delegation and forbidden otherwise. Exact owning Applet from accepted provision provenance. Each new business use independently requires the current active installation at its actual effective_scope and its original signed scope/action pair; creation provenance is not a global installation fence."
+          "description": "Required only for realm_managed_delegation and forbidden otherwise. Exact owning Applet from accepted provision provenance. Each new business use independently requires the current active installation at its actual effective_scope and its original signed scope/action pair; creation provenance is not a global installation fence."
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_revision": {
+          "oneOf": [
+            {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -3195,7 +3215,7 @@
           "if": {
             "properties": {
               "authorization_binding_kind": {
-                "const": "applet_managed_delegation"
+                "const": "realm_managed_delegation"
               }
             },
             "required": [
@@ -3204,9 +3224,11 @@
           },
           "then": {
             "required": [
-              "applet_id",
               "expires_at",
-              "scopes"
+              "scopes",
+              "applet_id",
+              "expected_control_revision",
+              "expected_device_revision"
             ],
             "properties": {
               "expires_at": {
@@ -3215,12 +3237,40 @@
               "scopes": {
                 "$ref": "#/$defs/applet_managed_device_scopes"
               }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "recovery_session_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "pairing_challenge_transcript_digest"
+                  ]
+                }
+              ]
             }
           },
           "else": {
             "not": {
-              "required": [
-                "applet_id"
+              "anyOf": [
+                {
+                  "required": [
+                    "applet_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_control_revision"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_device_revision"
+                  ]
+                }
               ]
             },
             "properties": {
@@ -3423,7 +3473,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical Event bytes and producer_proof); its permanent cutoff is the accepted RealmCommit covering this Event. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no checkpoint or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact Account or Realm actor subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical Event bytes and producer_proof); its permanent cutoff is the accepted RealmCommit covering this Event. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no checkpoint or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "device_id",
         "revoked_by",
@@ -4760,8 +4810,7 @@
     "mention_node": {
       "type": "object",
       "required": [
-        "kind",
-        "subject_account_id"
+        "kind"
       ],
       "properties": {
         "kind": {
@@ -4770,6 +4819,9 @@
         "subject_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Authoritative mention target as the complete AccountId, principal and Station component both. For Agent selectors this is the agent account, not the controller account. Equality is byte-for-byte over both components: the same principal hosted by another Station is a different subject and MUST NOT match (zh/identity/identity-handles.md §3.8, zh/discovery/discovery-directory.md §9)."
+        },
+        "subject_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "display_name_at_time": {
           "type": "string"
@@ -4797,7 +4849,53 @@
         }
       },
       "additionalProperties": false,
-      "description": " Readable holder/slug or me/slug labels are UI candidate input only: explicit selection binds the complete AccountId and a visible draft token range. Draft routing and ranges are local state, never additional wire fields. Private controller petnames must not enter shared body or metadata; mention_text_original and handle/slug snapshots do not supply current renderer labels."
+      "description": " Readable holder/slug or me/slug labels are UI candidate input only: explicit selection binds the complete AccountId and a visible draft token range. Draft routing and ranges are local state, never additional wire fields. Private controller petnames must not enter shared body or metadata; mention_text_original and handle/slug snapshots do not supply current renderer labels.",
+      "oneOf": [
+        {
+          "required": [
+            "subject_account_id"
+          ],
+          "not": {
+            "required": [
+              "subject_actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "subject_actor_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "subject_account_id"
+                ]
+              },
+              {
+                "required": [
+                  "handle_at_time"
+                ]
+              },
+              {
+                "required": [
+                  "controller_subject_account_id"
+                ]
+              },
+              {
+                "required": [
+                  "controller_handle_at_time"
+                ]
+              },
+              {
+                "required": [
+                  "agent_slug_at_time"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     "mimi_message_provenance": {
       "type": "object",
@@ -6907,6 +7005,13 @@
               "propertyNames": {
                 "not": {
                   "pattern": "^actor_kind(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^actor_id(?:\\.|$)"
                 }
               }
             }
@@ -9134,36 +9239,6 @@
       },
       "additionalProperties": false
     },
-    "device_authorize_applet_managed_possession_transcript": {
-      "description": "Candidate-device possession transcript of the applet_managed_delegation branch. The signing input is UTF8(\"ak.device_authorize_applet_managed_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. It adds applet_id, the exact owning Applet from accepted managed-actor provision provenance; each original signed scope independently intersects its current installation, and it narrows expires_at and scopes to non-null because the payload requires both on this branch. recovery_session_id is the normalized null.",
-      "x-arkret-signature-domain": "ak.device_authorize_applet_managed_possession_proof.v1",
-      "allOf": [
-        {
-          "$ref": "#/$defs/device_authorize_possession_core"
-        }
-      ],
-      "required": [
-        "applet_id"
-      ],
-      "properties": {
-        "authorization_binding_kind": {
-          "const": "applet_managed_delegation"
-        },
-        "applet_id": {
-          "$ref": "./common-ids.schema.json#/$defs/applet_id"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "scopes": {
-          "$ref": "#/$defs/applet_managed_device_scopes"
-        },
-        "recovery_session_id": {
-          "const": null
-        }
-      },
-      "unevaluatedProperties": false
-    },
     "device_authorize_possession_transcript": {
       "description": "Candidate-device possession transcript of the registration_anchor branch: the second Event of a PCR genesis unit. The signing input is UTF8(\"ak.device_authorize_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. authorized_generation_ref is fixed to 1, the value the same pcr_genesis_unit initializes. recovery_session_id and scopes are the normalized nulls of a branch whose payload carries neither.",
       "x-arkret-signature-domain": "ak.device_authorize_possession_proof.v1",
@@ -9452,6 +9527,101 @@
         "$ref": "#/$defs/applet_managed_device_scope"
       },
       "description": "Non-empty canonical managed Device scope pairs. Exactly one entry per effective_scope; entries MUST be sorted by UTF-8 bytes of RFC8785 JCS(effective_scope). Receivers reject unsorted or repeated scopes, unknown actions and cross-entry combination; they never normalize signed bytes."
+    },
+    "realm_actor_create_payload": {
+      "$ref": "./realm-actor.schema.json#/$defs/create_payload"
+    },
+    "realm_actor_control_update_payload": {
+      "$ref": "./realm-actor.schema.json#/$defs/control_update_payload"
+    },
+    "realm_actor_status_set_payload": {
+      "$ref": "./realm-actor.schema.json#/$defs/status_set_payload"
+    },
+    "realm_actor_devices_reset_payload": {
+      "$ref": "./realm-actor.schema.json#/$defs/devices_reset_payload"
+    },
+    "realm_actor_manager_change_payload": {
+      "$ref": "./realm-actor.schema.json#/$defs/manager_change_payload"
+    },
+    "device_authorize_realm_actor_possession_transcript": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "applet_id",
+        "expected_control_revision",
+        "expected_device_revision"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_public_key_did": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Device HPKE public key used for secret/key envelope encryption. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_proof, which the approving device reads only after that attestation verifies."
+        },
+        "algorithms": {
+          "$ref": "#/$defs/string_list",
+          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key_did and hpke_key. For accepted_device pairing its authority is the target device_pairing_target_proof, not any service-supplied or staged copy."
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519"
+        },
+        "authorized_by": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authorization_binding_kind": {
+          "const": "realm_managed_delegation"
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, whose shared device_authorize_possession_core registers it as a signed member; those transcripts cover the authorization core plus the injected account_id and exclude every signature and digest member of this payload, so they are not an allOf of this payload. The accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "scopes": {
+          "$ref": "#/$defs/applet_managed_device_scopes"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id",
+          "description": "Required only for applet_managed_delegation and forbidden otherwise. Exact owning Applet from accepted provision provenance. Each new business use independently requires the current active installation at its actual effective_scope and its original signed scope/action pair; creation provenance is not a global installation fence."
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_revision": {
+          "oneOf": [
+            {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.device_authorize_realm_actor_possession_proof.v1"
     }
   },
   "x-arkret-public-handshake-contract": {

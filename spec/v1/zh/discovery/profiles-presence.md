@@ -57,7 +57,8 @@ updated: 2026-07-03
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
 | `schema` | string | MUST | `ak.schema.actor_profile.v1`。 |
 | `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
-| `principal_id` | did_core_id | MUST | Actor / Principal 的稳定业务身份。 |
+| `principal_id` | did_core_id | 普通主体 | 普通主体的稳定业务身份；与 actor_id 互斥。 |
+| `actor_id` | ActorId.realm | Realm 主体 | 完整 RealmActorId；只用于 Realm Bot／Ghost。 |
 | `actor_kind` | enum | MUST | `user`、`organization`、`team`、`agent`、`bot`、`service` 或 `integration`；`agent` 只表示 Agent，Applet automation 使用 `bot`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名；按 `arkret_single_line_display_text` 验证，最大 128 个 Unicode code point，与 Contact `confirmed_display_name` 共用 `display_text_128` 机读 profile。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
@@ -83,7 +84,9 @@ updated: 2026-07-03
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Event 以该 Event-derived ID 为 profile typed current result subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal。
+本节普通主体使用 PCR；Realm Bot／Ghost 只在所属 Realm 的私有 realm_control 中持有一份 Profile，使用完整 actor_id，不携 principal_id、handle、agent_slug 或 accountability。控制方法维护私有 Profile，公开 applet_interaction 意图另验指定业务 scope 的 publish／review 及当前权限；不由每个 scope 各建一份 Profile。
+
+普通主体 Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Event 以该 Event-derived ID 为 profile typed current result subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal。
 
 `payload.object` 是 `actor-profile.schema.json#/$defs/actor_profile_definition`——**作者区域**，不是物化对象：`schema`、`realm_id`、`created_at`、`updated_by`、`updated_at` 由 reducer 按 [`../models/common-fields.md` §3.3](../models/common-fields.md) 的 `object_schema_identifier` / `object_realm_binding` / `object_create_time` / `object_update_actor` / `object_update_time` 产出，作者 MUST NOT 携带；`id` 与 `resolution` 同样不在作者区域。`principal_id` 与 `actor_kind` 仍是作者输入（没有任何派生能产出「这份 profile 属于哪个 principal」），但二者 **create-locked**：`ak.profile.update` 与 `ak.profile.realm_override` 的 patch 面以 `propertyNames` 拒绝它们，换主体或换种类 MUST 新建对象，不得借 update 原地重绑；`agent_slug` 与 `actor_kind` 的既有跨字段约束不变：
 

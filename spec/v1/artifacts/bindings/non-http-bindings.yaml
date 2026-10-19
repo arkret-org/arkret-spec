@@ -83,9 +83,7 @@ grpc:
       RevokePreview: ak.self.applet.revoke.command.preview.v1
       Revoke: ak.self.applet.command.revoke.v1
       GhostPreview: ak.self.applet.ghost.command.preview.v1
-      GhostProvision: ak.self.applet.ghost.command.provision.v1
       BotPreview: ak.self.applet.bot.command.preview.v1
-      BotProvision: ak.self.applet.bot.command.provision.v1
     SelfAuthz:
       Check: ak.self.authz.read.check.v1
       GetEffectiveGrants: ak.self.authz.grants.read.effective.v1
@@ -335,6 +333,7 @@ grpc:
       Management_ReviewCommandDecide: ak.self.management_review.command.decide.v1
       Management_ReviewReadStatus: ak.self.management_review.read.status.v1
       AppletConfigurationSubmit: ak.self.applet.configuration.command.submit.v1
+      RealmActorReadMaterial: ak.self.realm_actor.read.material.v1
 mq:
   envelope:
     required:
@@ -543,7 +542,6 @@ mq:
     self.applet.command.install: ak.self.applet.command.install.v1
     self.applet.command.revoke: ak.self.applet.command.revoke.v1
     self.applet.ghost.command.preview: ak.self.applet.ghost.command.preview.v1
-    self.applet.ghost.command.provision: ak.self.applet.ghost.command.provision.v1
     self.applet.install.command.preview: ak.self.applet.install.command.preview.v1
     self.applet.revoke.command.preview: ak.self.applet.revoke.command.preview.v1
     self.authz.grants.query.effective: ak.self.authz.grants.read.effective.v1
@@ -568,13 +566,13 @@ mq:
     self.realm_state_snapshot.query.manifest_head: ak.self.realm_state_snapshot.read.manifest_head.v1
     server.query.describe: ak.server.read.describe.v1
     self.applet.bot.command.preview: ak.self.applet.bot.command.preview.v1
-    self.applet.bot.command.provision: ak.self.applet.bot.command.provision.v1
     self.applet.authority.read.material: ak.self.applet.authority.read.material.v1
     self.management_review.command.request: ak.self.management_review.command.request.v1
     self.management_review.command.decide: ak.self.management_review.command.decide.v1
     self.management_review.read.status: ak.self.management_review.read.status.v1
     self.applet.configuration.command.submit: ak.self.applet.configuration.command.submit.v1
     edge.applet.configuration.command.execute: ak.edge.applet.configuration.command.execute.v1
+    self.realm_actor.read.material: ak.self.realm_actor.read.material.v1
 libp2p:
   envelope:
     required:

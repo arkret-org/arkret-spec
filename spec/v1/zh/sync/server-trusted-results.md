@@ -280,28 +280,23 @@ closed schema 正反例见 `ak.vector.signer_key.human_current_privacy.v1` 与 `
 
 ## Account Device historical signer delivery (Normative)
 
-本节共用 `account_device_historical_signer_fact`，只接受两类真实 Device producer：Human Device，
-以及 accepted Applet-managed Bot/Ghost 的本人 Device。两者各按实际 accepted PCR purpose、
-原授权与独立 native provenance 验证角色，不从 Account 行、DID 拼写或 proof 形状推断。
-受管分支 MUST 在同一锁定 cut 重验 accepted provision／自身 PCR、原 Device authorize 的完整四坐标、
-Device key、generation、时窗及当次 PCR revision/governance generation；`accepted_at` 仍是原授权
-Commit.committed_at。原 Device scope 配对、current installation/Service 上界、业务 grant、
-membership、管理审批和生命周期各自成立，fact 不授新权限。未知角色或缺来源 MUST 零效果拒绝。
-Human 的原 native regular／accepted_device 原件与独立验证门保持不变。该共用不将 Agent runtime key、
-Service 或 PCR 注册／恢复变为 Device 分支，也不以 Human source 替代 managed provenance。
+本节的 `account_device_historical_signer_fact` 只用于普通 Human Account Device，按真实 PCR 授权验证。
+Realm Bot／Ghost Device 使用独立 `realm_device` fact，按 [Realm Bot／Ghost §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签)
+从所属治理方冻结原接受事实；不借用 Account、PCR、origin Station 或 foreign Account forwarding 来源。
+Agent runtime key、Service key 与注册／恢复专用分支保持独立。
 
 本节包含普通Human业务接纳的原事务冻结职责；既有§5.6 self Human PCR强冻结合同并不自动覆盖ordinary，本节不得把新职责说成既有实现已完整支持。普通local Human在治理接纳锁定的PCR current授权cut冻结revision；foreign Human由origin发送前同锁定cut冻结revision并签精确来源，governor在原接受事务验证并保留该原cut而非读取其它current cut。业务Realm accepted time与producer PCR任期均独立。
 
-本节固定服务 origin→governor→member 的原历史供材；普通客户端 §2.1/§5.6 的两个 exact target 来源、独立 Account Device Ed 验证、Account／当前本地认证 fence 与可读 floor 不变：Human 继续使用实际 Session epoch，native managed Device 使用实际原授权实例与当前 Device epoch，不虚构 Session。self submission target 仍必须来自同一认证请求的原签 Event 与对应 accepted outcome。客户端 MUST NOT 由裸fact/event_id造target，也不得执行foreign PCR NativeAudit。
+本节固定服务 origin→governor→member 的原历史供材；普通客户端 §2.1/§5.6 的两个 exact target 来源、独立 Account Device Ed 验证、Account／当前本地认证 fence 与可读 floor 不变：Human 继续使用实际 Session epoch，Realm Device 使用其 realm_device fact、实际原授权实例与当前 Device epoch，不虚构 Session。self submission target 仍必须来自同一认证请求的原签 Event 与对应 accepted outcome。客户端 MUST NOT 由裸fact/event_id造target，也不得执行foreign PCR NativeAudit。
 
 现 authority-commit-operations 的 closed `account_device_historical_signer_fact` 顺序 MUST 为 event_id、actor、device_id、verification_method、key、accepted_at；actor 是实际 Account Device signer 的完整 Account ActorId（executed_by优先，否则actor_id），key复用既有 query_signing_key 的 public_key_b64u/authorization_ref/revision/governance_generation。授权四坐标独立于业务target四坐标；revision/PCR治理generation是原授权cut，accepted_at是原授权Commit.committed_at。actor/device_id/verification_method/event_id仅为原Event的逐字对应检查，MUST NOT 成为第二身份权威。事实 MUST 在原接纳事务准备，原producer proof、完整Account/device/method/key和授权实例都吻合。不得用业务Commit时间或current key/revision补齐。
 
-governor对所有新普通Realm Human 或 accepted Applet-managed Bot/Ghost Device business Event MUST 同事务冻此fact并让原RealmCommit承诺其摘要，包含local-governor Human给foreign-member的Direct四项、ordinary/registered aggregate 与两类实际 Account Device MLS Commit，不以当前foreign member/outbox非空才条件生成。Agent runtime key、Service signing key、PCR 注册／恢复等专用 native branch MUST NOT 借用本 Account Device 来源。缺source时新接纳零效果failclosed；accepted exact retry先返回原durable outcome，不重取current、重签Commit或换fact。
+governor对所有新普通Realm Human Device business Event MUST 同事务冻此fact并让原RealmCommit承诺其摘要，包含local-governor Human给foreign-member的Direct四项、ordinary/registered aggregate 与实际 Human Account Device MLS Commit，不以当前foreign member/outbox非空才条件生成。Agent runtime key、Service signing key、PCR 注册／恢复等专用 native branch MUST NOT 借用本 Account Device 来源。缺source时新接纳零效果failclosed；accepted exact retry先返回原durable outcome，不重取current、重签Commit或换fact。
 
 member仅在原source authority/Commit签名、内容ID、stream连续性与合法Full披露都通过后，重算fact digest并核原完整Event实际producer与真Ed proof；原件与immutable fact同一replica事务保存，重复必须逐字相等，冲突零写/冻结。历史query沿原selector/status/key/accepted_at闭形状与原读取授权返回，current状态后来改变不重写原实例。旧missing-source rows维持Unavailable，不回填旧Commit或扩大PCRhistory许可。
 
 authorization_ref携PCR RealmId、position、Event/CommitId，revision/generation可跨Event/设备关联；公开factdigest在已知候选fact时也可确认内容，哈希MUST NOT被描述成匿名或不可关联。
 
-此处仅批准 Human 与 accepted Applet-managed Device 经当前recipient授权与Full可见性门允许的普通业务验签所需key及原授权坐标/revision/PCRgeneration/时点的同一窄metadata披露，不披露PCR Event/Commit bytes、predecessors、授权链、恢复材料或其它账号device目录。fact不授current权限，原admission/capability/policy/approval/native audit职责独立。
+此处仅批准 Human Device 经当前recipient授权与Full可见性门允许的普通业务验签所需key及原授权坐标/revision/PCRgeneration/时点的同一窄metadata披露，不披露PCR Event/Commit bytes、predecessors、授权链、恢复材料或其它账号device目录。fact不授current权限，原admission/capability/policy/approval/native audit职责独立。
 
 本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。

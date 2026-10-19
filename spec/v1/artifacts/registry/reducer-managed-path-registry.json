@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-30.2",
-  "generated_at": "2026-09-30T08:03:04+08:00",
+  "version": "2026-10-19.1",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
@@ -130,6 +130,15 @@
           "owner": "ak.profile.create",
           "schema_enforced": true,
           "description": "The closed Actor classification. It is decided at create with principal_id; the agent_slug cross-field guard only requires actor_kind=agent when agent_slug is present and does nothing to stop a user being retyped as an agent in place. Changing the subject or the kind is a new object."
+        },
+        {
+          "path": "actor_id",
+          "basis": "create_locked",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.profile.create",
+          "schema_enforced": true,
+          "description": "Realm actor profile subject is the complete immutable actor; ordinary principal_id profiles retain their own branch."
         }
       ],
       "value_member_maintenance": {
@@ -182,19 +191,80 @@
       "value_member_maintenance": {
         "owner": "zh/models/circle.md sections 3 and 5; zh/models/common-fields.md sections 3.3 and 5.2",
         "always_maintained": [
-          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Circle object write records the accountable Event actor; authors cannot supply this universal reducer-managed member." },
-          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Circle object write records the accepted Event time; authors cannot supply this universal reducer-managed member." }
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "Every accepted Circle object write records the accountable Event actor; authors cannot supply this universal reducer-managed member."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "Every accepted Circle object write records the accepted Event time; authors cannot supply this universal reducer-managed member."
+          }
         ],
         "conditional_producers": [
-          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.circle.create"], "condition": "Circle create installs active." },
-          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.circle.archive", "ak.circle.restore", "ak.circle.tombstone"], "condition": "Accepted dedicated lifecycle transition." },
-          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.circle.archive", "ak.circle.restore", "ak.circle.tombstone"], "condition": "Produced with an actual lifecycle transition and absent on initial active create." }
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.circle.create"
+            ],
+            "condition": "Circle create installs active."
+          },
+          {
+            "path": "state",
+            "derivation": "object_lifecycle_state",
+            "producer_kinds": [
+              "ak.circle.archive",
+              "ak.circle.restore",
+              "ak.circle.tombstone"
+            ],
+            "condition": "Accepted dedicated lifecycle transition."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.circle.archive",
+              "ak.circle.restore",
+              "ak.circle.tombstone"
+            ],
+            "condition": "Produced with an actual lifecycle transition and absent on initial active create."
+          }
         ],
         "create_locked": [
-          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.circle.create"], "justification": "The Circle schema identifier is fixed by the object kind." },
-          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.circle.create"], "justification": "The parent Realm is the stream that accepted create, not an author assertion." },
-          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.circle.create"], "justification": "The creator is the accepted create Event actor." },
-          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.circle.create"], "justification": "Creation time is the accepted create Event time." }
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.circle.create"
+            ],
+            "justification": "The Circle schema identifier is fixed by the object kind."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.circle.create"
+            ],
+            "justification": "The parent Realm is the stream that accepted create, not an author assertion."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.circle.create"
+            ],
+            "justification": "The creator is the accepted create Event actor."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.circle.create"
+            ],
+            "justification": "Creation time is the accepted create Event time."
+          }
         ]
       },
       "update_payload_refs": [
@@ -221,20 +291,86 @@
       "value_member_maintenance": {
         "owner": "zh/models/morph.md sections 2 and 4; zh/models/common-fields.md sections 3.3, 5.2 and 5.3",
         "always_maintained": [
-          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Morph object write records the accountable Event actor." },
-          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Morph object write records the accepted Event time." }
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "Every accepted Morph object write records the accountable Event actor."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "Every accepted Morph object write records the accepted Event time."
+          }
         ],
         "conditional_producers": [
-          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.morph.create"], "condition": "Morph create installs active." },
-          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.morph.archive", "ak.morph.restore"], "condition": "Accepted dedicated lifecycle transition." },
-          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.morph.archive", "ak.morph.restore"], "condition": "Produced with an actual lifecycle transition." },
-          { "path": "stage_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.morph.stage.set"], "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent." }
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.morph.create"
+            ],
+            "condition": "Morph create installs active."
+          },
+          {
+            "path": "state",
+            "derivation": "object_lifecycle_state",
+            "producer_kinds": [
+              "ak.morph.archive",
+              "ak.morph.restore"
+            ],
+            "condition": "Accepted dedicated lifecycle transition."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.morph.archive",
+              "ak.morph.restore"
+            ],
+            "condition": "Produced with an actual lifecycle transition."
+          },
+          {
+            "path": "stage_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.morph.stage.set"
+            ],
+            "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent."
+          }
         ],
         "create_locked": [
-          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.morph.create"], "justification": "The Morph schema identifier is fixed by the object kind." },
-          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.morph.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
-          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.morph.create"], "justification": "The creator is the accepted create Event actor." },
-          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.morph.create"], "justification": "Creation time is the accepted create Event time." }
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.morph.create"
+            ],
+            "justification": "The Morph schema identifier is fixed by the object kind."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.morph.create"
+            ],
+            "justification": "The Realm is the accepting stream, not an author assertion."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.morph.create"
+            ],
+            "justification": "The creator is the accepted create Event actor."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.morph.create"
+            ],
+            "justification": "Creation time is the accepted create Event time."
+          }
         ]
       },
       "update_payload_refs": [
@@ -411,19 +547,80 @@
       "value_member_maintenance": {
         "owner": "zh/models/realm-and-space.md sections 3.2 and 3.5; zh/models/common-fields.md sections 3.3 and 5.2",
         "always_maintained": [
-          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Space object write records the accountable Event actor." },
-          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Space object write records the accepted Event time." }
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "Every accepted Space object write records the accountable Event actor."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "Every accepted Space object write records the accepted Event time."
+          }
         ],
         "conditional_producers": [
-          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.space.create"], "condition": "Space create installs active." },
-          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.space.archive", "ak.space.restore", "ak.space.tombstone"], "condition": "Accepted dedicated lifecycle transition." },
-          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.space.archive", "ak.space.restore", "ak.space.tombstone"], "condition": "Produced with an actual lifecycle transition." }
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.space.create"
+            ],
+            "condition": "Space create installs active."
+          },
+          {
+            "path": "state",
+            "derivation": "object_lifecycle_state",
+            "producer_kinds": [
+              "ak.space.archive",
+              "ak.space.restore",
+              "ak.space.tombstone"
+            ],
+            "condition": "Accepted dedicated lifecycle transition."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.space.archive",
+              "ak.space.restore",
+              "ak.space.tombstone"
+            ],
+            "condition": "Produced with an actual lifecycle transition."
+          }
         ],
         "create_locked": [
-          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.space.create"], "justification": "The Space schema identifier is fixed by the object kind." },
-          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.space.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
-          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.space.create"], "justification": "The creator is the accepted create Event actor." },
-          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.space.create"], "justification": "Creation time is the accepted create Event time." }
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.space.create"
+            ],
+            "justification": "The Space schema identifier is fixed by the object kind."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.space.create"
+            ],
+            "justification": "The Realm is the accepting stream, not an author assertion."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.space.create"
+            ],
+            "justification": "The creator is the accepted create Event actor."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.space.create"
+            ],
+            "justification": "Creation time is the accepted create Event time."
+          }
         ]
       },
       "update_payload_refs": [
@@ -468,20 +665,86 @@
       "value_member_maintenance": {
         "owner": "zh/models/strand-and-message.md sections 3.2 and 4.8; zh/models/common-fields.md sections 3.3, 5.2 and 5.3",
         "always_maintained": [
-          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Strand object write records the accountable Event actor." },
-          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Strand object write records the accepted Event time." }
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "Every accepted Strand object write records the accountable Event actor."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "Every accepted Strand object write records the accepted Event time."
+          }
         ],
         "conditional_producers": [
-          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.strand.create"], "condition": "Strand create installs active." },
-          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.strand.archive", "ak.strand.restore"], "condition": "Accepted dedicated lifecycle transition." },
-          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.strand.archive", "ak.strand.restore"], "condition": "Produced with an actual lifecycle transition." },
-          { "path": "stage_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.strand.stage.set"], "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent." }
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.strand.create"
+            ],
+            "condition": "Strand create installs active."
+          },
+          {
+            "path": "state",
+            "derivation": "object_lifecycle_state",
+            "producer_kinds": [
+              "ak.strand.archive",
+              "ak.strand.restore"
+            ],
+            "condition": "Accepted dedicated lifecycle transition."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.strand.archive",
+              "ak.strand.restore"
+            ],
+            "condition": "Produced with an actual lifecycle transition."
+          },
+          {
+            "path": "stage_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.strand.stage.set"
+            ],
+            "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent."
+          }
         ],
         "create_locked": [
-          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.strand.create"], "justification": "The Strand schema identifier is fixed by the object kind." },
-          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.strand.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
-          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.strand.create"], "justification": "The creator is the accepted create Event actor." },
-          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.strand.create"], "justification": "Creation time is the accepted create Event time." }
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.strand.create"
+            ],
+            "justification": "The Strand schema identifier is fixed by the object kind."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.strand.create"
+            ],
+            "justification": "The Realm is the accepting stream, not an author assertion."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.strand.create"
+            ],
+            "justification": "The creator is the accepted create Event actor."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.strand.create"
+            ],
+            "justification": "Creation time is the accepted create Event time."
+          }
         ]
       },
       "update_payload_refs": [

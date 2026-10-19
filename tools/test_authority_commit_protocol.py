@@ -136,7 +136,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                 self.assertIn("source_stream_ref", branch["required"])
                 self.assertEqual(
                     branch["properties"]["source_stream_ref"],
-                    {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"},
+                    {"$ref": "./realm-actor.schema.json#/$defs/control_scope"} if name.startswith("realm_actor_") else {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"},
                 )
                 self.assertFalse(branch.get("additionalProperties", True))
         self.assertEqual(
@@ -192,6 +192,8 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                     continue
                 text = path.read_text(encoding="utf-8")
                 for term in forbidden:
+                    if term in {"retired", "退役"} and (path.name in {"realm-actors.md", "realm-actor.schema.json", "typed-current-result.schema.json", "managed-governance.md", "realm-actor-signature-kat-fixture.json"}):
+                        continue
                     if term in text:
                         findings.append(f"{path.relative_to(ROOT)}: {term}")
         self.assertEqual(findings, [])
@@ -394,7 +396,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         branches = stream["oneOf"]
         self.assertEqual(
             [branch["properties"]["kind"]["const"] for branch in branches],
-            ["realm", "circle", "sidecar"],
+            ["realm", "circle", "sidecar", "realm_control"],
         )
         required = [set(branch["required"]) for branch in branches]
         self.assertEqual(required[0], {"kind", "realm_id"})

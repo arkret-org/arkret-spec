@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.5",
+  "version": "2026-10-19.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T16:48:01+08:00",
+  "generated_at": "2026-10-19T23:29:28+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 227,
+    "total_operations": 226,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 225
+      "typed_schema": 224
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,10 +32,10 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 139
+        "typed_schema": 140
       },
       "interop_bridge": {
-        "typed_schema": 24
+        "typed_schema": 22
       }
     }
   },
@@ -1756,20 +1756,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.applet.bot.command.provision.v1",
-      "surface_class": "interop_bridge",
-      "http": "POST /_arkret/self/applets/{applet_id}/bots/provision",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
-      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
-        "response": "../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
       "operation_id": "ak.self.applet.command.install.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/applets/install",
@@ -1821,20 +1807,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/GhostPreviewRequestBody",
         "response": "#/components/schemas/GhostPreviewOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.applet.ghost.command.provision.v1",
-      "surface_class": "interop_bridge",
-      "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/GhostActorProvisionRequestBody",
-        "response": "#/components/schemas/GhostActorProvisionOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2902,6 +2874,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.realm_actor.read.material.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/realm-actors/material",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/realm-actor-material.schema.json#/$defs/request",
+        "response": "../schemas/realm-actor-material.schema.json#/$defs/outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.realm_join.command.prepare.v1",

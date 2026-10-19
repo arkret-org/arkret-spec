@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T09:32:11+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -341,8 +341,8 @@
     },
     {
       "page": "crypto-media/device-lifecycle.md",
-      "heading": "5.2.3 `applet_managed_delegation` possession transcript（normative）",
-      "fragment": "523-applet_managed_delegation-possession-transcriptnormative"
+      "heading": "5.2.3 Realm actor Device possession transcript（normative）",
+      "fragment": "523-realm-actor-device-possession-transcriptnormative"
     },
     {
       "page": "crypto-media/device-lifecycle.md",
@@ -406,8 +406,8 @@
     },
     {
       "page": "crypto-media/device-lifecycle.md",
-      "heading": "8.2.2.1 managed 首次 forward 的原签来源闭包（normative）",
-      "fragment": "8221-managed-首次-forward-的原签来源闭包normative"
+      "heading": "8.2.2.1 Realm actor 业务来源（normative）",
+      "fragment": "8221-realm-actor-业务来源normative"
     },
     {
       "page": "crypto-media/device-lifecycle.md",
@@ -606,8 +606,8 @@
     },
     {
       "page": "extensions/applet-integration.md",
-      "heading": "7.3.2.1 managed PCR 轮换的既有入站（normative）",
-      "fragment": "7321-managed-pcr-轮换的既有入站normative"
+      "heading": "9.1 Ghost Actor Provisioning（normative）",
+      "fragment": "91-ghost-actor-provisioningnormative"
     },
     {
       "page": "extensions/applet-schema.md",

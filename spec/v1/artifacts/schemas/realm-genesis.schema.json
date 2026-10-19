@@ -24,8 +24,7 @@
         "collaboration",
         "direct_conversation",
         "principal_control",
-        "agent_control",
-        "applet_managed_control"
+        "agent_control"
       ]
     },
     "genesis_salt": {
@@ -94,8 +93,7 @@
           "purpose": {
             "enum": [
               "principal_control",
-              "agent_control",
-              "applet_managed_control"
+              "agent_control"
             ]
           }
         },
@@ -164,30 +162,6 @@
         }
       },
       "description": "Agent PCR genesis commits the already accepted did:webvh inception head. The later PCR service binding update is continuous from this head and does not participate in the create Event preimage."
-    },
-    {
-      "if": {
-        "properties": {
-          "purpose": {
-            "const": "applet_managed_control"
-          }
-        },
-        "required": [
-          "purpose"
-        ]
-      },
-      "then": {
-        "properties": {
-          "initial_resolution": {
-            "properties": {
-              "did": {
-                "$ref": "./common-ids.schema.json#/$defs/applet_managed_actor_did"
-              }
-            }
-          }
-        }
-      },
-      "description": "Applet-managed PCR genesis commits exactly the initial resolution already frozen by its accepted provision Event."
     }
   ],
   "additionalProperties": false,

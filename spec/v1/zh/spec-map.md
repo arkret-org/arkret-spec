@@ -240,9 +240,10 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
+| `extensions/realm-actors.md` | Applet Realm Bot／Ghost 身份、私有控制、设备、签名与治理交接。 |
 | `extensions/applet-integration.md` | Applet / bridge / bot / Ghost Actor / portal Realm。 |
 | `extensions/extension-manifest.md` | Extension Manifest 的声明式边界、依赖与禁止可执行 DSL 规则。 |
-| `extensions/applet-management-source.md` | Applet账号Station、S创建／B准入、限定配置、随操作来源与私有恢复。 |
+| `extensions/applet-management-source.md` | Applet 管理配置、治理方准入、自动 Ghost 许可、审批与精确结果恢复。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 

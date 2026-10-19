@@ -149,19 +149,12 @@ Package -> registration 派生映射:
 
 Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`consent_required`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。
 
-### 1a.1 Applet-managed Actor creation anchor
+### 1a.1 Realm Bot／Ghost creation anchor
 
-`ak.schema.applet_managed_actor_provision.v1` 以
-[`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
-wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor 使用
-`account` 分支，`principal_id` 与 `station_id` 封闭在其 `account_id` 对象内。payload 还必须携闭合
-`actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
-`method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
-did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
-`external_ref`，Bot 禁止携该字段。contract registry 的 provision typed current result subject 是 pair 的复合键，不能仅按
-core id 做 CAS。Package/registration/Ghost durable record 只保存 accepted provision Event 与 PCR genesis
-anchor；current resolution ref 不属于这些对象。provision typed current result subject 是 `JCS(actor_id)`，不得以裸
-`principal_id` 或平行 server sidecar 建立第二套 CAS 键。
+`ak.schema.realm_actor_create.v1` 以 [realm-actor schema](../../artifacts/schemas/realm-actor.schema.json)
+为唯一候选结构。独立 DID 控制签名与 Service 原签 create Event 分别验证；成功后由所属 Realm 的
+realm_control Commit 建立身份。完整 realm ActorId 是唯一主体键；Bot 禁止 external_ref，Ghost 必须提供。
+创建不附赠 Device、Profile、成员、grant 或 MLS。字段、原生 DID 证据与 current 定义见 [Realm 主体](./realm-actors.md)。
 
 ## 1b. Applet Install Operation Objects
 
@@ -177,7 +170,7 @@ Service可用已登记authority material读取面取得自己的parent及current
 managed author请求只消费provision_bot／provision_ghost。两种basis都携完整effective_scope、accepted registration／
 creation authority／epoch evidence、target Station、Applet/Service和package；Bot另钉request_id，Ghost另钉external tuple。
 Station request proof绑定exactbasis、current governance identity、issued_at/expires_at，期限≤5minutes；
-Service bundle proof绑定fullrequestdigest及四Event。创立单元、runtimecompletion、current复验、审批及重试按
+Service 返回唯一原签 create_event，其中候选的控制签名与外层 Service 签名独立验证。创立单元、runtimecompletion、current复验、审批及重试按
 [Applet integration §9.1、§18](./applet-integration.md)和[managed governance](../authz/managed-governance.md)执行。
 不同purpose须逐字匹配，Bot不冒用Ghosttuple；同Applet新增主体不更新Serviceepoch。
 
@@ -364,10 +357,10 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 ## 8. 接收与认证边界
 
-base_url仅表示签名审批绑定的HTTPS服务管理入口。Service身份、受管Account、设备与MLS持钥状态相互独立；内容供给、无session Device认证、parent来源及逐scopefence **MUST** 按 [Applet integration §18](./applet-integration.md)与 [managed governance](../authz/managed-governance.md)执行。
+base_url仅表示签名审批绑定的HTTPS服务管理入口。Service身份、Realm 受管主体、设备与MLS持钥状态相互独立；内容供给、无session Device认证、parent来源及逐scopefence **MUST** 按 [Applet integration §18](./applet-integration.md)与 [managed governance](../authz/managed-governance.md)执行。
 
-## 9. 跨站配置与管理来源载体
+## 9. Realm 配置与私有材料载体
 
 字段集与顺序由[configuration schema](../../artifacts/schemas/applet-configuration-operations.schema.json)、
-[management source schema](../../artifacts/schemas/applet-management-source.schema.json)及其现有入口引用闭合。
-完整授权、原像、限值、隐私、续证及恢复按[Applet账号来源](./applet-management-source.md)执行；它们不是Event payload。
+[Realm actor material schema](../../artifacts/schemas/realm-actor-material.schema.json)及其现有入口引用闭合。
+完整授权、原像、限值、隐私、续证及恢复按[Applet 管理配置](./applet-management-source.md)执行；它们不是Event payload。

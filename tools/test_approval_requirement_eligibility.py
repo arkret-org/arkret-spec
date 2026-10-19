@@ -58,7 +58,7 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
         ]
         self.assertGreater(len(non_event), 0)
         self.assertEqual(overrides.intersection(row["action"] for row in non_event), {"ak.applet.configure"})
-        self.assertEqual(overrides, {"ak.applet.bot.provision", "ak.applet.ghost.provision", "ak.applet.configure"})
+        self.assertEqual(overrides, {"ak.applet.configure"})
         carriers = {row["carrier_id"]: row for row in block["carriers"]}
         for row in block["action_overrides"]:
             self.assertEqual(carriers[row["carrier_id"]]["carrier_class"], "non_event_operation")
@@ -80,7 +80,7 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
             errors = self._new_errors(mutate)
             self.assertTrue(any("operation_action_overrides" in error for error in errors), errors)
 
-    def test_creation_qualification_cannot_be_missing_or_widened(self) -> None:
+    def test_configuration_qualification_cannot_be_missing_or_widened(self) -> None:
         for value in (None, "ak.applet.bot.provision", "ak.realm.owner", "ak.*"):
             def mutate(documents, value=value):
                 row = self._block(documents)["action_overrides"][0]
@@ -106,11 +106,11 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
         errors = self._new_errors(mutate)
         self.assertTrue(any("incorrect approver capability action" in error for error in errors), errors)
 
-    def test_aggregate_override_requires_all_target_event_kinds(self) -> None:
+    def test_creation_event_cannot_borrow_configuration_operation_approval(self) -> None:
         def mutate(documents: dict[Path, dict]) -> None:
-            registry = documents[gate.OPERATION_REGISTRY.resolve()]
-            operation = next(row for row in registry["operations"] if row["operation_id"] == "ak.self.applet.bot.command.provision.v1")
-            operation["durable_effect"]["event_kinds"].remove("ak.applet.managed_actor.provision")
+            row = copy.deepcopy(self._block(documents)["action_overrides"][0])
+            row["action"] = "ak.applet.bot.provision"
+            self._block(documents)["action_overrides"].append(row)
         errors = self._new_errors(mutate)
         self.assertTrue(any("covering every target Event kind" in error for error in errors), errors)
 

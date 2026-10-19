@@ -1170,18 +1170,11 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
     if "authoring_request_id" in json.dumps(authoring, sort_keys=True):
         lint.fail(authoring_path, "derived authoring_request_id must not exist")
 
-    bundle_required = json_pointer_get(authoring, "/$defs/managed_actor_bundle/required")
-    expected_bundle_required = [
-        "schema",
-        "authoring_request_digest",
-        "managed_actor_provision_event",
-        "pcr_genesis_event",
-        "accountability_grant_event",
-        "profile_event",
-        "proof",
-    ]
-    if bundle_required != expected_bundle_required:
-        lint.fail(authoring_path, "managed_actor_bundle must use the exact role-neutral field set")
+    outcome = json_pointer_get(authoring, "/$defs/author_outcome")
+    if not isinstance(outcome, dict) or outcome.get("required") != ["create_event"] or set(outcome.get("properties", {})) != {"create_event"} or outcome.get("additionalProperties") is not False:
+        lint.fail(authoring_path, "Realm actor authoring must return exactly one original create_event")
+    if json_pointer_get(authoring, "/$defs/managed_actor_bundle") is not None:
+        lint.fail(authoring_path, "Realm actor authoring must not restore the removed Account/PCR creation bundle")
 
 
 def check_service_kind_registry(lint: Lint) -> None:

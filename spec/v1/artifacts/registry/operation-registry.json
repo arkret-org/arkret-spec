@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "generated_at": "2026-10-19T23:29:29+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -367,7 +367,8 @@
         "ak.self.applet.revoke.command.preview.v1",
         "ak.self.applet.command.revoke.v1",
         "ak.self.applet.authority.read.material.v1",
-        "ak.self.applet.configuration.command.submit.v1"
+        "ak.self.applet.configuration.command.submit.v1",
+        "ak.self.realm_actor.read.material.v1"
       ],
       "surface_class": "extension"
     },
@@ -375,9 +376,7 @@
       "surface": "applet_ghost",
       "operations": [
         "ak.self.applet.ghost.command.preview.v1",
-        "ak.self.applet.ghost.command.provision.v1",
-        "ak.self.applet.bot.command.preview.v1",
-        "ak.self.applet.bot.command.provision.v1"
+        "ak.self.applet.bot.command.preview.v1"
       ],
       "surface_class": "interop_bridge"
     },
@@ -592,14 +591,14 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime. Original managed PCR resolution updates use the exact original-install native-principal admission of applet-integration.md section 7.3.2.1; Applet HTTP identity never substitutes its producer. Each Account ak:device: committed delivery must carry the immutable original-admission AccountDeviceSignerEvidence sibling; all other producers forbid that member. Verify its original attestation, native Service history, authorization window and Event JWS at the original covering committed_at; later current state does not reinterpret accepted history."
+      "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
       "http": "POST /_arkret/edge/applet/managed-actors/author",
       "grpc": "EdgeApplet/ManagedActorAuthor",
       "mq": "edge.applet.managed_actor.command.author",
-      "notes": "The Applet service consumes the one signed provision_bot or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. All four creation Events use the Applet service as actual producer and reference the same real Service AuthenticatedSignerResolutionEvidence root derived from the accepted registration epoch; a pre-effective Bot or Ghost never signs them. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, the Service root, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
+      "notes": "Produce one original Service-signed ak.realm.actor.create with independent controller-signed candidate. This operation does not accept identity state; the caller submits the exact Event to the current Realm governor through ak.self.events.command.submit.v1.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
@@ -670,7 +669,7 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
-      "notes": ""
+      "notes": "Exact private Ghost lookup keyed by applet_id, realm_id, protocol, instance_id and external_id; query shape is schemas/applet-edge-operations.schema.json#/$defs/third_party_user_query. Source Service must be the verified current governor of that Realm, with the exact Applet installation and disclosure right. Returned Realm actor must match the same tuple and owning Realm; Applet response is not authority to create or rebind it. No wildcard, cross-Realm lookup or list enumeration."
     },
     {
       "operation_id": "ak.edge.push.command.apply_registration.v1",
@@ -1608,7 +1607,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout. Verified post-genesis PCR-native authority_forward is restricted to the exact actual producer hosting Station and the independently verified current PCR governor; it uses its existing native root/device/placement transaction rather than an ordinary collaboration Human producer evidence/fact branch. No caller flag selects this authority and no PCR history replication or outward read is granted. See identity/consent-model section 6.3.2 and realm-and-space section 2.8.1. Applet-managed Account Device Event/complete-MLS first admission carries the bounded original Service-signed producer_managed_provenance closure of device-lifecycle 8.2.2.1; its private current identity cut does not replace governor business gates, and replication/atomic/native PCR branches forbid this member.",
+      "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout. Verified post-genesis PCR-native authority_forward is restricted to the exact actual producer hosting Station and the independently verified current PCR governor; it uses its existing native root/device/placement transaction rather than an ordinary collaboration Human producer evidence/fact branch. No caller flag selects this authority and no PCR history replication or outward read is granted. See identity/consent-model section 6.3.2 and realm-and-space section 2.8.1. Realm actor first admission directly reads its owning governor control state; foreign Account evidence is forbidden for that actor branch.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -1657,7 +1656,7 @@
       "http": "POST /_arkret/peer/streams/scan",
       "grpc": "PeerStreams/Scan",
       "mq": "peer.streams.read.scan",
-      "notes": "Replicate one visibility-authorized stream from its current governance Station. Full digest-bearing Account Device (Human or accepted Applet-managed Bot/Ghost Device) and Service rows carry original Commit-bound immutable facts; original source Ed/coordinates/time are verified and atomically retained, including bootstrap tail and cold backfill. No PCR history or current-key reconstruction.",
+      "notes": "Replicate one visibility-authorized stream from its current governor. Full digest-bearing Human Account Device, Realm Device and Service rows retain their original Commit-bound signer facts. Realm control history is not public member replication; no current-key reconstruction.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
@@ -2624,35 +2623,6 @@
       }
     },
     {
-      "operation_id": "ak.self.applet.ghost.command.provision.v1",
-      "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
-      "grpc": "SelfApplet/GhostProvision",
-      "mq": "self.applet.ghost.command.provision",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
-      "durable_effect": {
-        "kind": "event_log",
-        "event_kinds": [
-          "ak.applet.managed_actor.provision",
-          "ak.realm.create",
-          "ak.identity.accountability_grant",
-          "ak.profile.create"
-        ]
-      },
-      "notes": "All four creation Events use the Applet Service as actual producer and carry its real Service signer-evidence ref; the pre-effective Ghost never signs this unit. Commit durably retains that root with the four Events and Ghost state. Completion atomically materializes the Ghost Principal root and exact Station Service attester leaf and enqueues the existing authoring_context delivery; the synchronous outcome does not mirror runtime signer inputs.",
-      "auth_requirements": {
-        "service_signature": {
-          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
-          "standard": "RFC 9421 HTTP Message Signature",
-          "bearer_only_allowed": false
-        }
-      }
-    },
-    {
       "operation_id": "ak.self.applet.install.command.preview.v1",
       "http": "POST /_arkret/self/applets/install/preview",
       "grpc": "SelfApplet/InstallPreview",
@@ -2722,7 +2692,7 @@
       "http": "POST /_arkret/self/blob/presign",
       "grpc": "SelfBlob/Presign",
       "mq": "self.blob.command.presign",
-      "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
@@ -2742,7 +2712,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -2753,12 +2723,12 @@
       "mq": "self.blob.resource.get",
       "body_class": "binary_stream",
       "success_shape_kind": "binary_stream",
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -2769,12 +2739,12 @@
       "mq": "self.blob.resource.head",
       "body_class": "binary_stream",
       "success_shape_kind": "metadata_headers",
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -2794,12 +2764,12 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3158,7 +3128,7 @@
       "http": "POST /_arkret/self/current-results/exact",
       "grpc": "SelfCurrentResults/ReadExact",
       "mq": "self.current_results.query.exact",
-      "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated.",
+      "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
@@ -3172,7 +3142,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3181,7 +3151,7 @@
       "http": "POST /_arkret/self/device_messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
       "mq": "self.device_messages.command.ack",
-      "notes": "Explicit, cumulative, monotonic recipient-delivery acknowledgement for one authenticated human-device or Agent-runtime endpoint (client-sync.md §10.1). The token covers one ordered queue containing both DeviceMessageEnvelope and MlsWelcomeDelivery branches; only this operation prunes it. Account stream and list cursors are read-only. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Explicit, cumulative, monotonic recipient-delivery acknowledgement for one authenticated human-device or Agent-runtime endpoint (client-sync.md §10.1). The token covers one ordered queue containing both DeviceMessageEnvelope and MlsWelcomeDelivery branches; only this operation prunes it. Account stream and list cursors are read-only. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -3196,7 +3166,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3225,12 +3195,12 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
-      "notes": "Reads the authenticated recipient endpoint's single ordered private queue. Each deliveries[] item is a closed device_message or mls_welcome branch; the same queue position, read-only cursor and cumulative ACK token span both. Human devices may also receive these items in account delta; Agent runtimes use their own current authorized endpoint and MUST NOT borrow a controller/device queue. See client-sync.md §10. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Reads the authenticated recipient endpoint's single ordered private queue. Each deliveries[] item is a closed device_message or mls_welcome branch; the same queue position, read-only cursor and cumulative ACK token span both. Human devices may also receive these items in account delta; Agent runtimes use their own current authorized endpoint and MUST NOT borrow a controller/device queue. See client-sync.md §10. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3250,7 +3220,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. The Service-signature alternative accepts only event_submission for an installed Applet exact Service terminal business child or its own child revoke, or forwarding an independently Principal-signed native successor in an accepted managed Account own PCR. This is the first Device authorize bootstrap and retained control-only path after business revocation; no Service substitution of the Principal proof, creation aggregate, human recovery, content read or general write is admitted. Transport authentication alone is never authority. Registered audit_paired_event is exactly business then audit, atomically accepted with two consecutive source Commits. Shared typed-unit execution/replay boundaries are in atomic_unit_registry. watch_audit_read is not admitted as an ordinary audit Event: use the dedicated command. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
+      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Service authentication admits its exact permitted Applet Service Event, including realm.actor.create. Realm controller authentication admits only registered private control Events from the current accepted method, with native predicates and actual payload authorization where required. It never substitutes for a Device business signature or permits private stream enumeration.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -3271,13 +3241,18 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         },
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
           "standard": "RFC 9421 HTTP Message Signature",
           "bearer_only_allowed": false,
           "alternative_to_session_grant": true
+        },
+        "realm_actor_control_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.realm_actor_control.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false
         }
       }
     },
@@ -3297,7 +3272,7 @@
       "http": "POST /_arkret/self/streams/scan",
       "grpc": "SelfStreams/Scan",
       "mq": "self.streams.read.scan",
-      "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
@@ -3306,7 +3281,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3318,12 +3293,12 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3332,7 +3307,7 @@
       "http": "GET /_arkret/self/committed-events/subscribe",
       "grpc": "SelfCommittedEvent/Subscribe",
       "mq": "self.committed_event.stream.subscribe",
-      "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream",
       "response_schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
@@ -3340,7 +3315,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3585,7 +3560,7 @@
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "grpc": "SelfKeys/KeyPackagesClaim",
       "mq": "self.keys.keypackages.command.claim",
-      "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Station's verified resolution plus outer RFC 9421 headers. The local Station verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Session-authenticated entry to the canonical KeyPackage claim carrier. The participant supplies the same closed device|agent requester_authorization and stable service_binding with source/destination service DIDs used by peer claim; deployment trust domains are absent from participant-authored bytes and are bound only by the Station's verified resolution plus outer RFC 9421 headers. The local Station verifies the current durable requester authorization and exact current joined-member ActorId routing projection; local source=destination uses the same destination-authority CAS, while remote targets are durably relayed without rewriting the participant-signed body. Uncertain outcomes are queried by the original claim_request_id and request digest before any exact resend. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -3605,7 +3580,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3629,12 +3604,12 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3658,12 +3633,12 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3672,7 +3647,7 @@
       "http": "POST /_arkret/self/keys/keypackages/claims/query",
       "grpc": "SelfKeys/KeyPackagesClaimQuery",
       "mq": "self.keys.keypackages.query.claim",
-      "notes": "Read-only recipient-side resolution of one keypackage_claim_ref before a Welcome is decrypted. The caller's authenticated endpoint must be the exact endpoint of the claim record (human device: complete AccountId and device_id; Agent: agent_id with its current verification method and ak.agent.key.authorize Event). The response is the byte-identical keypackages_claim_outcome serialized when the claim request was first admitted (claim_request_id, every claims[] row and the destination-signed claim_receipt), never re-signed or trimmed, so the recipient recomputes claims_digest and verifies the receipt against its own Station. Unknown, foreign, superseded-Agent and retention-expired claims are one keypackage_unknown. It changes no claim or KeyPackage state. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Read-only recipient-side resolution of one keypackage_claim_ref before a Welcome is decrypted. The caller's authenticated endpoint must be the exact endpoint of the claim record (human device: complete AccountId and device_id; Agent: agent_id with its current verification method and ak.agent.key.authorize Event). The response is the byte-identical keypackages_claim_outcome serialized when the claim request was first admitted (claim_request_id, every claims[] row and the destination-signed claim_receipt), never re-signed or trimmed, so the recipient recomputes claims_digest and verifies the receipt against its own Station. Unknown, foreign, superseded-Agent and retention-expired claims are one keypackage_unknown. It changes no claim or KeyPackage state. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
@@ -3682,7 +3657,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3707,12 +3682,12 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3865,7 +3840,7 @@
       "http": "POST /_arkret/self/mls/group-state-material/query",
       "grpc": "SelfMls/GroupStateMaterial",
       "mq": "self.mls.query.group_state_material",
-      "notes": "Authenticated member's Account Station binds caller_actor_id to the exact session Actor, checks current and target-cut scope/membership/history/policy, and forwards the same selectors to governance over the existing peer material read. Governance independently checks the named Actor's current and target-cut authority and the caller Station's replication right at the target accepted Commit cut; response contains only digest-verified Genesis GroupInfo and ratchet-tree public bytes, never a leaf index, private tree or secret. Unknown and unauthorized selectors are indistinguishable. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Authenticated member's Account Station binds caller_actor_id to the exact session Actor, checks current and target-cut scope/membership/history/policy, and forwards the same selectors to governance over the existing peer material read. Governance independently checks the named Actor's current and target-cut authority and the caller Station's replication right at the target accepted Commit cut; response contains only digest-verified Genesis GroupInfo and ratchet-tree public bytes, never a leaf index, private tree or secret. Unknown and unauthorized selectors are indistinguishable. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
@@ -3874,7 +3849,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3883,7 +3858,7 @@
       "http": "POST /_arkret/self/mls/roster-authority/query",
       "grpc": "SelfMls/RosterAuthority",
       "mq": "self.mls.query.roster_authority",
-      "notes": "Authenticated own Account Station binds the exact session Actor, request selectors and current/target authorization, verifies governance authority and the complete frozen method-native attestor closures and both original historical signatures, then returns the unchanged governance roster page plus purpose-bound public keys. Ordinary clients independently verify manifest, recipient double signatures, ordered digest and RFC leaf/Proposal bindings without a method-history verifier or live resolver. This self-only result is non-portable, has no verified boolean and grants no reusable authorization or current route. Both peer page and exact self projection including key material fit the 2 MiB canonical response limit; governance computes the longest continuous 1..8-record prefix fitting both. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Authenticated own Account Station binds the exact session Actor, request selectors and current/target authorization, verifies governance authority and the complete frozen method-native attestor closures and both original historical signatures, then returns the unchanged governance roster page plus purpose-bound public keys. Ordinary clients independently verify manifest, recipient double signatures, ordered digest and RFC leaf/Proposal bindings without a method-history verifier or live resolver. This self-only result is non-portable, has no verified boolean and grants no reusable authorization or current route. Both peer page and exact self projection including key material fit the 2 MiB canonical response limit; governance computes the longest continuous 1..8-record prefix fitting both. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
@@ -3892,7 +3867,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -3985,12 +3960,12 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/realm-state-snapshot.schema.json",
-      "notes": "Required query realm_id. Returns the exact previously issued closed signed snapshot identified by snapshot_id only to the same authenticated account while Realm and every disclosed row/head/floor remain authorized. A referenced non-preview window requires durable exact retrieval for its consumption lifetime; unavailable references require per-stream preview_only. Response IDs MUST exactly match request IDs; never regenerate, resign or substitute current head. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Required query realm_id. Returns the exact previously issued closed signed snapshot identified by snapshot_id only to the same authenticated account while Realm and every disclosed row/head/floor remain authorized. A referenced non-preview window requires durable exact retrieval for its consumption lifetime; unavailable references require per-stream preview_only. Response IDs MUST exactly match request IDs; never regenerate, resign or substitute current head. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -4002,12 +3977,12 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/realm-state-snapshot.schema.json",
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -4091,7 +4066,7 @@
       "http": "POST /_arkret/self/signer-keys/query",
       "grpc": "SelfSignerKeys/Resolve",
       "mq": "self.signer_keys.query.resolve",
-      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_b64u after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_b64u after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
@@ -4101,7 +4076,7 @@
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
           "alternative_to_session_grant": true,
-          "contract": "Accepted managed Account/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
+          "contract": "Accepted Realm actor/Device and exact scope only; closed metadata and nonce follow the registered scenario. No Service or generic self authority."
         }
       }
     },
@@ -4167,7 +4142,7 @@
       "http": "POST /_arkret/self/applets/{applet_id}/bots/provision/preview",
       "grpc": "SelfApplet/BotPreview",
       "mq": "self.applet.bot.command.preview",
-      "notes": "Installed Service creates one independent Bot through exact scope, creation intent, current creation grant and the atomic four-Event authoring bundle. Exact retry preserves the same Account, accepted outcome and quota charge. No business permission or membership is created implicitly.",
+      "notes": "Prepare a scoped Bot creation authoring request; creates no identity, Device or membership. The runtime returns one signed Realm actor create Event, submitted through self Event admission.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
@@ -4179,35 +4154,6 @@
         "kind": "none",
         "rationale": "No Event is admitted, but the Station durably records the current subject generation and exact signed request before returning"
       },
-      "auth_requirements": {
-        "service_signature": {
-          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
-          "standard": "RFC 9421 HTTP Message Signature",
-          "bearer_only_allowed": false
-        }
-      }
-    },
-    {
-      "operation_id": "ak.self.applet.bot.command.provision.v1",
-      "http": "POST /_arkret/self/applets/{applet_id}/bots/provision",
-      "grpc": "SelfApplet/BotProvision",
-      "mq": "self.applet.bot.command.provision",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
-      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome",
-      "durable_effect": {
-        "kind": "event_log",
-        "event_kinds": [
-          "ak.applet.managed_actor.provision",
-          "ak.realm.create",
-          "ak.identity.accountability_grant",
-          "ak.profile.create"
-        ]
-      },
-      "notes": "Installed Service creates one independent Bot through exact scope, creation intent, current creation grant and the atomic four-Event authoring bundle. Exact retry preserves the same Account, accepted outcome and quota charge. No business permission or membership is created implicitly.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
@@ -4229,7 +4175,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
+      "notes": "Exact authorized installation/registration/grant material for the Service. Realm actor private current/Event/outcome reads use ak.self.realm_actor.read.material.v1 exclusively.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
@@ -4254,7 +4200,7 @@
         "kind": "none",
         "rationale": "Private durable review state only; no Event, grant or membership is created."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
+      "notes": "Exact operation/event-bound governance review in the target Realm. The authenticated Account approver needs the actual scoped capability; Realm actors are not approvers. Realm actor source material comes from the current owning governor, without cross-PCR scope confirmation. Unknown current fails closed; pending state never creates an identity or grant.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4277,7 +4223,7 @@
         "kind": "none",
         "rationale": "Private durable review state only; no Event, grant or membership is created."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
+      "notes": "Exact operation/event-bound governance review in the target Realm. The authenticated Account approver needs the actual scoped capability; Realm actors are not approvers. Realm actor source material comes from the current owning governor, without cross-PCR scope confirmation. Unknown current fails closed; pending state never creates an identity or grant.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4297,7 +4243,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
+      "notes": "Exact operation/event-bound governance review in the target Realm. The authenticated Account approver needs the actual scoped capability; Realm actors are not approvers. Realm actor source material comes from the current owning governor, without cross-PCR scope confirmation. Unknown current fails closed; pending state never creates an identity or grant.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4569,7 +4515,7 @@
         "kind": "none",
         "rationale": "Private bounded configuration intent, result and delivery state only; no Event, account, membership or business grant is implicitly accepted."
       },
-      "notes": "Normative: zh/extensions/applet-management-source.md. Inner intent identity survives proof refresh and response loss. Scope administrator authorization at B is not a source-Station creation grant. Old-result recovery remains authenticated; no new execution after revoke. pending is a nonterminal progress observation; re-polling the same immutable intent never executes a second source operation. Terminal source outcome bytes remain frozen while B admission status is independently observed."
+      "notes": "Normative: zh/extensions/applet-management-source.md. Immutable intent survives proof refresh and response loss. The Realm governor authorizes the administrator configuration request; Applet runtime creates and signs its candidate, and the same governor independently admits it. A Service transport response is not creation acceptance. Authenticated exact recovery returns the original frozen outcome without another execution; revoked authority cannot start new work."
     },
     {
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
@@ -4587,10 +4533,37 @@
         "kind": "none",
         "rationale": "Private bounded configuration intent, result and delivery state only; no Event, account, membership or business grant is implicitly accepted."
       },
-      "notes": "Normative: zh/extensions/applet-management-source.md. Inner intent identity survives proof refresh and response loss. Scope administrator authorization at B is not a source-Station creation grant. Old-result recovery remains authenticated; no new execution after revoke. pending is a nonterminal progress observation; re-polling the same immutable intent never executes a second source operation. Terminal source outcome bytes remain frozen while B admission status is independently observed.",
+      "notes": "Normative: zh/extensions/applet-management-source.md. Immutable intent survives proof refresh and response loss. The Realm governor authorizes the administrator configuration request; Applet runtime creates and signs its candidate, and the same governor independently admits it. A Service transport response is not creation acceptance. Authenticated exact recovery returns the original frozen outcome without another execution; revoked authority cannot start new work.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "bearer_only_allowed": false
+        }
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_actor.read.material.v1",
+      "http": "POST /_arkret/self/realm-actors/material",
+      "grpc": "SelfManagement/RealmActorReadMaterial",
+      "mq": "self.realm_actor.read.material",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Read-only authorized exact material."
+      },
+      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method.",
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false
+        },
+        "realm_actor_control_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.realm_actor_control.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
           "bearer_only_allowed": false
         }
       }
@@ -5448,15 +5421,7 @@
           "binding_kind": "http_json"
         },
         {
-          "operation_id": "ak.self.applet.bot.command.provision.v1",
-          "binding_kind": "http_json"
-        },
-        {
           "operation_id": "ak.self.applet.ghost.command.preview.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.applet.ghost.command.provision.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -5490,6 +5455,10 @@
         },
         {
           "operation_id": "ak.self.applet.revoke.command.preview.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.realm_actor.read.material.v1",
           "binding_kind": "http_json"
         }
       ]

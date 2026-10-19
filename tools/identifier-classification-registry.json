@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 77,
+  "version": 79,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 979,
-    "responsibility_identity_material": 593,
-    "registry_catalog_symbol": 18
+    "typed_object_id": 989,
+    "responsibility_identity_material": 627,
+    "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -297,7 +297,7 @@
       "name": "external_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 4,
+      "occurrences": 5,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/external_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -380,7 +380,7 @@
       "name": "instance_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 5,
+      "occurrences": 6,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/instance_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -557,7 +557,7 @@
       "name": "recovery_session_id",
       "terminal_signature": "[[\"const\", \"None\"]]",
       "category": "typed_object_id",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/device_authorize_possession_transcript/properties/recovery_session_id",
       "reason": "Branch that pins the member to null on the two possession transcripts whose payload forbids a recovery session; the value category comes from the base declaration, which is a typed recovery-session id."
     },
@@ -593,6 +593,13 @@
       "occurrences": 5,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body/properties/request_id",
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
+    },
+    {
+      "name": "request_id",
+      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{22,128}$\"]]",
+      "category": "opaque_correlation",
+      "reason": "Random creation intent correlation, scoped by Realm and Applet. The alphabet excludes the typed ID namespace.",
+      "occurrences": 2
     },
     {
       "name": "revokes_statement_id",
@@ -750,5 +757,5 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     }
   ],
-  "generated_at": "2026-10-19T16:55:52+08:00"
+  "generated_at": "2026-10-19T23:29:28+08:00"
 }

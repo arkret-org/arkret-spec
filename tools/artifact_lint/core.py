@@ -377,6 +377,10 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    "realm_actor_accepted_event_ref",
+    "realm_actor_resolution_projection",
+    "realm_actor_profile_id",
+    "realm_actor_profile_value",
     # Call state section 4.3 derives the complete axis from frozen accepted
     # prestate, the accepted delta and its actual Commit. Historical issuer
     # keys come from independently verified original material, never payload.
@@ -556,7 +560,7 @@ NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 # declarations that ever read it were cell subjects, and the typed reducer
 # subjects that replaced them derive object identity from the Event itself
 # rather than by naming an envelope field.
-ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.scope_ref")
+ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.actor_id.kind", "envelope.scope_ref")
 
 
 # Envelope fields §9.5.1 names as explicitly forbidden. Called out separately

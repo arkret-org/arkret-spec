@@ -30,12 +30,13 @@ Actor Profile 可声明以下展示分类（`actor_kind`）：
 - `service`
 - `integration`
 
-`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/organization principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。`actor_kind` 只存在于 Actor Profile / read projection，不进入 Event Envelope，也不授予 capability、决定签名归属或替代 provisioning / registration / installation / accountability。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个已授权 principal，通过 `ak.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ak:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。`actor_kind` 只存在于 Actor Profile / read projection，不进入 Event Envelope，也不授予 capability、决定签名归属或替代 provisioning / registration / installation / accountability。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention、assign 或展示。
 
 所有 Station 承载 Actor 的完整身份统一为 `ActorId.account{account_id:{principal_id,station_id}}`，
-包括 user、Agent、Ghost、organization/team 账号与 integration。服务以自身身份直接行动时使用
+包括 user、Agent、organization/team 账号。Applet Bot／Ghost 使用完整
+`ActorId.realm{realm_actor_id:{realm_id,principal_id}}`，由所属 Realm 的当前治理 Station 管理私有控制流。服务以自身身份直接行动时使用
 `ActorId.service{service_id}`。Profile `actor_kind` 是非权威展示分类；controller、provisioning、registration、
 credential 与 lifecycle 才是各自独立验证的安全事实。任何一项都不得成为同一 principal/station pair 的另一身份分支，也不得仅因 account 分支或 Profile 分类授予权限。
 
@@ -63,7 +64,8 @@ Schema id: `ak.schema.actor_profile.v1`
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
 | `schema` | yes | `ak.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
-| `principal_id` | yes | `did_core_id` | 权限仍以经DID 证明的稳定主体与 capability 为准。 | Principal 的稳定业务身份。 |
+| `principal_id` | 普通主体 | `did_core_id` | 权限仍以经DID 证明的稳定主体与 capability 为准。 | Principal 的稳定业务身份。 |
+| `actor_id` | Realm 主体 | `ActorId.realm` | 与 principal_id 互斥；绑定所属 Realm；不可 patch。 | Bot／Ghost 完整身份。 |
 | `actor_kind` | yes | `enum(user, organization, team, agent, bot, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。仅用于 Profile 展示、发现与 compose-time 分类；不得作为 Event 授权、签名归属或审计问责的权威来源。 | Actor Profile 分类。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
@@ -80,12 +82,12 @@ Schema id: `ak.schema.actor_profile.v1`
 
 `principal_id` 是授权、签名和审计归属的稳定 `did_core_id`；`actor_kind` 只是该 Profile 在协作图中的展示、发现和 compose-time 分类。Profile 值与已验证 provisioning / registration / installation / ActorId 分支或 accountability 冲突时，安全判断 MUST 使用后者并 fail closed；不得以 Profile 扩权或改写历史 Event 归属。
 
-- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切普通协作-图行动 MUST 以所属账号的完整 account `ActorId`（包含 `principal_id` 与 `station_id`）作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。v1 没有例外：不存在把 `did:key` 投影成 Realm actor principal 的分支，也不存在只用 `(realm_id, principal_id)` 匹配 actor 的持有方。
+- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。普通账号设备的协作行动 MUST 以所属账号的完整 account `ActorId`（包含 `principal_id` 与 `station_id`）作为 `actor_id`；Realm Bot／Ghost 设备使用所属主体完整 realm ActorId；设备身份通过 proof `verification_method`、`device_id`（`ak:device:<uuid>`）、`ak.device.authorize` 或 session grant 表达。设备 `did:key` 不得代替主体独立 DID；完整 realm ActorId 包含 kind 和 RealmActorId，不能降为裸 principal。
 - `team`、`agent`、`bot`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - **Actor 分类边界（normative）**：`Agent` 是唯一的 Agent 概念；其 Actor Profile 使用 `actor_kind="agent"`，但 Agent 身份 MUST 由 controller 发起的 `ak.self.agent.command.provision.v1`、独立 DID document、指向 controller 的 `ak.identity.accountability_grant` 与 `ak.agent.key.authorize` runtime key 共同证明。协议不存在“普通设备 Agent”“托管 Agent”或 Agent 的 native/ghost 子类。Applet 创建或托管的自动化 Actor Profile 使用 `actor_kind="bot"`，不得使用 `agent`，但其安全身份来自 Applet registration/install/provisioning。Device 只是 principal endpoint，既不是 Actor 也不是 Agent。Ghost Actor 是外部主体镜像的 provenance，不是 `actor_kind`；外部账号/集成镜像 Profile 使用 `integration`，外部 Bot 镜像 Profile 使用 `bot`，不得使用 `agent`。Applet 自身直接行动时由 `ActorId.service` 与 registration 证明，Profile 可分类为 `service`。Realm policy MUST 分别控制 Agent、Bot 与 Applet/Ghost provenance，不得把 Profile 字面值当作单一 "automation allowed" 授权开关：
   - **Agent**：可被 mention / grant / revoke / pause / deactivate；只走 Agent provisioning、pairing、runtime key、Sidecar 与 exact controller membership binding。未登记的 cascade 提交不得被当作可调用能力。
   - **Bot**：Applet 管辖的自动化 principal；其 lifecycle 与授权根来自 Applet registration/install/provisioning，MUST NOT 进入 Agent provisioning、pairing、Sidecar 或 controller membership cascade。
-  - **Ghost Actor**（[`../extensions/applet-integration.md`](../extensions/applet-integration.md)）：Applet 管辖 namespace 下的外部主体镜像。`actor_id` MUST 是该 Ghost 的完整 account `ActorId`；Actor Profile `principal_id` MUST 是无 fragment 的 `did_core_id`，不得用它替代完整账号身份；DID 仅进入已验证 resolution commitment，DID URL fragment 只用于 `verification_method`。其初始 `accountable_principal_ids` 恰为签署同 provisioning aggregate accountability grant 的 `[service_id]`；controller 只有另行签发 active grant 才可加入。每个 Ghost 有独立 `AccountId` 与 purpose=`applet_managed_control` PCR，rotation 走普通 resolution update；active registration/install grant/revoke fence 控制新写入，历史与 resolution audit 不因撤销而删除。
+  - **Ghost Actor**：Applet 对外部主体的 Realm 内镜像，使用独立 DID 与完整 realm ActorId；创建来源、当前管理 Service、控制方法、双暂停门和 Device 代际独立核验。Profile 不携普通账号的 accountability/handle/agent_slug。具体合同见 [Realm Bot／Ghost](../extensions/realm-actors.md)。
 - **Agent 三轴正交（normative）**：Agent 通用 list/get 恰好暴露 lifecycle、readiness、presence。lifecycle (`active|paused|deactivated`) 只表达 controller intent；generic readiness (`ready|not_ready`) 的 closed blockers 只从主体级 durable runtime key 与 open pairing 派生，即 `runtime_key_missing|pairing_open`，不得复制 backup、session、KeyPackage、target grant/membership/reply/MLS facts；presence (`online|offline|unknown` + expiry/refresh) 只表达短时可达性。target-specific 事实只进入对应 operation 或 SDK local plan。pairing poll 的 `runtime_state` 只是 handle-local 诊断，不得进入 generic view/key_state 或成为第四轴。
 - **Realm membership 从属性（normative）**：Agent 的 canonical Realm membership 是独立、caller-signed 的 `ak.member.state`；它的 effective membership 还必须与 controller 当前状态做确定性 AND。Agent 的 `join` payload MUST 携 `agent_controller_binding`，逐字绑定 controller 的 exact `AccountId` 与当前 accepted controller `join` Event ID（该 Event ID 就是 membership generation ref）。在 controller/Agent 私聊完整原子 founding unit 内，允许按 [私聊 §6.1](../identity/contact-and-direct-conversation.md) 显式引用同批前序 controller join，整批 accepted 才生效；字段不得省略或由 receiver 推导。只有 `agent_member_result == join`、controller 当前 typed current result 仍由该 exact join Event 建立且为 `join`、Agent lifecycle 为 `active`、provision/accountability 绑定仍有效时，Agent 才是 effective member。controller 后续 rejoin 产生新的 join Event ID，旧 Agent join 永远不能自动复活。
 - controller 已是 active member 时，MAY 直接把自己控制且 lifecycle 为 `active` 的 Agent 从 `leave` 转为 `join`；该动作是 controller 对受控 principal 的显式授权，不是发给 Agent Runtime 的邀请，因此 MUST NOT 创建 pending invite、MUST NOT 要求 Agent opt-in，也 MUST NOT 走 `ak.invite.accept`。Reducer MUST 校验 active provisioning state、`ak.identity.accountability_grant`、Realm Agent policy、join policy 与 E2EE/MLS admission；仅凭 `accountable_principal_ids` 字面声明不得放行。普通成员不得用此路径加入其他 controller 的 Agent 或任意第三方 principal。
@@ -135,7 +137,7 @@ Schema id: `ak.schema.actor_profile.v1`
 
 因此 reducer **MUST** 校验:
 
-**Applet service issuer 的封闭例外（normative）**：普通 issuer 使用下文 PCR / active device 合同。只有 [applet-integration.md §4b / §9.1](../extensions/applet-integration.md) 的 install Bot / provision Ghost closed creation aggregate 可以由 `ActorId.service` 的 Applet service 签发 accountability Event：issuer MUST 等于 exact registration `service_id`，subject MUST 等于同单元 provision 的 managed principal；Event 位于该 provision 所属的目标 Collaboration Realm，而非不存在的 service PCR。payload 内层 proof 与 `producer_proof` MUST 使用同一个由该 exact registration epoch evidence 验证的 service verification method 与 key，不使用 principal device fragment。profile 在同一原子单元内读取这条暂待提交记录，并以同事务最终 accepted 状态校验；后续 profile 只可通过 accepted managed provision anchors 唯一选定该 Realm、exact install 与 service endorsement。不得全 Realm 搜索、任取同 service 的 grant，或把 namespace / profile 字面值作为 exception 证据。exact install 不再 active 时，该 service endorsement 对后续 profile admission / verified 展示立即失效；没有可验证 anchors 时返回 `accountability_grant_missing`。此例外不开放 standalone service accountability ingress，不改变 ordinary issuer 与 Agent controller 的 PCR 查找规则，也不授予 action 权限。
+Applet Realm Bot／Ghost 的管理来源由私有控制流的 identity／manager current 证明，不使用 accountability grant。普通账号与个人 Agent 的以下 accountability 合同保持不变。
 
 1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 committed 的问责记录，其 `issuer_id = <该 DID>`、`subject_id = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。**该记录有两个已登记来源，MUST 同时接受**（见下面的「问责记录只有一条，来源有两个」）：独立的 `ak.identity.accountability_grant`，以及 `ak.agent.provision` 的原子问责投影。MUST NOT 只搜索通用 kind。判定时刻 `now` 是接纳该 profile Event 的 RealmCommit 的 `committed_at`（治理 Station 在分配该 Commit 的同一接纳事务内读取问责记录，并锁住所依赖的记录行，使并发撤销排在该 Commit 之前或之后）；Event 的 `created_at` 不参与该判定，因此预签的 profile Event 不能在问责撤销后借旧时间被接纳。问责记录除上述 Applet closed creation exception 外只在 **issuer 的 Principal Control Realm** 中查找（两个来源都只写入那里，见下文）；issuer 的 PCR 不由接纳该 profile 的同一治理 Station 治理时，该 Station 读不到记录，结果即 `accountability_grant_missing`。同一 `(issuer, subject)` 的多个 exact-set 记录中任一满足条件即可。
 2. 任一 DID 条目不存在对应 active grant 时，reducer MUST 以 `failed_precondition`

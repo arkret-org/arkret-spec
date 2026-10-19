@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:30:10+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Closed coverage of every fixture resolution_commitment value. A pointer containing :: enters canonical JSON stored in the string selected by the left-hand RFC 6901 pointer.",
   "rules": [
     "Every fixture object shaped as {did, method_history_head, version_id}, including one embedded in a canonical JSON string, MUST have exactly one row.",
@@ -93,6 +93,16 @@
       "fixture": "websocket-binding-fixture.json",
       "pointer": "/bundle_closure_cases/0/instance/service_resolution",
       "evidence_id": "websocket_service"
+    },
+    {
+      "fixture": "realm-actor-signature-kat-fixture.json",
+      "pointer": "/cases/0/candidate/initial_resolution",
+      "evidence_id": "agent_inception"
+    },
+    {
+      "fixture": "realm-actor-signature-kat-fixture.json",
+      "pointer": "/cases/1/unsigned_projection/next_resolution",
+      "evidence_id": "agent_inception"
     }
   ]
 }

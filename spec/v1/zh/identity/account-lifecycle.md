@@ -16,12 +16,12 @@ Arkret 身份由稳定 principal `did_core_id` 表示，并由当前 `did` 提�
 
 ## 2. 分层
 
-`AccountId={principal_id,station_id}` 是所有 Station 承载主体的统一身份，包括人类、Agent、
-Applet-managed Ghost 与 integration。`ActorId` 只允许 `account`（内嵌完整 AccountId）与 `service`
-（服务自身直接行动）两个分支。AccountId 不代表人类登录资格、数据库账号行或特定 provisioning 流程，
-也不授予权限；人类账号生命周期、Agent controller/lifecycle/runtime credential、Applet registration/grant
-授权规则仍按各自已验证状态独立执行。仅持有 account 身份不得进入
-人类登录、恢复或 Agent runtime 专用操作。不同主体类别不得为相同 principal/station 对生成另一身份。
+`AccountId={principal_id,station_id}` 是 Station 账号的统一身份，包括人类、Organization 和个人 Agent。
+AccountId 不代表人类登录资格，也不授予权限；各类账号按其独立生命周期与授权合同验证。
+Applet 的 Realm Bot／Ghost 使用 `ActorId.realm`，既无 AccountId，也不进入本文件的账号恢复／注销／迁移流程。
+完整 ActorId 有 account、service、realm 三个闭合分支，见 [Realm Bot／Ghost](../extensions/realm-actors.md)。
+普通账号的显示分类即使为 bot／integration，也不得据此获得 Realm 受管主体身份。
+
 
 | 层 | 示例 | 生命周期控制者 |
 | --- | --- | --- |

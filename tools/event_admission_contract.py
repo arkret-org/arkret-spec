@@ -18,15 +18,23 @@ def nested(path: str, value: dict) -> dict:
 
 
 def predicate_schema(when: dict) -> dict:
-    supported = {"payload_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present", "top_level_fields_absent"}
+    supported = {"payload_path", "envelope_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present", "top_level_fields_absent"}
     if not when or set(when) - supported:
         raise ValueError(f"unknown admission selector: {when}")
     clauses = []
-    if "payload_path" in when:
+    if "payload_path" in when and "envelope_path" in when:
+        raise ValueError("payload and envelope selectors are mutually exclusive")
+    if "payload_path" in when or "envelope_path" in when:
         if ("const" in when) == ("not_const" in when):
             raise ValueError("payload selector requires exactly one comparator")
         key = "const" if "const" in when else "not_const"
-        value = nested("payload." + when["payload_path"], {"const": when[key]})
+        if "envelope_path" in when:
+            if when["envelope_path"] not in {"scope_ref.kind", "actor_id.kind"}:
+                raise ValueError("unregistered envelope admission selector")
+            path = when["envelope_path"]
+        else:
+            path = "payload." + when["payload_path"]
+        value = nested(path, {"const": when[key]})
         clauses.append(value if key == "const" else {"not": value})
     elif "const" in when or "not_const" in when:
         raise ValueError("comparison without payload_path")

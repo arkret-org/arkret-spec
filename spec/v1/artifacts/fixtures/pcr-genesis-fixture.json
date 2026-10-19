@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 11,
+  "version": 12,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -1552,110 +1552,6 @@
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "both_service_signatures": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_governance_change_preserved",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "governance_change"
-      },
-      "expected": "accept",
-      "writes_nothing": false
-    },
-    {
-      "name": "applet_managed_handoff_import_preserved",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "handoff_import"
-      },
-      "expected": "accept",
-      "writes_nothing": false
-    },
-    {
-      "name": "applet_managed_activation_preserved",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "activation"
-      },
-      "expected": "accept",
-      "writes_nothing": false
-    },
-    {
-      "name": "applet_managed_missing_independent_evidence",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "caller_claim",
-        "stage": "activation"
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_missing_current_controller_authorization",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "activation",
-        "current_controller_authorization": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_missing_generation_and_head_cas",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "activation",
-        "generation_and_head_cas": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_missing_old_authority_online",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "activation",
-        "old_authority_online": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_missing_complete_frozen_import",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
-        "stage": "activation",
-        "complete_frozen_import": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "applet_managed_missing_both_service_signatures",
-      "input": {
-        "purpose": "applet_managed_control",
-        "genesis_admission": "applet_managed_pcr_genesis",
-        "authority_evidence": "accepted_managed_provision",
         "stage": "activation",
         "both_service_signatures": false
       },

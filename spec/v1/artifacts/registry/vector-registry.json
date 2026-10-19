@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.6",
+  "version": "2026-10-19.7",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5233,21 +5233,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.federation.managed_forward_provenance.v1",
-      "status": "active",
-      "domain": "federation",
-      "applies_to_profiles": [
-        "ak.profile.federation_minimal.v1"
-      ],
-      "description": "Managed Account Device first forward independently verifies the bounded original Service-signed creation closure and same-cut identity current, binds it in the existing body digest, keeps private audit only, and separately requires every governor business gate. Exact retry and cold recovery preserve the original outcome.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/managed-forward-provenance-fixture.json",
-        "spec/v1/zh/crypto-media/device-lifecycle.md",
-        "spec/v1/zh/extensions/applet-integration.md",
-        "spec/v1/zh/governance/history-visibility.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.call_state.compact_current.v1",
       "status": "active",
       "domain": "call_state",
@@ -5319,10 +5304,23 @@
       "applies_to_fixtures": [
         "applet-management-source-fixture.json"
       ],
-      "description": "Operation-bound source, exact scope confirmation, bounded B-to-C configuration, private recovery and MR/CR reference models with real Ed25519 outer transcript KATs; no native-chain or production acceptance claim.",
+      "description": "Realm-scoped configuration, private approval recovery and MR/CR reference models with real Ed25519 configuration transcript KATs; identity control is covered by realm_actor.contract.",
       "source_refs": [
         "spec/v1/zh/extensions/applet-management-source.md",
         "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_actor.contract.v1",
+      "status": "active",
+      "domain": "realm_actor",
+      "applies_to_fixtures": [
+        "realm-actor-signature-kat-fixture.json"
+      ],
+      "description": "ak.realm.actor.create, ak.realm.actor.control.update, ak.realm.actor.status.set, ak.realm.actor.devices.reset and ak.realm.actor.manager.change: exact schema, real detached-signature KATs, original-current CAS, dual gates, management transfer and private handoff reference model; not a production SUT.",
+      "source_refs": [
+        "spec/v1/zh/extensions/realm-actors.md",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
       ]
     }
   ]

@@ -1435,4 +1435,6 @@ key authorization/lifecycle/generation 的确认性可由合法 PCR 治理结果
 
 ## Foreign business signer metadata boundary (Normative)
 
-Foreign Human／accepted Applet-managed Device 合法 Full 普通业务验签仅可取得 server-trusted-results 的最小account_device_historical_signer_fact（key、原授权四坐标/revision/PCRgeneration/源时点）；此窄metadata例外不许可下载/重放PCR/controlstream、PCR Event/Commit正文、predecessors、完整授权链、恢复材料或其它device目录，也不得成为普通backup读取前置。现exact current holder NativeAudit职责/访问门保持独立；目录/current-query不得携forward event_authorization，普通客户端只消费own-Station合法结果并独立真Ed验签，不持Service/PCRnative verifier或新browserkey。
+Foreign Human Device 合法 Full 普通业务验签仅可取得 server-trusted-results 的最小account_device_historical_signer_fact（key、原授权四坐标/revision/PCRgeneration/源时点）；此窄metadata例外不许可下载/重放PCR/controlstream、PCR Event/Commit正文、predecessors、完整授权链、恢复材料或其它device目录，也不得成为普通backup读取前置。现exact current holder NativeAudit职责/访问门保持独立；目录/current-query不得携forward event_authorization，普通客户端只消费own-Station合法结果并独立真Ed验签，不持Service/PCRnative verifier或新browserkey。
+
+Realm Bot／Ghost 的业务历史验签使用 realm_device 最小事实；不披露 realm_control 原件或位置，获准私有审计例外见 [Realm Bot／Ghost](../extensions/realm-actors.md)。

@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "schema",
-    "principal_id",
     "actor_kind",
     "display_name",
     "created_at"
@@ -88,6 +87,9 @@
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
+    },
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_actor"
     }
   },
   "$defs": {
@@ -99,9 +101,8 @@
     },
     "actor_profile_definition": {
       "type": "object",
-      "description": "The author-editable Actor Profile definition: the identity binding the create Event declares and the display members its owner maintains, and nothing else. It is deliberately NOT actor-profile.schema.json. A materialized object schema used as an authoring input hands the author the schema identifier, the Realm binding, the creation timestamp and the most-recent-update metadata, and those members are then retained verbatim by every later write, so a self-reported Realm or creation time becomes permanent truth. They now come from the registered create-lock derivations of zh/models/common-fields.md section 3.3. principal_id and actor_kind stay author input because no derivation can produce them -- the create Event declares which principal the profile is for -- but they are create-locked: zh/discovery/profiles-presence.md section 2.3 pins principal_id to the submitter or an explicitly authorized target at create, and rebinding a profile to another principal, or retyping a user as an agent, is a new object rather than a patch. id and resolution stay out for the reasons actor_profile_create_payload already gave, and status is gone from the durable object entirely: it projected an AccountStatusRecord, which zh/identity/account-lifecycle.md section 3 keeps out of every reducer.",
+      "description": "Closed Profile owner: ordinary principal_id branch or Realm actor_id branch, mutually exclusive. Realm owners are exact full actors and may not carry Account handles or Agent/accountability fields. Profile identity is Event-derived and owner/actor_kind are create-locked.",
       "required": [
-        "principal_id",
         "actor_kind",
         "display_name"
       ],
@@ -159,6 +160,9 @@
             }
           },
           "additionalProperties": true
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
       },
       "allOf": [
@@ -177,7 +181,56 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "principal_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "actor_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "principal_id"
+                ]
+              },
+              {
+                "required": [
+                  "handle"
+                ]
+              },
+              {
+                "required": [
+                  "agent_slug"
+                ]
+              },
+              {
+                "required": [
+                  "accountable_principal_ids"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "actor_kind": {
+              "enum": [
+                "bot",
+                "integration"
+              ]
+            }
+          }
+        }
+      ]
     },
     "applet_interaction": {
       "type": "object",
@@ -215,5 +268,55 @@
       }
     }
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "principal_id"
+      ],
+      "not": {
+        "required": [
+          "actor_id"
+        ]
+      }
+    },
+    {
+      "required": [
+        "actor_id"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "principal_id"
+            ]
+          },
+          {
+            "required": [
+              "handle"
+            ]
+          },
+          {
+            "required": [
+              "agent_slug"
+            ]
+          },
+          {
+            "required": [
+              "accountable_principal_ids"
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "actor_kind": {
+          "enum": [
+            "bot",
+            "integration"
+          ]
+        }
+      }
+    }
+  ],
+  "description": "Closed Profile owner: ordinary principal_id branch or Realm actor_id branch, mutually exclusive. Realm owners are exact full actors and may not carry Account handles or Agent/accountability fields. Profile identity is Event-derived and owner/actor_kind are create-locked."
 }

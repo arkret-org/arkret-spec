@@ -86,7 +86,7 @@ accepted governance basis 求出的 capability 引用。typed current result fam
 
 ## 3. Security Scope
 
-普通已存在 scope 中的 durable Event，其 producer 签名输入 MUST 包含以下三种 closed shape 之一：
+普通业务 scope 的 durable Event 使用以下三种 closed shape；私有控制另有下文的 realm_control 分支：
 
 ```json illustrative
 {"kind":"realm","realm_id":"ak:realm:..."}
@@ -101,6 +101,11 @@ accepted governance basis 求出的 capability 引用。typed current result fam
 ```json illustrative
 {"kind":"sidecar","realm_id":"ak:realm:...","sidecar_id":"ak:sidecar:..."}
 ```
+```json illustrative
+{"kind":"realm_control","realm_id":"ak:realm:..."}
+```
+
+realm_control 仅用于 Realm Bot／Ghost 的控制 Event，不是业务 effective scope。
 `{"kind":"realm_genesis","realm_genesis_nonce":"..."}` 是 create-only 封闭例外，只允许对应的
 Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm、Circle 或 Sidecar Event。
 上述 closed union 以 `event-envelope.schema.json#/$defs/scope_ref` 为穷尽真源，正文集合必须由 lint 与其对齐。
@@ -145,3 +150,5 @@ Strand projection 派生 Circle scope 后发现不等，必须拒绝；server �
 
 反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 typed current result。该 manifest 必须被拒绝，
 因为它重新引入 producer reducer DSL。
+
+Realm 受管主体私有控制使用 `{"kind":"realm_control","realm_id":RealmId}`，共享所属 Realm 治理任期，独立排序；不是业务 effective scope，普通成员读取不包含它，见 [Realm Bot／Ghost](../extensions/realm-actors.md)。

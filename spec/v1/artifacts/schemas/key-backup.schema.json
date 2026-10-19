@@ -277,8 +277,16 @@
                     ],
                     "not": {
                       "anyOf": [
-                        { "required": ["memory_kib"] },
-                        { "required": ["parallelism"] }
+                        {
+                          "required": [
+                            "memory_kib"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "parallelism"
+                          ]
+                        }
                       ]
                     },
                     "properties": {
@@ -362,8 +370,8 @@
           },
           "then": {
             "required": [
-              "kdf",
-              "key_commitment"
+              "key_commitment",
+              "kdf"
             ],
             "properties": {
               "aead": {

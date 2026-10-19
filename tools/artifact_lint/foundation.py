@@ -462,7 +462,7 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
         value = condition.get(member)
         candidates = value if isinstance(value, list) else [value]
         for index, candidate in enumerate(candidates):
-            if not isinstance(candidate, str) or candidate.startswith("payload."):
+            if not isinstance(candidate, str) or candidate.startswith("payload.") or candidate == "envelope.actor_id.kind":
                 continue
             where = f"{ref}.{member}" if member == "field" else f"{ref}.{member}[{index}]"
             lint.fail(
@@ -2306,7 +2306,7 @@ def check_protocol_layer_registry(lint: Lint) -> None:
             for branch in branches
             if isinstance(branch, dict)
         }
-        expected_scope_kinds = {"realm", "circle", "sidecar", "realm_genesis"}
+        expected_scope_kinds = {"realm", "circle", "sidecar", "realm_genesis", "realm_control"}
         if scope_kinds != expected_scope_kinds:
             lint.fail(
                 envelope_path,
@@ -4708,7 +4708,6 @@ def check_pcr_governance_policy(lint: Lint) -> None:
     expected = [
         {"purpose": "principal_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_organization_authority"},
         {"purpose": "agent_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_controller_provision"},
-        {"purpose": "applet_managed_control", "genesis_admission": "applet_managed_pcr_genesis", "authority_evidence": "accepted_managed_provision"},
     ]
     if policy.get("transferable_provenance") != expected:
         lint.fail(path, "pcr_governance_policy must preserve independently authorized non-Human transfer branches")

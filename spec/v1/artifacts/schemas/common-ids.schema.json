@@ -71,7 +71,7 @@
     "account_id": {
       "type": "object",
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for a principal at one Station, including human, Agent, Applet-managed Ghost and integration accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key. Accounts with the same principal_id at different station_id values are permanently distinct. Principal equality MUST NOT establish account equivalence or any permission inheritance, merging, delegation, substitution or recovery relationship. Account-scoped authority requires independent authorization for the exact AccountId. Permanent loss of a Station does not permit its accounts or PCR lineages to migrate to or revive at another Station; Realm takeover and RealmCommit recovery do not waive this boundary. See models/common-fields.md section 4.2.",
+      "description": "Complete protocol identity for a principal at one Station, including human, Organization and personal Agent accounts. It does not imply a human login, provisioning workflow, credential class or authorization. Equality is byte-for-byte equality of both canonical did_core_id components; neither component may be inferred from a DID Document, route, session audience, current service, handle, or local database key. Accounts with the same principal_id at different station_id values are permanently distinct. Principal equality MUST NOT establish account equivalence or any permission inheritance, merging, delegation, substitution or recovery relationship. Account-scoped authority requires independent authorization for the exact AccountId. Permanent loss of a Station does not permit its accounts or PCR lineages to migrate to or revive at another Station; Realm takeover and RealmCommit recovery do not waive this boundary. See models/common-fields.md section 4.2.",
       "required": [
         "principal_id",
         "station_id"
@@ -88,7 +88,7 @@
     },
     "actor_id": {
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants. Account actors at different Stations MUST NOT share or inherit authority merely because their principal_id, DID controller or signing key matches, including membership, capability, RealmCommit-signing and recovery authority.",
+      "description": "Closed complete actor identity: account binds a principal permanently to one Station; service acts as itself; realm binds an Applet Bot/Ghost permanently to one owning Realm. Full tagged-object equality is required. No authority is inferred from a discriminator, shared principal, key, route or DID controller.",
       "oneOf": [
         {
           "type": "object",
@@ -118,6 +118,22 @@
             },
             "service_id": {
               "$ref": "#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_actor_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
             }
           },
           "additionalProperties": false
@@ -179,12 +195,6 @@
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable canonical Applet installation identity. Applet service authority is carried separately by service_id."
     },
-    "applet_managed_actor_did": {
-      "type": "string",
-      "pattern": "^did:webvh:[^\\s:/?#]+:[^\\s/?#]+$",
-      "maxLength": 2048,
-      "description": "Canonical bare did:webvh identity of an Applet-managed Bot or Ghost. Its inception is committed by the immutable Applet-managed actor provision Event and the cross-bound applet_managed_control PCR genesis."
-    },
     "did_key_did": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
@@ -195,6 +205,48 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "Arkret verification-method DID URL profile (identity/did-usage-and-verification.md section 2.2): lowercase method name, no query, required fragment, fragment limited to ASCII [A-Za-z0-9._:-]. Every verification_method-family field and every kid/key_ref a schema declares to be a DID URL MUST resolve to exactly this definition; values compare byte-for-byte with no URI normalization or percent-decoding."
+    },
+    "realm_actor_id": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "principal_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "principal_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            {
+              "pattern": "^ak:did_core:webvh:[^\\s/?#]+$"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-composite-identifier": true,
+      "description": "Stable Realm-owned Bot/Ghost identity. Both components are required for equality; governance handoff does not change either. No Station binding or AccountId is implied."
+    },
+    "realm_actor": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/actor_id"
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "realm"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
     }
   }
 }

@@ -40,6 +40,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 
 每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
+- `realm_actor_identity`、`realm_actor_control`、`realm_actor_manager`、`realm_actor_status`、`realm_actor_device_generation`、`realm_actor_device_authorization`、`realm_actor_device_revocation_proposals`、`realm_actor_profile`：按完整 realm ActorId 和族内 selector 选择私有 current；只通过 Realm actor exact material 披露，不能使用普通成员基线或通用 current 读取。
 - `realm_profile`：当前 Realm profile；
 - `calendar_schedule_source`：以 strand_id 选择与该 Strand current 同一 stream／revision 的最小日程来源与加密重建上下文，见 [Calendar §6](../models/calendar-event.md)；
 - 以下十四个是 **per-Realm 单例 Realm facet**，subject 为 JSON null

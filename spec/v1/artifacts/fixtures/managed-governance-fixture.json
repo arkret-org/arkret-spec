@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-10-09",
+  "version": "2026-10-19.1",
   "suite": "ak.suite.managed_governance.v1",
   "runner": {
     "kind": "named_suite",
@@ -15,17 +15,17 @@
       "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
     "bot": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "realm",
+      "realm_actor_id": {
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot"
       }
     },
     "ghost": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixtureghost",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "realm",
+      "realm_actor_id": {
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "principal_id": "ak:did_core:webvh:z6mkfixtureghost"
       }
     },
     "alice": {
@@ -109,9 +109,12 @@
   },
   "device_request": {
     "metadata": {
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "actor_id": {
+        "kind": "realm",
+        "realm_actor_id": {
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebot"
+        }
       },
       "device_id": "ak:device:01904100-0000-7000-8000-000000000012",
       "authorization_event_id": "ak:event:AQsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsL",
@@ -127,13 +130,14 @@
       "@target-uri": "https://station.example/_arkret/self/device_messages",
       "@authority": "station.example",
       "arkret-operation": "ak.self.device_messages.read.list.v1",
-      "arkret-managed-device": "eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYm90Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbiJ9LCJhcHBsZXRfaWQiOiJhazphcHBsZXQ6MDE5MDQxMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDExIiwiYXV0aG9yaXphdGlvbl9ldmVudF9pZCI6ImFrOmV2ZW50OkFRc0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMIiwiZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTA0MTAwLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAxMiIsImVmZmVjdGl2ZV9zY29wZSI6eyJraW5kIjoicmVhbG0iLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFRb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LIn0sIm5vbmNlIjoiQUFFQ0F3UUZCZ2NJQ1FvTERBME9EdyJ9",
+      "arkret-managed-device": "eyJhY3Rvcl9pZCI6eyJraW5kIjoicmVhbG0iLCJyZWFsbV9hY3Rvcl9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWJvdCIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifX0sImFwcGxldF9pZCI6ImFrOmFwcGxldDowMTkwNDEwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMTEiLCJhdXRob3JpemF0aW9uX2V2ZW50X2lkIjoiYWs6ZXZlbnQ6QVFzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0wiLCJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5MDQxMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDEyIiwiZWZmZWN0aXZlX3Njb3BlIjp7ImtpbmQiOiJyZWFsbSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifSwibm9uY2UiOiJBQUVDQXdRRkJnY0lDUW9MREEwT0R3In0",
       "destination-service-id": "ak:did_core:webvh:z6mkfixturestation"
     },
     "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"arkret-operation\" \"arkret-managed-device\" \"destination-service-id\");created=1791504000;expires=1791504060;keyid=\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\";alg=\"ed25519\"",
-    "signature_base_utf8": "\"@method\": GET\n\"@target-uri\": https://station.example/_arkret/self/device_messages\n\"@authority\": station.example\n\"arkret-operation\": ak.self.device_messages.read.list.v1\n\"arkret-managed-device\": eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlYm90Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbiJ9LCJhcHBsZXRfaWQiOiJhazphcHBsZXQ6MDE5MDQxMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDExIiwiYXV0aG9yaXphdGlvbl9ldmVudF9pZCI6ImFrOmV2ZW50OkFRc0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMIiwiZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTA0MTAwLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAxMiIsImVmZmVjdGl2ZV9zY29wZSI6eyJraW5kIjoicmVhbG0iLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFRb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LIn0sIm5vbmNlIjoiQUFFQ0F3UUZCZ2NJQ1FvTERBME9EdyJ9\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturestation\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"arkret-operation\" \"arkret-managed-device\" \"destination-service-id\");created=1791504000;expires=1791504060;keyid=\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\";alg=\"ed25519\"",
+    "signature_base_utf8": "\"@method\": GET\n\"@target-uri\": https://station.example/_arkret/self/device_messages\n\"@authority\": station.example\n\"arkret-operation\": ak.self.device_messages.read.list.v1\n\"arkret-managed-device\": eyJhY3Rvcl9pZCI6eyJraW5kIjoicmVhbG0iLCJyZWFsbV9hY3Rvcl9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWJvdCIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifX0sImFwcGxldF9pZCI6ImFrOmFwcGxldDowMTkwNDEwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMTEiLCJhdXRob3JpemF0aW9uX2V2ZW50X2lkIjoiYWs6ZXZlbnQ6QVFzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0wiLCJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5MDQxMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDEyIiwiZWZmZWN0aXZlX3Njb3BlIjp7ImtpbmQiOiJyZWFsbSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifSwibm9uY2UiOiJBQUVDQXdRRkJnY0lDUW9MREEwT0R3In0\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturestation\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"arkret-operation\" \"arkret-managed-device\" \"destination-service-id\");created=1791504000;expires=1791504060;keyid=\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\";alg=\"ed25519\"",
     "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
-    "signature_b64u": "ZI8srYRhXvRtq2Hv56hj7q4yj6aVaB_kRgpTwUPfs_Bt3PvG5lcFYUMEksaQazK-9i0xKCqQfctPWaQVgX6gAg"
+    "signature_b64u": "JDzQxfYqnG6SrEFVvAaSS7pwICAbwkHJZLORXpmeMM1ElAHfbqCACCmh9Ons4EubrIy9Hc_QquxV0pht9TEBAQ",
+    "test_seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
   },
   "lineage": {
     "parent_id": "ak:grant:AQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM",
@@ -146,10 +150,10 @@
       "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
     "child_subject": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "realm",
+      "realm_actor_id": {
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot"
       }
     },
     "parent_actions": [
@@ -186,10 +190,10 @@
       "evaluation_class": "grant_local",
       "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
       "executed_by": {
-        "kind": "account",
-        "account_id": {
-          "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        "kind": "realm",
+        "realm_actor_id": {
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "principal_id": "ak:did_core:webvh:z6mkfixturebot"
         }
       },
       "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -197,17 +201,17 @@
     "parent_binding_count": 1,
     "child_binding_count": 1,
     "actual_producer": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "realm",
+      "realm_actor_id": {
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot"
       }
     },
     "accepted_subject_actor": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
-        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      "kind": "realm",
+      "realm_actor_id": {
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot"
       }
     },
     "accepted_managing_service": {
@@ -215,7 +219,7 @@
       "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
     "accepted_role": "bot",
-    "hosting_station_id": "ak:did_core:webvh:z6mkfixturestation"
+    "owning_realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
   },
   "acceptance_cases": [
     "service_only_install_no_bot",

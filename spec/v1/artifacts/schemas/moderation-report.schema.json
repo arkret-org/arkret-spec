@@ -32,10 +32,10 @@
               },
               "required": [
                 "kind",
+                "payload",
                 "realm_id",
                 "scope_ref",
-                "actor_id",
-                "payload"
+                "actor_id"
               ],
               "not": {
                 "anyOf": [

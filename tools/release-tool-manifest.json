@@ -1,13 +1,14 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T16:49:34+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Closed executable inventory for the artifact and release gates. Pipelines execute only listed check ids; runner code supplies implementation but cannot add an unregistered check.",
   "pipelines": {
     "artifact_check": [
       "managed_governance_contract",
       "applet_management_source_contract",
       "applet_device_scope_contract",
+      "realm_actor_contract",
       "authority_commit_protocol",
       "result_family_writer_gate",
       "current_principal_schema",
@@ -194,6 +195,11 @@
       "check_id": "prose_lint",
       "label": "prose lint",
       "owner_script": "tools/lint_spec.py"
+    },
+    {
+      "check_id": "realm_actor_contract",
+      "label": "Realm actor identity, signatures and control contract",
+      "owner_script": "tools/test_realm_actor_contract.py"
     },
     {
       "check_id": "result_family_writer_gate",

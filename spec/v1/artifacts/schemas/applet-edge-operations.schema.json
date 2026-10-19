@@ -30,6 +30,9 @@
     },
     {
       "$ref": "#/$defs/applet_third_party_location_list"
+    },
+    {
+      "$ref": "#/$defs/third_party_user_query"
     }
   ],
   "$defs": {
@@ -391,13 +394,49 @@
           "type": "boolean"
         },
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "external_ref": {
-          "$ref": "#/$defs/external_ref"
+          "$ref": "./realm-actor.schema.json#/$defs/ghost_external_tuple"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "exists": {
+                "const": true
+              }
+            },
+            "required": [
+              "exists"
+            ]
+          },
+          "then": {
+            "required": [
+              "actor_id",
+              "external_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "actor_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "external_ref"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "applet_third_party_location_list": {
       "type": "object",
@@ -439,7 +478,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json"
           },
-          "description": "Original producer-only Events. The exact managed IdentityResolutionUpdate admission of applet-integration.md section 7.3.2.1 is transported only by the original active owning Applet to the original installing Station and its own derived managed PCR. The Applet Service authenticates transport, never the native principal producer; no portal grant or SessionGrant authorizes that branch."
+          "description": "Original producer-only business Events; native Realm actor control Events use the registered self submission controller authentication, not Applet Service transport as a substitute."
         },
         "committed_events": {
           "type": "array",
@@ -484,7 +523,7 @@
     },
     "applet_committed_event": {
       "type": "object",
-      "description": "Exact producer-signed Event paired with its covering signed RealmCommit for Station-to-Applet delivery; withheld markers are forbidden. Device-determined producer_device_evidence carries the existing closed two-member account-device sibling; missing/surplus evidence is schema_violation before storing the pair. Later device revocation or evidence cache expiry does not invalidate accepted history.",
+      "description": "Original committed business Event. Account Device actual producers require producer_device_evidence only; Realm Device actual producers require producer_signer_fact only; all other producers forbid both. Actor, method, EventId and fact digest must match the original covering Commit. Private realm_control delivery uses exact material only.",
       "required": [
         "commit",
         "event"
@@ -499,86 +538,25 @@
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json",
           "description": "Required exactly when the original actual producer is an Account whose proof verification_method fragment is an ak:device: id; forbidden otherwise. The immutable complete origin Station evidence is retained at original admission and its attestation/native Service history and original Event JWS are verified at the covering Commit committed_at, never receiver current time. It conveys no PCR log, current device authority, new read right or SessionGrant."
-        }
-      },
-      "additionalProperties": false
-    },
-    "applet_managed_actor_committed_request": {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_provision_request_body",
-      "description": "Exact common managed creation request. Its signed authoring_request purpose/basis selects the Bot or Ghost role; service installation has no managed request."
-    },
-    "applet_service_signer_evidence": {
-      "type": "object",
-      "description": "Complete content-addressed Service signer root selected by the accepted registration epoch. signer_resolution_evidence_ref MUST equal SHA-256(RFC8785-JCS(authenticated_signer_evidence)) in the registered ak:signer_evidence form. The Service branch is a leaf and has no recursive dependency array.",
-      "required": [
-        "signer_resolution_evidence_ref",
-        "authenticated_signer_evidence"
-      ],
-      "properties": {
-        "signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         },
-        "authenticated_signer_evidence": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
-        }
-      },
-      "additionalProperties": false
-    },
-    "managed_actor_principal_signer_evidence": {
-      "type": "object",
-      "description": "Complete content-addressed Principal signer root for the accepted managed Actor resolution plus its one exact Station Service attester leaf. signer_resolution_evidence_ref is recomputed from the complete RFC 8785 canonical authenticated_signer_evidence. Signer-resolution evidence carries no attester ref: the attester leaf is bound positionally here and by equality of authority_commit_id with authenticated_signer_evidence, and its subject MUST be the Station Service that signed the accepted managed Actor resolution. Omitted, surplus, or mismatched closure is invalid.",
-      "required": [
-        "signer_resolution_evidence_ref",
-        "authenticated_signer_evidence",
-        "attester_signer_evidence"
-      ],
-      "properties": {
-        "signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "authenticated_signer_evidence": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence"
-        },
-        "attester_signer_evidence": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+        "producer_signer_fact": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/realm_device_historical_signer_fact"
         }
       },
       "additionalProperties": false
     },
     "applet_managed_actor_authoring_context": {
       "type": "object",
-      "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event. The original request, independent portal head, exact principal control Commit and both signer roots are required: the same section of extensions/applet-integration.md makes an accepted authoring result conditional on both signer roots having been verified and frozen inside the one recoverable atomic commit, so a context without them could never have been accepted. A subsequent identity-resolution completion additionally carries resolution_update, and its new Principal root and Station attester authority_commit_id/resolved_at equal the last supplied lineage Commit id/committed_at. The original Applet Service registration root and original committed_request are retained.",
       "required": [
-        "committed_request",
-        "realm_stream_head",
-        "principal_control_commit",
-        "applet_service_signer_evidence",
-        "managed_actor_signer_evidence"
+        "material"
       ],
       "properties": {
-        "committed_request": {
-          "$ref": "#/$defs/applet_managed_actor_committed_request"
-        },
-        "realm_stream_head": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
-        },
-        "principal_control_commit": {
-          "$ref": "./realm-commit.schema.json",
-          "description": "Exact accepted managed PCR Commit covering the managed Principal resolution used by managed_actor_signer_evidence. For first creation it covers the original bundle PCR genesis; it is not realm_stream_head of the install/portal Realm. The Principal root and Station attester bind this Commit id/time. For rotation it equals the last commits item; reuse preserves the runtime already verified current PCR resolution closure."
-        },
-        "applet_service_signer_evidence": {
-          "$ref": "#/$defs/applet_service_signer_evidence"
-        },
-        "managed_actor_signer_evidence": {
-          "$ref": "#/$defs/managed_actor_principal_signer_evidence"
-        },
-        "resolution_update": {
-          "$ref": "#/$defs/managed_actor_resolution_update_evidence",
-          "description": "Present only for a subsequent accepted managed identity resolution update. Absent for first installation, Ghost provisioning and install reuse. Presence selects the rotation branch; the original committed_request and immutable creation anchors are never rewritten."
+        "material": {
+          "$ref": "./realm-actor-material.schema.json#/$defs/outcome"
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16777216
+      "description": "Current governor signed exact own control material. The runtime verifies request/audience/nonce, original Event/Commit and its retained private keys before using an accepted identity. No PCR or separate source Station."
     },
     "applet_authoring_transaction_request_body": {
       "type": "object",
@@ -602,38 +580,47 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 16777216
     },
-    "managed_actor_resolution_update_evidence": {
+    "third_party_user_query": {
       "type": "object",
-      "description": "Private accepted rotation closure delivered only to the exact already installed/provisioned managed Actor runtime through the existing node-to-Applet completion operation. The original committed_request remains immutable. The last lineage Commit accepts resolution_event and binds both new signer leaves; lineage begins immediately after the runtime retained previous Principal root Commit and is contiguous in that exact managed PCR stream. No public principal projection or current DID query can replace it.",
       "required": [
-        "resolution_event",
-        "commits",
-        "method_history_evidence",
-        "attester_resolution"
+        "applet_id",
+        "realm_id",
+        "protocol",
+        "instance_id",
+        "external_id"
       ],
       "properties": {
-        "resolution_event": {
-          "$ref": "./identity-resolution.schema.json#/$defs/resolution_update_event"
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
-        "commits": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "./realm-commit.schema.json"
-          },
-          "description": "Exact consecutive source RealmCommits in wire order, from the retained previous Principal root Commit exclusive through the Commit accepting resolution_event inclusive. Verify each predecessor, position, stream, Event digest binding and historical Station signature; no skipped Commit or cross-stream position comparison."
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "method_history_evidence": {
-          "$ref": "./identity-resolution.schema.json#/$defs/method_history_evidence",
-          "description": "Complete independently verifiable method-native history for the exact resolution accepted by resolution_event. The selected native version/head and the new locally prepared method/raw public key must match."
+        "protocol": {
+          "$ref": "#/$defs/protocol"
         },
-        "attester_resolution": {
-          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution",
-          "description": "Complete native history of the original target Station Service, sufficient to verify every supplied Commit at its actual committed_at and the exact new Service attester method. Its service_id equals the original target Station; its terminal document never replaces historical key selection."
+        "instance_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "external_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
         }
       },
-      "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16777216
+      "additionalProperties": false
     }
   }
 }

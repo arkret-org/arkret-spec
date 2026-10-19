@@ -41,7 +41,7 @@
     },
     "device_generation_ref": {
       "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-      "description": "Reducer-derived PCR-local monotonic current device-generation selector. A producer MUST NOT self-report it and it MUST NOT equal or be derived from a DID versionId."
+      "description": "Reducer-derived monotonic generation local to the exact Account PCR or Realm actor; never a DID version."
     },
     "denied_actions": {
       "type": "array",
@@ -71,7 +71,6 @@
       "type": "object",
       "required": [
         "schema",
-        "account_id",
         "device_id",
         "target_device_authorize_event_id",
         "target_device_generation_ref",
@@ -108,8 +107,33 @@
           "type": "integer",
           "minimum": 1,
           "description": "Monotonic sequence assigned by the origin Station in the same atomic commit as accepted_at and the pending index."
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "account_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "actor_id"
+          ],
+          "not": {
+            "required": [
+              "account_id"
+            ]
+          }
+        }
+      ]
     },
     "device_revocation_pending_state": {
       "allOf": [

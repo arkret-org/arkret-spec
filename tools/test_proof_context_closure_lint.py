@@ -126,10 +126,10 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 document, "ak.applet_managed_actor_authoring_request_proof.v1"
             )
             authoring["binding_fields"][1] = "delegation_ref"
-            bundle = self._domain_row(
-                document, "ak.applet_managed_actor_bundle_proof.v1"
+            candidate = self._domain_row(
+                document, "ak.realm_actor_creation_signature.v1"
             )
-            bundle["binding_fields"][-1] = "issuer"
+            candidate["binding_fields"][-1] = "issuer"
 
         errors = self._run_with_mutations({REGISTRY: drift})
         self.assertAnyContains(errors, "binding_fields names ['delegation_ref']")

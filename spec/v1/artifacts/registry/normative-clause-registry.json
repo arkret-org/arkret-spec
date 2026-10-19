@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T11:47:58+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -212,8 +212,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:24b165fe3a17cfdb287f36d1466b7d50fdcc32372a6b71b2ce5533f45f7de4e0",
-      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Account subject; every other narrowing rule stays effective. This is not general delegation.",
+      "section_digest": "sha256:3d315fa514d1635200ae68d93f372503f5aa19fa5467a780ea8017c272a7a295",
+      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Realm actor subject; every other narrowing rule stays effective. This is not general delegation.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_cycle.v1",
@@ -432,7 +432,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#21-keypackage-与服务发现",
-      "section_digest": "sha256:03eaa16e9a02d57e72671e6d074832d2e061fd8a37057aba8d64feac40349735",
+      "section_digest": "sha256:defc27c736d9f97bd97df959c0a92248422336ae9bec40bf370e2d2c0048363b",
       "requirement": "Only MLS ciphersuites registered and active in mls-ciphersuite-registry.json reach the wire. KeyPackage publish, claim and Commit submission each reject an unregistered or inactive ciphersuite; an implementation MUST NOT try several suites in turn until one is accepted, and MUST NOT rewrite a foreign suite identifier into a registered value locally. The recipient endpoint and KeyPackage holder identity is the complete ActorId, and claim, Welcome delivery and leaf credential preserve it verbatim rather than collapsing it to a signing principal, bare DID or handle.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -533,10 +533,10 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#15-applet-device-delegation",
-      "section_digest": "sha256:6a4bc792a8d2e60992771ec4a33561df23fa3f223f574efac2e4c70f9dd30abd",
-      "requirement": "An Applet-managed Bot or Ghost joins E2EE through the ordinary device branch rather than a third recipient endpoint branch: its restricted delegated device resolves through an accepted authorization_binding_kind=\"applet_managed_delegation\" ak.device.authorize submitted as an ordinary successor Event in that principal own applet_managed_control PCR. Every KeyPackage publication, Welcome admission and MLS durable receipt from that device is ANDed with the revoke fence of the current installation in the actual target scope, independently from immutable creation provenance, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
+      "section_digest": "sha256:3a885c62da7c7ccf35c527dfd94cc13c3fd08d37eb35a5b2194319a07ad51361",
+      "requirement": "Realm Bot/Ghost Devices use realm_managed_delegation in their owning realm_control stream, complete Realm ActorId and per-scope active installation, grants, generation and revocation fences. They have no Account or PCR. Historical accepted Events remain verifiable after withdrawal.",
       "testability_grade": "audit",
-      "test_plan": "Audited against the delegation contract: a conformance run fences an Applet install and asserts that the delegated device next KeyPackage publication, Welcome admission and durable receipt are each rejected with applet_revoked while no ak.device.revoke exists and the authorize Event is still present in the PCR, and that historical accepted Events remain verifiable. No vector exists because the obligation is a conjunction across two lifecycles. Scope A fencing MUST preserve independently legal scope B Device requests; the managed governance reference fixture tests that distinction. Production combined MLS/Device and cross-authority lifecycle audit remains an implementation obligation."
+      "test_plan": "Realm actor schema/signature/reference tests and managed governance scope tests cover structural and reference decisions. Production KeyPackage, Welcome, durable receipt, withdrawal races and actual handoff remain implementation acceptance under task 0847; no production pass is claimed."
     },
     {
       "clause_id": "AK-NC-068",
@@ -694,7 +694,7 @@
       "status": "inactive",
       "category": "security",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#6-披露与验收",
-      "section_digest": "sha256:cee9ac97566fba7ea8b738b7d1bfca41f8642975d707659dc472eea5c54b170e",
+      "section_digest": "sha256:1879d546ab90a9f406117b0945a060e39f4ae6a454a04d9179a61e51f9235628",
       "requirement": "Withdrawn unapproved client-pull / same-core Applet Account / special invocation obligation. No live protocol authority derives from this clause. Ordinary managed Bot/Ghost Device delivery and actual action permissions are the successor.",
       "testability_grade": "audit",
       "test_plan": "Audit the explicit withdrawal against historical commit ca82ab00 and the current managed-governance, Applet integration and schema/operation registries; the original clause ID stays reserved and conveys no active obligation."
@@ -704,7 +704,7 @@
       "status": "inactive",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#6-披露与验收",
-      "section_digest": "sha256:cee9ac97566fba7ea8b738b7d1bfca41f8642975d707659dc472eea5c54b170e",
+      "section_digest": "sha256:1879d546ab90a9f406117b0945a060e39f4ae6a454a04d9179a61e51f9235628",
       "requirement": "Withdrawn unapproved client-pull / same-core Applet Account / special invocation obligation. No live protocol authority derives from this clause. Ordinary managed Bot/Ghost Device delivery and actual action permissions are the successor.",
       "testability_grade": "audit",
       "test_plan": "Audit the explicit withdrawal against historical commit ca82ab00 and the current managed-governance, Applet integration and schema/operation registries; the original clause ID stays reserved and conveys no active obligation."
@@ -714,7 +714,7 @@
       "status": "inactive",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#6-披露与验收",
-      "section_digest": "sha256:cee9ac97566fba7ea8b738b7d1bfca41f8642975d707659dc472eea5c54b170e",
+      "section_digest": "sha256:1879d546ab90a9f406117b0945a060e39f4ae6a454a04d9179a61e51f9235628",
       "requirement": "Withdrawn unapproved client-pull / same-core Applet Account / special invocation obligation. No live protocol authority derives from this clause. Ordinary managed Bot/Ghost Device delivery and actual action permissions are the successor.",
       "testability_grade": "audit",
       "test_plan": "Audit the explicit withdrawal against historical commit ca82ab00 and the current managed-governance, Applet integration and schema/operation registries; the original clause ID stays reserved and conveys no active obligation."
@@ -807,7 +807,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#foreign-account-device-event-authorization-source-normative",
-      "section_digest": "sha256:6ec56daae4ed97671bf5573c1cf8868d124cbe4d52710ec1d2fa4b9e2b5b465a",
+      "section_digest": "sha256:5120444645964df16afb3c9662c7b787881fef96dcb150273a13bed0f20be54a",
       "requirement": "Foreign Account Device event authorization source (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Shared live Account Device applicability is additionally guarded by peer-submit native-source/pair/business semantic cases and requirement mutations. Real managed origin/governor acceptance and cold peer delivery remain implementation obligations of 0847; static normative validation does not discharge them."
@@ -817,17 +817,17 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#account-device-historical-signer-delivery-normative",
-      "section_digest": "sha256:c53477a83d37245840dde36779a7c84ddcb8a7bae03d7a16de6c982cd7b2f778",
+      "section_digest": "sha256:35a8b87f74041bf8bfec6a9a438f1dca9e5d621b071d1a6bdb013b625e7c48a1",
       "requirement": "Account Device historical signer delivery (Normative)",
       "testability_grade": "audit",
-      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. User-approved managed Device extension: shared closed Account Device fields with exact Human/applet_managed_device source and accepted native provenance registry mutations. The existing signed transcript remains a Human KAT only; managed source acceptance, atomic retention, native delivery and live runtime require separate implementation evidence under 0847. No managed production pass is claimed by this registry."
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Realm Device uses a separate realm_device minimal signer fact. The Human KAT does not prove this new branch; schema privacy assertions cover its closed fields, while actual freezing and delivery remain implementation acceptance under task 0847."
     },
     {
       "clause_id": "AK-NC-095",
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#account-device-signer-fact-commitment-and-transfer-normative",
-      "section_digest": "sha256:8b54352686f585190fbbaa6b5df74f5c3c6db3b3b3f213171f97759cbaed0b16",
+      "section_digest": "sha256:b19cb21c3137ddbeac5a10d339e31620137d4d4f9455878ff14cb275709260fa",
       "requirement": "Original Commit-bound Account Device and Applet Service signer facts: immutable minimal source, producer proof, exact target binding, atomic freeze/retain, authorized read, replica and complete handoff transfer.",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Decision 0156 adds the Service union and smallest exact readable Event key projection. Historical Service authority, PG freeze/retention and consumer verification must be executed on the revised source before claiming implementation acceptance. User-approved managed Device extension: shared closed Account Device fields with exact Human/applet_managed_device source and accepted native provenance registry mutations. The existing signed transcript remains a Human KAT only; managed source acceptance, atomic retention, native delivery and live runtime require separate implementation evidence under 0847. No managed production pass is claimed by this registry."
@@ -837,7 +837,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/federation.md#account-device-historical-signer-fact-transport-normative",
-      "section_digest": "sha256:3e4949ab9d7121a30df5b06361530fd1260d164c5e3463feb8606dbe113c3a47",
+      "section_digest": "sha256:9ba0aa75f023c606fe96f8b1842491b2c517739b1adb24e5dcfdb497272f0968",
       "requirement": "Account Device historical signer fact transport (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Invite notification supplement: closed original fact carrier iff original Commit has its digest, no self-dispatch fact echo, exact recipient Station only, no membership/PCR read or holder value expansion. Four mandatory gate tests (including both conditional mutations) execute these shape and boundary obligations. Real accepted Invite delivery, historical Event Ed verification and zero holder writes on refusal remain native/PG/live implementation obligations. User-approved managed Device extension: shared closed Account Device fields with exact Human/applet_managed_device source and accepted native provenance registry mutations. The existing signed transcript remains a Human KAT only; managed source acceptance, atomic retention, native delivery and live runtime require separate implementation evidence under 0847. No managed production pass is claimed by this registry."
@@ -847,18 +847,18 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/identity/key-management.md#foreign-business-signer-metadata-boundary-normative",
-      "section_digest": "sha256:317ba3c5c56d035d62f9f7ef944f0d16c67aeadbe6a6f6302ff477a8b658f8cf",
+      "section_digest": "sha256:fc226de3b6fc846aaa122fad10b3d504ff47e01cacbc692d755de22b5f7e7f7b",
       "requirement": "Foreign business signer metadata boundary (Normative)",
       "testability_grade": "audit",
-      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. User-approved managed Device extension: shared closed Account Device fields with exact Human/applet_managed_device source and accepted native provenance registry mutations. The existing signed transcript remains a Human KAT only; managed source acceptance, atomic retention, native delivery and live runtime require separate implementation evidence under 0847. No managed production pass is claimed by this registry."
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Realm Device uses a separate realm_device minimal signer fact. The Human KAT does not prove this new branch; schema privacy assertions cover its closed fields, while actual freezing and delivery remain implementation acceptance under task 0847."
     },
     {
       "clause_id": "AK-NC-098",
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#4-applet-授权来源与持续上界",
-      "section_digest": "sha256:32f1db4f4684754e51a285180dda111efa1c031d2b3160d5769aa0ffb1468b9b",
-      "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted managed Account. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Account child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Account producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Station must fail.",
+      "section_digest": "sha256:6a4f3f920054118cfc10b8953d7569f127178298567e6d8fd1be97ad4fd2a37a",
+      "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted Realm actor. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Realm actor child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Realm actor producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Realm must fail.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.applet.managed_governance.v1"

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.1",
-  "generated_at": "2026-10-19T07:04:30+08:00",
+  "version": "2026-10-19.2",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2998,33 +2998,6 @@
         "service_call"
       ],
       "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json.",
-      "status": "active"
-    },
-    {
-      "code": "applet_managed_actor_provision_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An ak.applet.managed_actor.provision Event in the closed Applet managed-actor creation aggregate does not satisfy its binding rules: actor_id.account_id.station_id is not the receiving Station, the actor collides with the service or controller principal, or the provisioned independent Bot/Ghost does not match the signed authoring request, accepted Applet registration, role and effective scope. See zh/extensions/applet-integration.md.",
-      "status": "active"
-    },
-    {
-      "code": "applet_managed_pcr_genesis_invalid",
-      "applies_to": [
-        "pcr_genesis",
-        "event_envelope"
-      ],
-      "description": "The purpose=applet_managed_control PCR genesis Event in the Applet managed-actor creation aggregate does not cross-bind its provision Event, initial_resolution, Applet, grant and service verbatim. See zh/extensions/applet-integration.md.",
-      "status": "active"
-    },
-    {
-      "code": "applet_managed_pcr_genesis_requires_closed_aggregate",
-      "applies_to": [
-        "pcr_genesis",
-        "federation_transaction"
-      ],
-      "description": "A purpose=applet_managed_control PCR genesis arrived outside the closed Applet install / Ghost provisioning aggregate - an ordinary submit, a Realm bootstrap batch, or ak.peer.events.command.submit.v1. Transport and proof validity do not make it an AppletFormal admission. See zh/extensions/applet-integration.md.",
       "status": "active"
     },
     {

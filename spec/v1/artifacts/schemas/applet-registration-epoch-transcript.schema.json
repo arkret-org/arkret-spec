@@ -191,15 +191,15 @@
           },
           "required": [
             "method",
-            "version_id",
-            "unversioned_refetch"
+            "unversioned_refetch",
+            "version_id"
           ]
         },
         {
           "required": [
             "method",
-            "version_time",
-            "unversioned_refetch"
+            "unversioned_refetch",
+            "version_time"
           ],
           "properties": {
             "method": {

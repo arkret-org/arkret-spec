@@ -20,57 +20,7 @@ FIXTURE = ARTIFACTS / "fixtures" / "peer-event-submit-semantic-union-fixture.jso
 OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 RUNNER = Path(__file__).with_name("runner.py")
 PRODUCER_EVIDENCE_VECTOR = "ak.vector.federation.authority_forward_producer_device_evidence.v1"
-LIVE_DEVICE_SOURCE_CONTRACT = {'evidence_schema_ref': 'schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence',
- 'eligible_producer_sources': ['human_device', 'applet_managed_device'],
- 'role_resolution': 'accepted_pcr_purpose_and_original_authorization_provenance',
- 'human_source': 'accepted_regular_or_accepted_device_authorization_in_original_human_pcr',
- 'managed_source': ['accepted_managed_provision',
-                    'applet_managed_control_pcr',
-                    'principal_original_managed_device_authorization',
-                    'current_generation_and_resolution',
-                    'exact_authorization_instance_and_window'],
- 'origin_cut': 'same_locked_pcr_current_and_original_authorization_cut',
- 'origin_event_verification': 'actual_complete_producer_event_and_device_signature',
- 'managed_scope_actions': 'every_actual_resource_scope_and_action_in_one_original_signed_pair',
- 'event_binding': ['event_id',
-                   'verification_method',
-                   'destination_service_id',
-                   'forward_body_digest',
-                   'authorization_ref',
-                   'revision',
-                   'governance_generation',
-                   'accepted_at'],
- 'source_accepted_time': 'original_authorization_commit.committed_at',
- 'unsigned_projection': 'complete_wrapper_remove_only_proof',
- 'governor_business_gate': 'independent_current_membership_service_lineage_terminal_child_applet_installation_policy_management_action_approval_quota_and_domain_revision',
- 'managed_provenance_at_governor': 'independently_verified_accepted_source_not_applet_label_or_bare_fact',
- 'missing_or_conflicting_source': 'reject_zero_writes_without_human_service_or_current_key_fallback',
- 'exact_accepted_retry': 'original_outcome_before_source_freshness',
- 'new_attempt': 'fresh_source_persist_before_send',
- 'lost_response': 'byte_identical_complete_body_only',
- 'private_original': 'accepted_at_audit_only',
- 'member_delivery': 'existing_full_disclosure_minimal_historical_fact_only',
- 'directory_or_current_query_expanded': False,
- 'new_wire_role_session_pcr_read_or_authority_token': False,
- 'managed_provenance_contract': {'member': 'producer_managed_provenance',
-                                 'schema_ref': 'schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance',
-                                 'max_canonical_bytes': 1048576,
-                                 'creation_slots': ['provision',
-                                                    'pcr_genesis',
-                                                    'accountability',
-                                                    'profile'],
-                                 'creation_event_count': 4,
-                                 'creation_commit_count': 4,
-                                 'current_families': ['actor_profile', 'identity_accountability'],
-                                 'current_covering_commit_count': 2,
-                                 'original_producer': 'exact_original_applet_service',
-                                 'accepted_commit_signer': 'creation_producer_account_hosting_station_current_verified_realm_authority_generation',
-                                 'presence': 'required_managed_device_event_or_complete_mls_only_forbidden_human_agent_service_native_pcr_atomic_replication',
-                                 'current_cut': 'same_locked_cut_as_live_device_attestation',
-                                 'body_digest': 'existing_complete_unsigned_peer_body_includes_sibling_remove_only_producer_device_evidence',
-                                 'retention': 'atomic_private_first_admission_audit_only_never_member_replication_scan_snapshot',
-                                 'failures': 'zero_writes_no_human_fallback_no_source_role_projection_no_new_pcr_read_surface',
-                                 'proof_context_policy': 'existing_contexts_unchanged'}}
+LIVE_DEVICE_SOURCE_CONTRACT = {'evidence_schema_ref': 'schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence', 'eligible_producer_sources': ['human_device'], 'role_resolution': 'accepted_regular_pcr_and_original_authorization_provenance', 'human_source': 'accepted_regular_or_accepted_device_authorization_in_original_human_pcr', 'origin_cut': 'same_locked_pcr_current_and_original_authorization_cut', 'origin_event_verification': 'actual_complete_producer_event_and_device_signature', 'event_binding': ['event_id', 'verification_method', 'destination_service_id', 'forward_body_digest', 'authorization_ref', 'revision', 'governance_generation', 'accepted_at'], 'source_accepted_time': 'original_authorization_commit.committed_at', 'unsigned_projection': 'complete_wrapper_remove_only_proof', 'governor_business_gate': 'independent_current_membership_capability_policy_approval_quota_and_domain_revision', 'missing_or_conflicting_source': 'reject_zero_writes_without_human_service_or_current_key_fallback', 'exact_accepted_retry': 'original_outcome_before_source_freshness', 'new_attempt': 'fresh_source_persist_before_send', 'lost_response': 'byte_identical_complete_body_only', 'private_original': 'accepted_at_audit_only', 'member_delivery': 'existing_full_disclosure_minimal_historical_fact_only', 'directory_or_current_query_expanded': False, 'new_wire_role_session_pcr_read_or_authority_token': False}
 
 PRODUCER_DEVICE_CODES = (
     "device_unauthorized",
@@ -266,13 +216,13 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence"},
-            {"branch", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence"},
+            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "atomic_submission", "atomic_producer_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
+        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -283,25 +233,10 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
-    managed = defs.get("forward_managed_actor_provenance", {})
-    if (_ref_name(peer_properties.get("producer_managed_provenance")) != "#/$defs/forward_managed_actor_provenance"
-            or managed.get("additionalProperties") is not False
-            or _required(managed) != {"creation", "service_resolution", "current"}
-            or set(managed.get("properties", {})) != {"creation", "service_resolution", "current"}
-            or managed.get("x-arkret-max-canonical-bytes") != 1048576):
-        _fail(lint, SCHEMA, "managed provenance must be the bounded closed original-source sibling")
-    creation = defs.get("managed_creation_originals", {})
-    if (creation.get("additionalProperties") is not False
-            or _required(creation) != {"provision", "pcr_genesis", "accountability", "profile"}
-            or set(creation.get("properties", {})) != _required(creation)):
-        _fail(lint, SCHEMA, "managed provenance must contain exactly four named creation originals")
-    current = defs.get("managed_identity_current", {})
-    if (current.get("additionalProperties") is not False
-            or _required(current) != {"profile", "accountability", "expires_at"}
-            or set(current.get("properties", {})) != _required(current)):
-        _fail(lint, SCHEMA, "managed provenance current must be the exact two-result expiry-bound cut")
+    if "producer_managed_provenance" in peer_properties or "forward_managed_actor_provenance" in defs:
+        _fail(lint, SCHEMA, "Realm actor must use its owning governor's control state, not foreign Account provenance")
     if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
         _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
     genesis_material = defs.get("mls_genesis_material", {})
@@ -616,12 +551,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if forward_case.get("source_contract") != live_source:
             _fail(lint, FIXTURE, "live Device fixture must match its canonical source contract")
         source_cases = forward_case.get("source_cases", [])
-        expected_cases = {"human_original_source", "bot_original_source", "ghost_original_source", "managed_missing_provision", "managed_pair_splicing", "managed_governor_business_lost", "agent_not_device", "service_not_device"}
+        expected_cases = {"human_original_source", "realm_bot_not_account", "realm_ghost_not_account", "missing_original_source", "wrong_scope", "governor_business_lost", "agent_not_device", "service_not_device"}
         if not isinstance(source_cases, list) or len(source_cases) != len(expected_cases) or {case.get("name") for case in source_cases if isinstance(case, dict)} != expected_cases:
             _fail(lint, FIXTURE, "live Device fixture must cover both native sources and independent denial gates")
         else:
             for case in source_cases:
-                allowed = case.get("source") in ("human_device", "applet_managed_device") and all(case.get(key) is True for key in ("native_provenance", "pairs_match", "business_current"))
+                allowed = case.get("source") in ("human_device",) and all(case.get(key) is True for key in ("native_provenance", "pairs_match", "business_current"))
                 decision = "accept" if allowed else "reject_zero_writes"
                 if case.get("expected") != decision:
                     _fail(lint, FIXTURE, "live Device source case disagrees with independent source, pair and business checks")

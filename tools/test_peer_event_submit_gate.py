@@ -597,37 +597,23 @@ class PeerEventSubmitGateTest(unittest.TestCase):
         self.assertIn("check_profile_wire_contract_refs(lint)", source)
 
 
-    def test_managed_provenance_cannot_drop_its_byte_budget(self) -> None:
-        def mutate(documents: dict) -> None:
-            self.defs(documents)["forward_managed_actor_provenance"].pop("x-arkret-max-canonical-bytes")
-        self.assert_red(mutate, "bounded closed original-source sibling")
-
-    def test_managed_provenance_cannot_omit_a_creation_original(self) -> None:
-        def mutate(documents: dict) -> None:
-            row = self.defs(documents)["managed_creation_originals"]
-            row["required"].remove("profile")
-            row["properties"].pop("profile")
-        self.assert_red(mutate, "exactly four named creation originals")
-
-    def test_managed_provenance_cannot_add_a_role_projection(self) -> None:
-        def mutate(documents: dict) -> None:
-            self.defs(documents)["forward_managed_actor_provenance"]["properties"]["actor_role"] = {"type": "string"}
-        self.assert_red(mutate, "bounded closed original-source sibling")
-
-    def test_replication_cannot_admit_private_managed_provenance(self) -> None:
-        def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
-            branch["not"]["anyOf"] = [row for row in branch["not"]["anyOf"] if row.get("required") != ["producer_managed_provenance"]]
-        self.assert_red(mutate, "reject every cross-branch field")
 
 
-    def test_managed_provenance_keeps_existing_whole_evidence_digest_exclusion(self) -> None:
-        def mutate(documents: dict) -> None:
-            contract = documents[gate.CONTRACT.resolve()]
-            source = contract["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_live_forward_source"]
-            source["managed_provenance_contract"]["body_digest"] = "remove_only_nested_event_authorization"
+
+
+
+
+
+    def test_realm_actor_cannot_restore_foreign_account_source(self):
+        def mutate(documents):
+            self.defs(documents)["peer_submit_request"]["properties"]["producer_managed_provenance"] = {"type":"object"}
+        self.assert_red(mutate, "owning governor")
+
+    def test_account_live_source_must_exclude_realm_devices(self):
+        def mutate(documents):
+            source = documents[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_live_forward_source"]
+            source["eligible_producer_sources"].append("realm_device")
         self.assert_red(mutate, "live Device forward source must retain")
-
 
 if __name__ == "__main__":
     unittest.main()

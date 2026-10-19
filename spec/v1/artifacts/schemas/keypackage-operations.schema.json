@@ -192,7 +192,6 @@
         "claim_id",
         "keypackage_ref",
         "actor_id",
-        "principal_id",
         "keypackage",
         "capabilities",
         "expires_at"
@@ -302,13 +301,60 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists. actor_id is the authoritative complete holder identity and is preserved byte-for-byte through the BasicCredential and Welcome delivery; principal_id remains only the branch selector projection and MUST equal actor_id.account_id.principal_id."
+      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists. actor_id is the authoritative complete holder identity and is preserved byte-for-byte through the BasicCredential and Welcome delivery; principal_id remains only the branch selector projection and MUST equal actor_id.account_id.principal_id.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+              }
+            },
+            "required": [
+              "actor_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "principal_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_verification_method"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_key_authorize_event_id"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "principal_id"
+            ]
+          }
+        }
+      ]
     },
     "keypackages_upload_request_body": {
       "type": "object",
       "required": [
         "actor_id",
-        "principal_id",
         "keypackages",
         "endpoint_signature"
       ],
@@ -399,7 +445,55 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+              }
+            },
+            "required": [
+              "actor_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "principal_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_verification_method"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_key_authorize_event_id"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "principal_id"
+            ]
+          }
+        }
+      ]
     },
     "keypackages_upload_outcome": {
       "type": "object",
@@ -1299,7 +1393,16 @@
                 ]
               }
             ]
-          }
+          },
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "recipient_actor_id"
+                ]
+              }
+            }
+          ]
         },
         {
           "required": [
@@ -1322,6 +1425,46 @@
               {
                 "required": [
                   "device_verification_method"
+                ]
+              }
+            ]
+          },
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "recipient_actor_id"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "required": [
+            "recipient_actor_id",
+            "recipient_device_id",
+            "device_verification_method"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "recipient_account_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_id"
+                ]
+              },
+              {
+                "required": [
+                  "recipient_agent_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "agent_key_authorize_event_id"
                 ]
               }
             ]
@@ -1385,6 +1528,9 @@
         },
         "signature": {
           "$ref": "#/$defs/signature"
+        },
+        "recipient_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
       },
       "additionalProperties": false,

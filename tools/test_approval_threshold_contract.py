@@ -53,17 +53,15 @@ class ApprovalThresholdContractTest(unittest.TestCase):
         self.assertNotIn('approver_ids', properties)
         self.assertNotIn('auto_reject_on_timeout', properties)
 
-    def test_rotation_requires_a_private_pcr_anchor_and_complete_lineage(self):
-        path = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas/applet-edge-operations.schema.json'
-        definitions = json.loads(path.read_text(encoding='utf-8'))['$defs']
+    def test_rotation_uses_exact_signed_realm_control_material(self):
+        root = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas'
+        definitions = json.loads((root / 'applet-edge-operations.schema.json').read_text(encoding='utf-8'))['$defs']
         context = definitions['applet_managed_actor_authoring_context']
-        self.assertIn('principal_control_commit', context['required'])
-        self.assertNotIn('resolution_update', context['required'])
-        rotation = definitions['managed_actor_resolution_update_evidence']
-        self.assertFalse(rotation['additionalProperties'])
-        self.assertEqual(set(rotation['required']), set(rotation['properties']))
-        self.assertEqual(rotation['properties']['commits']['minItems'], 1)
-        self.assertNotIn('public_principal_resolution', rotation['properties'])
+        self.assertEqual(context['required'], ['material'])
+        self.assertFalse(context['additionalProperties'])
+        self.assertNotIn('managed_actor_resolution_update_evidence', definitions)
+        material = json.loads((root / 'realm-actor-material.schema.json').read_text(encoding='utf-8'))['$defs']['outcome']
+        self.assertTrue({'request_digest','request_nonce','requester_actor_id','governance_generation','authority_ref','control_stream_head','result','signature'} <= set(material['required']))
 
 
 if __name__ == '__main__':

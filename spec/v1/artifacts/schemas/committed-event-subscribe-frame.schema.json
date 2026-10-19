@@ -51,9 +51,9 @@
       },
       "required": [
         "kind",
+        "payload",
         "realm_id",
-        "cursor",
-        "payload"
+        "cursor"
       ],
       "not": {
         "required": [
@@ -72,8 +72,8 @@
       },
       "required": [
         "kind",
-        "realm_id",
-        "payload"
+        "payload",
+        "realm_id"
       ],
       "not": {
         "anyOf": [

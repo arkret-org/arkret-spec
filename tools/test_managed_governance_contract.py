@@ -42,10 +42,10 @@ def policy_gate(policies, controller, operation):
 
 def lineage_effective(state):
     return (state["parent_subject"] == state["child_issuer"] and state["child_issuer"]["kind"] == "service"
-            and state["child_subject"]["kind"] == "account" and state["accepted_subject"]
+            and state["child_subject"]["kind"] == "realm" and state["accepted_subject"]
             and state["child_subject"] == state["accepted_subject_actor"]
             and state["parent_subject"] == state["accepted_managing_service"]
-            and state["child_subject"]["account_id"]["station_id"] == state["hosting_station_id"]
+            and state["child_subject"]["realm_actor_id"]["realm_id"] == state["owning_realm_id"]
             and state["ordinary_authority_control"] and state["accepted_role"] in state["parent_roles"]
             and set(state["child_actions"]).issubset(state["parent_actions"])
             and state["max_child_depth"] == 0 and state["parent_active"] and state["scope_active"]
@@ -116,20 +116,19 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertNotIn("transport", package["properties"])
         operation = next(o for o in self.catalog["operation_registry"]["operations"] if o["operation_id"] == "ak.self.applet.command.install.v1")
         self.assertEqual(operation["durable_effect"]["event_kinds"], ["ak.applet.registration", "ak.capability.grant"])
-        actor = json.loads((ART / "schemas/applet-managed-actor.schema.json").read_text(encoding="utf-8"))
-        self.assertEqual(actor["$defs"]["applet_managed_actor_provision_payload"]["properties"]["actor_role"]["enum"], ["bot", "ghost"])
+        actor = json.loads((ART / "schemas/realm-actor.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(actor["$defs"]["create_payload"]["properties"]["actor_role"]["enum"], ["bot", "ghost"])
 
     def test_scope_and_role_creation_contract_cannot_reintroduce_pull(self):
         operations = {o["operation_id"] for o in self.catalog["operation_registry"]["operations"]}
-        self.assertIn("ak.self.applet.bot.command.provision.v1", operations)
-        self.assertIn("ak.self.applet.ghost.command.provision.v1", operations)
+        self.assertIn("ak.self.events.command.submit.v1", operations)
+        self.assertIn("ak.self.realm_actor.read.material.v1", operations)
         self.assertNotIn("ak.edge.applet.client.command.exchange.v1", operations)
         defs = json.loads((ART / "schemas/applet-install-authoring.schema.json").read_text(encoding="utf-8"))["$defs"]
         self.assertEqual(defs["authoring_request"]["properties"]["purpose"]["enum"], ["provision_bot", "provision_ghost"])
         self.assertIn("effective_scope", defs["ghost_preview_request_body"]["required"])
         self.assertNotIn("realm_id", defs["ghost_preview_request_body"]["properties"])
-        self.assertEqual(set(defs["managed_actor_bundle"]["required"]) - {"schema", "authoring_request_digest", "proof"},
-                         {"managed_actor_provision_event", "pcr_genesis_event", "accountability_grant_event", "profile_event"})
+        self.assertEqual(defs["author_outcome"]["required"], ["create_event"])
 
     def test_real_parent_terminal_child_and_all_bypass_negatives(self):
         original = self.fixture["lineage"]
@@ -160,7 +159,7 @@ class ManagedGovernanceTests(unittest.TestCase):
             self.assertFalse(lineage_effective(state), (name, key))
         for key, value in [("actual_producer", original["parent_subject"]),
                            ("parent_binding_count", 0), ("child_binding_count", 2),
-                           ("hosting_station_id", "ak:did_core:webvh:otherstation")]:
+                           ("owning_realm_id", "another-realm")]:
             state = copy.deepcopy(original)
             state[key] = value
             self.assertFalse(lineage_effective(state), key)

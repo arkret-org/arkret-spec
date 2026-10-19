@@ -504,10 +504,6 @@
       "new": "ak.self.applet.bot.command.preview.v1"
     },
     {
-      "old": "ak.self.applet.bot.command.provision",
-      "new": "ak.self.applet.bot.command.provision.v1"
-    },
-    {
       "old": "ak.self.applet.command.install",
       "new": "ak.self.applet.command.install.v1"
     },
@@ -522,10 +518,6 @@
     {
       "old": "ak.self.applet.ghost.command.preview",
       "new": "ak.self.applet.ghost.command.preview.v1"
-    },
-    {
-      "old": "ak.self.applet.ghost.command.provision",
-      "new": "ak.self.applet.ghost.command.provision.v1"
     },
     {
       "old": "ak.self.applet.install.command.preview",
@@ -838,6 +830,10 @@
     {
       "old": "ak.self.realm.resource.get",
       "new": "ak.self.realm.resource.get.v1"
+    },
+    {
+      "old": "ak.self.realm_actor.read.material",
+      "new": "ak.self.realm_actor.read.material.v1"
     },
     {
       "old": "ak.self.realm_join.command.prepare",

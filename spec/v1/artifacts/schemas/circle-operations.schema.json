@@ -143,30 +143,78 @@
     "circle_preview": {
       "type": "object",
       "description": "Fixed directory-only response to a joined parent-Realm member who is not a Circle member. It never carries a private Circle field or Event reference.",
-      "required": ["circle_id", "realm_id", "visibility", "display", "member_count_bucket", "join_rule", "opaque_commitment"],
+      "required": [
+        "circle_id",
+        "realm_id",
+        "visibility",
+        "display",
+        "member_count_bucket",
+        "join_rule",
+        "opaque_commitment"
+      ],
       "properties": {
-        "circle_id": {"$ref": "./common-ids.schema.json#/$defs/circle_id"},
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "visibility": {"const": "realm_members"},
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "visibility": {
+          "const": "realm_members"
+        },
         "display": {
           "type": "object",
-          "required": ["color_token", "symbol"],
+          "required": [
+            "color_token",
+            "symbol"
+          ],
           "properties": {
-            "color_token": {"$ref": "./circle.schema.json#/$defs/display/properties/color_token"},
-            "symbol": {"$ref": "./circle.schema.json#/$defs/display/properties/symbol"}
+            "color_token": {
+              "$ref": "./circle.schema.json#/$defs/display/properties/color_token"
+            },
+            "symbol": {
+              "$ref": "./circle.schema.json#/$defs/display/properties/symbol"
+            }
           },
           "additionalProperties": false
         },
-        "member_count_bucket": {"type": "string", "enum": ["0", "1", "2-3", "4-7", "8-15", "16-31", "32-63", "64-127", "128+"]},
-        "join_rule": {"type": "string", "enum": ["invite", "knock", "public"]},
-        "opaque_commitment": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "member_count_bucket": {
+          "type": "string",
+          "enum": [
+            "0",
+            "1",
+            "2-3",
+            "4-7",
+            "8-15",
+            "16-31",
+            "32-63",
+            "64-127",
+            "128+"
+          ]
+        },
+        "join_rule": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "knock",
+            "public"
+          ]
+        },
+        "opaque_commitment": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       },
       "additionalProperties": false
     },
     "circle_read_view": {
       "oneOf": [
-        {"$ref": "#/$defs/circle_view"},
-        {"$ref": "#/$defs/circle_preview"}
+        {
+          "$ref": "#/$defs/circle_view"
+        },
+        {
+          "$ref": "#/$defs/circle_preview"
+        }
       ]
     },
     "circle_create_request_body": {
@@ -289,17 +337,17 @@
                         }
                       },
                       "required": [
-                        "circle_id",
-                        "member_id",
                         "membership",
-                        "expected_membership"
+                        "expected_membership",
+                        "circle_id",
+                        "member_id"
                       ]
                     }
                   },
                   "required": [
                     "kind",
-                    "realm_id",
-                    "payload"
+                    "payload",
+                    "realm_id"
                   ]
                 }
               },

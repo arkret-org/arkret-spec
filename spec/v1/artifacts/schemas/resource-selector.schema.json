@@ -27,7 +27,8 @@
         "notification",
         "read_cursor",
         "blob",
-        "*"
+        "*",
+        "realm_actor"
       ]
     },
     "realm_id": {
@@ -194,6 +195,21 @@
         "required": [
           "actor_id"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "realm_actor"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "./realm-actor.schema.json#/$defs/resource"
       }
     }
   ],

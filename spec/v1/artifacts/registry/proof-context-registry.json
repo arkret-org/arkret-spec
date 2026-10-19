@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.3",
+  "version": "2026-10-19.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T17:02:07+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -864,29 +864,6 @@
       ]
     },
     {
-      "domain": "ak.applet_managed_actor_bundle_proof.v1",
-      "object_family": "applet_managed_actor_bundle",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "context",
-        "payload_digest",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/extensions/applet-schema.md",
-      "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_bundle",
-      "injected_fields": [
-        {
-          "field": "context",
-          "source": "constant ak.applet_managed_actor_bundle_proof.v1"
-        }
-      ],
-      "transcript_schema_refs": [
-        "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
-      ]
-    },
-    {
       "domain": "ak.approval.signature.v1",
       "object_family": "approval_signature",
       "primitive": "detached_signature",
@@ -1013,32 +990,6 @@
       "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof",
       "transcript_schema_refs": [
         "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
-      ]
-    },
-    {
-      "domain": "ak.device_authorize_applet_managed_possession_proof.v1",
-      "object_family": "device_authorize_applet_managed_possession",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "device_id",
-        "device_public_key_did",
-        "hpke_key",
-        "algorithms",
-        "device_key_algorithm",
-        "authorized_by",
-        "not_before",
-        "expires_at",
-        "scopes",
-        "recovery_session_id",
-        "authorization_binding_kind",
-        "authorized_generation_ref",
-        "account_id",
-        "applet_id"
-      ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript",
-      "transcript_schema_refs": [
-        "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript"
       ]
     },
     {
@@ -1727,62 +1678,6 @@
       "domain_is_a_transcript_member": false
     },
     {
-      "domain": "ak.applet.management_source.v1",
-      "object_family": "source",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/applet-management-source.schema.json#/$defs/source",
-      "binding_fields": [
-        "binding",
-        "creation",
-        "service_resolution",
-        "station_resolution",
-        "current",
-        "authority_bundles",
-        "device_source",
-        "evaluated_at",
-        "expires_at"
-      ],
-      "defined_in": "zh/extensions/applet-management-source.md",
-      "canonicalization": "RFC8785_JCS",
-      "prefix_form": "UTF8(domain) || 0x00",
-      "prefix_bytes_hex": "616b2e6170706c65742e6d616e6167656d656e745f736f757263652e763100",
-      "signature_input": "prefix_bytes || RFC8785_JCS(host_with_only_proof_omitted)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "compact_detached_jws",
-      "domain_is_a_transcript_member": false
-    },
-    {
-      "domain": "ak.applet.device_scope_confirmation.v1",
-      "object_family": "scope_confirmation",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/applet-management-source.schema.json#/$defs/scope_confirmation",
-      "binding_fields": [
-        "applet_id",
-        "service_id",
-        "source_station_id",
-        "subject_account_id",
-        "device_id",
-        "governance_station_id",
-        "governance_generation",
-        "effective_scope",
-        "registration_ref",
-        "registration_epoch",
-        "grant_ids",
-        "request_digest",
-        "nonce",
-        "evaluated_at",
-        "expires_at"
-      ],
-      "defined_in": "zh/extensions/applet-management-source.md",
-      "canonicalization": "RFC8785_JCS",
-      "prefix_form": "UTF8(domain) || 0x00",
-      "prefix_bytes_hex": "616b2e6170706c65742e6465766963655f73636f70655f636f6e6669726d6174696f6e2e763100",
-      "signature_input": "prefix_bytes || RFC8785_JCS(host_with_only_proof_omitted)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "compact_detached_jws",
-      "domain_is_a_transcript_member": false
-    },
-    {
       "domain": "ak.applet.configuration_command.v1",
       "object_family": "applet_execution_request",
       "primitive": "detached_signature",
@@ -1814,9 +1709,10 @@
         "intent_digest",
         "service_id",
         "status",
-        "subject_account_id",
+        "actor_id",
         "creation_refs",
-        "evaluated_at"
+        "evaluated_at",
+        "create_event"
       ],
       "defined_in": "zh/extensions/applet-management-source.md",
       "canonicalization": "RFC8785_JCS",
@@ -1826,6 +1722,165 @@
       "signature_algorithm": "Ed25519",
       "signature_encoding": "compact_detached_jws",
       "domain_is_a_transcript_member": false
+    },
+    {
+      "domain": "ak.device_authorize_realm_actor_possession_proof.v1",
+      "object_family": "device_authorize_realm_actor_possession",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "actor_id",
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "applet_id",
+        "expected_control_revision",
+        "expected_device_revision"
+      ],
+      "defined_in": "zh/extensions/realm-actors.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_realm_actor_possession_transcript",
+      "transcript_schema_refs": [
+        "schemas/event-payload.schema.json#/$defs/device_authorize_realm_actor_possession_transcript"
+      ]
+    },
+    {
+      "domain": "ak.realm_actor_creation_signature.v1",
+      "object_family": "realm_actor_creation_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-actor.schema.json#/$defs/create_payload",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_creation_signature"
+      ],
+      "signature_member": "control_signature",
+      "excluded_signature_members": [
+        "control_signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f6372656174696f6e5f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Candidate independent DID controller after method-native verification",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/0",
+      "unsigned_projection_schema_ref": "schemas/realm-actor.schema.json#/$defs/creation_transcript"
+    },
+    {
+      "domain": "ak.realm_actor_control_acceptance_signature.v1",
+      "object_family": "realm_actor_control_acceptance_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-actor.schema.json#/$defs/control_acceptance_transcript",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_control_acceptance_signature"
+      ],
+      "signature_member": "next_method_signature",
+      "excluded_signature_members": [],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f636f6e74726f6c5f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "New control method of the same DID core, plus separate old controller Event signature",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/1",
+      "unsigned_projection_schema_ref": "schemas/realm-actor.schema.json#/$defs/control_acceptance_transcript"
+    },
+    {
+      "domain": "ak.realm_actor_manager_acceptance_signature.v1",
+      "object_family": "realm_actor_manager_acceptance_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-actor.schema.json#/$defs/manager_acceptance_transcript",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_manager_acceptance_signature"
+      ],
+      "signature_member": "new_service_signature",
+      "excluded_signature_members": [],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f6d616e616765725f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "New Service at exact current registration; separate Realm controller Event signature",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/2",
+      "unsigned_projection_schema_ref": "schemas/realm-actor.schema.json#/$defs/manager_acceptance_transcript"
+    },
+    {
+      "domain": "ak.realm_actor_material_signature.v1",
+      "object_family": "realm_actor_material_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_material_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f6d6174657269616c5f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Owning Realm current governance Station verified through authority chain",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/3",
+      "unsigned_projection_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/unsigned_outcome"
     }
   ]
 }

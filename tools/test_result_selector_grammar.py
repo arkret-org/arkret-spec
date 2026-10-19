@@ -55,9 +55,18 @@ class ResultSelectorGrammarTest(unittest.TestCase):
                     f"{row['event_kind']}.result_writes[{index}].result_selector",
                     write["result_selector"],
                     row.get("id_source"),
+                    row["event_kind"],
                 )
         self.assertGreater(seen, 40)
         self.assertEqual(lint.errors, [])
+
+    def test_literal_gate_cannot_escape_realm_actor_creation(self):
+        for value in ["owner", "governance"]:
+            selector = {"kind":"composite", "components":[{"kind":"canonical_json","field":"payload.actor_id"},{"kind":"literal","value":value}]}
+            self.assertEqual(errors_for(selector,event_kind="ak.realm.actor.create"),[])
+            self.assertTrue(errors_for(selector,event_kind="ak.realm.actor.status.set"))
+        selector["components"][1]["value"]="other"
+        self.assertTrue(errors_for(selector,event_kind="ak.realm.actor.create"))
 
     def test_a_singleton_is_json_null(self) -> None:
         self.assertEqual(errors_for(None), [])

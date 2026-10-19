@@ -164,6 +164,8 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 ### 2.2 设备吊销
 
+以下 SecurityRotationTransaction 是普通 Account 分支。Realm Bot／Ghost 的 revoke 使用所属 realm_control 和完整 actor_id 的 proposal／terminal 记录；Applet runtime 在提交前持久保存 exact revoke Event、受影响 MLS 群组、预留轮换材料及步骤结果，以该 EventId 为唯一计划键。治理方保存原 proposal／命令结果与 removal intent；pending 不擦除不可恢复材料，terminal rejected 恢复允许状态，accepted 后按原计划幂等完成收尾。未知结果仅恢复原 intent，不重新生成计划。该 runtime 私有计划不调用只接受 AccountId／人类 session 的 SecurityRotationTransaction API，不把 Applet 私钥交给 Station。
+
 > 吊销后的 MLS secret 与 backup series 轮换 MUST 在一个 `SecurityRotationTransaction` 内进行，
 > 且该 transaction MUST 在提交 `ak.device.revoke` **之前**创建并 durable prepare。accepted revoke
 > 只进入可由 exact RealmCommit rejected command result 恢复的 `revocation_pending`；transaction 在 pending 期间可冻结新使用、预留 id 与准备幂等远端步骤，但 MUST 保留 reject 恢复所需材料，不得执行不可逆 device-generation 擦除。只有 covering RealmCommit accepted 后才提交永久撤销、MLS secret / backup series rotation 与终局清理。固定顺序、reserved id 与崩溃续跑合同见
@@ -272,7 +274,7 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 - `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device_authorize_possession_proof.v1`，见 §5.2.1。
 - `pcr_recovery`：PCR-policy recovery unit 的第二条 authorize（包含 policy 显式选择 did_root factor 的情况）；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
 - `accepted_device`：已有 accepted device 批准新设备；domain `ak.device_authorize_accepted_device_possession_proof.v1`，见 §5.2.2。
-- `applet_managed_delegation`：Applet-managed Bot / Ghost principal 在自己已接受的 `applet_managed_control` PCR 中授权一台受限 delegated device；domain `ak.device_authorize_applet_managed_possession_proof.v1`，见 §5.2.3 与 §15。
+- `realm_managed_delegation`：Realm Bot／Ghost 在所属 Realm 的私有控制流中授权有限 Device；domain `ak.device_authorize_realm_actor_possession_proof.v1`，见 §5.2.3 与 §15。
 
 四个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
@@ -343,41 +345,12 @@ transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，�
 
 **持久验签材料**：accepted authorize payload MUST 保存 `pairing_challenge_transcript_digest`，与目标 descriptor、`device_signature` 一起构成原已签对象，stage 清理后仍可重验 target signature；对象中的 `account_id` 由该 Event 自身的 `actor_id.account_id` 逐字节提供，不在 payload 中另设第二个副本。仅凭这组材料不能事后证明 challenge 确由 gate 签发；该事实由首次 admission 的 accepted evidence 保证。不得保存匿名 code/nonces 为公开 Event 字段。
 
-#### 5.2.3 `applet_managed_delegation` possession transcript（normative）
+#### 5.2.3 Realm actor Device possession transcript（normative）
 
-Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
-
-合法 `applet_managed_pcr_genesis` 分支的这条 `ak.realm.create` MUST 在创建单元的原子接纳事务中初始化该 PCR 的 `device_generation` result 为 `{current_device_generation_ref: 1}`，其来源 revision 是覆盖该 create 的 position-zero RealmCommit（§5.5.4）。此时 Device 目录仍为空；初始化不产生 Device、session、membership、业务 grant 或 MLS 资格。首 authorize MUST 匹配该已接受初值；后续 replacement／扩 scope authorize MUST 匹配接纳时刻 current generation，不能自行初始化、重置或推进它。二者均 MUST 在同一接纳事务的锁定 PCR cut 重验 generation、当前 resolution 与完整 `expected_revision`／checkpoint；缺初值、generation 不符、不属于当前 accepted resolution 的 signer 或 CAS 冲突均零写入拒绝，不得把“目录为空”当作初始化权限。
-
-设备 possession 签名对象是 §5.2.1 的同一个 core 加 `applet_id`，完整成员集合为：
-
-```json fragment
-{
-  "account_id": {"principal_id": "ak:did_core:webvh:zExampleManagedActorScid", "station_id": "ak:did_core:webvh:zExampleStationScid"},
-  "device_id": "ak:device:...",
-  "device_public_key_did": "did:key:...",
-  "hpke_key": "z...",
-  "algorithms": ["..."],
-  "device_key_algorithm": "Ed25519",
-  "authorized_by": "ak:did_core:webvh:zExampleManagedActorScid",
-  "authorization_binding_kind": "applet_managed_delegation",
-  "authorized_generation_ref": 7,
-  "not_before": "2026-09-15T00:00:00.000Z",
-  "expires_at": "2026-12-15T00:00:00.000Z",
-  "scopes": [{"effective_scope": {"kind": "realm", "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"}, "actions": ["ak.event.read"]}],
-  "recovery_session_id": null,
-  "applet_id": "ak:applet:..."
-}
-```
-签名输入是 `UTF8("ak.device_authorize_applet_managed_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 必须先按 UTF-8 bytewise 排序去重；`account_id` 与 §5.2.1 同样从 Event envelope 的完整 account `actor_id` 注入，不是 payload 字段。本分支的 `expires_at` 与 `scopes` 是 payload required 的，因此在 transcript 里 MUST 为非 `null`；`recovery_session_id` 是规范化的 `null`；`authorized_generation_ref` MUST 等于接纳时刻该 PCR 的 `current_device_generation_ref`（示例中的 `7` 只是占位值）。wire 形态是 `device_authorize_applet_managed_possession_transcript`，见 §5.2.1 的 wire 形态段。
-
-该分支的封闭约束（normative）：
-
-- **`authorized_by` 自锚**：MUST 逐字等于 `Event.actor_id.account_id.principal_id`。授权该设备的是这个 managed principal 自己的 PCR controller key，不是 Applet 的 `service_id`、controller DID 或任何别的 principal；取 `service_id` 会引入一条本规范未定义的跨 principal authority 链路，并与 §3.3「Bot 是独立长期 principal，不复用 Applet service/controller identity」相悖。MUST NOT 使用设备 id。
-- **有界委托**：`expires_at` MUST 存在且 MUST NOT 为 `null`，`scopes` MUST 非空。Applet-managed delegated device 不存在"永久、无限 scope"形态；这与 human / Agent 设备不同，因为持有该设备私钥的是 Applet 运行时，而不是 principal 本人。
-- **`applet_id` 是逐 scope 围栏载体**：MUST 逐字等于创建该 principal 的已接受 `ak.applet.managed_actor.provision` 所属的 exact Applet。原创建 scope 仅证明来源；每项新业务独立按原签配对与该实际 scope 的安装执行 §15 围栏，不把创建安装当作全局 liveness。
-- **不得跨分支复用**：该 payload MUST NOT 携带 `recovery_session_id` 或 `pairing_challenge_transcript_digest`；`registration_anchor` / `pcr_recovery` / `accepted_device` 三个分支同样 MUST NOT 携带 `applet_id`。
-- **前置状态**：接受该 Event 前，该 PCR 中 `ak.applet.managed_actor.provision` 与 `applet_managed_control` genesis MUST 已 accepted，且新列表的每个 exact scope MUST 有同一 owning Service 的 active Applet installation。provision 与 genesis 尚未接受，或任一授权 scope 安装已被 fence 时 MUST fail closed，前者按普通依赖未满足处理，后者 code=`applet_revoked`。
+Realm Bot／Ghost 使用 `realm_managed_delegation`，完整 PoP 成员、raw Ed25519 分域、
+control／Device CAS 和有限 scope 按 [Realm actors §5](../extensions/realm-actors.md#5-devicehttp-与业务身份)。
+它不是 Account PoP 的另一个 account_id 输入，不创建 PCR，也不进入 Human recovery。
+主体控制方法签原 Event；Device 签精确 PoP；Service 或已有 Device 不得代签新设备授权。
 
 ### 5.3 Event proof key resolution（normative）
 
@@ -385,12 +358,12 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 该 Event proof 同时是 `accepted_device` 分支下完整 account actor、`authorized_by`、`not_before`、`expires_at`、`scopes` 的**唯一签名承载**（§5.2.2）：它覆盖完整 canonical Event bytes，而签名方正是选定这些值的批准设备。验签方 MUST 用它校验这些字段，MUST NOT 期望目标设备的 `device_signature` 覆盖它们。
 
-**`applet_managed_delegation` 的签名方不是设备（normative）**：该分支的 `ak.device.authorize` 由 Applet-managed principal 自己的 DID controller method 签署，不由任何设备签署。因此其 `proof.verification_method` MUST 是该 managed principal 已验证 `did` 下的 **DID Document verification method** DID URL，fragment 是该 DID Document 中的 verification method fragment，**MUST NOT** 是 `ak:device:<uuid>`。receiver 仍 MUST 取 bare `did`、经已登记 method adapter 验证并要求 `project(did) == Event.actor_id.account_id.principal_id`。上一段「fragment 逐字等于完整 `signing_device_id`」只约束由设备签署的 Event，不适用于本分支；本分支同样 MUST NOT 由 principal core 拼 fragment，也 MUST NOT 以候选设备的 `did:key` 作为 verification method。
+**Realm delegation 的签名方（normative）**：由 realm_actor_control current 已接受的主体控制方法签 Event，原生 DID 证据必须绑定 realm_actor_id.principal_id；候选 Device 的 did:key 只用于独立 PoP，不得冒充 Event 签署者。
 
-**本分支不使用 candidate overlay（normative）**：unit-local candidate overlay 只属于一张**恰含两项的封闭表**——human PCR genesis 的 root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。那两项成立的**唯一**理由是：signer 在该原子 unit 被接纳之前，尚不存在可被解析的 accepted signer projection。`applet_managed_delegation` 不满足这个前提：它的 signer 是该 managed principal 的 controller method，而 `ak.applet.managed_actor.provision` 冻结的 `initial_resolution`、`method_history_evidence` 与 `JCS(actor_id)` 的 current resolution typed current result 在本 Event 之前**已经**被接受，签名方完全可解析。因此 receiver MUST 从该 accepted current resolution 解析本分支的 controller method，MUST NOT 建立任何 unit-local candidate overlay，也 MUST NOT 让本 Event 与另一条 Event 组成原子 native unit。实现 MUST NOT 把本分支加进那张封闭表；那张表在 v1 **恰为两项**，把它扩成三项是本条明确禁止的结果。候选设备 key 也不需要 overlay：它由同一 payload 的 `device_public_key_did` 与 `device_signature` 自证持有，而 overlay 要解决的是**签名方**不可解析，本分支的签名方完全可解析。
+**本分支不使用 candidate overlay（normative）**：主体 create 先被接受，再从 realm_actor_control 解析当前方法。Device authorize 是独立后继 Event。既有 human PCR genesis 和 PCR-policy recovery 两类 overlay 不扩展。
 
 - 对 human Account 设备签署的普通 Event（不分 Control／Data），接纳它的治理 Station 按 §8.2.2 的单一 producer 解析规则解析该 method：同站读取本地 accepted PCR device directory，跨站只使用 `authority_forward` 携带的 `producer_device_evidence`；非治理的 committed Event 接收方按 [`../sync/federation.md` §3](../sync/federation.md) 以治理签名为准，只有 producer 为本站托管账号时才读本地 PCR；
-- 对 `applet_managed_delegation` 的 authorize，receiver 从该 managed principal 已接受的 current resolution typed current result 解析 controller method；不查 PCR device directory（该目录此时可能为空），不建立 overlay，也不接受 provision 之外的 resolution 来源；
+- 对 `realm_managed_delegation`，从本主体 realm_actor_control current 和原生证据解析方法，不查 PCR，也不建立 overlay；
 - 对 genesis unit 的第二条 authorize，以及 recovery unit 的 re-anchor 和 authorize 两条 Event，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay。genesis 的 key 来自经 root 承诺的 descriptor；recovery 的 key 必须同时等于已验证 session 的 `requesting_device_public_key_did` 和 authorize payload 的 `device_public_key_did`。overlay 将规范 account DID URL/device fragment 映射到该 key，只提供验签材料，不授予权限。verifier 先验证对应 descriptor 或 accepted policy/session、payload/digest、possession signature 和全部 Event proof，全部成功后才原子写入 durable directory；
 - 不得查询未接受的 projection，不得回退到同 fragment 的旧 key，也不得在验签前产生可观察目录状态。
 
@@ -466,13 +439,13 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 - `registration_anchor`：**MUST** 等于 `1`。写它的那次 `pcr_genesis_unit` 原子接受同时把 `current_device_generation_ref` 初始化为 `1`（[`../identity/account-lifecycle.md`](../identity/account-lifecycle.md) 第 7 步），两者 **MUST** 一致。
 - `pcr_recovery`：**MUST** 等于同一 recovery unit 内 `ak.device.reanchor` 的 `new_device_generation`。
 - `accepted_device`：**MUST** 等于接纳时刻该 PCR 的 `current_device_generation_ref`，也即批准设备自己的 `authorized_generation_ref`（§5.4 已要求批准方处在当前 generation）。
-- `applet_managed_delegation`：**MUST** 等于接纳时刻该 PCR 的 `current_device_generation_ref`。
+- `realm_managed_delegation`：**MUST** 等于接纳时刻该完整主体的 realm_actor_device_generation current。
 
 接纳方 **MUST** 在接纳前逐条校验上述等式，不等即 fail closed，按 §5.4 已有的 generation fence 形态拒绝。payload 携带的因此是一个**被接纳方用一条等式对已提交状态判定的断言**，与 `ak.device.reanchor` 已经携带的 `previous_device_generation` 同型：后者同样是 producer 自报的前态坐标，同样由等式判定，并不因为自报而成为第二个事实来源。
 
 这与 `ak.device.revoke` 的「producer 不得自报 derived pending selector」**不冲突**，界线是：**可由接纳方用一条等式对已提交状态判定的坐标**可以自报（generation）；**只有 reducer 在本次事务中才产生、外部无从先验的选择子**（revocation pending 记录所指的授权实例与 acceptance 序，见 §5.5.3）不可自报。两者的差别是「可否在接纳前被等式判定」，不是「是否叫 derived」。
 
-签名覆盖：`registration_anchor` / `pcr_recovery` / `applet_managed_delegation` 三支的 possession transcript 把本字段登记为 `device_authorize_possession_core` 的必需成员（§5.2.1），因此候选设备连同本字段一起签名。那三个 transcript 覆盖的是 **authorization core 加注入的 `account_id`**，并排除 `device_signature` 与一切 digest / proof material，因此它们**不是**完整 payload 的 `allOf`；payload 的封闭成员表与 transcript 的成员表是两张表，各自由 schema 独立收口。`accepted_device` 的 §5.2.2 target proof 是一个**显式封闭的八成员对象**，本字段**不**在其中——它与 `authorized_by` / `not_before` / `expires_at` / `scopes` 同处，由批准设备覆盖完整 canonical Event bytes 的 Event proof 承担；§5.2.2 的封闭对象成员表因此不变，目标设备也不需要在 §5.4.1 的装配前比对中新增一项（它的 attestation 本就不承诺 generation）。
+签名覆盖：`registration_anchor` / `pcr_recovery` 两支的 possession transcript 把本字段登记为 `device_authorize_possession_core` 的必需成员（§5.2.1），因此候选设备连同本字段一起签名。这两个 transcript 覆盖的是 **authorization core 加注入的 `account_id`**，并排除 `device_signature` 与一切 digest / proof material，因此它们**不是**完整 payload 的 `allOf`；payload 的封闭成员表与 transcript 的成员表是两张表，各自由 schema 独立收口。`accepted_device` 的 §5.2.2 target proof 是一个**显式封闭的八成员对象**，本字段**不**在其中——它与 `authorized_by` / `not_before` / `expires_at` / `scopes` 同处，由批准设备覆盖完整 canonical Event bytes 的 Event proof 承担；§5.2.2 的封闭对象成员表因此不变，目标设备也不需要在 §5.4.1 的装配前比对中新增一项（它的 attestation 本就不承诺 generation）。
 
 设备 generation **MUST NOT** 塞进 `object_*` 公共元数据派生名：公共名的规范输入不含 PCR generation。
 
@@ -510,7 +483,7 @@ PCR-local generation 是一个 Realm 级单值 typed current result，family 名
 
 写入方有三个，**都是已登记的 Event kind**：
 
-- `ak.realm.create` 且 `payload.object.purpose == "applet_managed_control"`：仅已完整通过 `applet_managed_pcr_genesis` admission 的受管 PCR genesis 初始化为常量 `1`。接纳方 MUST 验证 exact accepted provision、完整 Account／Service／Applet provenance、event-derived PCR 与初始 resolution 的交叉绑定，并遵守封闭四 Event 创建单元与 create-once；仅自报 purpose 不构成合法分支。generation 从不存在初始化，随该创建事务的 Event、RealmCommit 与其它 required writes 原子可见；任何失败零写入。普通 Realm、Agent 与 human create MUST NOT 命中此 writer。
+Realm Bot／Ghost 的代际由 ak.realm.actor.create 初始化独立 realm_actor_device_generation=1；不写 PCR singleton，后续 reset／manager.change 原子递增，详见 Realm 主体合同。
 - `ak.device.authorize` 且 `authorization_binding_kind == "registration_anchor"`：置为 `1`。该 Event 是 `pcr_genesis_unit` 的两条成员之一（有序 `[ak.realm.create, ak.device.authorize]`，见 [`../identity/key-management.md`](../identity/key-management.md)），因此「generation 的初始值由 genesis unit 而非任何已登记 Event 写入」**不成立**：写它的正是这条已登记 Event，unit 只是它被原子接纳的方式。登记这一支不会产生「初始值没有写入方」的 family。
 - `ak.device.reanchor`：置为 `payload.new_device_generation`。接纳方 **MUST** 同时要求 `payload.previous_device_generation` 等于当前值，且 `new_device_generation` 是其直接后继。
 
@@ -793,7 +766,7 @@ origin Station MUST 在签发时从同一耐久读取 cut 的 PCR typed `device_
 
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
-human Account 设备作为 Event 实际签名方时，producer 解析只有 §8.2.2 一条规则，不按 Control／Data／actor-private 分流；event-kind registry 的 `wire_scope`、`reducer_input` 或 authority-commit 分类都不改变该规则，也不存在 Control 专用的 signer root。native unit（`registration_anchor`、`pcr_recovery` 与 `ak.device.reanchor`）以及 §5.3 的 `applet_managed_delegation` 继续由其专用 verifier 处理。
+human Account 设备作为 Event 实际签名方时，producer 解析只有 §8.2.2 一条规则，不按 Control／Data／actor-private 分流；event-kind registry 的 `wire_scope`、`reducer_input` 或 authority-commit 分类都不改变该规则，也不存在 Control 专用的 signer root。native unit（`registration_anchor`、`pcr_recovery` 与 `ak.device.reanchor`）以及 §5.3 的 `realm_managed_delegation` 继续由其专用 verifier 处理。
 
 验证方使用 `account_device` evidence 认证 human producer 时（§8.2.2 的跨站 `producer_device_evidence`，或历史响应按签名时刻验签），MUST 验证完整 attestation 及 Service attester 历史闭包，并逐字绑定 Event actual producer 的完整 `AccountId`、exact `device_id`、DID method/key、原 `ak.device.authorize` 实例、generation 和 Event 签名时刻所在的原 `authorization_window`；live 接纳仍按 §8.2.2 独立检查当前时刻与 current generation 及 revoked/expired/fenced/pending-revoke 状态。只有 session/transport authentication、`principal` 证据、错误 Account/Station、错误 device/method、错误授权实例，或签名时刻在授权窗口外时 MUST 拒绝。它只服务 actual producer 是普通 human Account device 的 Event，不允许 Agent/Service actor 借用 human device evidence，也不放宽 Event kind、payload、holder-only writer 或 actor-private 可见性校验。
 
@@ -873,7 +846,7 @@ genesis、authorization chain、RealmCommit 或目标的 Realm/Contact 清单。
 
 #### 8.2.2 真实 Account Device producer 解析（normative）
 
-Human 与 accepted Applet-managed Bot／Ghost 本人 Account Device 签署的 Event 共用本节 producer 来源合同，不按 Control／Data／actor-private 或 event kind 分流；本节只证明真实 Device 来源，不新增业务 kind 或 operation 权限。native unit（`registration_anchor`、`pcr_recovery`、`ak.device.reanchor` 以及 §5.3 的 managed Device authorize）继续由各自专用 verifier 处理，不适用本节。
+普通 Account Device 签署的 Event 使用本节 producer 来源合同，不按 Control／Data／actor-private 或 event kind 分流；本节只证明真实 Device 来源，不新增业务 kind 或 operation 权限。native unit（`registration_anchor`、`pcr_recovery`、`ak.device.reanchor` 以及 §5.3 的 managed Device authorize）继续由各自专用 verifier 处理，不适用本节。
 
 治理 Station 接纳真实 Account Device producer 的 Event 时，MUST 解析实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 exact `AccountId`、`device_id`、签名 key、授权实例（`device_authorize_event_id`）、generation 与状态，并 MUST 在 commit 位置独立判定 membership、capability、policy 与领域 revision；设备证据只证明 exact signer 在该 generation 的授权来源，不替代这些判定。取材只有两条路径：
 
@@ -882,9 +855,9 @@ Human 与 accepted Applet-managed Bot／Ghost 本人 Account Device 签署的 Ev
 
 **载体**：`producer_device_evidence` 位于 `peer_submit_request` 的 `authority_forward` 分支，与 `event_submission` 或 `mls_submission` 并列，类型为 [`forward_account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence)，与 §8.2 一般目录的根定义严格分开；其它两个分支 MUST NOT 携带它。它的有无完全由 Event 决定，不是可选字段：实际签名方是 Account 且 `proof.verification_method` 的 fragment 是 `ak:device:` 形态时 MUST 携带，其它情况（例如 Agent、Service 或 principal controller method 签名的 Event）MUST NOT 携带；MLS submission 以其 Commit Event 的实际签名方为准。schema 只能表达分支归属，“由 Event 决定必带或禁带”由治理 Station 在解析 producer 后检查，缺失、多余或形状错误均以 `schema_violation` 零写入拒绝。
 
-**原生来源与职责（normative）**：角色 MUST 从 accepted PCR purpose 与真实原授权来源判定，不得按 DID、proof fragment、Applet 标签或裸历史 fact 猜测。Human 沿原 regular／accepted_device 授权；managed 沿 accepted managed provision、真实 `applet_managed_control` PCR、Principal 原签 `applet_managed_delegation`、current generation／resolution、exact authorization instance 与原时窗。缺失、冲突或未知来源 MUST 零写拒绝，不得借 Human Account 行、缓存 current key、Service transport 或 controller／Agent method 补位。
+**原生来源与职责（normative）**：角色 MUST 从 accepted PCR purpose 与真实原授权来源判定，不得按 DID、proof fragment、Applet 标签或裸历史 fact 猜测。Human 沿原 regular／accepted_device 授权。缺失、冲突或未知来源 MUST 零写拒绝，不得借 Human Account 行、缓存 current key、Service transport 或 controller／Agent method 补位。
 
-origin MUST 在同一锁定 PCR cut 验完整 producer Event／本人 Device 签名及自己负责的 current Device 门；managed 的每个实际资源 scope／action 还 MUST 命中同一原签 pair。多资源与 MLS 逐真实资源验证，不跨 pair 拼接，不把 metadata 当资源归属。governor MUST 独立验证 current membership、真实 Service lineage／terminal child、Applet／安装、Policy／管理与动作审批、quota 及领域 revision；真实 accepted managed provenance 须独立可验证，取不到时拒绝。origin 的设备 cut 不代表远端业务 current cut。两站的职责 MUST 求 AND。
+origin MUST 在同一锁定 PCR cut 验完整 producer Event／本人 Device 签名及自己负责的 current Device 门。多资源与 MLS 逐真实资源验证，不跨 pair 拼接，不把 metadata 当资源归属。governor MUST 独立验证 current membership、真实 Service lineage／terminal child、Applet／安装、Policy／管理与动作审批、quota 及领域 revision；Realm actor 不进入本 Account forward 分支，按 §8.2.2.1 验证。origin 的设备 cut 不代表远端业务 current cut。两站的职责 MUST 求 AND。
 
 **生产（forwarding Station A）**：A 即 producer 的 account Station。A MUST 在每次转发尝试前，从自己 live gate 的同一耐久 cut 按 §8.2 的签发规则现签 attestation 并组装完整对象，先持久化完整对象及其 `signer_evidence_ref`，再发送；MUST NOT 复用缓存对象或 `keys/query` 返回过的对象。设备此时已不可用时，A MUST NOT 转发，并以已有的设备码拒绝；A 暂时无法取材时返回 `temporarily_unavailable`。response 丢失时 A MAY 逐字节重放同一完整 body（含原证据）；A 发起新的转发尝试时 MUST 重新现签。
 
@@ -918,75 +891,12 @@ origin MUST 在同一锁定 PCR cut 验完整 producer Event／本人 Device 签
 
 本节正负例由 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
-#### 8.2.2.1 managed 首次 forward 的原签来源闭包（normative）
+#### 8.2.2.1 Realm actor 业务来源（normative）
 
-`authority_forward` 的普通 `event_submission` 或完整 `mls_submission`，当实际 producer 是
-Applet-managed Account 本人 Device 时，MUST 另带 closed sibling `producer_managed_provenance`。
-类型为 [`forward_managed_actor_provenance`](../../artifacts/schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance)。
-Human、Agent、Service、native PCR、`atomic_submission`、`committed_replication` 与
-`registered_atomic_unit` MUST NOT 携带它；缺件、额外成员、混源或冲突均零写拒绝，
-managed 来源不得退回 Human 分支。Applet 标签只触发核验，不能作为角色结论。
-
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `creation` | closed object | required | 恰有 `provision`、`pcr_genesis`、`accountability`、`profile` 四成员；每项仅含原 `event` 与其原 accepted `commit`，不是可扩展 Event 数组。 |
-| `service_resolution` | `AuthenticatedServiceResolution` | required | 原 Applet Service 的真实 method-native 历史及 normalized DID Document，用于独立验证四 Event 的原 Service proof；不得以 origin 的角色投影替代。 |
-| `current` | closed object | required | 恰有 `profile`、`accountability`、`expires_at`。前两项各为 closed `{realm_id, result, commit}`，分别使用原 `actor_profile`／`identity_accountability` typed current 完整 value shape 及其 exact revision 的 accepted covering Commit。 |
-
-整个 sibling 的 RFC 8785 JCS UTF-8 上限为 1 MiB，超限整体以 `payload_too_large` 拒绝，
-不得截断、分页或另建读取接口。总共恰有四个创建 Event、四个创建 Commit、两个 current result
-及两个 covering Commit；重合 Commit 可以逐字重复，不得借重合塞入第五个 Event、任意历史数组、
-completion、authoring request、install fixed set、私钥或完整 PCR stream。
-
-origin MUST 在与本次 `producer_device_evidence` 相同的锁定耐久 cut 取得原件与 current。
-四个原件 MUST 是一次真实 §9.1 native 创建事务的 accepted originals；provision 的完整 Account、
-Applet、Service、actor_role、初始 resolution／method history 与 Ghost external tuple，
-PCR genesis 的 `applet_managed_control` purpose、actor／executed_by 和 provision ref，
-accountability 的 issuer／subject／scope 及 provision ref，Profile 的 actor_kind／managed_by_applet／
-accountable principals／Ghost tuple 与 accountability ref，MUST 交叉闭合。
-角色与 Service 归属只能从这四个原 Service 签名原件及其绑定取得，不新增角色标记。
-创建 scope 可以不同于本次业务 scope；不得把在另一合法 scope 的 Ghost reuse 当成第二次创建。
-
-governor MUST 独立验证每个 Event 的 canonical ID、proof 与 exact covering Commit 的内容地址、
-Event／realm／stream／position／authority 坐标和原接受签名；四个创建 Commit 的 signer MUST 是
-producer 完整 Account 的 hosting Station，同一原事务的接受时间一致。PCR genesis 必须是该 PCR
-position 0 的原 inception，不能借当前 head、命名空间、裸 fact 或重签的创建投影补位。
-原 Service 的 bare DID 投影 MUST 等于 provision 的 service_id，也 MUST 等于本次实际 Applet
-registration 的 Service；历史 assertion method 在原 Event.created_at 合法且逐字匹配原 proof。
-accountability 的 payload proof 与外层 Event proof 必须使用该原 Service 的同一合法 method。
-Source Station 的历史验签闭包复用本次 `producer_device_evidence.service_resolution`，不另造身份根。
-
-`current.profile` 必须位于原 managed PCR，selector、principal、Profile id 与完整 Account 对应；
-其 actor_kind、managed_by_applet、唯一 accountable Service 与 Ghost tuple 必须继续匹配原件。
-`current.accountability` 只能是原创建 endorsement 的 exact Realm／issuer／subject／归一化 scope-set
-记录，必须 active 且覆盖当前时刻；不能跨 Realm 搜索另一条可用 endorsement 补位。
-两个 current result 的 revision 必须逐字绑定其 covering Commit；其签名必须属于该 Commit 的
-Realm／governance generation 的合法治理 Station，不能固定为创建时的 hosting Station。
-governor MUST 复用既有 Realm authority 验证合同，独立验证 genesis 与连续 handoff、对应历史
-Service method 及 covering Commit；可使用已验证的本地 authority closure，或既有
-`ak.open.realm_authority.read.bundle.v1` 取得合法的最小 authority 材料。该公开面仅允许既有
-PCR outward genesis／governance-change，不开放 Profile、accountability 或设备控制历史。
-未知 authority、缺历史或迁移断链均零写拒绝；不得只验裸 Service 签名、以当前 route 代替历史
-generation，也不得用来源闭包新增通用 PCR 读取权。
-缺失、unknown、错误 selector、stale cut、revoked／expired 或当前 lifecycle 非 active 均失败关闭。
-这些是来源 Station 在同一 cut 的当前状态证据；它们不重新定义角色，也不授予目标业务权。
-
-`current.expires_at` MUST 不晚于本次 Device attestation.expires_at、原 Device authorization_window
-的有限上界及 endorsement 实际 expires_at（若有），governor 在接纳／最终效果处 MUST 独立重验该
-最早物理到期边界。origin 原 Device／原签 scope-action pair 门与 governor 的 Service parent／
-terminal child、实际 scope 安装、membership、Policy／管理／批准、quota 及领域 revision 继续求 AND。
-
-**唯一 preimage**：现有 producer Device `event_authorization` 的算法不变；先把本 sibling 原样
-放入完整 unsigned peer body，再按既有规则只删除整个 `producer_device_evidence` 后计算 body digest；
-本 sibling 不得删除，也不得仅删除 evidence 内的 `event_authorization` 而保留其余部分。
-四个创建原件及 current 不引用本次 body digest，避免环。HTTP Service signature 继续覆盖完整 body；
-不增加 proof context、role flag 或第二种 body digest。exact accepted retry 仍先恢复原 outcome，
-响应丢失重投原完整 body；新尝试重取同 cut Device 与 current，不重签原创建 Event。
-
-这是 Applet integration §5／§9.1 与历史可见性规则的窄披露例外：原件仅随已通过本人 Device
-原签 pair 的 exact 首次提交送往当前 governor，只在其原子接受事务的私有 audit 留存。
-不投递给群成员，不进入 replication／scan／snapshot，不新增 PCR／目录／枚举接口；
-后续成员历史仍只使用既有最小 signer fact。未知来源不得因取材失败降低任何业务门。
+Realm Bot／Ghost 的身份、Device 与业务治理位于同一所属 Realm，首次接纳直达当前治理方。
+其来源是本 Realm 控制流的真实 accepted control／Device 状态，不再附 foreign Account managed provenance。
+业务复制与历史验签只携原 Commit 固定的最小 realm_device fact，不披露混合控制流坐标。
+详见 [Realm actors §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签)。
 
 #### 8.3 客户端设备信任（normative）
 
@@ -1494,20 +1404,14 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ## 15. Applet Device Delegation
 
-Applet-managed principal（Bot Actor 与 Ghost Actor，见 [`../extensions/applet-integration.md` §3.3 / §3.4](../extensions/applet-integration.md)）如需参与 E2EE——发布 KeyPackage、作为 Welcome 接收方入组、签署 MLS durable receipt——MUST 使用**受限 delegated device**。本节对 Bot 与 Ghost 等效适用：两者用同一个 managed-actor provision + `applet_managed_control` PCR 模型，因此也用同一条设备授权路径，不存在只覆盖其中一方的形态。
-
-Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通 device 分支的成员，§9.2.1 的 device / Agent 两分支封闭 XOR 不变。
-
-- **唯一授权路径**：一条 `authorization_binding_kind="applet_managed_delegation"` 的 `ak.device.authorize`，在该 principal 自己的 `applet_managed_control` PCR 中作为 **genesis 之后的普通后继 Event** 提交，形状与约束见 §5.2.3，签名方解析见 §5.3。MUST NOT 把它塞进 install fixed set、Ghost provisioning aggregate 或任何 genesis unit；MUST NOT 让 Applet service 以自己的 `service_id` 代替该 principal 授权设备。
-- **有界委托**：`scopes` MUST 非空且限制到该 delegated device 实际需要的 Realm / 动作，`expires_at` MUST 是非 null 的到期时刻。过期后该设备 MUST 与 `expired` lifecycle 一样失去新业务授权（§14.1）。
-- **逐scope install fence（normative）**：delegated Device每项新业务必须与目标effective_scope的current有效安装做AND。撤销该scope即时拒绝其新KeyPackage/Welcome/MLSreceipt及内容供给，code=`applet_revoked`，不等待device revoke。创建provenance不成为全局fence；其它scope须独立满足自己的安装、Device原签scope及权限。历史accepted Event复验保留原历史依据。
-- **不得向上委托**：delegated device MUST NOT 授权任何新设备——它 MUST NOT 作为 `accepted_device` 分支的批准方，也 MUST NOT 签发第二条 `applet_managed_delegation` authorize。managed principal 的设备集合只能由其 controller method 直接授权。
-- **不得跨 namespace**：delegated device 的 to-device 权限 MUST 只覆盖其 Applet namespace 内的 actor。
-- **不进入 PCR recovery**：`applet_managed_control` PCR 不使用 `pcr_recovery` 分支。Applet 丢失 delegated device 私钥时，正确做法是 revoke 该设备并授权一台新的 delegated device；MUST NOT 为 managed principal 发起 human recovery session 或 factor transcript。
+Applet Realm Bot／Ghost 设备授权、替换、撤销、generation reset 与 MLS 使用按
+[Realm actors §5](../extensions/realm-actors.md#5-devicehttp-与业务身份)。只接受主体当前控制方法，
+不允许 Device 再授权 Device；不使用 Account SessionGrant／PCR recovery。
+治理交接保持完整主体和设备身份，接受条件由新治理方导入后的完整私态继续验证。
 
 ## Foreign Account Device event authorization source (Normative)
 
-本节共用 Human 与 accepted Applet-managed 本人 Device 的现 `authority_forward` 来源，逐角色遵守 §8.2.2 原生授权与职责；目录、current keys/query 与其它 producer MUST NOT 携 `event_authorization`。使用现 account-device-signer-evidence schema 的 `forward_account_device_signer_evidence`，根仍为 device_projection_attestation/service_resolution；现目录定义保持 closed，不复制 PCR 原件。
+本节只定义 Human Account Device 的 `authority_forward` 来源；Realm Bot／Ghost 直接由所属治理方核验私有控制状态，不使用此来源，逐角色遵守 §8.2.2 原生授权与职责；目录、current keys/query 与其它 producer MUST NOT 携 `event_authorization`。使用现 account-device-signer-evidence schema 的 `forward_account_device_signer_evidence`，根仍为 device_projection_attestation/service_resolution；现目录定义保持 closed，不复制 PCR 原件。
 
 forward-only attestation core 在 authorization_window 后 MUST 携 required closed `event_authorization`，顺序 event_id、verification_method、destination_service_id、forward_body_digest、authorization_ref、revision、governance_generation、accepted_at。origin MUST 在本地 PCR 同一锁定授权 cut 取得完整 Account/device/method/key、原 accepted authorize 四坐标、该 cut current revision Commit 与 PCR治理generation、原授权窗口及原授权 Commit.committed_at。accepted_at MUST NOT 取业务目标 Commit、Event.created_at、attested_at 或后来 current 的时间。业务 Event 此时未提交，MUST NOT 造业务 CommitId/position。
 
@@ -1533,7 +1437,7 @@ Bot/Ghost设备请求认证 **MUST** 按 [Applet integration §18](../extensions
 
 ### 16.1 原签 scope／action 配对（normative）
 
-`applet_managed_delegation` 的 `scopes` MUST 是非空的闭合配对列表；每项字段顺序为
+`realm_managed_delegation` 的 `scopes` MUST 是非空的闭合配对列表；每项字段顺序为
 `effective_scope`、`actions`。前者复用安装的 Realm／Circle ScopeRef，后者是非空的已登记
 CapabilityActionId 列表，按 UTF-8 字节升序且唯一。列表按 RFC8785 JCS(effective_scope) 的
 UTF-8 字节升序，且同一 scope 只能一项；接收方 MUST 拒绝非规范次序、重复 scope／action、
@@ -1580,11 +1484,11 @@ queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
 
 `ak.vector.applet.device_scopes.v1` 用真实合法 ScopeRef／动作执行正反例，向量输入见 [paired scope fixture](../../artifacts/fixtures/applet-device-scope-fixture.json)。
 
-原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。
+原签 managed forward 闭包的正负验收由 [`ak.vector.realm_actor.contract.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
-## 17. 管理用途来源与外站 Device scope
+## 17. Realm actor 管理材料
 
-[Applet账号来源](../extensions/applet-management-source.md)登记Service child subject、直接review及外站安装确认的窄用途。
-该来源证明不改变§8.2.2.1的业务forward算法、分支禁带规则或Human directory；不是第三种Device认证。
-首Device仍由accepted Principal原签、候选Device独立possession，Service仅签HTTP。
-S核B有限scope确认及自己的generation／CAS，B业务cut仍重验自己的current，不能用短期确认维持撤销后的业务。
+Realm Bot／Ghost 的 current、控制原件及 exact 结果只通过
+[Realm actor material](../extensions/realm-actors.md#8-exact-控制材料与历史验签)披露。
+不存在跨 Applet Account Station 的 source 包或 Device scope confirmation。
+原管理 Service 身份可作材料读取认证，不可替代主体控制方法或 Device 原签。

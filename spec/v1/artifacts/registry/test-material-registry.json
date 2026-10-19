@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T16:37:31+08:00",
+  "generated_at": "2026-10-19T23:13:59+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -255,6 +255,7 @@
       "sources": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
         "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
       ],
       "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/1/commitment/did"
@@ -284,6 +285,7 @@
       "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#update-key-1",
       "role": "deployment_like_example",
       "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
         "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
       ]
     },
@@ -454,13 +456,6 @@
       ]
     },
     {
-      "value": "did:webvh:z6MkGhostU123:slack-bridge.example",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
-      ]
-    },
-    {
       "value": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:team:u123",
       "role": "deployment_like_example",
       "sources": [
@@ -471,7 +466,6 @@
       "value": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123",
       "role": "deployment_like_example",
       "sources": [
-        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
         "spec/v1/zh/extensions/applet-integration.md",
         "spec/v1/zh/extensions/applet-schema.md"
       ]
@@ -481,20 +475,6 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/zh/extensions/applet-integration.md"
-      ]
-    },
-    {
-      "value": "did:webvh:z6MkGhostU123:tenant-2.example:ghost:u123",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
       ]
     },
     {
@@ -509,13 +489,6 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/zh/extensions/applet-integration.md"
-      ]
-    },
-    {
-      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
       ]
     },
     {
@@ -884,7 +857,8 @@
       "value": "did:webvh:z6mkfixturegovernor:governor.example#fixture",
       "role": "deployment_like_example",
       "sources": [
-        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
       ]
     },
     {

@@ -18,7 +18,7 @@ updated: 2026-10-19
 
 Agent selector **MUST** 使用 accepted ownership 的完整 controller／Agent AccountId。
 Applet selector 是 `all`、完整请求人 Actor、exact `(applet_id,effective_scope)` installation，或经 accepted
-managed provision 验证的完整 Bot／Ghost Actor。Profile、同 DID host、URL、显示名和裸 principal **MUST NOT** 替代这些事实。
+Realm actor create 验证的完整 Bot／Ghost Actor。Profile、同 DID host、URL、显示名和裸 principal **MUST NOT** 替代这些事实。
 requester 的 actor_id 必须是当次真实认证请求人（安装／调用人为完整 Account，创建为 exact Service），不能倒用安装者；requester 只对安装、创建申请与调用人的决策匹配；持续交付 **MUST NOT** 因无法确定当次请求人而跳过 installation／managed actor 规则。
 
 同一 Policy 内只取当前操作、动作、资源与主体全部匹配的规则；最高 priority 的匹配规则组决定结果，
@@ -67,7 +67,7 @@ require_review，须用可直接执行的 allow／deny／quarantine 或动作自
 Agent join 与 publish 用完整已 producer 签署的 `ak.member.state`／`ak.agent.interaction.set` Event 作为候选，
 通过原 Event admission 的 `approval_signatures` 消费批准。两个治理 action 标签 `ak.agent.join`、`ak.agent.publish`
 只选择该审批门，不把 subject-only join 或 controller-only 模式改变成持 grant 即可代写。
-Bot／Ghost 本人 Realm join 使用原签 `ak.member.state`；本人 Circle join 使用实际 Account Device 原签
+Bot／Ghost 本人 Realm join 使用原签 `ak.member.state`；本人 Circle join 使用实际 Realm actor Device 原签
 `ak.circle.member.state`（`member_id == actor_id`、`membership="join"`、exact Circle scope），
 两者的管理操作均为 join、治理 action 均为 `ak.applet.join`，不推断 Agent ownership。
 机器动作映射对 `ak.applet.join` 登记 `applet_managed_self_join` 上下文检查；它是额外管理／治理门，
@@ -79,14 +79,13 @@ Circle join 还 MUST 独立满足 [circle §8／§9.1](../models/circle.md) 的�
 不能补足其中任一动作、当前安装或独立 E2EE 同意。这里不新增 Circle invite／跨 actor 代写入口。
 首次 Circle join 的 pending 可以没有该 member 的 Circle membership 行；Station MUST 固定真实 Circle、
 父 Realm exact membership revision 与可空的原 Circle membership，并于消费前重验；未知来源不能当作合法无记录。
-Applet 服务发布使用受管主体在该业务 scope 的原签 `ak.profile.create`／`ak.profile.update`，以 `profile_fields.applet_interaction={effective_scope,mode:"public"|"private"}` 表达本 scope 意图；
+Applet 服务发布使用受管主体在 realm_control 的控制方法原签 `ak.profile.create`／`ak.profile.update`，以 `profile_fields.applet_interaction={effective_scope,mode:"public"|"private"}` 表达本 scope 意图；
 对应管理发布 action `ak.applet.publish`。该 reserved profile 成员必须通过闭合类型核验，不能由普通展示字段或缺值推断 public。
-private 或未写入不开放公开服务；private 切换不要求 publish 审批，serve 仍是持续上界。Service 可为自己的 accepted 受管主体申请审批，不能代 Device 签署该 profile/join Event。
+private 或未写入不开放公开服务；private 切换不要求 publish 审批，serve 仍是持续上界。Service 可为自己的 accepted 受管主体申请审批，不能代主体控制方法签 Profile，不能代 Device 签 join Event。
 Bot／Ghost 创建动作自身的 grant／Realm-governance 批准资格按 [constraint-schema §9.1](./constraint-schema.md)
 登记的 exact `approver_capability_action=ak.realm.admin`，要求实际 scope 的显式 grant，不给予批准人
 Service 创建许可；该资格与本节管理审批及各自 roster/quorum 独立判定。
-Bot／Ghost 创建批准完整 provision RequestBody，签名放在该 operation 的外层 `approval_signatures`；
-审批目标原像剔除这个证据字段，不能改写 authoring request 或四个 Event。
+Bot／Ghost 创建批准完整 Service 原签 ak.realm.actor.create Event，签名放在 EventAdmissionSubmission 的外层 approval_signatures；候选与控制签名均不得改写。
 
 申请通过 `ak.self.management_review.command.request.v1`；查询通过 `ak.self.management_review.read.status.v1`；
 批准／拒绝／取消通过 `ak.self.management_review.command.decide.v1`。请求人 **MUST** 是当前合法 controller
@@ -116,20 +115,20 @@ pending/approved 本身没有业务效果，**MUST NOT** 产生 membership、Wel
 ## 4. Applet 授权来源与持续上界
 
 Applet Service 的业务 parent subject 与 child issuer **MUST** 是逐字段相同的 `ActorId.service`；
-Bot／Ghost 是独立 `ActorId.account`，不得再构造 Service 同 principal 的 Account 来绕过类型相等。
+Bot／Ghost 是独立 `ActorId.realm`，不得再构造 Service 同 principal 的 Account 来绕过类型相等。
 合法 Realm issuer 给 Service 的创建 grant 与业务 parent 是分别审批的许可；创建 action、问责、provision、URL、
 namespace、requested_scopes 与 `applet_authority` 绑定均不是业务转授权。
 
 业务 parent **MUST** 有明确普通 `authority_control`，批准本 Applet 可接收下放的 `allowed_managed_actor_roles`，
 实际业务 actions/resources、期限、quota和审批要求；其 `applet_authority` 绑定 exact Applet／Service／registration epoch。
 Service 可通过既有 Event admission 原签 terminal child；Event.actor_id 与 grant issuer 都为该 Service，不携 executed_by。
-child subject **MUST** 是 accepted provision 属于本 Applet 的具体 Bot／Ghost完整 Account，并在批准 role与实际 scope内。
+child subject **MUST** 是 accepted provision 属于本 Applet 的具体 Bot／Ghost完整 realm ActorId，并在批准 role与实际 scope内。
 `issuer_authority_refs.kind=grant` 指向真实有效parent；depth、roots、逐动作／资源贡献、全部约束收窄沿普通 lineage合同计算。
 child **MUST** 显式 `max_authority_depth=0`、`authority_regrant_allowed=false`；Service不能授予第三方或另一Applet的主体。
 
-parent 与 child 各 **MUST** 恰有一条 allow、grant_local 的 `applet_authority`。parent 的 `executed_by` **MUST** 等于其 Service subject（亦为 child issuer）；child 的 `executed_by` **MUST** 等于其完整 Bot／Ghost Account subject。两条绑定的 `applet_id`、`registration_epoch` **MUST** 相同；accepted provision 另外证明该 Account 的 Applet／Service 管理归属、角色与 hosting Station，不能靠 namespace 或同 principal 推断。child 复制 Service executor、缺失／重复绑定、混入其它 Applet／epoch／Station 均拒绝。
+parent 与 child 各 **MUST** 恰有一条 allow、grant_local 的 `applet_authority`。parent 的 `executed_by` **MUST** 等于其 Service subject（亦为 child issuer）；child 的 `executed_by` **MUST** 等于其完整 Bot／Ghost realm ActorId subject。两条绑定的 `applet_id`、`registration_epoch` **MUST** 相同；accepted provision 另外证明该主体的不可变 Applet／角色／所属 Realm 与当前 manager Service，不能靠 namespace 或同 principal 推断。child 复制 Service executor、缺失／重复绑定、混入其它 Applet／epoch／Station 均拒绝。
 
-这是普通约束收窄中有且仅有的受管 terminal executor 重绑定：仅将上述已验证 Service parent 的绑定 executor 换成其已批准具体 Account，不能删掉绑定、保留第二条 Service 绑定或扩大任何其它约束。普通 authority_control、动作／资源／期限、所有 deny／review／quarantine 与共享 ancestor quota 继续原收窄／持续上界；本规则不授权一般 delegation，也不使 terminal child 可再转授。持续 parent 求值使用其 Service 主体事实，child 执行使用其真实 Account producer 事实；不能以一个求值上下文替代两者。Service→Account child 不授权 Service 借用它签 Account 的业务 Event，subject_only 本人同意仍要求该 Account 原签。
+这是普通约束收窄中有且仅有的受管 terminal executor 重绑定：仅将上述已验证 Service parent 的绑定 executor 换成其已批准具体 realm ActorId，不能删掉绑定、保留第二条 Service 绑定或扩大任何其它约束。普通 authority_control、动作／资源／期限、所有 deny／review／quarantine 与共享 ancestor quota 继续原收窄／持续上界；本规则不授权一般 delegation，也不使 terminal child 可再转授。持续 parent 求值使用其 Service 主体事实，child 执行使用其真实 Realm actor producer 事实；不能以一个求值上下文替代两者。Service→Realm actor child 不授权 Service 借用它签 Account 的业务 Event，subject_only 本人同意仍要求该 Account 原签。
 
 这项 Service child准入不需要另授一个无限通用 cap.grant 能力；它是“真实parent允许的一层terminal下放”的封闭准入，
 Service身份／historical signer证据沿 accepted registration与原签grant解析。Station不能代Service签Event。
@@ -152,10 +151,10 @@ Station接纳child仍重读权威current，不信任Service缓存allow。完整�
 
 创建来源是immutable provenance；每个业务scope独立验证当前installation、主体current状态、Device有效授权范围、
 membership/history、grant及治理。撤销scope A不使scope B合法路径自动失效，也不能借B访问A。
-单主体停用使用该完整Account原有Account lifecycle/current status；由合法Account Authority按原issuer-ledger合同接纳，
+单主体暂停／退役使用所属 Realm 内的 owner／governance 双 gate；由当前控制方法或持真实治理许可的管理员各自原签，
 不新增Agent pause假身份、不赋Service控制人类恢复的权限；删除成员／撤child可单独停止该scope业务。
 单Device撤销只影响该Device；所有scope无有效安装时全部新业务与新群材料拒绝，但身份历史与合法撤销控制保留。
-本主体 PCR 的合法 key revoke／身份轮换控制可沿 accepted provenance 和原 Account Authority／principal 控制合同验证，不要求仍 active 的业务 installation；
+本主体合法撤销／轮换控制沿 realm_actor_control 与原生证据验证，不要求仍 active 的业务 installation；
 此例外只读取精确 signer／resolution／Device 授权和控制所需原文，不提供群资料，不允许创建、扩 scope 或恢复业务。
 Devicescope扩展须主体自己通过普通replacement authorize及完整possession transcript原签；Service HTTP key不能代签。
 
@@ -178,11 +177,11 @@ Serviceparent→terminalchild、siblings／多scope／quota、错误Account／De
 
 `ak.vector.applet.managed_governance.v1` 由managed-governance-fixture.json与正式pipeline的managed_governance_contract gate执行；包含真实RFC9421 Ed25519签名原像和反变异，仍不声明生产E2E通过。
 
-Ghost preview 已存在映射时返回 `existing_managed_actor` anchors；provision 以同一 closed reuse 字段提交，不再调用 author，也不重写四 Event。新 scope 仍须当前 map_ghost 许可及审批；reuse 不重复消耗创建数量 quota，若批准 mapping 次数 quota 则按映射操作一次消费。
+Ghost preview 对本 Realm 同 Applet、同 external tuple 的已接受主体返回完整 realm ActorId 和原 creation_ref。重用不再 create；业务启用仍逐实际 scope 核当前安装、管理门、Device 和能力，不重复扣创建配额。
 
-Profile 意图的 effective_scope 必须等于 Event.scope_ref 及目标 Profile 实际 Realm／Circle；同一主体多 scope 使用各 scope 各自的 Profile，不复用 PCR 创建 Profile。创建四 Event 中的初始 Profile 不得公开业务服务；之后由主体原签在实际业务 scope 建立或修改 Profile，public create 与 update 都经过同一 publish／review 门，任何 patch 变体均不能绕过。
+Realm 主体只有一个私有 Profile。reserved applet_interaction 的 effective_scope 必须属于该主体 Realm；公开意图的管理／publish／review 在这个业务 scope 核验，而 Event 始终进入 realm_control。单个 reserved 意图指向一个 scope，改写目标不会让旧 scope 继续公开；serve 每次必须匹配当前意图。Profile 创建不自动公开任何 scope。
 
-管理申请 target 与 operation 必须唯一匹配：join→本人 join Event，publish→开启 public 的真实 interaction／Profile Event，create_bot/map_ghost→相应 creation RequestBody；必须核 Event kind、目标完整主体、actual scope及 public transition。创建审批的目标摘要按最终 RequestBody（只剔除 approval_signatures）重算；private pending 请求外包装摘要不得代替 ApprovalSignature 的原业务摘要。
+管理申请 target 与 operation 必须唯一匹配：join→本人 join Event，publish→开启 public 的真实 interaction／Profile Event，create_bot/map_ghost→原签 ak.realm.actor.create Event；必须核 Event kind、目标完整主体、actual scope及 public transition。创建审批的目标摘要按完整已签 create Event重算；private pending 请求外包装摘要不得代替 ApprovalSignature 的原业务摘要。
 
 management ApprovalSignature 的 context.request_id 必须命中同一可见 pending ledger，签署时刻不得早于该 request 建立；不同 request 的批准不能转借。decision 与消费都验证这个签名绑定；已 superseded 的申请即使相同候选也不能用新 ledger 回收旧批准。
 
@@ -190,11 +189,10 @@ management ApprovalSignature 的 context.request_id 必须命中同一可见 pen
 不保留可选 transport、exchange/cancel、专用消息块／proof domain 或 invoke capability。业务使用实际动作授权，
 内容使用具体 Bot／Ghost Device 的原生 MLS／Blob 通道。AK-NC-083／084／085 仅保留失效编号记录，不构成有效协议要求。
 
-## 7. 外站来源与创建归属
+## 7. Realm 主体来源与审批恢复
 
-[Applet账号来源](../extensions/applet-management-source.md)是跨站配置、subject／review来源、B→S确认、续证与交接的唯一细化。
-create_bot／map_ghost只约束实际来源scope；B的限定配置命令经原操作者ak.realm.admin及全部原约束核验，
-不审批S创世，B按具体join／publish接纳。自动Ghost一次范围许可与逐次机器核权、单候选review分开。
-§3任一绑定变化不包括仅更新传输来源nonce／签名时间；同request续证不改原intent或TTL，实际批准依据变化仍superseded。
-来源不可用暂停新批准／接纳；按原身份和权限取消／拒绝不要求新鲜来源，当前真实认证的原请求人仍可恢复terminal／consumed结果；不接受过期HTTP或撤销身份。
-Service child producer=C、subject=managed Account，限定附件不要求先有Device／child／membership，来源验证不附赠业务权。
+治理方在同一 Realm 接纳事务读取 identity、manager、双 gate、Device 与业务 current；不向账号 Station 请求 Bot／Ghost 来源。
+普通 Account 管理员沿自身原有身份认证与治理 grant 验证，权限不能由 Applet 标签替代。
+exact 材料只按 [Realm 主体 §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签) 披露。
+治理交接必须迁入审批签名、nonce、原候选、终态结果和未完成恢复 intent；未消费且权威依据改变的批准 superseded。
+已消费结果保持原 Commit；服务返回 candidate 不等于主体已创建或业务可用。

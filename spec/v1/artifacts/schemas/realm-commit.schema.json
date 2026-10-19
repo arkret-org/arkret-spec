@@ -64,7 +64,7 @@
     },
     "producer_signer_fact_digest": {
       "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-      "description": "Fixed SHA256 over RFC8785 JCS of the original immutable Human or Applet Service producer fact, excluding the outer target coordinate. Freeze before Commit identity/signature and retain with acceptance; exact replay, replica and handoff preserve this original digest."
+      "description": "Fixed SHA256(JCS(original immutable producer signer fact)), before Commit identity/signature. The fact excludes its target Commit coordinate. Human, Service, realm_device and private realm_control facts retain their exact original verification sources through replay and handoff."
     },
     "signature": {
       "$ref": "./detached-object-signature.schema.json#/$defs/realm_commit_signature"
@@ -101,7 +101,7 @@
   "additionalProperties": false,
   "$defs": {
     "stream_ref": {
-      "description": "Closed visibility-stream selector. Realm, each Circle and each Sidecar have independent continuous positions so hidden scopes do not leak through global gaps.",
+      "description": "Closed independent stream selector: Realm, Circle, Sidecar or private realm_control. realm_control is not a business, membership, capability or MLS scope.",
       "oneOf": [
         {
           "type": "object",
@@ -155,6 +155,22 @@
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_control"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false

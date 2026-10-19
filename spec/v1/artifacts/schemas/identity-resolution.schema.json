@@ -274,9 +274,9 @@
           "type": "object",
           "required": [
             "kind",
-            "actor_id",
             "scope_ref",
-            "payload"
+            "payload",
+            "actor_id"
           ],
           "properties": {
             "kind": {
@@ -309,8 +309,7 @@
                     "purpose": {
                       "enum": [
                         "principal_control",
-                        "agent_control",
-                        "applet_managed_control"
+                        "agent_control"
                       ]
                     },
                     "initial_resolution": {

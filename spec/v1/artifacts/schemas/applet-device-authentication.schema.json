@@ -3,9 +3,9 @@
   "$id": "https://arkret.org/v1/schemas/applet-device-authentication.schema.json",
   "title": "Arkret Applet Managed Device Authentication",
   "type": "object",
-  "description": "RFC9421 Arkret-Managed-Device header value: base64url without padding of RFC8785 JCS of this closed object. Covered metadata is authenticated with the accepted device key; request scope is intersected with device authorization, exact installation and all business gates.",
+  "description": "base64url_no_pad(JCS) metadata for an accepted Realm Bot/Ghost Device HTTP signature. Exact full actor, current generation, Device bounds and current installation are checked at the owning Realm current governor; no AccountId or SessionGrant is inferred.",
   "required": [
-    "account_id",
+    "actor_id",
     "device_id",
     "authorization_event_id",
     "applet_id",
@@ -13,8 +13,8 @@
     "nonce"
   ],
   "properties": {
-    "account_id": {
-      "$ref": "./common-ids.schema.json#/$defs/account_id"
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_actor"
     },
     "device_id": {
       "$ref": "./common-ids.schema.json#/$defs/device_id"

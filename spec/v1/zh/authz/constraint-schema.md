@@ -432,11 +432,11 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 }
 ```
-`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是完整的 `ActorId`：registration 接受的 `ActorId.service`，或已按 Applet profile 独立 provision 的具体 Bot／Ghost `ActorId.account`（完整 Principal／Station pair）。registration 不声明 `bot_actor_id`，不得从安装推定 Bot 身份。控制证明中的 DID URL 必须经 adapter 投影到该 ActorId 的 principal component，并用 accepted authorization evidence 验证完整 ActorId；不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
+`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是完整的 `ActorId`：registration 接受的 `ActorId.service`，或已按 Applet profile 独立 provision 的具体 Bot／Ghost `ActorId.realm`（完整 Realm／Principal pair）。registration 不声明 `bot_actor_id`，不得从安装推定 Bot 身份。控制证明中的 DID URL 必须经 adapter 投影到该 ActorId 的 principal component，并用 accepted authorization evidence 验证完整 ActorId；不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未登记的 `constraint_kind` MUST fail closed。
 
-Service parent 下放到其 accepted Bot／Ghost terminal child 时，唯一允许的 executor 重绑定按 [managed-governance §4](./managed-governance.md) 执行：parent 绑定 Service，child 绑定自己的完整 Account subject，Applet／epoch 保持相同，逐条证明管理归属／role／hosting Station／scope。不能复制 Service executor 给 Account child，也不能把两条 binding 叠加当作继承；除此特定转换，所有约束继续普通收窄。业务授权引用的 grant subject 与 binding executor **MUST** 都等于实际 producer（有 `Event.executed_by` 时取它，否则取 `Event.actor_id`）。
+Service parent 下放到其 accepted Bot／Ghost terminal child 时，唯一允许的 executor 重绑定按 [managed-governance §4](./managed-governance.md) 执行：parent 绑定 Service，child 绑定自己的完整 realm ActorId subject，Applet／epoch 保持相同，逐条证明管理归属／role／所属 Realm／scope。不能复制 Service executor 给 Realm actor child，也不能把两条 binding 叠加当作继承；除此特定转换，所有约束继续普通收窄。业务授权引用的 grant subject 与 binding executor **MUST** 都等于实际 producer（有 `Event.executed_by` 时取它，否则取 `Event.actor_id`）。
 
 ### 7.4 再授权控制字段的 reducer 求值规则（normative）
 

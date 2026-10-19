@@ -15,7 +15,7 @@ class AppletDeviceDeliveryContractTest(unittest.TestCase):
         pair = schema['$defs']['applet_committed_event']
         self.assertFalse(pair['additionalProperties'])
         self.assertEqual(pair['required'], ['commit', 'event'])
-        self.assertEqual(set(pair['properties']), {'commit', 'event', 'producer_device_evidence'})
+        self.assertEqual(set(pair['properties']), {'commit', 'event', 'producer_device_evidence', 'producer_signer_fact'})
         evidence = pair['properties']['producer_device_evidence']
         self.assertEqual(evidence['$ref'], './account-device-signer-evidence.schema.json')
         root = json.loads((SCHEMAS / 'account-device-signer-evidence.schema.json').read_text(encoding='utf-8'))
@@ -29,11 +29,14 @@ class AppletDeviceDeliveryContractTest(unittest.TestCase):
         for requirement in ['Required exactly', 'ak:device:', 'forbidden otherwise', 'original admission', 'committed_at', 'never receiver current time']:
             self.assertIn(requirement, description)
 
-    def test_native_managed_rotation_cannot_borrow_portal_or_session_authority(self):
+    def test_realm_delivery_and_control_have_distinct_authority(self):
         schema = json.loads((SCHEMAS / 'applet-edge-operations.schema.json').read_text(encoding='utf-8'))
-        description = schema['$defs']['applet_event_transaction_request_body']['properties']['events']['description']
-        for requirement in ['IdentityResolutionUpdate', 'original active owning Applet', 'original installing Station', 'own derived managed PCR', 'never the native principal producer', 'no portal grant or SessionGrant']:
-            self.assertIn(requirement, description)
+        fact = schema['$defs']['applet_committed_event']['properties']['producer_signer_fact']
+        self.assertEqual(fact['$ref'], './authority-commit-operations.schema.json#/$defs/realm_device_historical_signer_fact')
+        context = schema['$defs']['applet_managed_actor_authoring_context']
+        self.assertEqual(context['required'], ['material'])
+        self.assertEqual(context['properties']['material']['$ref'], './realm-actor-material.schema.json#/$defs/outcome')
+        self.assertNotIn('managed_actor_resolution_update_evidence', schema['$defs'])
 
 
 if __name__ == '__main__':

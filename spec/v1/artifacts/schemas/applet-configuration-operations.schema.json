@@ -38,14 +38,14 @@
           "type": "object",
           "required": [
             "kind",
-            "account_id"
+            "actor_id"
           ],
           "properties": {
             "kind": {
-              "const": "existing_account"
+              "const": "existing_realm_actor"
             },
-            "account_id": {
-              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
             }
           },
           "additionalProperties": false
@@ -193,7 +193,7 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "proof": {
-          "$ref": "./applet-management-source.schema.json#/$defs/signature"
+          "$ref": "#/$defs/signature"
         }
       },
       "additionalProperties": false,
@@ -223,28 +223,47 @@
         "status": {
           "enum": [
             "pending",
+            "candidate",
             "created",
             "reused",
             "denied",
             "cancelled"
           ]
         },
-        "subject_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "creation_refs": {
           "type": "array",
           "items": {
             "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
           },
-          "minItems": 4,
-          "maxItems": 4
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true
         },
         "evaluated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "proof": {
-          "$ref": "./applet-management-source.schema.json#/$defs/signature"
+          "$ref": "#/$defs/signature"
+        },
+        "create_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.actor.create"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -262,7 +281,7 @@
           },
           "then": {
             "required": [
-              "subject_account_id",
+              "actor_id",
               "creation_refs"
             ]
           },
@@ -271,7 +290,7 @@
               "anyOf": [
                 {
                   "required": [
-                    "subject_account_id"
+                    "actor_id"
                   ]
                 },
                 {
@@ -282,10 +301,35 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "candidate"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "create_event"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "create_event"
+              ]
+            }
+          }
         }
       ],
       "x-arkret-signature-domain": "ak.applet.configuration_outcome.v1",
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 262144,
+      "description": "Runtime may return a signed creation candidate Event; created/reused is permitted only with the original governance acceptance Commit. Candidate generation is not identity acceptance. Administrator intent is bound to the exact candidate before approval and Event submission."
     },
     "outcome": {
       "type": "object",
@@ -319,6 +363,23 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 262144
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

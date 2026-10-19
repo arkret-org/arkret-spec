@@ -41,9 +41,6 @@ POSSESSION_ROWS = {
     "ak.device_authorize_recovery_possession_proof.v1": (
         "device_authorize_recovery_possession_transcript"
     ),
-    "ak.device_authorize_applet_managed_possession_proof.v1": (
-        "device_authorize_applet_managed_possession_transcript"
-    ),
 }
 
 

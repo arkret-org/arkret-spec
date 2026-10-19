@@ -26,9 +26,6 @@
       "$ref": "#/$defs/author_request_body"
     },
     {
-      "$ref": "#/$defs/managed_actor_bundle"
-    },
-    {
       "$ref": "#/$defs/author_outcome"
     }
   ],
@@ -363,7 +360,8 @@
           "$ref": "./applet-ghost-operations.schema.json#/$defs/existing_managed_actor"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Bounded creation intent at the owning Realm current governance Station. Runtime creates one independently controller-signed candidate and Service-signed Event; governance verifies the exact candidate and commits it via the standard Event submission. No Account/PCR aggregate."
     },
     "authoring_request": {
       "type": "object",
@@ -511,111 +509,28 @@
       },
       "additionalProperties": false
     },
-    "managed_actor_bundle": {
-      "type": "object",
-      "x-arkret-signature-domain": "ak.applet_managed_actor_bundle_proof.v1",
-      "required": [
-        "schema",
-        "authoring_request_digest",
-        "managed_actor_provision_event",
-        "pcr_genesis_event",
-        "accountability_grant_event",
-        "profile_event",
-        "proof"
-      ],
-      "properties": {
-        "schema": {
-          "const": "ak.schema.applet_managed_actor_authoring_bundle.v1"
-        },
-        "authoring_request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "managed_actor_provision_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "ak.applet.managed_actor.provision"
-                }
-              }
-            }
-          ]
-        },
-        "pcr_genesis_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "ak.realm.create"
-                }
-              }
-            }
-          ]
-        },
-        "accountability_grant_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "ak.identity.accountability_grant"
-                }
-              }
-            }
-          ]
-        },
-        "profile_event": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "ak.profile.create"
-                }
-              }
-            }
-          ]
-        },
-        "proof": {
-          "$ref": "#/$defs/managed_actor_proof"
-        }
-      },
-      "additionalProperties": false
-    },
     "author_outcome": {
       "type": "object",
       "required": [
-        "managed_actor_bundle"
+        "create_event"
       ],
       "properties": {
-        "managed_actor_bundle": {
-          "$ref": "#/$defs/managed_actor_bundle"
+        "create_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.actor.create"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -674,30 +589,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exact installed Service Bot creation intent. request_id is the durable subject key for exact retries; the returned bundle freezes the complete candidate Account and keys."
-    },
-    "managed_actor_provision_request_body": {
-      "type": "object",
-      "required": [
-        "authoring_request",
-        "managed_actor_bundle"
-      ],
-      "properties": {
-        "authoring_request": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
-        },
-        "managed_actor_bundle": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
-        },
-        "approval_signatures": {
-          "type": "array",
-          "items": {
-            "$ref": "./approval-signature.schema.json"
-          },
-          "minItems": 1
-        }
-      },
-      "additionalProperties": false
+      "description": "Bounded creation intent at the owning Realm current governance Station. Runtime creates one independently controller-signed candidate and Service-signed Event; governance verifies the exact candidate and commits it via the standard Event submission. No Account/PCR aggregate."
     }
   }
 }

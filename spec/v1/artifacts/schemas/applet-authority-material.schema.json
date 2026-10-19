@@ -12,115 +12,66 @@
   ],
   "$defs": {
     "request": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "effective_scope",
-            "grant_ids"
-          ],
-          "properties": {
-            "effective_scope": {
-              "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
-            },
-            "grant_ids": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 64,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/grant_id"
-              }
-            },
-            "device_scope_request": {
-              "$ref": "./applet-management-source.schema.json#/$defs/scope_request"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "managed_source_request"
-          ],
-          "properties": {
-            "managed_source_request": {
-              "$ref": "./applet-management-source.schema.json#/$defs/source_request"
-            }
-          },
-          "additionalProperties": false
-        }
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "grant_ids"
       ],
-      "x-arkret-max-canonical-bytes": 4194304,
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.device.authorize"
-      ]
+      "properties": {
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "grant_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4194304
     },
     "outcome": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "applet_id",
-            "effective_scope",
-            "registration",
-            "grant_events",
-            "current_results"
-          ],
-          "properties": {
-            "applet_id": {
-              "$ref": "./common-ids.schema.json#/$defs/applet_id"
-            },
-            "effective_scope": {
-              "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
-            },
-            "registration": {
-              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
-            },
-            "grant_events": {
-              "type": "array",
-              "items": {
-                "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
-              },
-              "minItems": 1,
-              "maxItems": 64
-            },
-            "current_results": {
-              "type": "array",
-              "items": {
-                "$ref": "./exact-current-results-read.schema.json#/$defs/exact_current_result_present"
-              },
-              "minItems": 1,
-              "maxItems": 256
-            },
-            "device_scope_confirmation": {
-              "$ref": "./applet-management-source.schema.json#/$defs/scope_confirmation"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "managed_source"
-          ],
-          "properties": {
-            "managed_source": {
-              "$ref": "./applet-management-source.schema.json#/$defs/source"
-            }
-          },
-          "additionalProperties": false
-        }
+      "type": "object",
+      "required": [
+        "applet_id",
+        "effective_scope",
+        "registration",
+        "grant_events",
+        "current_results"
       ],
-      "x-arkret-max-canonical-bytes": 4194304,
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.realm.create",
-        "ak.profile.create",
-        "ak.profile.update",
-        "ak.identity.accountability_grant",
-        "ak.device.authorize",
-        "ak.realm.governance_station.change"
-      ]
+      "properties": {
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration": {
+          "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
+        },
+        "grant_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "current_results": {
+          "type": "array",
+          "items": {
+            "$ref": "./exact-current-results-read.schema.json#/$defs/exact_current_result_present"
+          },
+          "minItems": 1,
+          "maxItems": 256
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4194304
     }
   }
 }

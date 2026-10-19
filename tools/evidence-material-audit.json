@@ -1,12 +1,12 @@
 {
-  "version": 40,
+  "version": 41,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 413,
+  "audited_occurrence_count": 401,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -184,84 +184,6 @@
     },
     {
       "file": "applet-edge-operations.schema.json",
-      "key": "applet_service_signer_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the exact Applet Service signer root together with its content-addressed ref as one runtime authoring input."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "attester_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the exact Station Service leaf that verifies the managed Principal projection attestation."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "authenticated_signer_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the closed Service or Principal authenticated signer root selected by its enclosing typed authoring result field."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "managed_actor_principal_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Defines the complete managed Principal signer root and exact Station attester closure."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "managed_actor_resolution_update_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Combines the signed accepted resolution Event, its continuous RealmCommit history, native method history and authenticated Station signer closure."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "managed_actor_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the exact managed Actor Principal root together with its single Station Service attester leaf, so the authoring result binds both roots as one adjudicated evidence container."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "transcript"
-      ],
-      "reason": "Carries complete method-native history and its authenticated proof for the exact accepted successor resolution."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
       "key": "producer_device_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -270,13 +192,6 @@
         "transcript"
       ],
       "reason": "Carries the immutable original-admission device projection attestation and complete authenticated origin Station native Service history for offline historical producer signature verification."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "signer_resolution_evidence_ref",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Content-addresses the exact Service or Principal signer root carried in the same closed authoring result object."
     },
     {
       "file": "applet-install-authoring.schema.json",
@@ -290,18 +205,6 @@
         "transcript"
       ],
       "reason": "Carries the method-native registration-time identity transcript, document commitment and accepted signing-key material embedded only in the signed registration Event manifest."
-    },
-    {
-      "file": "applet-managed-actor.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries the complete adapter-selected method history, controller proofs, witness attestations and terminal identity commitments independently verified before managed-actor provisioning."
     },
     {
       "file": "applet-registration-epoch-evidence.schema.json",
@@ -442,7 +345,7 @@
     {
       "file": "capability-action-registry.json",
       "key": "evidence_schema_ref",
-      "occurrences": 4,
+      "occurrences": 2,
       "disposition": "registry_contract",
       "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
     },
@@ -568,7 +471,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_schema_ref",
-      "occurrences": 5,
+      "occurrences": 3,
       "disposition": "registry_contract",
       "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance. Also names the existing forward-only closed real Account Device carrier; the source applicability metadata discloses no PCR or additional directory result."
     },
@@ -1143,6 +1046,17 @@
         "commitment"
       ],
       "reason": "Relays the complete frozen registration evidence to the Station for independent historical verification."
+    },
+    {
+      "file": "realm-actor.schema.json",
+      "key": "method_history_evidence",
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Complete method-native WebVH history carries cryptographic continuity proofs and witness attestations; neither is inferred from the DID core.",
+      "occurrences": 4
     },
     {
       "file": "registration-did-evidence.schema.json",

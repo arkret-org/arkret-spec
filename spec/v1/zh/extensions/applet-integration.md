@@ -80,13 +80,10 @@ Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最�
 
 ### 3.3 Bot Actor
 
-Applet 的主要可见 Actor。Bot Actor 可以加入 Realm、被 mention、发送消息或执行自动化。
-
-Bot 是独立长期principal，不复用Service/controller。Service安装可以没有Bot；每个Bot通过§9.1独立四Event创建单元形成
-managed provision、自己的applet_managed_control PCR、问责和Profile。provision固定完整Account/初始WebVH/创建来源；
-registration不保存单个Bot或PCRanchors，current resolution只来自该Bot自己的PCR typedcurrent。
-Bot PCR genesis不含founding Device；受限设备由其accepted principal controller method在后继ak.device.authorize授权，
-不得混入创建单元。Bot、Service、Controller、Ghost、个人Agent不能因共用runtime或模型而合并概念。
+Applet 创建的 Bot 是 [Realm 受管主体](./realm-actors.md)，持有独立 DID 和自己的 Device，
+完整身份为 ActorId.realm。它属于固定 Realm，由该 Realm 当前治理 Station 接纳授权与控制事实。
+Applet 保管控制／Device 私钥，无须提供 Station 账号服务；没有 Bot Account 或独立 PCR。
+安装不自动创建 Bot。管理员主动创建、自动 Ghost 许可与逐候选 review 按 Realm actors §3 执行。
 
 ### 3.4 Ghost Actor
 
@@ -100,19 +97,16 @@ did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123
 
 **Ghost DID 形状约束（normative）**：Ghost 的 `did:webvh` DID MUST 同时满足下列四条；任一不成立，§9.1 的 provision MUST fail closed：
 
-1. **SCID 段独立**：第三个 `:` segment（SCID）MUST 是该 Ghost 自己的 validated SCID，MUST NOT 等于 Applet service DID 或 controller DID 的 SCID。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
-2. **host 段逐字绑定**：紧随 SCID 的 host segment MUST 逐字等于 registration `service_id` 当前已验证解析出的那个 bare `did` 的 host segment。多租户 bridge 不得把不同租户的 Ghost 放到另一个域名下；若将来确需多租户，MUST 由 registration 显式声明的 host 列表放开，MUST NOT 削弱本条。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
-3. **MUST 带 path 段**：host 之后 MUST 至少还有一个非空 segment（例如 `:ghost:u123`）。没有 path 段的 Ghost DID 与「Applet service DID 本身」只差一个 SCID 段，而 SCID 段在 actor namespace pattern 中是通配位，Applet service 会因此命中自己的 Ghost namespace。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
+1. **SCID 段独立**：第三个 `:` segment（SCID）MUST 是该 Ghost 自己的 validated SCID，MUST NOT 等于 Applet service DID 或 controller DID 的 SCID。违反本条 reason code 为 `identity_method_evidence_invalid`。
+2. **host 段逐字绑定**：紧随 SCID 的 host segment MUST 逐字等于 registration `service_id` 当前已验证解析出的那个 bare `did` 的 host segment。多租户 bridge 不得把不同租户的 Ghost 放到另一个域名下；若将来确需多租户，MUST 由 registration 显式声明的 host 列表放开，MUST NOT 削弱本条。违反本条 reason code 为 `identity_method_evidence_invalid`。
+3. **MUST 带 path 段**：host 之后 MUST 至少还有一个非空 segment（例如 `:ghost:u123`）。没有 path 段的 Ghost DID 与「Applet service DID 本身」只差一个 SCID 段，而 SCID 段在 actor namespace pattern 中是通配位，Applet service 会因此命中自己的 Ghost namespace。违反本条 reason code 为 `identity_method_evidence_invalid`。
 4. **落在 namespace 覆盖内**：完整 DID（不是 `did_core_id`）MUST 命中该 registration `namespaces.actors` 的某条 pattern（[`applet-schema.md` §2](./applet-schema.md#2-namespace-pattern)）。不命中时 reason code 为 `applet_namespace_mismatch`。
 
-这四条合起来只证明「该 DID 的 webvh log 托管在 Applet 自己的 host 与 path 之下」，即 **web origin 控制权**；它们**不证明** provision 事实，因此 MUST NOT 被当作归属或授权（见 §5）。归属只由已接受的 `ak.applet.managed_actor.provision` 证据建立（见 §9.1）。
+这四条合起来只证明「该 DID 的 webvh log 托管在 Applet 自己的 host 与 path 之下」，即 **web origin 控制权**；它们**不证明** provision 事实，因此 MUST NOT 被当作归属或授权（见 §5）。归属只由已接受的 `ak.realm.actor.create` 证据建立（见 §9.1）。
 
-Ghost 使用与 Bot 相同的 managed-actor provision + PCR genesis authority 模型，但 role 固定为 `ghost`，
-provision 还必须逐字绑定 external tuple。namespace 对经 method evidence 验证的 `initial_resolution.did`
-匹配，不能对 `did_core_id` 匹配DID pattern。Profile/accountability Event 不能替代 identity binding，
-服务端也不得从 external tuple、namespace 或 Applet service DID 生成 Ghost DID。
-
-Ghost Actor MUST 带有 `accountable_principal_ids`，且本节 provisioning aggregate 创建的初始 Profile MUST 只包含提交并签署同请求 `accountability_grant_event` 的外部 service DID。Applet controller 与 Ghost 的生命周期关系由 active Applet registration / install 记录表达，不得在缺少 controller 自己签发的 active `ak.identity.accountability_grant` 时把 controller DID 复制进该数组；后续若要增加 controller，必须先独立提交该 controller 的 grant，再按普通 Profile update 规则更新。外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
+Ghost 使用与 Bot 相同的 realm_control 创建合同，role 固定为 ghost，必须逐字绑定 external tuple。
+namespace 对原生方法证据验证的 initial_resolution.did 匹配，不对 core 匹配；不得从 tuple 或 Service DID 生成主体 DID。
+创建不产生 Profile 或 accountability grant。外部 tuple 由不可变创建身份记录承载；Profile 不承担身份或管理来源证明。
 
 #### 3.4.1 Agent、Bot 与 Ghost Actor 边界
 
@@ -226,7 +220,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 - `applet_id` MUST 稳定。
 - `service_id` MUST 是稳定 service `did_core_id`；注册时提供的 `did` 必须经 adapter 投影到它，当前endpoint通过method验证的DID服务入口取得并绑定package的HTTPS base_url。
 - `controller_principal_id` MUST 是 controller `did_core_id`；复制到 registration 的 package proof VM 的 bare `did` 必须经 adapter 投影到它并通过签名验证。
-- managed Account归属只从accepted provision验证；registration不钉住默认Bot，Service不能成为同主体Bot。
+- Realm 主体归属只从 accepted realm.actor.create 和 current manager 验证；registration不钉住默认Bot，Service不能成为同主体Bot。
 - `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
   preview/package cache。
@@ -289,9 +283,9 @@ Namespace 用于决定：
 Namespace 不等于 capability。  
 Namespace 命中只表示“这个 Applet 是该名称空间的处理方”。
 
-**Namespace 命中不是归属证明（normative）**：namespace 命中只是**路由与排他判据**，**MUST NOT** 被解释为归属证明或授权。managed actor（Bot / Ghost）的归属由已接受的 `ak.applet.managed_actor.provision` 证据建立（§9.1）；凡该证据可达的判定点，实现 MUST 展开并校验该证据，MUST NOT 以 pattern 命中替代。
+**Namespace 命中不是归属证明（normative）**：namespace 命中只是**路由与排他判据**，**MUST NOT** 被解释为归属证明或授权。managed actor（Bot / Ghost）的归属由已接受的 `ak.realm.actor.create` 证据建立（§9.1）；凡该证据可达的判定点，实现 MUST 展开并校验该证据，MUST NOT 以 pattern 命中替代。
 
-namespace 在 provision 证据结构上不可达的判定点仍然是判据——§7.3.1 的逐次投递来源独立验证、§7.4 的未知 actor 发现与推送路由、以及 §4b 中发生在任何 Ghost 存在**之前**的 exclusive 冲突门（provision 的四条创建事实按 §9.1 只由接收 Station 保存并重放，不做 peer Event fan-out；唯一窄例外是 device-lifecycle §8.2.2.1 本人 Device 首次 authority_forward 给当前 governor 的私有原签来源闭包，其它这些站点仍拿不到 provision 证据）。但在这些判定点上，namespace 只回答“谁来处理 / 谁排他占用这个名称空间”，同样不产生任何授权。
+namespace 仅用于路由候选和 exclusive 冲突检测，不证明主体已创建或已获授权。治理方从自己的私有控制流核验完整 RealmActorId 与当前 manager；获准业务接收方只取得必要历史 signer fact，不以 namespace 替代原件与当前授权。
 
 该总则与 [`../authz/constraint-schema.md` §7.3](../authz/constraint-schema.md#73-applet-授权绑定constraint_subkindapplet_authority)（grant 的 `executed_by` 不得仅凭 namespace wildcard 签发）以及 §11 规则 4（delegated 代表真人时不得仅凭 wildcard 命中通过）的既有收紧一致；那两条是本总则在具体路径上的实例，不是例外。
 
@@ -362,7 +356,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
-scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）；与具体 Applet install 的安全绑定 MUST 另外使用标准 `constraint_kind="authority_control" + constraint_subkind="applet_authority"`，完整携带 `applet_id`、`executed_by`、`registration_epoch`。创建 grant／Service 业务 parent 的 executor 为 accepted Service ActorId；受管 terminal child 的 executor 为其具体 Bot／Ghost Account subject，唯一受限重绑定与普通收窄按 [managed-governance §4](../authz/managed-governance.md) 校验。§5.1 registration namespace 与 §11 Event envelope 的 `applet_id` / `authorization_ref` 是使用时的交叉校验，不能替代 grant 自身的绑定。
+scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）；与具体 Applet install 的安全绑定 MUST 另外使用标准 `constraint_kind="authority_control" + constraint_subkind="applet_authority"`，完整携带 `applet_id`、`executed_by`、`registration_epoch`。创建 grant／Service 业务 parent 的 executor 为 accepted Service ActorId；受管 terminal child 的 executor 为其具体 Bot／Ghost Realm actor subject，唯一受限重绑定与普通收窄按 [managed-governance §4](../authz/managed-governance.md) 校验。§5.1 registration namespace 与 §11 Event envelope 的 `applet_id` / `authorization_ref` 是使用时的交叉校验，不能替代 grant 自身的绑定。
 
 除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
 
@@ -390,21 +384,19 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- | --- |
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?, producer_signer_fact?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，按完整 Actor 命中 Applet actor namespace；不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
-| `ak.edge.applet.third_party_users.read.list.v1` | edge（节点→Applet） | `query.protocol: string`; `query.instance_id: string`; `query.external_id: string` | 无 | `actor_id: did_core_id?`; `exists: boolean`; `external_ref: object?` | 查询必须逐字匹配 Ghost immutable external tuple。 |
+| `ak.edge.applet.third_party_users.read.list.v1` | edge（节点→Applet） | `query.applet_id: applet_id`; `query.realm_id: realm_id`; `query.protocol: string`; `query.instance_id: string`; `query.external_id: string`（全部必填） | 无 | `exists: boolean`; `actor_id: ActorId.realm`／`external_ref`（exists=true 必填，false 禁带） | 查询仅限当前治理方获准读取的 exact Realm／Applet／tuple；返回值必须匹配所属 Realm 与已接受映射，不能凭 Applet 返回值创建／重绑身份，不提供枚举。 |
 | `ak.edge.applet.third_party_locations.read.list.v1` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 | `ak.self.applet.install.command.preview.v1` | self（管理员→Station） | `applet_package`; `authoring_request_basis`（唯一内嵌 caller-signed registration/grant Events） | 无 | `{plan}`（契约 `applet-install-authoring.schema.json`） | Station 重算 plan，不产生 managed authoring request；registration epoch evidence 只在 registration Event manifest，不属于 package digest / proof。 |
-| `ak.edge.applet.managed_actor.command.author.v1` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | 统一消费 `purpose=provision_bot\|provision_ghost`；四个 role-neutral Event 仅在 bundle 出现一次。 |
+| `ak.edge.applet.managed_actor.command.author.v1` | edge（客户端→Applet service） | `authoring_request` | 无 | `create_event` | 统一消费 `purpose=provision_bot\|provision_ghost`；返回一个 Service 原签创建 Event。 |
 | `ak.self.applet.command.install.v1` | self（管理员→Station） | `Idempotency-Key`; `applet_package`; `authoring_request_basis`; `plan_digest` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 只接纳 Service registration 与管理员原签 grants，不创建或复用 managed Actor。 |
 | `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 从同一 durable current snapshot 枚举 exact revoke intents；每个 capability intent 必填同一 Grant 的 `expected_revision`，并进入 caller 自算的 `revoke_plan_digest`；见 §4b。 |
 | `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs: AppletRevokeEffectRef[]?`; `rejected[]?` | 重算 plan 并逐项校验 signed revoke 的 exact revision；stale 必须重新 preview／确认／重签。Event effect 使用 `CommittedEventRef`；服务本地 effect 使用非 Event typed resource string；见 §4b。 |
 | `ak.self.applet.bot.command.preview.v1` | self（已安装 Applet Service→Station） | `path.applet_id`; `effective_scope`; `request_id` | `display_name` | `authoring_request` | 从 exact active install 派生 Service 创建授权，签发独立 Bot candidate；不消费安装隐含 Bot，契约见 `applet-bot-operations.schema.json`。 |
-| `ak.self.applet.bot.command.provision.v1` | self（已安装 Applet Service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | `approval_signatures` | Bot provision outcome | 重验 current 创建授权与原四 Event；同一 Applet 可以创建 0..N 个独立 Bot，每个有自己的 Account/PCR/Device，契约见 `applet-bot-operations.schema.json`。 |
 | `ak.self.applet.ghost.command.preview.v1` | self（已安装 Applet service→Station） | `path.applet_id`; `effective_scope`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
-| `ak.self.applet.ghost.command.provision.v1` | self（已安装 Applet service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`；fresh 分支 `managed_actor_bundle`，reuse 分支 `existing_managed_actor` | `approval_signatures` | Ghost provision outcome | fresh 与 reuse 互斥，commit 重验 PS proof、`governance_station_id`、external tuple 与 exact full-scope active install；fresh 验原 bundle proof，reuse 重开原 accepted anchors，不产生四 Event 或 completion；不接受裸四 Event body。 |
 
 ### 7.1 Ping
 
@@ -589,108 +581,11 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 
 #### 7.3.2 已确认 managed Actor 的 authoring 初始化
 
-普通发送的 Applet producer MAY 消费其安装所绑定 Station 的已确认结果。该角色服从 own-Station result 的信任边界：结果提供构造普通 Event 所需的已确认配置和引用，MUST NOT 作为接收 Station 的准入证明。接收 Station 仍独立验证原 producer、安装、grant、membership 与适用关闭依赖；本节不授予 Applet 读取整个 Realm/PCR 的权限。另承担治理消费者角色的 Applet 仍 MUST 从独立可信起点验证 authority-commit 证明，不能从此结果创建 governance-Station trust。
-
-`ak.edge.applet.command.transaction.v1` 的请求具有两个互斥的封闭分支：既有 Event/Signal 批次，或 `authoring_context`。后者只允许 Station→Applet；Applet→Arkret 入站出现该分支 MUST 返回 `schema_violation`。该分支不得同时包含 `events` 或 `signals`，完整 canonical body 上限为 16 MiB。结果结构由 `applet-edge-operations.schema.json#/$defs/applet_managed_actor_authoring_context` 定义，字段顺序为：
-
-| 字段 | 精确含义 |
-| --- | --- |
-| `committed_request` | 本次实际提交并确认的原请求。复用既有 Bot／Ghost provision 请求的封闭类型，不创建第二个 request ID、digest 或 actor anchor 副本。 |
-| `realm_stream_head` | 目标 Collaboration Realm 的 commit stream 在该确认时刻的 head，形态是 [`realm-commit.schema.json#/$defs/stream_head`](../../artifacts/schemas/realm-commit.schema.json)（`{stream_ref, stream_position, commit_id}`）。它是安装/portal Collaboration Realm 的唯一 head 声明，与下述 PCR Commit 独立；MUST NOT 从另一流 position 或 Commit 引用推断。本上下文不再单独声明 digest suite 或 actor checkpoint：suite 由该 stream 所属 Realm 对象承载（见 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），managed Actor 的既有位置由 `committed_request` 的不可变 anchors 唯一确定，接纳方的授权判定记录留在 Station 本地、不是可交付字段。 |
-| `principal_control_commit` | 接受本 managed Principal resolution 的实际 PCR Commit，与 portal head 独立；首次必须覆盖原 Bundle PCR genesis，rotation 必须等于 lineage 最后 Commit。 |
-| `applet_service_signer_evidence` | 安装所接受 Applet service producer 的 exact `Service` root，含 `signer_resolution_evidence_ref` 与完整 leaf；ref 必须从 leaf 重算。 |
-| `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root 及其唯一 Station `Service` attester leaf。`signer_resolution_evidence_ref` 必须从完整 canonical `authenticated_signer_evidence` 重算；attester leaf **没有自己的 ref**——signer-resolution evidence 是紧凑六成员对象，不带 attester ref，该 leaf 的绑定由本对象内的位置、与 `authenticated_signer_evidence.authority_commit_id` 相等，以及其 subject 必须是签署该 accepted resolution 的 Station `Service` 三者共同承载（见 [`../identity/key-management.md` §「可复用当前授权」](../identity/key-management.md)）。 |
-
-上述五个基础字段全部必需；后续轮换另外携带 optional `resolution_update`（四个 closed 成员见下文），首次创建不携带该成员：本节下文把「产生 accepted authoring result」本身条件化在两份 signer evidence 已被验证并与结果、原请求、outbox 意图同事务冻结之上，因此缺任一份的上下文根本不可能被接纳。
-
-安装 Station MUST 在原 Bot／Ghost provision closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
-resolution projection 物化 managed Actor `Principal` root，并冻结签署该实际 PCR RealmCommit 的 Station
-`Service` leaf。Applet `Service` root 的 `authority_commit_id` MUST 逐字等于本上下文
-`realm_stream_head.commit_id`；managed Principal root 与 Station attester leaf 则 MUST 绑定下述
-`principal_control_commit.commit_id` / `committed_at`，不得把 portal head 用作 PCR authority。
-Applet `Service` root 的 `resolved_at` MUST 为该完成提交实际冻结的 accepted 时间，不得由 author
-阶段猜测未来 Commit。
-同一完成提交物化的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
-交付 outbox 意图 MUST 属于同一可恢复的原子提交。任一 root/ref/closure 冲突使该完成提交整体回滚且不产生
-accepted authoring result。若协议实现将 RealmCommit 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原
-unit，再原子保存效果、evidence、结果与 outbox，不能以已有一条 timeline row 认定整个单元完成。
-pending/rejected 不产生结果。该 outbox 是本地 Station→Applet 完成交付，MUST NOT 把私有 fixed set 拆为
-Realm Event federation。管理员在安装返回后离线不影响重试交付。
-
-接收 Applet MUST 先执行 §7.3.1 的逐次 RFC 9421 来源认证，且 body/header/source proof 的来源 MUST 等于 `committed_request.authoring_request.basis.target_station_id`，目标 MUST 等于同一 basis 的 `service_id`，外层 `applet_id` MUST 等于 basis 的 `applet_id`。已知其他 Station 的有效签名不能覆盖本安装来源。原 authoring request/bundle 的结构、内容 digest、audience 与全部交叉绑定 MUST 成立；收到 own-Station 结果不构成对外可转交的管理员或治理证明。
-
-首次 Bot／Ghost provision 的原四 Event Bundle MUST 与 runtime 在 author 阶段已经耐久保存的 exact request/bundle 相等，并使用当时保存的身份密钥。后续 scope 安装不产生 managed completion，也不得重新生成身份。重复 provision 同一 Ghost 只确认原 anchors；丢失原身份材料须恢复原材料，不能从结果重造平行身份。
-
-`realm_stream_head.stream_ref` 指向的 Realm MUST 等于 Bot／Ghost basis `effective_scope.realm_id`；完整 Actor MUST 等于该原 Bundle 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以各自使用其 Realm 对象登记的 digest suite。
-
-`principal_control_commit` 是独立 required 的完整 accepted RealmCommit，接受 managed Actor 当前
-resolution 的实际 PCR Event；首次创建时必须覆盖原 Bundle 的 managed PCR genesis，并与其
-realm_id / Event digest / governance Station 精确绑定。managed Principal root 及唯一 Station Service
-attester 的 `authority_commit_id` / `resolved_at` 必须等于该 Commit 的 id / `committed_at`。
-它不是安装/portal Realm 的 `realm_stream_head`，不得比较两流 position 或把 portal Commit 冒充
-PCR authority。install reuse 保留 runtime 已验证的 current PCR closure；若缺轮换前驱材料，先按
-下述 completion 有序恢复，不能仅凭新 scope 的 install 重造 root。
-
-runtime MUST 验证两个完整 evidence object，重算 Applet `Service` root、Station attester `Service` root 与
-managed Actor `Principal` root，逐字核对 actor、service、verification method、实际本地 public key、原
-registration/install/provision anchors 与 effective install fence；随后把确切来源记录、原 committed
-request、对应原身份/授权材料、两个 producer roots、attester closure、`realm_stream_head` 与 authoring 上下文
-原子保存，才返回 `status="accepted"`。该分支没有 partial 安装。完全相同的重投只确认原持久结果，不重置
-Actor checkpoint，不重新签发或替换 evidence，不覆盖已经冻结的待发送 Event，也不刷新首次观察时间。不同原文
-或绑定不得复用同一幂等身份。迟到结果不得使 checkpoint 倒退、清除已知关闭或重新打开旧授权实例；接收方可以
-确认已保存的旧结果而不恢复其 live 资格。
-
-完成交付后的普通聊天不要求逐消息查询原 Station或续订 RealmCommit 年龄租约；producer 也不需为无关 stream 前进重新 author。每条新聊天 Event 仍须由目标 stream 的 current governance Station 接纳并签发 RealmCommit。原授权的真实有限期与已 committed 关闭约束新 live 提交；非 authority 接收方只能排队／转发。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的授权判定、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
-
-managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。
-唯一交付载体仍是本节 node-to-Applet completion：`authoring_context` 的 optional
-`resolution_update` 选择 closed rotation 分支（[`applet-edge-operations.schema.json#/$defs/managed_actor_resolution_update_evidence`](../../artifacts/schemas/applet-edge-operations.schema.json)），包含
-exact accepted `resolution_event`、从 runtime 已持旧 Principal root Commit 之后到本 Event covering Commit
-为止的连续 `commits`、该新 resolution 的完整 `method_history_evidence`，以及原 target Station 的
-`attester_resolution`。仅向原 install/provision 已授权的 managed runtime 披露其自己的 PCR
-材料；公开 resolution 响应不扩张，也不存在另一条 evidence endpoint 或 governance-dependency 读取面。
-
-Station MUST 在接受 resolution 的同一耐久事务保存新 Principal root、唯一 Station Service attester
-leaf、完整 closure 与 completion outbox。两 leaf 的 `authority_commit_id` / `resolved_at` 分别精确等于
-lineage 最后 Commit 的 id / `committed_at`。Applet Service registration root、原 `committed_request`、
-原四 Event anchors 与 effective scope 保持逐字相同；delivery 幂等身份绑定这个新 resolution Event，
-不同原文不得复用。lineage 每条 Commit 的 stream / predecessor / position / 签名及最后 Event digest 必须
-独立验证；Station 历史 key 由完整 Service native history在各 Commit 时点选择，不能拿 current key补历史。
-
-runtime MUST 在提交轮换前独立耐久保存新私钥及 exact method/native history 准备材料，收到投递时逐字
-匹配实际本地新 public key，并独立验证 native successor、SCID/core 不变、旧 root ancestry、exact原
-Station 与上述全部交叉绑定，才原子保存新 root / closure 并启用新 method。缺新私钥或旧 predecessor
-closure 保持未决，通过相同 outbox 的有序重投恢复，不从响应重造私钥、旧材料或平行身份。新原件与旧
-证据均保留；完全相同重试返回原结果，迟到旧结果不能覆盖更新 root、倒退 checkpoint 或恢复已关闭
-install。普通 Event verifier 按 proof ref 使用已冻结的 exact signer root 与原生历史关系，不能以新
-current DID head 重写旧 Event 的签名事实。轮换 completion 不授予新 grant、扩大 scope 或恢复撤销资格。
-
-同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
-
-
-#### 7.3.2.1 managed PCR 轮换的既有入站（normative）
-
-managed runtime MUST 经既有 `ak.edge.applet.command.transaction.v1` Applet→Station `events[]` 发送原生
-`ak.identity.resolution.update`；该请求只含一条该 Event，不混普通 Portal Event 或 Signal。原 Event 的
-`actor_id` 为原安装／provision 接纳的完整 managed AccountId，scope 是其派生身份 PCR 的 Realm scope；
-MUST NOT 携 `applet_id`、`executed_by` 或 Portal `authorization_ref` 来伪装成 Service 代署。RFC 9421
-只认证原 Applet Service 的传输来源，不能代替 Principal 的 producer proof。
-
-接收者仅为原 installing Station。它 MUST 在同一接受事务锁定 exact 原 install／provision、有效
-registration epoch 与该 managed PCR；原 Applet、source Service、完整 managed Account、PCR derive、
-原 creation anchors 任一不匹配或 runtime/install 已关闭均零写拒绝。该狭窄分支不需要也不创建
-SessionGrant，不使用 Portal action/resource grant，不允许更新另一 managed Actor 或 human PCR。
-
-producer 的标准 `did:key:<multibase>#<multibase>` method MUST 逐字属于该 managed PCR current
-resolution 的独立认证 native history 中有效 old updateKeys；key DID 本身不被投影为 Account 身份。
-验证者 MUST 独立核对 old native SCID/core、完整历史与 witness、原 Event JWS、标准 expected_revision
-及其 whole previous resolution projection，并验证 next resolution 的完整 native successor、同 core／
-原 Station 和确切新 method/public key；不能以调用方裸 key、当前网上 DID head 或 Service 签名替代。
-这是 managed `identity_resolution_update` 的专用 native producer admission，不是普通 Event 验签豁免。
-
-接纳仍沿唯一治理 Station 的一个 Event／RealmCommit UoW，原子推进 current resolution、保存新 roots／
-完整闭包及原 runtime 的 completion outbox（§7.3.2）。任何失败或 CAS 冲突均不留下 Event、Commit、
-current、root 或 outbox。exact replay 沿原 Event／请求幂等规则，不能接受不同原件或回退 current。
+runtime 通过 [Realm actor exact 材料](./realm-actors.md#8-exact-控制材料与历史验签)核实原创建或控制更新。
+authoring_context 只携当前治理方签名的 material；逐项验证完整 actor、原 Event／Commit、
+request digest、audience、nonce、当前治理链和所持 key。不得把 Service 收到 HTTP 成功当作 Device 已授权。
+控制更新、卸载后的维护、原结果恢复及 manager 转交分别按 Realm actors §5–8 执行。
+治理换任沿原 RealmId 取得当前治理方，不再查询另一个 Bot／Ghost Account Station 或 PCR。
 
 ### 7.4 Query Actor
 
@@ -803,7 +698,7 @@ Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` �
 
 `authorization_ref` MUST 引用本次 admission 合同规定的真实 accepted active `ak.capability.grant`，并与 exact installation、service authority、`applet_id`、registration epoch 和 producer-signed `scope_ref` 交叉验证。其用途由 event-kind registry 的 admission 合同及实际 producer 决定：
 
-- capability-gated Event 必须验证该 grant 覆盖具体 action / resource；不能以安装成功替代 action 权限。实际 Bot／Ghost Account Device 本人签署时，该 ref MUST 是 Service 签发给该完整 Account 的 terminal child，按 [managed-governance §4](../authz/managed-governance.md) 追溯真实 Service parent／所有贡献祖先，并在本次接纳 cut 重验 exact installation 和各自原约束／原持有人 quota。它不是第二个 installation ref，也不授权 Service 借 child 代签 Account Event。
+- capability-gated Event 必须验证该 grant 覆盖具体 action / resource；不能以安装成功替代 action 权限。实际 Bot／Ghost Realm Device 本人签署时，该 ref MUST 是 Service 签发给该完整 realm ActorId 的 terminal child，按 [managed-governance §4](../authz/managed-governance.md) 追溯真实 Service parent／所有贡献祖先，并在本次接纳 cut 重验 exact installation 和各自原约束／原持有人 quota。它不是第二个 installation ref，也不授权 Service 借 child 代签 Realm 主体 Event。
 - 本人 `ak.circle.member.state{join}` 属于上述 capability-gated 分支：使用实际 Circle 的 `ak.circle.member.add` child，同时额外满足 `ak.applet.join` 的管理／治理审批，保持 Circle join rule／FSM、原签父 membership revision 与独立 E2EE 同意。Realm subject-only join 的安装引用规则不得套用于 Circle；Realm 安装／pair 不覆盖 Circle。
 - `subject_only` Event（如 `ak.invite.accept` 与本人 `ak.member.state` join）不把该 ref 当作 action 授权。该 ref 只绑定 exact installation；本人签名、exact invite、join rule、membership FSM、目标 Realm / Circle policy 与 E2EE admission 仍独立验证。不得为不可授权 action 签发虚构 grant，也不得要求 managed actor 持有 `ak.realm.admin` 才能本人加入。Bot / Ghost 的本人签名按其已登记 managed-principal authority 解析；service 签名不得凭 install ref 冒充任意 native actor。
 
@@ -888,34 +783,17 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
-### 9.1 Ghost Actor Provisioning（`ak.self.applet.ghost.command.provision.v1`，normative）
+### 9.1 Ghost Actor Provisioning（normative）
 
-Bot与Ghost均为独立managed Account，分别走bot与ghost provision闭合operation；统一managed actor author消费
-purpose=provision_bot或provision_ghost。两种preview输入完整effective_scope；Bot另给稳定request_id，Ghost另给exact
-protocol/instance/external tuple。Station用该scope唯一active install派生current registration/grant/epoch/package与短期signed request，
-期限不超过5 minutes，不接受caller自报current坐标。创建的hosting Station须为可在同一本地治理事务接纳portal与新PCR的Station。
+Bot／Ghost 统一使用 [Realm actor 创建候选](./realm-actors.md#6-创建与控制更新签名)。
+preview 固定创建意图；Applet author 操作只生成独立控制方法签名的 candidate 和 Service 原签
+`ak.realm.actor.create`，治理方通过 `ak.self.events.command.submit.v1` 接纳这一 Event。
+创建只初始化身份／控制／manager／双 status／generation，不再提交四 Event 账号聚合。
+Profile、Device、child、成员与 MLS 都在各自真实权限与 producer 下另行建立。
 
-Applet runtime验证Station signer/target/scope/current安装及请求期限，生成一个完整独立候选Account及WebVH初始材料；
-返回按full signed request digest钉定的四Eventbundle：managed provision、applet_managed_control PCR genesis、
-Service accountability endorsement、初始Bot或Ghost Profile。四Event均以该Service为actual producer，使用真实Service signer evidence；
-未accepted的候选不得自署这个创建单元，也不得由Station代签。新Account的principal **MUST** 不等于Service/controller或任何已占用主体。
-role=bot匹配Botintent；role=ghost匹配该bundle的新Ghost和external tuple；**MUST NOT** 要求新Ghost等于任何已有Bot或Service。
-Ghost的独立SCID/namespace与外部映射校验仍按§3.4，namespace命中不证明业务权限。
-
-commit重验signed request、完整四Event／proof／crossbinding、current创建grant/Policy/review/安装epoch、expiry及quota。
-四项Event、各stream Commit、主体projection、唯一性、原签Service root、Principal root／Station attester、outcome与completion outbox
-**MUST** 在同一可恢复本地事务接纳；任何失败零业务写。不能通过普通submit、batch或peer逐Event绕过此入口。
-原创建事实只按[device-lifecycle §8.2.2.1](../crypto-media/device-lifecycle.md#8221-managed-首次-forward-的原签来源闭包normative)向本次业务 governor 私有供给固定四原件及其必要 current；这不复制 PCR、创建 projection 或授予业务权，也不执行第二次创建／completion。
-completion沿既有transaction authoring_context返回Applets，runtime持久化完整根和exact request后才ack；
-rotation继续复用§7.3.2.1的原生managed PCR历史闭包，Service epoch与Bot PCR版本互不强制相同。
-
-Bot创建subject键是Applet、hosting Station、request_id；exactretry恢复同一Account且不重复扣creation quota，异intent拒绝duplicate_conflict。
-Ghost映射唯一键是Applet、hosting Station、exact external tuple，不包括scope；同一外部账号不能因Circle不同重复制造身份。
-新scope复用existing Ghost须重新验证该scope安装/许可，preview 与 signed basis 返回 existing_managed_actor 原 accepted anchors，provision 同字段 closed XOR managed_actor_bundle，不调用 author或再写四Event；
-另一Applet或错hosting Account不得借猜出的tuple获取映射。pending review绑定完整已返回候选bundle，批准后换公钥或主体必须重新申请。
-
-创建成功不产生membership、child业务grant、Deviceauthorize或MLS资格。这些是各自原签后继步骤。
-该创建事务内，合法 `applet_managed_pcr_genesis` 的 `ak.realm.create` MUST 同时写入本 PCR 的 `device_generation={current_device_generation_ref:1}`，来源是该 create 的 genesis RealmCommit；Device 目录仍为空。重试／跨 scope Ghost reuse 不重置此值，DID resolution rotation 与 Service epoch 变化也不改写它；初始化与确定性历史重建合同见 [device lifecycle §5.5.4](../crypto-media/device-lifecycle.md)。
+持续 Ghost 许可允许在明确 namespace、scope、quota 与当前安装上界下自动创建，
+只有 Policy 要求逐候选 review 才再次请求管理员。外部 tuple 按固定 Realm／Applet 唯一锁定；
+同 Realm 其它 Circle 的复用另核授权，跨 Realm 不复用完整主体身份。unknown 恢复原请求，不重新扣配额。
 
 ## 10. Portal Realm
 
@@ -989,7 +867,7 @@ Alice via Calendar Applet
   1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致；
   2. `authorization_ref` 必填，指向已 accepted 的 `ak.capability.grant`，该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
-  4. `executed_by` MUST 落在 `applet_id` registration 声明的主体集合内:即为exact Service ActorId，或accepted provision证明属于该Applet的完整Bot／Ghost Account；namespace通配不能代替管理归属。持有针对 `actor_id` 主体的有效 grant、但 `applet_id` 指向另一无关已注册 applet(其 registration namespace 不覆盖 `executed_by`)时，reducer MUST 拒绝，reason=`applet_namespace_mismatch`。**delegated 代表真人时收紧绑定粒度（normative）**：当 `actor_id` 指向 **native principal DID**（delegated 代表真人行事，而非 ghost 自署名）时，`executed_by` MUST 等于具体已注册Service ActorId或accepted provision的完整BotAccount,**或一条已 provision（存在 active `ak.profile.create` + §9.1 `accountability_grant`）的具体 ghost DID**；此路径下 reducer MUST NOT 仅凭匹配 `namespaces.actors` wildcard pattern 通过（`applet_namespace_mismatch`）。`namespaces.actors` 通配匹配只对 **ghost actor 自署名**（`actor_id` 即该 ghost）路径有效。否则 applet 可在其自有 registration 声明的 namespace 通配下，用任意未 provision 的 ghost DID 自签 key 代表真人写入，削弱 §9.1 ghost provision 的问责闭环与审计归因。
+  4. `executed_by` MUST 是该 Applet 当前 registration 的真实 Service ActorId，或其已接受且当前 manager 绑定成立的完整 realm ActorId。代表普通 Account 行动时，grant 必须同时精确绑定被代表 Account、实际 executor、action、scope 和 Applet；Realm Device 还要核本人授权与全部持续门。namespace、Profile、显示角色或 accountability 不证明管理归属，未知／未创建主体不得代表任何账号。
   5. grant MUST 通过 [`constraint-schema.md` §7.3](../authz/constraint-schema.md) 的 `authority_control` + `constraint_subkind=applet_authority` 规范形绑定 `applet_id`、`executed_by` 与 `registration_epoch`，并由 grant `resources[]` 精确覆盖 producer-signed `scope_ref` 所指的 `effective_scope`。`registration_epoch` 是唯一安全 epoch 绑定键；reducer/verifier 必须展开 referenced registration 的 epoch evidence 并确认 DID Document digest、accepted signing key set 与捕获值一致。Applet key rotate、endpoint 变化或 registration 更新后，旧 grant 不得授权新 key。实现 MUST NOT 发明 `constraint_kind=applet_delegation_binding`、live-only authorization shadow 或其他 schema 外别名替代 durable grant。
 - 对上述 delegated write，缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时，reducer MUST `schema_violation` 拒绝。该 delegated 规则适用于所有 `ak.profile.applet_*` profile；service 自署 Event 按 §8 省略 `executed_by`，不得因没有委托而拒绝。客户端 / SDK 不得退回到 SHOULD 形态。
 
@@ -1047,7 +925,7 @@ Applet 参与 E2EE Realm 时有三种模式：
 
 **E2EE endpoint 是 delegated device，不是新分支（normative）**：模式 1、2 中实际持有 MLS leaf 的是 Bot / Ghost 的**受限 delegated device**，走 [`../crypto-media/device-lifecycle.md` §9.2.1](../crypto-media/device-lifecycle.md) 既有的**普通 device 分支**。Bot 与 Ghost MUST NOT 借用 Agent 分支（§3.4.1），v1 也 **不**为它们新增第三个 recipient endpoint 分支。
 
-- 该 delegated device MUST 由该 principal 自己 `applet_managed_control` PCR 中一条已接受的 `authorization_binding_kind="applet_managed_delegation"` 的 `ak.device.authorize` 授权，形状、possession transcript 与签名方解析见 [`../crypto-media/device-lifecycle.md` §5.2.3 / §5.3 / §15](../crypto-media/device-lifecycle.md)。该 authorize 是 PCR genesis 之后的**普通后继 Event**，不属于 §4b 的 install fixed set，也不属于 §9.1 的四 Event Ghost aggregate；把它塞进任一封闭单元 MUST 以 `applet_managed_pcr_genesis_requires_closed_aggregate` 的对偶规则拒绝，因为那两个单元的形状是逐条固定的。
+- 该 Device 必须由独立主体当前控制方法在所属 Realm 的 realm_control 中以 realm_managed_delegation 授权；这是创建后的独立后继 Event，不属于 install 原子集合。有限 scope/action、PoP、CAS 与 generation 见 [Realm 主体 §5](./realm-actors.md#5-devicehttp-与业务身份)。
 - 没有这样一条已接受的 authorize 时，客户端 MUST NOT 为该 Bot / Ghost 发布 KeyPackage、MUST NOT 把它加入 MLS group，也 MUST NOT 接受它签署的 MLS durable receipt。此处 fail closed 的是**设备**条件，与上文独立 E2EE 加入授权（`applet_e2ee_join_unauthorized`）是两道彼此独立的门，任一不成立都拒绝。
 - 该 delegated device 在每项实际业务 scope 跟随该 scope 当前安装与 parent 的 revoke fence：scope A 被 fence 后，A 的新 KeyPackage／Welcome／durable receipt MUST 以 `applet_revoked` 拒绝，不影响 scope B 已独立合法授权的请求，不得等待另一条 `ak.device.revoke`。
 
@@ -1158,106 +1036,27 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 
 ## 18. 受限 Device 认证、业务授权与内容供给
 
-业务权限和审批 **MUST** 按 [managed-governance.md](../authz/managed-governance.md) 的普通Serviceparent→terminal managed child及持续上界执行。
-[applet-managed-authority-registry.json](../../artifacts/registry/applet-managed-authority-registry.json) 是角色、动作、设备allowlist及接收边界的机器矩阵。
-Service自身保留RFC9421Service认证，仅用于其合法管理／签发面；Applet无SessionGrant，不借用human或Agentsession。
+完整合同见 [Realm actors §5](./realm-actors.md#5-devicehttp-与业务身份)。
+Device HTTP 使用 Arkret-Managed-Device 的完整 realm actor 元数据，直达所属 Realm 当前治理方；
+无 SessionGrant。控制方法的 HTTP 采用独立 closed allowlist，不能代替业务 Device。
+每个实际 scope／action 逐项同时满足原 Device 授权、current manager、安装、terminal child、
+membership、Policy 与审批。允许 Circle-only 的父成员依赖不自动授父内容读取。
+Blob、MLS material、历史验签与 to-device 队列采用同一完整身份和 current 门；scope 不能互相拼接。
+Device 的具体 operation/action 配对以 applet-managed-authority-registry.json 为准。
 
-### 18.1 地址与管理调用
+## 19. 管理配置与治理接纳
 
-Package/registration的base_url **MUST** 是必填canonical HTTPS入口，与已验证当前DID的唯一ArkretService/serviceKind=applet_service
-entry、签名key、endpoint policy及registration epoch一致；出站仍逐次执行§7的SSRF/redirect目标校验。
-DID或key URL本身不能替代HTTP地址；安装UI **MAY** 从验证的DID服务条目自动发现并填写地址，
-但签名审批后不得改用未被该epoch绑定的新地址。DID文档／日志host不自动是Applet APIhost。
-该入口提供ping/describe、已支持映射查询、managed author与authoring completion，不能靠receive_events声明取得群读取资格。
+管理员在 Realm 的治理 Station 发起明确配置意图；治理方验证其权限，调用 Applet runtime 准备候选。
+runtime 保管私钥，只返回签名 candidate／Event；治理方核候选、当前许可及适用审批后通过标准 Event submit 接受。
+配置请求的 originating_actor 是操作者身份，不是主体所属 Station。新主体属于该 Realm。
+accepted 配置结果必须带真实创建 Commit；candidate、pending、unknown 不能宣称创建成功。
+详细职责、幂等和精确结果恢复见 [管理配置](./applet-management-source.md)。
 
-Station→Applet transaction **MUST NOT** 推送Collaboration Realm／Circle／Sidecar群内容或群Signal作为通用订阅。
-authoring_context及合法管理结果保留原受签名合同；Service运维Event按其原operation发送。
-Applet→Station既有Eventtransaction仍可携合法原签业务Event，不能取代主体action、current来源或MLS提交合同。
-
-### 18.2 accepted managed Device请求
-
-仅[applet-device-authentication.schema.json](../../artifacts/schemas/applet-device-authentication.schema.json)及
-`ak.http_signature.scenario.applet_managed_device.v1`列出的self operations支持这条无session认证分支。
-请求 **MUST** 携Arkret-Managed-Device，其值为closed metadata的RFC8785 JCS UTF8再base64url无padding编码；
-Account、device_id、authorization_event_id、applet_id和effective_scope全部被HTTP签名覆盖。
-signature params **MUST** 含created/expires/keyid/alg；closed metadata还含nonce，至少128bits独立随机熵。
-method/full target URI/authority/operation、metadata、destination-service-id、body Content-Digest及有则Idempotency-Key
-按scenario覆盖；目标 **MUST** 是该Account自己的Station。keyid MUST 为该 accepted Device 公钥的 did:key fingerprint URL（含同 fingerprint fragment），与 Device authorize 的 key 完全一致。
-签名时窗沿共有freshness profile；
-nonce以exact Account/Device分区记入防重放ledger，同command可用新nonce重试相同business bytes。
-
-Station从canonical accepted device authorize/PCR取验证key与generation，不信任请求自带公钥；
-authorization_event_id必须是该Device当前accepted合法授权实例，possession、期限、scope、keyid、principal/account status与安装资格全部有效。
-候选未accepted设备、另一Account/Station或Servicekey替代均拒绝。设备无需先读取私有PCR才能首次认证。
-登录请求签名不等于Eventproducer proof；署名业务Event仍按自己Device／Principal当前与历史证据验证。
-这条allowlist不给新增设备、转授、管理员、账号恢复、他人PCR、备份解锁或任意服务调用资格。
-读取自己的必要public signer/history材料按该动作所需最小披露；private PCR全流读取不由allowlist获得。
-
-原签 `scopes` 的唯一配对形状、exact 资源归属、禁止跨项拼接及 21-operation 动作／控制例外见
-[device lifecycle §16.1–16.2](../crypto-media/device-lifecycle.md#161-原签-scopeaction-配对normative)。
-metadata 只选择本次实际 scope，不扩展原授权；Realm 安装不隐含 Circle 或 Sidecar Device 权限。
-
-### 18.2b 首个 Device 与 Service 原签 child 的认证
-
-`ak.self.events.command.submit.v1` 登记独立 Service RFC 9421 认证分支，Source-Service-ID 必须是 exact Applet Service。
-它只接纳 event_submission 的两类封闭用途：原签 terminal managed child grant／本人 child revoke；或向 owning Station
-转交已经由具体 Bot／Ghost Principal 原签的 own PCR 合法 identity／device 控制后继。
-首个 `ak.device.authorize` 不要求一个尚不存在的 accepted Device 或 SessionGrant：runtime 使用已 accepted Bot／Ghost
-Principal 的真实当前 key 签 Event，候选 Device 自己签完整 possession transcript，Service 只签覆盖原件的 HTTP 请求。
-首 authorize 的 `authorized_generation_ref` MUST 等于受管 genesis 已写入的 PCR-local current generation；replacement／扩 scope 也只匹配现有 generation，不推进它。Station MUST 在同一锁定接纳 cut 核该 generation 的 accepted writer／Commit、最新 accepted PCR resolution 与普通 `expected_revision`／checkpoint CAS。缺 generation、generation 不符、不属于当前 accepted resolution 的 Principal key 或 CAS 冲突均零写入，不能用 payload 自报值或 Service epoch 补足。
-Station 先核 accepted provision／PCR resolution 与 full Account／Service provenance，再按原 native control、授权者、
-期限、scope、possession、current/CAS 合同接纳；不能用 Service 签名代替 Principal 或候选 Device 签名。
-替换／扩 scope Device authorization 仍须独立合法本 scope 安装与当前许可；最小撤销／identity 维护不因业务 scope 全部撤销而死锁。
-该控制例外不读取群内容或任意 private PCR、不恢复安装、创建身份、human recovery或其它业务；Service 当前 DID/key
-验证仍 fail closed，历史 registration 只证明 provenance，不把旧 key 变成当前 key。
-Service 原签业务 child 单独按 managed-governance §4 验真实 parent／current installation／role；HTTP Service 认证不填补授权。
-Service 撤自己的 child 要逐字匹配原 issuer、accepted terminal child、managed provenance及 current revision；允许收权不授一般 revoke 能力。
-所有另外的 submit branch、其它 Account／Service／PCR 或主体代签都拒绝；普通 Device／SessionGrant 分支不变。
-
-### 18.3 MLS、历史与附件闭环
-
-具体Bot／Ghost先按membership/JoinPolicy和独立E2EE同意加入，自己PCR后继授权受限Device并发布KeyPackage。
-KeyPackage upload/revoke/claim/query/consume沿已有签名DTO和claim ledger；scope/current安装、recipient与设备绑定不能省略。
-合法committer验证signed roster、Add授权／claim并提交完整MlsCommitSubmission，不能用裸Eventpush替代Welcome/receipt提交。
-BotDevice通过自己的durable Device queue读取完整Welcome，验recipient Actor/Device、claim、Genesis GroupInfo/tree和accepted Commit；
-推进并持久化正确group/epoch及claim receipt后才ACK/consume。列表和每个queue item均验该item实际scope的current资格，
-不能因为control queue在线就披露被撤销scope内容。ACK保持原幂等，不重新授予业务资格。
-
-本人 Device 的普通业务、MLS Commit 与已登记 aggregate 的历史验签来源共用
-[Account Device historical signer fact](../sync/server-trusted-results.md#account-device-historical-signer-delivery-normative)。
-治理原接纳事务从真实 accepted provision/PCR/Device authorize 冻结原授权坐标、revision/generation、
-公钥与 source time，由原 Commit 承诺并原子保存；不借 Human／Service 来源，不取 current key 回填历史。
-仅对合法 exact Full recipient 披露最小历史 metadata，不开放私有 PCR 正文或目录；以后 key／scope
-撤销不改写已接纳历史，新业务和新交付仍分别重验 current。
-
-Event/Commit sync、snapshot、signer verification dependencies、signed roster/group material与Blob操作使用同一Device认证，
-本Station需要远端权威材料时沿原peer供应与新交付屏障；客户端不直接冒充peer Service。
-每项仍验current Applet上界、membership/history、设备scope及治理，内容读parent映射见managed-governance§4。
-附件按现有content-key/MLS Exporter合同取得合法密文与descriptor，再本地解密；Service不得默认补发明文或群secret。
-Bot承担committer时同样须有实际commit权限与完整MLS提交，allowlist不产生该权限。
-
-### 18.4 多scope与生命周期
-
-provision保留最初创建来源，但设备和业务资格不再全局跟随创建install。
-每次请求按实际scope当前安装／grant／Policy／membership及Device授权求交；撤A不误撤B，B也不补齐A。
-Device扩scope必须原主体通过普通replacement authorize及完整possession proof，不能由Service改metadata扩权。
-主体停用使用该Account原有lifecycle/status current；Service不得借managed关系取得human recovery权。
-身份与合法控制/撤销的最小材料保留；无active安装时新的群业务/MLS材料都拒绝。
-future fence立即生效，密码学Remove另行推进，不能声称撤销擦除先前交付的secret。
 
 <!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.applet_managed_device.v1 -->
-
-`@method`, `@target-uri`, `@authority`, `arkret-operation`, `arkret-managed-device`, `destination-service-id`, `content-digest`, `idempotency-key`。body有则content-digest，有幂等键则idempotency-key；签名参数与时窗沿canonical common contract。
-
+- `@method`、`@target-uri`、`@authority`、`arkret-operation`
+- `arkret-managed-device`、`destination-service-id`
+- `content-digest`（有 body 时）、`idempotency-key`（操作使用时）
 <!-- END ak-http-signature-covered-set -->
 
-Bot preview/provision 输入及输出与 Ghost 平行，使用独立 request_id，不接受 external_ref；字段权威为 applet-bot-operations.schema.json。
-`ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 同时核验 Bot/Ghost 创建 grant 的 exact Service subject 与已登记 admin issuer 规则。
-
-原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。
-
-## 19. 账号 Station、远端配置与随操作来源
-
-跨站配置／来源／审批按[Applet账号来源](./applet-management-source.md)执行：S合法创建，B按实际join／publish准入；
-C可兼任S，但Station与runtime职责及私钥独立。Service child的subject来源、review来源及B→S有限Device scope确认
-均为限定操作附件，不增加身份预登记，不改变§9.1原四Event或§12独立E2EE。
+`ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 约束 Service 业务 parent 和 Realm 主体 terminal child 的真实能力链，不以安装或创建许可替代业务能力。

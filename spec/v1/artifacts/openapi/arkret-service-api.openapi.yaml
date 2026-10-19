@@ -304,6 +304,12 @@ components:
         management APIs outside the Arkret protocol namespace.
 
         '
+    realmActorControlMetadata:
+      type: apiKey
+      in: header
+      name: Arkret-Realm-Actor-Control
+      x-arkret-metadata-schema-ref: ../schemas/realm-actor.schema.json#/$defs/control_http_metadata
+      description: base64url_no_pad(JCS) metadata defined by realm-actor.schema.json control_http_metadata; current subject method signature required.
     managedDeviceMetadata:
       type: apiKey
       in: header
@@ -628,10 +634,6 @@ components:
       $ref: ../schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
-    GhostActorProvisionOutcome:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
-    GhostActorProvisionRequestBody:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
     GhostPreviewOutcome:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome
     GhostPreviewRequestBody:
@@ -1963,6 +1965,10 @@ paths:
       - httpMessageSignature: []
         managedDeviceMetadata: []
         destinationServiceId: []
+      - httpMessageSignature: []
+        realmActorControlMetadata: []
+        destinationServiceId: []
+        contentDigest: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
@@ -7358,6 +7364,16 @@ paths:
           type: string
           const: ak.edge.applet.third_party_users.read.list.v1
       - in: query
+        name: applet_id
+        required: true
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
+      - in: query
+        name: realm_id
+        required: true
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
+      - in: query
         name: protocol
         required: true
         schema:
@@ -7371,7 +7387,7 @@ paths:
           minLength: 1
       - in: query
         name: instance_id
-        required: false
+        required: true
         schema:
           type: string
           minLength: 1
@@ -7552,71 +7568,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GhostPreviewRequestBody'
-  /_arkret/self/applets/{applet_id}/ghosts/provision:
-    post:
-      operationId: ak.self.applet.ghost.command.provision
-      summary: Provision an Applet-managed Ghost Actor for one external user.
-      description: 'Called by an installed bridge Applet (authenticating as its service DID)
-
-        to provision, or idempotently re-validate, an Applet-managed Ghost Actor
-
-        for one immutable `external_ref.{protocol,instance_id,external_id}` tuple.
-
-        The caller supplies the exact Station-signed authoring request
-
-        and role-neutral Applet-authored managed-actor bundle. The server MUST
-
-        validate their exact active registration, authority pair, grant, actor
-
-        namespace and initial-resolution bindings, then commit all four Events
-
-        and the durable record atomically; it MUST NOT mint or reconstruct caller
-
-        proofs. Re-provisioning the same `(applet_id, external_ref.protocol,
-
-        external_ref.instance_id, external_ref.external_id)` MUST return the
-
-        existing refs instead of creating a duplicate.
-
-        '
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.applet.ghost.command.provision.v1
-      - in: path
-        name: applet_id
-        required: true
-        schema:
-          type: string
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-      responses:
-        '200':
-          description: Ghost Actor provisioned (or existing refs re-confirmed)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GhostActorProvisionOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GhostActorProvisionRequestBody'
   /_arkret/self/applets/{applet_id}/revoke:
     post:
       operationId: ak.self.applet.command.revoke
@@ -9929,46 +9880,6 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body
-  /_arkret/self/applets/{applet_id}/bots/provision:
-    post:
-      operationId: ak.self.applet.bot.command.provision
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.applet.bot.command.provision.v1
-      - name: applet_id
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: Idempotency-Key
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Exact registered outcome
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body
   /_arkret/self/applets/{applet_id}/authority/material:
     post:
       operationId: ak.self.applet.authority.read.material
@@ -10324,3 +10235,43 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome
+
+  /_arkret/self/realm-actors/material:
+    post:
+      operationId: ak.self.realm_actor.read.material
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_actor.read.material.v1
+      security:
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+        contentDigest: []
+      - httpMessageSignature: []
+        realmActorControlMetadata: []
+        destinationServiceId: []
+        contentDigest: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/realm-actor-material.schema.json#/$defs/request
+      responses:
+        '200':
+          description: Exact same-cut signed Realm actor material
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/realm-actor-material.schema.json#/$defs/outcome

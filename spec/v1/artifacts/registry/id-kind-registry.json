@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.1",
+  "version": "2026-10-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-10-19T23:17:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -907,5 +907,33 @@
       "updated_at"
     ]
   },
-  "metadata_authority": "contract_registry_section"
+  "metadata_authority": "contract_registry_section",
+  "composite_identity_contract": {
+    "account_id": {
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/account_id",
+      "components": [
+        "principal_id",
+        "station_id"
+      ],
+      "authority": "permanently_bound_station"
+    },
+    "realm_actor_id": {
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/realm_actor_id",
+      "components": [
+        "realm_id",
+        "principal_id"
+      ],
+      "authority": "owning_realm_current_governor"
+    },
+    "actor_id": {
+      "schema_ref": "schemas/common-ids.schema.json#/$defs/actor_id",
+      "equality": "full_tagged_canonical_object",
+      "variants": [
+        "account",
+        "service",
+        "realm"
+      ]
+    },
+    "string_aliases": "forbidden"
+  }
 }

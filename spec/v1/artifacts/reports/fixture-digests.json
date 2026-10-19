@@ -52,18 +52,18 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
-      "sha256": "3cd0094794482ae1cf8077326057a4613fb3c04166727baabf2043f810e3b6ca",
-      "version": "2026-10-16.1"
+      "sha256": "77766d2a4117f52cf1f4b2e70cc9c7df43517f2e8febb0a289bb757cd9eedac8",
+      "version": "2026-10-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "7946e3c41eb539e57355cc3ae68d6e72104f7b399ddea2ae3d13e73d045c418c",
-      "version": "2026-10-14.3"
+      "sha256": "c4308f168821ba5649eb66ca52d6f5b81c9f70093f4bcb87af3a98395bef0dea",
+      "version": "2026-10-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-management-source-fixture.json",
-      "sha256": "a5f1baf4a43eebd0b7ced169a7baba67722987fc61ae8ae43b78a77edb5af608",
-      "version": "2026-10-19.2"
+      "sha256": "e051171164ffb8c92b066d988263c894da445298f62c5130739d11de02e0b7c9",
+      "version": "2026-10-19.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -391,14 +391,9 @@
       "version": "2026-07-28"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/managed-forward-provenance-fixture.json",
-      "sha256": "12c3886c2e6001a57fae22b4aa30123aa6035173bd893c2207682997523ae427",
-      "version": "2026-10-18.1"
-    },
-    {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-      "sha256": "4870e29330d9a6d039d5fe830a4979c551dfd9f468346fd0e227638544b09cf2",
-      "version": "2026-10-09"
+      "sha256": "640c1a0bb8654dfdb28b02afc1756af955e5f28f5e0f918ca6a0db7fad335b6f",
+      "version": "2026-10-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
@@ -467,13 +462,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "0c23078501616c2205d8f8173004068db79ee499a4af71e0cb38e6d572416de2",
-      "version": 11
+      "sha256": "e17ebe1f85ed3a02374f398c394bdf1d15022edd9ed5bfd9b1754d129a9686d0",
+      "version": 12
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
-      "sha256": "41563fec4c869dca6f74cf546874c646c25571dd5c7ee08b748ccafb37c51e77",
-      "version": "2026-10-18.2"
+      "sha256": "0afeff4bc918057bdc38327aeb28579e77a4c8f2a057acf06b13ddf8415f0d6d",
+      "version": "2026-10-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
@@ -528,6 +523,11 @@
     {
       "path": "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json",
       "sha256": "8a37e6f0343cbea05007d3fe7054664cf81433d4746b85db5aaa08feedcacea7",
+      "version": "2026-10-19.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
+      "sha256": "dd9116540b84922ce4c8991a316280dbad343115d1b78bf6eaaaea122c3a82a9",
       "version": "2026-10-19.1"
     },
     {

@@ -100,9 +100,21 @@
         },
         "not": {
           "anyOf": [
-            {"required": ["authorizing_device_id"]},
-            {"required": ["revoke_proposal"]},
-            {"required": ["revoke_command_outcome"]}
+            {
+              "required": [
+                "authorizing_device_id"
+              ]
+            },
+            {
+              "required": [
+                "revoke_proposal"
+              ]
+            },
+            {
+              "required": [
+                "revoke_command_outcome"
+              ]
+            }
           ]
         },
         "allOf": [
@@ -204,58 +216,72 @@
             }
           },
           "revoke_command_outcome": {
-            "properties": {"result": {"const": "accepted"}}
+            "properties": {
+              "result": {
+                "const": "accepted"
+              }
+            }
           }
         },
-        "required": ["revoke_command_outcome"]
+        "required": [
+          "revoke_command_outcome"
+        ]
       }
     },
     {
-      "if": {"required": ["revoke_command_outcome"]},
-      "then": {"required": ["revoke_proposal"]}
-    },
-    {
-      "if": {"required": ["revoke_proposal", "terminal_outcome"]},
-      "then": {"required": ["revoke_command_outcome"]}
+      "if": {
+        "required": [
+          "revoke_command_outcome"
+        ]
+      },
+      "then": {
+        "required": [
+          "revoke_proposal"
+        ]
+      }
     },
     {
       "if": {
-        "required": ["revoke_proposal", "terminal_outcome"],
+        "required": [
+          "revoke_proposal",
+          "terminal_outcome"
+        ]
+      },
+      "then": {
+        "required": [
+          "revoke_command_outcome"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "terminal_outcome",
+          "revoke_proposal"
+        ],
         "properties": {
           "terminal_outcome": {
-            "properties": {"outcome": {"enum": ["aborted", "expired"]}},
-            "required": ["outcome"]
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "aborted",
+                  "expired"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
           }
         }
       },
       "then": {
         "properties": {
           "revoke_command_outcome": {
-            "properties": {"result": {"const": "rejected"}}
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": ["revoke_command_outcome"],
-        "properties": {
-          "revoke_command_outcome": {
-            "required": ["result"],
-            "properties": {"result": {"const": "accepted"}}
-          }
-        }
-      },
-      "then": {"properties": {"accepted_steps": {"minItems": 1}}},
-      "else": {
-        "if": {"required": ["revoke_command_outcome"]},
-        "then": {
-          "required": ["terminal_outcome"],
-          "properties": {
-            "accepted_steps": {"maxItems": 0},
-            "terminal_outcome": {
-              "required": ["outcome"],
-              "properties": {"outcome": {"enum": ["aborted", "expired"]}}
+            "properties": {
+              "result": {
+                "const": "rejected"
+              }
             }
           }
         }
@@ -263,17 +289,87 @@
     },
     {
       "if": {
-        "required": ["kind", "accepted_steps"],
+        "required": [
+          "revoke_command_outcome"
+        ],
         "properties": {
-          "kind": {"const": "security_rotation"},
-          "accepted_steps": {"minItems": 1}
+          "revoke_command_outcome": {
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "result": {
+                "const": "accepted"
+              }
+            }
+          }
         }
       },
       "then": {
-        "required": ["revoke_proposal", "revoke_command_outcome"],
+        "properties": {
+          "accepted_steps": {
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "required": [
+            "revoke_command_outcome"
+          ]
+        },
+        "then": {
+          "required": [
+            "terminal_outcome"
+          ],
+          "properties": {
+            "accepted_steps": {
+              "maxItems": 0
+            },
+            "terminal_outcome": {
+              "required": [
+                "outcome"
+              ],
+              "properties": {
+                "outcome": {
+                  "enum": [
+                    "aborted",
+                    "expired"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind",
+          "accepted_steps"
+        ],
+        "properties": {
+          "kind": {
+            "const": "security_rotation"
+          },
+          "accepted_steps": {
+            "minItems": 1
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "revoke_command_outcome",
+          "revoke_proposal"
+        ],
         "properties": {
           "revoke_command_outcome": {
-            "properties": {"result": {"const": "accepted"}}
+            "properties": {
+              "result": {
+                "const": "accepted"
+              }
+            }
           }
         }
       }
@@ -283,21 +379,45 @@
   "$defs": {
     "revoke_command_outcome": {
       "type": "object",
-      "required": ["proposal_event_id", "covering_commit_id", "result", "decided_at"],
+      "required": [
+        "proposal_event_id",
+        "covering_commit_id",
+        "result",
+        "decided_at"
+      ],
       "properties": {
-        "proposal_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "covering_commit_id": {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"},
-        "result": {"type": "string", "enum": ["accepted", "rejected"]},
-        "decided_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
+        "proposal_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "covering_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "rejected"
+          ]
+        },
+        "decided_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "revoke_proposal": {
       "type": "object",
-      "required": ["proposal_event_id", "covering_commit_id"],
+      "required": [
+        "proposal_event_id",
+        "covering_commit_id"
+      ],
       "properties": {
-        "proposal_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "covering_commit_id": {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"}
+        "proposal_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "covering_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        }
       },
       "additionalProperties": false
     },
@@ -433,7 +553,9 @@
           "minItems": 1,
           "maxItems": 512,
           "uniqueItems": true,
-          "items": {"$ref": "./key-backup.schema.json"},
+          "items": {
+            "$ref": "./key-backup.schema.json"
+          },
           "description": "Complete signed KeyBackup envelopes in canonical ascending backup_id order, with distinct IDs. Each envelope's backup_id and ciphertext_digest MUST equal the corresponding binding.new_backups entry; signatures and ciphertext digests MUST be verified."
         },
         "active_series_unit": {
@@ -480,8 +602,12 @@
         },
         "output_ref": {
           "oneOf": [
-            {"$ref": "#/$defs/receipt_id"},
-            {"$ref": "#/$defs/sha256_digest"}
+            {
+              "$ref": "#/$defs/receipt_id"
+            },
+            {
+              "$ref": "#/$defs/sha256_digest"
+            }
           ],
           "description": "Exact echo of prepared_plan.binding.terminal_receipt_id for commit_recovery_unit or prepared_plan.local_commit_digest for local_commit. The verifier MUST compare the value against the selected transaction's closed plan."
         },

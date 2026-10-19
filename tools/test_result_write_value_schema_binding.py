@@ -336,7 +336,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         """Zero baseline, stated as its own assertion: the closure describes
         what is registered rather than a grammar nobody uses. `const` joined
         `field` and `envelope_field` for the release write, and only as the
-        literal null, so both halves are asserted here."""
+        literal null or the two Realm actor initial active gates, so the exceptions are asserted exactly."""
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
         seen = 0
         for row in registry["event_kinds"]:
@@ -351,7 +351,11 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
                         list(value),
                     )
                     if "const" in value:
-                        self.assertIsNone(value["const"])
+                        if row["event_kind"] == "ak.realm.actor.create":
+                            self.assertEqual(write["result_family"],"realm_actor_status")
+                            self.assertEqual(value["const"],"active")
+                        else:
+                            self.assertIsNone(value["const"])
         self.assertGreater(seen, 0)
 
     def test_a_value_naming_two_sources_is_reported(self) -> None:

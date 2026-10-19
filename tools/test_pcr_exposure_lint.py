@@ -315,7 +315,7 @@ class PcrPrivateContractTest(unittest.TestCase):
         self.assertEqual(len(rules), 1)
         rule = rules[0]
         validator = self.validator_type(rule)
-        for purpose in ("principal_control", "agent_control", "applet_managed_control", "collaboration"):
+        for purpose in ("principal_control", "agent_control", "collaboration"):
             request = {"authority_bundle": {"genesis_event": {"payload": {"object": {"purpose": purpose}}}}, "handoff": {}}
             self.assertEqual(validator.is_valid(request), purpose == "collaboration")
             request["pcr_private_state"] = {}

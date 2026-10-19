@@ -833,7 +833,8 @@ Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完�
 字段语义：
 
 - `kind`（必填）：`const("mention")` 节点判别器。
-- `subject_account_id`（必填）：被 mention 主体的完整 `AccountId`（`principal_id` + `station_id`）。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准，比较 MUST 覆盖两个分量。
+- `subject_account_id`（普通账号分支必填）：被 mention 主体的完整 `AccountId`（`principal_id` + `station_id`）。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准，比较 MUST 覆盖两个分量。
+- `subject_actor_id`（Realm Bot／Ghost 分支必填）：完整 realm ActorId；与 subject_account_id 互斥，禁止 handle／Agent selector 审计字段。目标必须属于消息所在 Realm；只用获准 Profile 显示名或带降级标识的历史名称，不进入全局 handle 查找。
 - `display_name_at_time`（可选）：发送时刻 subject 的 display name 快照；persistent snapshot 语义，写入后不再随 subject 改名而变化（反冒充护栏）。
 - `handle_at_time`（可选）：发送时刻的 canonical handle string；**仅** audit / debug / 全文搜索用途，**MUST NOT** 作为阅读侧主显示路径的当前 handle 来源。
 - `controller_subject_account_id`（可选）：已知目标 picker 所验证 controller 的完整 `AccountId` 快照；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_account_id`。
@@ -851,7 +852,8 @@ Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完�
 普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
 
 - 目标 actor 的 account 分支 MUST 逐字节等于结构化 mention 节点的 `subject_account_id`（`principal_id` 与 `station_id` 都相等），并且在 source Event 的 committed stream position 处拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。**同 principal 不同 Station 的账号 MUST NOT 命中**：只比较 principal 分量会把通知投递给另一个 Station 上的同名 principal 账号。
-- 同一 Message / revision 中重复出现同一 `subject_account_id` MUST 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
+- realm 分支目标 MUST 等于 subject_actor_id 的完整身份且属于消息 Realm；仍须满足原消息读取权与交付时当前授权门。
+- 同一 Message / revision 中按完整目标 ActorId 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
 - `ak.message.create` 可以产生 mention notification。`ak.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST NOT 通知，避免通过反复编辑制造重复提醒。

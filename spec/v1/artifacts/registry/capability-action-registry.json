@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.5",
+  "version": "2026-10-19.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T16:48:01+08:00",
+  "generated_at": "2026-10-19T23:29:29+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -39,30 +39,6 @@
         ]
       },
       {
-        "carrier_id": "applet_bot_provision.approval_signatures",
-        "carrier_class": "non_event_operation",
-        "operation_id": "ak.self.applet.bot.command.provision.v1",
-        "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
-        "carrier_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body/properties/approval_signatures",
-        "carrier_field": "approval_signatures",
-        "evidence_schema_ref": "schemas/approval-signature.schema.json",
-        "allowed_target_kinds": [
-          "operation"
-        ]
-      },
-      {
-        "carrier_id": "applet_ghost_provision.approval_signatures",
-        "carrier_class": "non_event_operation",
-        "operation_id": "ak.self.applet.ghost.command.provision.v1",
-        "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-        "carrier_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body/properties/approval_signatures",
-        "carrier_field": "approval_signatures",
-        "evidence_schema_ref": "schemas/approval-signature.schema.json",
-        "allowed_target_kinds": [
-          "operation"
-        ]
-      },
-      {
         "carrier_id": "applet_configuration.approval_signatures",
         "carrier_class": "non_event_operation",
         "operation_id": "ak.self.applet.configuration.command.submit.v1",
@@ -79,18 +55,6 @@
       "event_submission_carrier": "event_admission_submission.approval_signatures"
     },
     "action_overrides": [
-      {
-        "action": "ak.applet.bot.provision",
-        "eligibility_kind": "registered_operation_carrier",
-        "carrier_id": "applet_bot_provision.approval_signatures",
-        "approver_capability_action": "ak.realm.admin"
-      },
-      {
-        "action": "ak.applet.ghost.provision",
-        "eligibility_kind": "registered_operation_carrier",
-        "carrier_id": "applet_ghost_provision.approval_signatures",
-        "approver_capability_action": "ak.realm.admin"
-      },
       {
         "action": "ak.applet.configure",
         "eligibility_kind": "registered_operation_carrier",
@@ -113,7 +77,7 @@
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-    "applet_managed_self_join requires the candidate's actual accepted managed Bot/Ghost Account Device, actor equal to member_id, membership=join and the exact native Realm/Circle scope, with current provision/installation and original Device bounds. It is an additional management/governance gate, never an unconditional Circle action; ak.circle.member.add, parent membership and independent MLS consent remain separate.",
+    "applet_managed_self_join requires the candidate's actual accepted managed Bot/Ghost Realm Device, actor equal to member_id, membership=join and the exact native Realm/Circle scope, with accepted realm_actor identity, current manager/installation and original Device bounds. It is an additional management/governance gate, never an unconditional Circle action; ak.circle.member.add, parent membership and independent MLS consent remain separate.",
     "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant, except for a root_control_only or subject_only action, whose authority is the registered root-control or subject binding, and except for the subject-bound branches the owning section registers for that event kind (the invitee decline and the joined inviter self-cancel of ak.invite.cancel, zh/models/governance-objects.md section 5.3).",
     "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
@@ -260,15 +224,17 @@
       ],
       "required_evaluator_checks": [
         "active_applet_registration_exact",
-        "ghost_actor_namespace_match",
-        "ghost_managed_actor_provision_unit_atomic"
+        "realm_actor_creation_scope",
+        "realm_actor_candidate_and_controller_proof",
+        "realm_actor_creation_atomic",
+        "ghost_actor_namespace_match"
       ],
       "target_event_kinds": [
-        "ak.applet.managed_actor.provision"
+        "ak.realm.actor.create"
       ],
       "profile": "ak.profile.applet_bridge.v1",
       "event_mapping_kind": "operation_verb",
-      "notes": "Authorizes only actor_role=ghost ak.applet.managed_actor.provision inside the closed four-Event Ghost unit: provision, applet_managed_control PCR genesis, accountability grant and profile create. The conditional Event admission and operation validator require the exact active registration/grant/scope and atomic set."
+      "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
     },
     {
       "action": "ak.approval.vote",
@@ -1244,6 +1210,8 @@
         "ak.profile.update",
         "ak.reaction.add",
         "ak.reaction.remove",
+        "ak.realm.actor.manager.change",
+        "ak.realm.actor.status.set",
         "ak.realm.alias",
         "ak.realm.archive",
         "ak.realm.asset_privacy_policy",
@@ -1354,6 +1322,9 @@
         "ak.presence.broadcast",
         "ak.reaction.add",
         "ak.reaction.remove",
+        "ak.realm.actor.audit",
+        "ak.realm.actor.manage",
+        "ak.realm.actor.manager.change",
         "ak.realm.admin",
         "ak.realm.alias",
         "ak.realm.archive",
@@ -2094,14 +2065,16 @@
       ],
       "required_evaluator_checks": [
         "active_applet_registration_exact",
-        "bot_managed_actor_provision_unit_atomic"
+        "realm_actor_creation_scope",
+        "realm_actor_candidate_and_controller_proof",
+        "realm_actor_creation_atomic"
       ],
       "target_event_kinds": [
-        "ak.applet.managed_actor.provision"
+        "ak.realm.actor.create"
       ],
       "profile": "ak.profile.applet_service.v1",
       "event_mapping_kind": "operation_verb",
-      "notes": "Only actor_role=bot inside the exact post-install four-Event creation operation; creation does not authorize membership or business actions."
+      "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
     },
     {
       "action": "ak.agent.join",
@@ -2154,7 +2127,7 @@
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb",
-      "notes": "Additional managed Bot/Ghost self-join governance label for the original Account Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
+      "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
     },
     {
       "action": "ak.applet.configure",
@@ -2168,6 +2141,52 @@
       "profile": null,
       "event_mapping_kind": "non_event_surface",
       "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
+    },
+    {
+      "action": "ak.realm.actor.manage",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [
+        "ak.realm.actor.status.set"
+      ],
+      "event_mapping_kind": "operation_verb",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
+      "action": "ak.realm.actor.manager.change",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [
+        "ak.realm.actor.manager.change"
+      ],
+      "event_mapping_kind": "same_name",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
+      "action": "ak.realm.actor.audit",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [],
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
     }
   ],
   "event_mapping_kind_definitions": {

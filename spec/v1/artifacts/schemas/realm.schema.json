@@ -92,8 +92,7 @@
           "type": "string",
           "enum": [
             "principal_control",
-            "agent_control",
-            "applet_managed_control"
+            "agent_control"
           ],
           "description": "Projection of genesis purpose for the three identity-control classes. genesis purpose=collaboration and purpose=direct_conversation project no value here. Authorization MUST verify the genesis, never this field."
         },

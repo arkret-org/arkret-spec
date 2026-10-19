@@ -47,7 +47,7 @@ class AppletAuthoringProofSchemaTest(unittest.TestCase):
     def test_request_and_bundle_share_the_registered_identity_binding(self):
         contexts = json.loads((ARTIFACTS / "registry/proof-context-registry.json")
                               .read_text(encoding="utf-8"))["domain_separations"]
-        for definition in ("authoring_request", "managed_actor_bundle"):
+        for definition in ("authoring_request",):
             schema = self.schema["$defs"][definition]
             self.assertEqual(schema["properties"]["proof"]["$ref"], "#/$defs/managed_actor_proof")
             context = next(row for row in contexts if row["domain"] == schema["x-arkret-signature-domain"])

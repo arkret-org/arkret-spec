@@ -309,8 +309,8 @@
       },
       "then": {
         "required": [
-          "realm_id",
-          "constraints"
+          "constraints",
+          "realm_id"
         ],
         "properties": {
           "issuer_id": {

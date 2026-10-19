@@ -279,7 +279,7 @@ Human PCR MUST NOT 接纳 `ak.realm.governance_station.change`；旧方冻结／
 
 固定的是 Station DID core 身份，不是机器、进程、数据库、endpoint 或某一 signing key。同一 Station 的合法部署迁移、endpoint／key 更新仍按原身份与服务证据验证，不创建 handoff、不推进治理任期；账号认证、设备 current、pairing、session、recovery、KeyPackage 与 Consent 仍在 owning Station TCB 的同一权威边界内，可拆进程／库，但不能拆成第二个业务 writer。只比较 Account 字段仍不足以验证 Commit、当前设备或请求权限。Station 永久停止后的 Human Account／PCR 不跨站延续，见 [`account-lifecycle.md` §2](../identity/account-lifecycle.md#2-分层)。
 
-**其它主体保留共享 planned handoff。** Organization 必须证明 accepted organization-governed `delegated_pcr_genesis` 与独立组织权威；Agent 必须证明 accepted `agent_control` 创世及原 controller provision；Applet-managed Bot/Ghost 必须证明 accepted `applet_managed_control` 创世及原 managed provision。它们按本章原有当前 controller、generation/head CAS、旧方在线、完整冻结导入和双签门执行，不因非 Human 标签自动获准。完整 AccountId 的 `station_id` 仍是 hosting 身份，合法交接后可以不同于 PCR governor；初始同站 provision／唯一性约束不改写为任意远程 genesis。交接不更换 inception PCR ID、AccountId、既有 Event／Commit 或 MLS group，不递增 authority-root 委派代次，也不改变原 Grant／Revoke 的效力。普通 Collaboration／Direct Conversation 的共享 handoff 不受 Human 限制。机器合同为既有 PCR profile 的 `pcr_governance_policy`；allowlist 并集不是每种主体的接纳许可。
+**其它主体保留共享 planned handoff。** Organization 必须证明 accepted organization-governed `delegated_pcr_genesis` 与独立组织权威；Agent 必须证明 accepted `agent_control` 创世及原 controller provision。Realm Bot／Ghost 没有独立 PCR，其 realm_control 流、current、原签证据、审批与恢复 ledger 随所属 Realm 完整交接，按 [Realm 主体 §9](../extensions/realm-actors.md#9-治理交接与验收) 执行。Organization／Agent 按本章原有当前 controller、generation/head CAS、旧方在线、完整冻结导入和双签门执行，不因非 Human 标签自动获准。完整 AccountId 的 `station_id` 仍是 hosting 身份，合法交接后可以不同于 PCR governor；初始同站 provision／唯一性约束不改写为任意远程 genesis。交接不更换 inception PCR ID、AccountId、既有 Event／Commit 或 MLS group，不递增 authority-root 委派代次，也不改变原 Grant／Revoke 的效力。普通 Collaboration／Direct Conversation 的共享 handoff 不受 Human 限制。机器合同为既有 PCR profile 的 `pcr_governance_policy`；allowlist 并集不是每种主体的接纳许可。
 
 Human 的 PCR genesis／Commit／current assertion MUST NOT 经 `ak.open.realm_authority.read.bundle.v1` 公开披露；该入口按既有反枚举合同返回不可区分的 `not_found`。其原生私有验证仍核 accepted genesis、原签名与当前授权，不新增公共发现或 PCR 历史面。
 
@@ -307,7 +307,7 @@ Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-si
 
 ## Account Device signer fact commitment and transfer (Normative)
 
-原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；schema仅为旧原件解码允许缺省，新普通 Human／accepted Applet-managed Bot/Ghost Device 与 Applet Service 业务接纳 MUST 携带，其它 producer/PCR native 分支禁止。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合仅包含 Account Device fact 与 Service fact；原 Human Device 的字段、编码和摘要不变，受管 Device 按自身 accepted provenance 冻结同一 Account Device 形状。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
+原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；新普通 Human Account Device、Realm Device 与 Applet Service 业务接纳 MUST 携带；Realm 控制事件携私有 realm_control fact，其它既有 producer/PCR native 分支保持原规则。字段可省仅对应没有此类 signer fact 的协议分支，不提供旧版 Applet 身份兼容。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合仅包含 Account Device fact 与 Service fact；原 Human Device 的字段、编码和摘要不变，受管 Device 按自身 accepted provenance 冻结同一 Account Device 形状。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 
@@ -329,4 +329,4 @@ management_private_state（含realm_id、governance_generation、final_stream_he
 state_digest绑定完整冻结配置／review ledger、原intent／候选、来源／批准依据、终态／消费／quota／nonce与exact恢复结果
 的canonical私有导出；双方以实际完整导入／重新导出比较，缺项／未知保持不可激活，不只比较manifest。
 公开authority bundle只携加盐承诺，无manifest、私态或下载面。该增补不是PCR资格例外，不允许Human PCR handoff。
-旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§6](../extensions/applet-management-source.md#6-审批幂等与恢复)。
+旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§5](../extensions/applet-management-source.md#5-交接与完整性)。
