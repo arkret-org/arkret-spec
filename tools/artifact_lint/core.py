@@ -381,6 +381,10 @@ VALUE_PROJECTION_DERIVATIONS = {
     "realm_actor_resolution_projection",
     "realm_actor_profile_id",
     "realm_actor_profile_value",
+    "realm_actor_recovery_enabled",
+    "realm_actor_recovery_pending",
+    "realm_actor_recovered_control_method",
+    "realm_actor_current_control_method",
     # Call state section 4.3 derives the complete axis from frozen accepted
     # prestate, the accepted delta and its actual Commit. Historical issuer
     # keys come from independently verified original material, never payload.

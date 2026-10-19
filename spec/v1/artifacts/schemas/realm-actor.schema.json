@@ -70,7 +70,8 @@
         "method_history_evidence",
         "control_method_kid",
         "expires_at",
-        "control_signature"
+        "control_signature",
+        "recovery"
       ],
       "properties": {
         "schema": {
@@ -121,6 +122,22 @@
         },
         "control_signature": {
           "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_creation_signature"
+        },
+        "recovery": {
+          "type": "object",
+          "required": [
+            "kind",
+            "enabled"
+          ],
+          "properties": {
+            "kind": {
+              "const": "manager_native"
+            },
+            "enabled": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false,
@@ -167,7 +184,8 @@
         "initial_resolution",
         "method_history_evidence",
         "control_method_kid",
-        "expires_at"
+        "expires_at",
+        "recovery"
       ],
       "properties": {
         "schema": {
@@ -215,6 +233,22 @@
         },
         "external_ref": {
           "$ref": "#/$defs/ghost_external_tuple"
+        },
+        "recovery": {
+          "type": "object",
+          "required": [
+            "kind",
+            "enabled"
+          ],
+          "properties": {
+            "kind": {
+              "const": "manager_native"
+            },
+            "enabled": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false,
@@ -366,7 +400,9 @@
         "new_service_id",
         "new_registration_ref",
         "management_authorization_ref",
-        "new_service_signature"
+        "new_service_signature",
+        "next_resolution",
+        "method_history_evidence"
       ],
       "properties": {
         "expected_manager_revision": {
@@ -397,6 +433,12 @@
         },
         "new_service_signature": {
           "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_manager_acceptance_signature"
+        },
+        "next_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
         }
       },
       "additionalProperties": false
@@ -413,7 +455,9 @@
         "new_generation",
         "new_service_id",
         "new_registration_ref",
-        "management_authorization_ref"
+        "management_authorization_ref",
+        "next_resolution",
+        "method_history_evidence"
       ],
       "properties": {
         "actor_id": {
@@ -447,6 +491,12 @@
         },
         "management_authorization_ref": {
           "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "next_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
         }
       },
       "additionalProperties": false,
@@ -488,6 +538,302 @@
         }
       },
       "additionalProperties": false
+    },
+    "recovery_begin_payload": {
+      "type": "object",
+      "required": [
+        "target_actor_id",
+        "request_id",
+        "manager_ref",
+        "recovery_ref",
+        "expected_control_revision",
+        "expected_owner_status_revision",
+        "expected_governance_status_revision",
+        "expected_device_generation_revision",
+        "expected_generation",
+        "new_generation",
+        "replaces_recovery_ref",
+        "next_resolution",
+        "method_history_evidence",
+        "next_control_method_kid",
+        "expires_at",
+        "control_signature"
+      ],
+      "properties": {
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_owner_status_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_governance_status_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_generation_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "replaces_recovery_ref": {
+          "oneOf": [
+            {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        },
+        "method_history_evidence": {
+          "$ref": "#/$defs/webvh_recovery_plan"
+        },
+        "next_control_method_kid": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "control_signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_recovery_acceptance_signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_acceptance_transcript": {
+      "type": "object",
+      "required": [
+        "applet_id",
+        "service_id",
+        "payload_without_control_signature"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "payload_without_control_signature": {
+          "type": "object",
+          "required": [
+            "target_actor_id",
+            "request_id",
+            "manager_ref",
+            "recovery_ref",
+            "expected_control_revision",
+            "expected_owner_status_revision",
+            "expected_governance_status_revision",
+            "expected_device_generation_revision",
+            "expected_generation",
+            "new_generation",
+            "replaces_recovery_ref",
+            "next_resolution",
+            "method_history_evidence",
+            "next_control_method_kid",
+            "expires_at"
+          ],
+          "properties": {
+            "target_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+            },
+            "request_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22,128}$"
+            },
+            "manager_ref": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            },
+            "recovery_ref": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            },
+            "expected_control_revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            "expected_owner_status_revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            "expected_governance_status_revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            "expected_device_generation_revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            "expected_generation": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "new_generation": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "replaces_recovery_ref": {
+              "oneOf": [
+                {
+                  "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "next_resolution": {
+              "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+            },
+            "method_history_evidence": {
+              "$ref": "#/$defs/webvh_recovery_plan"
+            },
+            "next_control_method_kid": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "expires_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.realm_actor_recovery_acceptance_signature.v1"
+    },
+    "control_reset_payload": {
+      "type": "object",
+      "required": [
+        "target_actor_id",
+        "recovery_begin_ref",
+        "expected_recovery_revision",
+        "expected_manager_revision",
+        "expected_control_revision",
+        "expected_device_generation_revision",
+        "published_method_history_evidence"
+      ],
+      "properties": {
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "recovery_begin_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "expected_recovery_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_manager_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_device_generation_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "published_method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_set_payload": {
+      "type": "object",
+      "required": [
+        "target_actor_id",
+        "expected_recovery_revision",
+        "expected_manager_revision",
+        "enabled"
+      ],
+      "properties": {
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "expected_recovery_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "expected_manager_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_intent": {
+      "type": "object",
+      "required": [
+        "begin_ref",
+        "candidate_digest",
+        "manager_revision",
+        "control_revision",
+        "device_generation_ref"
+      ],
+      "properties": {
+        "begin_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "candidate_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "manager_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "control_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "device_generation_ref": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "webvh_recovery_plan": {
+      "type": "object",
+      "description": "Recovery-begin planning carrier only. Complete signed inception-to-target native log, with available witness records; all accepted-prefix witnesses remain mandatory. Missing witness records for unaccepted successor entries are allowed at begin only. No evidence receipt or claim of published currentness. Validate signatures, pre-rotation, accepted-prefix extension and exact next_resolution independently. Finish requires complete published webvh_method_history_evidence. Canonical size at most 1 MiB.",
+      "required": [
+        "log_entries",
+        "witness_records"
+      ],
+      "properties": {
+        "log_entries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Exact ordered native did:webvh entry objects from inception through the containing recovery.begin payload.next_resolution.version_id. Apply registered native parameter/proof rules and reject gaps, duplicates, surplus entries after that exact target, or a first entry other than inception. The separately supplied next_resolution commitments must independently recompute from this target."
+        },
+        "witness_records": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Available native witness records, unique by versionId. Accepted prefix must satisfy its witness policy; successor records may be absent until finish. Any supplied record must verify; no surplus or invalid records."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 1048576
     }
   },
   "$ref": "#/$defs/create_payload"

@@ -282,6 +282,9 @@
     },
     {
       "$ref": "#/$defs/realm_actor_profile_result"
+    },
+    {
+      "$ref": "#/$defs/realm_actor_recovery_result"
     }
   ],
   "$defs": {
@@ -5338,6 +5341,73 @@
         },
         "value": {
           "$ref": "#/$defs/realm_actor_profile_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_recovery_value": {
+      "type": "object",
+      "required": [
+        "kind",
+        "enabled",
+        "pending"
+      ],
+      "properties": {
+        "kind": {
+          "const": "manager_native"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "pending": {
+          "oneOf": [
+            {
+              "$ref": "./realm-actor.schema.json#/$defs/recovery_intent"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_recovery_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_recovery"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_actor_recovery_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_recovery_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_recovery_value"
         }
       },
       "additionalProperties": false

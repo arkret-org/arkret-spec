@@ -1492,3 +1492,7 @@ Realm Bot／Ghost 的 current、控制原件及 exact 结果只通过
 [Realm actor material](../extensions/realm-actors.md#8-exact-控制材料与历史验签)披露。
 不存在跨 Applet Account Station 的 source 包或 Device scope confirmation。
 原管理 Service 身份可作材料读取认证，不可替代主体控制方法或 Device 原签。
+
+### Realm 主体恢复的 generation 与安全收尾
+
+受管 Bot／Ghost 的 recovery.begin 按 [Realm 主体§10](../extensions/realm-actors.md) 在同一接受事务写入 owner paused、generation successor、pending 原件和完整旧 generation 设备／leaf 安全收尾库存。所有业务与交付入口立即 fence 旧代次；generation 本身不是 MLS Remove。治理方记录原授权实例、目标 group／leaf、proposal 与 terminal 引用，由实际有权 MLS 参与方提交真实 Remove／Update／Commit；完成前相应 group 不得宣告恢复 ready。不得复用已永久撤销 DeviceId、跳过新 PoP 或通过恢复解锁旧历史。当前 manager 可 exact 续跑，本人 Human SecurityRotationTransaction API 不适用于此分支。

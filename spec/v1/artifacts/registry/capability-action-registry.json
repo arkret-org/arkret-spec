@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.7",
+  "version": "2026-10-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:29:29+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1211,6 +1211,7 @@
         "ak.reaction.add",
         "ak.reaction.remove",
         "ak.realm.actor.manager.change",
+        "ak.realm.actor.recovery.set",
         "ak.realm.actor.status.set",
         "ak.realm.alias",
         "ak.realm.archive",
@@ -2153,7 +2154,8 @@
         "realm_actor_management_policy"
       ],
       "target_event_kinds": [
-        "ak.realm.actor.status.set"
+        "ak.realm.actor.status.set",
+        "ak.realm.actor.recovery.set"
       ],
       "event_mapping_kind": "operation_verb",
       "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."

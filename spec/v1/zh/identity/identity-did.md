@@ -1196,3 +1196,5 @@ Arkret v1 对 DID 实现要求如下：
 
 
 Applet Service、Bot、Ghost与controller保持独立身份；Service registration不保存默认Bot。managed主体验证与逐scope授权按 [managed governance](../authz/managed-governance.md) 执行。
+
+Applet Realm Bot／Ghost 的 DID 原生更新权由 Applet 的每主体隔离 update／next 材料证明；Realm accepted manager 与 recovery current 另行决定同身份恢复准入。日常 control 方法是文档声明的独立 key，Device key 不进 DID 文档；原生 key 不直接签控制或业务 Event。普通 Account／Organization／个人 Agent 的 root／PCR／恢复不改，见 [Realm 主体§10](../extensions/realm-actors.md)。

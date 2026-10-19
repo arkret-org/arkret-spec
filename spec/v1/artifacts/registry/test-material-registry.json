@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.3",
+  "version": "2026-10-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -1149,6 +1149,38 @@
       "sources": [
         "spec/v1/zh/identity/identity-did.md"
       ]
+    },
+    {
+      "value": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/did"
+    },
+    {
+      "value": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-0",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/0/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-1",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/1/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-2",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/2/state/verificationMethod/0/id"
     }
   ]
 }

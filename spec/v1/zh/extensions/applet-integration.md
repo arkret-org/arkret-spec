@@ -1060,3 +1060,5 @@ accepted 配置结果必须带真实创建 Commit；candidate、pending、unknow
 <!-- END ak-http-signature-covered-set -->
 
 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 约束 Service 业务 parent 和 Realm 主体 terminal child 的真实能力链，不以安装或创建许可替代业务能力。
+
+Applet 受管 Bot／Ghost 的持续同身份恢复由当前管理 Service、accepted recovery policy 与 DID 原生后继共同授权，见 [Realm 主体§10](../extensions/realm-actors.md)。普通创建许可不授予任意映射接管；恢复不重复申请创建，不产生新身份，恢复 current／pending／终态和安全收尾随原 Realm 交接。

@@ -36,6 +36,9 @@
         },
         {
           "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_recovery_selector"
         }
       ]
     },
@@ -162,6 +165,9 @@
                 },
                 {
                   "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_result"
+                },
+                {
+                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_recovery_result"
                 }
               ]
             }
@@ -265,6 +271,70 @@
                 }
               },
               "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "status",
+                "begin_ref",
+                "state",
+                "terminal_ref"
+              ],
+              "properties": {
+                "status": {
+                  "const": "recovery"
+                },
+                "begin_ref": {
+                  "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                },
+                "state": {
+                  "enum": [
+                    "pending",
+                    "completed",
+                    "cancelled",
+                    "superseded"
+                  ]
+                },
+                "terminal_ref": {
+                  "oneOf": [
+                    {
+                      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "state": {
+                        "const": "pending"
+                      }
+                    },
+                    "required": [
+                      "state"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "terminal_ref": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "terminal_ref": {
+                        "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }

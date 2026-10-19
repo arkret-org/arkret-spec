@@ -191,6 +191,20 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                 if not path.is_file() or path.suffix not in {".md", ".json", ".yaml", ".yml"}:
                     continue
                 text = path.read_text(encoding="utf-8")
+                if path.name in {"contract-registry.json", "event-kind-registry.json"}:
+                    document = json.loads(text)
+                    registry = document.get("event_kind_registry", document)
+                    for row in registry.get("event_kinds", []):
+                        if row.get("event_kind") != "ak.realm.actor.status.set":
+                            continue
+                        for write in row.get("result_writes", []):
+                            condition = write.get("condition")
+                            if write.get("result_family") == "realm_actor_recovery" and condition == {
+                                "kind": "field_equals", "field": "payload.state", "const": "retired"
+                            }:
+                                # Actor lifecycle, not a removed protocol registry status.
+                                condition["const"] = "actor_lifecycle_terminal"
+                    text = json.dumps(document, ensure_ascii=False)
                 for term in forbidden:
                     if term in {"retired", "退役"} and (path.name in {"realm-actors.md", "realm-actor.schema.json", "typed-current-result.schema.json", "managed-governance.md", "realm-actor-signature-kat-fixture.json"}):
                         continue

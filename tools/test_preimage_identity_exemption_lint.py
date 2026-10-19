@@ -143,15 +143,17 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         errors = self._run(json_mutations={ENVELOPE_SCHEMA_PATH: mutate})
         self.assertTrue(any("cannot declare no_event_identity" in error for error in errors), errors)
 
-    def test_pointer_closure_is_39_candidates_in_13_files(self) -> None:
+    def test_pointer_closure_includes_recovery_committed_event_refs(self) -> None:
         lint = Lint()
         candidates = lint_artifacts.preimage_reachable_properties(lint)
         self.assertEqual(lint.errors, [])
         # Owned authority, controller membership and other accepted payload
         # references remain in the closure. Withdrawn invocation references are absent;
         # Policy CAS and the private review request add no producer Event ID.
-        self.assertEqual(len(candidates), 39)
-        self.assertEqual(len({key[0] for key in candidates}), 13)
+        # Recovery binds already accepted manager/policy/begin Event coordinates.
+        self.assertIn(("authority-commit-operations.schema.json", "$.$defs.committed_event_ref.properties", "event_id"), candidates)
+        self.assertEqual(len(candidates), 40)
+        self.assertEqual(len({key[0] for key in candidates}), 14)
         self.assertFalse(any(key[0] == "approval-signature.schema.json" for key in candidates))
 
     def test_unreferenced_defs_sibling_is_not_walked(self) -> None:

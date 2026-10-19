@@ -1209,12 +1209,12 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
         )
 
     expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
-    realm_contexts = ["ak.realm_actor_" + name + "_signature.v1" for name in ("creation", "control_acceptance", "manager_acceptance", "material")]
+    realm_contexts = ["ak.realm_actor_" + name + "_signature.v1" for name in ("creation", "control_acceptance", "manager_acceptance", "material", "recovery_acceptance")]
     properties = signature_schema.get("properties")
     defs = signature_schema.get("$defs")
     enum = properties.get("context", {}).get("enum") if isinstance(properties, dict) else None
     if enum != expected_contexts + realm_contexts:
-        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain the six core plus four Realm actor detached-object contexts in canonical order")
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain the six core plus five Realm actor detached-object contexts in canonical order")
     if not isinstance(defs, dict) or set(defs) != {
         config["definition"] for config in DETACHED_SIGNATURE_CONTEXTS.values()
     } | {context.removeprefix("ak.").removesuffix(".v1") for context in realm_contexts}:
@@ -2074,7 +2074,8 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
         # would let a row carry protocol state no payload and no envelope
         # supplies, which is exactly the vocabulary this closure keeps out.
         realm_actor_initializer = value["const"] == "active" and ref.startswith("ak.realm.actor.create.result_writes[")
-        if value["const"] is not None and not realm_actor_initializer:
+        realm_actor_recovery_pause = value["const"] == "paused" and ref.startswith("ak.realm.actor.recovery.begin.result_writes[")
+        if value["const"] is not None and not (realm_actor_initializer or realm_actor_recovery_pause):
             lint.fail(
                 EVENT_KIND_REGISTRY,
                 f"{ref}.const may only be null; a whole value that is not read from the "
@@ -2854,8 +2855,8 @@ def _check_subject_component(
         return
     kind = component.get("kind")
     if kind == "literal":
-        if set(component) != {"kind", "value"} or event_kind != "ak.realm.actor.create" or component.get("value") not in {"governance", "owner"}:
-            lint.fail(EVENT_KIND_REGISTRY, f"{ref}: literal selector is restricted to the two Realm actor creation status gates")
+        if set(component) != {"kind", "value"} or not ((event_kind == "ak.realm.actor.create" and component.get("value") in {"governance", "owner"}) or (event_kind == "ak.realm.actor.recovery.begin" and component.get("value") == "owner")):
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref}: literal selector is restricted to Realm actor creation gates or recovery.begin owner pause")
         return
     if kind == "string_set_digest":
         lint_string_set_digest_component(

@@ -66,3 +66,5 @@ handoff 按 [Realm actors §9](./realm-actors.md#9-治理交接与验收)迁入�
 当前治理方可签本次材料响应，但这不使旧许可重新生效，也不授其主体控制权。
 
 `ak.vector.applet.management_source.v1` 继续覆盖配置签名、审批、重试、自动 Ghost 与候选/接纳分离；主体原生控制由 Realm actor 专项向量覆盖。
+
+Applet 受管 Bot／Ghost 的持续同身份恢复由当前管理 Service、accepted recovery policy 与 DID 原生后继共同授权，见 [Realm 主体§10](../extensions/realm-actors.md)。普通创建许可不授予任意映射接管；恢复不重复申请创建，不产生新身份，恢复 current／pending／终态和安全收尾随原 Realm 交接。

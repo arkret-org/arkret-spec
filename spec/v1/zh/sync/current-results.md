@@ -40,7 +40,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 
 每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
-- `realm_actor_identity`、`realm_actor_control`、`realm_actor_manager`、`realm_actor_status`、`realm_actor_device_generation`、`realm_actor_device_authorization`、`realm_actor_device_revocation_proposals`、`realm_actor_profile`：按完整 realm ActorId 和族内 selector 选择私有 current；只通过 Realm actor exact material 披露，不能使用普通成员基线或通用 current 读取。
+- `realm_actor_identity`、`realm_actor_control`、`realm_actor_manager`、`realm_actor_status`、`realm_actor_device_generation`、`realm_actor_device_authorization`、`realm_actor_device_revocation_proposals`、`realm_actor_profile`、`realm_actor_recovery`：按完整 realm ActorId 和族内 selector 选择私有 current；只通过 Realm actor exact material 披露，不能使用普通成员基线或通用 current 读取。
 - `realm_profile`：当前 Realm profile；
 - `calendar_schedule_source`：以 strand_id 选择与该 Strand current 同一 stream／revision 的最小日程来源与加密重建上下文，见 [Calendar §6](../models/calendar-event.md)；
 - 以下十四个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
@@ -406,3 +406,5 @@ current governance Station。
 重新同步；不得伪造默认值、让客户端从部分 Event 猜测结果或跨 stream 拼出虚假的全局顺序。
 
 当前结果不授予写权限。每次提交仍由治理 Station针对当前 capability、成员资格、policy、领域 revision 与 MLS 约束重新校验。
+
+Applet 受管 Bot／Ghost 的持续同身份恢复由当前管理 Service、accepted recovery policy 与 DID 原生后继共同授权，见 [Realm 主体§10](../extensions/realm-actors.md)。普通创建许可不授予任意映射接管；恢复不重复申请创建，不产生新身份，恢复 current／pending／终态和安全收尾随原 Realm 交接。

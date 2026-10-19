@@ -24,7 +24,8 @@
         "ak.realm_actor_creation_signature.v1",
         "ak.realm_actor_control_acceptance_signature.v1",
         "ak.realm_actor_manager_acceptance_signature.v1",
-        "ak.realm_actor_material_signature.v1"
+        "ak.realm_actor_material_signature.v1",
+        "ak.realm_actor_recovery_acceptance_signature.v1"
       ]
     },
     "signature_algorithm": {
@@ -184,6 +185,20 @@
           "properties": {
             "context": {
               "const": "ak.realm_actor_material_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "realm_actor_recovery_acceptance_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_actor_recovery_acceptance_signature.v1"
             }
           }
         }

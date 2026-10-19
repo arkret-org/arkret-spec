@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.4",
+  "version": "2026-10-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1881,6 +1881,38 @@
       "defined_in": "zh/extensions/realm-actors.md",
       "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/3",
       "unsigned_projection_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/unsigned_outcome"
+    },
+    {
+      "domain": "ak.realm_actor_recovery_acceptance_signature.v1",
+      "object_family": "realm_actor_recovery_acceptance_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-actor.schema.json#/$defs/recovery_acceptance_transcript",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_recovery_acceptance_signature"
+      ],
+      "signature_member": "control_signature",
+      "excluded_signature_members": [],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f7265636f766572795f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "New separate control key in the native recovery target, plus actual current manager Service Event and accepted recovery policy; frozen at begin acceptance.",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/4",
+      "unsigned_projection_schema_ref": "schemas/realm-actor.schema.json#/$defs/recovery_acceptance_transcript"
     }
   ]
 }

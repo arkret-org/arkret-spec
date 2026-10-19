@@ -17,9 +17,11 @@ def run_named_suite(fixture, catalog=None):
     events={x['event_kind']:x for x in catalog['event_kind_registry']['event_kinds']}
     writes=events['ak.realm.actor.create']['result_writes']
     families=[x['result_family'] for x in writes]
-    if families != ['realm_actor_identity','realm_actor_control','realm_actor_manager','realm_actor_device_generation','realm_actor_status','realm_actor_status']: errors.append('incorrect create effects')
+    if families != ['realm_actor_identity','realm_actor_control','realm_actor_manager','realm_actor_device_generation','realm_actor_status','realm_actor_status','realm_actor_recovery']: errors.append('incorrect create effects')
     generation=next((x for x in writes if x['result_family']=='realm_actor_device_generation'),None)
     if not generation or generation['result_projection'] != {'kind':'set','value_projection':{'kind':'object','members':[{'name':'current_device_generation_ref','literal':1}]}}: errors.append('generation must initialize to one')
+    recovery=next((x for x in writes if x['result_family']=='realm_actor_recovery'),None)
+    if not recovery or recovery['result_projection'] != {'kind':'set','value_projection':{'kind':'object','members':[{'name':'kind','literal':'manager_native'},{'name':'enabled','literal':True},{'name':'pending','literal':None}]}}: errors.append('recovery must initialize enabled with no pending intent')
     for kind in ['ak.device.authorize','ak.realm.actor.control.update','ak.realm.create']:
         if any(x['result_family']=='realm_actor_device_generation' for x in events[kind].get('result_writes',[])): errors.append(kind+' cannot reset Realm actor generation')
     return errors

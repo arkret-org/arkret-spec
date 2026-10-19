@@ -71,6 +71,8 @@ Human 的 PCR、设备／恢复策略、identity-resolution successor 与 KeyPac
 
 ### 3.1 Identity Root Key
 
+本节普通账号 root 的冷持有、禁止服务器托管及 PCR 签名白名单保持不变。Applet Realm Bot／Ghost 的独立 DID 更新 key 按 [Realm 主体§10](../extensions/realm-actors.md) 由 Applet 隔离保管，仅签原生日志；其日常 control／Device key 与 native update key 分离，不沿用 Human PCR root Event 权限。
+
 identity root key 表示 DID method 的初始与后继更新控制材料。对 Arkret v1 默认的 `did:webvh` principal，entry i 的 `updateKeys[0]` 是 `root_i` 公钥，`nextKeyHashes[0]` 是 `root_{i+1}` 公钥的哈希；它们不是同一把 key 的两个表示位置。pre-rotation 启用时，entry i+1 的 controller proof MUST 由 entry i+1 中当前 active 的 `root_{i+1}` 签发，并验证其公钥命中 entry i 的 `nextKeyHashes` 承诺。
 
 要求：
