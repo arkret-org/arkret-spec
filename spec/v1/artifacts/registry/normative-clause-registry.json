@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.3",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T06:03:01+08:00",
+  "generated_at": "2026-10-21T01:03:05+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -857,8 +857,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#4-applet-授权来源与持续上界",
-      "section_digest": "sha256:6a4f3f920054118cfc10b8953d7569f127178298567e6d8fd1be97ad4fd2a37a",
-      "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted Realm actor. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Realm actor child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Realm actor producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Realm must fail.",
+      "section_digest": "sha256:d67cf77c5714a2cf656ea26e8b154e6ece8dd111e85e4838153e1f10fcd5d20e",
+      "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted Realm actor. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Realm actor child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Realm actor producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Realm must fail. Service child grant and issuer revoke use the registered Applet transaction admission, not the self/events creation/recovery exception.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.applet.managed_governance.v1"

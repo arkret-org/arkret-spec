@@ -123,7 +123,7 @@ namespace、requested_scopes 与 `applet_authority` 绑定均不是业务转授�
 
 业务 parent **MUST** 有明确普通 `authority_control`，批准本 Applet 可接收下放的 `allowed_managed_actor_roles`，
 实际业务 actions/resources、期限、quota和审批要求；其 `applet_authority` 绑定 exact Applet／Service／registration epoch。
-Service 可通过既有 Event admission 原签 terminal child；Event.actor_id 与 grant issuer 都为该 Service，不携 executed_by。
+Service 通过 `ak.edge.applet.command.transaction.v1` 的既有 Event admission 原签 terminal child；Event.actor_id 与 grant issuer 都为该 Service，不携 executed_by。
 child subject **MUST** 是 accepted provision 属于本 Applet 的具体 Bot／Ghost完整 realm ActorId，并在批准 role与实际 scope内。
 `issuer_authority_refs.kind=grant` 指向真实有效parent；depth、roots、逐动作／资源贡献、全部约束收窄沿普通 lineage合同计算。
 child **MUST** 显式 `max_authority_depth=0`、`authority_regrant_allowed=false`；Service不能授予第三方或另一Applet的主体。
@@ -137,7 +137,7 @@ Service身份／historical signer证据沿 accepted registration与原签grant�
 没有普通控制、role许可、实际业务 action 或有效 parent均拒绝。创建 grant不能当message action的parent。
 
 parent revoke、期限、registration实例／epoch或相应scope安装失效即时使child ineffective，不逐个铸造child revoke。
-Service 可沿 self/events 的封闭原 issuer 分支原签撤销自己的 accepted terminal child，携 exact revision；业务 parent 已失效也不阻止合法收权，不赋一般 revoke 权。child revoke只影响自己；parent共享quota按原parent／constraint／Service／时间切片原子消耗，新增主体／设备／child不重置总额。
+Service 沿 `ak.edge.applet.command.transaction.v1` 的封闭原 issuer 准入原签撤销自己的 accepted terminal child，携 exact revision；业务 parent 已失效也不阻止合法收权，不赋一般 revoke 权。child revoke只影响自己；parent共享quota按原parent／constraint／Service／时间切片原子消耗，新增主体／设备／child不重置总额。
 所有 membership-derived reading、直接 grant、订阅、Blob、未来MLS材料及跨站新交付 **MUST** 继续受该managed主体的
 当前 Applet业务上界与安装fence限制；不能用另一许可入口绕过来源。
 普通成员读取不必另外创建child read grant，但上游须覆盖读取：Event／Commit／history、Welcome及MLS状态供给要求
