@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.3",
+  "version": "2026-10-20.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T04:37:07+08:00",
+  "generated_at": "2026-10-20T09:34:52+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2944,39 +2944,57 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "requester_account_id",
-          "purpose",
-          "relationship_basis",
-          "device_keys"
-        ],
-        "properties": [
-          "request_id",
-          "requester_account_id",
-          "purpose",
-          "relationship_basis",
-          "device_keys"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+            "schema_kind": null,
+            "required": [
+              "requester_account_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+            "schema_kind": null,
+            "required": [
+              "requester_actor_id"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "requester_account_id",
-          "device_keys"
-        ],
-        "properties": [
-          "request_id",
-          "requester_account_id",
-          "device_keys",
-          "device_generations",
-          "failures"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+            "schema_kind": null,
+            "required": [
+              "requester_account_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+            "schema_kind": null,
+            "required": [
+              "requester_actor_id"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       }
     },
     {

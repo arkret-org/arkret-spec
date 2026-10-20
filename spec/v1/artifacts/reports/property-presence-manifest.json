@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9971,
+    "total_properties": 9976,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2306,
+      "optional": 2312,
       "optional_defaulted": 48,
-      "required": 7098,
+      "required": 7096,
       "required_nullable": 319,
-      "tristate": 200
+      "tristate": 201
     },
-    "tristate_occurrences": 200,
-    "tristate_audit_targets": 158,
+    "tristate_occurrences": 201,
+    "tristate_audit_targets": 159,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 146,
+      "absent_null_equivalent": 147,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -139,6 +139,7 @@
     "keypackage-operations.schema.json/$defs/peer_keypackages_claim_unsigned_request/allOf/2/then/properties/target_device_ids",
     "keys-operations.schema.json/$defs/backup_metadata/properties/expires_at",
     "keys-operations.schema.json/$defs/backup_metadata/properties/supersedes_id",
+    "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis",
     "management-review-operations.schema.json/$defs/request/allOf/0/then/properties/target",
     "management-review-operations.schema.json/$defs/request/allOf/0/then/properties/target/properties/event",
     "management-review-operations.schema.json/$defs/request/allOf/1/then/properties/target",
@@ -1066,6 +1067,16 @@
       "instance_path": "/supersedes_id",
       "occurrences": [
         "/$defs/backup_metadata/properties/supersedes_id"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "/$defs/peer_keys_query_request_body",
+      "instance_path": "/relationship_basis",
+      "occurrences": [
+        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -8911,12 +8922,17 @@
         "/$defs/peer_keys_query_outcome/properties/device_keys": "required",
         "/$defs/peer_keys_query_outcome/properties/failures": "optional",
         "/$defs/peer_keys_query_outcome/properties/request_id": "required",
-        "/$defs/peer_keys_query_outcome/properties/requester_account_id": "required",
+        "/$defs/peer_keys_query_outcome/properties/requester_account_id": "optional",
+        "/$defs/peer_keys_query_outcome/properties/requester_actor_id": "optional",
+        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/purpose": "optional",
+        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis": "tristate",
+        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis/properties/kind": "optional",
         "/$defs/peer_keys_query_request_body/properties/device_keys": "required",
         "/$defs/peer_keys_query_request_body/properties/purpose": "required",
         "/$defs/peer_keys_query_request_body/properties/relationship_basis": "required",
         "/$defs/peer_keys_query_request_body/properties/request_id": "required",
-        "/$defs/peer_keys_query_request_body/properties/requester_account_id": "required",
+        "/$defs/peer_keys_query_request_body/properties/requester_account_id": "optional",
+        "/$defs/peer_keys_query_request_body/properties/requester_actor_id": "optional",
         "/$defs/peer_keys_relationship_basis/oneOf/0/properties/kind": "required",
         "/$defs/peer_keys_relationship_basis/oneOf/0/properties/realm_id": "required",
         "/$defs/peer_keys_relationship_basis/oneOf/1/properties/kind": "required",
@@ -8948,7 +8964,13 @@
         "/$defs/verified_device_projection/properties/device_status": "required",
         "/$defs/verified_device_projection/properties/expires_at": "required",
         "/$defs/verified_device_projection/properties/hpke_key": "required"
-      }
+      },
+      "conditionally_required": [
+        "/$defs/peer_keys_query_outcome/properties/requester_account_id",
+        "/$defs/peer_keys_query_outcome/properties/requester_actor_id",
+        "/$defs/peer_keys_query_request_body/properties/requester_account_id",
+        "/$defs/peer_keys_query_request_body/properties/requester_actor_id"
+      ]
     },
     "management-review-operations.schema.json": {
       "schema_ids": [

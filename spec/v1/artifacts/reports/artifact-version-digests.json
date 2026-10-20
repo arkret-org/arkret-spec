@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-20.4",
-      "generated_at": "2026-10-20T09:34:52+08:00",
-      "content_digest": "sha256:3d268b03f0f2bbba45344a34e87d780d34d7519617a736ede624a4b1e888aa0a"
+      "version": "2026-10-20.5",
+      "generated_at": "2026-10-20T20:38:40+08:00",
+      "content_digest": "sha256:3eb4970a560b6123b63502e220dc677fb2425071e25d69dafdaa23c553387b20"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -237,15 +237,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-20.7",
-      "generated_at": "2026-10-20T09:34:52+08:00",
-      "content_digest": "sha256:67dba5e47fac5a29b5e8c1e233ee305eba53314db4d286caad78db2518aad919"
+      "version": "2026-10-20.8",
+      "generated_at": "2026-10-20T09:34:53+08:00",
+      "content_digest": "sha256:6fa3935a5ebecd913af1e7734b2893968edcb893e9abf7945e0d406f7f0d265f"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-20.4",
-      "generated_at": "2026-10-20T09:34:52+08:00",
-      "content_digest": "sha256:b3ebbb2c29ab1031ed947eb6560a3494bd483f49de12b1e60bcb03bd1bed8a2f"
+      "version": "2026-10-20.5",
+      "generated_at": "2026-10-20T20:38:40+08:00",
+      "content_digest": "sha256:6c54903b63e37cfd1cd7a9a644062ef7e6e1b723f40cbd30fd3f62efa3cf9b0d"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 84,
-      "generated_at": "2026-10-20T14:34:14+08:00",
-      "content_digest": "sha256:9ac7370707e89ecc574c62a2017e14d3be3e0487579a911f9e2b9e1dae20320b"
+      "version": 85,
+      "generated_at": "2026-10-20T20:38:40+08:00",
+      "content_digest": "sha256:2812e69ab9a6e68aef35c606ea0ead74b5c713d9d54f26b13fd2c178388f25d6"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

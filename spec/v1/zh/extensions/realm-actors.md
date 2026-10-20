@@ -530,6 +530,12 @@ DirectConversation、Sidecar 和 realm_control。原 requester 签名与服务�
 Device key、授权实例、generation、双 gate、manager、当前安装／grant、成员／邀请条件与 Policy。
 同 Realm 并不自动授予读取、领取或加入权限。
 
+Realm requester 核验外站普通 Account Device 时，使用 device-lifecycle §8.2.1 的
+`ak.peer.keys.read.lookup.v1` Realm requester 分支，由当前治理站签服务请求；只允许同 Realm 的
+`mls_group_admission` 用途，目标仍为普通 Account Device。此扩展只闭合既有领取后的来源设备核验，
+不新增 Bot 专用 MLS 权限或人工审批。普通成员客户端与 Realm Device 均沿用既有
+`ak.mls.commit`、当前 membership 与 policy；MLS Add／Welcome 不替代成员准入或目标设备授权。
+
 Realm target 的领取 CAS 权威是该 Realm 当时的 current governor。它在领取成功事务中从已验证治理状态
 派生 `claim_authority_ref`，写入原 `peer_keypackage_claim_receipt` 并纳入现有 receipt 签名。
 该引用复用 RealmCommit.authority_ref 类型，不由 requester 自报；必须能通过原 governance genesis／change

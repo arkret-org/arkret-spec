@@ -807,31 +807,40 @@ peer 读取面交付。因此 v1 的
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `id:request` | required | 调用方 Station 为本次取材生成的稳定 id；destination 只用于关联与限速，不建立 durable ledger。 |
-| `requester_account_id` | `AccountId` | required | 发起查询的 exact 完整账号；其 `station_id` MUST 逐字等于已认证 `Source-Service-ID`。destination MUST NOT 从 principal 分量、路由或会话推断它。 |
+| `requester_account_id` | `AccountId` | conditional | 与 `requester_actor_id` 恰选一项；本分支为发起查询的 exact 完整账号，其 `station_id` MUST 逐字等于已认证 `Source-Service-ID`。destination MUST NOT 从 principal 分量、路由或会话推断它。 |
+| `requester_actor_id` | `ActorId(kind=realm)` | conditional | 与 `requester_account_id` 恰选一项，只允许完整 Realm ActorId。仅用于 `mls_group_admission`，且 relationship 必须是该 actor 所属 Realm 的 `realm_membership`。 |
 | `purpose` | `enum(e2ee_message_encryption, mls_group_admission, call_media)` | required | 本次取材的用途；destination 按用途独立判定授权，不得按最宽用途一次性放行。 |
 | `relationship_basis` | closed XOR | required | `{kind:"realm_membership", realm_id}` 或 `{kind:"contact"}`。 |
 | `device_keys` | `array` | required | closed `{account_id: AccountId, device_ids: device_id[]}` entries，1..16 项、每项 1..32 个 device；每个 `account_id.station_id` MUST 逐字等于已认证 `Destination-Service-ID`。 |
 
 完整 canonical 请求上限 64 KiB，完整响应上限 512 KiB；超界整体失败，不得截断或分页。响应为 closed
-`{request_id, requester_account_id, device_keys[], device_generations[]?, failures[]?}`，逐字回显请求的
-`request_id` 与 `requester_account_id`。本面的 device row 类型是 `peer_query_device_record`——origin 自签的
+`{request_id, requester_account_id?, requester_actor_id?, device_keys[], device_generations[]?, failures[]?}`，
+请求与响应的两个 requester 字段均必须恰选一项，显式 null、双填、漏填一律拒绝；响应逐字回显请求的
+`request_id` 与完整 requester 分支。本面的 device row 类型是 `peer_query_device_record`——origin 自签的
 `device_projection_attestation` 加 `signer_evidence_ref`，**不是**客户端面的 `query_device_record`；`failures[]`
 与 `device_generations[]` 的形态与 §8.2 逐字相同。
 
 destination MUST 在读取任何目标状态**之前**完成 transport 认证与 header/body 绑定，然后独立判定授权，
 MUST NOT 采信调用方自报的关系：
 
-- `realm_membership`：`requester_account_id` 与每个目标 `account_id` 在该 exact `realm_id` 上都是 destination
+- `realm_membership`：完整 requester ActorId（Account 分支投影为 account ActorId）与每个目标 `account_id` 在该 exact `realm_id` 上都是 destination
   自己 accepted 状态下的 current effective joined member。
 - `contact`：目标账号自己当前 effective 的对 `requester_account_id` 方向 Contact head 授予的 scope 满足本次
   `purpose`——`e2ee_message_encryption` 需 `direct_message`，`mls_group_admission` 需 `invite`，`call_media` 需
   `voice_call` 或 `video_call`。该分支 MUST NOT 要求存在共同 Realm；反过来，requester 单方面的 Contact 事实、
   历史成员身份、目录命中或 Consent quarantine 都不构成授权。
 
+Realm requester 分支的来源必须是该 Realm 经完整 authority bundle／连续交接链及 fresh current assertion
+验证的当前治理 Station；不能仅比较 RealmId、AppletId 或相信来源自报。来源治理方在发起前验证真实
+Realm Device、授权实例／generation、当前安装／grant、双 gate 与实际 Realm／Circle scope。
+MLS 执行仍只按既有 `ak.mls.commit`、membership 与 policy 规则；本分支不新增 Bot 专用权限、审批或角色。
+它不授予成员准入、目标设备授权或任何管理权。目标仍仅限普通 Account Device selectors，不开放 Realm
+Bot／Ghost 设备目录、私有控制流或 Contact／call 用途，不转发设备凭据。
+
 判定通过的每个 `(account_id, device_id)` 返回完整已签 `peer_query_device_record`。**未通过、目标不存在、不可见、已撤销、
 已 fence 或 policy 拒绝一律收敛为同一形态**：省略该 row 或写入 `reason_code=device_result_unavailable` 的
 `failures` 项；destination MUST NOT 用 HTTP 状态码、响应大小或 per-target reason 区分它们，并 MUST 对
-`(Source-Service-ID, requester_account_id)` 与 `(Source-Service-ID, target account_id)` 分别限速。transport
+`(Source-Service-ID, 完整 requester 分支)` 与 `(Source-Service-ID, target account_id)` 分别限速，不得按裸 principal 合并不同身份。transport
 认证失败在读取任何目标状态前返回通用 `unauthenticated` / `signature_invalid`，对任意 selector 完全相同。
 
 调用方 Station 对每条返回 row MUST 执行 §8.2 的四条验证；任一条不成立、peer 调用失败、超时、签名不可验证或
@@ -841,6 +850,11 @@ MUST NOT 采信调用方自报的关系：
 变化立即失效；迟到响应不得安装到另一个会话。destination 不对结果重新签名；调用方 Station 验签 origin 自己签的
 `device_projection_attestation` 之后，按 §8.2 第 2 条把它逐字投影成客户端面的 `device_projection`，并原样转交
 同一个 `signer_evidence_ref`，不得代签、重建或补造证据闭包，也不得把 attestation 或其 proof 交给客户端。
+
+Realm requester 的材料只用于这次 exact MLS 设备核验，不进入普通账号会话缓存。来源治理方必须将
+设备授权 Event 与实际 KeyPackage／LeafNode 签名 key 按 §9.2 精确绑定，最终交付前重核实际
+Realm Device／scope 的当前门及材料时限。治理交接后由已验证的新治理方重新认证，ActorId 不变；
+旧治理方不因历史身份继续取得此读取权，响应 requester 代换或材料不可验证均失败关闭。
 
 本操作 MUST NOT 恢复客户端 DID resolver、远端 attestation 历史重放或任何私有服务端 API；它也不披露 PCR
 genesis、authorization chain、RealmCommit 或目标的 Realm/Contact 清单。

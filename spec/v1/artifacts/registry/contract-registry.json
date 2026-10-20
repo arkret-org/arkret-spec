@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.4",
+  "version": "2026-10-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T09:34:52+08:00",
+  "generated_at": "2026-10-20T20:38:40+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -15386,7 +15386,7 @@
         "http": "POST /_arkret/peer/keys/query",
         "grpc": "PeerKeys/Query",
         "mq": "peer.keys.query.lookup",
-        "notes": "Station-to-Station device directory and published prekey-bundle read, the only registered carrier for a cross-Station keys/query target. requester_account_id.station_id equals the authenticated Source-Service-ID and every target account_id.station_id equals the Destination-Service-ID; no client SessionGrant, DPoP or local bearer is ever forwarded and clients never call this surface. The destination completes transport authentication before any target read, then re-derives the declared relationship from its own accepted state: realm_membership requires both parties to be current effective joined members of that exact Realm, while contact reads only the target's own current outbound Contact scope and never requires a shared Realm. Purpose is authorized independently. Absent, invisible, unrelated, revoked, fenced and policy-denied targets collapse into an omitted row or device_result_unavailable, rate limited per requester and per target. Rows carry the origin's own attestation and signer evidence ref; the destination adds no response signature. Request <=64 KiB with 1..16 accounts and 32 devices each; complete response <=512 KiB, no continuation. Cross-Station single-use material remains the MLS KeyPackage claim contract.",
+        "notes": "Station-to-Station device directory and published prekey-bundle read, the only registered carrier for a cross-Station keys/query target. The Account requester branch binds requester_account_id.station_id to the authenticated Source-Service-ID and every target account_id.station_id equals the Destination-Service-ID; no client SessionGrant, DPoP or local bearer is ever forwarded and clients never call this surface. The destination completes transport authentication before any target read, then re-derives the declared relationship from its own accepted state: realm_membership requires both parties to be current effective joined members of that exact Realm, while contact reads only the target's own current outbound Contact scope and never requires a shared Realm. Purpose is authorized independently. Absent, invisible, unrelated, revoked, fenced and policy-denied targets collapse into an omitted row or device_result_unavailable, rate limited per requester and per target. Rows carry the origin's own attestation and signer evidence ref; the destination adds no response signature. Request <=64 KiB with 1..16 accounts and 32 devices each; complete response <=512 KiB, no continuation. Cross-Station single-use material remains the MLS KeyPackage claim contract. Request and response carry exactly one of requester_account_id or requester_actor_id, rejecting null, absent and mixed branches. The Realm Actor requester branch is limited to mls_group_admission and realm_membership in its own Realm. The destination verifies the authenticated source against the complete fresh current governance chain and both accepted joined memberships. The source verifies the actual Realm Device and existing scope, installation, grant and lifecycle gates; the final delivery rechecks these gates and material expiry. Existing ak.mls.commit, membership and policy apply equally to ordinary clients and Realm actors; no Bot-specific permission or approval is added. Targets remain ordinary Account devices only; Realm device directories and control streams are never disclosed. The requester identity is echoed exactly and is included with the source in rate-limit keys.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "max_items": 16,
@@ -18500,8 +18500,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-20.4",
-    "generated_at": "2026-10-20T09:34:52+08:00",
+    "version": "2026-10-20.5",
+    "generated_at": "2026-10-20T20:38:40+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

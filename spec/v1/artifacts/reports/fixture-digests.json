@@ -372,8 +372,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "6cacecc293d5c3f08af4c2e70cdd834d6c09ae211a3958f3de7fe4d2a27e3299",
-      "version": "2026-09-26.1"
+      "sha256": "e5d8b29f29a016b4bbe6bc9e4daa1f9b939e6830aa851bafcdfdc2765dfc5609",
+      "version": "2026-10-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",

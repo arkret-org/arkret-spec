@@ -837,10 +837,9 @@
     },
     "peer_keys_query_request_body": {
       "type": "object",
-      "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract.",
+      "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract. Realm requester is restricted to MLS admission in its own Realm, with ordinary Account device targets only. The relationship realm_id MUST equal requester_actor_id.realm_actor_id.realm_id; current governor and both joined memberships are independently verified. Existing MLS capability, membership and policy rules remain unchanged.",
       "required": [
         "request_id",
-        "requester_account_id",
         "purpose",
         "relationship_basis",
         "device_keys"
@@ -854,6 +853,10 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Exact requesting account. Its station_id MUST equal the authenticated Source-Service-ID and MUST NOT be inferred from a principal component, route or session."
         },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor",
+          "description": "Exact Realm requester; mutually exclusive with requester_account_id. The authenticated source is its verified current governing Station. No Bot-specific MLS permission or approval is introduced."
+        },
         "purpose": {
           "$ref": "#/$defs/peer_keys_query_purpose"
         },
@@ -865,14 +868,58 @@
           "description": "Targets for this destination only: every account_id.station_id MUST equal the authenticated Destination-Service-ID."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "requester_account_id"
+          ],
+          "not": {
+            "required": [
+              "requester_actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "requester_actor_id"
+          ],
+          "not": {
+            "required": [
+              "requester_account_id"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "requester_actor_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "purpose": {
+                "const": "mls_group_admission"
+              },
+              "relationship_basis": {
+                "properties": {
+                  "kind": {
+                    "const": "realm_membership"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "peer_keys_query_outcome": {
       "type": "object",
-      "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing query_device_record.",
+      "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing query_device_record. Echo request_id and the complete mutually exclusive requester branch exactly.",
       "required": [
         "request_id",
-        "requester_account_id",
         "device_keys"
       ],
       "properties": {
@@ -882,6 +929,10 @@
         },
         "requester_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor",
+          "description": "Exact Realm requester; mutually exclusive with requester_account_id. The authenticated source is its verified current governing Station. No Bot-specific MLS permission or approval is introduced."
         },
         "device_keys": {
           "$ref": "#/$defs/peer_query_account_device_entries"
@@ -897,7 +948,29 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "requester_account_id"
+          ],
+          "not": {
+            "required": [
+              "requester_actor_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "requester_actor_id"
+          ],
+          "not": {
+            "required": [
+              "requester_account_id"
+            ]
+          }
+        }
+      ]
     },
     "keys_claim_request_body": {
       "type": "object",
