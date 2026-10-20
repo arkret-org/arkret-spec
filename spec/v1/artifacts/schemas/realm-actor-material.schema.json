@@ -243,6 +243,30 @@
       },
       "additionalProperties": false
     },
+    "device_revoke_outcome": {
+      "type": "object",
+      "required": ["status", "proposal_ref", "device_id", "authorization_ref", "authorized_generation_ref", "state", "decided_at"],
+      "properties": {
+        "status": { "const": "device_revoke" },
+        "proposal_ref": { "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref" },
+        "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
+        "authorization_ref": { "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref" },
+        "authorized_generation_ref": { "type": "integer", "minimum": 1 },
+        "state": { "enum": ["pending", "accepted", "rejected"] },
+        "decided_at": {
+          "oneOf": [
+            { "$ref": "./time.schema.json#/$defs/timestamp" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [{
+        "if": { "properties": { "state": { "const": "pending" } }, "required": ["state"] },
+        "then": { "properties": { "decided_at": { "type": "null" } } },
+        "else": { "properties": { "decided_at": { "$ref": "./time.schema.json#/$defs/timestamp" } } }
+      }]
+    },
     "outcome_record": {
       "type": "object",
       "required": [
@@ -255,6 +279,9 @@
         },
         "outcome": {
           "oneOf": [
+            {
+              "$ref": "#/$defs/device_revoke_outcome"
+            },
             {
               "$ref": "./authority-commit-operations.schema.json#/$defs/submit_outcome"
             },

@@ -10,6 +10,26 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_device_revoke_terminal_material_is_closed(self):
+        validator = self.validator("realm-actor-material", "#/$defs/outcome_record")
+        for state in ["pending", "accepted", "rejected"]:
+            outcome = {"status": "device_revoke", "proposal_ref": committed(4, 2),
+                       "device_id": "ak:device:00000000-0000-7000-8000-000000000001", "authorization_ref": committed(),
+                       "authorized_generation_ref": 1, "state": state,
+                       "decided_at": None if state == "pending" else "2026-10-20T00:00:00.000Z"}
+            value = {"target_request_digest": "sha256:" + "1" * 64, "outcome": outcome}
+            validator.validate(value)
+            for field in outcome:
+                bad = copy.deepcopy(value)
+                del bad["outcome"][field]
+                self.assertFalse(validator.is_valid(bad), field)
+            for field, invalid in [("decided_at", "2026-10-20T00:00:00.000Z" if state == "pending" else None),
+                                   ("authorized_generation_ref", 0), ("state", "committed"),
+                                   ("device_id", token("event")), ("extra", True)]:
+                bad = copy.deepcopy(value)
+                bad["outcome"][field] = invalid
+                self.assertFalse(validator.is_valid(bad), field)
+
     def test_account_peer_material_closed_carrier_and_signed_audience(self):
         schema = self.validator("realm-actor-material", "#/$defs/peer_request")
         request = {"actor_id": actor(), "purpose": "current", "request_nonce": "N" * 22,

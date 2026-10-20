@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9961,
+    "total_properties": 9971,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2305,
+      "optional": 2306,
       "optional_defaulted": 48,
-      "required": 7091,
-      "required_nullable": 318,
-      "tristate": 199
+      "required": 7098,
+      "required_nullable": 319,
+      "tristate": 200
     },
-    "tristate_occurrences": 199,
-    "tristate_audit_targets": 157,
+    "tristate_occurrences": 200,
+    "tristate_audit_targets": 158,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 145,
+      "absent_null_equivalent": 146,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -175,7 +175,8 @@
     "read-receipt.schema.json/properties/read_scope/allOf/3/then/properties/object_ref",
     "read-receipt.schema.json/properties/read_scope/allOf/4/then/properties/object_ref",
     "read-receipt.schema.json/properties/read_scope/allOf/5/then/properties/object_ref",
-    "realm-actor-material.schema.json/$defs/outcome_record/properties/outcome/oneOf/2/allOf/0/then/properties/terminal_ref",
+    "realm-actor-material.schema.json/$defs/device_revoke_outcome/allOf/0/then/properties/decided_at",
+    "realm-actor-material.schema.json/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/then/properties/terminal_ref",
     "realm-commit.schema.json/allOf/0/then/properties/previous_commit_ref",
     "realm-genesis.schema.json/allOf/2/then/properties/initial_resolution",
     "realm-genesis.schema.json/allOf/3/then/properties/initial_resolution",
@@ -1287,10 +1288,20 @@
     },
     {
       "schema_file": "realm-actor-material.schema.json",
+      "shape": "/$defs/device_revoke_outcome",
+      "instance_path": "/decided_at",
+      "occurrences": [
+        "/$defs/device_revoke_outcome/allOf/0/then/properties/decided_at"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "realm-actor-material.schema.json",
       "shape": "/$defs/outcome_record",
       "instance_path": "/outcome/terminal_ref",
       "occurrences": [
-        "/$defs/outcome_record/properties/outcome/oneOf/2/allOf/0/then/properties/terminal_ref"
+        "/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/then/properties/terminal_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -10293,6 +10304,16 @@
         "/$defs/current_entry/oneOf/1/properties/selector": "required",
         "/$defs/current_entry/oneOf/1/properties/status": "required",
         "/$defs/current_record/properties/entries": "required",
+        "/$defs/device_revoke_outcome/allOf/0/else/properties/decided_at": "optional",
+        "/$defs/device_revoke_outcome/allOf/0/if/properties/state": "required",
+        "/$defs/device_revoke_outcome/allOf/0/then/properties/decided_at": "tristate",
+        "/$defs/device_revoke_outcome/properties/authorization_ref": "required",
+        "/$defs/device_revoke_outcome/properties/authorized_generation_ref": "required",
+        "/$defs/device_revoke_outcome/properties/decided_at": "required_nullable",
+        "/$defs/device_revoke_outcome/properties/device_id": "required",
+        "/$defs/device_revoke_outcome/properties/proposal_ref": "required",
+        "/$defs/device_revoke_outcome/properties/state": "required",
+        "/$defs/device_revoke_outcome/properties/status": "required",
         "/$defs/event_record/properties/commit": "required",
         "/$defs/event_record/properties/event": "required",
         "/$defs/event_record/properties/producer_signer_fact": "required",
@@ -10318,14 +10339,14 @@
         "/$defs/outcome/properties/result": "required",
         "/$defs/outcome/properties/signature": "required",
         "/$defs/outcome_record/properties/outcome": "required",
-        "/$defs/outcome_record/properties/outcome/oneOf/1/properties/status": "required",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/allOf/0/else/properties/terminal_ref": "optional",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/allOf/0/if/properties/state": "required",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/allOf/0/then/properties/terminal_ref": "tristate",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/properties/begin_ref": "required",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/properties/state": "required",
         "/$defs/outcome_record/properties/outcome/oneOf/2/properties/status": "required",
-        "/$defs/outcome_record/properties/outcome/oneOf/2/properties/terminal_ref": "required_nullable",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/else/properties/terminal_ref": "optional",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/if/properties/state": "required",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/then/properties/terminal_ref": "tristate",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/properties/begin_ref": "required",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/properties/state": "required",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/properties/status": "required",
+        "/$defs/outcome_record/properties/outcome/oneOf/3/properties/terminal_ref": "required_nullable",
         "/$defs/outcome_record/properties/target_request_digest": "required",
         "/$defs/peer_request/properties/request": "required",
         "/$defs/peer_request/properties/requester_account_id": "required",

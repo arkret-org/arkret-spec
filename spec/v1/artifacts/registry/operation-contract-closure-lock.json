@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-20.6",
-  "generated_at": "2026-10-20T04:37:10+08:00",
+  "version": "2026-10-20.7",
+  "generated_at": "2026-10-20T09:34:52+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:6fb678cb46998da017b9195150b31fbeae47244bdb05b435df093f38fede3251"
+      "sha256": "sha256:8ba49b02079d8d95b40f405a55dd445ac9028f33a5beaba192f522458660284f"
     },
     {
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
@@ -317,7 +317,7 @@
     },
     {
       "operation_id": "ak.peer.realm_actor.read.material.v1",
-      "sha256": "sha256:e62aec23a10d913ee7e9eaad6bfecbb1482280cf51cc11d999d170c5ff1bd6c8"
+      "sha256": "sha256:4ddea60546bf38cc3347d4fe215a1ee96a085f3c36933f9ce1113a3bd21b9106"
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
@@ -845,7 +845,7 @@
     },
     {
       "operation_id": "ak.self.realm_actor.read.material.v1",
-      "sha256": "sha256:cd87c78c6be135760977dc61875065c79040199d489880381b1287731aeb4e16"
+      "sha256": "sha256:308624911411b31174ae2ed0f9048cf436806ef0f8068a11ed2a5ee7bc4791db"
     },
     {
       "operation_id": "ak.self.realm_join.command.prepare.v1",

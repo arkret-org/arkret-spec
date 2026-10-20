@@ -152,6 +152,13 @@ pairing challenge 或第二份主体字段。expires_at 必须有限非 null；�
 首 Device 不依赖尚不存在的 Device、child 或 membership。每次新授权仍逐 scope 验 active 安装和新增许可。
 永久撤销 DeviceId 不得重新授权，替换须新 DeviceId／key。revoke 仍创建真实 revocation_pending，
 由接纳事务导出 exact 授权实例与 generation，沿原 proposal／terminal 事务折叠；不能把 pending 当永久撤销。
+首次接纳 MUST 在同一事务保存原请求摘要、Event／Commit、signer fact、exact DeviceAuthorize 引用与原 generation、
+pending 命令 ledger、设备隔离与必要 MLS removal 意图。缺少完整 ledger 不是 pending，读取 MUST unavailable。
+当前治理方的撤销 worker MUST 锁内验证当前治理资格与原命令状态；每笔 proposal 的 terminal 只写一次，
+相同结果和坐标的 exact 重试返回原件，改变结果或原坐标 MUST conflict。
+accepted MUST 与永久撤销效果及必要收尾任务入账原子提交；它不表示所有异步 MLS Remove 已完成。
+rejected MUST 与明确终止该命令的记录原子提交，不得产生该命令的永久撤销或后继不可逆效果。
+拒绝不删除原提案，不清除其它提案的 pending／accepted，也不撤回独立 generation fence 或状态 gate。
 reset 仅 fence 旧 generation。控制 key 更新默认不撤 Device，需要时显式 reset。
 runtime 使用设备前必须核对原 Event／Commit、完整 actor、key、PoP、授权实例及自身持有的私钥。
 
@@ -260,6 +267,16 @@ current.entries 与请求 selector 一一同序、无遗漏无额外；每项为
 identity／control／manager／双 status／generation／recovery 创建后必有，缺项 fail closed。
 event 返回原 event、commit、producer_signer_fact，逐项校原 target 与签名；不声称提供全流证明。
 outcome 返回原 target_request_digest 与登记的真实结果；accepted 必有原 Commit，pending／unknown 不等于完成。
+Realm Device revoke 以原 self 请求摘要定位 closed `device_revoke` 结果，字段依次为
+`status="device_revoke"`、`proposal_ref`、`device_id`、`authorization_ref`、`authorized_generation_ref`、
+`state`、`decided_at`。两个 ref 都是同一 Realm 私有控制流的 CommittedEventRef；authorization 必须对应
+该主体、设备在 proposal 接纳时解析的原授权实例及正整数代次，不能由调用者自报。
+`state=pending|accepted|rejected`；pending 的 decided_at 必为 null，terminal 必为首次真实决定时间。
+proposal Commit 只证明登记，原 submit_outcome 的 committed／duplicate 不代表永久撤销。
+无已接纳申请才返回 unknown；已接纳但 ledger 缺失、来源不完整或相互冲突 MUST unavailable。
+既有外层签名继续绑定完整主体、Realm、治理任期、请求摘要、nonce、请求者及时间窗口；权限和受限 Device
+披露边界不扩大。治理交接 MUST 完整移交 ledger、第一次 terminal、原授权来源及待执行收尾任务；
+接任方原样提供结果，不重算 terminal，不复活已永久撤销设备。
 请求／响应各最多 4 MiB，超限整体拒绝，不能截断后签部分数据。
 
 历史 producer fact 新增 realm_device／realm_control，共有 kind、event_id、actor_id、verification_method、

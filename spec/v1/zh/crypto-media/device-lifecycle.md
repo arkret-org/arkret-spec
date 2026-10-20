@@ -166,6 +166,12 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 以下 SecurityRotationTransaction 是普通 Account 分支。Realm Bot／Ghost 的 revoke 使用所属 realm_control 和完整 actor_id 的 proposal／terminal 记录；Applet runtime 在提交前持久保存 exact revoke Event、受影响 MLS 群组、预留轮换材料及步骤结果，以该 EventId 为唯一计划键。治理方保存原 proposal／命令结果与 removal intent；pending 不擦除不可恢复材料，terminal rejected 恢复允许状态，accepted 后按原计划幂等完成收尾。未知结果仅恢复原 intent，不重新生成计划。该 runtime 私有计划不调用只接受 AccountId／人类 session 的 SecurityRotationTransaction API，不把 Applet 私钥交给 Station。
 
+Realm 分支 MUST 通过既有私有材料 outcome 的 `device_revoke` 分支读取原请求的 pending／accepted／rejected，
+逐项验证原 proposal、设备、授权实例、代次和外层签名，详见 [Realm actors §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签)。
+申请的 Commit 不可替代该结果；unknown、pending、读取失败时保留恢复材料并续跑原计划，
+rejected 只解除该申请导致的隔离，不覆盖其它撤销、generation 或状态 gate。
+accepted 后才能按原计划永久清理；治理交接不得生成另一撤销计划或改写第一次 terminal。
+
 > 吊销后的 MLS secret 与 backup series 轮换 MUST 在一个 `SecurityRotationTransaction` 内进行，
 > 且该 transaction MUST 在提交 `ak.device.revoke` **之前**创建并 durable prepare。accepted revoke
 > 只进入可由 exact RealmCommit rejected command result 恢复的 `revocation_pending`；transaction 在 pending 期间可冻结新使用、预留 id 与准备幂等远端步骤，但 MUST 保留 reject 恢复所需材料，不得执行不可逆 device-generation 擦除。只有 covering RealmCommit accepted 后才提交永久撤销、MLS secret / backup series rotation 与终局清理。固定顺序、reserved id 与崩溃续跑合同见
