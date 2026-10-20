@@ -334,6 +334,8 @@ grpc:
       Management_ReviewReadStatus: ak.self.management_review.read.status.v1
       AppletConfigurationSubmit: ak.self.applet.configuration.command.submit.v1
       RealmActorReadMaterial: ak.self.realm_actor.read.material.v1
+    PeerRealmActor:
+      ReadMaterial: ak.peer.realm_actor.read.material.v1
 mq:
   envelope:
     required:
@@ -573,6 +575,7 @@ mq:
     self.applet.configuration.command.submit: ak.self.applet.configuration.command.submit.v1
     edge.applet.configuration.command.execute: ak.edge.applet.configuration.command.execute.v1
     self.realm_actor.read.material: ak.self.realm_actor.read.material.v1
+    peer.realm_actor.read.material: ak.peer.realm_actor.read.material.v1
 libp2p:
   envelope:
     required:

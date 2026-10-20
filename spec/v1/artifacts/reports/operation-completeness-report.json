@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.3",
+  "version": "2026-10-20.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T04:37:07+08:00",
+  "generated_at": "2026-10-20T09:34:52+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 226,
+    "total_operations": 227,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 224
+      "typed_schema": 225
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 140
+        "typed_schema": 141
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -1086,6 +1086,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsRosterAuthorityReadRequestBody",
         "response": "#/components/schemas/MlsRosterAuthorityReadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.realm_actor.read.material.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/realm-actors/material",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_request",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/realm-actor-material.schema.json#/$defs/peer_request",
+        "response": "../schemas/realm-actor-material.schema.json#/$defs/outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

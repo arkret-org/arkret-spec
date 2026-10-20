@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-20.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-20T09:34:52+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -368,7 +368,8 @@
         "ak.self.applet.command.revoke.v1",
         "ak.self.applet.authority.read.material.v1",
         "ak.self.applet.configuration.command.submit.v1",
-        "ak.self.realm_actor.read.material.v1"
+        "ak.self.realm_actor.read.material.v1",
+        "ak.peer.realm_actor.read.material.v1"
       ],
       "surface_class": "extension"
     },
@@ -4554,7 +4555,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10.",
+      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. Real Accounts use their own Account Station, with exact audit authority; foreign governance is reached only through ak.peer.realm_actor.read.material.v1 and final local credential delivery validation.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
@@ -4566,7 +4567,31 @@
           "standard": "RFC 9421 HTTP Message Signature",
           "bearer_only_allowed": false
         }
-      }
+      },
+      "max_canonical_body_bytes": 4194304
+    },
+    {
+      "operation_id": "ak.peer.realm_actor.read.material.v1",
+      "http": "POST /_arkret/peer/realm-actors/material",
+      "grpc": "PeerRealmActor/ReadMaterial",
+      "mq": "peer.realm_actor.read.material",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_request",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Read-only authorized exact material."
+      },
+      "notes": "Account Station authenticates the real local Account and signs the closed requester_account_id/request wrapper. The current governor verifies source Station ownership and exact realm_actor audit authority at one cut. Response binds the inner request digest and authenticated Account audience. Source verifies governance/signature/request/result/freshness and final local session/device delivery; known newer tenure or revocation discards delivery. No forwarded credentials, enumeration, implicit manage-to-audit authority or private keys. See extensions/realm-actors.md section 8.1.",
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false
+        }
+      },
+      "max_canonical_body_bytes": 4194304
     }
   ],
   "direct_conversation_admission_mappings": {
@@ -5433,6 +5458,10 @@
         "ak.deployment_prototype.coland_station.v1#applet_install"
       ],
       "members": [
+        {
+          "operation_id": "ak.peer.realm_actor.read.material.v1",
+          "binding_kind": "http_json"
+        },
         {
           "operation_id": "ak.self.applet.authority.read.material.v1",
           "binding_kind": "http_json"

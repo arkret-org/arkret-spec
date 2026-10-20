@@ -308,6 +308,10 @@
       "new": "ak.peer.mls.read.roster_authority.v1"
     },
     {
+      "old": "ak.peer.realm_actor.read.material",
+      "new": "ak.peer.realm_actor.read.material.v1"
+    },
+    {
       "old": "ak.peer.realm_authority.command.handoff",
       "new": "ak.peer.realm_authority.command.handoff.v1"
     },

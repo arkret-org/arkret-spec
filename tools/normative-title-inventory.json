@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-20T09:39:54+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -638,6 +638,11 @@
       "page": "extensions/realm-actors.md",
       "heading": "10. Applet 同身份密钥重置（normative）",
       "fragment": "10-applet-同身份密钥重置normative"
+    },
+    {
+      "page": "extensions/realm-actors.md",
+      "heading": "8.1 Account 跨站私有审计材料读取（normative）",
+      "fragment": "81-account-跨站私有审计材料读取normative"
     },
     {
       "page": "governance/content-moderation.md",

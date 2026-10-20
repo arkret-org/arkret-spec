@@ -10,6 +10,24 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_account_peer_material_closed_carrier_and_signed_audience(self):
+        schema = self.validator("realm-actor-material", "#/$defs/peer_request")
+        request = {"actor_id": actor(), "purpose": "current", "request_nonce": "N" * 22,
+                   "selectors": [{"kind": "realm_actor_control", "actor_id": actor()}]}
+        account = {"principal_id": "ak:did_core:webvh:zPerson", "station_id": "ak:did_core:webvh:zAccountStation"}
+        peer = {"requester_account_id": account, "request": request}
+        schema.validate(peer)
+        for field in ["bearer", "session_grant", "dpop", "allowed"]:
+            self.assertFalse(schema.is_valid({**peer, field: "untrusted"}))
+        self.assertFalse(schema.is_valid({"request": request}))
+        self.assertFalse(schema.is_valid({**peer, "requester_account_id": account["principal_id"]}))
+        catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        operation = next(row for row in catalog["operation_registry"]["operations"] if row["operation_id"] == "ak.peer.realm_actor.read.material.v1")
+        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/peer_request", operation["request_schema_ref"])
+        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/outcome", operation["response_schema_ref"])
+        self.assertEqual(4194304, operation["max_canonical_body_bytes"])
+        self.assertEqual({"service_signature"}, set(operation["auth_requirements"]))
+
     def validator(self, name, fragment=""):
         return core.schema_validator(ART / "schemas" / (name + ".schema.json"), fragment)
 

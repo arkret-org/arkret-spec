@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.2",
+  "version": "2026-10-20.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T00:31:37+08:00",
+  "generated_at": "2026-10-20T04:37:07+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9575,6 +9575,58 @@
             "closed": true
           }
         ]
+      },
+      "response": {
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "actor_id",
+          "purpose",
+          "request_digest",
+          "request_nonce",
+          "requester_actor_id",
+          "governance_generation",
+          "authority_ref",
+          "control_stream_head",
+          "issued_at",
+          "expires_at",
+          "result",
+          "signature"
+        ],
+        "properties": [
+          "realm_id",
+          "actor_id",
+          "purpose",
+          "request_digest",
+          "request_nonce",
+          "requester_actor_id",
+          "governance_generation",
+          "authority_ref",
+          "control_stream_head",
+          "issued_at",
+          "expires_at",
+          "result",
+          "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.realm_actor.read.material.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_request",
+        "schema_kind": "object",
+        "required": [
+          "requester_account_id",
+          "request"
+        ],
+        "properties": [
+          "requester_account_id",
+          "request"
+        ],
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",

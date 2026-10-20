@@ -271,7 +271,37 @@ public_key_b64u、accepted_at。realm_device 另有 device_id、authorization_ev
 Account 管理员与 Service 仍使用各自既有 fact 分支。
 
 Applet authority material 只保留 Service 安装／grant 材料；被替代的 Account managed_source 和跨 PCR Device
-scope confirmation 不再作为主体入口。Realm actor 材料只有本节一个 current／Event／outcome 入口。
+scope confirmation 不再作为主体入口。Realm actor 材料使用本节唯一的 current／Event／outcome 合同；Account 跨站承运见下节。
+
+### 8.1 Account 跨站私有审计材料读取（normative）
+
+Account 调用自己的账号 Station 的 self material 入口。目标 Realm 在外站治理时，账号 Station **MUST** 使用
+`ak.peer.realm_actor.read.material.v1`（`POST /_arkret/peer/realm-actors/material`）。closed 请求按顺序为
+requester_account_id（完整 AccountId）、request（原 self material 请求），定义见
+[peer_request](../../artifacts/schemas/realm-actor-material.schema.json#/$defs/peer_request)。不能向外站转发 bearer、
+SessionGrant 或 DPoP，不能把服务器身份当作 Account，不能补造读 Event 或改用普通 scan。
+
+账号 Station 先认证实际 Account 与当前 session／Device，从认证结果构造 requester_account_id，验证目标 Realm
+当前治理链与目的站；按既有 S2S 场景签完整外层请求、operation、source／destination 与重放窗口。
+治理 Station **MUST** 验证 requester_account_id.station_id 等于已认证 Source-Service-ID，且自身为目标 Realm
+当前治理站。来源站只能声明本站 Account；授权求值主体是完整 AccountId，而不是承运 Service 或单独 principal_id。
+
+治理站在同一 Realm cut 核精确 `{kind:realm_actor,actor_id}` 的 `ak.realm.actor.audit` 权限、生命周期、适用 Policy、
+材料完整性及披露边界。管理权限、管理员标签或成员资格不隐含 audit。无目标与无权限同 not_found；私态未完整导入、
+治理未决等不能签成功或 never_written，返回 unavailable。Account 同站读取执行相同审计检查。
+
+成功响应复用本节原 outcome 与签名上下文。request_digest **MUST** 绑定内层 request，request_nonce 原样返回，
+requester_actor_id 为来源站认证的完整 Account Actor；外层 requester 绑定由 S2S 请求签名负责。当前治理任期、
+控制流 head、结果原件与签名规则均不变。内层、外层请求及响应各最多 4 MiB；1～16 个同主体 selectors 和最多
+60 秒且不超过相关授权窗口的原预算继续适用。不得截断签名材料。
+
+账号站交付前 **MUST** 验证治理链、治理方签名、实际 requester、目标、nonce、内层 request_digest、结果、任期与时窗，
+并再次确认原 session／Device 有效。已观察到新治理任期或相关撤权时丢弃结果；无法确认则关闭。远端授权 cut 与本地
+最终交付分别线性化，不宣称跨站原子事务。响应使用 no-store，不成为写权限租约。治理站负责供给 peer，账号站负责
+消费；支持声明遵守 operation bundle 的全部可达规则。无法供给 peer 不得降级到外站 self 或副本推测。
+
+本分支只承运真实 Account 已有的精确审计权限；Service、控制方法及受限 Device 仍走原直接治理站认证路径。
+不新增列表、私钥读取或主体迁移，不改变普通 Account／组织／个人 Agent 的 DID、PCR 与设备规则。
 
 ## 9. 治理交接与验收
 

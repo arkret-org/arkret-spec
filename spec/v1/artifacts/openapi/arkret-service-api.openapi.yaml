@@ -10236,6 +10236,36 @@ paths:
               schema:
                 $ref: ../schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome
 
+  /_arkret/peer/realm-actors/material:
+    post:
+      operationId: ak.peer.realm_actor.read.material
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.realm_actor.read.material.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/realm-actor-material.schema.json#/$defs/peer_request
+      responses:
+        '200':
+          description: Exact same-cut signed Realm actor material
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/realm-actor-material.schema.json#/$defs/outcome
+
   /_arkret/self/realm-actors/material:
     post:
       operationId: ak.self.realm_actor.read.material
