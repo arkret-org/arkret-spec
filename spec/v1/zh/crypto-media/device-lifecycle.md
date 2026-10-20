@@ -1485,10 +1485,22 @@ metadata 或 `ak.event.read` 放行。新增支持必须先正式登记合同。
 公开 signer／历史依赖仍须绑定本次合法业务所需的最小引用，不授予私有 PCR 全流。
 未知、缺失、冲突或无法权威确定的归属 MUST fail closed，不按 Realm 默认补全。
 
-### 16.2 21-operation 的配对消费（normative）
+**首次 Blob 用途建立**：Realm Bot／Ghost 首次上传时尚无引用该 Blob 的 accepted 消息。
+仅在此创建阶段，已签 `metadata.effective_scope` MUST 解释为拟创建目标；治理方 MUST 独立解析
+accepted Realm／Circle，核 Circle 属于上传 body 的 owning Realm，并在同一授权 cut 核当前成员、
+原签 scope／上传 action、Device 实例／generation／期限、当前安装、E2EE 同意、管理 Policy 与配额。
+不得把 metadata 自报目标当作已验证归属。接受事务 MUST 同时保存 Blob metadata 与不可变私有上传
+绑定：完整 BlobRef、exact ScopeRef、实际 Realm Actor、原 Device／authorization 实例及接受时间。
+同 BlobRef 重试 MUST 保留原绑定，不能改 scope、上传者或原授权实例；已有 Blob 缺此绑定时不得按
+Realm 默认补建或覆盖其它合法来源。跨 scope 使用仍须遵守附件重新加密／重新上传规则。
+绑定只证明存储用途，不授发布、读取或管理权；后续提交另验内容动作，读取另验 accepted 内容来源、
+history 与当前全部门。绑定随 Blob 和私有接纳账本治理交接，不增加 wire 字段、权限或审批。
+本例外不改变普通 Account 上传合同，也不向 Blob storage 提供完整附件 descriptor、MLS 密钥或正文。
+
+### 16.2 已登记 operation 的配对消费（normative）
 
 唯一机器映射为 [applet-managed-authority-registry](../../artifacts/registry/applet-managed-authority-registry.json)
-的 `device_authentication.operation_scope_rules`，必须与原 21-operation allowlist 一一对应。
+的 `device_authentication.operation_scope_rules`，必须与当前 operation allowlist 一一对应。
 `all_actions` 要求同一 scope 项含全部 actions；其中 Blob presign/get/head 同时要求自身服务动作与
 `ak.object.read_content`。Blob upload 要求自身服务动作，提交其引用时另验实际内容动作。
 其余 read／stream（包括 KeyPackage claim/query、Device queue list、MLS／signer／current／
@@ -1497,17 +1509,17 @@ parent 上界及内容读取的 `ak.object.read_content` 附加门。`submitted_
 实际 Event 的正式 action 映射或完整 MLS submission 派生所有所需动作；MUST NOT 把 self/events
 operation 字符串当作任意 Event 权限，禁止以 Device 提交新增 Device、扩权或管理员控制。
 
-`device_control` 只登记四个窄例外，不铸造通用业务 action：upload 只发布本人 Device、exact scope
+`device_control` 只登记五个窄例外，不铸造通用业务 action：upload 只发布本人 Device、exact scope
 绑定的 KeyPackage，须该 scope 原签项、有效安装及原 E2EE 同意；revoke 只收回本人原 KeyPackage；
 consume 只消费本人已经验证并耐久接收的 exact Welcome／claim receipt；ACK 只确认本人已合法交付的
-exact durable items。四者均须 exact scope 原签项、原 Account／Device／authorization 实例及各自原生
+exact durable items；material 只读取本人 exact Device 授权材料（见§17）。这些分支均须 exact scope 原签项、原 Realm Actor／Device／authorization 实例及各自原生
 签名／幂等合同；revoke／consume／ACK 可在安装失效后仅作收权／完成旧交付，不返回新群材料或新内容。
 queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
 
 配对命中只证明原 Device 授权上界，不替代 HTTP allowlist、current Device／generation／期限、
 实际业务 grant、membership／history、当前安装与 Policy；这些条件 MUST 求 AND。撤销 A 安装不误撤
 独立合法的 B；新增 B 安装不扩展只签 A 的 Device。扩 B 必须由 Principal 原签 replacement authorize，
-候选 Device 再签包含完整新列表的原 possession transcript，沿同 PCR generation／revision CAS 接纳。
+候选 Device 再签包含完整新列表的原 possession transcript，沿所属 Realm 私有控制流的 generation／revision CAS 接纳。
 不新增签名域或预像，typed current 原样保留该列表；历史 accepted 事实按原时点和原授权实例复验。
 
 `ak.vector.applet.device_scopes.v1` 用真实合法 ScopeRef／动作执行正反例，向量输入见 [paired scope fixture](../../artifacts/fixtures/applet-device-scope-fixture.json)。

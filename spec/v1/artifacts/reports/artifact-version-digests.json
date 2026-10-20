@@ -33,9 +33,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/applet-managed-authority-registry.json",
-      "version": "2026-10-20.1",
-      "generated_at": "2026-10-20T04:55:02+08:00",
-      "content_digest": "sha256:31359856e97b61de17bab52088fbfdcb21ebfe68ef5981254c029257e39a3bb7"
+      "version": "2026-10-21.1",
+      "generated_at": "2026-10-21T03:30:43+08:00",
+      "content_digest": "sha256:9cc06531f1c785fda89f9e2289c3e73a48c1447e994919829f3533dbbad6b9fb"
     },
     {
       "path": "spec/v1/artifacts/registry/authority-set-policy-registry.json",
@@ -483,9 +483,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-20.3",
-      "generated_at": "2026-10-20T09:39:54+08:00",
-      "content_digest": "sha256:9bed9c16291a12ddd05da2a91b34c00ebedbc92840e4b94515df3360caf40909"
+      "version": "2026-10-21.1",
+      "generated_at": "2026-10-21T03:30:43+08:00",
+      "content_digest": "sha256:dcf9b3a4c49f0aabc63959d161b2a0ae28f32bdd9754681e8952bb4d148a7d19"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",

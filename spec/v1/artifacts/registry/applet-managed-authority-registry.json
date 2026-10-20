@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T04:55:02+08:00",
+  "generated_at": "2026-10-21T03:30:43+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -70,6 +70,41 @@
       "sidecar_supported": false,
       "unknown_scope_or_action": "reject",
       "resource_scope_source": "authoritative_target_resource_not_request_metadata"
+    },
+    "blob_upload_binding": {
+      "operation_id": "ak.self.blob.upload.create.v1",
+      "creation_target": "signed_metadata_effective_scope",
+      "target_validation": "accepted_realm_or_circle_in_body_owning_realm",
+      "current_gates": [
+        "membership",
+        "original_device_scope_and_upload_action",
+        "device_authorization_generation_and_expiry",
+        "installation",
+        "e2ee_consent",
+        "management_policy",
+        "quota"
+      ],
+      "immutable_private_fields": [
+        "blob_ref",
+        "effective_scope",
+        "actor_id",
+        "device_id",
+        "authorization_ref",
+        "accepted_at"
+      ],
+      "atomic_with": [
+        "blob_metadata",
+        "quota"
+      ],
+      "retry": "preserve_exact_original_binding",
+      "missing_binding": "reject_without_default_or_overwrite",
+      "publication_requires": "existing_content_action",
+      "read_requires": "accepted_content_source_history_and_current_gates",
+      "grants_publication_or_read": false,
+      "governance_handoff": "complete_private_inventory_import",
+      "new_wire_fields": [],
+      "new_permissions": [],
+      "new_approvals": []
     },
     "operation_scope_rules": [
       {

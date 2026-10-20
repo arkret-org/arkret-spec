@@ -55,6 +55,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - `encryption` 缺失不得猜测为明文；非 null 为密文，服务端 MUST 持久化分类且 MUST 拒绝 presign。完整附件 descriptor 只留在获准 Content Block 中，不上传给 Blob storage。密文 transport `media_type` MUST 为 `application/octet-stream`，不得嗅探或公开明文 MIME。
 - `media_type` 表单字段存在时是声明 MIME；content part `Content-Type` 同时存在且不同则以 `schema_violation` 拒绝并零写入。无表单字段时使用 content part 类型；均无则 octet-stream。只有 `encryption=null` 时允许下述内容校正。
 - 上传请求不承载自由 `purpose`；用途权限来自 owning Realm policy 与已验证 source refs，不得以客户端自报 purpose 扩大 scope / privacy / presign 权限。
+- Realm Bot／Ghost 的首次用途建立遵守 [device-lifecycle §16.1](device-lifecycle.md#161-原签-scopeaction-配对normative)：现有 Device 签名中的 exact scope 仅表达创建目标，治理方从 accepted Realm／Circle 独立核实目标、当前成员及原上传权限后，MUST 在同一接受事务保存 Blob metadata、配额结果与不可变私有上传绑定。绑定包含完整 BlobRef、exact ScopeRef、实际上传 Actor、原 Device／authorization 实例和接受时间；同 BlobRef 的重试保留原记录，异 scope／上传者／授权实例不得覆盖。上传成功不授发布或读取权；后续内容来源、history、当前权限与隐私门分别验证。该私态随 Realm 治理交接完整移交，缺项不得默认补全。不新增 multipart 字段，不改变普通 Account 合同。
 
 - Canonical HTTP upload body MUST be `multipart/form-data` with a required `content` binary part and required `size_bytes` metadata field and required `encryption` UTF-8 JSON metadata part (`null` or the closed storage classification above). The `content` part `Content-Type` is optional; its default value is `application/octet-stream`.
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。

@@ -49,6 +49,29 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         self.assertEqual(defs['device_authorize_realm_actor_possession_transcript']['properties']['scopes'], scopes)
         self.assertNotIn('device_signature', defs['device_authorize_possession_core']['properties'])
 
+    def test_blob_creation_target_is_not_content_authority(self):
+        contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
+        binding = contract['blob_upload_binding']
+        self.assertEqual(binding['creation_target'], 'signed_metadata_effective_scope')
+        self.assertEqual(binding['target_validation'], 'accepted_realm_or_circle_in_body_owning_realm')
+        self.assertEqual(binding['current_gates'], [
+            'membership', 'original_device_scope_and_upload_action',
+            'device_authorization_generation_and_expiry', 'installation',
+            'e2ee_consent', 'management_policy', 'quota'])
+        self.assertEqual(binding['immutable_private_fields'], [
+            'blob_ref', 'effective_scope', 'actor_id', 'device_id', 'authorization_ref', 'accepted_at'])
+        self.assertEqual(binding['atomic_with'], ['blob_metadata', 'quota'])
+        self.assertEqual(binding['retry'], 'preserve_exact_original_binding')
+        self.assertEqual(binding['missing_binding'], 'reject_without_default_or_overwrite')
+        self.assertFalse(binding['grants_publication_or_read'])
+        self.assertEqual(binding['publication_requires'], 'existing_content_action')
+        self.assertEqual(binding['read_requires'], 'accepted_content_source_history_and_current_gates')
+        self.assertEqual(binding['governance_handoff'], 'complete_private_inventory_import')
+        for key in ['new_wire_fields', 'new_permissions', 'new_approvals']:
+            self.assertEqual(binding[key], [])
+        rule = next(r for r in contract['operation_scope_rules'] if r['operation_id'] == binding['operation_id'])
+        self.assertEqual(rule['actions'], [binding['operation_id']])
+
 
 if __name__ == '__main__':
     unittest.main()

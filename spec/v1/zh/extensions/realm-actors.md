@@ -324,7 +324,10 @@ requester_actor_id 为来源站认证的完整 Account Actor；外层 requester 
 
 单 Realm handoff 必须迁入已初始化控制流的完整 head、Event／Commit、全部 current、原 DID evidence、fact、
 manager／双 gates／generation／recovery current、恢复 pending／原生计划／终态 ledger、pending 安全事务、去重／quota／tuple／nonce／outcome ledger、
-Device／MLS 队列、claim 与 cursor。新站必须实际导入并重导出比对，不能只验证 manifest 摘要后宣布就绪。
+Device／MLS 队列、claim 与 cursor，以及 Realm Device 的不可变 Blob 上传用途绑定（完整 BlobRef、
+exact ScopeRef、实际上传 Actor、原 Device／authorization 实例、接受时间，见
+[device-lifecycle §16.1](../crypto-media/device-lifecycle.md#161-原签-scopeaction-配对normative)）。
+新站必须实际导入并重导出比对，不能只验证 manifest 摘要后宣布就绪。
 缺任一接受所需私态或未导入已签 acceptance，均拒绝启用新任期；旧站不得在换任后接受新写。
 不转 Applet 私钥／私有 MLS 状态，不把管理记录转交宣称为无原生材料的身份恢复。
 
