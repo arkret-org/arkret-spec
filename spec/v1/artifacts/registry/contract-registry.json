@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.5",
+  "version": "2026-10-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T20:38:40+08:00",
+  "generated_at": "2026-10-21T06:36:09+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -18500,8 +18500,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-20.5",
-    "generated_at": "2026-10-20T20:38:40+08:00",
+    "version": "2026-10-21.2",
+    "generated_at": "2026-10-21T06:36:09+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18560,6 +18560,55 @@
         "members": [
           {
             "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.applet_service.applet.v1",
+        "service_kind": "applet_service",
+        "deployment_evidence": [
+          "normative:zh/extensions/applet-management-source.md#1-权威与职责"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.edge.applet.actor.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.command.transaction.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.configuration.command.execute.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.read.describe.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.read.ping.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.read.protocol_metadata.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.realm.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -19066,14 +19115,6 @@
           },
           {
             "operation_id": "ak.edge.applet.command.transaction.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.edge.applet.configuration.command.execute.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
             "binding_kind": "http_json"
           },
           {

@@ -10,6 +10,28 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_applet_execution_bundles_follow_key_custody_roles(self):
+        catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        bundles = {row["operation_bundle_id"]: row
+                   for row in catalog["operation_registry"]["operation_bundles"]}
+        station = bundles["ak.operation_bundle.station.applet.v1"]
+        applet = bundles["ak.operation_bundle.applet_service.applet.v1"]
+        self.assertEqual("station", station["service_kind"])
+        self.assertEqual("applet_service", applet["service_kind"])
+        members = lambda row: {(entry["operation_id"], entry["binding_kind"])
+                               for entry in row["members"]}
+        exclusive = {
+            ("ak.edge.applet.managed_actor.command.author.v1", "http_json"),
+            ("ak.edge.applet.configuration.command.execute.v1", "http_json"),
+        }
+        self.assertTrue(exclusive.isdisjoint(members(station)))
+        self.assertEqual(members(station) | exclusive, members(applet))
+        self.assertIn(("ak.edge.applet.command.transaction.v1", "http_json"), members(station))
+        self.assertIn(("ak.self.applet.configuration.command.submit.v1", "http_json"),
+                      members(bundles["ak.operation_bundle.station.applet_install.v1"]))
+        self.assertEqual({("ak.server.read.describe.v1", "http_json")},
+                         members(bundles["ak.operation_bundle.applet_service.describe.v1"]))
+
     def test_realm_mentions_use_native_content_without_account_notification_identity(self):
         registry = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
         contract = registry["realm_mentions"]

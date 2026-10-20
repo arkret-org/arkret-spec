@@ -3,7 +3,7 @@ title: Applet 配置、审批与 Realm 主体接纳
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-19
+updated: 2026-10-21
 ---
 
 # Applet 配置、审批与 Realm 主体接纳
@@ -18,6 +18,16 @@ updated: 2026-10-19
 
 Applet runtime 持有主体 DID／Device 私钥并生成候选；治理 Station 接受原签 Event、管理控制流、
 保留审批与结果。Applet 不必兼任 Station。治理方不得伪造主体、生成代签 Device，或中转私钥。
+
+能力发现 MUST 按上述职责使用真实服务角色。独立 Applet 使用 `service_kind=applet_service`，
+只有实际实现全部成员时才可声明 `ak.operation_bundle.applet_service.applet.v1`；
+该 bundle 包含现有 Applet edge 操作，包括主体候选 author 和配置 execute。
+治理 Station 的 `ak.operation_bundle.station.applet.v1` 不包含这两项 Applet 专属执行操作，
+仍保留其它已有 Station 方向 edge 操作；双向 transaction 的方向、来源签名和接纳规则不变。
+管理员配置 submit 保留在 `ak.operation_bundle.station.applet_install.v1`，由治理站执行。
+通用 describe 与 Applet edge describe 是两个既有操作，角色通用 describe bundle 仍独立保留。
+合并部署也必须按每个 endpoint 的真实 Service 身份和角色声明能力；共同进程或地址不授予代签权，
+不得借用另一个角色的 bundle，也不得以 HTTP 路由存在替代完整能力声明或完整实现验证。
 
 ## 2. 管理员主动配置
 
