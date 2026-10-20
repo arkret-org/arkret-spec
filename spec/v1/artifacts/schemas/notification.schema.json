@@ -92,6 +92,7 @@
     }
   },
   "title": "Arkret Notification",
+  "description": "Account notification carrier, including personal Agent accounts. Realm Bot/Ghost mentions are processed through their authorized native Device content stream and MUST NOT produce this carrier or an Account notification projection.",
   "type": "object",
   "required": [
     "id",

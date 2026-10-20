@@ -10,6 +10,35 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_realm_mentions_use_native_content_without_account_notification_identity(self):
+        registry = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
+        contract = registry["realm_mentions"]
+        self.assertEqual("subject_actor_id", contract["target_field"])
+        self.assertEqual("authorized_native_device_content_stream", contract["delivery"])
+        for key in ["verify_original_before_processing",
+                    "verify_mls_before_processing_encrypted_content",
+                    "current_delivery_gates_required"]:
+            self.assertTrue(contract[key], key)
+        for key in ["ordinary_notification_projection", "account_subscribe",
+                    "grants_execution_authority", "unknown_execution_may_restart"]:
+            self.assertFalse(contract[key], key)
+        self.assertEqual(["recipient_actor_id", "source_event_id", "processing_purpose"],
+                         contract["durable_local_deduplication_key"])
+        preimage = {
+            "recipient_account_id": {
+                "principal_id": "ak:did_core:webvh:zPerson",
+                "station_id": "ak:did_core:web:account.example"
+            },
+            "realm_id": token("realm"), "source_event_id": token("event"),
+            "notification_kind": "mention"
+        }
+        validator = self.validator("notification", "#/$defs/projection_preimage")
+        validator.validate(preimage)
+        self.assertFalse(validator.is_valid({**preimage, "recipient_account_id": actor()}))
+        self.assertFalse(validator.is_valid({**preimage, "recipient_actor_id": actor()}))
+        self.validator("event-payload", "#/$defs/mention_node").validate(
+            {"kind": "mention", "subject_actor_id": actor()})
+
     def test_device_revoke_terminal_material_is_closed(self):
         validator = self.validator("realm-actor-material", "#/$defs/outcome_record")
         for state in ["pending", "accepted", "rejected"]:

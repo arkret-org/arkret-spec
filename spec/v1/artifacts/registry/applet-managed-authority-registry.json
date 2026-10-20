@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T03:30:43+08:00",
+  "generated_at": "2026-10-21T06:17:05+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -260,6 +260,24 @@
     ]
   },
   "content_delivery": "exact_realm_actor_device_via_current_realm_governor",
+  "realm_mentions": {
+    "normative_source": "zh/models/strand-and-message.md#942-普通-mention-的通知派生",
+    "target_field": "subject_actor_id",
+    "target_identity": "complete_realm_actor_in_message_realm",
+    "delivery": "authorized_native_device_content_stream",
+    "verify_original_before_processing": true,
+    "verify_mls_before_processing_encrypted_content": true,
+    "current_delivery_gates_required": true,
+    "ordinary_notification_projection": false,
+    "account_subscribe": false,
+    "grants_execution_authority": false,
+    "durable_local_deduplication_key": [
+      "recipient_actor_id",
+      "source_event_id",
+      "processing_purpose"
+    ],
+    "unknown_execution_may_restart": false
+  },
   "service_base_url": "mandatory_https_management_endpoint",
   "personal_agent_source": "owned_agent",
   "creation_scope_revoke_is_global_device_revoke": false,

@@ -41,6 +41,12 @@ Bot／Ghost 的 AppletId、初始角色和创建来源不可改；当前管理 S
 Circle-only 场景仍满足父 Realm 最小成员前提，但父成员资格不自动授父内容读取。
 不得为解决依赖读取而放开父 Realm；使用既有获准 exact 依赖读取。
 
+对 Realm Bot／Ghost 的 mention 使用同 Realm 的完整 `subject_actor_id`，由 Applet 的获准原生 Device
+内容流消费者在验证原件并完成必要的 MLS 解密后处理，按完整接收 ActorId、source EventId 和用途耐久去重。
+不生成普通 Account Notification、不借 Account subscribe、不拼造账号或增加操作／权限。
+mention 不授予实际执行权；未知外部执行结果不得重做，详细边界见
+[`strand-and-message.md` §9.4.2](../models/strand-and-message.md#942-普通-mention-的通知派生)。
+
 ## 2. 私有控制流
 
 `scope_ref` 与 `stream_ref` 增加同形 closed 分支 `{kind:"realm_control",realm_id}`。

@@ -33,9 +33,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/applet-managed-authority-registry.json",
-      "version": "2026-10-21.1",
-      "generated_at": "2026-10-21T03:30:43+08:00",
-      "content_digest": "sha256:9cc06531f1c785fda89f9e2289c3e73a48c1447e994919829f3533dbbad6b9fb"
+      "version": "2026-10-21.2",
+      "generated_at": "2026-10-21T06:17:05+08:00",
+      "content_digest": "sha256:37c54adcfc0c27f931273ce48a5f539cbb0d67848525d652c8902efdd4da1ef5"
     },
     {
       "path": "spec/v1/artifacts/registry/authority-set-policy-registry.json",

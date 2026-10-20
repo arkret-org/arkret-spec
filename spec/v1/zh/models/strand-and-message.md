@@ -849,13 +849,21 @@ Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完�
 
 #### 9.4.2 普通 mention 的通知派生
 
-普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
+普通 mention 是面向单个主体的定向引用。普通 Account（含个人 Agent）分支的 Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
 
 - 目标 actor 的 account 分支 MUST 逐字节等于结构化 mention 节点的 `subject_account_id`（`principal_id` 与 `station_id` 都相等），并且在 source Event 的 committed stream position 处拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。**同 principal 不同 Station 的账号 MUST NOT 命中**：只比较 principal 分量会把通知投递给另一个 Station 上的同名 principal 账号。
-- realm 分支目标 MUST 等于 subject_actor_id 的完整身份且属于消息 Realm；仍须满足原消息读取权与交付时当前授权门。
 - 同一 Message / revision 中按完整目标 ActorId 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
+
+**Realm Bot／Ghost 分支（normative）**：Applet 的原生 Device 消费者 MUST 从现有获准内容流取得已验证 Message 原件，
+E2EE 下先完成 MLS 身份验证与解密，再以 `subject_actor_id` 的完整身份判断是否提及自己；目标 MUST 属于消息 Realm。
+读取和交付仍核原消息访问资格及当前安装、主体、Device、scope 与权限门。该分支 **MUST NOT** 生成
+普通 `ak.schema.notification.v1` 对象、`ak:notification_projection:*`、Account subscribe 通知行或伪造 AccountId。
+它不新增通知操作、权限、审批或服务端通知收件箱；普通 Account／个人 Agent 通知合同不变。
+提及只表示定向引用，不授予读取、模型调用、回复或外部执行权；实际动作继续核已有权限与 Applet 配置。
+本地消费者 MUST 按完整接收 ActorId、source EventId 和具体处理用途耐久去重，未知执行结果 MUST NOT 被当作未执行而重做。
+这份私有处理记录不是协议 Notification，不写回共享历史，不把显示名、裸 principal、handle 或控制人当作寻址依据。
 - `ak.message.create` 可以产生 mention notification。`ak.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST NOT 通知，避免通过反复编辑制造重复提醒。
 - `ak.message.redact` 不产生新的 mention notification。既有 notification 的 preview MUST 按 redaction / history visibility 重新裁剪；不得继续展示已撤回正文。
 

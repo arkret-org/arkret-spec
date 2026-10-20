@@ -99,6 +99,10 @@ Schema id: `ak.schema.notification.v1`
 
 ### 3.4 Mention notification 派生
 
+本节普通 Notification 只适用于 Account（含个人 Agent）。Realm Bot／Ghost 的结构化提及由获准原生内容流消费者处理，
+遵守 [`strand-and-message.md` §9.4.2](./strand-and-message.md#942-普通-mention-的通知派生)，
+不进入本节通知投影、Account subscribe 或普通通知身份算法；不得为此拼造 AccountId。
+
 `notification_kind=mention` 覆盖普通 direct mention 与 audience mention（例如 `@all` / `@here`）。派生器 MUST 遵守 [`strand-and-message.md` §9.4](./strand-and-message.md)：
 
 - Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source Event 的 committed stream position、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
