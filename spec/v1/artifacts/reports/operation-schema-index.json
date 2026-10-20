@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.4",
+  "version": "2026-10-21.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T09:34:52+08:00",
+  "generated_at": "2026-10-21T07:13:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9448,6 +9448,40 @@
           "command",
           "intent",
           "approval_signatures"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "intent_digest",
+          "admission_status"
+        ],
+        "properties": [
+          "request_id",
+          "intent_digest",
+          "source_outcome",
+          "admission_status",
+          "review_request_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.applet.configuration.command.submit.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
+        "schema_kind": "object",
+        "required": [
+          "requester_account_id",
+          "request"
+        ],
+        "properties": [
+          "requester_account_id",
+          "request"
         ],
         "closed": true
       },

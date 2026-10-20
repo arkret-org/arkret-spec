@@ -828,6 +828,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.edge.applet.configuration.command.execute.v1",
+          "ak.peer.applet.configuration.command.submit.v1",
           "ak.self.applet.configuration.command.submit.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."

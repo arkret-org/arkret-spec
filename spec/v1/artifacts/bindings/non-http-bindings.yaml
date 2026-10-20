@@ -1,4 +1,4 @@
-version: '2026-09-19'
+version: '2026-10-21'
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once in this
@@ -334,6 +334,8 @@ grpc:
       Management_ReviewReadStatus: ak.self.management_review.read.status.v1
       AppletConfigurationSubmit: ak.self.applet.configuration.command.submit.v1
       RealmActorReadMaterial: ak.self.realm_actor.read.material.v1
+    PeerManagement:
+      AppletConfigurationSubmit: ak.peer.applet.configuration.command.submit.v1
     PeerRealmActor:
       ReadMaterial: ak.peer.realm_actor.read.material.v1
 mq:
@@ -573,6 +575,7 @@ mq:
     self.management_review.command.decide: ak.self.management_review.command.decide.v1
     self.management_review.read.status: ak.self.management_review.read.status.v1
     self.applet.configuration.command.submit: ak.self.applet.configuration.command.submit.v1
+    peer.applet.configuration.command.submit: ak.peer.applet.configuration.command.submit.v1
     edge.applet.configuration.command.execute: ak.edge.applet.configuration.command.execute.v1
     self.realm_actor.read.material: ak.self.realm_actor.read.material.v1
     peer.realm_actor.read.material: ak.peer.realm_actor.read.material.v1

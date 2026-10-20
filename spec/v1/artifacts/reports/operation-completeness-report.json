@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T06:36:09+08:00",
+  "generated_at": "2026-10-21T07:16:51+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 227,
+    "total_operations": 228,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 225
+      "typed_schema": 226
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 141
+        "typed_schema": 142
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -849,6 +849,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountStatusResolveRequestBody",
         "response": "#/components/schemas/AccountStatusResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.applet.configuration.command.submit.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/applets/{applet_id}/configuration",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
+        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

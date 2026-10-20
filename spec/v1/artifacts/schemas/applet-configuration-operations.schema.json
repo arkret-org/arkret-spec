@@ -14,6 +14,9 @@
     },
     {
       "$ref": "#/$defs/execution_outcome"
+    },
+    {
+      "$ref": "#/$defs/peer_request"
     }
   ],
   "$defs": {
@@ -380,6 +383,23 @@
         }
       },
       "additionalProperties": false
+    },
+    "peer_request": {
+      "type": "object",
+      "required": [
+        "requester_account_id",
+        "request"
+      ],
+      "properties": {
+        "requester_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
     }
   }
 }

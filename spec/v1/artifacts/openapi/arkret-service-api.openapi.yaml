@@ -1138,6 +1138,40 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/applet-configuration-operations.schema.json#/$defs/request
+  /_arkret/peer/applets/{applet_id}/configuration:
+    post:
+      operationId: ak.peer.applet.configuration.command.submit
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.applet.configuration.command.submit.v1
+      - name: applet_id
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/applet-configuration-operations.schema.json#/$defs/outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/applet-configuration-operations.schema.json#/$defs/peer_request
   /_arkret/edge/applet/configuration:
     post:
       operationId: ak.edge.applet.configuration.command.execute

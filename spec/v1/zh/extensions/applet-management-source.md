@@ -47,6 +47,32 @@ created／reused 结果必须带原真实创建 Commit；pending／unknown 没�
 取消、重试、故障恢复保持原 request_id、canonical intent 与结果，不二次扣 quota、不重新创建 identity。
 未知结果只能恢复／重试原请求，不能当失败退款后偷偷新建。转治理前必须完整导入私有意图和结果 ledger。
 
+### 2.1 跨站管理员入口
+
+`ak.self.applet.configuration.command.submit.v1` 的登录入口始终是操作者自己的账号 Station。
+当目标 Realm 由另一 Station 治理时，账号站 MUST 使用
+`ak.peer.applet.configuration.command.submit.v1`
+（`POST /_arkret/peer/applets/{applet_id}/configuration`）转交封闭的
+`{requester_account_id, request}`：前者从已认证会话取得完整 AccountId，后者为原 self 请求，
+保留 command、intent 和可选 approval_signatures，不改写操作者、scope、选择或审批。
+同站场景直接调用同一个治理处理器，不复制出第二套授权规则。
+
+peer 请求 MUST 遵守既有 S2S RFC 9421 签名、完整正文绑定、来源／目标、重放窗口与幂等规则；
+正文 canonical 上限为 262144 bytes。治理站 MUST 验证真实来源 Station，
+且 `Source-Service-ID == requester_account_id.station_id`，目标为本 Realm 当前治理方。
+来源签名只证明操作者来自该账号站，不能替代治理站对完整 Account 的现有管理权限、
+current registration、安装、scope、Policy 与审批的独立验证；非法来源或无权操作者不得写入新意图或候选。
+不得向治理站或 Applet 转发登录凭证，也不为 Bot／Ghost 增加权限或审批。
+
+治理站是私有配置意图、已验证来源记录和结果的唯一写入方。request_id 与原意图及完整操作者固定绑定，
+修改其中任一项 MUST 拒绝复用；账号站不得另建可写治理账本。
+治理交接完整移交这些私态后，账号站可重新解析当前治理方继续同一请求；
+新治理方只刷新给 Applet 的外层任期和签名，不改原 execution_intent，不把未知结果当失败重建主体。
+peer 响应复用原 outcome，账号站交付前 MUST 再核本人的当前会话／设备和既有读取条件；
+撤销阻断后续工作或交付，但不回滚已合法接受的治理结果。
+
+该 peer 操作归 `ak.operation_bundle.station.applet_install.v1`，不加入 Realm Device 操作白名单。
+
 ## 3. 自动 Ghost 与按操作审批
 
 治理方可授持续自动 Ghost 创建许可，约束 namespace、scope、quota、有效期及当前安装。

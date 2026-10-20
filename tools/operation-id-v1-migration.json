@@ -240,6 +240,10 @@
       "new": "ak.peer.account_status.read.resolve.v1"
     },
     {
+      "old": "ak.peer.applet.configuration.command.submit",
+      "new": "ak.peer.applet.configuration.command.submit.v1"
+    },
+    {
       "old": "ak.peer.call.invitation.command.relay",
       "new": "ak.peer.call.invitation.command.relay.v1"
     },

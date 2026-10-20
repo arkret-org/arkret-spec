@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T06:36:09+08:00",
+  "generated_at": "2026-10-21T07:13:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -369,7 +369,8 @@
         "ak.self.applet.authority.read.material.v1",
         "ak.self.applet.configuration.command.submit.v1",
         "ak.self.realm_actor.read.material.v1",
-        "ak.peer.realm_actor.read.material.v1"
+        "ak.peer.realm_actor.read.material.v1",
+        "ak.peer.applet.configuration.command.submit.v1"
       ],
       "surface_class": "extension"
     },
@@ -4519,6 +4520,32 @@
       "notes": "Normative: zh/extensions/applet-management-source.md. Immutable intent survives proof refresh and response loss. The Realm governor authorizes the administrator configuration request; Applet runtime creates and signs its candidate, and the same governor independently admits it. A Service transport response is not creation acceptance. Authenticated exact recovery returns the original frozen outcome without another execution; revoked authority cannot start new work."
     },
     {
+      "operation_id": "ak.peer.applet.configuration.command.submit.v1",
+      "http": "POST /_arkret/peer/applets/{applet_id}/configuration",
+      "grpc": "PeerManagement/AppletConfigurationSubmit",
+      "mq": "peer.applet.configuration.command.submit",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Private bounded configuration intent, result and delivery state only; no Event, account, membership or business grant is implicitly accepted."
+      },
+      "notes": "Normative: zh/extensions/applet-management-source.md section 2.1. The Account Station authenticates the full requester_account_id and forwards the original typed request under S2S signature. The current Realm governor verifies Source-Service-ID equals requester_account_id.station_id and independently applies existing administration, installation, scope and Policy gates. It alone retains immutable intent and exact result; no login credential forwarding or implicit authority. The Account Station revalidates local session/device before result delivery. Recovery follows the verified current governance chain without changing the original intent or executing another identity creation.",
+      "max_canonical_body_bytes": 262144,
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false
+        }
+      }
+    },
+    {
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
       "http": "POST /_arkret/edge/applet/configuration",
       "grpc": "EdgeApplet/AppletConfigurationExecute",
@@ -5499,6 +5526,10 @@
         "ak.deployment_prototype.coland_station.v1#applet_install"
       ],
       "members": [
+        {
+          "operation_id": "ak.peer.applet.configuration.command.submit.v1",
+          "binding_kind": "http_json"
+        },
         {
           "operation_id": "ak.peer.realm_actor.read.material.v1",
           "binding_kind": "http_json"

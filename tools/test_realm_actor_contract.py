@@ -10,6 +10,35 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_configuration_peer_wrapper_preserves_full_account_and_original_request(self):
+        fixture = json.loads((ART / "fixtures/applet-management-source-fixture.json").read_text(encoding="utf-8"))
+        execution = fixture["signature_kats"][0]["unsigned_host"]["intent"]
+        request = {
+            "command": "configure",
+            "intent": {k: execution[k] for k in ("request_id", "effective_scope", "selection")},
+        }
+        wrapper = {"requester_account_id": execution["originating_actor_id"]["account_id"],
+                   "request": request}
+        validator = self.validator("applet-configuration-operations", "#/$defs/peer_request")
+        validator.validate(wrapper)
+        for bad in (
+            {**wrapper, "login_token": "forbidden"},
+            {**wrapper, "requester_account_id": execution["originating_actor_id"]},
+            {**wrapper, "request": {**request, "originating_actor_id": execution["originating_actor_id"]}},
+            {**wrapper, "requester_account_id": None},
+        ):
+            self.assertFalse(validator.is_valid(bad))
+        catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        operation = "ak.peer.applet.configuration.command.submit.v1"
+        registered = next(row for row in catalog["operation_registry"]["operations"]
+                          if row["operation_id"] == operation)
+        self.assertEqual("schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+                         registered["response_schema_ref"])
+        self.assertFalse(registered["auth_requirements"]["service_signature"]["bearer_only_allowed"])
+        bundle = next(row for row in catalog["operation_registry"]["operation_bundles"]
+                      if row["operation_bundle_id"] == "ak.operation_bundle.station.applet_install.v1")
+        self.assertIn({"operation_id": operation, "binding_kind": "http_json"}, bundle["members"])
+
     def test_applet_execution_bundles_follow_key_custody_roles(self):
         catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
         bundles = {row["operation_bundle_id"]: row
