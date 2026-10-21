@@ -245,7 +245,7 @@ Contact 的 admission slot、contact round、每条完整 holder／peer／domain
 
 current_refresh 是只读分支，required 输入为 kind、fresh idempotency_key、完整 requester、trust_domain_id、known_version（0表示未知）、grant_event_refs（至多5个 exact grant EventRef）与 contact_address；initial_contact_round_id 仅在已知时携带以核对，不是允许 caller 改 root。不得要求旧 mirror receipt。请求 Message Signature 的 Station **MUST** 实际托管 requester；目标是 exact peer，不能查询第三方 pair。
 
-来源从同一真实 durable cut 返回 `contact_current_material`：本方 exact head_operation、current_proof、最多5项当前 scope_grants、至多5项请求的 exact historical_intervals，以及已存在的 initial_identity／round_evidence。current proof refs、原 producer、source receipt 和实例逐项匹配；历史 interval 由本次 source result 认证其在 cut 的完整关闭边界。未首次成立时不得伪造 root，pending/reject 不携未来 round；新 pending 附旧轮成立／关闭时仍只属于旧轮。可授权结果须有完整本轮，关闭或明确非授权事实可以独立安装，不得把缺字段解释为 accepted。
+来源从同一真实 durable cut 返回 `contact_current_material`：本方 exact head_operation、current_proof、最多5项当前 scope_grants、至多5项请求的 exact historical_intervals，以及已存在的 initial_identity／round_evidence；round_evidence 存在时必须同时携本轮全部确切原签 round_events（1～3项）。每项历史 interval 也携其 round_events，不能只给 source receipt 而缺失另一参与者的原签意图。current proof refs、原 producer、source receipt 和实例逐项匹配；历史 interval 由本次 source result 认证其在 cut 的完整关闭边界。未首次成立时不得伪造 root，pending/reject 不携未来 round；新 pending 附旧轮成立／关闭时仍只属于旧轮。可授权结果须有完整本轮，关闭或明确非授权事实可以独立安装，不得把缺字段解释为 accepted。
 
 当前 root basis 含原首次 Event(s)／receipts／normal或glare依据，是 unsigned deterministic 对象，不另签新 root 证书。来源只能刷新自己方向；转交另一方向必须保留原 issuer／原有效期，不能用本次 response 时间续期。所需双方 fresh 分别认证；固定历史凭据无需首次 lease 至今 fresh。
 

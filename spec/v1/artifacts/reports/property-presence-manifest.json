@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10008,
+    "total_properties": 10010,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2325,
+      "optional": 2326,
       "optional_defaulted": 48,
-      "required": 7120,
+      "required": 7121,
       "required_nullable": 312,
       "tristate": 203
     },
@@ -4771,6 +4771,7 @@
         "/$defs/contact_current_material/properties/head_operation": "required",
         "/$defs/contact_current_material/properties/historical_intervals": "required",
         "/$defs/contact_current_material/properties/initial_identity": "optional",
+        "/$defs/contact_current_material/properties/round_events": "optional",
         "/$defs/contact_current_material/properties/round_evidence": "optional",
         "/$defs/contact_current_material/properties/scope_grants": "required",
         "/$defs/contact_current_proof/properties/closed_round": "optional",
@@ -5004,6 +5005,7 @@
         "/$defs/contact_scope_interval/properties/contact_scope": "required",
         "/$defs/contact_scope_interval/properties/grant": "required",
         "/$defs/contact_scope_interval/properties/round": "required",
+        "/$defs/contact_scope_interval/properties/round_events": "required",
         "/$defs/contact_scope_update_outcome/allOf/1/properties/result_kind": "required",
         "/$defs/contact_scope_update_payload/properties/contact_round_id": "required",
         "/$defs/contact_scope_update_payload/properties/granted_to_peer_scopes": "required",
@@ -5266,6 +5268,7 @@
         "/$defs/request_acceptance_receipt_core/properties/version": "required"
       },
       "conditionally_required": [
+        "/$defs/contact_current_material/properties/round_events",
         "/$defs/contact_lineage/properties/predecessor_event_ref",
         "/$defs/contact_list_row/properties/next_prepare_input",
         "/$defs/contact_list_row/properties/request_event_ref",

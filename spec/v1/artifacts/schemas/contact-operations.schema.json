@@ -3877,7 +3877,8 @@
       "required": [
         "contact_scope",
         "grant",
-        "round"
+        "round",
+        "round_events"
       ],
       "properties": {
         "contact_scope": {
@@ -3888,6 +3889,15 @@
         },
         "round": {
           "$ref": "#/$defs/contact_round_basis"
+        },
+        "round_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+          },
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true
         },
         "closed_by": {
           "$ref": "#/$defs/contact_operation_evidence"
@@ -3910,6 +3920,15 @@
         },
         "round_evidence": {
           "$ref": "#/$defs/contact_round_basis"
+        },
+        "round_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+          },
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true
         },
         "head_operation": {
           "$ref": "#/$defs/contact_operation_evidence"
@@ -3937,7 +3956,28 @@
         }
       },
       "additionalProperties": false,
-      "description": "Bounded source material for the exact pair. All current proof refs, scope origins, original source confirmations and producer keys cross-match. Pending/reject never fabricate a round; root is absent only before first establishment. The signed control result covers the full material. Historical intervals are exact-requested, not an enumeration."
+      "description": "Bounded source material for the exact pair. All current proof refs, scope origins, original source confirmations and producer keys cross-match. Pending/reject never fabricate a round; root is absent only before first establishment. The signed control result covers the full material. Historical intervals are exact-requested, not an enumeration.",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "round_evidence"
+            ]
+          },
+          "then": {
+            "required": [
+              "round_events"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "round_events"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

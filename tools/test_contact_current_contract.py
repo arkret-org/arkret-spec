@@ -79,6 +79,12 @@ class ContactCurrentContract(unittest.TestCase):
                 self.assertIn('version',payloads[name]['required']);self.assertIn('trust_domain_id',payloads[name]['required'])
         for name in ['contact_requested_payload','contact_rejected_payload']:
             self.assertNotIn('contact_round_id',payloads[name]['properties'])
+    def test_recovery_and_intervals_preserve_all_round_originals(self):
+        defs=self.schema['$defs']
+        self.assertIn('round_events',defs['contact_scope_interval']['required'])
+        material=defs['contact_current_material']
+        self.assertEqual(material['allOf'][0]['then']['required'],['round_events'])
+        self.assertEqual(material['properties']['round_events']['maxItems'],3)
     def test_reference_results_are_not_unconditional_success(self):
         original={'rule':'consume','input':{'choice':'glare','next_choice':'normal'}}
         self.assertFalse(evaluate(original))
