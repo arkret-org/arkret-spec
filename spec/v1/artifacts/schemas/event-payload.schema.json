@@ -4090,76 +4090,31 @@
           "type": "string",
           "enum": [
             "pending",
-            "claimed",
-            "send_failed"
+            "claimed"
           ],
           "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one."
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Present exactly when the target Invite stores one and target_state is not send_failed; forbidden for a 3PID placeholder and forbidden on send_failed. It is the only signed source from which the invite_live_target slot subject can be derived, and send_failed keeps the invite inside the live set, so that transition derives no slot write and needs no account."
+          "description": "Present exactly when invite_directed_invitee stores one; absent for third-party invites. The unconditional stored_field_matches_payload requirement protects both directions."
         },
         "target_state": {
           "type": "string",
           "enum": [
             "revoked",
-            "expired",
-            "send_failed",
-            "revoked_by_capability_loss",
-            "revoked_by_inviter_left",
-            "invalidated_by_rate_limit"
+            "expired"
           ],
-          "description": "Terminal invalidation of a pending invite, carried by an authorized writer's signed Event. send_failed and expired are observations the writer commits explicitly (third-party-invites.md 6.1); neither may be written by a local timer or delivery retry loop."
+          "description": "Irreversible shared invalidation, confirmed by an authorized signed Event. Delivery failure is private; current capability, membership and abuse gates remain independent of diagnostic reason."
         },
         "reason_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Optional supplementary diagnostic for the transition this Event carries. The cause is already fixed by the Event kind and target_state (zh/models/governance-objects.md section 5.3), so admission never decides legality from it. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+          "description": "Optional supplementary diagnostic for the transition this Event carries. The cause is already fixed by the Event kind and target_state (zh/models/governance-objects.md section 5.3), so admission never decides legality from it. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans. A policy revoke may diagnose invalidated_by_rate_limit; this never creates a distinct shared state."
         },
         "reason": {
           "type": "string"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "target_state": {
-                "const": "send_failed"
-              }
-            },
-            "required": [
-              "target_state"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "invitee_account_id"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "target_state": {
-                "const": "send_failed"
-              }
-            },
-            "required": [
-              "target_state"
-            ]
-          },
-          "then": {
-            "properties": {
-              "previous_state": {
-                "const": "pending"
-              }
-            }
-          }
-        }
-      ],
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },

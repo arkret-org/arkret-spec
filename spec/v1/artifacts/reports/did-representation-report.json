@@ -6336,6 +6336,16 @@
       ]
     },
     {
+      "schema_path": "realm-state-snapshot.schema.json#/$defs/history_basis/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "realm.schema.json#/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",

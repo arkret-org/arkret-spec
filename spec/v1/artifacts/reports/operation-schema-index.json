@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.6",
+  "version": "2026-10-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:38:29+08:00",
+  "generated_at": "2026-10-22T02:10:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3162,7 +3162,8 @@
           "request_id",
           "realm_id",
           "member_account_id",
-          "membership_commit_id"
+          "membership_commit_id",
+          "history_stream_ref"
         ],
         "closed": true
       },
@@ -8036,6 +8037,7 @@
           "snapshot_id",
           "realm_id",
           "governance_generation",
+          "purpose",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",
@@ -8046,6 +8048,8 @@
           "snapshot_id",
           "realm_id",
           "governance_generation",
+          "purpose",
+          "history_basis",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",
@@ -8065,6 +8069,7 @@
           "snapshot_id",
           "realm_id",
           "governance_generation",
+          "purpose",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",
@@ -8075,6 +8080,8 @@
           "snapshot_id",
           "realm_id",
           "governance_generation",
+          "purpose",
+          "history_basis",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",

@@ -3,12 +3,13 @@
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot.schema.json",
   "title": "Arkret Realm Snapshot",
   "x-arkret-signature-domain": "ak.realm_snapshot_signature.v1",
-  "description": "Closed inline materialization signed by the governing Station of its declared tenure, for current bootstrap or an exact historical window basis. Current head requires the current generation; historical by-ref may retain an earlier chain-recognized tenure. Account Stations and independent auditors verify native governance history, fresh authority, signing-time key and signature; ordinary clients consume authenticated persistently bound own-Station originals under server-trusted-results section 2.1, retaining context, content ID, cut, continuity and independent producer/MLS checks. visible_stream_heads, current_state_entries and retention_and_history_floor are read from one durable cut and include only requester-visible streams/results; each visible head is followed by its own commit tail. The complete RFC 8785 canonical signed body is at most 8,388,608 bytes. Governance admission preflights the maximal-disclosure projection and rejects a state transition that would exceed this hard Realm capacity; there is no paging or chunk fallback. No separate sections, chunk digests, state root, replay container or independent omission proof exists. Local cached rows invalid under the current closed typed value schema may be rebuilt atomically only from a complete snapshot verified under the role-specific Snapshot section 4 contract, with source, revision, head and generation checks preserved; conflicting valid same-revision rows must still reject the entire batch (current-results section 3). Every exact by-ref read rechecks current disclosure for every original row, head and floor; losing an unrelated scope makes the whole original unavailable. No current head substitution, partial rewrite or historical installation over newer current is allowed.",
+  "description": "Closed signed inline Snapshot with signed purpose and complete same-cut coverage. full_recovery includes all caller-disclosable rows/heads/floors and retains the 8 MiB admission capacity. stream_history contains all disclosable target-stream rows plus exactly the required parent MemberState and Circle/Sidecar selector rows, and heads/floors only for their source streams. Its signed history_basis binds full Account identity (including Station), exact target, anchor and accepted cross-stream dependency refs. It is a new original with its own content ID, issued before the window ref, never a clipped signed original. Current disclosure rechecks every included component; unrelated scopes absent from this object do not invalidate it. Narrow objects never replace current/bootstrap/handoff or imply omitted state is absent. Existing signer-tenure, retention/redaction, cursor lifetime and atomic Account-frame checks remain mandatory.",
   "type": "object",
   "required": [
     "snapshot_id",
     "realm_id",
     "governance_generation",
+    "purpose",
     "visible_stream_heads",
     "current_state_entries",
     "retention_and_history_floor",
@@ -27,18 +28,28 @@
       "minimum": 0,
       "description": "Station tenure this snapshot is bound to. Current /head MUST equal the fresh current authority generation. Exact historical by-ref MUST equal its requested basis generation and may precede current authority after a valid handoff; the consuming Account Station or independent auditor resolves that tenure and its exact signing-time service key from the fresh genesis-to-current chain. Unknown/future tenure, wrong signer, old tenure presented as current head, or rollback of saved current/checkpoints MUST be refused. Ordinary clients apply the bound own-Station consumption contract rather than independently resolving governance history."
     },
+    "purpose": {
+      "enum": [
+        "full_recovery",
+        "stream_history"
+      ],
+      "description": "Signed installation purpose. Only full_recovery can replace a Realm current baseline. stream_history is bound to one Account historical window and MUST NOT clear omitted selectors or advance current checkpoints."
+    },
+    "history_basis": {
+      "$ref": "#/$defs/history_basis"
+    },
     "visible_stream_heads": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "description": "All and only the caller-visible stream heads at the same durable cut as current_state_entries and retention_and_history_floor; hidden Circle/Sidecar streams are not enumerated.",
+      "description": "Exactly the covered source streams at the signed cut. full_recovery covers every disclosed stream; stream_history covers its target plus only sources of necessary selector dependencies. No hidden directory.",
       "items": {
         "$ref": "./realm-commit.schema.json#/$defs/stream_head"
       }
     },
     "current_state_entries": {
       "type": "array",
-      "description": "Inline closed typed current results for the caller-visible streams at the same durable cut as visible_stream_heads. An empty array is not a placeholder for an unregistered chunk fetch and proves nothing about hidden streams.",
+      "description": "Complete disclosable selector set within the signed coverage, read at the same cut as covered heads and floors. Omitted selectors outside stream_history coverage do not mean empty or deleted.",
       "items": {
         "$ref": "./typed-current-result.schema.json"
       }
@@ -88,5 +99,66 @@
       "$ref": "./detached-object-signature.schema.json#/$defs/realm_snapshot_signature"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "const": "stream_history"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "required": [
+          "history_basis"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "history_basis"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "history_basis": {
+      "type": "object",
+      "required": [
+        "account_id",
+        "stream_ref",
+        "anchor_position",
+        "anchor_commit_ref",
+        "accepted_dependency_refs"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "anchor_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "anchor_commit_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "accepted_dependency_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

@@ -268,6 +268,10 @@
         "membership_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
           "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join} or ak.invite.accept for a directed Invite on the Realm stream, or ak.circle.member.state{join} on the Circle stream. Circle bootstrap requires current parent-Realm membership; a parent-Realm join Commit cannot replace the Circle join Commit (zh/sync/federation.md section 4.1.1)."
+        },
+        "history_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
+          "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state."
         }
       },
       "additionalProperties": false

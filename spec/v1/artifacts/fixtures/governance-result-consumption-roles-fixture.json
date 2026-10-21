@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit_projection.result_consumption_roles.v1"
   },
-  "version": "2026-10-17.1",
+  "version": "2026-10-22.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.authority_commit_projection.result_consumption_roles.v1"
@@ -737,14 +737,15 @@
         "native_governance_verified": true,
         "ordinary_method_history_required": false,
         "original_available": true,
-        "all_original_components_disclosable": false,
+        "all_original_components_disclosable": true,
         "target_stream_disclosable": true,
         "context_ids_cut_and_continuity_valid": true,
         "replaces_newer_current": false,
         "substitutes_current_head": false,
-        "rewrites_original": false
+        "rewrites_original": false,
+        "uncovered_unrelated_scope_disclosable": false
       },
-      "expected": "unavailable"
+      "expected": "accept_historical"
     },
     {
       "name": "target_scope_revoked",
@@ -899,6 +900,97 @@
         "rewrites_original": false
       },
       "expected": "accept_historical"
+    },
+    {
+      "name": "required_dependency_revoked",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": false,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "unavailable"
+    },
+    {
+      "name": "narrow_basis_as_current",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "head",
+        "current_generation": 2,
+        "snapshot_generation": 2,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false,
+        "purpose": "stream_history"
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "history_coverage_account_or_anchor_mismatch",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false,
+        "history_coverage_matches": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "missing_selector_dependency",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false,
+        "selector_closure_complete": false
+      },
+      "expected": "reject"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.5",
+  "version": "2026-10-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T21:29:59+08:00",
+  "generated_at": "2026-10-22T02:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2919,7 +2919,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Directed invite liveness has one truth source, the invite_live_target typed current result keyed by canonical_json(payload.invitee_account_id) without realm_id: a second directed create for the same account fails with invite_live_target_occupied while pending and send_failed count as live.",
+      "description": "Directed invite liveness has one truth source, the invite_live_target typed current result keyed by canonical_json(payload.invitee_account_id) without realm_id: a second directed create for the same account fails with invite_live_target_occupied while pending counts as live; private delivery failure leaves shared authorization unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]

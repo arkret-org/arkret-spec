@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-10-21.1",
+  "version": "2026-10-22.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -623,17 +623,16 @@
         "token_invite_revoke_revoked_is_accepted",
         "claimed_invite_accept_is_accepted",
         "direct_create_and_accept_release_the_live_target_slot",
-        "send_failed_revoke_keeps_the_live_target_slot_claimed"
+        "private_delivery_failure_keeps_shared_state_and_slot_unchanged"
       ],
       "expected": {
         "decision": "mixed",
         "registered_write_counts": {
-          "ak.invite.create": 2,
+          "ak.invite.create": 3,
           "ak.invite.accept.directed": 3,
           "ak.invite.accept.third_party": 2,
           "ak.invite.cancel": 2,
           "ak.invite.revoke.directed_terminal": 2,
-          "ak.invite.revoke.send_failed": 1,
           "ak.invite.revoke.third_party": 1
         },
         "accepted_member_state_path": [
@@ -650,9 +649,9 @@
         "ak.invite.cancel is valid only for a stored direct invitee binding; token and 3PID invites require the high-risk ak.invite.revoke path",
         "a direct cancel requires signed payload.invitee_account_id to equal the stored invitee binding",
         "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen typed current result",
-        "a directed ak.invite.revoke to send_failed writes only invite_lifecycle and leaves the invite_live_target slot claimed",
         "a third-party ak.invite.revoke writes only invite_lifecycle because its payload carries no invitee_account_id",
-        "the write count is branch-dependent, not per kind: ak.invite.accept and ak.invite.revoke derive the invite_live_target write only when the payload carries invitee_account_id, so a third-party accept is two writes and a send_failed or third-party revoke is one"
+        "private delivery failure, timeout or retry exhaustion derives zero shared writes; accepted and revoked require their own signed authorization Events",
+        "revoked is irreversible after capability regain; current gates reject new claims before cleanup confirmation"
       ]
     },
     {
@@ -663,7 +662,7 @@
         "concurrent_directed_creates_resolve_to_one_slot_holder",
         "terminal_release_then_reinvite_is_accepted",
         "expired_at_wall_clock_alone_does_not_release_the_slot",
-        "send_failed_holder_requires_revoke_before_a_new_create",
+        "delivery_retry_reuses_frozen_invite_and_target",
         "third_party_revoke_forging_invitee_account_id_is_reducer_projection_failed",
         "directed_revoke_omitting_invitee_account_id_is_reducer_projection_failed",
         "release_expected_revision_spelled_as_invite_id_is_failed_precondition"
@@ -676,8 +675,7 @@
           "details_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem"
         },
         "live_states": [
-          "pending",
-          "send_failed"
+          "pending"
         ],
         "slot_value_source": "envelope.event_id"
       },
@@ -688,10 +686,11 @@
         "two concurrent directed creates contend on the same typed current result so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
         "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
         "reaching expires_at does not release the slot; only a registered Event does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
-        "send_failed keeps the slot claimed and the payload schema forbids invitee_account_id there, so the client must revoke before creating a replacement invite",
         "a third-party invite whose revoke payload carries a forged invitee_account_id fails stored_field_matches_payload with reducer_projection_failed and releases no slot",
         "a directed invite whose terminal revoke omits invitee_account_id fails the same predicate, so a directed invite cannot leak a permanently claimed slot",
-        "the slot value is the literal ak:event: create_event_id; a release Event whose expected_revision carries the ak:invite: spelling is failed_precondition"
+        "the slot value is the literal ak:event: create_event_id; a release Event whose expected_revision carries the ak:invite: spelling is failed_precondition",
+        "an effective unconsumed pending invite retries private delivery under its original invite_id without extending expiry, re-signing or releasing the slot",
+        "an old terminal Event never clears a successor invite slot"
       ]
     },
     {

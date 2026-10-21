@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-22.1",
   "suite": "call_current",
   "fixture_kind": "cryptographic_transcript",
   "runner": {
@@ -828,7 +828,7 @@
   ],
   "checkpoints": [
     {
-      "snapshot_id": "ak:realm_snapshot:AVULeDk1uz3ouZdPnDI6_T4Myzo9n48IEL7X1sMDn9ST",
+      "snapshot_id": "ak:realm_snapshot:ARitzr3_cCnboyrq9zsYPIQhINGi9Z-e30cGBt81H60J",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -874,17 +874,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.001Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:695d92e17d38bdb400b9860756b5ae2f8c7cc96daed51dcfeb9c314baccb7d20",
+        "signed_digest": "sha256:f5815f185f7784c07dca4a2f3e479c9711bfcf5331f40c5546349bb34237cda6",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "xJkGV5v0_q4CgEiMlcbA2eNn8YWIXVRK3uMyt5TUQTduE2kX-A-4Bk88gIHhLk0CTDNCYAEuO1O-UhX1TizFCg"
+        "sig": "hZdutKjTPx6HdsO5aDVQS2d1pPPy3LRMJpLubIzEcJDPuHcZXAAvLFl-SnVnKJoBGGa_II7a6aK8nKk2uMBEAA"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AVOtjHGWZgDMKBZbHEQMNrSSNvoGhz239-ID7y7-QIZh",
+      "snapshot_id": "ak:realm_snapshot:AWXx3D1HH5T9IHrmUPxTtc-pqLktPgXgfljvSgp6B6oP",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -948,17 +949,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.002Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:9fe2b1a1367753f70d941861e19cf1886e938cfbd14824d120ddc93adf5a50ec",
+        "signed_digest": "sha256:9707e898dd0aa52fc97d9999f312829321374c05434e10cb033ae5231c9e0ba6",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "DjzkeKb5_OkijeL5QcFRC3qjfyON4zYnW5QAfl5ERf895USG14CRWpGPx_vtvSkESBwmkUKf23cFW_IfoaThBQ"
+        "sig": "ec12r99eMVB92ONe22WVKky1J4EXKkhB7kyBQXjoXndNwsyEuene0PvxYj1hgKeQERWWd_XQPNaOPYbVZAAlAw"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AQ8QDauNq7DxVlxNiGpUi6FSg2D7JjXY6mdbHziBw-ma",
+      "snapshot_id": "ak:realm_snapshot:AVPX89W5j5s8G8zGEC54BRZFY4I3Gnv24Zvi_Yqldgec",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -1145,17 +1147,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.003Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:6dc08df9daf86b307a514d3c1eca7005755c9048e76cba5d84e85a7659ea55b4",
+        "signed_digest": "sha256:6d9207af32c1f2e0d524008fabe12e86acdcf98892f76a9daf0cd89a80d7a263",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "2QhOWoKrM87HW8hjedPDz4yBeI5xUcQTGY25AwnPFR4gQ4BUvhNpOWQhRSMomjl4QXukey7QL6WJIWGbhKvbBw"
+        "sig": "ue9X5ZQtX1pivFOWrSc8yubEKMMtDqftIZNjmWKr0mJ_9khj0HRBhv1Akya3s7o2j2G_YEH0wowFZB4fQj3jBg"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AS6oGIt-4GzOmFP9JnIQR7IFrxyINtQAZFhFfKFBhXTT",
+      "snapshot_id": "ak:realm_snapshot:AQpJoWuat3ByhpuBf3aHAqG56YiMUBYNtMRPvV7UlTCD",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -1396,17 +1399,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.004Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:d4fc5b2d15be42aa838224b7068d6d33303499b01001088b2ada66a234a6b3e2",
+        "signed_digest": "sha256:5af58dbdfded6db4c43d113bd83443c76607b41135af9040779b3318756ff64d",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "MwMNbXPskuirHAj2kMKwzlp0OOQjoUxQ_xBrAY4rJAPk5jg1DmCHZFXT3SUlCCqNStN3azsb-tvMDlFVN9PNBw"
+        "sig": "rlQhBua7OfDDbEP9no71ynsic8H2KIpJu3ofb3SYml7LBdhYV-V_7qVaha4KEOlDTklFZ3rGc3yDnL_UXWFUBQ"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AXHNqsDnMdP1p5v00sNToK33d-vkWJqsQK7A_7liQI_F",
+      "snapshot_id": "ak:realm_snapshot:AZYygEGPbu3LFKM7deJHC0uBkqY7i-XGFxRf9ceaRAKs",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -1745,17 +1749,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.005Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:7827b91b44bbacebd88ca0a7204be798e73db9141ab3cffa3076924b6e061888",
+        "signed_digest": "sha256:e6ad0b9b050dae7421752ceb0d3fc3fd75dbdf4bc08c7e78a24851a3d5a6bec5",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "Vttg39MuKgSWzdAfr4Zc2aMVqvhK7REPIU3ANLh0ZBqcW5B4dmDtsoT14vxLsWSClHFusXGM5iBqHoPKQXqcCQ"
+        "sig": "8nNNKxeJUs1kXztD5ZYI0niuOD62VmczF_TtPuMOpdgc0Cx0Obvoz_hZzZTmsRryDU3Bb9BUasukBeiq5lrXCQ"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AUmc491dogpTjpTZNv5hrmkuNnXACOHVGDyMtFZbS-nz",
+      "snapshot_id": "ak:realm_snapshot:Ac7GBDpCuFp08B8xAZnaWM1KLBJqL91-ilGtRsJ3PxJQ",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -2054,17 +2059,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.006Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:7f9930afb7ac7234ad08340663b76a76b1984630eaca213666fda9a5689e0604",
+        "signed_digest": "sha256:639d37dae936b401e42b7501fd3870dca3a5ff840c237aef417fc6173e002b21",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "b4GCKR9yRl_SjBB8WHTPTfWqJITUXTzOHeD9NW4WezC1uRS3BaMEgkW-1bCiGSqi_msSukcrhZjZx468vfwGAw"
+        "sig": "h6mPJ4zt2cnQaGOtv8bh8kiZbPtl30BJhX_hxKcXyJl-jXlazoaY6kmQ0Q1ut5Top-wsS__RxzTI64ZNHGQiDQ"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AaULm9-HLBJs3EEOOokAlFlSI7lYuPkW2otUQGK8jEez",
+      "snapshot_id": "ak:realm_snapshot:ARDdx1chb4-PW__uhKPFy1QFSIAV_inAClbrGM_Oq0_h",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -2405,17 +2411,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.007Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:91a4229840ebed545ce15779dcc1b97adfabeb9b77a5b3c737cb5fb122d9a1c7",
+        "signed_digest": "sha256:55283f8a9e0d31473e95bcc8bce5f77210c57ce5afd7bdeed22e6d8de6a66d8d",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "b43N1CbE-vJio1Q5QipHV6Z7zwyNlTcBwM1N13aS4Wc0XpduKMesk7m6dLBcCKacdVNjf6okDMmAsSl1Cma4DA"
+        "sig": "2fqZ2oVqyBBbsRyxAoIsoDH-U-GdM0ynPXokcMn4P6feKX3K1lwZ4NNfYU8Le70cTPzWnitaii8WDhB8kM18Bw"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:Ab4V90TYiu-GdRcSk-575d_ag8GUJV3CPOODhZ6LvgtG",
+      "snapshot_id": "ak:realm_snapshot:AduNbe8cn7128pS9WSOH3RziyMfkSogyp6crves0TiP0",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -2756,17 +2763,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.008Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:298a8234c0462780897ab174a228ce39cf4de7c09b73d1b8dfbd6abfe50d0cf9",
+        "signed_digest": "sha256:7131e2a209aa2a2cbee04aa70936defe785b1d6f805e96bd27d0b6b004e07651",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "hGkLKfiKge-s1zEmlqSoIftfjt7G5Ws0pb6LZMv8zqfO2cIJf57-MB5GQa_7GT9vVKs0BucXA277mQms8UcMBQ"
+        "sig": "fSolA7oYt0IZjpZwBn1z3sCtaxH5XiNCzhXi-sgweimBumlRyDdxtvzDo25AM25VolFhWYFoEtSkSN1lg-WwBA"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AXJCOxDCnSv-vgJuuj0RwlWjACzhoRm95nJty_biDhep",
+      "snapshot_id": "ak:realm_snapshot:AfK-hnSOOilcLpPpx7cuj37iB516LydQX5yKDzIjumWZ",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -3042,17 +3050,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.009Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:263f1550172ef65b5abd99c88de0e9e1712e016124501a53bd5a614a185062ee",
+        "signed_digest": "sha256:5c7816a09d3b9b841268cf209e8e112736188dc34060a50dbd3376ff50c6c70e",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "QOp_01zy1ooyCqF_3U45hJg7Z6duCfQSmHrf6efuIxkPQpnq4F59pbD0XkaFPh5myaUEjqcy8zUnshABu7w1Dw"
+        "sig": "rD2D-e2e3GR4RZKi9Fn-ruTxpqr3Cv1RPwHJ05WTGT5WMqiyEJngY_1jebGxpWuZbB9seCXRA655y9JCa_wTDA"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:ARKnhbJb8E-aI9lzMUHkWQ0ESNMkvBM6vODU3208cQ5a",
+      "snapshot_id": "ak:realm_snapshot:AbyiwMaYaw2xnwVf2bUtK92r-_eND5wLoHWJkfU1GrG1",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -3273,17 +3282,18 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.010Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:cd0922732d1294c72fea55c05c299e69170ea57f9328f4441e4f27e2db888da8",
+        "signed_digest": "sha256:b76d5626722a4013918ad9b47473d52a89f6bb1b912eab75515d12e32b0e4db4",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "Sw3mAsC7CXZStBhxMZQWax9vvQwPT2cI9gdvbM-0-qVB9cRl7zpAh76pL-t3JPYefOC1SNk6BeOJancMurMcAw"
+        "sig": "wDoeiRs5SANGUqEbCd6g0R0YgOPaGhK8SGWwL0vVl3miaTJIdTsxmVDtqzRS7E1fKbl6_La7nVZxllcdhETBDA"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AYVySF2LqJMGPODO8OqA75uqQrpU8hh8O4rNKc0aunV9",
+      "snapshot_id": "ak:realm_snapshot:AW47e2r-huaLxIR2TlVEbJ4quWQv7xwAcDIshzDB4E7Q",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": 1,
       "visible_stream_heads": [
@@ -3609,13 +3619,14 @@
         ]
       },
       "created_at": "2026-09-20T00:00:00.011Z",
+      "purpose": "full_recovery",
       "signature": {
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:2fda182d13715356fc74179afc0be0751de4a3ec4d9dcd161f042a4174bf6c8b",
+        "signed_digest": "sha256:3a49497c36208f5d6ab8cfaa01a14c16d8653e5f3c70841c69aff8aaf9d5ab9b",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "sig": "1S3dpOlvGnb0p-12gCTCZS2u9G8Yris8zvMoE6Ugc6bJkZmFTKR9aUxn4eGuFERGzkmAAmxsBLcO3WQJGDZ8AQ"
+        "sig": "KgNP4h5o_90cALZuxZ2vrk2gyDLlu5PViWAjHjZWJ3EwQQgy4-s7Q98nK7LarGjtnBqe_z3aknxtm87ZaAvTBw"
       }
     }
   ],

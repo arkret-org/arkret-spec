@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-20T04:33:51+08:00",
+  "generated_at": "2026-10-22T02:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -295,9 +295,9 @@
         "independent_auditor"
       ],
       "ordinary_client_contract": "authenticated_bound_own_station_original_with_exact_context_and_independent_producer_mls_checks",
-      "historical_basis_carrier": "complete_original_signed_snapshot",
-      "current_disclosure_recheck": "every_original_row_head_and_floor",
-      "unrelated_scope_revocation": "whole_exact_original_unavailable",
+      "historical_basis_carrier": "independently_signed_stream_history_snapshot",
+      "current_disclosure_recheck": "every_covered_row_head_floor_and_exact_dependency",
+      "unrelated_scope_revocation": "uncovered_unrelated_scope_does_not_invalidate_basis",
       "missing_basis_at_issuance": "per_stream_preview_only",
       "missing_basis_at_consumption": "reject_account_frame_without_cursor_advance",
       "historical_may_replace_newer_current": false,

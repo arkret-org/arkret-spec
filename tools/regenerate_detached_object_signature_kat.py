@@ -188,6 +188,7 @@ def build_fixture() -> dict:
     assertion_host = dict(assertion_unsigned, signature=assertion_sig)
 
     snapshot_unsigned = {
+        "purpose": "full_recovery",
         "snapshot_id": SNAPSHOT_ID,
         "realm_id": REALM_ID,
         "governance_generation": 2,
@@ -366,7 +367,7 @@ def build_fixture() -> dict:
             "kind": "named_suite",
             "entrypoint": "ak.suite.detached_object_signature_transcripts.v1",
         },
-        "version": "2026-09-24",
+        "version": "2026-10-22.1",
         "schema": "arkret.detached-object-signature-kat-fixture.v1",
         "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
         "covers_vectors": ["ak.vector.detached_object_signature_transcripts.v1"],

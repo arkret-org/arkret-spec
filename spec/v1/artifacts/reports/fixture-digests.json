@@ -117,8 +117,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "17006a8e9b4e083c08c0641794d616a91e39cd0666715e7edaf5c09ea38ea507",
-      "version": "2026-10-19.2"
+      "sha256": "8bfa64f1bc3b51006172e84fca72e366016ebe4716b5c77ac74f578b678e324b",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
@@ -212,8 +212,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
-      "sha256": "6fd94a74b5e0e69d9a61e7d5ae014557ca01ec08747b100506a27f6097be54d4",
-      "version": "2026-09-24"
+      "sha256": "2afda79ca255dd8df43eaf75bcfae273879854f9ec215233a40be028b4552cf4",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -317,8 +317,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json",
-      "sha256": "59d047397a65ee7899c822e91cafd050ad4607068905ef85575f419a0bf901f5",
-      "version": "2026-10-17.1"
+      "sha256": "7f181a7911602527ee4447697d685552cea6e0b01b5dc10736ed0dc1d19c90ed",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/handle-claim-kat.json",
@@ -492,8 +492,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "dcf50c9f641e8a55555f81378947251a2a41f88b71d86cef209b63bf5f8edee8",
-      "version": "2026-10-21.1"
+      "sha256": "173ee80afd062d1d402e89cf12787c0285213c6f863ed11b1c134edfb34e5090",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",

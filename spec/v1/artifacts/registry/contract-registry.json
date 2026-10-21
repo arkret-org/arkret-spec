@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.14",
+  "version": "2026-10-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T22:25:25+08:00",
+  "generated_at": "2026-10-22T02:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -1011,24 +1011,17 @@
         "states": [
           "pending",
           "claimed",
-          "send_failed",
           "accepted",
           "rejected",
           "revoked",
-          "expired",
-          "revoked_by_capability_loss",
-          "revoked_by_inviter_left",
-          "invalidated_by_rate_limit"
+          "expired"
         ],
         "initial_state": "pending",
         "terminal_states": [
           "accepted",
           "rejected",
           "revoked",
-          "expired",
-          "revoked_by_capability_loss",
-          "revoked_by_inviter_left",
-          "invalidated_by_rate_limit"
+          "expired"
         ],
         "idempotent_replay": "same_event_identity_replay_noop",
         "allowed_transitions": [
@@ -1053,22 +1046,6 @@
             "expired"
           ],
           [
-            "pending",
-            "revoked_by_capability_loss"
-          ],
-          [
-            "pending",
-            "revoked_by_inviter_left"
-          ],
-          [
-            "pending",
-            "invalidated_by_rate_limit"
-          ],
-          [
-            "pending",
-            "send_failed"
-          ],
-          [
             "claimed",
             "accepted"
           ],
@@ -1083,38 +1060,6 @@
           [
             "claimed",
             "expired"
-          ],
-          [
-            "claimed",
-            "revoked_by_capability_loss"
-          ],
-          [
-            "claimed",
-            "revoked_by_inviter_left"
-          ],
-          [
-            "claimed",
-            "invalidated_by_rate_limit"
-          ],
-          [
-            "send_failed",
-            "revoked"
-          ],
-          [
-            "send_failed",
-            "expired"
-          ],
-          [
-            "send_failed",
-            "revoked_by_capability_loss"
-          ],
-          [
-            "send_failed",
-            "revoked_by_inviter_left"
-          ],
-          [
-            "send_failed",
-            "invalidated_by_rate_limit"
           ]
         ]
       }
@@ -3582,7 +3527,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_value",
-            "notes": "models/governance-objects.md section 5.3 fixes the initial state of every Invite at pending; send_failed is reachable only after delivery has been attempted, so the payload MUST NOT carry a state and the entry edge is a const pair. The subject is this Event's own id retyped, which is what makes the InviteId derivable without carrying it in the genesis payload."
+            "notes": "Every Invite starts at pending. Private delivery observations never change the shared authorization lifecycle."
           },
           {
             "result_family": "invite_directed_invitee",
@@ -3642,7 +3587,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Invite revoke. Carries the terminal or send_failed transition of a directed or third-party invite. payload.previous_state names the non-terminal state it moves out of and is pinned to pending on the send_failed branch. payload.invitee_account_id is present exactly when the target Invite stores an invite_directed_invitee record and target_state is not send_failed; send_failed keeps the invite live, so the schema forbids the field there and no slot write is derived. The five non-send_failed target states each carry a pre_state_requirements row holding the payload's invitee against the stored record in both directions, which is why the requirement is keyed on target_state rather than on the field's presence: a directed invite MUST NOT keep its slot forever by omitting it.",
+        "payload": "Signed terminal revoked or expired transition from pending or claimed. Delivery progress remains private. invitee_account_id is present exactly when invite_directed_invitee stores it; the unconditional pre-state requirement rejects omissions and forged third-party slot releases.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_revoke_payload",
         "id_source": "reference",
         "result_writes": [
@@ -3662,7 +3607,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_value",
-            "notes": "models/governance-objects.md section 5.3 gives revoke every terminal edge except accepted and rejected, plus the one non-terminal send_failed edge, out of pending, claimed or send_failed. Both endpoints are read from the payload. The two edges the state table refuses inside that cross-product are closed by the payload schema rather than by a second table: target_state=send_failed pins previous_state to the const pending, so neither claimed -> send_failed nor send_failed -> send_failed can be authored. send_failed -> pending does not exist at all; a redelivery is a new Invite with a new InviteId, not a revived register."
+            "notes": "Both endpoints come from the signed payload; the only targets are irreversible revoked and expired. Private retries do not author lifecycle transitions."
           },
           {
             "result_family": "invite_live_target",
@@ -3686,7 +3631,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_value",
-            "notes": "models/governance-objects.md section 5.3 keeps send_failed inside the live set, so that transition MUST NOT release the slot; the schema forbids the account field there and the condition therefore derives no write. For the five cleanup targets the slot is released, and the lifecycle edge lands in a terminal state, so no second Event can ever release it again. Wall-clock expiry never releases a slot by itself: expires_at only authorizes a writer to submit target_state=expired."
+            "notes": "A directed terminal transition releases only its own slot once. Wall-clock expiry and private delivery failure never release a slot."
           }
         ],
         "pre_state_requirements": [
@@ -3695,95 +3640,6 @@
             "subject": {
               "kind": "id:invite",
               "field": "payload.invite_id"
-            },
-            "condition": {
-              "kind": "field_equals",
-              "field": "payload.target_state",
-              "const": "revoked"
-            },
-            "predicate": {
-              "kind": "stored_field_matches_payload",
-              "field": "invitee_account_id",
-              "payload_field": "payload.invitee_account_id"
-            },
-            "failure": {
-              "code": "failed_precondition",
-              "reason_code": "invite_directed_invitee_mismatch"
-            }
-          },
-          {
-            "result_family": "invite_directed_invitee",
-            "subject": {
-              "kind": "id:invite",
-              "field": "payload.invite_id"
-            },
-            "condition": {
-              "kind": "field_equals",
-              "field": "payload.target_state",
-              "const": "expired"
-            },
-            "predicate": {
-              "kind": "stored_field_matches_payload",
-              "field": "invitee_account_id",
-              "payload_field": "payload.invitee_account_id"
-            },
-            "failure": {
-              "code": "failed_precondition",
-              "reason_code": "invite_directed_invitee_mismatch"
-            }
-          },
-          {
-            "result_family": "invite_directed_invitee",
-            "subject": {
-              "kind": "id:invite",
-              "field": "payload.invite_id"
-            },
-            "condition": {
-              "kind": "field_equals",
-              "field": "payload.target_state",
-              "const": "revoked_by_capability_loss"
-            },
-            "predicate": {
-              "kind": "stored_field_matches_payload",
-              "field": "invitee_account_id",
-              "payload_field": "payload.invitee_account_id"
-            },
-            "failure": {
-              "code": "failed_precondition",
-              "reason_code": "invite_directed_invitee_mismatch"
-            }
-          },
-          {
-            "result_family": "invite_directed_invitee",
-            "subject": {
-              "kind": "id:invite",
-              "field": "payload.invite_id"
-            },
-            "condition": {
-              "kind": "field_equals",
-              "field": "payload.target_state",
-              "const": "revoked_by_inviter_left"
-            },
-            "predicate": {
-              "kind": "stored_field_matches_payload",
-              "field": "invitee_account_id",
-              "payload_field": "payload.invitee_account_id"
-            },
-            "failure": {
-              "code": "failed_precondition",
-              "reason_code": "invite_directed_invitee_mismatch"
-            }
-          },
-          {
-            "result_family": "invite_directed_invitee",
-            "subject": {
-              "kind": "id:invite",
-              "field": "payload.invite_id"
-            },
-            "condition": {
-              "kind": "field_equals",
-              "field": "payload.target_state",
-              "const": "invalidated_by_rate_limit"
             },
             "predicate": {
               "kind": "stored_field_matches_payload",
@@ -9950,8 +9806,8 @@
         }
       }
     },
-    "version": "2026-10-21.4",
-    "generated_at": "2026-10-21T21:31:04+08:00",
+    "version": "2026-10-22.1",
+    "generated_at": "2026-10-22T02:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -22616,8 +22472,8 @@
         ]
       }
     ],
-    "version": "2026-10-20.1",
-    "generated_at": "2026-10-20T04:33:51+08:00",
+    "version": "2026-10-22.1",
+    "generated_at": "2026-10-22T02:10:00+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -22800,9 +22656,9 @@
           "independent_auditor"
         ],
         "ordinary_client_contract": "authenticated_bound_own_station_original_with_exact_context_and_independent_producer_mls_checks",
-        "historical_basis_carrier": "complete_original_signed_snapshot",
-        "current_disclosure_recheck": "every_original_row_head_and_floor",
-        "unrelated_scope_revocation": "whole_exact_original_unavailable",
+        "historical_basis_carrier": "independently_signed_stream_history_snapshot",
+        "current_disclosure_recheck": "every_covered_row_head_floor_and_exact_dependency",
+        "unrelated_scope_revocation": "uncovered_unrelated_scope_does_not_invalidate_basis",
         "missing_basis_at_issuance": "per_stream_preview_only",
         "missing_basis_at_consumption": "reject_account_frame_without_cursor_advance",
         "historical_may_replace_newer_current": false,

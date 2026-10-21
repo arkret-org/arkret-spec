@@ -22,7 +22,11 @@ def snapshot_decision(case: dict) -> str:
     current = case.get("current_generation")
     if type(generation) is not int or type(current) is not int or not 0 <= generation <= current:
         return "reject"
+    if case.get("history_coverage_matches", True) is not True or case.get("selector_closure_complete", True) is not True:
+        return "reject"
     if case["operation"] == "head":
+        if case.get("purpose", "full_recovery") != "full_recovery":
+            return "reject"
         if generation != current:
             return "reject"
     elif case.get("exact_ref_matches") is not True or generation != case.get("basis_generation"):
@@ -95,9 +99,9 @@ def check_snapshot_consumption(lint: Lint, path, rules: dict, fixture_path) -> N
         "historical_by_ref_generation": "exact_basis_generation_in_fresh_current_chain",
         "native_governance_verification_roles": ["account_station", "independent_auditor"],
         "ordinary_client_contract": "authenticated_bound_own_station_original_with_exact_context_and_independent_producer_mls_checks",
-        "historical_basis_carrier": "complete_original_signed_snapshot",
-        "current_disclosure_recheck": "every_original_row_head_and_floor",
-        "unrelated_scope_revocation": "whole_exact_original_unavailable",
+        "historical_basis_carrier": "independently_signed_stream_history_snapshot",
+        "current_disclosure_recheck": "every_covered_row_head_floor_and_exact_dependency",
+        "unrelated_scope_revocation": "uncovered_unrelated_scope_does_not_invalidate_basis",
         "missing_basis_at_issuance": "per_stream_preview_only",
         "missing_basis_at_consumption": "reject_account_frame_without_cursor_advance",
         "historical_may_replace_newer_current": False,
@@ -109,6 +113,7 @@ def check_snapshot_consumption(lint: Lint, path, rules: dict, fixture_path) -> N
         lint.fail(path, "Snapshot role, tenure, exact-original, disclosure and capacity policy drift")
     cases = load_json(lint, fixture_path).get("snapshot_cases", [])
     required_names = {
+        "required_dependency_revoked", "narrow_basis_as_current", "history_coverage_account_or_anchor_mismatch", "missing_selector_dependency",
         "historical_after_handoff", "current_head", "old_tenure_as_head", "future_tenure",
         "unknown_historical_tenure", "wrong_signer_or_signing_time_key",
         "auditor_historical_after_handoff", "auditor_missing_native_verification",

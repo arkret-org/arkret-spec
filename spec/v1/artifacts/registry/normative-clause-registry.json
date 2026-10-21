@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.9",
+  "version": "2026-10-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T22:01:22+08:00",
+  "generated_at": "2026-10-22T02:10:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -724,7 +724,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative",
-      "section_digest": "sha256:69f2f2bc00f574ec3352fff8313f4db53d9ee49f017e1e20a52c07cc1ae931e2",
+      "section_digest": "sha256:03cc4d0fe859abc7af4870d2d9c717bfaf6571487b239f4d1284db6345dc3aef",
       "requirement": "Ordinary clients consume only persistently bound authenticated own-Station original governance results, checking full Account and request epoch, exact selectors/scope/cuts, content IDs and per-stream continuity without native method history or retained-signer discovery. Station/auditor governance signature, nonce and native history verification and client producer/MLS/attachment cryptography remain mandatory. No new wire result, operation, boolean trust flag or portable authority is introduced. Successful bound self submit pairs each validated frozen request Event with its original accepted Commit by outcome branch and aggregate slot, constructs only the exact target and advances no timeline head/floor; independent historical producer/MLS verification remains mandatory. Snapshot current head must use current tenure; exact historical by-ref may use its chain-recognized original tenure. Every original component must remain currently disclosable, including unrelated scopes. Missing exact basis rejects the Account frame without cursor advance; no head substitution, rewrite or current rollback is allowed. Effective Call current adds only the original participant issuer public key bound to its join source; Account Station native historical issuer verification and independent client binding verification are both required. It adds no Event producer target source, history-floor bypass or reusable authority.",
       "testability_grade": "audit",
       "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence. Execute the Snapshot policy cases and Garth bound HTTP historical-basis regression; the policy matrix does not prove cryptography, revocation transactions or live handoff. Execute compact Call conformance signatures and policy cases; native historical issuer authority and actual cold recovery remain the unique compact-Call engineering owner obligations."

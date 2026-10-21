@@ -117,6 +117,7 @@ def event(payload, position, kind='ak.call.state'):
 
 
 def sign_snapshot(snapshot):
+    snapshot = dict(snapshot, purpose='full_recovery')
     unsigned = {k: v for k, v in snapshot.items() if k not in ('snapshot_id', 'signature')}
     value = {'snapshot_id': typed_id('realm_snapshot', unsigned), **unsigned}
     sig, _ = make_signature('ak.realm_snapshot_signature.v1', value, OLD_VM, KEY_A_SEED)
@@ -205,7 +206,7 @@ def build_fixture():
                'session_epoch': 1, 'realm_id': REALM, 'stream_ref': STREAM, 'call_id': call_id,
                'current_generation': 1, 'known_head': revision(rows[2]['commit'])}
     return {
-        'version': '2026-10-19.2', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
+        'version': '2026-10-22.1', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
         'runner': {'kind': 'named_suite', 'entrypoint': 'ak.suite.call_state.compact_current.v1'},
         'generated_by': 'python -m tools.generate_call_current_fixture', 'covers_vectors': [VECTOR],
         'description': 'Synthetic full ActorId conformance transcripts. Actual Ed25519 Event, Commit, Snapshot and participant signatures; no live native DID authority, admission transaction, production performance or joint acceptance is claimed. The known genesis anchor and issuer authority keys are explicit fixture inputs. A below-floor current source does not authorize historical Event disclosure.',

@@ -64,7 +64,7 @@ Snapshot 的当前 `/head` 与历史 exact by-ref 同样遵守本角色分工。
 authority chain 定位历史任期的原 signer 与 exact signing-time key；普通客户端只经绑定账号／会话的自己 Station
 核对 exact ref、历史 basis generation、同 cut rows／heads／floors 与逐流 anchor，仍独立执行 producer／MLS／附件验证。
 旧任期原件可用于其历史窗口，MUST NOT 冒充 current 或回退 checkpoint。by-ref 每次重验整份原件的当前披露权限；
-无关 scope 失权也可使整份 basis 不可用，不得改签删减原件或用当前 head 顶替。具体验证与失败合同见
+历史窄 basis 只覆盖目标及真实依赖；未包含的无关 scope 失权不使其不可用，实际覆盖组件失权仍整份拒绝，不得改签删减原件或用当前 head 顶替。具体验证与失败合同见
 [Snapshot §4](../conformance/realm-state-snapshot-schema.md#4-创建与验证)。
 
 **本次 self 提交原件（normative）**：成功 self submit outcome 也是本合同的既有输入。客户端

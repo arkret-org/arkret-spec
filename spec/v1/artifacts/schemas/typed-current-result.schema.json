@@ -2572,14 +2572,10 @@
       "enum": [
         "pending",
         "claimed",
-        "send_failed",
         "accepted",
         "rejected",
         "revoked",
-        "expired",
-        "revoked_by_capability_loss",
-        "revoked_by_inviter_left",
-        "invalidated_by_rate_limit"
+        "expired"
       ]
     },
     "invite_lifecycle_result": {

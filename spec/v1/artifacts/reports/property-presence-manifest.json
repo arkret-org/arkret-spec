@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10006,
+    "total_properties": 10012,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2315,
+      "optional": 2316,
       "optional_defaulted": 48,
-      "required": 7126,
+      "required": 7131,
       "required_nullable": 311,
       "tristate": 206
     },
@@ -6994,9 +6994,6 @@
         "/$defs/invite_create_payload/properties/expires_at": "required",
         "/$defs/invite_create_payload/properties/introduction_evidence_digest": "required",
         "/$defs/invite_create_payload/properties/invitee_account_id": "required",
-        "/$defs/invite_revoke_payload/allOf/0/if/properties/target_state": "required",
-        "/$defs/invite_revoke_payload/allOf/1/if/properties/target_state": "required",
-        "/$defs/invite_revoke_payload/allOf/1/then/properties/previous_state": "optional",
         "/$defs/invite_revoke_payload/properties/invite_id": "required",
         "/$defs/invite_revoke_payload/properties/invitee_account_id": "optional",
         "/$defs/invite_revoke_payload/properties/previous_state": "required",
@@ -10810,6 +10807,7 @@
         "/$defs/peer_bootstrap_outcome/properties/request_id": "required",
         "/$defs/peer_bootstrap_outcome/properties/snapshot": "required",
         "/$defs/peer_bootstrap_outcome/properties/visible_stream_heads": "required",
+        "/$defs/peer_bootstrap_request_body/properties/history_stream_ref": "optional",
         "/$defs/peer_bootstrap_request_body/properties/member_account_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/membership_commit_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/realm_id": "required",
@@ -10926,9 +10924,17 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "properties": {
+        "/$defs/history_basis/properties/accepted_dependency_refs": "required",
+        "/$defs/history_basis/properties/account_id": "required",
+        "/$defs/history_basis/properties/anchor_commit_ref": "required",
+        "/$defs/history_basis/properties/anchor_position": "required",
+        "/$defs/history_basis/properties/stream_ref": "required",
+        "/allOf/0/if/properties/purpose": "required",
         "/properties/created_at": "required",
         "/properties/current_state_entries": "required",
         "/properties/governance_generation": "required",
+        "/properties/history_basis": "optional",
+        "/properties/purpose": "required",
         "/properties/realm_id": "required",
         "/properties/retention_and_history_floor": "required",
         "/properties/retention_and_history_floor/properties/history_access": "required",
@@ -10938,7 +10944,10 @@
         "/properties/signature": "required",
         "/properties/snapshot_id": "required",
         "/properties/visible_stream_heads": "required"
-      }
+      },
+      "conditionally_required": [
+        "/properties/history_basis"
+      ]
     },
     "realm.schema.json": {
       "schema_ids": [

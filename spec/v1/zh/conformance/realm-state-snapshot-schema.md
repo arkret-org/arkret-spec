@@ -3,7 +3,7 @@ title: Realm State Snapshot Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-17
+updated: 2026-10-22
 sidebar:
   label: Realm Snapshot
 ---
@@ -19,12 +19,12 @@ Station 更换规则见[治理提交日志](../sync/authority-commit-log.md)。
 Snapshot 是加速恢复的派生物，不是真相源。真相源是 producer-signed Event 与当前治理 Station 签发的
 RealmCommit。Snapshot 必须绑定 Realm、authority generation、签发时各个可见 stream head、内联 typed
 current rows、对应 history floor、创建时间和 Station proof。closed wire 成员是 `snapshot_id`、
-`realm_id`、`governance_generation`、`visible_stream_heads[]`、`current_state_entries[]`、
+`realm_id`、`governance_generation`、`purpose`、可选 `history_basis`、`visible_stream_heads[]`、`current_state_entries[]`、
 `retention_and_history_floor`、`created_at` 与 `signature`。v1 没有额外的 sections、chunk/chunk digest、
 state root 或 Blob 引用层；不得把旧 replay 容器作为此 schema 的兼容分支。
 
-同 cut 基线用于 join、新设备、缓存修复、跨站副本 bootstrap、历史窗口的 exact prefix anchor 及 planned
-handoff 的状态承载。受限成员不必下载 floor 之前的治理历史；分别读取多项 current 与 heads 不能替代这个
+`purpose="full_recovery"` 的同 cut 基线用于 join、新设备、缓存修复、跨站副本 bootstrap 及 planned
+handoff；历史窗口只使用 `purpose="stream_history"` 的独立原签 basis。受限成员不必下载 floor 之前的治理历史；分别读取多项 current 与 heads 不能替代这个
 一致截面。Account current baseline 冻结账号发现和各 channel 的交付进度，不承诺同一 Realm 的完整 typed
 rows、逐流 heads 与 floors，也不承载原治理签名，MUST NOT 替代 Snapshot 或历史窗口的 exact basis。
 Snapshot 不授予写权限、不交付 MLS 私钥，也不替代当前授权、最终交付门或 handoff 的完整私有迁移。
@@ -46,7 +46,7 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 
 `current_state_entries[]` 的每个元素必须是 `typed-current-result.schema.json` 的 closed typed result；
 其 selector、revision 和 value 由各 family 的 schema 决定，不额外包一层通用 row/chunk。当前治理 Station
-必须从同一 durable cut 读取全部可向该请求者披露的 rows、`visible_stream_heads[]` 和 stream floors，
+必须从同一 durable cut 读取本用途覆盖范围内全部可向该请求者披露的 rows、`visible_stream_heads[]` 和 stream floors，
 不得把无权 Circle/Sidecar 的 row、head 或 floor 混入；同一完整 typed subject 不得出现两个 current row。
 接收方须以每条 row 必填的 `source_stream_ref` 定位可见 head 与 floor，验证其 Realm/stream 属于本次可见范围、
 revision 的位置不晚于**该 stream** 的可见 head；不得从 selector 或同值 position 猜来源。可读取到
@@ -88,6 +88,7 @@ Snapshot 的 `signature` 使用 `ak.realm_snapshot_signature.v1`。unsigned proj
 上的 64-byte Ed25519 签名。以下原治理证明由消费 Account Station 与独立审计者执行；普通客户端按
 [server-trusted-results §2.1](../sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative)
 消费已持久接纳、绑定完整认证账号及本地会话的自己 Station 原件，不执行治理链、方法历史、治理签名或 nonce 验证。
+当前 `/head` MUST 是 `purpose="full_recovery"` 且不携带 `history_basis`。历史窄对象 MUST NOT 进入 join/bootstrap/handoff 或 current 覆盖安装；其未覆盖项不表示缺失、删除或不可见。
 当前 `/head` snapshot 的 `governance_generation` 必须等于 fresh current authority bundle 的当前任期，
 其 `verification_method` 必须是当前 Station 的 service signing key。按已发出 `snapshot_ref` 读取的历史 exact snapshot 可属于更早任期；
 消费 Account Station／独立审计者必须由同一 fresh current authority bundle 的完整 genesis-to-current 历史链定位该 generation 当时的治理 Station，
@@ -110,11 +111,30 @@ signer selector、MLS 与附件验证。历史 exact by-ref 的任期 MUST 与�
 
 ### 4.1 Exact 历史原件与当前披露权限
 
-v1 历史窗口继续引用整份原 signed Snapshot；逐流 slice 是从原件选取的本地消费范围，不是独立签名对象或新读取操作。
-每次 exact by-ref 读取，Station MUST 按同一当前授权 cut 重验原件中每条 row、head 与 floor 的披露资格，包括当前
-membership、scope、history floor、retention 与 redaction。仅值或 head 已前进不使仍可披露的历史原件失效；新增可见流
-也不要求补进旧原件。原件内任一组件已不能披露时，整份原件对该账号不可用，即使失权 scope 与目标流无关。
-MUST NOT 删除失权组件后沿用原 ID／签名，MUST NOT 以当前 `/head`、另一 Snapshot 或裸 cursor 替换 exact basis。
+v1 在窗口引用发布前签发独立 `purpose="stream_history"` 原件；签名与 content ID 覆盖用途和整个
+`history_basis={account_id,stream_ref,anchor_position,anchor_commit_ref,accepted_dependency_refs}`。
+完整 AccountId 同时绑定认证主体和 Station；Realm、generation、exact ref 与窗口逐字一致。by-ref 请求仍使用既有
+认证账号、Realm 与 snapshot_ref 路由，不新增操作；结果的 signed coverage 必须匹配该窗口，`/head` 仅提供完整恢复。
+跨站 Account Station 可经既有 `ak.peer.realm_join.command.bootstrap.v1` 的可选 `history_stream_ref` 请求源站当前 cut 的窄原件；省略时仍为完整恢复。请求必须绑定真实当前 membership Commit 与 member Account，响应的 signed Account／目标／任期须逐字匹配。接收站只归档原件及所需已接受依赖，不将此结果送入完整 bootstrap 安装；旧 cut 使用已保留原件，不能用此 fresh 请求替换已发窗口。
+
+**selector 完备性（normative）**：取该已接受 cut 下所有 `source_stream_ref` 等于目标流的可披露 typed rows；
+Circle／Sidecar 目标还取该 cut 的父 Realm `member_state`（该 Account Actor）以及 exact `circle`／`sidecar`
+定义 selector。这些是唯一额外 selector，source 必须是父 Realm；同一 selector 不得重复。跨流来源必须逐条解析为
+原 accepted Event／Commit 四坐标，排序去重后逐字等于 `history_basis.accepted_dependency_refs` 与窗口的依赖引用。
+heads／floors 恰覆盖目标与这些必要 selector 的 source streams，不得顺带包含其他 scope。target head 必须等于
+anchor；所有 rows、heads、floors 来自原同一 cut，依赖不得跨 cut 更新替换。source 明确承担该 selector 集在该 cut
+完整物化的责任；签名不额外提供 omission proof。原件未含真实依赖或不可证明可披露时只能在发窗口前报 preview。
+
+完整恢复原件可以作为签发输入，但必须验证其来源和原 cut，从该 cut 得到上述完整 selector 集，然后由该 cut 的
+治理权威签发新的原件和 ID；不得剪掉已发原件的组件沿用旧签名，也不得由接收 Account Station 冒充 foreign governor
+重签。无法按该任期合法签发的历史 cut 只能使用此前已签发的窄原件或报 preview，不用当前 head 代替。
+
+每次 exact by-ref 读取，Station MUST 在同一当前授权 cut 重验所有实际包含的 rows、heads、floors 及 exact
+accepted dependencies，包括 membership、scope、history floor、retention 与 redaction。目标自身或真实依赖失权时
+整份拒绝；未包含的无关 Circle／Sidecar 失权不影响目标 basis。值或 head 前进、新增可见流不要求改写历史原件。
+MUST NOT 部分采用、删除失权组件沿用原 ID，或用另一 cut／Snapshot／裸 cursor 替换 basis。
+
+未被窗口 reservation 引用的原件按完整恢复／逐流历史 coverage 分别有界保留，淘汰同一 coverage 的旧原件不得挤掉另一流正在使用的 basis；已引用原件仍受原 cursor 生命周期保护。
 
 own Station 必须按 [client-sync §5.2](../sync/client-sync.md#52-state-at-window-start-limited-timeline-边界状态) 的 cursor 有效期保留原件；保留不覆盖
 当前授权门。签发时已不能保证保留与披露的窗口 MUST 逐流标为 preview；签发后撤权导致 exact basis 不可得时，

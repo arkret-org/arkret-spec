@@ -229,18 +229,18 @@ RealmCommit 对 claim 的纳入；claim 已经合法 committed 之后的变更�
 
 | 触发条件 | 状态转换 | 行为 |
 | --- | --- | --- |
-| `expires_at` 已过（由授权 writer 观察并提交显式 Event） | `pending -> expired` | 该 transition MUST 由授权 writer 提交的显式 `ak.invite.revoke`（`reason_code` 表达 expired）承载，是可签名、可被 RealmCommit 覆盖的 state-changing Event；MUST NOT 由本地计时器或被拒 claim 的处理路径顺带写出（§4.3 step 2）。在该 Event 被接受之前，claim 仍按 §4.3 step 2 以签名 `created_at` 与 `expires_at` 比较后拒绝，判定对所有 receiver 与所有重放时点一致。服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录（本地清理义务，不是共享状态）。 |
-| 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed` | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。**与 `expired` 同一承载形态**：retry 耗尽后的 `send_failed` transition MUST 由授权 writer 提交的显式 `ak.invite.revoke`（`target_state="send_failed"`，`reason` 表达投递失败原因）承载，是可签名、可被 RealmCommit 覆盖的 state-changing Event；MUST NOT 由投递重试循环或本地计时器顺带写出，投递失败本身只是该 writer 提交前的观察。`reason` 是唯一的失败原因载体，MUST NOT 另造 `send_failure_reason` 字段，且 MUST NOT 泄漏 3PID 明文、token 原文或验证码。服务端 MUST 在 24h 内 zeroize token material；邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。`send_failed` 是终态方向：**MUST NOT 回到 `pending`**——重发是新 invite，不是旧 typed current result 复活。 |
-| 邀请者失去 `ak.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
-| 邀请者主动离开 Realm（`ak.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
+| `expires_at` 已过（由授权 writer 观察并提交显式 Event） | `pending -> expired` | 该 transition MUST 由授权 writer 提交的显式 `ak.invite.revoke`（`target_state="expired"`）承载，是可签名、可被 RealmCommit 覆盖的 state-changing Event；MUST NOT 由本地计时器或被拒 claim 的处理路径顺带写出（§4.3 step 2）。在清理 Event 被接受之前，新 claim 仍按 §4.3 step 2 的可信存在时间区间和接纳 current gate 拒绝；历史重放使用确切已接受前态，不凭生产者回填 `created_at` 放行，也不以重放墙钟改判已确认结果。服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录（本地清理义务，不是共享状态）。 |
+| 邮件 / SMS 发送失败、bounce 或响应不明 | 共享授权不变；仅更新既有私有投递记录 | 在原预算内有界重试同一冻结目标／activation／invite，不延长 signed expiry，不重签公开 Invite。超时可能已发送，须与明确失败区分。预算耗尽向原邀请者显示失败；如永久放弃，停止可恢复重试并在 24h 内 zeroize token material。原 send_failed 的 24h 清理义务映射到永久投递放弃；不得延长既有销毁上界。需要授权失效时另交真实 revoke，私态本身不释放占格。 |
+| 邀请者失去 `ak.invite.third_party` capability（grant revoke、role change） | `pending / claimed → revoked` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
+| 邀请者主动离开 Realm（`ak.member.state` → `leave`/`ban`/`remove`） | `pending / claimed → revoked` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
 | token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `ak.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
 | claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
-| OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
+| OOB lookup 形态失败次数超限（§3） | `pending / claimed → revoked` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
 
 **两个消费点的悬挂态（normative）**：第三方邀请有**两个不同信任域的消费点**，二者之间无强一致：§4.1 验证服务端**原子消费 token**（签发 `binding_proof` 后该 token 即用尽），与 §4.3 step 4 reducer 侧**原子标记 pending invite 为 `claimed`**。当 token 已在验证服务侧消费、但承载该 `binding_proof` 的 `ak.invite.claim` Event 投递失败、被 reducer 拒绝或进入 quarantine（reducer 侧 invite 仍停留在 `pending`）时，二者处于不一致的悬挂态。规范要求：
 
 - 一旦验证服务消费了某 token 并签发了 `binding_proof`，该 token MUST 被验证服务视为**已用尽**，即使后续未观察到对应 `ak.invite.claim` 在 Realm 落地为 `claimed`。验证服务 MUST NOT 对同一 token 重新签发第二份指向不同 / 相同 subject 的 `binding_proof`。
-- 因此 claim 在 reducer 侧未落地（被拒 / quarantine / 投递丢失）时，该 invite 不能仅靠重发原 token 恢复；与 §6.1 状态机一致，邀请者 MUST 通过重发**新 `invite_id` + 新 token + 新 commitment** 来重试（等同于 §6.1 `send_failed` / `revoked` 后的重发路径），不得复用已消费 token。
+- claim 未落地时，MUST 优先在既有恢复窗口重交同一原 proof，不得复用已消费 token 签发另一份 proof。窗口耗尽或已确认终态后，需新 `invite_id`、新 token 和新 commitment；未消费且仍有效的投递失败不要求更换邀请。
 - 验证服务 MAY 为该已消费 token 保留一个**可恢复窗口**（仅用于把同一份已签发 `binding_proof` 幂等重投递给 Realm，例如网络瞬断后的重试），但该窗口 MUST 绑定同一 `(invite_id, claim_nonce, subject_account_id, binding_proof_digest)`，不得用于把 token 重新绑定到其它 subject；窗口耗尽后 MUST 按上一条要求邀请者重发新 invite。
 
 > **Conformance vector（normative）**：上述"已消费 token 不得重绑到其他 subject"是防邀请重定向的关键安全不变量，由具名 conformance vector `ak.vector.invite.consumed_token_resubject_rejected.v1` 覆盖（登记于 `artifacts/registry/vector-registry.json`，向量数据见 `artifacts/fixtures/security-closure-fixture.json`），断言风格与既有 `ak.vector.invite.oob_code_entropy.v1`（§3）、`ak.vector.invite.failure_indistinguishable.v1`（§6.1）邀请向量对齐。该向量的意图：验证服务对**同一已消费 token**收到指向**不同 `subject_account_id`** 的第二次签发请求时 MUST 拒绝（不签发第二份 `binding_proof`）；仅当请求绑定同一 `(invite_id, claim_nonce, subject_account_id, binding_proof_digest)` 时才允许在可恢复窗口内幂等重投递同一份既有 `binding_proof`。向量同时断言：reducer 侧对承载已消费 token 重绑到不同 subject 的 `ak.invite.claim` Event MUST 以 `duplicate_conflict` 拒绝。
@@ -327,7 +327,7 @@ Station 在签发前 MUST 在同一 current accepted serializable gate 中确认
 
 `ak.open.third_party_invite.read.provisioning_status.v1`（`POST /_arkret/open/third-party-invites/status`）是 v1 唯一的生命周期与投递观察面。`provisioning_id` 是全部查询凭证，MUST 只出现在 JSON body。响应 MUST NOT 携带 token、salt、pepper、临时私钥、`delivery_target_uri` 或任何 3PID 派生值，也 MUST NOT 透露被邀请人是否已打开邀请。未知句柄、属于其它邀请者的句柄与已删除记录 MUST 不可区分。
 
-`delivery_state` 为 `failed` 只表示服务已耗尽重试预算。Realm 可见的状态迁移仍按 §6.1 由授权 writer 提交携 `target_state="send_failed"` 的 `ak.invite.revoke` 承载；验证服务的私有投递循环 MUST NOT 直接改写 Realm invite typed current result。已激活邀请被撤销、过期、邀请者失权或退出时，记录 MUST 进入 `revoked` 并停止投递与出示，材料清理沿用 §6.1。
+`delivery_state` 为 `failed` 只表示服务已耗尽重试预算。共享授权保持不变；验证服务的私有投递循环 MUST NOT 直接改写 Realm invite typed current result。有效且未消费时可恢复原绑定投递；永久放弃及清理遵循 §6.1，若策略要求授权失效则另由有权 writer 提交 `target_state="revoked"`。已激活邀请被撤销、过期、邀请者失权或退出时，记录 MUST 进入 `revoked` 并停止投递与出示，材料清理沿用 §6.1。
 
 ### 7.7 崩溃恢复、幂等与清理（normative）
 

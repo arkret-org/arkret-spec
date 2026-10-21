@@ -51,11 +51,7 @@
         "rejected",
         "revoked",
         "expired",
-        "claimed",
-        "send_failed",
-        "revoked_by_capability_loss",
-        "revoked_by_inviter_left",
-        "invalidated_by_rate_limit"
+        "claimed"
       ]
     },
     "expires_at": {
