@@ -1406,6 +1406,16 @@
       ]
     },
     {
+      "schema_path": "applet-authority-material.schema.json#/$defs/current_binding/oneOf/0/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "applet-configuration-operations.schema.json#/$defs/execution_intent/properties/governance_station_id",
       "property_name": "governance_station_id",
       "semantic_category": "responsibility_identity_material",

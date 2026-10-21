@@ -149,6 +149,10 @@ Service通过 `ak.self.applet.authority.read.material.v1` 用自己的 Service�
 结果每个grant与请求、registration、scope、Realm/current generation、revision及effective head **MUST**一致；
 Station接纳child仍重读权威current，不信任Service缓存allow。完整审计也不把私有parent原文写入共享Event。
 
+该响应 MUST 携封闭 `current_binding`，与 current_results 使用同一只读 MVCC cut、Realm／governance_generation 和相应来源 stream heads。`status=active` 恰携 `registration_ref: CommittedEventRef`、`registration_epoch: Hash`、`service_id: DidCoreId`，指向本请求 Service 在 exact Applet／scope 的当前有效安装登记；`status=inactive` 禁带这三个成员，只表示本请求 Service 在该范围没有有效安装，不披露其他 Service 的替代安装。active 必须展开 registration 实例、epoch、实际 grants、scope、membership／controller 等有效安装依赖，不能只检查登记行存在或单个 grant 的状态；治理或依赖未知时整体失败，不能返回 inactive。
+
+原 `registration` 与 `grant_events` 永远保持请求 grant 的原 accepted 来源，不改为当前登记。历史读取资格依据原 Service／Applet／scope／grant 的绑定验证，不因最新安装被卸载或换成其他 Service 而要求有效业务安装；读取仍仅限原有私有来源，不允许枚举替代者。`current_binding` 不授予业务权限，不阻止合法历史创建确认或独立恢复，也不得缓存为之后业务操作的持续 allow。
+
 ## 5. 多 scope、设备与撤销
 
 创建来源是immutable provenance；每个业务scope独立验证当前installation、主体current状态、Device有效授权范围、

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10010,
+    "total_properties": 10016,
     "total_schema_documents": 176,
     "by_presence_class": {
       "optional": 2326,
       "optional_defaulted": 48,
-      "required": 7121,
+      "required": 7127,
       "required_nullable": 312,
       "tristate": 203
     },
@@ -3234,7 +3234,13 @@
         "ak.schema.applet_authority_material.v1"
       ],
       "properties": {
+        "/$defs/current_binding/oneOf/0/properties/registration_epoch": "required",
+        "/$defs/current_binding/oneOf/0/properties/registration_ref": "required",
+        "/$defs/current_binding/oneOf/0/properties/service_id": "required",
+        "/$defs/current_binding/oneOf/0/properties/status": "required",
+        "/$defs/current_binding/oneOf/1/properties/status": "required",
         "/$defs/outcome/properties/applet_id": "required",
+        "/$defs/outcome/properties/current_binding": "required",
         "/$defs/outcome/properties/current_results": "required",
         "/$defs/outcome/properties/effective_scope": "required",
         "/$defs/outcome/properties/grant_events": "required",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.6",
+  "version": "2026-10-21.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:38:29+08:00",
+  "generated_at": "2026-10-21T11:50:25+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -560,7 +560,7 @@
               "created",
               "expires"
             ],
-            "node_to_applet": "Source-Service-ID current service DID verification method and key digest; Destination-Service-ID MUST equal the Applet registration service_id; registration_epoch is the effective destination Applet registration.",
+            "node_to_applet": "Current governing Station HTTP key and private recipient eligibility are always verified. Business deliveries bind the effective destination Applet registration epoch. Pure historical creation confirmation (authoring_context exact creation Event only) binds the original accepted creation signer fact registration epoch and does not require a currently active installation or grant; it grants no Device, membership, MLS, content or business access.",
             "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; its canonical bare did MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. The effective registration_epoch and actual verification key digest are bound. Direct DID/core-id comparison and did_core_id fragment concatenation are forbidden.",
             "equality": "Receivers recompute sha256(UTF8(digest_domain + newline) || RFC8785_JCS(record)); equal recomputed digests define replay equality. Caller-supplied records or digests are forbidden."
           },
@@ -592,7 +592,7 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery."
+      "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery. Historical creation completion is independent of current business installation, subject to exact private material eligibility; continuing business requires current installation and action authorization. Recovery follows its independent authority. Refreshed material/new governor uses a new delivery identity while original creation Event/Commit/fact remains immutable."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -4157,7 +4157,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "Exact authorized installation/registration/grant material for the Service. Realm actor private current/Event/outcome reads use ak.self.realm_actor.read.material.v1 exclusively.",
+      "notes": "Exact authorized installation/registration/grant material for the Service. Realm actor private current/Event/outcome reads use ak.self.realm_actor.read.material.v1 exclusively. Required current_binding reports the requesting Service effective installation at the same cut as current_results: active carries registration_ref, registration_epoch and service_id; inactive carries only status. Unknown dependencies fail closed. Original registration/grants remain historical; their authorized read requires no active installation and never exposes a replacement Service.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",

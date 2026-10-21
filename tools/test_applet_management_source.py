@@ -88,6 +88,16 @@ class AppletManagementSourceTests(unittest.TestCase):
         docs=[json.loads(p.read_text(encoding='utf-8')) for p in (ART/'schemas').glob('*.json')]
         cls.registry=Registry().with_resources((d['$id'],Resource.from_contents(d)) for d in docs)
     def schema(self,ref):return Draft202012Validator({'$ref':'https://arkret.org/v1/'+ref},registry=self.registry)
+    def test_current_installation_binding_is_closed_and_history_is_separate(self):
+        validator = self.schema('schemas/applet-authority-material.schema.json#/$defs/current_binding')
+        self.assertTrue(validator.is_valid({'status': 'inactive'}))
+        for extra in ('registration_ref', 'registration_epoch', 'service_id'):
+            self.assertFalse(validator.is_valid({'status': 'inactive', extra: None}))
+        self.assertFalse(validator.is_valid({'status': 'unknown'}))
+        self.assertFalse(validator.is_valid({'status': 'active'}))
+        schema = json.loads((ART/'schemas/applet-authority-material.schema.json').read_text(encoding='utf-8'))
+        self.assertIn('current_binding', schema['$defs']['outcome']['required'])
+        self.assertIn('registration', schema['$defs']['outcome']['required'])
     def test_fixture_reconstruction_and_closed_coverage(self):
         self.assertEqual(self.f,build())
         self.assertEqual({c['acceptance_id'] for c in self.f['cases']},{'MR-'+str(i) for i in range(1,10)}|{'CR-'+str(i) for i in range(1,13)})

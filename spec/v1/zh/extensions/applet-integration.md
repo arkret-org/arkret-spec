@@ -384,7 +384,7 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- | --- |
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?, producer_signer_fact?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?, producer_signer_fact?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。除 §7.3.2 的历史创建结果确认外，接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，按完整 Actor 命中 Applet actor namespace；不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -544,11 +544,11 @@ RFC 9421 derived components 与 header：
 - `operation_id` 固定为 `ak.edge.applet.command.transaction.v1`；`direction` 只允许 `node_to_applet` 或 `applet_to_arkret_inbound`。
 - `source_id` / `destination_id` 是已与 header、实际连接目标及 registration 交叉验证的 `did_core_id`。
 - `signature_label` 是 receiver 选中并成功验证的 RFC 9421 signature label；`verification_method` 是 canonical DID URL；`verification_key_digest` 是 registered DID-method adapter 对实际 verification public key 的 canonical key bytes 所计算的 `sha256:` digest；`signature_algorithm` 是已登记的 canonical algorithm name。记录不复制随机或可变长的 `Signature` bytes。
-- `registration_epoch` 是本次方向所使用的 effective Applet registration epoch；它必须同时承诺该方向适用的 `webhook_auth.key_ref` / algorithm policy。registration 不适用、已撤销或无法得到唯一 effective epoch 时不得形成记录。
+- `registration_epoch` 对业务投递是本次方向所使用的 effective Applet registration epoch；它必须承诺该方向适用的 `webhook_auth.key_ref` / algorithm policy。业务 registration 不适用、已撤销或无法得到唯一 effective epoch 时不得形成记录。仅 §7.3.2 的历史创建结果确认使用原 accepted creation signer fact 所绑定的原 registration epoch；该历史绑定不授予当前业务权，当前 HTTP 来源 key、治理路由及接收资格仍逐次验证。
 - `idempotency_key` 是 header `Idempotency-Key` 的 exact value；`content_digest` 是通过 §2.5.1 profile 校验后的 canonical `Content-Digest` structured-field value，绑定 exact canonical body bytes。
 - `covered_components` 按 receiver 实际验证的 `Signature-Input` 顺序保存 canonical lowercase component identifier，必须包含本节 required set；`created` / `expires` 是同一 signature parameters 中的整数 UNIX seconds。
 
-记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。每次投递 MUST 先独立验证完整 RFC 9421 transcript、当前 key / registration / active install 与时效窗口。`created` / `expires` 保存在本次认证记录中供 freshness 验证与 audit，**仅这两个成员**不参与稳定幂等绑定；发送方以新的有效签名时间重试同一 body，不得因此成为另一项外部副作用。其 digest 固定为：
+记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。每次投递 MUST 先独立验证完整 RFC 9421 transcript、当前来源 key 与时效窗口。业务投递另验证当前 registration / active install；§7.3.2 的纯历史创建结果确认按该节验证原 registration 绑定与当前私有接收资格，不要求当前安装有效。`created` / `expires` 保存在本次认证记录中供 freshness 验证与 audit，**仅这两个成员**不参与稳定幂等绑定；发送方以新的有效签名时间重试同一 body，不得因此成为另一项外部副作用。其 digest 固定为：
 
 ```text
 stable_delivery_authentication_binding =
@@ -584,6 +584,11 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 runtime 通过 [Realm actor exact 材料](./realm-actors.md#8-exact-控制材料与历史验签)核实原创建或控制更新。
 authoring_context 只携当前治理方签名的 material；逐项验证完整 actor、原 Event／Commit、
 request digest、audience、nonce、当前治理链和所持 key。不得把 Service 收到 HTTP 成功当作 Device 已授权。
+**历史创建结果确认边界（normative）**：仅当 authoring_context 的 material 是原 Bot／Ghost 创建 Event 的精确结果时，接收、验证、耐久保存与重试确认 MUST NOT 要求当前业务安装或原业务 grant 仍有效。该分支不得混入 Event／Signal 业务批次，也不得自动创建 Device 授权、membership、child grant，取得 Welcome／KeyPackage／群内容或启动业务。仍须验证当前治理链及本次 HTTP 签名、material 的 audience／nonce／freshness、原 Event／Commit／私有 signer fact、Applet／Service／完整 Actor 与本地原候选及所持 key 的一致性，并遵守 Realm actors §8 的当前私有材料读取资格。卸载不抹掉原创建事实；管理关系转交不因这条例外被撤销，也不向无读取资格的旧管理者或同名新 Service 披露材料。
+
+本分支认证记录的 registration_epoch 绑定原 accepted creation signer fact，不以 current_binding 替换历史来源。纯 HTTP 签名时间刷新仍使用原稳定幂等绑定；material 刷新或治理换任改变 source／body 时使用新投递幂等键，并按原创建 Event／Commit 精确去重，不重复生成身份、密钥或副作用。原接受事务 MUST 原子保存可恢复 completion；治理交接保留该待办与原结果。新治理方刷新自己签发的短期材料，不改签原 Event／Commit／fact。
+
+后续任何业务动作 MUST 在其实际 scope 检查当前安装、权限、主体／Device 状态和原有成员／MLS 条件；`current_binding=active` 本身不是 action grant。停用／卸载后仍有的独立恢复权按原恢复合同执行，不附加业务安装条件。
 控制更新、卸载后的维护、原结果恢复及 manager 转交分别按 Realm actors §5–8 执行。
 治理换任沿原 RealmId 取得当前治理方，不再查询另一个 Bot／Ghost Account Station 或 PCR。
 

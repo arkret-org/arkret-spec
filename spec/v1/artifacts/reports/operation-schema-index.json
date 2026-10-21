@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.5",
+  "version": "2026-10-21.6",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T08:08:00+08:00",
+  "generated_at": "2026-10-21T10:38:29+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8789,14 +8789,16 @@
           "effective_scope",
           "registration",
           "grant_events",
-          "current_results"
+          "current_results",
+          "current_binding"
         ],
         "properties": [
           "applet_id",
           "effective_scope",
           "registration",
           "grant_events",
-          "current_results"
+          "current_results",
+          "current_binding"
         ],
         "closed": true
       }

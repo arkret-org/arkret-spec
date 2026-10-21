@@ -41,7 +41,8 @@
         "effective_scope",
         "registration",
         "grant_events",
-        "current_results"
+        "current_results",
+        "current_binding"
       ],
       "properties": {
         "applet_id": {
@@ -68,10 +69,54 @@
           },
           "minItems": 1,
           "maxItems": 256
+        },
+        "current_binding": {
+          "$ref": "#/$defs/current_binding"
         }
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 4194304
+    },
+    "current_binding": {
+      "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "registration_ref",
+            "registration_epoch",
+            "service_id"
+          ],
+          "properties": {
+            "status": {
+              "const": "active"
+            },
+            "registration_ref": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            },
+            "registration_epoch": {
+              "$ref": "./applet-package.schema.json#/$defs/digest"
+            },
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "inactive"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
