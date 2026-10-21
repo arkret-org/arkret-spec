@@ -93,7 +93,7 @@ Applet 保管控制／Device 私钥，无须提供 Station 账号服务；没有
 did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123
 ```
 
-`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用 `account` 分支，其中 `account_id.principal_id` 是 adapter projection `ak:did_core:webvh:z6MkGhostU123`，`account_id.station_id` 是承载它的 Station；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
+`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用 `realm` 分支，完整 `realm_actor_id` 同时包含不可变的所属 `realm_id` 与独立 DID 的 adapter projection `principal_id`（例如 `ak:did_core:webvh:z6MkGhostU123`）；当前治理 Station 不进入该身份，治理交接不改变它；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
 
 **Ghost DID 形状约束（normative）**：Ghost 的 `did:webvh` DID MUST 同时满足下列四条；任一不成立，§9.1 的 provision MUST fail closed：
 
@@ -123,12 +123,12 @@ Actor 是不同 actor，生命周期与治理路径完全分离：
 
 | 维度 | Agent | Applet-managed Bot / Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | controller 先生成、签署并发布不含 PCR binding 的 Agent DID entry 0；`ak.self.agent.command.provision.v1` prepare 只验证其 accepted `initial_resolution` 与 delegation，不生成 DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 Agent PCR genesis并取 `retype(event_id)`，再提交唯一 controller-signed `ak.agent.provision` Event，在一个 reducer transaction 原子派生 provision/accountability/selector/realm-id-claim projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。PCR genesis 在另一次提交 accepted 后 outcome 为 `awaiting_did_binding`；controller 以预承诺 key 发布 create-locked entry 1，accepted 后才 `complete` 并暴露 pairing/list/get。Profile、恢复备份与首次 `ak.agent.key.authorize` 继续独立提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
+| 创建路径 | controller 先生成、签署并发布不含 PCR binding 的 Agent DID entry 0；`ak.self.agent.command.provision.v1` prepare 只验证其 accepted `initial_resolution` 与 delegation，不生成 DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 Agent PCR genesis并取 `retype(event_id)`，再提交唯一 controller-signed `ak.agent.provision` Event，在一个 reducer transaction 原子派生 provision/accountability/selector/realm-id-claim projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。PCR genesis 在另一次提交 accepted 后 outcome 为 `awaiting_did_binding`；controller 以预承诺 key 发布 create-locked entry 1，accepted 后才 `complete` 并暴露 pairing/list/get。Profile、恢复备份与首次 `ak.agent.key.authorize` 继续独立提交 | 先安装独立 Service；再由 Service 原签 `ak.realm.actor.create`，候选主体以独立控制方法证明持钥，治理站原子接纳到所属 Realm 的 `realm_control`；没有 Account／PCR 聚合，Profile、Device、成员和业务 child 均独立建立 |
 | Actor Profile `actor_kind` | `agent` | Bot 为 `bot`；外部账号/集成 Ghost 为 `integration`；外部 Bot Ghost 为 `bot`；不得为 `agent`；仅作分类，安全 provenance 仍由对应 provisioning / registration 证明 |
-| `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
-| Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet service DID 的 RFC 9421 逐次投递 HTTP Message Signature（§7.3.1）；需参与 E2EE 的 Bot/Ghost 另用 [`../crypto-media/device-lifecycle.md` §15](../crypto-media/device-lifecycle.md) 的受限 delegated device；widget 另用 §17 为其单独签发的 scoped token |
-| Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | 无 SessionGrant 路径：Applet 不持有 `ak.session.grant`，其调用凭据仅为 Applet service DID + RFC 9421 HTTP 签名的 `ak.edge.applet.command.transaction.v1` 与 §17 widget scoped token；每条 Event 在 admission 时按 grant、`applet_authority` constraint 与 current registration epoch 重验。Applet service、Bot 与 Ghost 都不是 Agent，不得使用 `agent_key_proof` 分支 |
-| 撤销 | `ak.self.agent.command.pause.v1` / 单一 `ak.self.agent.command.deactivate.v1` lifecycle Event；terminal parent gate 使 child authority ineffective，cleanup 非前置 | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
+| `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | Realm Profile 不得携此字段；不可变创建来源由 `realm.actor.create` 证明，当前管理关系由 `realm_actor_manager` 证明，不使用账号 accountability grant |
+| Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Service 管理调用使用自己的 RFC 9421 签名；主体控制操作使用当前 accepted control 方法；业务与 E2EE 使用主体独立 Device 和 §16 的 Realm 身份 HTTP 分支；widget 另用 §17 的 scoped token |
+| Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Realm Bot／Ghost 无 SessionGrant，不借普通 Account 或个人 Agent 登录；Service、control 与 Device 凭据互斥，各按实际操作验独立权限，业务仍核当前安装、grant、双 gate 与 Device generation |
+| 撤销 | `ak.self.agent.command.pause.v1` / 单一 `ak.self.agent.command.deactivate.v1` lifecycle Event；terminal parent gate 使 child authority ineffective，cleanup 非前置 | 安装／业务 grant 撤销阻断对应 scope 的新业务；owner／governance gate、Device 撤销、代次重置与独立恢复许可分别执行；不因卸载抹掉身份或历史，也不隐式恢复业务 |
 | Realm policy | Realm policy MUST 单独允许 Agent（`ak.profile.agent_provisioning.v1`） | Realm policy MUST 单独允许 Applet base Bot-only（`ak.profile.applet_service.v1`）；Ghost Actor / portal bridge 需额外声明 `ak.profile.applet_bridge.v1` |
 
 **Realm policy MUST 至少能分别控制 Agent、Bot 与 Applet/Ghost provenance**：部署可以禁止用户创建或使用 Agent，同时允许管理员安装 Applet Bot/Ghost Actor，也可以反向配置；这些类别不得被合并为一个不可区分的 "automation allowed" 开关。
@@ -767,12 +767,15 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 {
   "id": "ak:actor_profile:ARqc1CPEkB79f9R5Lv-dwsj7VZbUKXbAYPl3sEhUufeZ",
   "schema": "ak.schema.actor_profile.v1",
-  "principal_id": "ak:did_core:webvh:z6MkGhostU123",
+  "actor_id": {
+    "kind": "realm",
+    "realm_actor_id": {
+      "realm_id": "ak:realm:Adl4wx7u7qRtt-nOIWpCQylq6hgCVDdC0fiPNOKCLOvv",
+      "principal_id": "ak:did_core:webvh:z6MkGhostU123"
+    }
+  },
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
-  "accountable_principal_ids": [
-    "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z"
-  ],
   "profile_fields": {
     "managed_by_applet": "ak:applet:21532600-0000-7000-8000-000000000000",
     "external_ref": {
@@ -784,7 +787,7 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
   "created_at": "2026-04-30T00:00:00Z"
 }
 ```
-`actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema:`id`、`schema`、`principal_id`、`actor_kind`、`display_name`、`created_at` 为 required；问责只能通过 `accountable_principal_ids` 表达。本节初始 Profile 只列同一请求中 service-signed grant 已背书的外部 service DID；不得用 Applet registration 替代 controller 自己的 accountability grant 后把 controller DID 填入数组。Applet 托管标记 `managed_by_applet` 与外部网络来源 `external_ref` MUST 放入开放容器 `profile_fields`，不得作为顶层字段(否则被 schema `schema_violation` 拒绝)。与 §3.4 / §3.4.1 一致，不存在 `accountability` 嵌套对象 wire 形态。
+`actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema。此 Realm 分支要求完整 `actor_id`，不得携 `principal_id`、`handle`、`agent_slug` 或 `accountable_principal_ids`；普通账号的 `principal_id` 分支保持原规则。Profile 必须由主体当前控制方法在 `realm_control` 单独创建或按 revision 更新，创建主体不自动建立 Profile。Applet 托管标记 `managed_by_applet` 与外部网络展示来源可放入开放容器 `profile_fields`，但不能替代不可变创建记录、真实 external tuple、当前管理关系或业务授权。初始 Profile 不公开；公开使用另核实际 scope 的 publish／review。
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
