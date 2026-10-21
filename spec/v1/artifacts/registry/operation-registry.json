@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.3",
+  "version": "2026-10-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T07:13:00+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -176,7 +176,6 @@
       "surface": "contact_lifecycle",
       "operations": [
         "ak.self.contact.command.request.v1",
-        "ak.self.contact.command.checkpoint.v1",
         "ak.self.contact.command.respond.v1",
         "ak.self.contact.command.reject.v1",
         "ak.self.contact.command.scope_update.v1",
@@ -1565,7 +1564,7 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, tombstone, or bilateral continuity-checkpoint control. Authorizing source receipts, directional proofs and the receipted outbox exist only after the exact source command unit is RealmCommit-committed and its effects atomically installed. The receiver verifies the independently derived source Station's historical service attestation and original holder producer separately; no private PCR bootstrap or generic authority-commit proof disclosure is added, and source_checkpoint is not a RealmCommit. The continuity branch carries a one-sided proposal; the receiver recomputes the exact core, verifies the proposer signature, appends only its own participant service-authority signature, durably commits the complete checkpoint and returns it with a signed control receipt. Exact replay returns the same bytes; same-sequence different-digest forks fail closed. It never carries Direct Conversation binding or Realm Events. The original source-signed Event receipt or lineage includes the exact producer_signer method and Ed25519 raw32 key. This permits the first Contact carrier without an existing relationship or private PCR disclosure; it is an exact-Event producer projection, not reusable Control or device authority. The delegated producer projection is structurally defined but v1 Contact commands MUST reject controller-device Agent holder submissions until an exact holder selector is registered; human and Agent-runtime branches forbid it. This complete Agent public DID locator is frozen from verified native identity, rechecked against the exact Actor/controller/Station, and grants no authority.",
+      "notes": "Unique closed carrier for the five original holder-signed Contact facts, durable per-round glare selection, and bounded current_refresh. Source receipt/lineage attests only real confirmed effects, with original producer keys and no private PCR disclosure. No cumulative Event prefix, continuity checkpoint, shared terminal head or prior mirror prerequisite. Full current binds exact pair, fixed initial identity, lifetime operation version, scope grant instances, original closures, request digest and freshness. Each source attests only its own direction; hidden pending/quota/policy decisions remain opaque.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
@@ -2990,29 +2989,11 @@
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view"
     },
     {
-      "operation_id": "ak.self.contact.command.checkpoint.v1",
-      "http": "POST /_arkret/self/contacts/continuity-checkpoint",
-      "grpc": "SelfContact/ContinuityCheckpoint",
-      "mq": "self.contact.command.checkpoint",
-      "notes": "Holder-authorized deterministic compaction of the oldest contiguous terminal Contact prefix. The server computes the core from accepted history; callers cannot submit or choose it. Cross-service pairs use the continuity_checkpoint branch of ak.peer.contacts.command.submit.v1: the receiver recomputes, countersigns, durably commits and returns the complete checkpoint in one round trip, then the proposer commits the exact returned bytes. Exact replay returns the same checkpoint; same sequence with another digest is continuity_invalid and has no winner. Export reuses continuity_evidence on ak.self.contact.read.list.v1 and import reuses the Contact request continuity_evidence field.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "idempotency_key",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
-      "outward_disclosure_policy": "ak.outward_disclosure.bilateral_continuity.v1",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "compacts_already_accepted_contact_evidence_without_authoring_an_event"
-      }
-    },
-    {
       "operation_id": "ak.self.contact.command.reject.v1",
       "http": "POST /_arkret/self/contacts/reject",
       "grpc": "SelfContact/Reject",
       "mq": "self.contact.command.reject",
-      "notes": "Two-phase holder-local terminal reject. The service accepts only the holder-signed ak.contact.rejected Event bytes reserved for the exact current request slot, signs the matching rejection acceptance receipt, and provides durable exact replay/conflict semantics independently from normal accept responses.",
+      "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3031,14 +3012,13 @@
       "http": "POST /_arkret/self/contacts/request",
       "grpc": "SelfContact/Request",
       "mq": "self.contact.command.request",
-      "notes": "Two-phase holder-local acceptance of one holder-signed ak.contact.requested fact. The accepted source receipt, peer closed XOR, full directional scope set and issuer-local slot lineage are durable replay inputs; no Private Consent Event is written or consulted. Recontact may import one generic mutually signed bilateral prefix checkpoint plus at most 64 uncompressed tail rounds. Missing material is continuity_evidence_unavailable; invalid, rollback or forked material is continuity_invalid. The same trust domain and exact ActorId pair cannot reset its lineage or founding slot. Missing continuity must be recovered or explicitly imported; a full tail without a bilateral checkpoint stays blocked. Only an explicitly initiated first contact for a legally different exact ActorId pair creates an independent root, without inherited checkpoint, history, audit identity, DM or MLS state.",
+      "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
-      "outward_disclosure_policy": "ak.outward_disclosure.bilateral_continuity.v1",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
@@ -3051,7 +3031,7 @@
       "http": "POST /_arkret/self/contacts/respond",
       "grpc": "SelfContact/Respond",
       "mq": "self.contact.command.respond",
-      "notes": "Two-phase holder-local normal accept response. The service accepts only the holder-signed response Event bytes reserved for the current request slot, signs the matching normal-response acceptance receipt, and never writes Private Consent. Reject uses the separate ak.self.contact.command.reject.v1 operation. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
+      "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3070,7 +3050,7 @@
       "http": "POST /_arkret/self/contacts/scope-update",
       "grpc": "SelfContact/ScopeUpdate",
       "mq": "self.contact.command.scope_update",
-      "notes": "Two-phase prepare/commit carrier for one holder-signed ak.contact.scope.update full-set directional replacement. Request/response establishes the issuer-local version 1 genesis; every scope replacement is version >= 2, exactly current+1, and references the exact issuer-local current head. Expansion and narrowing are both explicit signed replacements.",
+      "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3089,7 +3069,7 @@
       "http": "POST /_arkret/self/contacts/tombstone",
       "grpc": "SelfContact/Tombstone",
       "mq": "self.contact.command.tombstone",
-      "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact round and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
+      "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -3108,7 +3088,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Authenticated holder projection from server-verified durable Contact evidence. pending_incoming includes request_event_ref and the exact optional request_message; respond/reject use peer and request_event_ref. Complete continuity_evidence is exported only for explicit boolean query include_continuity=true (default false); online recontact uses Station durable checkpoint and bounded tail. Private Consent and account-data notes are not Contact authority. Accepted human rows may carry peer_endpoint{contact_event_ref,device_id} mechanically derived from the verified peer producer receipt of the selected current Contact round; other states and Agent rows forbid it. Missing source omits the projection. Reload, another holder device and glare use the same durable projection; current KeyPackage claim and MLS governance still authorize Add, never this historical selector. No peer PCR read or device enumeration.",
+      "notes": "Authenticated holder projection from durable Contact operations, immutable initial identity, exact current-round establishment and source-certified scope instances/closures. The accepted row next_prepare_input copies own lifetime next version/head and exact round. Pending_incoming exposes only the exact request and message to its holder. No continuity export. Existing DM coordinates persist through revoke/recontact; Contact does not grant PCR/profile directory access.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
@@ -5821,10 +5801,6 @@
         },
         {
           "operation_id": "ak.self.consent.resource.get.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.contact.command.checkpoint.v1",
           "binding_kind": "http_json"
         },
         {

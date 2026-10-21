@@ -18,7 +18,8 @@ class ReleaseToolManifestTest(unittest.TestCase):
             body["pipelines"]["release_strict"],
             ["artifact_pipeline", "crossref", "strict_spec_lint"],
         )
-        self.assertEqual(len(body["pipelines"]["artifact_check"]), 34)
+        self.assertEqual(len(body["pipelines"]["artifact_check"]), 35)
+        self.assertIn("contact_current_contract", body["pipelines"]["artifact_check"])
         self.assertIn("applet_management_source_contract", body["pipelines"]["artifact_check"])
         self.assertIn("realm_actor_contract", body["pipelines"]["artifact_check"])
 

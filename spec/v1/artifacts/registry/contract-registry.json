@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.4",
+  "version": "2026-10-21.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T07:16:51+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -2764,7 +2764,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable contact round, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (establishing the normal round and this issuer directional initial state), not a Realm typed current result.",
+        "payload": "Holder-signed exact directional Contact operation under ak.contact.admission.v1: complete peer, trust domain, lifetime version and exact own predecessor; fixed initial identity after first establishment. Request/reject carry no future contact_round_id, while accepted/scope/tombstone bind their exact established round. Normal/glare consumption, current scope instances and real source confirmation are private holder-Station effects, not Realm typed current results. No cross-round history chain.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -2781,7 +2781,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It establishes no Contact round and carries no Consent or Contact round evidence fields. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (terminating exactly the matching admission slot), not a Realm typed current result: the payload carries no round, version or lineage coordinate at all, and the never-revives guarantee is held by that slot CAS.",
+        "payload": "Holder-signed exact directional Contact operation under ak.contact.admission.v1: complete peer, trust domain, lifetime version and exact own predecessor; fixed initial identity after first establishment. Request/reject carry no future contact_round_id, while accepted/scope/tombstone bind their exact established round. Normal/glare consumption, current scope instances and real source confirmation are private holder-Station effects, not Realm typed current results. No cross-round history chain.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -2798,7 +2798,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and contact round and never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (freezing the exact (holder, peer) admission slot with its request and receipt), not a Realm typed current result: identity/contact-and-direct-conversation.md section 2 derives contact_round_id from a source-signed acceptance receipt whose core members never enter the Event stream, so replaying this Realm's committed Events cannot reconstruct the lineage key.",
+        "payload": "Holder-signed exact directional Contact operation under ak.contact.admission.v1: complete peer, trust domain, lifetime version and exact own predecessor; fixed initial identity after first establishment. Request/reject carry no future contact_round_id, while accepted/scope/tombstone bind their exact established round. Normal/glare consumption, current scope instances and real source confirmation are private holder-Station effects, not Realm typed current results. No cross-round history chain.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -2814,7 +2814,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable contact round, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
+        "payload": "Holder-signed exact directional Contact operation under ak.contact.admission.v1: complete peer, trust domain, lifetime version and exact own predecessor; fixed initial identity after first establishment. Request/reject carry no future contact_round_id, while accepted/scope/tombstone bind their exact established round. Normal/glare consumption, current scope instances and real source confirmation are private holder-Station effects, not Realm typed current results. No cross-round history chain.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -2830,7 +2830,7 @@
         "wire_scope": "durable_event",
         "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable contact round and cannot carry scope replacement or write/revoke Private Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
+        "payload": "Holder-signed exact directional Contact operation under ak.contact.admission.v1: complete peer, trust domain, lifetime version and exact own predecessor; fixed initial identity after first establishment. Request/reject carry no future contact_round_id, while accepted/scope/tombstone bind their exact established round. Normal/glare consumption, current scope instances and real source confirmation are private holder-Station effects, not Realm typed current results. No cross-round history chain.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -9986,8 +9986,8 @@
         }
       }
     },
-    "version": "2026-10-20.1",
-    "generated_at": "2026-10-20T00:18:13+08:00",
+    "version": "2026-10-21.1",
+    "generated_at": "2026-10-21T08:08:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -10111,55 +10111,55 @@
       "contract_id": "ak.contact.admission.v1",
       "status": "active",
       "defined_in": "zh/identity/contact-and-direct-conversation.md",
-      "description": "Holder-Station private durable Contact contract. The admission slot, the contact round, each issuer-local direction lineage, the verified peer mirror and the contact list folding are private service state of the holder Station, not Realm typed current results derived by replaying this Realm committed Events. The signed Events, acceptance receipts and carrier artefacts keep their admission, signature and audit contracts unchanged; only the Realm typed-result dispatch is withdrawn. Durable founding evidence, the private slot and the accepted Event facts MUST together be sufficient to rebuild the same contact list after a restart. Nothing here enters the receiving side canonical Event store or advances a Realm reducer, and no non-Event producer is added to result_writes[].",
+      "description": "Private durable Contact lifecycle with immutable initial identity, lifetime directional operation current, bounded slot admission, source-certified scope instances and original exact closures. Holder Events/real confirming Commits, outcome and outbox install atomically. The peer mirror never enters receiver canonical Event storage. Same-version conflicts compare immutable operation, not refreshed proof bytes; no continuity chain or cumulative Event prefix.",
       "branches": [
         {
           "branch": "ak.contact.requested",
-          "durable_effect": "Freeze the (exact holder Account, exact peer Account) admission slot together with the request Event bytes and its acceptance receipt.",
-          "unique_key": "(holder_account_id, peer_account_id)",
-          "prior_state_cas": "Slot absent, or present and held by this exact request and receipt pair.",
-          "exact_retry": "Reuses the stored request and receipt; never mints a second request for the same slot.",
-          "rejection": "A slot already held by a different request, or a terminated slot, is rejected with zero side effects."
+          "durable_effect": "Install the new exact holder operation at lifetime version and its branch effect: request intent; exact-request rejection; normal establishment; scope-instance full replacement; or irreversible round closure. Bind fixed initial identity after first establishment; never reset on recontact.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, version)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         },
         {
           "branch": "ak.contact.rejected",
-          "durable_effect": "Terminate exactly the admission slot matching the named request Event and acceptance-receipt digest.",
-          "unique_key": "(holder_account_id, peer_account_id, request_event_ref, request_acceptance_receipt_digest)",
-          "prior_state_cas": "That exact slot is present and not yet terminal.",
-          "exact_retry": "Idempotent no-op on the already terminated slot.",
-          "rejection": "No contact round and no lineage is created; a terminated slot is never revived, and a mismatched request or receipt is rejected with zero side effects."
+          "durable_effect": "Install the new exact holder operation at lifetime version and its branch effect: request intent; exact-request rejection; normal establishment; scope-instance full replacement; or irreversible round closure. Bind fixed initial identity after first establishment; never reset on recontact.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, version)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         },
         {
           "branch": "ak.contact.accepted",
-          "durable_effect": "Establish the normal contact round, this issuer directional initial state, and store the verified counterpart founding evidence.",
-          "unique_key": "(contact_round_id, issuer_id, peer)",
-          "prior_state_cas": "The matching admission slot is present, non-terminal, and carries the request and receipt pair the payload names.",
-          "exact_retry": "Idempotent on the identical accepted Event; the round is established once.",
-          "rejection": "A mismatched round, request or receipt, or an already terminal round, is rejected with zero side effects."
+          "durable_effect": "Install the new exact holder operation at lifetime version and its branch effect: request intent; exact-request rejection; normal establishment; scope-instance full replacement; or irreversible round closure. Bind fixed initial identity after first establishment; never reset on recontact.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, version)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         },
         {
           "branch": "ak.contact.scope.update / ak.contact.tombstone",
-          "durable_effect": "Advance only this issuer-local direction; tombstone makes the round terminal.",
-          "unique_key": "(contact_round_id, issuer_id, peer, version)",
-          "prior_state_cas": "The same private transaction verifies the exact round, issuer, predecessor Event ref and version, including the founding edge of identity/contact-and-direct-conversation.md section 3.",
-          "exact_retry": "Idempotent on the identical Event at the identical version.",
-          "rejection": "Wrong issuer, round, head or version is rejected with zero side effects; a terminal direction is never revived."
+          "durable_effect": "Install the new exact holder operation at lifetime version and its branch effect: request intent; exact-request rejection; normal establishment; scope-instance full replacement; or irreversible round closure. Bind fixed initial identity after first establishment; never reset on recontact.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, version)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         },
         {
           "branch": "glare_finalize (carrier operation, no signed Event)",
-          "durable_effect": "After verifying both requests and both receipts, durably store the single founding evidence and version 1 for each side direction.",
-          "unique_key": "(contact_round_id, issuer_id, peer)",
-          "prior_state_cas": "No founding evidence stored yet for that direction, or byte-identical evidence already stored.",
-          "exact_retry": "Repeated carrier delivery is idempotent.",
-          "rejection": "Conflicting founding evidence for the same direction is rejected with zero side effects; the carrier is never accepted into memory only and then claimed to be foldable."
+          "durable_effect": "Freeze the exact local glare consumption choice and original attestation in one transaction; both opposite attestations establish the round without incrementing either holder operation version or synthesizing an accepted Event.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, exact_request_refs)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         },
         {
-          "branch": "proof_refresh (carrier operation, no signed Event)",
-          "durable_effect": "Replace the stored verification material (lease, checkpoint, current proof) for a direction.",
-          "unique_key": "(contact_round_id, issuer_id, peer)",
-          "prior_state_cas": "The direction exists and the incoming signed head is not lower than the stored one.",
-          "exact_retry": "Idempotent; installing the same material twice changes nothing.",
-          "rejection": "MUST NOT advance the business version and MUST NOT create a direction that does not exist."
+          "branch": "current_refresh (carrier operation, no signed Event)",
+          "durable_effect": "Return exact-pair bounded source current/initial identity/establishment/scope-instance and exact requested interval evidence, preserving each original issuer. Verified installation rechecks local durable progress and closures atomically. No prior mirror, business write, or operation version advance; hidden admission remains opaque.",
+          "unique_key": "(trust_domain_id, complete_holder_actor_id, complete_peer_actor_id, exact_request_refs)",
+          "prior_state_cas": "Lock actual durable direction and bounded pair slot; exact own predecessor/version, request consumption, fixed initial identity and known round closure must match. No scan of cumulative historical Event refs.",
+          "exact_retry": "Return the original immutable durable outcome; no new operation version, side effects, or reinstallation of historical scopes.",
+          "rejection": "Wrong exact identity, operation predecessor, version, consumed request, conflicting initial identity, closed round or invalid source evidence rejects without admitting a new effect. An independently valid closure may be retained without authorizing incomplete material."
         }
       ]
     }
@@ -13843,7 +13843,6 @@
         "surface": "contact_lifecycle",
         "operations": [
           "ak.self.contact.command.request.v1",
-          "ak.self.contact.command.checkpoint.v1",
           "ak.self.contact.command.respond.v1",
           "ak.self.contact.command.reject.v1",
           "ak.self.contact.command.scope_update.v1",
@@ -15232,7 +15231,7 @@
         "http": "POST /_arkret/peer/contacts",
         "grpc": "PeerContacts/Submit",
         "mq": "peer.contacts.command.submit",
-        "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, tombstone, or bilateral continuity-checkpoint control. Authorizing source receipts, directional proofs and the receipted outbox exist only after the exact source command unit is RealmCommit-committed and its effects atomically installed. The receiver verifies the independently derived source Station's historical service attestation and original holder producer separately; no private PCR bootstrap or generic authority-commit proof disclosure is added, and source_checkpoint is not a RealmCommit. The continuity branch carries a one-sided proposal; the receiver recomputes the exact core, verifies the proposer signature, appends only its own participant service-authority signature, durably commits the complete checkpoint and returns it with a signed control receipt. Exact replay returns the same bytes; same-sequence different-digest forks fail closed. It never carries Direct Conversation binding or Realm Events. The original source-signed Event receipt or lineage includes the exact producer_signer method and Ed25519 raw32 key. This permits the first Contact carrier without an existing relationship or private PCR disclosure; it is an exact-Event producer projection, not reusable Control or device authority. The delegated producer projection is structurally defined but v1 Contact commands MUST reject controller-device Agent holder submissions until an exact holder selector is registered; human and Agent-runtime branches forbid it. This complete Agent public DID locator is frozen from verified native identity, rechecked against the exact Actor/controller/Station, and grants no authority.",
+        "notes": "Unique closed carrier for the five original holder-signed Contact facts, durable per-round glare selection, and bounded current_refresh. Source receipt/lineage attests only real confirmed effects, with original producer keys and no private PCR disclosure. No cumulative Event prefix, continuity checkpoint, shared terminal head or prior mirror prerequisite. Full current binds exact pair, fixed initial identity, lifetime operation version, scope grant instances, original closures, request digest and freshness. Each source attests only its own direction; hidden pending/quota/policy decisions remain opaque.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "idempotency_key",
@@ -16657,29 +16656,11 @@
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view"
       },
       {
-        "operation_id": "ak.self.contact.command.checkpoint.v1",
-        "http": "POST /_arkret/self/contacts/continuity-checkpoint",
-        "grpc": "SelfContact/ContinuityCheckpoint",
-        "mq": "self.contact.command.checkpoint",
-        "notes": "Holder-authorized deterministic compaction of the oldest contiguous terminal Contact prefix. The server computes the core from accepted history; callers cannot submit or choose it. Cross-service pairs use the continuity_checkpoint branch of ak.peer.contacts.command.submit.v1: the receiver recomputes, countersigns, durably commits and returns the complete checkpoint in one round trip, then the proposer commits the exact returned bytes. Exact replay returns the same checkpoint; same sequence with another digest is continuity_invalid and has no winner. Export reuses continuity_evidence on ak.self.contact.read.list.v1 and import reuses the Contact request continuity_evidence field.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "idempotency_key",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
-        "outward_disclosure_policy": "ak.outward_disclosure.bilateral_continuity.v1",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "compacts_already_accepted_contact_evidence_without_authoring_an_event"
-        }
-      },
-      {
         "operation_id": "ak.self.contact.command.reject.v1",
         "http": "POST /_arkret/self/contacts/reject",
         "grpc": "SelfContact/Reject",
         "mq": "self.contact.command.reject",
-        "notes": "Two-phase holder-local terminal reject. The service accepts only the holder-signed ak.contact.rejected Event bytes reserved for the exact current request slot, signs the matching rejection acceptance receipt, and provides durable exact replay/conflict semantics independently from normal accept responses.",
+        "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -16698,14 +16679,13 @@
         "http": "POST /_arkret/self/contacts/request",
         "grpc": "SelfContact/Request",
         "mq": "self.contact.command.request",
-        "notes": "Two-phase holder-local acceptance of one holder-signed ak.contact.requested fact. The accepted source receipt, peer closed XOR, full directional scope set and issuer-local slot lineage are durable replay inputs; no Private Consent Event is written or consulted. Recontact may import one generic mutually signed bilateral prefix checkpoint plus at most 64 uncompressed tail rounds. Missing material is continuity_evidence_unavailable; invalid, rollback or forked material is continuity_invalid. The same trust domain and exact ActorId pair cannot reset its lineage or founding slot. Missing continuity must be recovered or explicitly imported; a full tail without a bilateral checkpoint stays blocked. Only an explicitly initiated first contact for a legally different exact ActorId pair creates an independent root, without inherited checkpoint, history, audit identity, DM or MLS state.",
+        "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
-        "outward_disclosure_policy": "ak.outward_disclosure.bilateral_continuity.v1",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
@@ -16718,7 +16698,7 @@
         "http": "POST /_arkret/self/contacts/respond",
         "grpc": "SelfContact/Respond",
         "mq": "self.contact.command.respond",
-        "notes": "Two-phase holder-local normal accept response. The service accepts only the holder-signed response Event bytes reserved for the current request slot, signs the matching normal-response acceptance receipt, and never writes Private Consent. Reject uses the separate ak.self.contact.command.reject.v1 operation. Glare is mechanically derived from two causally concurrent request receipts and forbids this operation.",
+        "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -16737,7 +16717,7 @@
         "http": "POST /_arkret/self/contacts/scope-update",
         "grpc": "SelfContact/ScopeUpdate",
         "mq": "self.contact.command.scope_update",
-        "notes": "Two-phase prepare/commit carrier for one holder-signed ak.contact.scope.update full-set directional replacement. Request/response establishes the issuer-local version 1 genesis; every scope replacement is version >= 2, exactly current+1, and references the exact issuer-local current head. Expansion and narrowing are both explicit signed replacements.",
+        "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -16756,7 +16736,7 @@
         "http": "POST /_arkret/self/contacts/tombstone",
         "grpc": "SelfContact/Tombstone",
         "mq": "self.contact.command.tombstone",
-        "notes": "Holder-signed issuer-local lineage terminal. It consumes the Contact round and generation; it does not carry scope replacement and does not write or revoke Private Consent.",
+        "notes": "Holder prepare/commit of the exact reserved command Event. Full holder/peer/trust-domain lifetime version and exact own predecessor advance only after real confirmation. Fixed initial identity is bound after first establishment. Request/reject have no future round. Slot consumption and known closures rechecked in the confirmation transaction; exact retry returns original outcome without reinstalling historical authorization. Pure narrowing/reject/revoke do not wait for remote freshness. No Consent or history-continuity dependency.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -16775,7 +16755,7 @@
         "http": "GET /_arkret/self/contacts",
         "grpc": "SelfContact/List",
         "mq": "self.contact.query.list",
-        "notes": "Authenticated holder projection from server-verified durable Contact evidence. pending_incoming includes request_event_ref and the exact optional request_message; respond/reject use peer and request_event_ref. Complete continuity_evidence is exported only for explicit boolean query include_continuity=true (default false); online recontact uses Station durable checkpoint and bounded tail. Private Consent and account-data notes are not Contact authority. Accepted human rows may carry peer_endpoint{contact_event_ref,device_id} mechanically derived from the verified peer producer receipt of the selected current Contact round; other states and Agent rows forbid it. Missing source omits the projection. Reload, another holder device and glare use the same durable projection; current KeyPackage claim and MLS governance still authorize Add, never this historical selector. No peer PCR read or device enumeration.",
+        "notes": "Authenticated holder projection from durable Contact operations, immutable initial identity, exact current-round establishment and source-certified scope instances/closures. The accepted row next_prepare_input copies own lifetime next version/head and exact round. Pending_incoming exposes only the exact request and message to its holder. No continuity export. Existing DM coordinates persist through revoke/recontact; Contact does not grant PCR/profile directory access.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
@@ -18528,8 +18508,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-21.3",
-    "generated_at": "2026-10-21T07:13:00+08:00",
+    "version": "2026-10-21.4",
+    "generated_at": "2026-10-21T08:08:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -19490,10 +19470,6 @@
           },
           {
             "operation_id": "ak.self.consent.resource.get.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.contact.command.checkpoint.v1",
             "binding_kind": "http_json"
           },
           {
@@ -24890,5 +24866,27 @@
       ]
     },
     "peer_material_operation_id": "ak.peer.realm_actor.read.material.v1"
+  },
+  "contact_current_contract": {
+    "normative_source": "zh/identity/contact-and-direct-conversation.md",
+    "direction_key": [
+      "trust_domain_id",
+      "complete_holder_actor_id",
+      "complete_peer_actor_id"
+    ],
+    "operation_version_owner": "source_confirmed_holder_operation_only",
+    "initial_identity_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_initial_identity",
+    "current_material_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_material",
+    "scope_instance_identity": "exact_original_grant_event_ref_and_round",
+    "bounded_slot_observation": true,
+    "cumulative_contact_history_required": false,
+    "known_closure_overwrites_own_head": false,
+    "prior_mirror_required_for_refresh": false,
+    "refresh_max_bytes": 2097152,
+    "refresh_max_historical_instances": 5,
+    "glare_choice_durable_at_attestation": true,
+    "same_version_conflict_comparison": "immutable_operation_bytes",
+    "unilateral_close_requires_remote_freshness": false,
+    "ordinary_send_requires_fresh_query_lease": false
   }
 }

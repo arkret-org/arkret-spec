@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.4",
+  "version": "2026-10-21.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T07:16:51+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 228,
+    "total_operations": 227,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 226
+      "typed_schema": 225
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 142
+        "typed_schema": 141
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -2185,20 +2185,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.contact.command.checkpoint.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/contacts/continuity-checkpoint",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ContactContinuityCheckpointRequestBody",
-        "response": "#/components/schemas/ContactContinuityCheckpointOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.contact.command.reject.v1",

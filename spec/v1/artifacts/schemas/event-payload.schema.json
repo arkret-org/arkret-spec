@@ -2629,24 +2629,37 @@
     },
     "contact_accepted_payload": {
       "type": "object",
-      "description": "Holder-signed normal Contact acceptance fact. This is version 1 of the issuer-local directional lineage. It grants only the explicit Contact scopes and neither reads nor writes Consent.",
+      "description": "Holder-signed exact Contact operation; version is monotonic across the full holder/peer/trust-domain lifetime, including request and reject. No future round on request/reject; fixed first identity is bound after first establishment. Source confirmation and domain admission remain mandatory.",
       "required": [
+        "trust_domain_id",
+        "version",
         "peer",
         "contact_round_id",
-        "version",
         "request_event_ref",
         "request_acceptance_receipt_digest",
         "granted_to_peer_scopes"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
           "$ref": "#/$defs/digest"
-        },
-        "version": {
-          "const": 1
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_ref",
@@ -2655,25 +2668,64 @@
         "request_acceptance_receipt_digest": {
           "$ref": "#/$defs/digest"
         },
-        "previous_terminal_contact_round_id": {
-          "$ref": "#/$defs/digest",
-          "description": "Required by semantic admission when the accepted request is a recontact. It MUST equal the same field in the referenced request fact and its source-signed acceptance receipt. It is absent for a root Contact round."
-        },
         "granted_to_peer_scopes": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_scopes"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ]
     },
     "contact_rejected_payload": {
       "type": "object",
-      "description": "Holder-signed terminal rejection of one exact accepted request. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
+      "description": "Holder-signed exact Contact operation; version is monotonic across the full holder/peer/trust-domain lifetime, including request and reject. No future round on request/reject; fixed first identity is bound after first establishment. Source confirmation and domain admission remain mandatory.",
       "required": [
+        "trust_domain_id",
+        "version",
         "peer",
         "request_event_ref",
         "request_acceptance_receipt_digest"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
@@ -2688,17 +2740,60 @@
           "type": "string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ]
     },
     "contact_requested_payload": {
       "type": "object",
-      "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or contact round exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
+      "description": "Holder-signed exact Contact operation; version is monotonic across the full holder/peer/trust-domain lifetime, including request and reject. No future round on request/reject; fixed first identity is bound after first establishment. Source confirmation and domain admission remain mandatory.",
       "required": [
+        "trust_domain_id",
+        "version",
         "peer",
         "granted_to_peer_scopes",
         "introduction_evidence_digest"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
@@ -2709,48 +2804,105 @@
           "$ref": "#/$defs/digest",
           "description": "Required digest of the exact private introduction_evidence carried by the request branch of ak.peer.contacts.command.submit.v1. Raw evidence is not written into the contact fact log."
         },
-        "previous_terminal_contact_round_id": {
-          "$ref": "#/$defs/digest",
-          "description": "Requester-signed immediate predecessor link for recontact. It is required when this request follows a previously accepted terminal Contact round and forbidden for a root request. It is not the issuer-local request-slot predecessor."
-        },
         "message": {
           "type": "string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ]
     },
     "contact_scope_update_payload": {
       "$ref": "./contact-operations.schema.json#/$defs/contact_scope_update_payload"
     },
     "contact_tombstoned_payload": {
       "type": "object",
-      "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, contact round and predecessor coordinates. It does not read, write or revoke Consent.",
+      "description": "Holder-signed exact Contact operation; version is monotonic across the full holder/peer/trust-domain lifetime, including request and reject. No future round on request/reject; fixed first identity is bound after first establishment. Source confirmation and domain admission remain mandatory.",
       "required": [
-        "peer",
-        "contact_round_id",
+        "trust_domain_id",
+        "initial_contact_round_id",
         "version",
-        "predecessor_event_ref"
+        "predecessor_event_ref",
+        "peer",
+        "contact_round_id"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
         "peer": {
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "contact_round_id": {
           "$ref": "#/$defs/digest"
         },
-        "version": {
-          "type": "integer",
-          "minimum": 2
-        },
-        "predecessor_event_ref": {
-          "$ref": "#/$defs/event_ref",
-          "x-arkret-preimage-commitment": "fixed_event"
-        },
         "reason": {
           "type": "string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "predecessor_event_ref"
+            ]
+          }
+        }
+      ]
     },
     "content_block": {
       "type": "object",

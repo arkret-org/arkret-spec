@@ -38,12 +38,6 @@
       "$ref": "#/$defs/contact_scope_update_outcome"
     },
     {
-      "$ref": "#/$defs/contact_continuity_checkpoint_request_body"
-    },
-    {
-      "$ref": "#/$defs/contact_continuity_checkpoint_outcome"
-    },
-    {
       "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
     },
     {
@@ -56,248 +50,6 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
-    },
-    "bilateral_continuity_checkpoint_core": {
-      "type": "object",
-      "description": "Domain-neutral, root-anchored commitment to one contiguous prefix of a bilateral lineage. Sequence is monotonic; same sequence with a different checkpoint digest is a fork, never a winner election.",
-      "required": [
-        "context",
-        "participant_ids",
-        "root_basis",
-        "covered_through_contact_round_id",
-        "prefix_accumulator_root",
-        "covered_prefix_count",
-        "sequence"
-      ],
-      "properties": {
-        "context": {
-          "const": "ak.contact.round.continuity.v1"
-        },
-        "participant_ids": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/actor_id"
-          },
-          "description": "The two exact ActorIds, sorted by RFC 8785 canonical bytes."
-        },
-        "root_basis": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/contact_round_evidence_bundle"
-            },
-            {
-              "not": {
-                "required": [
-                  "continuity_checkpoint"
-                ]
-              }
-            }
-          ],
-          "description": "Portable uncheckpointed root Contact round evidence. It is retained so founder and root identity remain independently derivable after prefix compaction."
-        },
-        "covered_through_contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "The exact terminal contact_round_id at the compacted-prefix boundary. The oldest remaining tail edge points here; bundle content digests are accumulated only in prefix_accumulator_root."
-        },
-        "prefix_accumulator_root": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "covered_prefix_count": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "sequence": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "previous_checkpoint_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "sequence": {
-                "const": 1
-              }
-            },
-            "required": [
-              "sequence"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "previous_checkpoint_digest"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "previous_checkpoint_digest"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "bilateral_continuity_checkpoint_signature": {
-      "type": "object",
-      "required": [
-        "signer_id",
-        "signature"
-      ],
-      "properties": {
-        "signer_id": {
-          "$ref": "#/$defs/actor_id"
-        },
-        "signature": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
-        }
-      },
-      "additionalProperties": false
-    },
-    "bilateral_continuity_checkpoint": {
-      "type": "object",
-      "required": [
-        "core",
-        "checkpoint_digest",
-        "signatures"
-      ],
-      "properties": {
-        "core": {
-          "$ref": "#/$defs/bilateral_continuity_checkpoint_core"
-        },
-        "checkpoint_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "H(ak.bilateral-continuity.checkpoint.v1, canonical core)."
-        },
-        "signatures": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/bilateral_continuity_checkpoint_signature"
-          },
-          "description": "Exactly one signature by each registered participant authority key over the checkpoint core."
-        }
-      },
-      "additionalProperties": false
-    },
-    "bilateral_continuity_checkpoint_proposal": {
-      "type": "object",
-      "required": [
-        "core",
-        "checkpoint_digest",
-        "proposer_signature"
-      ],
-      "properties": {
-        "core": {
-          "$ref": "#/$defs/bilateral_continuity_checkpoint_core"
-        },
-        "checkpoint_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "proposer_signature": {
-          "$ref": "#/$defs/bilateral_continuity_checkpoint_signature"
-        }
-      },
-      "additionalProperties": false,
-      "description": "One participant service's immutable proposal. It is never portable continuity evidence until the other service returns and durably commits the completed two-signature checkpoint."
-    },
-    "contact_continuity_evidence": {
-      "type": "object",
-      "required": [
-        "checkpoint",
-        "uncompressed_tail_entries"
-      ],
-      "properties": {
-        "checkpoint": {
-          "$ref": "#/$defs/bilateral_continuity_checkpoint"
-        },
-        "uncompressed_tail_entries": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/contact_round_evidence_bundle"
-          },
-          "description": "Immediate predecessor first; at least the latest terminal round remains explicit, and the final edge must terminate exactly at checkpoint.core.covered_through_contact_round_id."
-        }
-      },
-      "additionalProperties": false
-    },
-    "contact_continuity_checkpoint_request_body": {
-      "type": "object",
-      "required": [
-        "idempotency_key",
-        "peer"
-      ],
-      "properties": {
-        "idempotency_key": {
-          "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
-        },
-        "peer": {
-          "$ref": "#/$defs/contact_peer"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Holder-authorized command to compact the deterministic oldest terminal prefix. The caller never supplies the checkpoint core or boundary."
-    },
-    "contact_continuity_checkpoint_outcome": {
-      "type": "object",
-      "required": [
-        "status",
-        "checkpoint_digest"
-      ],
-      "properties": {
-        "status": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "committed"
-          ]
-        },
-        "checkpoint_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "continuity_evidence": {
-          "$ref": "#/$defs/contact_continuity_evidence"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "status": {
-                "const": "committed"
-              }
-            },
-            "required": [
-              "status"
-            ]
-          },
-          "then": {
-            "required": [
-              "continuity_evidence"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "continuity_evidence"
-              ]
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
     },
     "contact_accept_request": {
       "oneOf": [
@@ -520,15 +272,15 @@
         "contact_round_id",
         "contact_round",
         "request_receipts",
-        "current_proofs"
+        "current_proofs",
+        "initial_identity",
+        "scope_grants",
+        "round_events",
+        "current_operations"
       ],
       "properties": {
         "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "previous_terminal_contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "Absent only for a root Contact round. On recontact it is copied from every signed request fact and request acceptance receipt in this bundle and points to the immediately preceding terminal round. The bundle field is derived convenience, never independent authority."
         },
         "contact_round": {
           "$ref": "#/$defs/contact_round"
@@ -563,9 +315,36 @@
           "maxItems": 2,
           "uniqueItems": true
         },
-        "continuity_checkpoint": {
-          "$ref": "#/$defs/bilateral_continuity_checkpoint",
-          "description": "Latest mutually signed compacted prefix for this lineage. Its presence changes the chain terminator from the root round to covered_through_contact_round_id; it never changes the root basis or participant authority pair."
+        "initial_identity": {
+          "$ref": "#/$defs/contact_initial_identity"
+        },
+        "scope_grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_operation_evidence"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "maxItems": 10
+        },
+        "round_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 3
+        },
+        "current_operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_operation_evidence"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "description": "Exactly one original confirmed head operation for each opposite directional proof. Scope origins and round Events alone do not necessarily contain the latest head."
         }
       },
       "allOf": [
@@ -629,64 +408,74 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Current normal/glare establishment plus immutable first identity and two opposite directional currents. No intermediate round chain. The first identity determines founder; current scope instances authorize separately."
     },
     "contact_current_proof": {
       "type": "object",
-      "description": "Existing source Station attestation of its confirmed directional Contact projection. Authorizing proofs are issued only after the exact source command is committed by the unique confirmed RealmCommit; the peer verifies the independently derived Station's historical service authority and the original holder producer separately, without receiving private PCR history.",
       "required": [
-        "contact_round_id",
-        "issuer_id",
+        "trust_domain_id",
+        "holder",
         "peer",
+        "issuer_id",
         "head_event_ref",
-        "terminal",
-        "accepted_commit_event_ids",
-        "complete_through",
+        "version",
+        "scope_instances",
+        "issued_at",
         "fresh_until",
         "signature"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "holder": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "peer": {
+          "$ref": "#/$defs/contact_peer"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
         "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "issuer_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Station service authority independently derived from the exact directional participant and verified at signature.created_at. It is not a Contact participant identity; fresh_until is a freshness limit, not an authority-history lookup time."
-        },
-        "peer": {
-          "$ref": "#/$defs/contact_peer",
-          "description": "Signed peer component of the issuer-local lineage key. The directional subject is the other exact member of the bound Contact pair."
+          "$ref": "#/$defs/did_core_id"
         },
         "head_event_ref": {
-          "$ref": "#/$defs/event_id",
-          "description": "Complete identity of the actual confirmed current-head Event at proof issuance. It may equal the carrier's original fact or be its authenticated same-direction successor; exact coverage requires the complete verified predecessor chain, never only a larger complete_through. A round-wide terminal uses the separately verified source tombstone and counterpart fence rules. Missing chain material stays non-authorizing pending. A source MUST NOT sign a superseded fact as a fresh head or backdate a proof. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel head_digest is carried."
+          "$ref": "#/$defs/event_id"
         },
-        "terminal": {
-          "type": "boolean",
-          "description": "Signed current-head classification. true authenticates the round-wide fence from a confirmed ak.contact.tombstone; both directional proofs may reference that same source tombstone without inventing another holder Event. The counterpart verifies the original source proof and retains its own direction's complete_through version. Incomplete local direction material permits a known-terminal fence but no fabricated completeness proof. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
-        },
-        "accepted_commit_event_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "complete_through": {
+        "version": {
           "type": "integer",
           "minimum": 1,
-          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): version 1 is either the normal responder's initial accepted Event or a founding request head, which covers both glare sides and the normal requester (identity/contact-and-direct-conversation.md section 3, founding edge); successors use their confirmed payload.version. Never the PCR stream position, request slot_version, RealmCommit height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
+          "maximum": 9007199254740991
+        },
+        "scope_instances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_scope_instance"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "maxItems": 5
+        },
+        "closed_round": {
+          "$ref": "#/$defs/contact_round_closure"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "fresh_until": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Current freshness bound for Contact mutation and Direct Conversation security founding. Expiry alone does not revoke a previously fully verified ordinary-message authorization interval or require the source Station online; known revocations and actual authorization bounds still apply."
+          "$ref": "#/$defs/timestamp"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Complete source-authenticated directional current at one durable cut. Only a new committed holder operation advances version; establishment, peer closure and proof refresh do not. Same-version conflicts compare immutable operation bytes, not proof bytes. Refresh never replaces known closures. The expected Station is independently derived from holder; no shared tombstone head or per-round completeness chain."
     },
     "contact_introduction_evidence": {
       "oneOf": [
@@ -785,16 +574,23 @@
     "contact_lineage": {
       "type": "object",
       "required": [
-        "contact_round_id",
+        "trust_domain_id",
         "issuer",
         "peer",
         "version",
         "event_ref",
         "producer_signer",
         "granted_to_peer_scopes",
+        "accepted_at",
         "signature"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
         "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
@@ -806,7 +602,8 @@
         },
         "version": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "predecessor_event_ref": {
           "$ref": "#/$defs/event_id",
@@ -821,13 +618,15 @@
         "granted_to_peer_scopes": {
           "$ref": "#/$defs/contact_scopes"
         },
-        "terminal": {
-          "type": "boolean"
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
+      "additionalProperties": false,
+      "description": "Source-confirmed exact holder operation projection. issuer is the complete holder ContactPeer, not the signing Station. version is monotonic for holder/peer/trust-domain across all Contact operations and rounds. contact_round_id exists only for post-establishment operations. Original accepted_at and producer descriptor remain immutable.",
       "allOf": [
         {
           "if": {
@@ -852,38 +651,8 @@
               "predecessor_event_ref"
             ]
           }
-        },
-        {
-          "if": {
-            "properties": {
-              "issuer": {
-                "properties": {
-                  "kind": {
-                    "const": "human"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "issuer"
-            ]
-          },
-          "then": {
-            "properties": {
-              "producer_signer": {
-                "$ref": "#/$defs/contact_direct_producer_signer"
-              }
-            },
-            "required": [
-              "producer_signer"
-            ]
-          }
         }
-      ],
-      "additionalProperties": false
+      ]
     },
     "contact_list": {
       "type": "object",
@@ -956,10 +725,6 @@
         "effective_scopes": {
           "$ref": "#/$defs/contact_scopes",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
-        },
-        "continuity_evidence": {
-          "$ref": "#/$defs/contact_continuity_evidence",
-          "description": "Explicit export only: present when include_continuity=true and a committed portable checkpoint exists. Ordinary list responses omit it. Online recontact uses Station durable evidence."
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
@@ -1067,7 +832,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed successor cursor for the holder's own issuer-local Contact lineage, carried only by the ak.self.contact.read.list.v1 projection. The container name carries the tense: version is the version the NEXT Event carries, that is current head version plus one, hence the minimum of 2; predecessor_event_ref is the current lineage head Event ID, that is the predecessor the next Event must name, and never the predecessor of the current head. The three field names are byte-identical to the prepare-phase fields of ak.self.contact.command.scope_update.v1 and ak.self.contact.command.tombstone.v1 and MUST be copied verbatim; a client MUST NOT rename, recompute or derive them, and MUST NOT assemble a successor from request_event_ref, response_event_ref or tombstone_event_ref, which are projection summaries and not authoritative lineage heads. Presence is fixed by contact_state: an accepted row MUST carry it, and a pending_outgoing, pending_incoming, rejected, expired or tombstoned row MUST NOT, because the first two have no contact round or lineage yet and the last three are terminal. Absence is the sole encoding of 'no successor is authorable now'; no extra error code or contact_state value expresses it. A stale cursor is refused by prepare with contact_lineage_conflict or contact_scope_stale; the client MUST re-read this operation and retry with the fresh values, and MUST NOT guess a head or retry the same triple."
+      "description": "Server-provided exact next operation cursor: same contact_round_id, version=current lifetime holder direction version+1 and predecessor_event_ref=own exact current operation head. Copy verbatim; do not derive from list summary refs. Accepted rows carry it; pending/terminal rows do not. Normal requester and glare heads are their original requests, without synthetic accepted Events."
     },
     "contact_operation_outcome": {
       "oneOf": [
@@ -1437,10 +1202,6 @@
             "introduction_evidence": {
               "$ref": "#/$defs/contact_introduction_evidence"
             },
-            "continuity_evidence": {
-              "$ref": "#/$defs/contact_continuity_evidence",
-              "description": "Explicit portable import. The Station validates the checkpoint and bounded tail, binds the exact pair and committed lineage, and derives the predecessor. Ordinary online recontact loads Station durable evidence instead."
-            },
             "message": {
               "type": "string"
             }
@@ -1706,6 +1467,8 @@
     "contact_scope_update_payload": {
       "type": "object",
       "required": [
+        "trust_domain_id",
+        "initial_contact_round_id",
         "schema",
         "peer",
         "contact_round_id",
@@ -1714,6 +1477,12 @@
         "granted_to_peer_scopes"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
         "schema": {
           "const": "ak.schema.contact_scope_update.v1"
         },
@@ -1725,7 +1494,8 @@
         },
         "version": {
           "type": "integer",
-          "minimum": 2
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "predecessor_event_ref": {
           "$ref": "#/$defs/event_id",
@@ -1735,7 +1505,8 @@
           "$ref": "#/$defs/contact_scopes"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Holder full-set replacement in a nonterminal established round. version advances the holder lifetime direction, retained scope instances retain their grant Event. Empty scopes remain accepted; pure narrowing does not wait for remote freshness."
     },
     "contact_scope_update_request": {
       "oneOf": [
@@ -1998,17 +1769,36 @@
     "glare_concurrency_attestation": {
       "type": "object",
       "required": [
+        "trust_domain_id",
+        "contact_round_id",
+        "version",
+        "request_event_ref",
         "subject_id",
         "issuer_id",
         "peer_id",
         "request_receipt_digests",
-        "observed_commit_event_ids",
-        "complete_through",
         "unconsumed_slot_checkpoint",
         "observed_at",
         "signature"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "subject_id": {
           "$ref": "#/$defs/actor_id",
           "description": "Exact Contact participant whose Station issued this directional attestation."
@@ -2030,18 +1820,6 @@
           "maxItems": 2,
           "uniqueItems": true
         },
-        "observed_commit_event_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_id"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "complete_through": {
-          "type": "integer",
-          "minimum": 1
-        },
         "unconsumed_slot_checkpoint": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
@@ -2053,12 +1831,14 @@
         }
       },
       "additionalProperties": false,
-      "description": "Source-service-signed evidence for the subject_id -> peer_id direction that both request receipts were accepted while neither request slot had yet been consumed. A glare bundle requires the two opposite directions; issuer_id is the signing service and is never used as the participant discriminator."
+      "description": "The source durably chooses glare for these exact requests in the same transaction as this attestation. version is the subject request operation version; finalizing glare does not increment it. No cumulative observed Event list, no later normal/reject choice, no unilateral authorizing success."
     },
     "normal_response_acceptance_receipt": {
       "type": "object",
       "description": "Source Station attestation issued only after the exact response Event's command unit is committed and its Contact effect atomically installed. Pending admission or proposal acknowledgement is not this receipt.",
       "required": [
+        "trust_domain_id",
+        "version",
         "contact_round_id",
         "request_receipt",
         "response_event_ref",
@@ -2069,6 +1849,20 @@
         "signature"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
@@ -2101,43 +1895,24 @@
         {
           "if": {
             "properties": {
-              "request_receipt": {
-                "properties": {
-                  "core": {
-                    "properties": {
-                      "peer": {
-                        "properties": {
-                          "kind": {
-                            "const": "human"
-                          }
-                        },
-                        "required": [
-                          "kind"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "peer"
-                    ]
-                  }
-                },
-                "required": [
-                  "core"
-                ]
+              "version": {
+                "const": 1
               }
             },
             "required": [
-              "request_receipt"
+              "version"
             ]
           },
           "then": {
-            "properties": {
-              "producer_signer": {
-                "$ref": "#/$defs/contact_direct_producer_signer"
-              }
-            },
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
             "required": [
-              "producer_signer"
+              "predecessor_event_ref"
             ]
           }
         }
@@ -2184,9 +1959,8 @@
         "request_kind": {
           "type": "string",
           "enum": [
-            "proof_refresh",
-            "glare_finalize",
-            "continuity_checkpoint"
+            "current_refresh",
+            "glare_finalize"
           ]
         },
         "request_digest": {
@@ -2247,7 +2021,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt.",
+      "description": "The recipient signs every field except signature. This receipt is only for current_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt.",
       "x-arkret-signature-domain": "ak.peer_contact.control_receipt.v1"
     },
     "peer_contact_event_submit_outcome": {
@@ -2489,286 +2263,43 @@
             "result_kind",
             "status",
             "control_receipt",
-            "current_proof"
+            "material"
           ],
           "properties": {
             "result_kind": {
-              "const": "proof_refresh"
+              "const": "current_refresh"
             },
             "status": {
-              "const": "accepted"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "proof_refresh"
-                    },
-                    "outcome": {
-                      "const": "accepted"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "current_proof": {
-              "$ref": "#/$defs/contact_current_proof"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "control_receipt",
-            "current_proof"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "proof_refresh"
-            },
-            "status": {
-              "const": "duplicate"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "proof_refresh"
-                    },
-                    "outcome": {
-                      "const": "duplicate"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "current_proof": {
-              "$ref": "#/$defs/contact_current_proof"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "control_receipt",
-            "glare_concurrency_attestation"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "glare_finalize"
-            },
-            "status": {
-              "const": "accepted"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "glare_finalize"
-                    },
-                    "outcome": {
-                      "const": "accepted"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "glare_concurrency_attestation": {
-              "$ref": "#/$defs/glare_concurrency_attestation"
-            },
-            "current_proof": {
-              "$ref": "#/$defs/contact_current_proof"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "control_receipt",
-            "glare_concurrency_attestation"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "glare_finalize"
-            },
-            "status": {
-              "const": "duplicate"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "glare_finalize"
-                    },
-                    "outcome": {
-                      "const": "duplicate"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "glare_concurrency_attestation": {
-              "$ref": "#/$defs/glare_concurrency_attestation"
-            },
-            "current_proof": {
-              "$ref": "#/$defs/contact_current_proof"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "request_kind",
-            "control_receipt"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "control_deferred"
-            },
-            "status": {
-              "const": "deferred"
-            },
-            "request_kind": {
-              "const": "proof_refresh"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "proof_refresh"
-                    },
-                    "outcome": {
-                      "const": "deferred"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "retry_after_ms": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "request_kind",
-            "control_receipt"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "control_deferred"
-            },
-            "status": {
-              "const": "deferred"
-            },
-            "request_kind": {
-              "const": "glare_finalize"
-            },
-            "control_receipt": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/peer_contact_control_receipt"
-                },
-                {
-                  "properties": {
-                    "request_kind": {
-                      "const": "glare_finalize"
-                    },
-                    "outcome": {
-                      "const": "deferred"
-                    }
-                  },
-                  "required": [
-                    "request_kind",
-                    "outcome"
-                  ]
-                }
-              ]
-            },
-            "retry_after_ms": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "result_kind",
-            "status",
-            "control_receipt",
-            "checkpoint"
-          ],
-          "properties": {
-            "result_kind": {
-              "const": "continuity_checkpoint"
-            },
-            "status": {
-              "type": "string",
               "enum": [
                 "accepted",
                 "duplicate"
               ]
             },
             "control_receipt": {
+              "$ref": "#/$defs/peer_contact_control_receipt"
+            },
+            "material": {
+              "$ref": "#/$defs/contact_current_material"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "glare_concurrency_attestation"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "glare_finalize"
+            },
+            "status": {
+              "const": "accepted"
+            },
+            "control_receipt": {
               "allOf": [
                 {
                   "$ref": "#/$defs/peer_contact_control_receipt"
@@ -2776,14 +2307,10 @@
                 {
                   "properties": {
                     "request_kind": {
-                      "const": "continuity_checkpoint"
+                      "const": "glare_finalize"
                     },
                     "outcome": {
-                      "type": "string",
-                      "enum": [
-                        "accepted",
-                        "duplicate"
-                      ]
+                      "const": "accepted"
                     }
                   },
                   "required": [
@@ -2793,8 +2320,148 @@
                 }
               ]
             },
-            "checkpoint": {
-              "$ref": "#/$defs/bilateral_continuity_checkpoint"
+            "glare_concurrency_attestation": {
+              "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "control_receipt",
+            "glare_concurrency_attestation"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "glare_finalize"
+            },
+            "status": {
+              "const": "duplicate"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "glare_finalize"
+                    },
+                    "outcome": {
+                      "const": "duplicate"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "outcome"
+                  ]
+                }
+              ]
+            },
+            "glare_concurrency_attestation": {
+              "$ref": "#/$defs/glare_concurrency_attestation"
+            },
+            "current_proof": {
+              "$ref": "#/$defs/contact_current_proof"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "request_kind",
+            "control_receipt"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "control_deferred"
+            },
+            "status": {
+              "const": "deferred"
+            },
+            "request_kind": {
+              "const": "current_refresh"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "current_refresh"
+                    },
+                    "outcome": {
+                      "const": "deferred"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "outcome"
+                  ]
+                }
+              ]
+            },
+            "retry_after_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_kind",
+            "status",
+            "request_kind",
+            "control_receipt"
+          ],
+          "properties": {
+            "result_kind": {
+              "const": "control_deferred"
+            },
+            "status": {
+              "const": "deferred"
+            },
+            "request_kind": {
+              "const": "glare_finalize"
+            },
+            "control_receipt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/peer_contact_control_receipt"
+                },
+                {
+                  "properties": {
+                    "request_kind": {
+                      "const": "glare_finalize"
+                    },
+                    "outcome": {
+                      "const": "deferred"
+                    }
+                  },
+                  "required": [
+                    "request_kind",
+                    "outcome"
+                  ]
+                }
+              ]
+            },
+            "retry_after_ms": {
+              "type": "integer",
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -3483,28 +3150,48 @@
           "required": [
             "kind",
             "idempotency_key",
-            "prior_mirror_receipt",
-            "current_proof",
+            "requester",
+            "trust_domain_id",
+            "known_version",
+            "grant_event_refs",
             "contact_address"
           ],
           "properties": {
             "kind": {
-              "const": "proof_refresh"
+              "const": "current_refresh"
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
             },
-            "prior_mirror_receipt": {
-              "$ref": "#/$defs/peer_contact_authoritative_mirror_receipt"
+            "requester": {
+              "$ref": "#/$defs/contact_peer"
             },
-            "current_proof": {
-              "$ref": "#/$defs/contact_current_proof"
+            "trust_domain_id": {
+              "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+            },
+            "initial_contact_round_id": {
+              "$ref": "./principal-operations.schema.json#/$defs/digest"
+            },
+            "known_version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "grant_event_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/event_id"
+              },
+              "minItems": 0,
+              "uniqueItems": true,
+              "maxItems": 5
             },
             "contact_address": {
               "$ref": "#/$defs/contact_address"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Exact-pair source-current read with no prior mirror receipt prerequisite. The Message-Signature Station must host requester and may read only the opposite exact participant. Zero known_version is local unknown, not never-written proof. Optional initial identity is an assertion to match, not a caller-selected root. Hidden admission and quota outcomes remain opaque."
         },
         {
           "type": "object",
@@ -3565,30 +3252,6 @@
             }
           },
           "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "idempotency_key",
-            "proposal",
-            "contact_address"
-          ],
-          "properties": {
-            "kind": {
-              "const": "continuity_checkpoint"
-            },
-            "idempotency_key": {
-              "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
-            },
-            "proposal": {
-              "$ref": "#/$defs/bilateral_continuity_checkpoint_proposal"
-            },
-            "contact_address": {
-              "$ref": "#/$defs/contact_address"
-            }
-          },
-          "additionalProperties": false
         }
       ]
     },
@@ -3596,6 +3259,8 @@
       "type": "object",
       "description": "Source Station attestation of the committed Contact rejection Event, which is a successful terminal domain command. A RealmCommit-rejected command or pending Event cannot produce this receipt.",
       "required": [
+        "trust_domain_id",
+        "version",
         "request_receipt",
         "reject_event_ref",
         "producer_signer",
@@ -3604,6 +3269,20 @@
         "signature"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "initial_contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "request_receipt": {
           "$ref": "#/$defs/request_acceptance_receipt"
         },
@@ -3629,43 +3308,24 @@
         {
           "if": {
             "properties": {
-              "request_receipt": {
-                "properties": {
-                  "core": {
-                    "properties": {
-                      "peer": {
-                        "properties": {
-                          "kind": {
-                            "const": "human"
-                          }
-                        },
-                        "required": [
-                          "kind"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "peer"
-                    ]
-                  }
-                },
-                "required": [
-                  "core"
-                ]
+              "version": {
+                "const": 1
               }
             },
             "required": [
-              "request_receipt"
+              "version"
             ]
           },
           "then": {
-            "properties": {
-              "producer_signer": {
-                "$ref": "#/$defs/contact_direct_producer_signer"
-              }
-            },
+            "not": {
+              "required": [
+                "predecessor_event_ref"
+              ]
+            }
+          },
+          "else": {
             "required": [
-              "producer_signer"
+              "predecessor_event_ref"
             ]
           }
         }
@@ -3695,9 +3355,10 @@
     "request_acceptance_receipt_core": {
       "type": "object",
       "required": [
+        "trust_domain_id",
         "holder",
         "peer",
-        "slot_version",
+        "version",
         "request_event_ref",
         "producer_signer",
         "source_checkpoint",
@@ -3705,22 +3366,25 @@
         "issuer_id"
       ],
       "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
         "holder": {
           "$ref": "#/$defs/contact_peer"
         },
         "peer": {
           "$ref": "#/$defs/contact_peer"
         },
-        "slot_version": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "slot_predecessor": {
+        "initial_contact_round_id": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
-        "previous_terminal_contact_round_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "Present exactly when this accepted request starts a recontact after a prior accepted Contact round became terminal. It MUST equal the requester-signed ak.contact.requested payload field and is covered by receipt_digest/signature. It is distinct from slot_predecessor, which is the issuer-local request-slot CAS predecessor and can also follow a rejected proposal."
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_id"
         },
         "request_event_ref": {
           "$ref": "#/$defs/event_id",
@@ -3743,58 +3407,30 @@
         {
           "if": {
             "properties": {
-              "slot_version": {
+              "version": {
                 "const": 1
               }
             },
             "required": [
-              "slot_version"
+              "version"
             ]
           },
           "then": {
             "not": {
               "required": [
-                "slot_predecessor"
+                "predecessor_event_ref"
               ]
             }
           },
           "else": {
             "required": [
-              "slot_predecessor"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "holder": {
-                "properties": {
-                  "kind": {
-                    "const": "human"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "holder"
-            ]
-          },
-          "then": {
-            "properties": {
-              "producer_signer": {
-                "$ref": "#/$defs/contact_direct_producer_signer"
-              }
-            },
-            "required": [
-              "producer_signer"
+              "predecessor_event_ref"
             ]
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Frozen original request confirmation, signed before the future round exists. initial_contact_round_id is present exactly after a first established identity; version is the holder lifetime Contact operation version. Recontact does not reset it."
     },
     "strand_id": {
       "$ref": "./agent-operations.schema.json#/$defs/strand_id"
@@ -3876,6 +3512,432 @@
       },
       "additionalProperties": false,
       "description": "Exact selector mechanically derived from the verified peer producer of the selected accepted Contact round. Not current Device or MLS authority. Omit when no verified source exists."
+    },
+    "contact_round_basis": {
+      "type": "object",
+      "required": [
+        "contact_round_id",
+        "contact_round",
+        "request_receipts"
+      ],
+      "properties": {
+        "contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "contact_round": {
+          "$ref": "#/$defs/contact_round"
+        },
+        "request_receipts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/request_acceptance_receipt"
+          },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "normal_response_receipt": {
+          "$ref": "#/$defs/normal_response_acceptance_receipt"
+        },
+        "glare_concurrency_attestations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glare_concurrency_attestation"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "contact_round": {
+                "properties": {
+                  "kind": {
+                    "const": "glare"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "contact_round"
+            ]
+          },
+          "then": {
+            "required": [
+              "glare_concurrency_attestations"
+            ],
+            "properties": {
+              "request_receipts": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "not": {
+              "required": [
+                "normal_response_receipt"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "normal_response_receipt"
+            ],
+            "properties": {
+              "request_receipts": {
+                "minItems": 1,
+                "maxItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "glare_concurrency_attestations"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Immutable normal/glare establishment evidence. No freshness, terminal acknowledgement, or history-chain root traversal is encoded here."
+    },
+    "contact_initial_identity": {
+      "type": "object",
+      "required": [
+        "trust_domain_id",
+        "round",
+        "events"
+      ],
+      "properties": {
+        "trust_domain_id": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "round": {
+          "$ref": "#/$defs/contact_round_basis"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false,
+      "description": "Unsigned deterministic preservation of the first confirmed establishment originals. Founder is derived from round; this is not a newly signed root certificate. Exact Event refs, original producer signatures and original source receipts MUST cross-match."
+    },
+    "contact_scope_instance": {
+      "type": "object",
+      "required": [
+        "contact_scope",
+        "grant_event_ref"
+      ],
+      "properties": {
+        "contact_scope": {
+          "$ref": "#/$defs/contact_scope"
+        },
+        "grant_event_ref": {
+          "$ref": "#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One current continuous directional scope instance. Retaining a scope retains its grant Event; removal closes it and re-addition selects the new grant Event. No independent generation counter."
+    },
+    "contact_operation_evidence": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "request_receipt"
+          ],
+          "properties": {
+            "kind": {
+              "const": "request"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.requested"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "request_receipt": {
+              "$ref": "#/$defs/request_acceptance_receipt"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "response_receipt"
+          ],
+          "properties": {
+            "kind": {
+              "const": "response"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.accepted"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "response_receipt": {
+              "$ref": "#/$defs/normal_response_acceptance_receipt"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "reject_receipt"
+          ],
+          "properties": {
+            "kind": {
+              "const": "reject"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.rejected"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "reject_receipt": {
+              "$ref": "#/$defs/reject_acceptance_receipt"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "lineage"
+          ],
+          "properties": {
+            "kind": {
+              "const": "scope_update"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.scope.update"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "lineage"
+          ],
+          "properties": {
+            "kind": {
+              "const": "tombstone"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.tombstone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Exact original holder-signed Contact Event plus its original branch-specific source confirmation. Pending or rejected command units cannot produce this evidence."
+    },
+    "contact_round_closure": {
+      "type": "object",
+      "required": [
+        "contact_round_id",
+        "operation"
+      ],
+      "properties": {
+        "contact_round_id": {
+          "$ref": "./principal-operations.schema.json#/$defs/digest"
+        },
+        "operation": {
+          "type": "object",
+          "required": [
+            "kind",
+            "signed_event",
+            "lineage"
+          ],
+          "properties": {
+            "kind": {
+              "const": "tombstone"
+            },
+            "signed_event": {
+              "allOf": [
+                {
+                  "$ref": "./principal-operations.schema.json#/$defs/signed_event"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.contact.tombstone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              ]
+            },
+            "lineage": {
+              "$ref": "#/$defs/contact_lineage"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Original source tombstone closing this exact round. The receiving holder does not replace its own operation head or increment its own version. Validate the inner source and producer independently."
+    },
+    "contact_scope_interval": {
+      "type": "object",
+      "required": [
+        "contact_scope",
+        "grant",
+        "round"
+      ],
+      "properties": {
+        "contact_scope": {
+          "$ref": "#/$defs/contact_scope"
+        },
+        "grant": {
+          "$ref": "#/$defs/contact_operation_evidence"
+        },
+        "round": {
+          "$ref": "#/$defs/contact_round_basis"
+        },
+        "closed_by": {
+          "$ref": "#/$defs/contact_operation_evidence"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact requested historical scope instance and its first actual removal/tombstone, if closed. The source result binds the completeness of this interval at its cut. Missing evidence is unknown, never an open interval invented from current scope equality."
+    },
+    "contact_current_material": {
+      "type": "object",
+      "required": [
+        "head_operation",
+        "scope_grants",
+        "historical_intervals",
+        "current_proof"
+      ],
+      "properties": {
+        "initial_identity": {
+          "$ref": "#/$defs/contact_initial_identity"
+        },
+        "round_evidence": {
+          "$ref": "#/$defs/contact_round_basis"
+        },
+        "head_operation": {
+          "$ref": "#/$defs/contact_operation_evidence"
+        },
+        "scope_grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_operation_evidence"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "maxItems": 5
+        },
+        "historical_intervals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_scope_interval"
+          },
+          "minItems": 0,
+          "uniqueItems": true,
+          "maxItems": 5
+        },
+        "current_proof": {
+          "$ref": "#/$defs/contact_current_proof"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded source material for the exact pair. All current proof refs, scope origins, original source confirmations and producer keys cross-match. Pending/reject never fabricate a round; root is absent only before first establishment. The signed control result covers the full material. Historical intervals are exact-requested, not an enumeration."
     }
   }
 }

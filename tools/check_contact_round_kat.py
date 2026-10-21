@@ -87,7 +87,7 @@ def rebuild_producer_vectors(fixture: dict) -> None:
         station = TEST_DIDS[pair[index]["account_id"]["station_id"]]
         principal = TEST_DIDS[pair[index]["account_id"]["principal_id"]]
         core = {
-            "holder": peers[index], "peer": peers[1-index], "slot_version": 1,
+            "trust_domain_id": "ak:trust_domain:fixture", "holder": peers[index], "peer": peers[1-index], "version": 1,
             "request_event_ref": event_ref,
             "producer_signer": {"verification_method": principal + "#device-fixture", "public_key_b64u": TEST_PUBLIC_KEY},
             "source_checkpoint": "sha256:" + str(index + 1) * 64,
@@ -115,16 +115,19 @@ def rebuild_producer_vectors(fixture: dict) -> None:
     method = receipts[1]["signature"]["verification_method"]
     bodies = [
         ("normal_response_acceptance_receipt", {
+            "trust_domain_id": "ak:trust_domain:fixture", "version": 2, "predecessor_event_ref": reject_ref,
             "contact_round_id": round_id, "request_receipt": receipts[0], "response_event_ref": response_ref,
             "producer_signer": producer, "outgoing_slot_absence_digest": absence["expected_digest"],
             "accepted_at": at, "issuer_id": receipts[1]["core"]["issuer_id"],
         }),
         ("reject_acceptance_receipt", {
+            "trust_domain_id": "ak:trust_domain:fixture", "version": 1,
             "request_receipt": receipts[0], "reject_event_ref": reject_ref, "producer_signer": producer,
             "accepted_at": at, "issuer_id": receipts[1]["core"]["issuer_id"],
         }),
         ("contact_lineage", {
-            "contact_round_id": round_id, "issuer": peers[1], "peer": peers[0], "version": 1,
+            "trust_domain_id": "ak:trust_domain:fixture", "accepted_at": at,
+            "contact_round_id": round_id, "issuer": peers[1], "peer": peers[0], "version": 2, "predecessor_event_ref": reject_ref,
             "event_ref": response_ref, "producer_signer": producer, "granted_to_peer_scopes": ["direct_message"],
         }),
     ]
@@ -416,17 +419,14 @@ def main() -> int:
         raise SystemExit("outgoing-slot-absence round id is not the normal-round KAT result")
     if members != round_members.get("normal"):
         raise SystemExit("outgoing-slot-absence pair is not the normal-round KAT pair")
-    revision = transcript["cas_revision"]
-    if not revision or revision != sorted(set(revision)):
-        raise SystemExit("outgoing-slot-absence cas revision is not canonical and distinct")
-    if transcript["cas_sequence"] < 1 or transcript["outgoing_request_state"] != "absent":
+    if transcript["version"] < 1 or transcript["outgoing_request_state"] != "absent":
         raise SystemExit("outgoing-slot-absence state is invalid")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z", transcript["observed_at"]):
         raise SystemExit("outgoing-slot-absence observed_at is not canonical milliseconds")
     canonical = canonical_json(transcript)
     if canonical != case.get("canonical_transcript"):
         raise SystemExit("outgoing-slot-absence canonical bytes drifted")
-    digest = f"sha256:{hashlib.sha256(f'{absence_domain}\n{canonical}'.encode()).hexdigest()}"
+    digest = "sha256:" + hashlib.sha256((absence_domain + "\n" + canonical).encode()).hexdigest()
     if digest != case.get("expected_digest"):
         raise SystemExit(
             f"outgoing-slot-absence expected {case.get('expected_digest')}, got {digest}"
@@ -434,11 +434,11 @@ def main() -> int:
 
     expected_negatives = {
         "missing_observed_at",
-        "omitted_slot_predecessor",
+        "omitted_predecessor_event_ref",
         "null_outgoing_request_state",
         "swapped_pair",
         "wrong_contact_round_id",
-        "stale_cas_revision",
+        "stale_operation_version",
         "non_canonical_json",
     }
     if set(absence.get("negative_cases", [])) != expected_negatives:
@@ -448,21 +448,21 @@ def main() -> int:
         value = deepcopy(transcript)
         if name == "missing_observed_at":
             del value["observed_at"]
-        elif name == "omitted_slot_predecessor":
-            del value["slot_predecessor"]
+        elif name == "omitted_predecessor_event_ref":
+            del value["predecessor_event_ref"]
         elif name == "null_outgoing_request_state":
             value["outgoing_request_state"] = None
         elif name == "swapped_pair":
             value["sorted_pair_member_ids"].reverse()
         elif name == "wrong_contact_round_id":
             value["contact_round_id"] = "sha256:" + "0" * 64
-        elif name == "stale_cas_revision":
-            value["cas_revision"] = value["cas_revision"][:1]
+        elif name == "stale_operation_version":
+            value["version"] = value["version"] - 1
         mutations[name] = value
     for name, value in mutations.items():
         if isinstance(value, dict) and set(value) == set(required):
             mutated = canonical_json(value)
-            mutated_digest = f"sha256:{hashlib.sha256(f'{absence_domain}\n{mutated}'.encode()).hexdigest()}"
+            mutated_digest = "sha256:" + hashlib.sha256((absence_domain + "\n" + mutated).encode()).hexdigest()
             if mutated_digest == digest:
                 raise SystemExit(f"{name}: mutation did not change digest")
     non_canonical = json.dumps(transcript, ensure_ascii=False, separators=(", ", ": "))

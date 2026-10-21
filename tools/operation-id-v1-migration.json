@@ -632,10 +632,6 @@
       "new": "ak.self.consent.resource.get.v1"
     },
     {
-      "old": "ak.self.contact.command.checkpoint",
-      "new": "ak.self.contact.command.checkpoint.v1"
-    },
-    {
       "old": "ak.self.contact.command.reject",
       "new": "ak.self.contact.command.reject.v1"
     },

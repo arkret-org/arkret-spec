@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-09.2",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
   "description": "Reusable outward-disclosure policies. Operations and carrier exposures reference a policy id instead of reproducing operation/profile matrices. Authorization decides whether a caller may reach a value; this registry decides which internal failures may cross the boundary and which observable response properties must remain equivalent.",
   "registry_rules": [
@@ -143,50 +143,7 @@
       "target_read_gate": "target_read",
       "outward_buckets": [],
       "diagnostic_rule": "Detailed registered operation errors are allowed only after the authenticated holder/device is proven to own the exact material selector."
-    },
-    {
-      "policy_id": "ak.outward_disclosure.bilateral_continuity.v1",
-      "gate_order": [
-        "transport_authentication",
-        "holder_pair_match",
-        "continuity_evidence_read",
-        "cryptographic_validation",
-        "outward_mapping"
-      ],
-      "target_read_gate": "continuity_evidence_read",
-      "outward_buckets": [
-        {
-          "bucket_id": "continuity_evidence_unavailable",
-          "internal_reason_families": [
-            "checkpoint_absent",
-            "predecessor_checkpoint_absent",
-            "tail_segment_absent"
-          ],
-          "code": "continuity_evidence_unavailable",
-          "http_status": 409,
-          "body_shape_class": "standard_error_constant",
-          "header_class": "no_target_sensitive_headers",
-          "timing_class": "ordinary",
-          "detail_visibility": "restricted_audit_only"
-        },
-        {
-          "bucket_id": "continuity_invalid",
-          "internal_reason_families": [
-            "signature_invalid_or_one_sided",
-            "root_or_pair_mismatch",
-            "rollback_or_same_sequence_fork",
-            "accumulator_or_tail_edge_invalid"
-          ],
-          "code": "continuity_invalid",
-          "http_status": 409,
-          "body_shape_class": "standard_error_constant",
-          "header_class": "no_target_sensitive_headers",
-          "timing_class": "ordinary",
-          "detail_visibility": "restricted_audit_only"
-        }
-      ],
-      "diagnostic_rule": "The two codes expose only whether exact portable material must be retrieved or whether supplied material is unsafe. They never reveal peer existence, Contact status, prefix length, failing edge or signature identity."
     }
   ],
-  "generated_at": "2026-09-09T17:46:16+08:00"
+  "generated_at": "2026-10-21T08:08:00+08:00"
 }

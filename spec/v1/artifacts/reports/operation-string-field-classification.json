@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 77,
+    "total_fields": 76,
     "by_classification": {
       "bounded_free_text": 6,
-      "closed_enum": 34,
+      "closed_enum": 33,
       "closed_literal": 19,
       "validated_open_reason_code": 18
     },
@@ -336,14 +336,6 @@
       "shape": "effects_publish_outcome",
       "field": "status",
       "pointer": "#/$defs/effects_publish_outcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "contact-operations.schema.json",
-      "shape": "contact_continuity_checkpoint_outcome",
-      "field": "status",
-      "pointer": "#/$defs/contact_continuity_checkpoint_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

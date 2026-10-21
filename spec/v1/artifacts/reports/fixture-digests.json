@@ -96,11 +96,6 @@
       "version": "2026-10-19"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
-      "sha256": "19beb51c1e315297fda402d37026e88331586997979d59b9ea99f01cf9b45dcc",
-      "version": "2026-09-10"
-    },
-    {
       "path": "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
       "sha256": "d43cb166f92a69d4ed642c412f6aca7270c306055b6fcf5a2cd4d9134f294d82",
       "version": "2026-10-14.2"
@@ -142,8 +137,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/canonical-json-digest-kat-fixture.json",
-      "sha256": "c2ac8ecec307bcd535b059f684398c2a959482e50eefb8fd7824c5eea47962f5",
-      "version": "2026-09-19.1"
+      "sha256": "e461b30e44715303cfd0e27b7041acf3c247beb46ef5cce21dcd3f06ec3a3114",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-relinquish-authoring-fixture.json",
@@ -176,14 +171,19 @@
       "version": "2026-10-18.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
+      "sha256": "d71bc1b75e7909f464e7d54dead1886b16ab913ac424f7b5e65a4d0bd455618c",
+      "version": "2026-10-21.3"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
       "sha256": "58047adbe48fb1a3d09462f66f328deeab83ffc76062a1c714649c47b31d830a",
       "version": "2026-09-05.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
-      "sha256": "748879c88da38367c0dea211db67d0f94b2ee9d656ff827ea5e0f1ec7f31ee5a",
-      "version": "2026-09-26.1"
+      "sha256": "574b6ba08228bb16608b2700dfad93881d49c4fa47d47c1cbe283c4ab600454a",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",

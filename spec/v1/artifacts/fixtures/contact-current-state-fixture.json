@@ -1,0 +1,836 @@
+{
+  "suite": "contact_current_state",
+  "fixture_kind": "schema_signed_and_reference",
+  "version": "2026-10-21.3",
+  "generated_by": "tools/generate_contact_current_fixture.py",
+  "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md",
+  "covers_vectors": [
+    "ak.vector.contact.current_state.v1"
+  ],
+  "source_refs": [
+    "spec/v1/artifacts/schemas/contact-operations.schema.json",
+    "spec/v1/zh/identity/contact-and-direct-conversation.md"
+  ],
+  "description": "Deterministic Ed25519 source current, closed-shape negatives and executable reference transitions. Event refs and lifecycle rows are synthetic conformance inputs, not verified native identity, live HTTP/PG admission, or complete holder-Event proofs.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "command": "python -B -m unittest tools.test_contact_current_contract"
+  },
+  "source_public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+  "signed_current": {
+    "trust_domain_id": "ak:trust_domain:fixture",
+    "holder": {
+      "kind": "human",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+      }
+    },
+    "peer": {
+      "kind": "human",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+      }
+    },
+    "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+    "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+    "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+    "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+    "version": 12,
+    "scope_instances": [
+      {
+        "contact_scope": "direct_message",
+        "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+      }
+    ],
+    "issued_at": "2026-08-31T03:59:00.000Z",
+    "fresh_until": "2026-10-21T23:59:59.000Z",
+    "signature": {
+      "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+      "created_at": "2026-08-31T03:59:00.000Z",
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+    }
+  },
+  "canonical_unsigned": "{\"contact_round_id\":\"sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed\",\"fresh_until\":\"2026-10-21T23:59:59.000Z\",\"head_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"holder\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"human\"},\"initial_contact_round_id\":\"sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed\",\"issued_at\":\"2026-08-31T03:59:00.000Z\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixturestationa\",\"peer\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"human\"},\"scope_instances\":[{\"contact_scope\":\"direct_message\",\"grant_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"}],\"trust_domain_id\":\"ak:trust_domain:fixture\",\"version\":12}",
+  "expected_signed_digest": "sha256:77769fc036e462f7b93d56b0c6b62919efaf0b4df643aea6a254e17b2aadc1ed",
+  "schema_validation_cases": [
+    {
+      "name": "source_current_signed",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": true,
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "wrong_unknown_field",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('verified' was unexpected)",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        },
+        "verified": true
+      }
+    },
+    {
+      "name": "old_shared_head_flag",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('terminal' was unexpected)",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        },
+        "terminal": true
+      }
+    },
+    {
+      "name": "old_complete_through",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('complete_through' was unexpected)",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        },
+        "complete_through": 12
+      }
+    },
+    {
+      "name": "old_prefix",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('accepted_commit_event_ids' was unexpected)",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        },
+        "accepted_commit_event_ids": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        ]
+      }
+    },
+    {
+      "name": "missing_holder",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'holder' is a required property",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "missing_trust_domain_id",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'trust_domain_id' is a required property",
+      "instance": {
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "missing_version",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'version' is a required property",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "missing_scope_instances",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'scope_instances' is a required property",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "missing_issued_at",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'issued_at' is a required property",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "fresh_until": "2026-10-21T23:59:59.000Z",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..kgK4Hag-3vHFDjqUDKraXIcP9t5QePfT809DH2wwVfyuBjDuSIxbuKVYI85tcuOM-B3SHowVXWupjzfSesqdBQ"
+        }
+      }
+    },
+    {
+      "name": "missing_signature",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_current_proof",
+      "expect_valid": false,
+      "first_expected_error": "$: 'signature' is a required property",
+      "instance": {
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "holder": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "initial_contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "contact_round_id": "sha256:c2269ffc40638858b11cf898b88b4a52cb8625060425569a5aa1fb45eeb789ed",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "head_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "version": 12,
+        "scope_instances": [
+          {
+            "contact_scope": "direct_message",
+            "grant_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          }
+        ],
+        "issued_at": "2026-08-31T03:59:00.000Z",
+        "fresh_until": "2026-10-21T23:59:59.000Z"
+      }
+    },
+    {
+      "name": "refresh_without_old_mirror_valid",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+      "expect_valid": true,
+      "instance": {
+        "kind": "current_refresh",
+        "idempotency_key": "contact-current-refresh-0001",
+        "requester": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "trust_domain_id": "ak:trust_domain:fixture",
+        "known_version": 0,
+        "grant_event_refs": [],
+        "contact_address": {
+          "recipient": {
+            "kind": "human",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "service_resolution": {
+            "resolution_url": "https://station-a.example/.well-known/did.json"
+          }
+        }
+      }
+    }
+  ],
+  "decision_cases": [
+    {
+      "name": "bounded_slot_after_1_rounds",
+      "rule": "bounded_slot",
+      "input": {
+        "round_count": 1,
+        "current_request_refs": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        ],
+        "operation_version": 3
+      },
+      "expected": {
+        "current_request_count": 1,
+        "history_scan_required": false
+      }
+    },
+    {
+      "name": "bounded_slot_after_2_rounds",
+      "rule": "bounded_slot",
+      "input": {
+        "round_count": 2,
+        "current_request_refs": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        ],
+        "operation_version": 6
+      },
+      "expected": {
+        "current_request_count": 1,
+        "history_scan_required": false
+      }
+    },
+    {
+      "name": "bounded_slot_after_65_rounds",
+      "rule": "bounded_slot",
+      "input": {
+        "round_count": 65,
+        "current_request_refs": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        ],
+        "operation_version": 195
+      },
+      "expected": {
+        "current_request_count": 1,
+        "history_scan_required": false
+      }
+    },
+    {
+      "name": "bounded_slot_after_1000_rounds",
+      "rule": "bounded_slot",
+      "input": {
+        "round_count": 1000,
+        "current_request_refs": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        ],
+        "operation_version": 3000
+      },
+      "expected": {
+        "current_request_count": 1,
+        "history_scan_required": false
+      }
+    },
+    {
+      "name": "scope_aba_readd",
+      "rule": "scope_instances",
+      "input": {
+        "before": {},
+        "scopes": [
+          "direct_message"
+        ],
+        "event_ref": "E12"
+      },
+      "expected": {
+        "direct_message": "E12"
+      }
+    },
+    {
+      "name": "scope_retained",
+      "rule": "scope_instances",
+      "input": {
+        "before": {
+          "direct_message": "E10"
+        },
+        "scopes": [
+          "direct_message",
+          "presence"
+        ],
+        "event_ref": "E12"
+      },
+      "expected": {
+        "direct_message": "E10",
+        "presence": "E12"
+      }
+    },
+    {
+      "name": "scope_empty",
+      "rule": "scope_instances",
+      "input": {
+        "before": {
+          "direct_message": "E10"
+        },
+        "scopes": [],
+        "event_ref": "E12"
+      },
+      "expected": {}
+    },
+    {
+      "name": "refresh_same_operation",
+      "rule": "same_version",
+      "input": {
+        "old_event": "E8",
+        "new_event": "E8",
+        "old_version": 8,
+        "new_version": 8
+      },
+      "expected": "same_operation"
+    },
+    {
+      "name": "same_version_other_operation",
+      "rule": "same_version",
+      "input": {
+        "old_event": "E8",
+        "new_event": "X8",
+        "old_version": 8,
+        "new_version": 8
+      },
+      "expected": "conflict"
+    },
+    {
+      "name": "known_close_blocks_old_accept",
+      "rule": "round_live",
+      "input": {
+        "closed": [
+          "R1"
+        ],
+        "round": "R1"
+      },
+      "expected": false
+    },
+    {
+      "name": "old_close_does_not_close_new",
+      "rule": "round_live",
+      "input": {
+        "closed": [
+          "R1"
+        ],
+        "round": "R2"
+      },
+      "expected": true
+    },
+    {
+      "name": "revoke_offline",
+      "rule": "freshness",
+      "input": {
+        "operation": "revoke",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": true
+    },
+    {
+      "name": "narrow_offline",
+      "rule": "freshness",
+      "input": {
+        "operation": "narrow",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": true
+    },
+    {
+      "name": "request_offline",
+      "rule": "freshness",
+      "input": {
+        "operation": "request",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": true
+    },
+    {
+      "name": "founding_stale",
+      "rule": "freshness",
+      "input": {
+        "operation": "founding",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": false
+    },
+    {
+      "name": "widen_stale",
+      "rule": "freshness",
+      "input": {
+        "operation": "widen",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": false
+    },
+    {
+      "name": "widen_fresh",
+      "rule": "freshness",
+      "input": {
+        "operation": "widen",
+        "remote_fresh": true,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": true
+    },
+    {
+      "name": "ordinary_send_lease_expired",
+      "rule": "freshness",
+      "input": {
+        "operation": "ordinary_send",
+        "remote_fresh": false,
+        "verified_interval": true,
+        "known_close": false
+      },
+      "expected": true
+    },
+    {
+      "name": "opaque_not_found",
+      "rule": "disclosure",
+      "input": {
+        "reason": "not_found",
+        "disclosable_fact": false
+      },
+      "expected": {
+        "status": "deferred",
+        "material": null
+      }
+    },
+    {
+      "name": "opaque_policy_deny",
+      "rule": "disclosure",
+      "input": {
+        "reason": "policy_deny",
+        "disclosable_fact": false
+      },
+      "expected": {
+        "status": "deferred",
+        "material": null
+      }
+    },
+    {
+      "name": "opaque_quota_drop",
+      "rule": "disclosure",
+      "input": {
+        "reason": "quota_drop",
+        "disclosable_fact": false
+      },
+      "expected": {
+        "status": "deferred",
+        "material": null
+      }
+    },
+    {
+      "name": "opaque_hidden_pending",
+      "rule": "disclosure",
+      "input": {
+        "reason": "hidden_pending",
+        "disclosable_fact": false
+      },
+      "expected": {
+        "status": "deferred",
+        "material": null
+      }
+    },
+    {
+      "name": "glare_to_normal",
+      "rule": "consume",
+      "input": {
+        "choice": "glare",
+        "next_choice": "normal"
+      },
+      "expected": false
+    },
+    {
+      "name": "glare_to_reject",
+      "rule": "consume",
+      "input": {
+        "choice": "glare",
+        "next_choice": "reject"
+      },
+      "expected": false
+    },
+    {
+      "name": "glare_exact_retry",
+      "rule": "consume",
+      "input": {
+        "choice": "glare",
+        "next_choice": "glare"
+      },
+      "expected": true
+    },
+    {
+      "name": "normal_to_glare",
+      "rule": "consume",
+      "input": {
+        "choice": "normal",
+        "next_choice": "glare"
+      },
+      "expected": false
+    }
+  ]
+}

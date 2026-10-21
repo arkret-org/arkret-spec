@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T03:30:43+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -708,6 +708,11 @@
       "page": "identity/contact-and-direct-conversation.md",
       "heading": "3.1 Contact 耐久效果的归属（normative）",
       "fragment": "31-contact-耐久效果的归属normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "3.2 完整 current 取材和安全恢复（normative）",
+      "fragment": "32-完整-current-取材和安全恢复normative"
     },
     {
       "page": "identity/contact-and-direct-conversation.md",

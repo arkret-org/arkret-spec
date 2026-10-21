@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 86,
+  "version": 87,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 995,
-    "responsibility_identity_material": 649,
+    "typed_object_id": 1006,
+    "responsibility_identity_material": 647,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -208,7 +208,7 @@
       "name": "contact_round_id",
       "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 9,
+      "occurrences": 12,
       "example_path": "contact-operations.schema.json#/$defs/contact_round_evidence_bundle/properties/contact_round_id",
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
@@ -219,14 +219,6 @@
       "occurrences": 1,
       "example_path": "mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body/properties/ohttp_context/properties/context_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
-    },
-    {
-      "name": "covered_through_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint_core/properties/covered_through_contact_round_id",
-      "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
     {
       "name": "device_authorize_event_id",
@@ -505,22 +497,6 @@
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
-      "name": "previous_terminal_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^(sha256|blake3):[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/contact_accepted_payload/properties/previous_terminal_contact_round_id",
-      "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
-    },
-    {
-      "name": "previous_terminal_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "contact-operations.schema.json#/$defs/contact_round_evidence_bundle/properties/previous_terminal_contact_round_id",
-      "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
-    },
-    {
       "name": "provider_id",
       "terminal_signature": "[[\"pattern\", \"^mimi://[^\\\\s]+$\"]]",
       "category": "external_system_identifier",
@@ -755,7 +731,15 @@
       "occurrences": 1,
       "example_path": "view.schema.json#/$defs/dashboard_config/properties/widgets/items/properties/widget_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
+    },
+    {
+      "name": "initial_contact_round_id",
+      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 12,
+      "example_path": "contact-operations.schema.json#/$defs/contact_current_proof/properties/initial_contact_round_id",
+      "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ],
-  "generated_at": "2026-10-21T07:19:27+08:00"
+  "generated_at": "2026-10-21T08:08:00+08:00"
 }

@@ -133,7 +133,8 @@ class ContactRoundVocabularyTest(unittest.TestCase):
         self.assertIn(
             "direct_conversation_authorization_basis", self.payloads["$defs"]
         )
-        self.assertIn("root_basis", self.contact_ops["$defs"]["bilateral_continuity_checkpoint_core"]["properties"])
+        self.assertIn("contact_initial_identity", self.contact_ops["$defs"])
+        self.assertNotIn("bilateral_continuity_checkpoint_core", self.contact_ops["$defs"])
 
 
 if __name__ == "__main__":  # pragma: no cover

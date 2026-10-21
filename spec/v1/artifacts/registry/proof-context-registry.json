@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -891,12 +891,14 @@
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
       "known_answer_ref": "fixtures/canonical-json-digest-kat-fixture.json#/cases/1",
       "binding_fields": [
+        "trust_domain_id",
         "subject_id",
         "peer_id",
         "contact_round_id",
+        "request_event_ref",
+        "version",
         "request_receipt_digests",
-        "observed_commit_event_ids",
-        "complete_through",
+        "observed_at",
         "slot_state"
       ]
     },
@@ -909,12 +911,13 @@
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
       "known_answer_ref": "fixtures/contact-round-kat.json#/outgoing_slot_absence/case",
       "binding_fields": [
+        "trust_domain_id",
         "sorted_pair_member_ids",
         "request_slot_owner",
         "contact_round_id",
-        "slot_predecessor",
-        "cas_sequence",
-        "cas_revision",
+        "request_event_ref",
+        "version",
+        "predecessor_event_ref?",
         "observed_at",
         "outgoing_request_state"
       ]
@@ -928,11 +931,12 @@
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
       "known_answer_ref": "fixtures/contact-round-kat.json#/producer_signer_kat/cases/0/signed_object",
       "binding_fields": [
+        "trust_domain_id",
         "holder",
         "peer",
-        "slot_version",
-        "slot_predecessor?",
-        "previous_terminal_contact_round_id?",
+        "initial_contact_round_id?",
+        "version",
+        "predecessor_event_ref?",
         "request_event_ref",
         "producer_signer",
         "source_checkpoint",

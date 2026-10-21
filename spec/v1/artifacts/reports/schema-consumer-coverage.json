@@ -1679,7 +1679,6 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.peer.contacts.command.submit.v1",
-          "ak.self.contact.command.checkpoint.v1",
           "ak.self.contact.command.reject.v1",
           "ak.self.contact.command.request.v1",
           "ak.self.contact.command.respond.v1",

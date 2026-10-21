@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-20.1",
-  "generated_at": "2026-10-20T04:33:51+08:00",
+  "version": "2026-10-21.1",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1918,11 +1918,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.contact.command.checkpoint.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.self.contact.command.respond.v1",
           "binding_kind": "http_json"
         },
@@ -1974,8 +1969,6 @@
       ],
       "wire_contract_refs": [
         "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
-        "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
-        "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
         "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
         "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",

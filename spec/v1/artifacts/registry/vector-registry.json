@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.2",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T04:37:07+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1389,19 +1389,6 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/registry/error-code-registry.json",
         "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.contact.bilateral_continuity_checkpoint.v1",
-      "status": "active",
-      "domain": "contact",
-      "applies_to_fixtures": [
-        "bilateral-continuity-checkpoint-fixture.json"
-      ],
-      "description": "A mutually signed, root-anchored bilateral checkpoint compacts an arbitrary Contact prefix while retaining a maximum 64-round explicit tail; fork, rollback, missing predecessor, wrong root/pair/accumulator and single-signature inputs fail closed, while missing material remains distinguishable from invalid material without disclosing Contact state.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
     {
@@ -5321,6 +5308,19 @@
       "source_refs": [
         "spec/v1/zh/extensions/realm-actors.md",
         "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.current_state.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "contact-current-state-fixture.json"
+      ],
+      "description": "Immutable initial identity, lifetime holder direction versions, bounded normal/glare consumption, retained/re-added scope instances, independent peer closure, current_refresh request binding and opaque recovery. Executable signed vectors and reference state transitions do not claim real HTTP/PostgreSQL acceptance.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     }
   ]

@@ -1062,8 +1062,7 @@
           "type": "object",
           "required": [
             "kind",
-            "contact_round_evidence",
-            "contact_round_continuity_chains"
+            "contact_round_evidence"
           ],
           "properties": {
             "kind": {
@@ -1071,17 +1070,7 @@
             },
             "contact_round_evidence": {
               "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle",
-              "description": "Portable evidence for the pair's current Contact round. The verifier re-derives founder from the root Contact round, never from the current round."
-            },
-            "contact_round_continuity_chains": {
-              "type": "array",
-              "minItems": 0,
-              "maxItems": 64,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle"
-              },
-              "description": "Ordered tombstone/recontact predecessors from the current Contact round back to the pair's unique root Contact round, each linked by previous_terminal_contact_round_id. An empty array means the current round is itself the root. A break, a cycle, multiple roots or two directional proofs yielding different roots reject the unit."
+              "description": "Current round with immutable initial identity, original establishment and two independently authenticated directional scope-instance currents. No history chain; initial identity alone does not authorize founding."
             }
           },
           "additionalProperties": false

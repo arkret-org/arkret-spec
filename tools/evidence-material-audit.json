@@ -1,12 +1,12 @@
 {
-  "version": 45,
+  "version": 46,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 410,
+  "audited_occurrence_count": 408,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -358,17 +358,6 @@
     },
     {
       "file": "contact-operations.schema.json",
-      "key": "contact_continuity_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Portable bilateral prefix checkpoint plus the exact bounded Contact tail required for non-skipping recontact verification."
-    },
-    {
-      "file": "contact-operations.schema.json",
       "key": "contact_introduction_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -377,6 +366,17 @@
         "attestation"
       ],
       "reason": "Closed first-contact evidence union for locator, shared-Realm membership, verified handle claim, same-service or explicit-address policy evaluation."
+    },
+    {
+      "file": "contact-operations.schema.json",
+      "key": "contact_operation_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "receipt",
+        "attestation"
+      ],
+      "reason": "Closed Contact container combines original holder-signed facts, source acceptance receipts or lineage confirmations, and normal/glare establishment attestations; it never introduces another authority or bare verified flag."
     },
     {
       "file": "contact-operations.schema.json",
@@ -392,17 +392,6 @@
     },
     {
       "file": "contact-operations.schema.json",
-      "key": "continuity_evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Prepare-phase import of a mutually signed checkpoint and bounded uncompressed tail; it is verified before any Contact state read or write."
-    },
-    {
-      "file": "contact-operations.schema.json",
       "key": "introduction_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -411,6 +400,17 @@
         "attestation"
       ],
       "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
+    },
+    {
+      "file": "contact-operations.schema.json",
+      "key": "round_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "receipt",
+        "attestation"
+      ],
+      "reason": "Closed Contact container combines original holder-signed facts, source acceptance receipts or lineage confirmations, and normal/glare establishment attestations; it never introduces another authority or bare verified flag."
     },
     {
       "file": "contract-registry.json",

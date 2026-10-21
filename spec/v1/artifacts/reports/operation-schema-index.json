@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.3",
+  "version": "2026-10-21.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T07:13:00+08:00",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2206,13 +2206,16 @@
           "response_receipt",
           "reject_receipt",
           "lineage",
-          "prior_mirror_receipt",
+          "requester",
+          "trust_domain_id",
+          "initial_contact_round_id",
+          "known_version",
+          "grant_event_refs",
           "contact_round_id",
           "contact_round",
           "request_receipts",
           "remote_mirror_receipt",
-          "glare_concurrency_attestation",
-          "proposal"
+          "glare_concurrency_attestation"
         ],
         "closed": true,
         "variants": [
@@ -2325,15 +2328,20 @@
             "required": [
               "kind",
               "idempotency_key",
-              "prior_mirror_receipt",
-              "current_proof",
+              "requester",
+              "trust_domain_id",
+              "known_version",
+              "grant_event_refs",
               "contact_address"
             ],
             "properties": [
               "kind",
               "idempotency_key",
-              "prior_mirror_receipt",
-              "current_proof",
+              "requester",
+              "trust_domain_id",
+              "initial_contact_round_id",
+              "known_version",
+              "grant_event_refs",
               "contact_address"
             ],
             "closed": true
@@ -2359,23 +2367,6 @@
               "request_receipts",
               "remote_mirror_receipt",
               "glare_concurrency_attestation",
-              "contact_address"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "idempotency_key",
-              "proposal",
-              "contact_address"
-            ],
-            "properties": [
-              "kind",
-              "idempotency_key",
-              "proposal",
               "contact_address"
             ],
             "closed": true
@@ -2396,9 +2387,9 @@
           "current_proof",
           "retry_after_ms",
           "control_receipt",
+          "material",
           "glare_concurrency_attestation",
-          "request_kind",
-          "checkpoint"
+          "request_kind"
         ],
         "closed": true,
         "variants": [
@@ -2426,30 +2417,13 @@
               "result_kind",
               "status",
               "control_receipt",
-              "current_proof"
+              "material"
             ],
             "properties": [
               "result_kind",
               "status",
               "control_receipt",
-              "current_proof"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
-            "schema_kind": "object",
-            "required": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "current_proof"
-            ],
-            "properties": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "current_proof"
+              "material"
             ],
             "closed": true
           },
@@ -2522,23 +2496,6 @@
               "request_kind",
               "control_receipt",
               "retry_after_ms"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
-            "schema_kind": "object",
-            "required": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "checkpoint"
-            ],
-            "properties": [
-              "result_kind",
-              "status",
-              "control_receipt",
-              "checkpoint"
             ],
             "closed": true
           }
@@ -5622,37 +5579,6 @@
       }
     },
     {
-      "operation_id": "ak.self.contact.command.checkpoint.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body",
-        "schema_kind": "object",
-        "required": [
-          "idempotency_key",
-          "peer"
-        ],
-        "properties": [
-          "idempotency_key",
-          "peer"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome",
-        "schema_kind": "object",
-        "required": [
-          "status",
-          "checkpoint_digest"
-        ],
-        "properties": [
-          "status",
-          "checkpoint_digest",
-          "continuity_evidence"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.contact.command.reject.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -5743,7 +5669,6 @@
           "peer",
           "granted_to_peer_scopes",
           "introduction_evidence",
-          "continuity_evidence",
           "message",
           "reservation_handle",
           "signed_event"
@@ -5768,7 +5693,6 @@
               "peer",
               "granted_to_peer_scopes",
               "introduction_evidence",
-              "continuity_evidence",
               "message"
             ],
             "closed": true

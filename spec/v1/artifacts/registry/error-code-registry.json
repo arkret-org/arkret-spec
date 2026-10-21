@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.2",
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "version": "2026-10-21.1",
+  "generated_at": "2026-10-21T08:08:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2645,24 +2645,6 @@
       "description": "A Contact fact forks an issuer-local version, skips a version, references a non-current predecessor, reuses a consumed request ref, or attempts to revive a tombstoned generation. The conflicting fact is quarantined.",
       "type_uri": "https://arkret.org/problems/contact_lineage_conflict",
       "title": "Contact lineage conflict",
-      "status": "active"
-    },
-    {
-      "code": "continuity_evidence_unavailable",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "A required bilateral continuity checkpoint, predecessor checkpoint or uncompressed tail segment is not currently available. The operation writes nothing and may be retried only after importing or retrieving the exact portable evidence; no gap is inferred or skipped.",
-      "type_uri": "https://arkret.org/problems/continuity_evidence_unavailable",
-      "title": "Continuity evidence unavailable",
-      "status": "active"
-    },
-    {
-      "code": "continuity_invalid",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "Bilateral continuity evidence has an invalid signature, root/participant mismatch, broken or trimmed edge, rollback, same-sequence fork, accumulator mismatch or one-sided checkpoint. The operation writes nothing and MUST NOT downgrade this result to evidence retrieval.",
-      "type_uri": "https://arkret.org/problems/continuity_invalid",
-      "title": "Continuity invalid",
       "status": "active"
     },
     {
