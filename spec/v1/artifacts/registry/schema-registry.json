@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:17:05+08:00",
+  "generated_at": "2026-10-21T10:55:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1046,7 +1046,11 @@
       "file": "schemas/message-authoring.schema.json",
       "fragment": "#/$defs/message_authoring_intent",
       "status": "active",
-      "description": "Closed ordinary message authoring carrier: message_authoring_intent."
+      "description": "Closed ordinary message authoring carrier: message_authoring_intent.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "Shared SDK local authoring intent only, consumed before canonical Event construction; no v1 transport operation or durable wire object admits this intent. Its local schema cases are in protocol-simplification-fixture.json."
+      }
     },
     {
       "schema_id": "ak.schema.message_encryption_context.v1",
@@ -1054,20 +1058,6 @@
       "fragment": "#/$defs/message_encryption_context",
       "status": "active",
       "description": "Closed ordinary message authoring carrier: message_encryption_context."
-    },
-    {
-      "schema_id": "ak.schema.message_prepare_outcome.v1",
-      "file": "schemas/message-authoring.schema.json",
-      "fragment": "#/$defs/message_prepare_outcome",
-      "status": "active",
-      "description": "Closed ordinary message authoring carrier: message_prepare_outcome."
-    },
-    {
-      "schema_id": "ak.schema.message_prepare_request.v1",
-      "file": "schemas/message-authoring.schema.json",
-      "fragment": "#/$defs/message_prepare_request_body",
-      "status": "active",
-      "description": "Closed ordinary message authoring carrier: message_prepare_request_body."
     },
     {
       "schema_id": "ak.schema.mimi_interop.v1",

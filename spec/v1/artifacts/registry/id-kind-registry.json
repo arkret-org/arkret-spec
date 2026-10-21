@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:17:05+08:00",
+  "generated_at": "2026-10-21T10:55:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -466,7 +466,7 @@
       "category": "identity_authz",
       "status": "active",
       "wire_form": "ak:consent:<uuidv7>",
-      "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs.",
+      "description": "Opaque MIMI private request correlation identifier only. Never identifies a native Consent permission set or current selector.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

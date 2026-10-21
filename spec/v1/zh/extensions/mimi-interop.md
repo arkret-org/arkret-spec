@@ -270,7 +270,7 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
 | `ak.open.mimi.command.request_consent.v1` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
-| `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.grant` / `ak.consent.revoke` Event。 |
+| `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.replace` Event。 |
 | `ak.open.mimi.read.identifiers.v1` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
 | `ak.open.mimi.command.report_abuse.v1` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `ak.open.mimi.command.proxy_download.v1` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
@@ -523,11 +523,11 @@ MIMI role 只能作为 interop projection。Arkret 授权仍以 capability state
 MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 
 - MIMI provider identifier 映射到 service DID。
-- MIMI user identifier 映射到 principal DID、pairwise DID 或 pending invite proof。MIMI user → 既有 principal DID 的绑定 MUST 有目标侧 consent proof（如 `ak.consent.grant`、accepted invite proof）或该 principal holder 的显式 claim；facade MUST NOT 仅凭来源 MIMI provider 的断言或 connection identifier 相似性把入站 MIMI user 映射到既有 principal DID。缺少目标侧 consent proof 或 holder claim 时，facade MUST 将该 MIMI user 视为新的 pairwise DID / pending invite proof，而不得冒充既有 principal。
+- MIMI user identifier 映射到 principal DID、pairwise DID 或 pending invite proof。MIMI user → 既有 principal DID 的绑定 MUST 有目标侧 consent proof（如含相应 concrete scope 的原 accepted `ak.consent.replace`（仍核 current）、accepted invite proof）或该 principal holder 的显式 claim；facade MUST NOT 仅凭来源 MIMI provider 的断言或 connection identifier 相似性把入站 MIMI user 映射到既有 principal DID。缺少目标侧 consent proof 或 holder claim 时，facade MUST 将该 MIMI user 视为新的 pairwise DID / pending invite proof，而不得冒充既有 principal。
 - connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-current-v1 不提供 private-contact discovery／PSI（见 [`discovery/discovery-directory.md` §1／§6](../discovery/discovery-directory.md)）。`ak.open.mimi.read.identifiers.v1` 保留已登记的闭合 facade DTO，但没有可产生匹配的发现来源：认证与 proof 校验后必须对每个 commitment 返回 `matched=false`，不得返回 `mimi_uri`、`subject_id`、invite handoff 或 reachability proof；MUST NOT 调用未登记 operation、索引或轮转，也不得用 Consent 或 provider assertion 推导命中。`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.grant` / `ak.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+current-v1 不提供 private-contact discovery／PSI（见 [`discovery/discovery-directory.md` §1／§6](../discovery/discovery-directory.md)）。`ak.open.mimi.read.identifiers.v1` 保留已登记的闭合 facade DTO，但没有可产生匹配的发现来源：认证与 proof 校验后必须对每个 commitment 返回 `matched=false`，不得返回 `mimi_uri`、`subject_id`、invite handoff 或 reachability proof；MUST NOT 调用未登记 operation、索引或轮转，也不得用 Consent 或 provider assertion 推导命中。`ak.open.mimi.command.request_consent.v1` / `ak.open.mimi.command.update_consent.v1` MUST 映射为 Arkret 的 holder-private consent state（`ak.consent.replace`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 **`request_consent` 的不确定结果不可自动重放（normative）**：它仍是 `idempotency_mechanism=none`、
 `retry_safe=false`，不因 correlation 精确化就获得重试幂等性。尚未写 Event 的私有 correlation **不在**
@@ -558,20 +558,20 @@ handoff，MUST NOT 冒充既有账号。`target` 在其它 MIMI identifier / 发
 correlation **按结构逐字相等**比较，不重新解析原目标：
 
 ```text
+body.consent_id == correlation.consent_id
 body.actor_id == event.actor_id == AccountActor(correlation.holder_account_id)
-grant.peer     == ActorPeer(correlation.requester_actor_id)
-grant.consent_scope == correlation.purpose
-grant.consent_id    == body.consent_id == correlation.consent_id
+event.payload.peer == {kind:"actor",actor_id:correlation.requester_actor_id}
 ```
 
-correlation 缓存不代替当前授权：认证 holder、PCR lineage、`root_control_only` 与来源 service/session class
-仍逐项匹配当前 accepted 状态。`purpose="any"` 与具体 scope **不互相替代**。
+`consent_id` 只作私有 request correlation，原生许可 payload／selector 不携该 ID；多个请求 ID 可指同一 exact holder／peer current。purpose 仅为 concrete scope，删除 any，不隐式展开请求。correlation 继续冻结 exact requester／holder／purpose、来源 service/session class、有效期与原 optional strand；来源、holder、设备／root authority gates 与 operation proof 不变，provider transport 不授权 Actor 或完整读取。
 
-`consent_peer` 只有 `{kind:"actor"}` 一个分支，任何 MIMI correlation 都只能命中它。普通 pseudonymous Account
-走同一分支，且**不要求**它先获得正在请求的 consent 或先加入 Realm——
-映射的 holder claim、账号身份绑定与同意是三件不同的事实。未知、过期、属于其它来源/holder 或调用方不可见的 correlation，以及 revoke/deny 按稳定 `consent_id` 与 consent typed current result 的当前 revision 查不到匹配的 active 记录，统一返回相同的 `not_found` 失败形态与披露等级，不得说明记录是否存在、目标是谁或 holder 是否已有 consent typed current result。
+所有 decision 只接纳调用方原签 `consent_event: EventAdmissionSubmission`，kind 必为 `ak.consent.replace`；Event 的 PCR 必须确属 exact holder，authorization_ref 绑定当前 root controller，独立 managed-behalf／consent_write delegation／co-owner／automation 不替代。客户端从 [Consent §6.3.1](../identity/consent-model.md#631-holder-private-完整-current-读取) 的获准 self 路径取得完整前态并签完整目标；facade 不以 correlation 读取或披露整份集合，不能补字段、翻译单项旧 Event、重建或代签。
 
-`update_consent` **MUST** 携带完整 `consent_event: EventAdmissionSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id` 与私有 correlation 的 holder，且 Event actor 与认证 holder 必须是该 holder Principal Control Realm 当前 authority-root controller；grant payload 的 `consent_id`、peer 与 scope 必须**逐字等于** facade 私有 correlation 冻结的那三个值（peer 由 `correlation.requester_actor_id` 唯一派生为 `{kind:"actor", actor_id:…}`，correlation 不另存第三份同内容真相），revoke payload 的 `consent_id` 与 `expected_revision` 必须精确匹配该 correlation 的同一 holder/peer/scope active typed current result；最终 CAS 与 current 更新在 holder PCR 的接纳事务中完成。facade 同时验证覆盖完整 unsigned body 的 detached operation signature；`authorization_ref` 必须绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf，也不接受 `consent_write` 委派；普通 PCR write、co-owner grant、controller / agent automation 或 payload approval evidence 均不能替代。facade 只能把 exact submission 交给 Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 找不到匹配的 active current、revision 已陈旧或在途 CAS 竞争失败时，必须用上述同形 `not_found` 拒绝结束，不能写“成功但无 Event”的本地状态。已经接纳的 exact Revoke Event 重放按原接受结果返回，仍验证当前 authority 与原 Event 精确字节，不把 revoked current 当作新的撤销授权。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
+- accept 只能新增／替换 correlation 的一个 scope；目标必须含该项，窗口／约束按普通规则验证，不表示接受后立即有效。
+- deny／revoke 的签名前态必须已有该项（可以已过期），目标仅移除该项，删除最后一项形成 empty；从未写入或该项缺失时零写入拒绝，不合成“拒绝成功”Event。
+- 其它 scope 的完整条目、窗口、约束及 optional 成员存在性必须保持。比较使用 Event 签入的 exact 前态；facade 只比较已认证的完整 exact 前态；最终 current authority 必须在同一 PCR 接受事务验证该 exact revision／never_written 谓词并执行完整替换。仅历史差异比较不能代替最终 current CAS。已验证非 Human 分离 governor 时，hosting facade 经原获准完整读取验证前态后转交同一原签 Event；authority 的 exact CAS 保证接受的前态仍是那一份，不新增 correlation 跨站披露载体或假定分布式事务。跨 scope 修改走原生显式完整替换。
+
+无效／过期／错来源／错身份／不可见 correlation、decision 差异不符或新的 stale CAS 都沿原同形 not_found 隐私边界拒绝，不披露 holder／current 是否存在；通用 schema／签名失败保留原分类。exact 已接纳 Event 重试保留原 correlation／decision／Event 绑定，重验当前重试披露权后返回原 outcome／event_ref，不以之后 current 重算旧差异、不重复写入或回滚其它 scope。不同 correlation 不得拿同一 accepted Event 冒充另一操作。首次提交前 facade 必须耐久冻结该 correlation／decision／exact Event 绑定；unknown 保持这同一绑定并沿原 Event 终局恢复，不构造新替换。成功返回原 closed mimi_update_consent_outcome，不添加 status 或其它未登记字段。
 
 ## 11. Abuse Report And Proxy Download
 

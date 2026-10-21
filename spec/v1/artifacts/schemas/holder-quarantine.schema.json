@@ -60,6 +60,7 @@
         "entry_digest",
         "account_id",
         "source_peer_principal_id",
+        "source_peer_actor_id",
         "source_id",
         "surface_kind",
         "consent_scope",
@@ -77,7 +78,11 @@
         },
         "source_peer_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Requester/inviter principal used by consent review and revoke invalidation."
+          "description": "Original principal identity used only by the existing per-principal anti-abuse quota ledger; must agree with the authenticated full source actor. It is not a Consent peer selector or editor input."
+        },
+        "source_peer_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Exact authenticated requester/inviter, including Account Station. Required for holder review and exact-peer permission authoring/invalidation; never infer it from source service or principal alone."
         },
         "source_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -92,8 +97,7 @@
             "invite",
             "voice_call",
             "video_call",
-            "presence",
-            "any"
+            "presence"
           ],
           "description": "Requested consent scope. The invite_delivery branch pins it to invite; the consent_request branch admits every other registered scope. The enum mirrors zh/identity/consent-model.md section 4."
         },
@@ -210,7 +214,7 @@
       "type": "object",
       "required": [
         "reason",
-        "peer_principal_id",
+        "peer_actor_id",
         "consent_scope",
         "revoked_at",
         "removed_entries"
@@ -219,14 +223,11 @@
         "reason": {
           "const": "consent_revoke"
         },
-        "peer_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "peer_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "consent_scope": {
-          "enum": [
-            "invite",
-            "any"
-          ]
+          "const": "invite"
         },
         "revoked_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -237,7 +238,8 @@
           "maximum": 200
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Private quarantine invalidation when a complete peer permission replacement removes invite. Match the exact stored source_peer_actor_id; never clear another Station account of that principal. The source quota ledger remains independent and unchanged."
     }
   },
   "additionalProperties": false

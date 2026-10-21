@@ -16,7 +16,7 @@
         "consent_only",
         "nobody"
       ],
-      "description": "Closed sender-side policy. public permits effective-scope fanout, contacts_only requires every other active member to be an accepted Contact with current holder-to-peer presence scope, consent_only requires a fresh complete presence/any Consent current for every other active member, and nobody suppresses sends. No receiver-side filtering substitutes for whole-scope confidentiality."
+      "description": "Closed sender-side policy. public permits effective-scope fanout, contacts_only requires every other active member to be an accepted Contact with current holder-to-peer presence scope, consent_only requires a fresh complete exact-peer complete Consent current with an eligible presence entry for every other active member, and nobody suppresses sends. No receiver-side filtering substitutes for whole-scope confidentiality."
     }
   },
   "additionalProperties": false

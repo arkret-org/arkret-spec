@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.7",
+  "version": "2026-10-21.9",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T11:47:57+08:00",
+  "generated_at": "2026-10-21T11:54:44+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -232,14 +232,14 @@
         ],
         "activation_checks": [
           "accepted_exact_four_event_founding_unit",
-          "no_accepted_binding_endorsement",
+          "no_accepted_binding_confirmation",
           "unique_scope_derived_group_state_cross_binding_exact",
           "current_authorization_basis_gate_for_send_like_actions_contact_or_owned_agent_controller",
           "verifier_derived_provisional_founder_or_exact_pair_completion_phase",
           "exact_pair_completion_requires_recipient_durable_welcome",
           "action_specific_endpoint_and_lifecycle_gates"
         ],
-        "revocation_model": "permanent_exit_on_first_binding_endorsement",
+        "revocation_model": "permanent_exit_on_binding_confirmation",
         "authority_generation_independent": true,
         "grantable": false,
         "delegated_event_rule": "conjunctive_with_executor_delegation",
@@ -370,7 +370,7 @@
           "action": "ak.strand.watch.set",
           "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
           "target": "actual_non_circle_chat_strand_in_same_direct_realm",
-          "authority": "stable_participant_and_accepted_binding_endorsement_only",
+          "authority": "stable_participant_and_unique_binding_confirmation_only",
           "bootstrap": "forbidden",
           "others": "forbidden_including_the_other_stable_participant",
           "preimage": "existing_whole_value_cas",
@@ -453,8 +453,8 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-10-04.5",
-    "generated_at": "2026-10-04T10:36:45+00:00",
+    "version": "2026-10-21.1",
+    "generated_at": "2026-10-21T10:55:31+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "event_kind_registry": {
@@ -899,7 +899,7 @@
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 129 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 125 of the 128 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
       "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
       "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
@@ -2670,85 +2670,42 @@
         }
       },
       {
-        "event_kind": "ak.consent.grant",
+        "event_kind": "ak.consent.replace",
         "category": "consent",
         "status": "active",
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_grant_payload",
+        "payload": "Holder-signed complete replacement of the one exact-peer permission set in the holder PCR; empty closes all scopes and remains a committed current.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
         "id_source": "not_an_object_id",
         "result_writes": [
           {
             "result_family": "consent",
             "result_selector": {
-              "kind": "id:consent",
-              "field": "payload.consent_id"
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.peer.actor_id"
+                }
+              ]
             },
             "result_projection": {
               "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            },
-            "derived_members": [
-              {
-                "name": "consent_status",
-                "derivation": "consent_status"
-              }
-            ],
-            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_value",
-            "notes": "identity/consent-model.md section 2 fixes the subject as the producer-assigned stable consent_id and lists the projected members; consent_grant_payload.consent_id already names this family as its result_selector. The whole payload is the authored body, so the projection is a set. status is not in that body: it is the reducer-materialised consent_status derivation and an author-supplied value MUST be rejected. expired is not projected -- section 5 evaluates the not_before / expires_at window at verification time."
-          }
-        ],
-        "result_effect_ownership": {
-          "kind": "typed_result_writer"
-        }
-      },
-      {
-        "event_kind": "ak.consent.revoke",
-        "category": "consent",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Revoke a previously granted consent (shares the ak.consent.grant typed current result; semantically a remove on the confirmed consent tagged set)",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_revoke_payload",
-        "id_source": "not_an_object_id",
-        "result_writes": [
-          {
-            "result_family": "consent",
-            "result_selector": {
-              "kind": "id:consent",
-              "field": "payload.consent_id"
-            },
-            "result_projection": {
-              "kind": "merge",
               "value_projection": {
                 "kind": "object",
                 "members": [
                   {
-                    "name": "revoked_at",
-                    "envelope_field": "created_at"
-                  },
-                  {
-                    "name": "revoked_reason",
-                    "field": "payload.reason"
+                    "name": "permissions",
+                    "field": "payload.permissions"
                   }
                 ]
               }
             },
-            "derived_members": [
-              {
-                "name": "consent_status",
-                "derivation": "consent_status"
-              }
-            ],
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_value",
-            "notes": "identity/consent-model.md section 3.2 revokes an existing consent_id in place, so the projection is a merge over the already-projected grant rather than a set -- the grant body survives the close and section 4.1.2 introduction evidence still resolves against it. revoked_at comes from the signed envelope and never from payload.revoked_at, for the same reason authz/capabilities.md section 12.1 takes it from the envelope: the authority that closed this consent is this Event's signer, and an author-declared close time would be backdatable. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. Status stays inside this value instead of a transition_contracts axis because a consent's body and its active/revoked status carry an atomic invariant -- revoked_at and revoked_reason are the close, and a status that could be read one revision apart from them would let a reader honour a consent the same result already closed. That is the carrier rule of sync/current-results.md section 2.1, form 2; the presence of payload.expected_revision does not by itself decide the value shape (ak.moderation.decision.lift carries one and writes a keyed set)."
+            "notes": "One exact ActorId subject inside the holder PCR. The acceptance transaction checks expected_current: never_written requires no previous accepted current, present requires its exact revision. Empty is present, never deleted. Exact accepted Event retries recover original finality before evaluating current CAS, without replaying the write. No union, scope filtering, independent any, stable consent_id or lifecycle derivation."
           }
         ],
         "result_effect_ownership": {
@@ -3202,7 +3159,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. The endorsed binding content is settled by the first accepted write and later group state advances only by ordinary Commit; the endorsements themselves are a set, and the second participant endorsement of the same binding MUST be acceptable.",
+        "payload": "One immutable participant-signed confirmation of the founding coordinates and durable first exact-pair MLS completion. A different Event cannot add another confirmation.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
         "id_source": "not_an_object_id",
         "result_writes": [
@@ -3215,16 +3172,23 @@
               ]
             },
             "result_projection": {
-              "kind": "keyed_set_add",
-              "tag": {
-                "dot": true
-              },
-              "value": {
-                "field": "payload"
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "binding_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "binding",
+                    "field": "payload"
+                  }
+                ]
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
-            "notes": "identity/contact-and-direct-conversation.md section 8.3, which is normative that this result is set-shaped and commit-ordered. The element tag is the canonical <event_id>:<write_index> dot and never a bare event_id; the element value is the complete endorsement payload. This is an add-only set with no registered remover: the payload MUST NOT carry binding_state or supersedes_binding_ref, so nothing in v1 retracts an endorsement, and a future retraction is a separate security command rather than a second projection on this family. The earlier reading that pair_key carried a write-once set is withdrawn: immutability after the first accepted write constrains the binding CONTENT -- a different semantic binding_digest is refused before projection and raises the suspended diagnostic -- and not the membership, so both participant endorsements of one binding coexist. The domain dedupe key (binding_digest, envelope.actor_id) folds one participant repeated confirmations of one digest into one endorsement; it is a read-side fold over the stored elements and MUST NOT rewrite them."
+            "notes": "Write once while this Realm/pair current is never written. Under the same acceptance lock, validate original founding unit, exact pair, initial group state, surviving leaf Add/Welcome durable provenance and current gates, then store the signed Event reference and payload. Exact Event retry returns its original Commit. A different Event, including a valid concurrent equivalent, fails duplicate_conflict with zero writes; refresh resolver for the original unique ref. Current and bootstrap exit never reset on Contact withdrawal, leaf removal, restart or handoff. No endorsement set, dot, representative selection or semantic binding digest."
           }
         ],
         "result_effect_ownership": {
@@ -9986,8 +9950,8 @@
         }
       }
     },
-    "version": "2026-10-21.1",
-    "generated_at": "2026-10-21T08:08:00+08:00",
+    "version": "2026-10-21.2",
+    "generated_at": "2026-10-21T10:55:31+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -10037,7 +10001,39 @@
       "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",
       "consumer_schema_bindings": []
     },
-    "metadata_authority": "contract_registry_section"
+    "metadata_authority": "contract_registry_section",
+    "direct_conversation_binding_contract": {
+      "normative_source": "zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
+      "event_kind": "ak.direct_conversation.bound",
+      "result_family": "direct_conversation_binding",
+      "namespace": "verified_unique_direct_conversation_realm",
+      "selector": [
+        "payload.pair_key"
+      ],
+      "first_write_predicate": "never_written",
+      "source_ref": "enclosing_bound_event_id",
+      "source_commit": "original_covering_realm_commit",
+      "replacement_allowed": false,
+      "exact_event_retry": "original_accepted_event_and_commit_zero_write",
+      "different_event_after_first_confirmation": "duplicate_conflict_zero_write_resolve_original_ref",
+      "required_facts": [
+        "original_accepted_founding_unit_and_coordinates",
+        "original_initial_exact_pair_group_state",
+        "current_authorized_pair",
+        "surviving_leaf_fresh_add_and_durable_welcome_provenance",
+        "current_contact_or_owned_agent_device_key_access_gates"
+      ],
+      "bootstrap_exit": "permanent_after_first_accepted_confirmation",
+      "reset_on_withdrawal_leaf_removal_restart_or_handoff": false,
+      "consumers": [
+        "message",
+        "signal",
+        "repair",
+        "watch",
+        "owned_agent"
+      ],
+      "historical_verification": "original_accepted_at_identity_then_independent_current_gate"
+    }
   },
   "service_contracts": [
     {
@@ -11207,7 +11203,11 @@
         "file": "schemas/message-authoring.schema.json",
         "fragment": "#/$defs/message_authoring_intent",
         "status": "active",
-        "description": "Closed ordinary message authoring carrier: message_authoring_intent."
+        "description": "Closed ordinary message authoring carrier: message_authoring_intent.",
+        "consumer_binding": {
+          "kind": "prose_only",
+          "rationale": "Shared SDK local authoring intent only, consumed before canonical Event construction; no v1 transport operation or durable wire object admits this intent. Its local schema cases are in protocol-simplification-fixture.json."
+        }
       },
       {
         "schema_id": "ak.schema.message_encryption_context.v1",
@@ -11215,20 +11215,6 @@
         "fragment": "#/$defs/message_encryption_context",
         "status": "active",
         "description": "Closed ordinary message authoring carrier: message_encryption_context."
-      },
-      {
-        "schema_id": "ak.schema.message_prepare_outcome.v1",
-        "file": "schemas/message-authoring.schema.json",
-        "fragment": "#/$defs/message_prepare_outcome",
-        "status": "active",
-        "description": "Closed ordinary message authoring carrier: message_prepare_outcome."
-      },
-      {
-        "schema_id": "ak.schema.message_prepare_request.v1",
-        "file": "schemas/message-authoring.schema.json",
-        "fragment": "#/$defs/message_prepare_request_body",
-        "status": "active",
-        "description": "Closed ordinary message authoring carrier: message_prepare_request_body."
       },
       {
         "schema_id": "ak.schema.mimi_interop.v1",
@@ -11974,8 +11960,8 @@
         }
       }
     ],
-    "version": "2026-10-19.2",
-    "generated_at": "2026-10-19T23:17:05+08:00",
+    "version": "2026-10-21.1",
+    "generated_at": "2026-10-21T10:55:31+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -12441,7 +12427,7 @@
         "category": "identity_authz",
         "status": "active",
         "wire_form": "ak:consent:<uuidv7>",
-        "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs.",
+        "description": "Opaque MIMI private request correlation identifier only. Never identifies a native Consent permission set or current selector.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -12837,8 +12823,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-10-19.1",
-    "generated_at": "2026-10-19T23:17:05+08:00",
+    "version": "2026-10-21.1",
+    "generated_at": "2026-10-21T10:55:31+08:00",
     "notification_projection_identity_contract": {
       "applies_to_id_kinds": [
         "notification_projection"
@@ -13824,7 +13810,6 @@
         "operations": [
           "ak.peer.realm_join.read.bootstrap.v1",
           "ak.peer.realm_join.read.preview.v1",
-          "ak.self.messages.command.prepare.v1",
           "ak.self.realm_join.command.prepare.v1",
           "ak.self.realm_join.read.preview.v1"
         ],
@@ -13893,8 +13878,7 @@
         "operations": [
           "ak.self.consent.read.list.v1",
           "ak.self.consent.resource.get.v1",
-          "ak.self.consent.command.grant.v1",
-          "ak.self.consent.command.revoke.v1",
+          "ak.self.consent.command.replace.v1",
           "ak.self.consent.command.request.v1",
           "ak.self.consent.read.current.v1",
           "ak.peer.consent.read.current.v1",
@@ -15003,7 +14987,7 @@
         "mq": "open.mimi.command.update_consent",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "notes": "The caller MUST author and sign the exact ak.consent.grant (decision=accept) or ak.consent.revoke (decision=deny or revoke) EventAdmissionSubmission. The facade verifies the detached operation signature and the Event authority/correlation, then submits the Event unchanged through authority Event submission. It MUST NOT synthesize, rebuild or co-sign consent state. A revoke with no matching active observed dots is rejected without disclosing holder state. Exact Event replay returns the same accepted Event reference.",
+        "notes": "Caller signs a complete ak.consent.replace Event. body.consent_id equals private correlation.consent_id only; it is never the native selector. Exact holder Account/PCR/peer and original root/device/source gates apply. Accept adds or replaces only the correlation concrete scope; deny/revoke removes an existing entry, including expired ones. All other entries and optional-member presence remain byte-for-byte equal to the signed exact prestate. Facade compares the authenticated complete exact prestate; final PCR acceptance atomically checks that same expected revision or never_written predicate and performs the full replacement, never server merge or a distributed transaction. Wrong correlation/decision/stale new write uses opaque not_found. Exact accepted retry restores original correlation/decision/Event outcome before new-current evaluation and never replays a write.",
         "idempotency_mechanism": "object_id",
         "idempotency_object_path": "/consent_event/event/event_id",
         "retry_safe": true,
@@ -16569,25 +16553,26 @@
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view"
       },
       {
-        "operation_id": "ak.self.consent.command.grant.v1",
-        "http": "POST /_arkret/self/consent/results/grant",
-        "grpc": "SelfConsent/Grant",
-        "mq": "self.consent.command.grant",
-        "notes": "Submits the caller-signed ak.consent.grant Event carried in grant_event through authority Event submission. payload.consent_id is the producer-allocated typed current result subject and the security-set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (the exact current authority-root controller; root_control_only forbids independent controller/Agent delegation).",
+        "operation_id": "ak.self.consent.command.replace.v1",
+        "http": "POST /_arkret/self/consent/results/replace",
+        "grpc": "SelfConsent/Replace",
+        "mq": "self.consent.command.replace",
+        "notes": "Submit the caller-signed complete ak.consent.replace Event unchanged, with holder PCR root-control-only authority and exact peer prior-current CAS. Empty is a durable closed set. Exact Event retry returns the original accepted ConsentView even after later replacements, without writing current again. The service never merges or signs permissions.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-        "retry_safe": false,
+        "retry_safe": true,
         "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.consent.read.list.v1"
+          "strategy": "replay_same_operation",
+          "operation_id": "ak.self.consent.command.replace.v1",
+          "requires_same_request_identity_and_canonical_intent": true
         },
-        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_replace_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
-            "ak.consent.grant"
+            "ak.consent.replace"
           ]
         }
       },
@@ -16613,34 +16598,11 @@
         }
       },
       {
-        "operation_id": "ak.self.consent.command.revoke.v1",
-        "http": "POST /_arkret/self/consent/results/revoke",
-        "grpc": "SelfConsent/Revoke",
-        "mq": "self.consent.command.revoke",
-        "notes": "Submits the caller-signed ak.consent.revoke Event carried in revoke_event through authority Event submission. The payload identifies exactly one stable consent_id and expected_revision; the governing Station performs an atomic current-row CAS and sets that Consent to revoked. No grant dots or revoked_event_refs exist. An any-scope Consent is independent: revoking it does not cascade to concrete-scope Consent rows; clients that intend to revoke multiple rows must sign one exact-revision Event per consent_id.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.consent.read.list.v1"
-        },
-        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
-        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.consent.revoke"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.consent.read.list.v1",
         "http": "GET /_arkret/self/consent/results",
         "grpc": "SelfConsent/List",
         "mq": "self.consent.query.list",
-        "notes": "Lists holder-private consent typed results for the authenticated holder only. Peer actors MUST NOT receive typed current result state, dots, expiry or request timestamps.",
+        "notes": "Holder-private display of one current summary per exact peer, including empty and inactive-window entries. It does not supply a signing prestate.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_list"
@@ -16650,7 +16612,7 @@
         "http": "GET /_arkret/self/consent/result",
         "grpc": "SelfConsent/Get",
         "mq": "self.consent.resource.get",
-        "notes": "Reads one holder-private consent typed current result only when the authenticated holder has exactly one exact peer match after optional consent_scope filtering. Zero matches use the existing resource-absent response; multiple matches fail with failed_precondition. Peers never receive this DTO; callers needing a specific consent_id use the holder-private list.",
+        "notes": "Read the authenticated holder exact peer current ConsentView for display; no scope filter or multiple-match branch. Missing peer uses the existing absent response and is not an authenticated never_written predicate. Full editing input comes only from consent.read.current.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view"
@@ -16858,7 +16820,7 @@
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.query.resolve",
-        "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates. An encrypted DC has one immutable scope-derived MLS group and monotonic epoch lineage; the response carries exact current group_state_ref. Repair is an ordinary Commit in that group. If all private group state is lost, the old DC Realm is terminal and a new conversation requires a new Realm id. No second group, epoch reset or timeout takeover exists. Found MUST include coordinates.binding_event_ref naming an accepted endorsement for authoring. Clients trust their own Station current result and exact committed proposal decision; they do not replay a governance history closure.",
+        "notes": "Query-only resolver for the pair single stable Direct Conversation. Found carries the unique immutable accepted binding_event_ref and current group_state_ref. No second confirmation, representative ref selection, group or epoch reset exists. Source/historical accepted-at verification and current participant/repair gates remain independent.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
@@ -17397,25 +17359,6 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
         "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome"
-      },
-      {
-        "operation_id": "ak.self.messages.command.prepare.v1",
-        "http": "POST /_arkret/self/messages/prepare",
-        "grpc": "SelfMessages/Prepare",
-        "mq": "self.messages.command.prepare",
-        "notes": "Prepare one complete unsigned ak.message.create from a closed intent, after client encryption where required. Exact canonical request replay; expires at client created_at plus 300 seconds. No sequence reservation and no submit ticket.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "canonical_hash",
-        "canonical_hash_input": "full_body",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
-        "response_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
-        "max_canonical_body_bytes": 1048576,
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "Only a bounded expiring preparation cache; no accepted Event, sequence, membership or projection mutation."
-        }
       },
       {
         "operation_id": "ak.self.moderation.command.report.v1",
@@ -18005,7 +17948,7 @@
         "http": "POST /_arkret/self/consent/current",
         "grpc": "SelfConsent/ReadCurrent",
         "mq": "self.consent.read.current",
-        "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "schema_resource",
@@ -18024,7 +17967,7 @@
         "http": "POST /_arkret/peer/consent/current",
         "grpc": "PeerConsent/ReadCurrent",
         "mq": "peer.consent.read.current",
-        "notes": "Separated-governor branch only for verified transferable non-Human PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification, and cross-Station proxy/publication/current read rejects without effects. No new holder_session authority is implied for other subjects. Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "schema_resource",
@@ -18508,8 +18451,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-21.7",
-    "generated_at": "2026-10-21T11:50:25+08:00",
+    "version": "2026-10-21.8",
+    "generated_at": "2026-10-21T11:54:44+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -19462,15 +19405,11 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.consent.command.grant.v1",
+            "operation_id": "ak.self.consent.command.replace.v1",
             "binding_kind": "http_json"
           },
           {
             "operation_id": "ak.self.consent.command.request.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.consent.command.revoke.v1",
             "binding_kind": "http_json"
           },
           {
@@ -19623,10 +19562,6 @@
           },
           {
             "operation_id": "ak.self.media_service_binding.read.resolve.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.messages.command.prepare.v1",
             "binding_kind": "http_json"
           },
           {
@@ -21841,29 +21776,16 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.consent.grant",
+        "action": "ak.consent.replace",
         "category": "personal",
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [
-          "ak.consent.grant"
+          "ak.consent.replace"
         ],
         "profile": "ak.profile.principal_control_realm.v1",
         "root_control_only": true,
         "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.consent.revoke",
-        "category": "personal",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.consent.revoke"
-        ],
-        "profile": "ak.profile.principal_control_realm.v1",
-        "root_control_only": true,
-        "notes": "Holder-private consent revocation is authored only by the current controller of the holder Principal Control Realm and must remove caller-observed dots; it is never grantable.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -22211,8 +22133,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-20.1",
-    "generated_at": "2026-10-20T00:18:13+08:00",
+    "version": "2026-10-21.1",
+    "generated_at": "2026-10-21T10:55:31+08:00",
     "metadata_authority": "contract_registry_section",
     "constraint_evaluation_contract": {
       "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",
@@ -24901,5 +24823,145 @@
     "same_version_conflict_comparison": "immutable_operation_bytes",
     "unilateral_close_requires_remote_freshness": false,
     "ordinary_send_requires_fresh_query_lease": false
+  },
+  "consent_current_contract": {
+    "normative_source": "zh/identity/consent-model.md",
+    "selector": [
+      "holder_pcr_namespace",
+      "exact_peer_actor_id"
+    ],
+    "writer_event_kind": "ak.consent.replace",
+    "expected_current_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_expected_current",
+    "current_read_operation_ids": [
+      "ak.self.consent.read.current.v1",
+      "ak.peer.consent.read.current.v1"
+    ],
+    "read_outcomes": [
+      "present",
+      "never_written"
+    ],
+    "permission_scopes": [
+      "invite",
+      "voice_call",
+      "video_call",
+      "presence"
+    ],
+    "max_entries": 4,
+    "empty_is_present": true,
+    "filter_editing_value": false,
+    "mimi_correlation_is_current_identity": false,
+    "mimi_diff_scope": "exact_correlation_purpose_only",
+    "retry": "original_event_and_commit_no_current_reexecution",
+    "first_write_predicate": "never_written_rechecked_in_pcr_acceptance_transaction",
+    "replacement_predicate": "exact_expected_current_revision_in_same_acceptance_transaction",
+    "mimi_diff_verification": "facade_exact_full_prestate_then_authority_same_revision_cas_no_distributed_merge"
+  },
+  "message_authoring_contract": {
+    "normative_source": "zh/sync/service-http-binding.md#28-普通消息的本地-authoring",
+    "intent_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_authoring_intent",
+    "encryption_context_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_encryption_context",
+    "authoring": "local_sdk_canonical_event_then_producer_signature",
+    "input_supply": [
+      {
+        "input": "actor_account_device",
+        "source": "authenticated_current_local_session_and_accepted_device_signer",
+        "switch_fence": true
+      },
+      {
+        "input": "realm_strand_effective_scope_and_config",
+        "source_operations": [
+          "ak.self.current_results.read.exact.v1",
+          "ak.self.committed_event.read.scan.v1",
+          "ak.self.realm_state_snapshot.read.by_ref.v1"
+        ],
+        "source": "accepted_create_and_typed_current_in_authorized_sync",
+        "guess_from_display_or_id": false
+      },
+      {
+        "input": "direct_conversation_ref",
+        "source_operations": [
+          "ak.self.direct_conversation.read.resolve.v1"
+        ],
+        "source": "unique_accepted_binding_event_ref_or_registered_provisional_founder_authority"
+      },
+      {
+        "input": "delegated_agent_sidecar_refs",
+        "source": "registered_domain_current_grant_and_resolver_at_exact_authorizing_scope"
+      },
+      {
+        "input": "payload_time_ciphertext_aad",
+        "source": "caller_frozen_intent_and_local_mls_state_bound_to_accepted_public_group"
+      }
+    ],
+    "submit_operations": [
+      "ak.self.events.command.submit.v1",
+      "ak.peer.events.command.submit.v1"
+    ],
+    "missing_supply": "wait_or_reject_never_guess_or_create_draft_context_endpoint",
+    "unknown": "recover_original_authority_finality_and_exact_signed_bytes_without_reencrypting",
+    "durable_before_first_network": [
+      "exact_signed_event",
+      "submission_identity",
+      "ciphertext",
+      "corresponding_mls_private_state"
+    ],
+    "branches": [
+      {
+        "kind": "realm_default",
+        "scope_source_schema_ref": "schemas/strand.schema.json#/properties/scope_circle_id",
+        "scope_rule": "accepted_strand_in_same_realm_with_scope_circle_id_null",
+        "source_operations": [
+          "ak.self.current_results.read.exact.v1",
+          "ak.self.committed_event.read.scan.v1"
+        ],
+        "encryption_rule": "accepted_mls_group_current_and_local_private_state_or_explicit_plaintext_when_inactive"
+      },
+      {
+        "kind": "circle",
+        "scope_source_schema_ref": "schemas/strand.schema.json#/properties/scope_circle_id",
+        "scope_rule": "actual_accepted_same_realm_circle_id_and_independent_current_membership",
+        "source_operations": [
+          "ak.self.current_results.read.exact.v1",
+          "ak.self.committed_event.read.scan.v1",
+          "ak.self.mls.read.group_state_material.v1"
+        ],
+        "encryption_rule": "that_circle_public_group_and_matching_local_private_state"
+      },
+      {
+        "kind": "sidecar",
+        "scope_source_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view",
+        "scope_rule": "accepted_native_sidecar_identity_owner_and_current_participants_not_circle_or_display_context",
+        "source_operations": [
+          "ak.self.agent.sidecar.resource.get.v1",
+          "ak.self.current_results.read.exact.v1"
+        ],
+        "encryption_rule": "sidecar_native_mls_and_registered_participant_authority"
+      },
+      {
+        "kind": "direct_participant",
+        "scope_rule": "original_founding_realm_main_strand_and_unique_accepted_binding_event_ref",
+        "source_operations": [
+          "ak.self.direct_conversation.read.resolve.v1"
+        ],
+        "authorization_rule": "ordinary_participant_gate"
+      },
+      {
+        "kind": "direct_provisional_founder",
+        "scope_rule": "same_accepted_founding_realm_and_main_strand_without_binding",
+        "source_operations": [
+          "ak.self.direct_conversation.read.resolve.v1",
+          "ak.self.mls.read.group_state_material.v1"
+        ],
+        "authorization_rule": "restricted_registered_bootstrap_phase_only"
+      },
+      {
+        "kind": "delegated_or_agent",
+        "scope_rule": "one_of_the_above_actual_scopes",
+        "source_operations": [
+          "ak.self.current_results.read.exact.v1"
+        ],
+        "authorization_rule": "registered_grant_or_native_agent_runtime_source_and_current_lifecycle_no_inferred_pcr_or_contact_authority"
+      }
+    ]
   }
 }

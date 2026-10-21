@@ -36,7 +36,7 @@
         "did_core_id": "Stable peer service or principal core named by a receipt."
       },
       "occurrences_by_profile": {
-        "actor_id": 1,
+        "actor_id": 2,
         "did_core_id": 1
       },
       "reason": "Contact concurrency needs exact actor equality while independent receipt subjects use a stable DID core; no individual occurrence is polymorphic."
@@ -2956,7 +2956,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/139/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/138/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -2966,7 +2966,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/146/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/145/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -2976,7 +2976,17 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/148/then/else/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/147/then/else/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-envelope.schema.json#/allOf/152/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -2987,16 +2997,6 @@
     },
     {
       "schema_path": "event-envelope.schema.json#/allOf/153/then/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "event-envelope.schema.json#/allOf/154/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -4136,13 +4136,13 @@
       ]
     },
     {
-      "schema_path": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/peer_principal_id",
-      "property_name": "peer_principal_id",
+      "schema_path": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/peer_actor_id",
+      "property_name": "peer_actor_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
+      "representation_profile": "actor_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:did_core_id"
+        "ref:actor_id"
       ]
     },
     {
@@ -4163,6 +4163,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/source_peer_actor_id",
+      "property_name": "source_peer_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
       ]
     },
     {
@@ -5363,16 +5373,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "message-authoring.schema.json#/$defs/message_prepare_request_body/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
       ]
     },
     {
@@ -7936,6 +7936,16 @@
       ]
     },
     {
+      "schema_path": "typed-current-result.schema.json#/$defs/consent_result/properties/selector/properties/peer_id",
+      "property_name": "peer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "typed-current-result.schema.json#/$defs/identity_accountability_result/properties/selector/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
@@ -8457,7 +8467,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/122/result_writes/0/result_projection/value_projection/members/3/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/121/result_writes/0/result_projection/value_projection/members/3/name",
       "property_name": "controller_account_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "account",
@@ -8499,7 +8509,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/89/result_writes/1/result_projection/value_projection/members/0/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/88/result_writes/1/result_projection/value_projection/members/0/name",
       "property_name": "controller_actor_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "actor",

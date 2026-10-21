@@ -128,8 +128,7 @@ grpc:
       ReadCurrent: ak.self.consent.read.current.v1
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
-      Grant: ak.self.consent.command.grant.v1
-      Revoke: ak.self.consent.command.revoke.v1
+      Replace: ak.self.consent.command.replace.v1
       Request: ak.self.consent.command.request.v1
     SelfAccountData:
       List: ak.self.account_data.read.list.v1
@@ -237,8 +236,6 @@ grpc:
       Upload: ak.self.keys.upload.create.v1
     SelfActorProfile:
       Resolve: ak.self.actor_profile.read.resolve.v1
-    SelfMessages:
-      Prepare: ak.self.messages.command.prepare.v1
     SelfRealmJoin:
       Preview: ak.self.realm_join.read.preview.v1
       Prepare: ak.self.realm_join.command.prepare.v1
@@ -413,7 +410,6 @@ mq:
     self.contact.command.tombstone: ak.self.contact.command.tombstone.v1
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
     self.realm_join.query.preview: ak.self.realm_join.read.preview.v1
-    self.messages.command.prepare: ak.self.messages.command.prepare.v1
     self.realm_join.command.prepare: ak.self.realm_join.command.prepare.v1
     self.signer_keys.query.resolve: ak.self.signer_keys.read.resolve.v1
     self.current_principal.query.resolve: ak.self.current_principal.read.resolve.v1
@@ -441,8 +437,7 @@ mq:
     peer.consent.command.proxy: ak.peer.consent.command.proxy.v1
     peer.consent.command.publish_effects: ak.peer.consent.command.publish_effects.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1
-    self.consent.command.grant: ak.self.consent.command.grant.v1
-    self.consent.command.revoke: ak.self.consent.command.revoke.v1
+    self.consent.command.replace: ak.self.consent.command.replace.v1
     self.consent.command.request: ak.self.consent.command.request.v1
     self.account_data.query.list: ak.self.account_data.read.list.v1
     self.account_data.resource.get: ak.self.account_data.resource.get.v1

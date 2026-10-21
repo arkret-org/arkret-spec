@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -194,7 +194,7 @@
       ]
     },
     {
-      "event_kind": "ak.consent.grant",
+      "event_kind": "ak.consent.replace",
       "exposures": [
         {
           "carrier": "exact_event",
@@ -227,96 +227,7 @@
           "direction": "response",
           "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
           "json_pointers": [
-            "/$defs/consent_current_read_outcome/properties/consents"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.consent.command.proxy.v1",
-          "direction": "response",
-          "schema_ref": "schemas/consent-private-operations.schema.json",
-          "json_pointers": [
-            "/$defs/list_outcome/properties/body"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.consent.command.proxy.v1",
-          "direction": "response",
-          "schema_ref": "schemas/consent-private-operations.schema.json",
-          "json_pointers": [
-            "/$defs/version_outcome/properties/body"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.consent.command.proxy.v1",
-          "direction": "response",
-          "schema_ref": "schemas/consent-private-operations.schema.json",
-          "json_pointers": [
-            "/$defs/effects_outcome/properties/body"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.consent.command.publish_effects.v1",
-          "direction": "request",
-          "schema_ref": "schemas/consent-private-operations.schema.json",
-          "json_pointers": [
-            "/$defs/effects_publish_request/properties/effects"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        }
-      ]
-    },
-    {
-      "event_kind": "ak.consent.revoke",
-      "exposures": [
-        {
-          "carrier": "exact_event",
-          "surface": "operation",
-          "operation_id": "ak.peer.events.command.submit.v1",
-          "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
-          "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-          "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
-          "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.consent.read.current.v1",
-          "direction": "response",
-          "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
-          "json_pointers": [
-            "/$defs/consent_current_read_outcome/properties/consents"
+            "/$defs/consent_current_read_outcome/properties/current"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1147,5 +1058,5 @@
       ]
     }
   ],
-  "generated_at": "2026-10-19T23:13:59+08:00"
+  "generated_at": "2026-10-21T10:55:31+08:00"
 }

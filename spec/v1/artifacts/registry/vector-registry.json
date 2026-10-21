@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T08:08:00+08:00",
+  "generated_at": "2026-10-21T10:55:31+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1384,7 +1384,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
+      "description": "Complete exact-peer permission set replacements invalidate affected invite/call/presence/MIMI decisions at actual admission cuts; current revisions never roll back and requester outcomes remain opaque.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/registry/error-code-registry.json",
@@ -1629,19 +1629,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
         "spec/v1/zh/identity/did-usage-and-verification.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.binding_digest.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "encoding-fixture.json"
-      ],
-      "description": "Byte-exact KAT for the receiver-derived off-wire Direct Conversation binding digest: fixed v1 domain separator, closed normalized binding object, unordered participant and authorization-ref normalization, created_at and Event-context exclusion, and semantic-field mutation separation.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/encoding-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
     {
@@ -5321,6 +5308,45 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.consent.peer_current.v1",
+      "status": "active",
+      "domain": "consent",
+      "applies_to_fixtures": [
+        "protocol-simplification-fixture.json"
+      ],
+      "description": "Remove voice only, preserve the complete presence entry and optional-member presence.; Only one exact prior revision succeeds; stale write has zero effects and requires a fresh read and user confirmation.; Accepted empty remains current when an older accepted Event is replayed; return the original finality only.; Same principal at a different Station selects another peer and inherits no permission.; Only one rule per scope; a second same-scope rule cannot authorize or create another current.; Explicit all-select contains only the registered four scopes; future scope is absent and denied.; Original signed introduction/green-light does not restore a removed current invite entry.; A private correlation or accepted_for_processing does not prove a current exists or grant permission.; Caller signs the complete target; facade cannot complete, alter or co-sign the set.; Independent Contact, Realm, device and membership gates are still required.; Expired, future and unknown-constrained entries remain in the same-cut editing value.; Present without requested scope, present empty and never_written are distinct; only the last allows first-write predicate.; A never_written attempt loses to another accepted empty and cannot overwrite it.; Two purposes with distinct IDs serialize the same exact peer; second must refresh its stale prestate.; MIMI voice revoke that also changes presence is not_found with zero writes.; Exact accepted correlation/decision/Event retry returns original result after later native changes; never rolls them back.; Requester/provider cannot read complete current, revision or never_written using an opaque ID.; Native/MIMI any requests reject and do not expand; native invite remains excluded.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/identity/consent-model.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.single_confirmation.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "protocol-simplification-fixture.json"
+      ],
+      "description": "A confirmation does not replace founding uniqueness or create a second Realm.; Two roster members without durable Welcome/provenance cannot confirm.; Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.; At most one different Event wins; loser has zero writes and resolves the original Event ref.; Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.; Only the producer-signed accepted bound and covering Commit establish first completion.; Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.; Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent.; Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.message.local_authoring.v1",
+      "status": "active",
+      "domain": "message",
+      "applies_to_fixtures": [
+        "protocol-simplification-fixture.json"
+      ],
+      "description": "Legal canonical locally signed Message uses ordinary submit with no prepare operation.; Exact session/scope/config/authorizing refs are supplied by registered reads; missing inputs cannot be guessed.; Submit rechecks all current gates even after local construction.; Local canonical Event must match the frozen actor/scope/content/AAD; no server rewrite or encryption.; Durably frozen exact signed Event and MLS state survive unknown/restart; no re-encryption or second sender generation.; Removed prepare test coverage must preserve independent account cursor and producer validation.; No per-message context operation recreates the removed draft protocol.; Shared MessageAuthoringIntent/Submit/draft/encryption context and ordinary queue remain; epoch errors and original finality remain.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/sync/service-http-binding.md"
       ]
     }
   ]

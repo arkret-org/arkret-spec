@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.7",
+  "version": "2026-10-21.9",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T11:47:57+08:00",
+  "generated_at": "2026-10-21T11:54:44+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,21 +18,21 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 227,
+    "total_operations": 225,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 225
+      "typed_schema": 223
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 47
+        "typed_schema": 46
       },
       "deployment_local": {
         "typed_schema": 15
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 141
+        "typed_schema": 140
       },
       "interop_bridge": {
         "typed_schema": 22
@@ -2105,14 +2105,14 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.consent.command.grant.v1",
+      "operation_id": "ak.self.consent.command.replace.v1",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/results/grant",
+      "http": "POST /_arkret/self/consent/results/replace",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_replace_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/ConsentGrantRequestBody",
+        "request": "#/components/schemas/ConsentReplaceRequestBody",
         "response": "#/components/schemas/ConsentResultView"
       },
       "completeness_class": "typed_schema",
@@ -2128,20 +2128,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/ConsentRequestRequestBody",
         "response": "#/components/schemas/ConsentRequestOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.consent.command.revoke.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/results/revoke",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ConsentRevokeRequestBody",
-        "response": "#/components/schemas/ConsentResultView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2737,20 +2723,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MediaServiceBindingRequestBody",
         "response": "#/components/schemas/MediaServiceBindingOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.messages.command.prepare.v1",
-      "surface_class": "core",
-      "http": "POST /_arkret/self/messages/prepare",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
-      "response_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/MessagePrepareRequestBody",
-        "response": "#/components/schemas/MessagePrepareOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

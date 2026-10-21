@@ -462,19 +462,6 @@ CELL_WRITE_DERIVATIONS = {
     "capability_authority_depth",
     "capability_authority_root_refs",
     "capability_status",
-    # consent-model.md section 2 declares the `active | revoked` axis and
-    # section 3.2 fixes the only edge; section 5 keeps expiry a verification-time
-    # window rather than a projected state.  The status is never author-declared
-    # -- consent_grant_payload has no status member at all -- so `derived_members[]`
-    # is the only registered place it can come from.  It is a derived member and
-    # not a transition_contracts axis because the consent body and its status
-    # carry an atomic invariant: `revoked_at` / `revoked_reason` ARE the close,
-    # and a status readable one revision apart from them would let a reader
-    # honour a consent the same result already closed. That is the carrier rule
-    # of sync/current-results.md section 2.1 form 2 -- not the presence of
-    # `expected_revision` in the payload, which decides nothing about value
-    # shape (`ak.moderation.decision.lift` carries one and writes a keyed set).
-    "consent_status",
     "realm_authority_generation_successor",
     "realm_authority_event_ref",
     "calendar_source_effective_scope",

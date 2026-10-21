@@ -157,13 +157,18 @@
         },
         "body": {
           "type": "object",
+          "description": "Exact original accepted replacement source for historical retry; never a native consent_id lookup or current authorization.",
           "required": [
-            "consent_id",
+            "peer",
+            "event_id",
             "commit_id"
           ],
           "properties": {
-            "consent_id": {
-              "$ref": "./consent-operations.schema.json#/$defs/consent_view/properties/consent_id"
+            "peer": {
+              "$ref": "./consent-operations.schema.json#/$defs/consent_peer"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
             },
             "commit_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
@@ -750,7 +755,6 @@
     }
   },
   "x-arkret-pcr-outward-event-kinds": [
-    "ak.consent.grant",
-    "ak.consent.revoke"
+    "ak.consent.replace"
   ]
 }

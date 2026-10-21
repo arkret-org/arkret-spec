@@ -73,10 +73,8 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   report payload，family 不可变。`ak.moderation.decision{decision="dismiss"}` 的 `payload.target_ref` 逐字
   就是这个 subject，因此驳回按同一 EventId 查询，subject 语法里没有也不需要 retype 步骤；服务面的
   moderation queue item 是本 family 与 `moderation_state` 的读取侧 View，**不是**本 family 的 value；
-- `consent`：以 producer 分配的稳定 `payload.consent_id` 选择 holder PCR 内的一条 Consent 记录
-  （见 [`../identity/consent-model.md` §2](../identity/consent-model.md)）；value 同层承载 grant body 与
-  reducer 派生的 `status`（`active | revoked`），`expired` 不是投影状态而是 §5 的验证时窗口判定；
-  peer 永不可读该结果（§8）；
+- `consent`：以完整 `payload.peer.actor_id` 选择 holder PCR 唯一许可集合，value 为完整 permissions，empty 保留真实 revision；只有原签 `ak.consent.replace` 全份替换，无独立 ID／status／any。见 [Consent §2](../identity/consent-model.md)。peer 永不可读；
+
 - `moderation_state`：以被裁决对象 `payload.target_ref` 的 canonical string 选择该 target 的
   committed moderation 断言集合（见 [`../governance/content-moderation.md` §5.3](../governance/content-moderation.md)）；
   值是 `keyed-set projection` 的 dot 集合，`ak.moderation.decision` 与 `ak.moderation.decision.lift`
@@ -208,12 +206,8 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_results.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
   三条 `ak.pin.*` 各加一条断言，roster、remove-wins 与冲突视图都是读侧折叠（见 [`../models/pins.md` §4.1](../models/pins.md)）；
-- `direct_conversation_binding`：以 `pair_key` 选择一条 canonical Direct Conversation 的
-  participant endorsement 集合；它是 `keyed-set projection`，tag 为 Event dot、元素值是完整的
-  endorsement payload，两名 participant 对**同一** binding 的背书共存，去重键
-  `(binding_digest, envelope.actor_id)` 是读侧折叠；不同 semantic binding digest 在投影前即拒绝。
-  结果活在该 Direct Conversation 自己的 Realm 内，因此 `realm_id` / `main_strand_id` 不是 selector 成员
-  （见 [`../identity/contact-and-direct-conversation.md` §8.3](../identity/contact-and-direct-conversation.md)）；
+- `direct_conversation_binding`：以 pair_key 选择唯一 Realm 内一次不可变确认，value 为原 binding_event_ref 与完整 binding payload；无 set／dot／去重／代表引用，见 [Contact §8.3](../identity/contact-and-direct-conversation.md)。founding admission 仍负责唯一创建；
+
 - `invite_lifecycle`：以 `invite_id` 选择一条 Invite 的流程状态轴；它是 `transition_contracts` 登记的
   状态机 family，值只有状态名本身（见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；
 - `invite_live_target`：以 `canonical_json(invitee_account_id)` 选择该 invitee 在本 Realm 的唯一 live

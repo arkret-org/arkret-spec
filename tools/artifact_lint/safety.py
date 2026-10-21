@@ -243,21 +243,9 @@ def check_error_code_registry_uniqueness(lint: Lint) -> None:
 
 
 def check_consent_current_clean_break(lint: Lint) -> None:
-    """Consent self views mirror one governance-committed current row, not OR-set dots."""
-    schema_path = ARTIFACTS / "schemas" / "consent-operations.schema.json"
-    schema = load_json(lint, schema_path)
-    if not isinstance(schema, dict):
-        return
-    defs = schema.get("$defs", {})
-    if defs.get("consent_state", {}).get("enum") != ["active", "revoked"]:
-        lint.fail(schema_path, "consent_state must be exactly active|revoked; expiry is a read-time predicate")
-    view = defs.get("consent_view", {})
-    properties = view.get("properties", {})
-    if not {"consent_id", "state", "revision"}.issubset(properties):
-        lint.fail(schema_path, "consent_view must carry stable ID, current state and exact revision")
-    for retired in ("requested_at", "active_grant_dots", "grant_dots", "revoked_dots"):
-        if retired in properties:
-            lint.fail(schema_path, f"consent_view must not restore retired or inferred field {retired!r}")
+    """Enforce complete peer sets and reject retired parallel authorization."""
+    from .protocol_simplification import check_protocol_simplification
+    check_protocol_simplification(lint)
 
 
 def check_direct_conversation_local_blocker_clean_break(lint: Lint) -> None:

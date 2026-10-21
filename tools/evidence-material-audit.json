@@ -1,12 +1,12 @@
 {
-  "version": 47,
+  "version": 48,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 410,
+  "audited_occurrence_count": 409,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -1164,18 +1164,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Selects material families from a heterogeneous evidence response."
-    },
-    {
-      "file": "typed-current-result.schema.json",
-      "key": "evidence_ref",
-      "disposition": "polymorphic_container",
-      "occurrences": 1,
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
     },
     {
       "file": "watch-audit-operations.schema.json",
