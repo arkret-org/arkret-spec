@@ -667,6 +667,10 @@ Authorization: Bearer <token>
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
 | `lost` | `boolean` | optional | 仅当自该 endpoint 上次确认位置以来有持久证据证明历史缺口或故障时 SHOULD 置 `true`；正常 TTL／容量不得丢弃任一类未确认投递，满队列须在入队前拒绝。客户端见 `true` MUST 重建 MLS／密钥就绪状态。 |
 
+上述联合按真实接收端分支取值。Realm Bot／Ghost 的受管 Device 只允许 `mls_welcome`，
+不具有 DeviceMessage sender／recipient 分支或 send 操作资格；未知或 `device_message` 项不得处理、跳过或累计 ACK。
+普通 Account／个人 Agent 的原有联合与发送合同保持不变，详见 [`realm-actors.md` §5](../extensions/realm-actors.md#5-devicehttp-与业务身份)。
+
 确认接口：
 
 ```http

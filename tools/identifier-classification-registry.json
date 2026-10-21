@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 90,
+  "version": 91,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -27,7 +27,7 @@
   ],
   "type_derived_summary": {
     "typed_object_id": 998,
-    "responsibility_identity_material": 649,
+    "responsibility_identity_material": 647,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -732,5 +732,5 @@
       "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ],
-  "generated_at": "2026-10-21T11:54:44+08:00"
+  "generated_at": "2026-10-21T15:08:05+08:00"
 }

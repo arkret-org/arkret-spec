@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-21.11",
-  "generated_at": "2026-10-21T11:54:45+08:00",
+  "version": "2026-10-21.13",
+  "generated_at": "2026-10-21T15:57:44+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -437,7 +437,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:3b0b1963777f63f8bfff56eab53da84318f41a94fe25c236f09ea5f4d1c75c0c"
+      "sha256": "sha256:251db71904beec3a36e66145e5c693987f96fb8d1157f76d44f8c0dedacd9c8b"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -669,15 +669,15 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
-      "sha256": "sha256:bb7bb903bd3cdb837f7ac9b66b17d6182ff967f9f7da616cc0ff1cedd1bb97ea"
+      "sha256": "sha256:4a60a96a3c5887c45f9a0e4b48bd5cdb42c1b0b392e4fa5e408ee93ee0de53f9"
     },
     {
       "operation_id": "ak.self.device_messages.command.send.v1",
-      "sha256": "sha256:6cfbe542348781fd9e3f4e0178e9dd96a75a1df7c29152f7e5713e1c3168bde6"
+      "sha256": "sha256:0896fcf1956a7b8a560c2fa087f34620af2445262b2eacb540d218147d312865"
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
-      "sha256": "sha256:e853cfc44424e9cd182beb5c7f822d3d8f2a3b8a5ea117f40ab15889a31bf5d9"
+      "sha256": "sha256:e944dfa703728aafacaec0b559080dc8c02af99727b7ac9380972c6cb14ef907"
     },
     {
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",

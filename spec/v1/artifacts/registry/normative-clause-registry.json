@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.6",
+  "version": "2026-10-21.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T15:45:28+08:00",
+  "generated_at": "2026-10-21T15:57:44+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -271,8 +271,8 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:2efab62b664098f9cddcaad52804c4387d4ae43258cd715d3b9bbc633433e252",
-      "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new first admission atomically while a Welcome a member Station stores through committed replication counts toward capacity without being refused, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint.",
+      "section_digest": "sha256:575382c0106d49ab461a54914ac2feb28c23f48d5b9428871e098cd890c66ef5",
+      "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new first admission atomically while a Welcome a member Station stores through committed replication counts toward capacity without being refused, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint. Realm Bot/Ghost Devices receive only Welcome, never DeviceMessage; unexpected deliveries cannot be processed, skipped or cumulatively acknowledged.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.sync.delivery_ack.v1"

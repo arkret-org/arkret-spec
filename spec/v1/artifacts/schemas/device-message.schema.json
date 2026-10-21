@@ -6,6 +6,7 @@
   "required": [
     "device_message_id",
     "kind",
+    "recipient_account_id",
     "recipient_device_id",
     "sent_at",
     "expires_at",
@@ -63,12 +64,6 @@
     "unsigned": {
       "type": "object",
       "description": "Optional non-authenticated metadata block (transport-layer hints only). Receivers MUST NOT trust any field here for authorization, ordering, or cryptographic verification. Typical sub-fields: progress (delivery progress hint), error_context (transport-layer error diagnostics), retry_after_ms. By convention this block is excluded from the signed transcript of the enclosing transport envelope and is dropped on persist."
-    },
-    "sender_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_actor"
-    },
-    "recipient_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_actor"
     }
   },
   "additionalProperties": false,
@@ -119,16 +114,7 @@
                 ]
               }
             ]
-          },
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "sender_actor_id"
-                ]
-              }
-            }
-          ]
+          }
         },
         {
           "required": [
@@ -154,16 +140,7 @@
                 ]
               }
             ]
-          },
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "sender_actor_id"
-                ]
-              }
-            }
-          ]
+          }
         },
         {
           "required": [
@@ -194,50 +171,6 @@
               {
                 "required": [
                   "sender_agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          },
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "sender_actor_id"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "required": [
-            "sender_actor_id",
-            "sender_device_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "sender_account_id"
-                ]
-              },
-              {
-                "required": [
-                  "sender_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "sender_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "sender_agent_key_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "sender_id"
                 ]
               }
             ]
@@ -278,39 +211,6 @@
           }
         }
       }
-    },
-    {
-      "oneOf": [
-        {
-          "required": [
-            "recipient_account_id"
-          ],
-          "not": {
-            "required": [
-              "recipient_actor_id"
-            ]
-          }
-        },
-        {
-          "required": [
-            "recipient_actor_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "recipient_account_id"
-                ]
-              },
-              {
-                "required": [
-                  "sender_id"
-                ]
-              }
-            ]
-          }
-        }
-      ]
     }
   ],
   "$defs": {

@@ -239,6 +239,11 @@ account delta，两个分支都可从同一队列的 list 补拉。Agent runtime
 按 `(recipient_actor_id, recipient_endpoint.verification_method, current agent_key_authorize_event_id)`
 绑定队列与 token；不能借用 controller 的 account/device 队列、session 或 synthetic device_id。
 
+Realm Bot／Ghost 的受管 Device 仅通过其原生身份使用 list／ACK，队列只承载 `mls_welcome`，
+不承载 DeviceMessage，也不走 account delta。收到非 Welcome 分支必须拒绝处理并停止累计 ACK 于该项之前；
+不得丢弃该项后确认更后位置。完整身份、scope 与当前交付门见
+[`realm-actors.md` §5](../extensions/realm-actors.md#5-devicehttp-与业务身份)。
+
 **恰好一次的 durable handler 副作用（normative）**：重投递是正常路径——新建订阅、补拉、cursor 重置或
 服务端重试都会把未确认的 delivery 再次交给客户端，并**原样保留** `device_message_id`。客户端 MUST 在执行
 handler 副作用**之前**查询 durable 去重记录。DeviceMessage 的键是**封闭的发送端点加 `device_message_id`**：human device

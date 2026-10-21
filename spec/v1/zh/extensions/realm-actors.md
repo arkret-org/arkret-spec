@@ -180,8 +180,15 @@ control 来源的完整 CommittedEventRef，不能从两字段 revision 猜 Even
 首次创建由 Service 认证；管理绑定可信时可帮助 runtime 读取 exact current，但不能代签控制 Event。
 控制轮换未知结果时保留旧方法直到恢复原结果。当前方法无法认证时，由原登记 Service 的受限 ledger 权限恢复创建结果，或使用新 current 方法恢复本人结果；失效 key 不具有 HTTP 认证资格。
 
-所有 DeviceMessage、KeyPackage claim／consume、Welcome、MLS sender／receiver、队列、receipt、
+KeyPackage claim／consume、Welcome、MLS sender／receiver、Welcome 收件队列、receipt、
 历史 signer 查询及 credential 都 **MUST** 支持明确 realm actor 分支，和 Account／Agent 分支互斥。
+Realm Bot／Ghost 的受管设备收件队列 **MUST** 只承载 `delivery_kind="mls_welcome"`，
+沿用现有 list、opaque cursor、耐久处理及累计 ACK。它们不是 DeviceMessage 的发送方或接收方，
+不得调用 `ak.self.device_messages.command.send.v1`；该操作不在受管设备白名单中。
+若受管设备收到 `device_message` 或其它未登记分支，**MUST** 拒绝处理且不得 ACK 覆盖该项，
+不得将其转换成 Welcome 或伪造 AccountId。频道文字、图片、提及与回复继续走获准原生 Event 内容流。
+普通 Account／个人 Agent 的 DeviceMessage 机制不变，不新增操作、权限、审批或私有消息通道。
+固定验收向量 `ak.vector.sync.delivery_ack.v1` 包含 Welcome-only 与非法 DeviceMessage 不处理／不 ACK 的分支。
 路由由已验证 RealmId 的当前治理方决定，不能塞入假 account_id 或用 principal-only fallback。
 RFC9420 BasicCredential 使用完整 ActorId 的 canonical bytes；Device 与 key 继续显式绑定。
 每次提交、队列交付、读取和 MLS 接入重核实际 scope 的当前权限，撤权竞态不得因已有队列或签名有效而放行。
