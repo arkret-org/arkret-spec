@@ -11,8 +11,8 @@ ART = ROOT / 'spec/v1/artifacts'
 class AppletDeviceScopeContractTest(unittest.TestCase):
     def test_scope_vectors_and_registered_actions(self):
         validator = core.schema_validator(ART / 'schemas/event-payload.schema.json', '#/$defs/applet_managed_device_scopes')
-        actions = {r['action'] for r in json.loads((ART / 'registry/capability-action-registry.json').read_text())['actions']}
-        cases = json.loads((ART / 'fixtures/applet-device-scope-fixture.json').read_text())['cases']
+        actions = {r['action'] for r in json.loads((ART / 'registry/capability-action-registry.json').read_text(encoding='utf-8'))['actions']}
+        cases = json.loads((ART / 'fixtures/applet-device-scope-fixture.json').read_text(encoding='utf-8'))['cases']
         for case in cases:
             with self.subTest(case=case['name']):
                 entries = case['scopes']
@@ -28,11 +28,11 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
                 self.assertEqual(permits, case['permits'])
 
     def test_operation_rules_are_complete_and_closed(self):
-        contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text())['device_authentication']
+        contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
         rules = contract['operation_scope_rules']
         self.assertEqual([r['operation_id'] for r in rules], contract['operations'])
         self.assertEqual(len(rules), 22)
-        actions = {r['action'] for r in json.loads((ART / 'registry/capability-action-registry.json').read_text())['actions']}
+        actions = {r['action'] for r in json.loads((ART / 'registry/capability-action-registry.json').read_text(encoding='utf-8'))['actions']}
         for r in rules:
             self.assertTrue(set(r['actions']) <= actions)
             self.assertIn(r['mode'], ['all_actions', 'device_control', 'submitted_business_actions'])
@@ -43,7 +43,7 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         self.assertEqual(sum(r['mode'] == 'device_control' for r in rules), 5)
 
     def test_payload_and_possession_use_the_same_pairs(self):
-        defs = json.loads((ART / 'schemas/event-payload.schema.json').read_text())['$defs']
+        defs = json.loads((ART / 'schemas/event-payload.schema.json').read_text(encoding='utf-8'))['$defs']
         scopes = {'$ref': '#/$defs/applet_managed_device_scopes'}
         self.assertEqual(defs['device_authorize_payload']['allOf'][1]['then']['properties']['scopes'], scopes)
         self.assertEqual(defs['device_authorize_realm_actor_possession_transcript']['properties']['scopes'], scopes)

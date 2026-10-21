@@ -33,9 +33,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/applet-managed-authority-registry.json",
-      "version": "2026-10-21.3",
-      "generated_at": "2026-10-21T15:01:20+08:00",
-      "content_digest": "sha256:1be9626a4c9aee0ce08eacc3f510b3bee24ada566478c043ee289d16e7934365"
+      "version": "2026-10-21.4",
+      "generated_at": "2026-10-21T17:58:12+08:00",
+      "content_digest": "sha256:24ad8e10a3edde2bceb3d1569e10f3cb0f9b5c70f83c88995ad9a58da5ed8493"
     },
     {
       "path": "spec/v1/artifacts/registry/authority-set-policy-registry.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-21.13",
-      "generated_at": "2026-10-21T15:57:44+08:00",
-      "content_digest": "sha256:5c06011d7af03f5c806e0942b33261225715871596364786688dce339661e198"
+      "version": "2026-10-21.15",
+      "generated_at": "2026-10-21T17:58:12+08:00",
+      "content_digest": "sha256:10bbd65a8b98925e8735251ff2b6a6161d22863c5dcd043eb72ec4b9af6e5738"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

@@ -491,10 +491,33 @@ class RealmActorContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):ControlModel.handoff(export,incomplete,True)
 
     def test_kr_private_recovery_current_and_terminal_carrier(self):
-        value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":token("realm_commit"),"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
+        value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":committed()["commit_id"],"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
         self.validator("typed-current-result","#/$defs/realm_actor_recovery_result").validate(value)
-        self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","row":value})
+        self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","row":value,"source_ref":committed()})
         self.assertFalse(self.validator("realm-actor-material","#/$defs/current_entry").is_valid({"status":"never_written","selector":value["selector"]}))
+
+    def test_private_current_source_is_required_closed_and_signed(self):
+        fixture = signature_fixture()["cases"][3]
+        material = fixture["unsigned_projection"]
+        entry = material["result"]["entries"][0]
+        validator = self.validator("realm-actor-material", "#/$defs/current_entry")
+        validator.validate(entry)
+        missing = copy.deepcopy(entry)
+        del missing["source_ref"]
+        self.assertFalse(validator.is_valid(missing))
+        for field in ["event_id", "commit_id", "stream_ref", "stream_position"]:
+            incomplete = copy.deepcopy(entry)
+            del incomplete["source_ref"][field]
+            self.assertFalse(validator.is_valid(incomplete))
+        import base64
+        public = base64.urlsafe_b64decode(fixture["public_key_b64u"] + "==")
+        for field, replacement in [("event_id", token("event", 91)), ("commit_id", token("realm_commit", 91)), ("stream_ref", {"kind":"realm_control","realm_id":token("realm",91)}), ("stream_position", 99)]:
+            changed = copy.deepcopy(material)
+            changed["result"]["entries"][0]["source_ref"][field] = replacement
+            self.assertFalse(verify(fixture["context"], changed, fixture["signature"], public))
+        never = {"status":"never_written","selector":{"kind":"realm_actor_profile","actor_id":actor()}}
+        validator.validate(never)
+        self.assertFalse(validator.is_valid({**never,"source_ref":committed()}))
 
     def test_kr_plan_is_not_published_evidence(self):
         plan = signature_fixture()["cases"][4]["unsigned_projection"]["payload_without_control_signature"]["method_history_evidence"]

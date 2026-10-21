@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.3",
+  "version": "2026-10-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T15:01:20+08:00",
+  "generated_at": "2026-10-21T17:58:12+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -299,6 +299,8 @@
     "current_lifetime_seconds_max": 60,
     "canonical_bytes_max": 4194304,
     "selector_count_max": 16,
+    "present_entry_source_ref": "same_cut_exact_committed_event_ref",
+    "source_ref_missing_or_inconsistent": "unavailable",
     "child_requires_preexisting_device": false,
     "automatic_ghost_permission_is_candidate_vote": false
   }

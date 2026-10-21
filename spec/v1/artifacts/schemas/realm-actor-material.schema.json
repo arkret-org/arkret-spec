@@ -137,7 +137,8 @@
           "type": "object",
           "required": [
             "status",
-            "row"
+            "row",
+            "source_ref"
           ],
           "properties": {
             "status": {
@@ -173,6 +174,10 @@
                   "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_recovery_result"
                 }
               ]
+            },
+            "source_ref": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+              "description": "Original accepted source of this selector at the same private read cut; stream and revision equal the row."
             }
           },
           "additionalProperties": false

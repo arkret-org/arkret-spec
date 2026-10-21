@@ -31,11 +31,11 @@ def evaluate(row):
 class ContactCurrentContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.fixture=json.loads(OUT.read_text())
-        docs=[json.loads(p.read_text()) for p in (ARTIFACTS/'schemas').glob('*.json')]
+        cls.fixture=json.loads(OUT.read_text(encoding='utf-8'))
+        docs=[json.loads(p.read_text(encoding='utf-8')) for p in (ARTIFACTS/'schemas').glob('*.json')]
         cls.registry=Registry().with_resources((d['$id'],Resource.from_contents(d)) for d in docs)
-        cls.schema=json.loads((ARTIFACTS/'schemas/contact-operations.schema.json').read_text())
-        cls.catalog=json.loads((ARTIFACTS/'registry/contract-registry.json').read_text())
+        cls.schema=json.loads((ARTIFACTS/'schemas/contact-operations.schema.json').read_text(encoding='utf-8'))
+        cls.catalog=json.loads((ARTIFACTS/'registry/contract-registry.json').read_text(encoding='utf-8'))
     def test_deterministic_source_inputs(self):self.assertEqual(self.fixture,build())
     def test_all_closed_schema_cases(self):
         for row in self.fixture['schema_validation_cases']:
@@ -73,7 +73,7 @@ class ContactCurrentContract(unittest.TestCase):
         self.assertNotIn('prior_mirror_receipt',branch['properties'])
         for field in ['requester','trust_domain_id','known_version','grant_event_refs']:self.assertIn(field,branch['required'])
     def test_five_holder_payloads_carry_lifetime_version_and_domain(self):
-        payloads=json.loads((ARTIFACTS/'schemas/event-payload.schema.json').read_text())['$defs']
+        payloads=json.loads((ARTIFACTS/'schemas/event-payload.schema.json').read_text(encoding='utf-8'))['$defs']
         for name in ['contact_requested_payload','contact_accepted_payload','contact_rejected_payload','contact_tombstoned_payload']:
             with self.subTest(name):
                 self.assertIn('version',payloads[name]['required']);self.assertIn('trust_domain_id',payloads[name]['required'])

@@ -194,12 +194,12 @@ def check_registered_atomic_units(lint: Lint) -> None:
     for error in contract_errors(catalog,schema,audit_schema,fixture):lint.fail(FIXTURE,error)
     resources=[]
     for path in (ARTIFACTS/'schemas').glob('*.json'):
-        doc=json.loads(path.read_text());resource=Resource.from_contents(doc,default_specification=DRAFT202012);resources.extend([(path.as_uri(),resource),(doc.get('$id',path.as_uri()),resource)])
+        doc=json.loads(path.read_text(encoding='utf-8'));resource=Resource.from_contents(doc,default_specification=DRAFT202012);resources.extend([(path.as_uri(),resource),(doc.get('$id',path.as_uri()),resource)])
     registry=Registry().with_resources(resources)
     cases=fixture.get('schema_validation_cases',[])
     if len(cases)<12:lint.fail(FIXTURE,'Missing closed carrier schema vectors')
     for case in cases:
-        file,fragment=case['schema_ref'].split('#');doc=json.loads((ARTIFACTS/file).read_text())
+        file,fragment=case['schema_ref'].split('#');doc=json.loads((ARTIFACTS/file).read_text(encoding='utf-8'))
         validator=Draft202012Validator({'$ref':doc['$id']+'#'+fragment},registry=registry,format_checker=schema_format_checker())
         errors=list(validator.iter_errors(case['instance']))
         if (not errors)!=case['expect_valid']:lint.fail(FIXTURE,'Wire schema verdict drift: '+case['name']+ ('; '+errors[0].message[:140] if errors else ''))

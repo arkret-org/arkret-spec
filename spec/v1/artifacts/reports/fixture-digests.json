@@ -532,8 +532,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "0a79d696461210f46d939b7900e8a8253bb73ceafb44e1688a88279bb62ef73d",
-      "version": "2026-10-20.2"
+      "sha256": "54e31fa1868cb78e9dca62cc8da132c8457f09b5e762c98718ee13009fa830d4",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
