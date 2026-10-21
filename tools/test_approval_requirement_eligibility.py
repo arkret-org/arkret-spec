@@ -58,14 +58,30 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
         ]
         self.assertGreater(len(non_event), 0)
         self.assertEqual(overrides.intersection(row["action"] for row in non_event), {"ak.applet.configure"})
-        self.assertEqual(overrides, {"ak.applet.configure"})
+        self.assertEqual(overrides, {"ak.applet.configure", "ak.applet.bot.provision", "ak.applet.ghost.provision"})
         carriers = {row["carrier_id"]: row for row in block["carriers"]}
         for row in block["action_overrides"]:
-            self.assertEqual(carriers[row["carrier_id"]]["carrier_class"], "non_event_operation")
+            self.assertEqual(carriers[row["carrier_id"]]["carrier_class"], "non_event_operation" if row["action"] == "ak.applet.configure" else "event_submission")
         self.assertEqual(
             block["event_mapping_defaults"]["non_event_surface"],
             "ineligible_no_registered_carrier",
         )
+
+    def test_creation_qualification_cannot_be_dropped_or_widened(self) -> None:
+        for action in ("ak.applet.bot.provision", "ak.applet.ghost.provision"):
+            for change in ("drop", "missing", "owner", "carrier"):
+                def mutate(documents, action=action, change=change):
+                    rows = self._block(documents)["action_overrides"]
+                    row = next(item for item in rows if item["action"] == action)
+                    if change == "drop":
+                        rows.remove(row)
+                    elif change == "missing":
+                        row.pop("approver_capability_action")
+                    elif change == "owner":
+                        row["approver_capability_action"] = "ak.realm.owner"
+                    else:
+                        row["carrier_id"] = "applet_configuration.approval_signatures"
+                self.assertTrue(self._new_errors(mutate), (action, change))
 
     def test_scope_admin_operation_carrier_cannot_be_dropped_or_widened(self) -> None:
         for change in ("drop", "wrong_operation", "wrong_action"):

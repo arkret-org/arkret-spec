@@ -270,19 +270,22 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
         if row is None:
             lint.fail(ACTION_REGISTRY, f"approval action override names unknown action {action!r}")
             continue
-        if row.get("event_mapping_kind") != "non_event_surface":
-            carrier = carrier_by_id.get(override.get("carrier_id"), {})
-            operation = operation_by_id.get(carrier.get("operation_id"), {})
-            effect = operation.get("durable_effect", {})
-            targets = row.get("target_event_kinds", [])
-            if effect.get("kind") != "event_log" or not targets or not set(targets).issubset(effect.get("event_kinds", [])):
-                lint.fail(ACTION_REGISTRY, f"approval action override {action!r} requires a registered aggregate carrier covering every target Event kind")
-        if override.get("eligibility_kind") != "registered_operation_carrier":
-            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must select registered_operation_carrier")
-        if override.get("carrier_id") not in carrier_by_id:
+        event_creation = action in {"ak.applet.bot.provision", "ak.applet.ghost.provision"}
+        expected_kind = "event_submission_carrier" if event_creation else "registered_operation_carrier"
+        expected_class = "event_submission" if event_creation else "non_event_operation"
+        if override.get("eligibility_kind") != expected_kind:
+            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must select {expected_kind}")
+        carrier = carrier_by_id.get(override.get("carrier_id"))
+        if carrier is None:
             lint.fail(ACTION_REGISTRY, f"approval action override {action!r} names unknown carrier")
-        elif carrier_by_id[override["carrier_id"]].get("carrier_class") != "non_event_operation":
-            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must name a non_event_operation carrier")
+        elif carrier.get("carrier_class") != expected_class:
+            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must name a {expected_class} carrier covering every target Event kind")
+        if event_creation and (override.get("carrier_id") != "event_admission_submission.approval_signatures"
+                               or row.get("target_event_kinds") != ["ak.realm.actor.create"]):
+            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} requires its exact Realm actor creation Event carrier")
+    for action in ("ak.applet.bot.provision", "ak.applet.ghost.provision", "ak.applet.configure"):
+        if action not in override_by_action:
+            lint.fail(ACTION_REGISTRY, f"required approval qualification override missing for {action}")
 
     scoped_overrides = block.get("operation_action_overrides")
     expected_scoped = [{

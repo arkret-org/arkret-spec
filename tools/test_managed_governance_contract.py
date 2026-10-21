@@ -276,6 +276,12 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertFalse(validator.is_valid(candidate))
         for override in eligibility["action_overrides"]:
             carrier = carriers[override["carrier_id"]]
+            if override["action"] in {"ak.applet.bot.provision", "ak.applet.ghost.provision"}:
+                self.assertEqual(override["eligibility_kind"], "event_submission_carrier")
+                self.assertEqual(carrier["carrier_id"], "event_admission_submission.approval_signatures")
+                self.assertIn("event", carrier["allowed_target_kinds"])
+                self.assertEqual(override["approver_capability_action"], "ak.realm.admin")
+                continue
             self.assertEqual(override["eligibility_kind"], "registered_operation_carrier")
             self.assertEqual(carrier["allowed_target_kinds"], ["operation"])
             request = carrier["request_schema_ref"].split("#/", 1)

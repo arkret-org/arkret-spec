@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-21T22:14:10+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -59,6 +59,18 @@
         "action": "ak.applet.configure",
         "eligibility_kind": "registered_operation_carrier",
         "carrier_id": "applet_configuration.approval_signatures",
+        "approver_capability_action": "ak.realm.admin"
+      },
+      {
+        "action": "ak.applet.bot.provision",
+        "eligibility_kind": "event_submission_carrier",
+        "carrier_id": "event_admission_submission.approval_signatures",
+        "approver_capability_action": "ak.realm.admin"
+      },
+      {
+        "action": "ak.applet.ghost.provision",
+        "eligibility_kind": "event_submission_carrier",
+        "carrier_id": "event_admission_submission.approval_signatures",
         "approver_capability_action": "ak.realm.admin"
       }
     ],
