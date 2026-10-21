@@ -606,10 +606,10 @@ GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
 {
   "exists": true,
   "actor_id": {
-    "kind": "account",
-    "account_id": {
-      "principal_id": "ak:did_core:webvh:z6MkGhostU123",
-      "station_id": "ak:did_core:webvh:z6MkStation123"
+    "kind": "realm",
+    "realm_actor_id": {
+      "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
+      "principal_id": "ak:did_core:webvh:z6MkGhostU123"
     }
   },
   "display_name": "Alice on Slack",
@@ -622,7 +622,7 @@ GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
 ```
 path 参数使用 percent-encoded RFC 8785 JCS(`ActorId`)；解码、closed-schema 校验或 canonical
 重编码不一致时返回 `param_invalid`。若完整 ActorId 不存在，返回 `404 not_found`。同 principal
-但 Station 或 Actor kind 不同不是同一查询目标。
+但 Realm 或 Actor kind 不同不是同一 Ghost 查询目标；不构造独立 Account／PCR。
 
 ### 7.5 Query Realm
 
@@ -716,17 +716,18 @@ Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` �
 
 `ak.applet.bridge_error` 是 `capabilities.md` §3.2 与 owner compiled `grant_authority_rule.include_actions[]` 登记的 exact grant issuer exception：root/co-owner 可在安装事务中为此 action 签发上述专用 grant，但这不授予 owner 直接 author 该 Event，也不扩展到其它 Applet profile action。安装及入站接纳仍 MUST 验证完整Service ActorId subject与producer逐字段相等、精确 installation/registration epoch/resource、producer 签名与当前 revoke fence。
 
-示例：
+以下片段展示所属 Realm 的 Ghost 标识与 signed provenance 字段，不是可提交的完整 Event；
+实际 Device、授权与 producer proof 仍按现行合同独立验证：
 
 ```json fragment
 {
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
   "actor_id": {
-    "kind": "account",
-    "account_id": {
-      "principal_id": "ak:did_core:webvh:z6MkGhostU123",
-      "station_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z"
+    "kind": "realm",
+    "realm_actor_id": {
+      "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
+      "principal_id": "ak:did_core:webvh:z6MkGhostU123"
     }
   },
   "kind": "ak.message.create",
