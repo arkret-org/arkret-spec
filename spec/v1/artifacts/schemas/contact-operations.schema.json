@@ -1976,7 +1976,7 @@
         },
         "result_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?}) over the exact closed successful result."
+          "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?,material?}) over the exact closed successful result."
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id"
