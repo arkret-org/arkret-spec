@@ -348,6 +348,9 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
                 missing = required - declared
                 if missing:
                     lint.fail(mapping_path, f"Account subscribe cursor recovery errors missing: {sorted(missing)}")
+            if row.get("operation_id") == "ak.self.keys.keypackages.command.consume.v1":
+                if "device_unauthorized" not in row.get("operation_specific", []):
+                    lint.fail(mapping_path, "KeyPackage consume current Device authorization error missing: device_unauthorized")
             for code in row.get("operation_specific", []):
                 if not isinstance(code, str):
                     lint.fail(mapping_path, f"operations[{index}].operation_specific contains non-string code")

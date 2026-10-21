@@ -64,6 +64,33 @@ class OperationErrorMappingAliasTest(unittest.TestCase):
         errors = self.run_gate(mutate)
         self.assertTrue(any("http_alias differs" in error for error in errors), errors)
 
+    def test_consume_current_device_error_cannot_be_omitted(self) -> None:
+        def mutate(mapping: dict) -> None:
+            row = next(
+                row for row in mapping["operations"]
+                if row["operation_id"] == "ak.self.keys.keypackages.command.consume.v1"
+            )
+            row["operation_specific"].remove("device_unauthorized")
+
+        errors = self.run_gate(mutate)
+        self.assertTrue(any("consume current Device authorization error missing" in error for error in errors), errors)
+
+    def test_consume_current_device_error_is_endpoint_specific_http_403(self) -> None:
+        registry = json.loads(
+            (ARTIFACTS / "registry/error-code-registry.json").read_text(encoding="utf-8")
+        )
+        code = next(row for row in registry["codes"] if row["code"] == "device_unauthorized")
+        self.assertEqual((code["http_status"], code["status"]), (403, "active"))
+        mapping = json.loads(
+            (ARTIFACTS / "registry/operations-error-mapping.json").read_text(encoding="utf-8")
+        )
+        row = next(
+            row for row in mapping["operations"]
+            if row["operation_id"] == "ak.self.keys.keypackages.command.consume.v1"
+        )
+        self.assertIn("device_unauthorized", row["operation_specific"])
+        self.assertNotIn("device_unauthorized", mapping["rules"]["universal_codes"])
+
 
 if __name__ == "__main__":
     unittest.main()

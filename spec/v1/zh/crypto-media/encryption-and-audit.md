@@ -533,6 +533,10 @@ publish、claim、consume、revoke均属于 endpoint ledger。claim success冻�
 消费该 claim。重复 exact submission幂等，不同 Commit或recipient复用同一 claim必须拒绝。package expiry、endpoint
 revoke或claim timeout只影响尚未被 accepted Commit消费的 reservation。
 
+`ak.self.keys.keypackages.command.consume.v1` 在 transport 认证后仍须于实际消费事务的 accepting cut（包括 writer 等待后）
+重核 recipient 的 current accepted Device 授权；无法取得完整当前授权时返回 `device_unauthorized`（HTTP 403）。
+与原 claim、durable delivery 或 winning Add 的绑定不符仍返回 `conflict`，不得混为当前 Device 授权拒绝。
+
 #### 2.6.1 Welcome producer proof
 
 `producer_proof` 使用 `ak.mls_welcome_delivery_signature.v1`。unsigned projection 是从完整 closed Welcome delivery
