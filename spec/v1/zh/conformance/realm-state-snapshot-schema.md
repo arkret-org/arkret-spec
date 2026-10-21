@@ -115,7 +115,7 @@ v1 在窗口引用发布前签发独立 `purpose="stream_history"` 原件；签�
 `history_basis={account_id,stream_ref,anchor_position,anchor_commit_ref,accepted_dependency_refs}`。
 完整 AccountId 同时绑定认证主体和 Station；Realm、generation、exact ref 与窗口逐字一致。by-ref 请求仍使用既有
 认证账号、Realm 与 snapshot_ref 路由，不新增操作；结果的 signed coverage 必须匹配该窗口，`/head` 仅提供完整恢复。
-跨站 Account Station 可经既有 `ak.peer.realm_join.command.bootstrap.v1` 的可选 `history_stream_ref` 请求源站当前 cut 的窄原件；省略时仍为完整恢复。请求必须绑定真实当前 membership Commit 与 member Account，响应的 signed Account／目标／任期须逐字匹配。接收站只归档原件及所需已接受依赖，不将此结果送入完整 bootstrap 安装；旧 cut 使用已保留原件，不能用此 fresh 请求替换已发窗口。
+跨站 Account Station 可经既有 `ak.peer.realm_join.read.bootstrap.v1` 的可选 `history_stream_ref` 请求源站当前 cut 的窄原件；省略时仍为完整恢复。请求必须绑定真实当前 membership Commit 与 member Account，响应的 signed Account／目标／任期须逐字匹配。接收站只归档原件及所需已接受依赖，不将此结果送入完整 bootstrap 安装；旧 cut 使用已保留原件，不能用此 fresh 请求替换已发窗口。
 
 **selector 完备性（normative）**：取该已接受 cut 下所有 `source_stream_ref` 等于目标流的可披露 typed rows，但排除 `circle`／`sidecar` 定义 selector：这些定义虽来自父 Realm stream，实际属于各自 scope，不得让 Realm 历史顺带依赖它们；
 Circle／Sidecar 目标还取该 cut 的父 Realm `member_state`（该 Account Actor）以及 exact `circle`／`sidecar`

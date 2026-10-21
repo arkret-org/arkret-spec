@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T02:10:00+08:00",
+  "generated_at": "2026-10-22T02:11:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -15352,7 +15352,7 @@
         "http": "POST /_arkret/peer/realm-joins/bootstrap",
         "grpc": "PeerRealmJoin/Bootstrap",
         "mq": "peer.realm_join.query.bootstrap",
-        "notes": "Initial closed join intent or opaque continuation cursor; freeze the unique confirmed Realm head and exact request identity, recheck intent and each object scope disclosure authorization on every page/replay. Typed RealmCommit/Event/governance dependency/applicant predecessor pages; full independent replay before authoring. Required but undisclosable private-scope material fails with revision_unavailable. An invite grants no private Circle read authority. 8 MiB per page, never a total history cap.",
+        "notes": "Authenticated member Station supplies request_id, realm_id, complete member_account_id and its accepted current opening membership_commit_id. The source rechecks the same current member at the accepted cut and returns a fresh nonce-bound authority bundle, one original signed Snapshot and its visible heads. Omission of history_stream_ref requests full_recovery for complete bootstrap. Optional history_stream_ref requests an independent stream_history original bound to that exact Account and target; the receiver archives its original bytes and verifies necessary accepted dependencies, never installs it as complete current/bootstrap. Existing request and response byte limits remain; no paging, chunks or new operation is introduced.",
         "body_class": "non_streaming_json",
         "max_items": 64,
         "success_shape_kind": "typed_response",
@@ -18339,8 +18339,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-21.12",
-    "generated_at": "2026-10-21T21:31:04+08:00",
+    "version": "2026-10-22.2",
+    "generated_at": "2026-10-22T02:11:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
