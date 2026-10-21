@@ -286,10 +286,10 @@ projection。Signal 使用 scope group key，因此发送方只能向整个 sign
 - `public` 表示目标 scope 的全部 active members；
 - `contacts_only` 仅当发送方已验证该 scope 除 holder 本人以外的全部 active members 都属于当前 accepted-contact
   fact log，且 holder→peer 方向仍授予 `presence` scope 时才可发送；否则必须对该 scope 抑制 presence，不能把联系人集合泄露给服务端做筛选；
-- `consent_only` 仅当发送方已验证整个 signed scope 的完整 active membership，且除 holder 本人以外的每个完整 ActorId 都满足 holder PCR 当前有效 `presence` 或 `any` Consent 时才可发送。必须在每次实际加密／发送前读取 nonce-bound、完整、未回退的 current；不得复用已知撤销、旧任期、过期或只覆盖部分 peer 的结果。任一 peer 不满足或材料不可用，必须抑制整个 scope 的 presence；不得拆成服务端 per-peer 明文过滤，也不得发送后要求未授权接收端自行隐藏。
+- `consent_only` 仅当发送方已验证整个 signed scope 的完整 active membership，且除 holder 本人以外的每个完整 ActorId 都满足 holder PCR 当前有效 唯一集合中的 `presence` 条目 时才可发送。必须在每次实际加密／发送前读取 nonce-bound、完整、未回退的 current；不得复用已知撤销、旧任期、过期或只覆盖部分 peer 的结果。任一 peer 不满足或材料不可用，必须抑制整个 scope 的 presence；不得拆成服务端 per-peer 明文过滤，也不得发送后要求未授权接收端自行隐藏。
 - `nobody` 时客户端不得发送 presence。
 
-三种可发送模式是 holder 明确选择的独立授权依据：`public` 的公开选择、`contacts_only` 的 accepted Contact 和 `consent_only` 的 per-peer Consent 不互相静默替代。Contact 模式与 Consent 模式均对完整受众判断，不能把某个 principal 在其它 Station 的同名 Account 当作已授权 peer。Consent Revoke 使对应派生结果立即失效；其它独立 active grant 仍按 Consent §5 求值。切换可见性、membership／MLS epoch、活动账户或 Device 会话改变后，旧 preflight 不得继续发送。
+三种可发送模式是 holder 明确选择的独立授权依据：`public` 的公开选择、`contacts_only` 的 accepted Contact 和 `consent_only` 的 per-peer Consent 不互相静默替代。Contact 模式与 Consent 模式均对完整受众判断，不能把某个 principal 在其它 Station 的同名 Account 当作已授权 peer。Consent 完整替换移除 presence 后，对应派生结果立即失效；同 peer 没有独立 active record 或 any 兜底。切换可见性、membership／MLS epoch、活动账户或 Device 会话改变后，旧 preflight 不得继续发送。
 
 接收方必须验证外层 sender device proof，并要求 plaintext `actor_id == sender_actor_id`。
 relay attestation 不能替代 sender proof。`dnd` / `idle` 等细分只在成功解密后可见；不存在

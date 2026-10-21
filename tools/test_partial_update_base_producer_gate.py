@@ -133,7 +133,6 @@ class PartialUpdateBaseProducerTest(_GateHarness):
                 "actor_profile",
                 "capability_grant",
                 "circle",
-                "consent",
                 "mls_group",
                 "morph",
                 "realm_authority_root",
@@ -144,6 +143,9 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             },
         )
         self.assertLessEqual(updated, produced)
+        # Consent is now a complete replacement; it has no partial writer.
+        self.assertNotIn("consent", updated)
+        self.assertIn("consent", produced)
 
     def test_a_keyed_set_family_is_not_asked_for_a_base(self) -> None:
         """`agent_key` has no `set` writer and needs none: a keyed set begins

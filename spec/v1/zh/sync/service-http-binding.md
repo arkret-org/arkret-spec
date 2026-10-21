@@ -196,41 +196,26 @@ service-to-service authentication 绑定 source/destination service identity、o
 同一 replication request 内的 source coordinates 必须唯一；同一 stream 的项按 `stream_position` 严格升序，
 不同 stream 的逐项连续性与失败互不回滚。重复 coordinates 或同 stream 乱序在处理任何项前拒绝整个 request。
 
-### 2.8 普通消息的完整 authoring 准备
+### 2.8 普通消息的本地 authoring
 
-普通消息必须在客户端形成 immutable producer-signed Event，再使用统一 Event submit 进入 current authority；准备接口不保留位置也不产生 accepted 结果。
+普通 Message 唯一 authoring 路径为 SDK 本地构造、调用方原签、统一 Event submit。v1 不提供普通消息 remote prepare 操作、草稿 TTL／缓存、submit ticket 或逐消息 context 替代入口；薄客户端请求 Station 完整 unsigned draft 的可选能力已移除。Contact、设备配对和安全审批的独立 prepare 不受本条影响。
 
-**本地明文意图与加密 wire 请求是两件事（normative）**：`ak.self.messages.command.prepare.v1` 的
-`intent.content` 是一个封闭 `oneOf`——`kind="plaintext"` 承载**本地**明文意图，`kind="mls"` 承载已经加密好的
-wire 请求（`encrypted_content` 与 `encryption_context`）。两者 MUST NOT 混用或互相回退。在已由 accepted
-`ak.mls.genesis` 激活的 effective scope 中，`kind="plaintext"` 的 prepare 请求 MUST 被拒绝
-（[`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）；准备接口
-MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文。
+**输入供给闭合（normative）**：依 §2.2.4 与已有读取／同步供给，客户端 MUST 使用：
 
-**加密与校验都在客户端（normative）**：客户端 MUST 先按 §2.3 冻结该条消息的 AAD 输入并在本地完成加密，
-再发出 prepare 请求。收到 `draft` 后，客户端 MUST 把 draft 中的 ciphertext、加密 metadata 与全部绑定
-（effective scope、Event kind、`encryption_context`、引用的 public group revision）与自己冻结、送出的那份
-**逐字节**比对，任一不符 MUST 丢弃该 draft 并 fail closed，MUST NOT 就地改写 draft 后签名。
+| 输入 | 唯一实际来源／检查 |
+| --- | --- |
+| 完整 actor／account／Station／device signer | 已认证本地会话与已接纳设备，切号 fence 拒绝迟到结果。 |
+| Realm／Strand／effective scope | 自己 Station 的 accepted create／current result，经既有 `ak.self.current_results.read.exact.v1`、已授权 scan／snapshot／subscribe 与 accepted source 供给；不得由显示上下文、裸 ID 或字符串猜 Circle／Sidecar。 |
+| Realm digest suite／canonical Event | 已认证 Realm 固定配置与 SDK 唯一 canonical 算法；不得平行重算公式。 |
+| 普通 participant Direct ref | 既有 `ak.self.direct_conversation.read.resolve.v1` 的唯一 binding_event_ref 与 current group state；provisional founder／repair 分支仍分别满足其已登记 authority。 |
+| 委派／Agent／Sidecar authorizing refs | 对应已登记 current／grant／resolver，按该域最小权限与原 scope 取材。 |
+| payload／created_at／ciphertext／AAD | 调用方自产冻结，客户端本地 MLS 状态与 accepted public group state 绑定；Station 不提供私态或代加密。 |
 
-**精确重试不消耗第二个 sender counter（normative）**：prepare 结果不明确时，客户端 MUST 重放 byte-identical
-的同一请求。该重试 MUST NOT 重新加密，因此 MUST NOT 推进 RFC 9420 sender ratchet 的 generation，也 MUST NOT
-产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
+任何分支缺真实供料时 MUST 等待／拒绝构造，不从旧 context 推导持续授权，也不新增逐消息 draft endpoint。`message-authoring.schema.json` 的共享 intent／content／encryption context 保留为本地 typed 载体；不构成 HTTP 请求。
 
-**MLS current 失配的唯一拒绝身份（normative）**：`kind="mls"` 的 prepare 以及后续 self／peer authority-forward
-Event submit，在治理 Station 确定 scope 没有 accepted `ak.mls.genesis`／current group 时 MUST 返回通用
-`failed_precondition`（无专用 reason），不得写入；客户端必须先激活 scope 或改发明文，不得 exact retry 期待该密文成功。
-Station 暂时无法读取自身 current MLS 结果时两入口均 MUST 返回 `temporarily_unavailable`，仅在未产生 Commit
-时允许 byte-identical exact retry。若 current scope 已有覆盖当前 key-access checkpoint 的 winning Commit，但冻结的 `epoch`、
-`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，MUST 返回顶层
-`epoch_mismatch`（HTTP 409）；客户端验证并取得 current 本地 MLS state 后重新加密、构造新请求。若 current
-scope 尚待 winning Commit 覆盖，MUST 优先返回 `failed_precondition` + `epoch_update_required`，客户端暂停
-发送并等待或促成 repair Commit。已接受历史 Event 的读取／重放与 peer committed replication 按历史 binding
-验证，不套用 current send gate。
+**本地签名与耐久重试（normative）**：加密 scope 按 [encryption-and-audit §2.3](../crypto-media/encryption-and-audit.md) 先冻结 AAD 并本地加密，再构造 canonical Event，逐字段核对原意图和确切密文后原签。首次网络提交前 MUST 耐久冻结 exact signed Event、提交身份、密文及相应密码状态。unknown MUST 先按 [authority-commit-log](./authority-commit-log.md) 原 authority 终局规则恢复并重投原字节，MUST NOT 重加密、推进第二次 sender generation 或换签另一消息；后次请求失败不能证明前次未接纳。
 
-**两请求路径假定发送就绪与本地 MLS state（normative）**：prepare + submit 这条两请求路径**假定**调用方已经
-send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
-MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
-缺少这些前提时失败发生在客户端加密阶段，而不是由准备接口补齐。
+**current 接纳门保持（normative）**：submit 事务独立校验 actor／设备、membership／grant／DM、scope 与 MLS key-access。确定没有 accepted Genesis／current group 的加密提交返回 `failed_precondition`，不可静默明文回退；current 暂不可读返回 `temporarily_unavailable`。已覆盖 current checkpoint 但 frozen epoch／group_state_ref／key_access_revision 不符返回顶层 `epoch_mismatch`（409）；尚待 winning Commit 覆盖优先返回 `failed_precondition` + `epoch_update_required`。只有按终局规则确定允许重新 author 时才能获取当前本地 MLS state 后新尝试。历史 accepted Event／peer committed replication 按原历史 binding 验证，不套 current send gate。本地构造成功不是 accepted，位置与 RealmCommit 只由 current governor 接受事务产生。
 
 ## 3. 读取与同步
 
@@ -710,9 +695,8 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.committed_event.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.self.committed_event.resource.get.v1` | `GET /_arkret/self/committed-events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView |
 | `ak.self.committed_event.stream.subscribe.v1` | `GET /_arkret/self/committed-events/subscribe` | - | - | response_schema_ref=schemas/committed-event-subscribe-frame.schema.json |
-| `ak.self.consent.command.grant.v1` | `POST /_arkret/self/consent/results/grant` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_grant_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
+| `ak.self.consent.command.replace.v1` | `POST /_arkret/self/consent/results/replace` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_replace_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
 | `ak.self.consent.command.request.v1` | `POST /_arkret/self/consent/request` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_request_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_request_outcome |
-| `ak.self.consent.command.revoke.v1` | `POST /_arkret/self/consent/results/revoke` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
 | `ak.self.consent.read.current.v1` | `POST /_arkret/self/consent/current` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome |
 | `ak.self.consent.read.list.v1` | `GET /_arkret/self/consent/results` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_list |
 | `ak.self.consent.resource.get.v1` | `GET /_arkret/self/consent/result` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
@@ -756,7 +740,6 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.management_review.read.status.v1` | `POST /_arkret/self/management-reviews/status` | - | - | request_schema_ref=schemas/management-review-operations.schema.json#/$defs/lookup; response_schema_ref=schemas/management-review-operations.schema.json#/$defs/outcome |
 | `ak.self.media.read.ice_config.v1` | `POST /_arkret/self/rtc/ice-config` | - | - | request_schema_ref=schemas/media-operations.schema.json#/$defs/media_ice_config_request_body; response_schema_ref=schemas/ice-config-response.schema.json |
 | `ak.self.media_service_binding.read.resolve.v1` | `POST /_arkret/self/media-service-bindings/query` | - | - | request_schema_ref=schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body; response_schema_ref=schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome |
-| `ak.self.messages.command.prepare.v1` | `POST /_arkret/self/messages/prepare` | - | - | request_schema_ref=schemas/message-authoring.schema.json#/$defs/message_prepare_request_body; response_schema_ref=schemas/message-authoring.schema.json#/$defs/message_prepare_outcome |
 | `ak.self.mls.read.group_state_material.v1` | `POST /_arkret/self/mls/group-state-material/query` | - | - | request_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome |
 | `ak.self.mls.read.roster_authority.v1` | `POST /_arkret/self/mls/roster-authority/query` | - | - | request_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request; response_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome |
 | `ak.self.moderation.command.report.v1` | `POST /_arkret/self/moderation/report` | - | - | request_schema_ref=schemas/moderation-report.schema.json#/$defs/moderation_report_request_body; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome |
@@ -787,3 +770,5 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.third_party_invite.read.acceptance_attestation.v1` | `POST /_arkret/self/third-party-invites/acceptance-attestation` | - | - | request_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body; response_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome |
 | `ak.server.read.describe.v1` | `GET /_arkret/describe` | - | - | response_schema_ref=schemas/service-describe.schema.json |
 <!-- END GENERATED OPERATION FIELD TABLE -->
+
+本节本地 authoring 的具名向量：`ak.vector.message.local_authoring.v1`，见正式 vector registry。

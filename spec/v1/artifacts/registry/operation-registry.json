@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.6",
+  "version": "2026-10-21.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:38:29+08:00",
+  "generated_at": "2026-10-21T10:55:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -157,7 +157,6 @@
       "operations": [
         "ak.peer.realm_join.read.bootstrap.v1",
         "ak.peer.realm_join.read.preview.v1",
-        "ak.self.messages.command.prepare.v1",
         "ak.self.realm_join.command.prepare.v1",
         "ak.self.realm_join.read.preview.v1"
       ],
@@ -226,8 +225,7 @@
       "operations": [
         "ak.self.consent.read.list.v1",
         "ak.self.consent.resource.get.v1",
-        "ak.self.consent.command.grant.v1",
-        "ak.self.consent.command.revoke.v1",
+        "ak.self.consent.command.replace.v1",
         "ak.self.consent.command.request.v1",
         "ak.self.consent.read.current.v1",
         "ak.peer.consent.read.current.v1",
@@ -1336,7 +1334,7 @@
       "mq": "open.mimi.command.update_consent",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "notes": "The caller MUST author and sign the exact ak.consent.grant (decision=accept) or ak.consent.revoke (decision=deny or revoke) EventAdmissionSubmission. The facade verifies the detached operation signature and the Event authority/correlation, then submits the Event unchanged through authority Event submission. It MUST NOT synthesize, rebuild or co-sign consent state. A revoke with no matching active observed dots is rejected without disclosing holder state. Exact Event replay returns the same accepted Event reference.",
+      "notes": "Caller signs a complete ak.consent.replace Event. body.consent_id equals private correlation.consent_id only; it is never the native selector. Exact holder Account/PCR/peer and original root/device/source gates apply. Accept adds or replaces only the correlation concrete scope; deny/revoke removes an existing entry, including expired ones. All other entries and optional-member presence remain byte-for-byte equal to the signed exact prestate. Facade compares the authenticated complete exact prestate; final PCR acceptance atomically checks that same expected revision or never_written predicate and performs the full replacement, never server merge or a distributed transaction. Wrong correlation/decision/stale new write uses opaque not_found. Exact accepted retry restores original correlation/decision/Event outcome before new-current evaluation and never replays a write.",
       "idempotency_mechanism": "object_id",
       "idempotency_object_path": "/consent_event/event/event_id",
       "retry_safe": true,
@@ -2902,25 +2900,26 @@
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view"
     },
     {
-      "operation_id": "ak.self.consent.command.grant.v1",
-      "http": "POST /_arkret/self/consent/results/grant",
-      "grpc": "SelfConsent/Grant",
-      "mq": "self.consent.command.grant",
-      "notes": "Submits the caller-signed ak.consent.grant Event carried in grant_event through authority Event submission. payload.consent_id is the producer-allocated typed current result subject and the security-set add dot is 'ak:event:<enclosing event_id>:<write_index>', so the service chooses neither and MUST NOT synthesize the Event. The authenticated actor MUST be authorized to write the holder's consent (the exact current authority-root controller; root_control_only forbids independent controller/Agent delegation).",
+      "operation_id": "ak.self.consent.command.replace.v1",
+      "http": "POST /_arkret/self/consent/results/replace",
+      "grpc": "SelfConsent/Replace",
+      "mq": "self.consent.command.replace",
+      "notes": "Submit the caller-signed complete ak.consent.replace Event unchanged, with holder PCR root-control-only authority and exact peer prior-current CAS. Empty is a durable closed set. Exact Event retry returns the original accepted ConsentView even after later replacements, without writing current again. The service never merges or signs permissions.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
-      "retry_safe": false,
+      "retry_safe": true,
       "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.consent.read.list.v1"
+        "strategy": "replay_same_operation",
+        "operation_id": "ak.self.consent.command.replace.v1",
+        "requires_same_request_identity_and_canonical_intent": true
       },
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_replace_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
-          "ak.consent.grant"
+          "ak.consent.replace"
         ]
       }
     },
@@ -2946,34 +2945,11 @@
       }
     },
     {
-      "operation_id": "ak.self.consent.command.revoke.v1",
-      "http": "POST /_arkret/self/consent/results/revoke",
-      "grpc": "SelfConsent/Revoke",
-      "mq": "self.consent.command.revoke",
-      "notes": "Submits the caller-signed ak.consent.revoke Event carried in revoke_event through authority Event submission. The payload identifies exactly one stable consent_id and expected_revision; the governing Station performs an atomic current-row CAS and sets that Consent to revoked. No grant dots or revoked_event_refs exist. An any-scope Consent is independent: revoking it does not cascade to concrete-scope Consent rows; clients that intend to revoke multiple rows must sign one exact-revision Event per consent_id.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.consent.read.list.v1"
-      },
-      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
-      "durable_effect": {
-        "kind": "event_log",
-        "event_kinds": [
-          "ak.consent.revoke"
-        ]
-      }
-    },
-    {
       "operation_id": "ak.self.consent.read.list.v1",
       "http": "GET /_arkret/self/consent/results",
       "grpc": "SelfConsent/List",
       "mq": "self.consent.query.list",
-      "notes": "Lists holder-private consent typed results for the authenticated holder only. Peer actors MUST NOT receive typed current result state, dots, expiry or request timestamps.",
+      "notes": "Holder-private display of one current summary per exact peer, including empty and inactive-window entries. It does not supply a signing prestate.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_list"
@@ -2983,7 +2959,7 @@
       "http": "GET /_arkret/self/consent/result",
       "grpc": "SelfConsent/Get",
       "mq": "self.consent.resource.get",
-      "notes": "Reads one holder-private consent typed current result only when the authenticated holder has exactly one exact peer match after optional consent_scope filtering. Zero matches use the existing resource-absent response; multiple matches fail with failed_precondition. Peers never receive this DTO; callers needing a specific consent_id use the holder-private list.",
+      "notes": "Read the authenticated holder exact peer current ConsentView for display; no scope filter or multiple-match branch. Missing peer uses the existing absent response and is not an authenticated never_written predicate. Full editing input comes only from consent.read.current.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view"
@@ -3191,7 +3167,7 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.query.resolve",
-      "notes": "Query-only resolver for the pair's single stable Direct Conversation. It never creates. An encrypted DC has one immutable scope-derived MLS group and monotonic epoch lineage; the response carries exact current group_state_ref. Repair is an ordinary Commit in that group. If all private group state is lost, the old DC Realm is terminal and a new conversation requires a new Realm id. No second group, epoch reset or timeout takeover exists. Found MUST include coordinates.binding_event_ref naming an accepted endorsement for authoring. Clients trust their own Station current result and exact committed proposal decision; they do not replay a governance history closure.",
+      "notes": "Query-only resolver for the pair single stable Direct Conversation. Found carries the unique immutable accepted binding_event_ref and current group_state_ref. No second confirmation, representative ref selection, group or epoch reset exists. Source/historical accepted-at verification and current participant/repair gates remain independent.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
@@ -3730,25 +3706,6 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
       "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome"
-    },
-    {
-      "operation_id": "ak.self.messages.command.prepare.v1",
-      "http": "POST /_arkret/self/messages/prepare",
-      "grpc": "SelfMessages/Prepare",
-      "mq": "self.messages.command.prepare",
-      "notes": "Prepare one complete unsigned ak.message.create from a closed intent, after client encryption where required. Exact canonical request replay; expires at client created_at plus 300 seconds. No sequence reservation and no submit ticket.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "canonical_hash",
-      "canonical_hash_input": "full_body",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
-      "response_schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
-      "max_canonical_body_bytes": 1048576,
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "Only a bounded expiring preparation cache; no accepted Event, sequence, membership or projection mutation."
-      }
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",
@@ -4338,7 +4295,7 @@
       "http": "POST /_arkret/self/consent/current",
       "grpc": "SelfConsent/ReadCurrent",
       "mq": "self.consent.read.current",
-      "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+      "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 65536,
       "success_shape_kind": "schema_resource",
@@ -4357,7 +4314,7 @@
       "http": "POST /_arkret/peer/consent/current",
       "grpc": "PeerConsent/ReadCurrent",
       "mq": "peer.consent.read.current",
-      "notes": "Separated-governor branch only for verified transferable non-Human PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification, and cross-Station proxy/publication/current read rejects without effects. No new holder_session authority is implied for other subjects. Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+      "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 65536,
       "success_shape_kind": "schema_resource",
@@ -5793,15 +5750,11 @@
           "binding_kind": "http_json"
         },
         {
-          "operation_id": "ak.self.consent.command.grant.v1",
+          "operation_id": "ak.self.consent.command.replace.v1",
           "binding_kind": "http_json"
         },
         {
           "operation_id": "ak.self.consent.command.request.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.consent.command.revoke.v1",
           "binding_kind": "http_json"
         },
         {
@@ -5954,10 +5907,6 @@
         },
         {
           "operation_id": "ak.self.media_service_binding.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.messages.command.prepare.v1",
           "binding_kind": "http_json"
         },
         {

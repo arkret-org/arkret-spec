@@ -5436,16 +5436,16 @@
       }
     },
     {
-      "operation_id": "ak.self.consent.command.grant.v1",
+      "operation_id": "ak.self.consent.command.replace.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_replace_request_body",
         "schema_kind": "object",
         "required": [
-          "grant_event"
+          "consent_event"
         ],
         "properties": [
-          "grant_event"
+          "consent_event"
         ],
         "closed": true
       },
@@ -5453,19 +5453,14 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "schema_kind": "object",
         "required": [
-          "consent_id",
           "peer",
-          "consent_scope",
-          "state",
+          "permission_scopes",
           "updated_at",
           "revision"
         ],
         "properties": [
-          "consent_id",
           "peer",
-          "consent_scope",
-          "state",
-          "expires_at",
+          "permission_scopes",
           "updated_at",
           "revision"
         ],
@@ -5501,43 +5496,6 @@
       }
     },
     {
-      "operation_id": "ak.self.consent.command.revoke.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
-        "schema_kind": "object",
-        "required": [
-          "revoke_event"
-        ],
-        "properties": [
-          "revoke_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
-        "schema_kind": "object",
-        "required": [
-          "consent_id",
-          "peer",
-          "consent_scope",
-          "state",
-          "updated_at",
-          "revision"
-        ],
-        "properties": [
-          "consent_id",
-          "peer",
-          "consent_scope",
-          "state",
-          "expires_at",
-          "updated_at",
-          "revision"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.consent.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -5559,19 +5517,14 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "schema_kind": "object",
         "required": [
-          "consent_id",
           "peer",
-          "consent_scope",
-          "state",
+          "permission_scopes",
           "updated_at",
           "revision"
         ],
         "properties": [
-          "consent_id",
           "peer",
-          "consent_scope",
-          "state",
-          "expires_at",
+          "permission_scopes",
           "updated_at",
           "revision"
         ],
@@ -7678,46 +7631,6 @@
       }
     },
     {
-      "operation_id": "ak.self.messages.command.prepare.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "account_id",
-          "realm_id",
-          "intent",
-          "created_at"
-        ],
-        "properties": [
-          "request_id",
-          "account_id",
-          "realm_id",
-          "intent",
-          "created_at"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/message-authoring.schema.json#/$defs/message_prepare_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_digest",
-          "draft",
-          "observed_at",
-          "expires_at"
-        ],
-        "properties": [
-          "request_digest",
-          "draft",
-          "observed_at",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.moderation.command.report.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -9107,14 +9020,12 @@
         "required": [
           "holder_account_id",
           "peer",
-          "consent_scope",
           "audience_actor_id",
           "nonce"
         ],
         "properties": [
           "holder_account_id",
           "peer",
-          "consent_scope",
           "audience_actor_id",
           "nonce"
         ],
@@ -9128,7 +9039,7 @@
           "realm_id",
           "governance_generation",
           "effective_stream_head",
-          "consents",
+          "current",
           "evaluated_at",
           "expires_at",
           "proof"
@@ -9138,7 +9049,7 @@
           "realm_id",
           "governance_generation",
           "effective_stream_head",
-          "consents",
+          "current",
           "evaluated_at",
           "expires_at",
           "proof"
@@ -9155,14 +9066,12 @@
         "required": [
           "holder_account_id",
           "peer",
-          "consent_scope",
           "audience_actor_id",
           "nonce"
         ],
         "properties": [
           "holder_account_id",
           "peer",
-          "consent_scope",
           "audience_actor_id",
           "nonce"
         ],
@@ -9176,7 +9085,7 @@
           "realm_id",
           "governance_generation",
           "effective_stream_head",
-          "consents",
+          "current",
           "evaluated_at",
           "expires_at",
           "proof"
@@ -9186,7 +9095,7 @@
           "realm_id",
           "governance_generation",
           "effective_stream_head",
-          "consents",
+          "current",
           "evaluated_at",
           "expires_at",
           "proof"

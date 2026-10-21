@@ -134,6 +134,6 @@ Arkret v1 的统一读法是：
 
 SDK 已持有本设备授权（Agent 为其 Agent signer evidence）与 authoring checkpoint 时，直接从 typed Message intent 构造并签名普通 Event，经 own Station 排队／转发到目标 stream 的 current governance Station。原账号 Station 在完成耐久转发后可以离线，但治理 Station 必须在接纳事务内按 current committed state 验证并为消息签发 RealmCommit；非 authority 接收站只能返回 queued／forwarding，不能先行 accepted、写共享 current 或 fanout。聊天不要求 producer 预先取得一个新的授权 checkpoint，也不因无关 stream 前进而重签；每条 accepted 消息仍推进自己的 authority stream。撤销之前已 committed 的历史事实不追溯失效，撤销之后的新 live admission 由治理 Station 阻止。
 
-可选的 `ak.self.messages.command.prepare.v1` 帮助缺少 authoring 上下文的客户端准备 unsigned Event：本地加密 → prepare → SDK 核对/签名 → submit。它增加一次准备请求，不构成所有普通消息必经的网络路径。首次治理同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达，不暗中产生其它 Relation Event。
+普通消息的可选远程 unsigned draft 能力已移除；共享 SDK 从真实已授权 create／current／resolver 与本地会话构造并签名，不保留准备 TTL 或逐消息 context 操作。首次同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达。
 
-prepare 不授予权限或预留 sequence。提交时已知的相关撤销和安全关闭按既有 gate 求值；单纯无关 RealmCommit/MLS epoch 前进不得一概拒绝仍满足历史资格及已登记 epoch 规则的消息。结果不明确时精确重放同一 signed submission，不能重新加密或签名掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#28-普通消息的完整-authoring-准备)。
+本地 authoring 不授予权限或预留 sequence。提交时已知的相关撤销和安全关闭按既有 gate 求值；单纯无关 RealmCommit/MLS epoch 前进不得一概拒绝仍满足历史资格及已登记 epoch 规则的消息。结果不明确时精确重放同一 signed submission，不能重新加密或签名掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#28-普通消息的本地-authoring)。

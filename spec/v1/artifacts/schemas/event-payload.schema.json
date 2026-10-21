@@ -2549,80 +2549,90 @@
       },
       "additionalProperties": false
     },
-    "consent_grant_payload": {
+    "consent_replace_payload": {
       "type": "object",
-      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. consent_id is the stable domain identity and the governance Station serializes changes on the PCR Realm stream.",
+      "description": "Complete holder-signed exact-peer replacement. Admission enforces unique scopes and canonical scope order. Empty is accepted current; never_written is rechecked atomically and cannot overwrite empty. No independent consent_id, any or server merge.",
       "required": [
-        "consent_id",
         "peer",
-        "consent_scope"
+        "expected_current",
+        "permissions"
       ],
       "properties": {
-        "consent_id": {
-          "type": "string",
-          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Stable identifier; used as the result_selector of the consent typed current result. ak.consent.revoke MUST reference the same consent_id."
-        },
         "peer": {
           "$ref": "#/$defs/consent_peer"
         },
-        "consent_scope": {
-          "type": "string",
-          "enum": [
-            "invite",
-            "voice_call",
-            "video_call",
-            "presence",
-            "any"
-          ],
-          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Strand invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all consent scopes."
+        "expected_current": {
+          "$ref": "#/$defs/consent_expected_current"
         },
-        "not_before": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "constraints": {
+        "permissions": {
           "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/consent_permission"
           },
-          "description": "Optional consent-specific constraints (rate limits, time-of-day windows, device restrictions). v1 does not standardise constraint types beyond capability constraint vocabulary."
-        },
-        "evidence_ref": {
-          "type": "string",
-          "description": "Optional reference to claim disclosure, presentation response, or invite proof that triggered this consent (audit trail)."
-        },
-        "reason": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "consent_revoke_payload": {
-      "type": "object",
-      "description": "Revoke the current consent identified by consent_id at exactly expected_revision. The governance Station rejects a stale revision and applies an accepted Event in stream order.",
-      "required": [
-        "consent_id",
-        "expected_revision"
-      ],
-      "properties": {
-        "consent_id": {
-          "type": "string",
-          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
-        },
-        "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision",
-          "description": "Exact current consent revision observed by the producer. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
-        },
-        "revoked_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "reason": {
-          "type": "string"
+          "allOf": [
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "consent_scope": {
+                    "const": "invite"
+                  }
+                },
+                "required": [
+                  "consent_scope"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "consent_scope": {
+                    "const": "voice_call"
+                  }
+                },
+                "required": [
+                  "consent_scope"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "consent_scope": {
+                    "const": "video_call"
+                  }
+                },
+                "required": [
+                  "consent_scope"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "consent_scope": {
+                    "const": "presence"
+                  }
+                },
+                "required": [
+                  "consent_scope"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -3728,7 +3738,7 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. What the first accepted write settles is the BINDING CONTENT -- a later endorsement carrying a different semantic binding_digest is refused before projection -- not the membership of the result: contact-and-direct-conversation.md section 8.3 makes this a set-shaped collection, and the second participant endorsement of the same binding MUST be acceptable. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
+      "description": "One immutable participant-signed confirmation of the founding coordinates and durable first exact-pair MLS completion. A different Event cannot add another confirmation. All fixed fields must match the original accepted founding unit and first exact-pair state; no binding_digest or extra state fields.",
       "required": [
         "pair_key",
         "unordered_participant_ids",
@@ -9783,6 +9793,78 @@
     },
     "realm_actor_recovery_set_payload": {
       "$ref": "./realm-actor.schema.json#/$defs/recovery_set_payload"
+    },
+    "consent_permission": {
+      "type": "object",
+      "description": "One concrete permission. A peer set contains at most one entry per scope, ordered invite, voice_call, video_call, presence. Complete optional-member presence is signed and preserved.",
+      "required": [
+        "consent_scope"
+      ],
+      "properties": {
+        "consent_scope": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "voice_call",
+            "video_call",
+            "presence"
+          ]
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "description": "Optional consent-specific constraints (rate limits, time-of-day windows, device restrictions). v1 does not standardise constraint types beyond capability constraint vocabulary."
+        },
+        "evidence_ref": {
+          "type": "string",
+          "description": "Optional reference to claim disclosure, presentation response, or invite proof that triggered this consent (audit trail)."
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_expected_current": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "const": "never_written"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "state",
+            "revision"
+          ],
+          "properties": {
+            "state": {
+              "const": "present"
+            },
+            "revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "x-arkret-public-handshake-contract": {

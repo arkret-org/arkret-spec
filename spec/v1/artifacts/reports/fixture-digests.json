@@ -162,8 +162,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
-      "sha256": "58ca0b69478b102347e5124b78a77d832558710d049ee3393510af7af3974bdd",
-      "version": "2026-10-19"
+      "sha256": "0a87af203ace8472d52ee3cc92f5ba97d310cf251e6c317beee44af9e3ebb119",
+      "version": "2026-10-21.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/constraint-evaluation-fixture.json",
@@ -257,8 +257,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "387acb2936cb1ea88b6d7df2fdb85e8a1585c78ff739f87f18573d1ce365e23d",
-      "version": "2026-09-23"
+      "sha256": "8aab9cf72a051058d1c03d3b3ec93b41566db49c63fa96e2342d144907f8f4da",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -494,6 +494,11 @@
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
       "sha256": "a2a3bf38754f8471abc23144db35cf5cf276e2ae3dff93da2a643d6bcf68c7ff",
       "version": "2026-09-26.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+      "sha256": "ecad593c202d95edef65fc22019ce652717a02bf843fce0124a795a7cc0bc0fc",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",

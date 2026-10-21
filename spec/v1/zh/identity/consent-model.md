@@ -3,7 +3,7 @@ title: Consent 模型
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-10-21
 sidebar:
   label: Consent 模型
 ---
@@ -18,92 +18,47 @@ Consent 是 holder 在 Principal Control Realm（PCR）中维护的方向性许�
 
 Consent 不授予 Realm capability，也不替代目标 Realm 的 membership、policy 或 authorization 检查。它只决定 holder 的 Station 是否允许相应首次接触继续进入目标 operation。
 
-## 2. 稳定身份与 current result
+## 2. 唯一 peer current
 
-每条 Consent 由 producer 分配的 `consent_id` 唯一标识。typed current result selector 是该稳定 `consent_id`，value 包含：
+Consent 的唯一 subject 是 holder 的实际 inception PCR namespace 与完整 exact peer ActorId；Account 分支包含 Station，Realm pairwise actor 也不得按 principal 合并。typed selector 为 `{kind:"consent",peer_id:ActorId}`，value 为 `{permissions:[...]}`。原生许可不分配 `consent_id`；该 typed ID 仅保留为 MIMI 私有请求 correlation。历史写以原 Event／RealmCommit 定位。
 
-- 完整 peer ActorId；
-- `consent_scope`；
-- 可选 `not_before`、`expires_at`、约束、证据引用与理由；
-- `active | revoked` reducer 状态；`expired` 不是物化状态，而是读取／准入时对 `not_before`、`expires_at` 的窗口判定。
+每个 concrete scope 最多一项，permissions 按 `invite,voice_call,video_call,presence` 的固定次序排列，最多四项；每项携 `consent_scope` 及可选 `not_before,expires_at,constraints,evidence_ref,reason`，字段含义和 optional 成员存在性均被用户签名覆盖。重复 scope 或非规范次序 MUST 拒绝，不能排序后改写原件。省略 scope 即不许可，空集合是已确认的全部关闭，仍保留真实 revision／来源；不得删除或 GC 成从未写入。到期只影响实际 gate 求值，不写 clock-driven Event。
 
-current revision 不是 value 的成员：typed current result 的 `revision` 与 `value` 同层，是封闭的 `{commit_id, stream_position}`（见 [`sync/current-results.md` §2](../sync/current-results.md)），`commit_id` 即产生该 revision 的 RealmCommit。
+current revision 与 value 同层，为封闭 `{commit_id,stream_position}`，见 [current-results](../sync/current-results.md)。self list/get 只供展示，get 按 exact peer 返回唯一 summary，不再接受 scope filter 或多匹配任选。summary 的 permission_scopes 包含所有已存条目；不能用这些不含完整窗口／约束的结果签替换。请求待审仍不是许可 current，缺项／空列表不证明从未写入。
 
-同一 `consent_id` 在任一时刻只有一个 current value。治理 Station按 PCR Realm stream 的 Commit 顺序执行 reducer；协议不暴露集合标签、写索引或合流元数据。
+## 3. 唯一完整替换 Event
 
-holder-private `ConsentView.state` 逐字映射这一 current 状态，`ConsentList.consents[]` 只列有稳定 `consent_id` 与 exact current revision 的记录；不存在的 Consent 不以伪 `no_consent` row 表示。请求待处理不是 Consent current 状态，也不得从无记录或时间戳猜成 `pending`。如产品需要待处理列表，必须另行注册具备来源与生命周期的 holder-private request carrier。
+### 3.1 `ak.consent.replace`
 
-`ak.self.consent.resource.get.v1` 是对 holder-private current 的条件性单值读取：在认证 holder 的全部 Consent 中，先按必填的完整 `peer` 精确匹配，再按可选的 `consent_scope` 精确过滤；只有匹配集恰有一条时才返回该条 `ConsentView`。匹配集为空时按现有资源不存在响应处理，超过一条时 MUST 以 `failed_precondition` 失败关闭，不得按时间、状态、`consent_id` 排序或其它隐含规则任选一条。`consent_scope` 即使给出也不保证唯一；需要定位指定 `consent_id` 或展示多条记录的客户端 MUST 使用 holder-private list 并按返回的稳定 ID 自行选择。此读取不合并、不覆盖、也不改变任何 Consent current。
+唯一原生 writer 是 `ak.consent.replace`，closed payload 为 `event-payload.schema.json#/$defs/consent_replace_payload`：`peer,expected_current,permissions`。首次写签 `{state:"never_written"}`；已有 current 签 `{state:"present",revision:{commit_id,stream_position}}`。该前态必须从 §6.3.1 完整读取取得；不把 read proof 塞入 payload 或创建预约。
 
-## 3. Event
+接受方在 PCR 原有 serializable admission 事务内验证实际 holder PCR、用户原签、当前 root controller、authorization_ref／设备与完整 peer，再检查从未写入谓词或 exact revision，接受整份目标集合并签原 covering RealmCommit。同前态竞争至多接受一份，另一份 `failed_precondition`、零 Event／Commit／current／私有效果写入，必须重读并重新确认；不得自动 union、按时间合并、服务端补字段或重签。
 
-### 3.1 `ak.consent.grant`
+### 3.2 删除与精确恢复
 
-Grant payload 使用 `event-payload.schema.json#/$defs/consent_grant_payload`：
+关闭一个 scope 是显式移除该项；关闭全部是签空集合。重新许可必须以包括 empty 在内的真实 current revision 作新替换。首次写谓词不能覆盖另一设备已接纳的 empty。旧 Event 重投只恢复原终局，不能重新安装旧值。
 
-```json fragment
-{
-  "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001",
-  "peer": {"kind": "actor", "actor_id": "did:webvh:example.net:u:bob"},
-  "consent_scope": "invite"
-}
-```
-`consent_id` 必须尚未存在；相同 Event 的重试返回同一提交结果，不产生第二条 Consent。另一个 Event 复用该 ID 必须以 `failed_precondition` 拒绝。
+提交前耐久冻结 exact signed Event、PCR／holder／peer 与提交身份。unknown 沿统一 submit 的原 authority 终局规则恢复原 Event／Commit；已接纳 exact retry 在新的 current CAS 前识别并返回原 ConsentView／来源，且重验当前披露权限，不以之后的 current 重算旧差异。私有 version 读取使用 exact peer、原 event_id 和 commit_id；缺失／未知终局不得猜作未接受。
 
-### 3.2 `ak.consent.revoke`
+`ak.self.consent.command.replace.v1` 只接纳调用方原 `consent_event: EventAdmissionSubmission`，不得代写、重建或代签。root_control_only 不允许不同主体 managed-behalf、consent_write delegation、普通 PCR／co-owner grant 或 automation 替代 holder 原控制权。
 
-Revoke payload 使用同一稳定 ID，并要求调用方签入 current revision：
+## 4. Concrete scope 与失效
 
-```json fragment
-{
-  "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001",
-  "expected_revision": {
-    "commit_id": "ak:realm_commit:0Zm5xr9E1cVJm2Q7pT4sN8bK6hW3yD1gXfL0aRtUvOc",
-    "stream_position": 7
-  },
-  "reason": "holder_request"
-}
-```
-治理 Station必须在 commit 事务中同时验证目标存在、仍为 active 且 current revision 等于 `expected_revision`。成功后 revision 变为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}` 并进入 `revoked`；stale revision、未知 ID、重复撤销或主体不匹配均拒绝。撤销只影响后续 admission，不追溯撤销已经提交的其它 Realm Event。
+closed scope 仅为 `invite,voice_call,video_call,presence`。不存在独立 `any` 或多个同 scope 许可 OR；UI 全选只签当时明确列出的四项，未来新增 scope 默认不授权。同 scope 多窗口 OR 能力正式删除；不同 scope 仍有自己的窗口和约束。
 
-### 3.3 Producer 与提交
+### 4.1 撤回与缓存
 
-Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 authority-root controller，`authorization_ref` 必须绑定该控制权。服务只接受调用方给出的 `EventAdmissionSubmission { event }`，不得代写、重建或代签 Event。只有当前治理 Station签发的 `RealmCommit` 使更新生效。
+替换接纳必须同事务更新 current、必要 quarantine invalidation 与耐久发布意图。quarantine 条目必须保留认证的完整 source_peer_actor_id 供 holder 审核及构造 exact peer；其 source_peer_principal_id 仅服务原反滥用 quota，两者须验证来自同一真实来源，不能由 transport source 或裸 principal 猜 Station。关闭 invite 的 invalidation 用完整 peer_actor_id 匹配条目，不清其它 Station Account；原 source quota ledger 的身份／保留期不变。invite、通话、consent_only presence 和 MIMI 缓存绑定唯一 current revision 与实际 concrete scope；关闭后实际准入不得使用旧 preflight。无关 scope 变化不伪称其被撤回，但缓存复用仍须满足已知 source 版本、当前窗口和 current 边界，不能忽略新 revision。
 
-## 4. Scope
-
-`consent_scope` 的 closed 值为：
-
-| 值 | 语义 |
-| --- | --- |
-| `invite` | peer 可发起 Realm/Strand invite。 |
-| `voice_call` | peer 可发起语音通话。 |
-| `video_call` | peer 可发起视频通话。 |
-| `presence` | 在 holder 选择 `consent_only` Presence 模式时，peer 可观察 holder presence；整个 signed scope 的每个其它 active member 必须分别满足当前 `presence`／`any` grant。公开／Contact 模式保持其独立授权依据，不能复用为 Consent 通过。 |
-| `any` | 覆盖全部具体 scope。 |
-
-### 4.1 `any` 与撤销
-
-`any` 是一条独立 Consent，不隐式创建其它记录。撤销某个具体 scope 不影响 `any`；若 holder 希望停止全部许可，客户端必须分别对相关 active `consent_id` 提交带正确 revision 的 Revoke Event。UI 必须在确认前列出仍会保持 active 的 Consent。
-
-### 4.1.1 缓存失效
-
-Revoke 被 RealmCommit 接纳后，holder Station必须立即使相应 invite gate、通话 gate、`consent_only` presence 与 MIMI consent cache 失效。`any` 被撤销时，使该 peer 的全部具体 scope cache 失效；其它独立 active Consent 仍按 §5 求值。缓存不得把 current revision 回退或延迟已知撤销。没有缓存的消费者必须在实际准入边界读取同一 current，不能复用已撤销的 preflight。
-
-current-v1 不提供 private-contact discovery 或 PSI（见 [`discovery/discovery-directory.md` §1／§6](../discovery/discovery-directory.md)）。本条不要求恢复这些入口、索引或轮转；未登记入口必须不可调用、不可广告且不得改变索引。已登记的 MIMI identifiers facade 不得调用未登记发现协议或用 Consent 构造匹配结果。
+current-v1 不提供 private-contact discovery 或 PSI；未登记入口不可调用、不可广告且不得改变索引，MIMI identifiers facade 不得用 Consent 推导发现命中。
 
 ### 4.1.2 引入证据
 
-holder 可把 active `invite` 或 `any` Consent 的 `CommittedEventRef` 作为 audience-bound introduction evidence。接收方必须向 holder 的 current authority 验证该 ID 当前仍 active；证据本身不复制 Consent value，也不授予目标 Realm 权限。
+holder 可主动提供原 accepted replacement 的 `CommittedEventRef` 作为 audience-bound introduction evidence；该原目标必须含 invite，并绑定完整 holder、peer。接收方在实际 delivery 向 current authority 检查同 peer 当前 invite 条目、窗口和来源。历史原签只帮助认证／定位，不是永久授权；证据不复制完整许可集合，也不授予 Realm 权限。
 
 ## 5. Effective Consent
 
-查询 `(holder, peer, concrete_scope)` 时，以下任一 current record 可满足 gate：
-
-- peer 完整 ActorId相等且 scope 等于 concrete scope 的 active record；
-- peer 完整 ActorId相等且 scope=`any` 的 active record。
-
-时间窗口必须包含当前验证时间。未知、不可验证、已过期或 authority freshness 不足一律视为未授权。不同 Realm 的 pairwise ActorId不得因 principal DID相同而聚合。
+查询 `(holder,exact_peer,concrete_scope)` 只读取这一份 current 的该 scope 条目。不存在、empty、缺项、未来、过期、authority freshness 不足或约束不可解释均不授权；未知／非空未登记约束不能被忽略。没有其它 record／any 可兜底。独立 Contact、membership、Realm capability、设备及生命周期 gates 仍分别执行。
 
 ## 6. Operation admission
 
@@ -133,19 +88,26 @@ holder 可主动签发短期 green-light，绑定 holder、peer、scope、audien
 
 ### 6.3 通话首次接触
 
-通话产品投递、客户端响铃及适用的首次接触 media token 必须分别重验完整 current，采用 [`webrtc-signaling.md` §3b](../crypto-media/webrtc-signaling.md) 的 exact invitation／受权读取合同。该关系不改变 holder PCR 真源；generic encrypted rail 不构成产品准入。非空且未登记语义的 constraints 数组 使该条 record 不可授权，独立其它 concrete／any record 仍单独求值。
+通话产品投递、客户端响铃及适用的首次接触 media token 必须分别重验完整 current，采用 [`webrtc-signaling.md` §3b](../crypto-media/webrtc-signaling.md) 的 exact invitation／受权读取合同。该关系不改变 holder PCR 真源；generic encrypted rail 不构成产品准入。非空且未登记语义的 constraints 使该 concrete scope 条目不可授权，不存在其它同 scope record 或 any 兜底。
 
 ### 6.3.1 Holder-private 完整 current 读取
 
-普通 Realm snapshot 的披露不能被用来开放 holder PCR；列表／get 的 ConsentView 也不含完整值。完整读取正式复用 Consent surface，operation 为 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）及仅供 hosting Station 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`）。closed request／outcome 见 `consent-operations.schema.json` 的 `consent_current_read_request_body`／`consent_current_read_outcome`。
+普通 Realm snapshot 不开放 holder PCR。完整编辑前态唯一复用 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）和仅供非 Human hosting 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`），closed DTO 见 `consent-operations.schema.json`。
 
-两个入口均使用 exact `holder_account_id,peer,consent_scope,audience_actor_id,nonce`，nonce 至少128 bit CSPRNG；self 的认证 Account **MUST** 等于完整 holder，audience **MUST** 是 holder hosting Station 的完整 Service ActorId。peer 只允许该 hosting Station，且只用于已验证可独立交接的非 Human PCR，经当前 PCR authority 读取；Human 在 owning Station TCB 内完成同一读取，不使用跨 Station PCR 代理；邀请发起者、媒体 issuer、同 principal 的另一 Station Account 与普通 Realm governance **MUST NOT** 取得完整值。hosting Station 必须先完成认证 holder／其正式controller的授权，不得把 requester 的声明作为代理资格。完整值只交给该 holder 的认证 self 会话，不向 caller of invitation 或其它消费者转发。
+request 为 exact `holder_account_id,peer,audience_actor_id,nonce`，没有 consent_scope filter；nonce 至少128 bit CSPRNG。self 的认证 holder／正式controller 必须通过既有 holder root 权限，audience 为 holder hosting Station 完整 Service ActorId。peer 只供已独立验证可交接非 Human PCR 的 exact hosting Station；Human 在 owning Station TCB 读取。requester、MIMI provider、邀请发起者、media issuer、另一 Station Account 与普通 Realm governor不得取得完整结果；correlation／purpose 不授予读取权。完整结果仅回原获准 holder／controller self 会话。
 
-current authority 在与 Grant／Revoke 相同的 PCR serializable cut 读取全部 exact peer、requested scope 及独立 any 的 current records（请求 any 时只匹配 any），包括 active／revoked，不按列表状态猜许可。outcome 由该 cut 的实际 PCR Realm、generation、effective Realm stream head 及完整 `consent_result` rows组成；空集合只表示此 cut 无匹配记录。每 row 的稳定 ID、source stream与current revision必须绑定实际accepted source，完整值包括not_before、expires_at、constraints与状态。此 operation 不签发授权、不写第二账本、不改变 current；list／get继续只用于定位稳定 ID／展示。完整 targeted read 消除 list 与 exact read 的竞争；consumer仍独立求值所有 eligible concrete／any records。
+current authority 在与替换／私有接受相同的 PCR 串行化边界内以一次一致性 cut 读取，返回实际 PCR、generation、effective stream head 和闭合 current 分支：
 
-outcome 的 request_digest 是完整请求 RFC8785 JCS 的 SHA-256；签名输入为 `UTF8("ak.consent.current_read.v1") || 0x00 || RFC8785_JCS(outcome仅去除proof)`。proof为 closed `{verification_method,jws}`，当前 authority key／generation须从独立可信配置锚定，不能来自结果自报。窗口不超过evaluated_at后30秒。hosting Station必须验证原outstanding请求、nonce／audience／holder、该generation及签名，再经authenticated self交付；holder客户端必须验证并安装完整typed rows及head，对本地已知更晚head／revoke不回退。材料不完整、时间过期、authority变更或旧读均刷新／拒绝本次，恢复后合法重试；不能仅因历史验签或窗口未过就重复许可。
+- `present`：完整 `consent_result`，包括唯一 selector、source_stream_ref、exact revision 与全部 value。empty 也是此分支。
+- `never_written`：同 exact subject、同 cut 的明确从未写入声明；由 request_digest 绑定 holder／peer，以实际 PCR／generation／head 认证。不得伪造 Event、Commit 或 position 0 revision。
 
-peer签名场景只引用 `ak.http_signature.scenario.consent_current_read.v1`，适用覆盖集如下：
+present 必须返回所有尚未被显式移除的条目，包括过期、未来、不可求值约束和各项完整窗口／附属字段。不能筛出“当前有效”再交编辑，不能拼不同 cut 的逐 scope 结果。缺某 scope、空列表、超时、not_found、拒绝披露都不是 never_written。读取失败不能签替换；显式删除无效项须展示真实差异。
+
+request_digest 为完整请求 RFC8785 JCS 的 SHA-256；proof 是 closed `{verification_method,jws}`，签名输入为 `UTF8("ak.consent.current_read.v1") || 0x00 || RFC8785_JCS(outcome仅去除proof)`。authority key／generation 从独立可信来源锚定。expires_at 不超过 evaluated_at 后30秒；验证 outstanding 请求、nonce、audience、holder、完整 peer、签名、实际 PCR／generation／head 与已知高水位／撤权后交付。present 的 selector、source stream、revision 与 accepted source 必须一致。旧读不得覆盖更新的 head／empty。窗口过期、任期变化或缺材料时刷新，不能补本地空值。
+
+读取不是预约：后续替换在新的接受事务检查 exact current；never_written 同样须仍未写入。所有真实 gate 仍在获准边界内部对所需 concrete scope 求值，对外只返回既有最小短期 audience-bound outcome，不能转发完整编辑结果。
+
+peer 签名继续唯一引用 `ak.http_signature.scenario.consent_current_read.v1`，覆盖集如下：
 
 <!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.consent_current_read.v1 -->
 - `@method`、`@target-uri`、`@authority`
@@ -158,18 +120,18 @@ peer签名场景只引用 `ak.http_signature.scenario.consent_current_read.v1`�
 
 ### 6.3.2 交接后的私有接受与 hosting 代理（normative）
 
-Human 的 Grant／Revoke、current、quarantine、quota／去重、policy、delivery 最终 CAS 与通知在 owning Station 的同一 PCR 权威边界内完成；内部拆分仍须原子提交和耐久 exact retry，不产生 remote PCR governor、代理会话证明或跨 governor publication。普通设备同步、account subscribe 的 baseline／catch-up 和本地耐久通知保持。
+Human 的 完整替换、current、quarantine、quota／去重、policy、delivery 最终 CAS 与通知在 owning Station 的同一 PCR 权威边界内完成；内部拆分仍须原子提交和耐久 exact retry，不产生 remote PCR governor、代理会话证明或跨 governor publication。普通设备同步、account subscribe 的 baseline／catch-up 和本地耐久通知保持。
 
-本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的非 Human PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，Grant／Revoke 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human 请求该跨站分支 MUST 零效果拒绝。
+本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的非 Human PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，完整替换 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human 请求该跨站分支 MUST 零效果拒绝。
 
-Grant／Revoke MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
+完整替换 MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
 
 其它私有服务接受正式使用 `ak.peer.consent.command.proxy.v1`（`POST /_arkret/peer/consent/proxy`），closed DTO 见 `consent-private-operations.schema.json`。这不是任意 RPC 或 AccountData PUT；命令集合只包含下表六项。所有请求绑定完整 holder、inception PCR、当前治理 generation、至少128 bit CSPRNG nonce、最多30秒的 outstanding `expires_at`、认证上下文与完整命令。只允许 exact holder hosting Station 作为 RFC9421 Source，Destination 必须是独立验证的当前 PCR authority。沿用 `ak.http_signature.scenario.service_to_service.v1`，不另抄覆盖集，不转发用户 bearer／DPoP／session credential。
 
 | command.kind | context | 接受语义与结果 |
 | --- | --- | --- |
-| `list` | `holder_session` | 同 cut 读取 holder 的 `ConsentList`；只用于展示／定位稳定 ID，不作为最终准入。 |
-| `version` | `holder_session` | 按 exact `consent_id,commit_id` 返回原 accepted Grant／Revoke 的 `ConsentView`，供 Event 精确重试；不得把原结果解释成当前许可。 |
+| `list` | `holder_session` | 同 cut 读取 holder 的 `ConsentList`；只用于展示 exact peer summary，不作为最终准入。 |
+| `version` | `holder_session` | 按 exact `peer,event_id,commit_id` 返回原 accepted 替换的 `ConsentView`，供 Event 精确重试；不得把原结果解释成当前许可。 |
 | `effects` | `holder_session` | 同 cut 读取 holder quarantine、invite delivery 与 receive policy 的完整 revision/content。required nullable cell 的 null 只证明该 cut 从未写入／当前不存在；缺项或来源未知不能当空值。 |
 | `invite_policy` | `holder_session` | 复用原 closed receive policy，完整 account 必须等于 holder；在同一 PCR 私有接受锁下耐久替换并返回 revision/content。 |
 | `invite_delivery` | `station` | 保留原完整 `InviteDeliveryRequest` 及原认证 notification source；重验 Event／Commit／原 producer 证据和 recipient／introduction 关系，沿同一个 receive-policy、quota、去重、Consent current 与最终 private CAS 接受路径执行。对原 requester 仍只给原 opaque 结果。 |
@@ -181,7 +143,7 @@ proxy outcome 绑定完整 request digest、PCR、generation、实际 effective 
 
 proxy 的写命令以 `(holder,governance_generation,nonce)` 与完整 request digest 保留原窗口内的耐久精确重试 fence；相同 key 不同 bytes 拒绝，相同请求不再执行私有写入、不延长窗口。原结果回放仍重验当前 disclosure 与设备权限。读取命令重新取得当前 cut，不冻结可反复使用的授权结果。所有这些 fence、policy revision、source quota、去重、quarantine 与 delivery 状态必须随 PCR 私有冻结状态一起完整迁入；新方未证明其完整性时不能签 handoff acceptance。
 
-hosting 侧 AccountData／device 更新只展示已验证 authority 接受的内容与原 revision，不独立推进该业务 revision，不构成第二个 CAS writer。变更接受后须使用原正式 actor-private 更新路径唤醒 holder；通知丢失时从当前 authority 读取并按已知 head／cell 高水位恢复，不能重新执行业务接受。Consent Revoke、quarantine invalidation 与最终 delivery 接受的线性顺序始终由当前方同一事务决定，两个数据库之间不假定分布式事务。
+hosting 侧 AccountData／device 更新只展示已验证 authority 接受的内容与原 revision，不独立推进该业务 revision，不构成第二个 CAS writer。变更接受后须使用原正式 actor-private 更新路径唤醒 holder；通知丢失时从当前 authority 读取并按已知 head／cell 高水位恢复，不能重新执行业务接受。Consent 关闭替换、quarantine invalidation 与最终 delivery 接受的线性顺序始终由当前方同一事务决定，两个数据库之间不假定分布式事务。
 
 ### 6.3.3 非 Human 跨 governor 私有效果发布（normative）
 
@@ -199,16 +161,14 @@ publication outcome 只携完整 request digest 和 `applied|duplicate`，不授
 
 ## 7. MIMI 映射
 
-MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。
+MIMI request 的 opaque consent_id 仅绑定私有 correlation，不进入原生 payload／selector。所有 decision 均携 caller-signed `ak.consent.replace` 完整 Event；具体身份、单 scope 差异与终局恢复依 [MIMI §10](../extensions/mimi-interop.md#10-identifiers-and-consent)。facade 只验证并转交原件，不合并、补字段或代签。对外投影只暴露原有最小 peer／scope／active outcome，不披露其它项、理由、证据或 revision。
 
 ## 8. 隐私与管理
 
-Consent list/get 仅允许 holder 或 holder 明确授权的 controller。peer 不能读取 holder 的 Consent ID、revision、expiry 或历史。管理 UI 可按 peer 聚合展示，但不得把聚合视图写回 wire。
-
-### 8.1 本地聚合撤销
-
-“撤销该 peer 的全部许可”是客户端编排：先从同一 current authority取得 holder 可见的全部 active Consent，再为每个 `consent_id` 用其精确 current revision签署 Revoke Event。任一竞争更新都使对应 Event stale；客户端必须刷新后重新确认，不得由服务端隐式扩大撤销集合。
+list/get/current 只允许原 holder 或正式获准 controller，peer 不读取许可集合、revision、expiry、empty／never_written 或历史。管理 UI 展示完整前态与目标差异；关闭全部以单份空集合原签替换，不再逐 ID 聚合撤销。原生 request 删除 any，仍禁止 invite（邀请走 invite delivery），其结果恒为 accepted_for_processing=true；quarantine、new-source quota、同事务去重及不可枚举响应保持。请求待审不自动授权。
 
 ## 9. Conformance
 
-实现至少验证：唯一 `consent_id`、stale revision 拒绝、exact retry、`any` 与具体 scope 的独立性、撤销后 cache 即时失效、跨 Station anti-enumeration、pairwise ActorId隔离以及 requester 观察等价类。
+至少验证完整 peer／Station 隔离、同前态竞争、empty 与 never_written 区分、首次写与 empty 竞争、unknown 原件恢复、完整编辑不丢未来／过期／未知约束条目、重复 scope／any 拒绝、单 scope 删除不清其它项、多 correlation 串行同 current、跨后续更新的 exact retry、越权完整读取拒绝、窗口／缓存／私有效果失效及 requester 观察等价类。schema-only 检查不代表真实 PCR／HTTP／冷恢复验收通过。
+
+具名简化向量：`ak.vector.consent.peer_current.v1`，见正式 vector registry；生产验证按领域任务执行。

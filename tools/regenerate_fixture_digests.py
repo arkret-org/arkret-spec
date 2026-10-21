@@ -44,87 +44,6 @@ def replace(node: dict[str, Any], key: str, value: Any) -> int:
     return 1
 
 
-def update_direct_conversation_vectors(data: dict[str, Any]) -> int:
-    """Refresh dependent Direct Conversation digests as one closed KAT set."""
-
-    def binding_object(payload: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "pair_key": payload["pair_key"],
-            "participants_unordered": sorted(
-                payload["unordered_participant_ids"],
-                key=lambda actor: canonical_json(actor).encode("utf-8"),
-            ),
-            "realm_id": payload["realm_id"],
-            "main_strand_id": payload["main_strand_id"],
-            "founding_unit_digest": payload["founding_unit_digest"],
-            "authorization_basis": {
-                "kind": payload["authorization_basis"]["kind"],
-                "event_refs": sorted(
-                    payload["authorization_basis"]["event_refs"],
-                    key=lambda event_ref: event_ref.encode("utf-8"),
-                ),
-            },
-            "initial_exact_pair_group_state_ref": payload["initial_exact_pair_group_state_ref"],
-        }
-
-    vectors = {
-        vector.get("vector_id"): vector
-        for vector in data.get("vectors", [])
-        if isinstance(vector, dict)
-    }
-    pair = vectors.get("ak.vector.direct_conversation.pair_key.v1")
-    binding = vectors.get("ak.vector.direct_conversation.binding_digest.v1")
-    if not isinstance(pair, dict) or not isinstance(binding, dict):
-        return 0
-    pair_digest = pair.get("expected_digest")
-    binding_input = binding.get("input")
-    domain = binding.get("domain_separator_utf8")
-    if not isinstance(pair_digest, str) or not isinstance(binding_input, dict) or not isinstance(domain, str):
-        return 0
-
-    updates = replace(binding_input, "pair_key", pair_digest)
-    canonical = canonical_json(binding_object(binding_input))
-    binding_digest = "sha256:" + hashlib.sha256((domain + canonical).encode("utf-8")).hexdigest()
-    updates += replace(binding, "expected_canonical_bytes_utf8", canonical)
-    updates += replace(binding, "digest_input_hex", (domain + canonical).encode("utf-8").hex())
-    updates += replace(binding, "expected_digest", binding_digest)
-
-    for case in binding.get("normalization_cases", []):
-        if not isinstance(case, dict):
-            continue
-        payload = case.get("payload")
-        if isinstance(payload, dict):
-            updates += replace(payload, "pair_key", pair_digest)
-        updates += replace(case, "expected_digest", binding_digest)
-
-    for case in binding.get("mutation_cases", []):
-        if not isinstance(case, dict):
-            continue
-        if case.get("name") == "omit_domain_separator":
-            bare = canonical.encode("utf-8")
-            updates += replace(case, "digest_input_hex", bare.hex())
-            updates += replace(case, "expected_digest", "sha256:" + hashlib.sha256(bare).hexdigest())
-            continue
-        mutation_input = case.get("input")
-        mutation_domain = case.get("domain_separator_utf8")
-        if isinstance(mutation_input, dict) and isinstance(mutation_domain, str):
-            updates += replace(mutation_input, "pair_key", pair_digest)
-            mutation_canonical = canonical_json(binding_object(mutation_input))
-            updates += replace(case, "expected_canonical_bytes_utf8", mutation_canonical)
-            if "digest_input_hex" in case:
-                updates += replace(
-                    case,
-                    "digest_input_hex",
-                    (mutation_domain + mutation_canonical).encode("utf-8").hex(),
-                )
-            updates += replace(
-                case,
-                "expected_digest",
-                "sha256:" + hashlib.sha256((mutation_domain + mutation_canonical).encode("utf-8")).hexdigest(),
-            )
-    return updates
-
-
 def update_snapshot_witness_quorum(data: dict[str, Any]) -> int:
     """Bind every witness proof to the complete Actor issuer projection."""
     fixture = data.get("snapshot_witness_quorum")
@@ -148,15 +67,7 @@ def update_snapshot_witness_quorum(data: dict[str, Any]) -> int:
 def update_file(path: Path) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     updates = 0
-    special_nodes: set[int] = set()
-    if path.name == "encoding-fixture.json" and isinstance(data, dict):
-        for vector in data.get("vectors", []):
-            if isinstance(vector, dict) and vector.get("vector_id") == "ak.vector.direct_conversation.binding_digest.v1":
-                special_nodes.add(id(vector))
-                special_nodes.update(id(case) for case in vector.get("mutation_cases", []) if isinstance(case, dict))
     for node in iter_dict_nodes(data):
-        if id(node) in special_nodes:
-            continue
         for input_key, digest_key in SHAPES:
             digest = node.get(digest_key)
             if input_key not in node or not isinstance(digest, str) or not digest.startswith("sha256:"):
@@ -179,8 +90,6 @@ def update_file(path: Path) -> int:
                 if node["digest_input_hex"] != expected_hex:
                     node["digest_input_hex"] = expected_hex
                     updates += 1
-    if path.name == "encoding-fixture.json" and isinstance(data, dict):
-        updates += update_direct_conversation_vectors(data)
     if path.name == "sync-fixture.json" and isinstance(data, dict):
         updates += update_snapshot_witness_quorum(data)
     if updates:

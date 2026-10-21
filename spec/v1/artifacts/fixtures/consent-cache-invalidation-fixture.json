@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-19",
+  "version": "2026-10-21.2",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -22,7 +22,7 @@
     "schemas/authority-commit-operations.schema.json",
     "registry/pcr-exposure-registry.json"
   ],
-  "description": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
+  "description": "Complete exact-peer permission set replacements invalidate affected invite/call/presence/MIMI decisions at actual admission cuts; current revisions never roll back and requester outcomes remain opaque.",
   "security_evidence": [
     {
       "vector_id": "ak.vector.consent.cache_invalidation.v1",
@@ -43,8 +43,8 @@
           ]
         },
         {
-          "id": "any_scope_revoke_clears_all_scopes",
-          "requirement": "Revoking the independent any Consent invalidates every derived concrete-scope cache at the admission boundary without revoking other independent grants.",
+          "id": "empty_replacement_clears_all_scopes",
+          "requirement": "A signed empty replacement invalidates all derived scope decisions while retaining its exact current revision.",
           "evidence": [
             "/cases/2"
           ]
@@ -98,8 +98,8 @@
           ]
         },
         {
-          "id": "call_invitation_window_constraints_and_independent_grants",
-          "requirement": "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant.",
+          "id": "call_invitation_window_constraints_and_single_scope",
+          "requirement": "Future/expired/unknown-constrained scope entries never authorize; there is no independent record or any fallback. Removing voice preserves other explicitly unchanged entries but invalidates stale voice decisions.",
           "evidence": [
             "/cases/9"
           ]
@@ -157,28 +157,27 @@
       "observed": "the holder delivery state and opaque requester response",
       "assertions": [
         "no stale preflight authorizes the holder-private delivery CAS",
-        "the gate uses current Consent under the same holder PCR lock as Grant/Revoke",
+        "the gate uses current Consent under the same holder PCR lock as Replace",
         "the requester receives opaque deferred without a consent_revoked reason"
       ]
     },
     {
-      "name": "an_any_scope_revoke_clears_every_scope_cache",
-      "given": "invite, call and presence decisions derive from one active any Consent, and another concrete grant is independent",
-      "action": "revoke the any consent_id with its exact expected_revision",
+      "name": "empty_replacement_clears_every_scope_cache",
+      "given": "All four concrete entries exist in one exact-peer current and caches bind its revision.",
+      "action": "Accept a holder-signed empty complete replacement using that exact current revision.",
       "decision": "reject",
       "reason": "consent_revoked",
-      "observed": "each scope cache after the revoke",
+      "observed": "All registered admission gates after the replacement.",
       "assertions": [
-        "all decisions derived from that any Consent are invalidated at their actual admission boundaries",
-        "no registered consumer continues using a decision derived from the revoked any record",
-        "the independent concrete grant retains its current revision and remains eligible under its own scope and window",
-        "Presence consent_only evaluates every other complete ActorId in the current encrypted signed scope using fresh complete presence/any Consent current at the actual sender boundary. One revoked, expired, mismatched or unavailable peer suppresses the whole scope. public and contacts_only remain explicit independent authorizations; no service plaintext filtering or receiver-only hiding substitutes for confidentiality."
+        "All four scopes deny; no independent any or record can keep an omitted scope active.",
+        "Empty remains present with its accepted revision; replay of an older Event never installs it again.",
+        "Presence consent_only: every recipient must have a current eligible presence entry; suppress the entire encrypted scope if any fails."
       ]
     },
     {
       "name": "older_reads_and_exact_retries_never_rollback_current_revision",
       "given": "a grant was accepted and then revoked at a later holder PCR Commit",
-      "action": "replay the exact grant and revoke Events and deliver an older cached current read",
+      "action": "replay the exact replacement Events and deliver an older cached current read",
       "decision": "accept",
       "observed": "historical retry outcomes and the subsequent authoritative current read",
       "assertions": [
@@ -240,13 +239,13 @@
       ]
     },
     {
-      "name": "call_invitation_window_constraints_and_independent_grants",
+      "name": "call_invitation_window_constraints_and_single_scope",
       "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
-      "action": "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant.",
+      "action": "Future/expired/unknown-constrained scope entries never authorize; there is no independent record or any fallback. Removing voice preserves other explicitly unchanged entries but invalidates stale voice decisions.",
       "decision": "allow",
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
-        "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant."
+        "Future/expired/unknown-constrained scope entries never authorize; there is no independent record or any fallback. Removing voice preserves other explicitly unchanged entries but invalidates stale voice decisions."
       ]
     },
     {
@@ -266,7 +265,7 @@
       "decision": "reject",
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
-        "Older reads and exact Grant/Revoke retries cannot roll back current high-water or reactivate a revoked grant; original outcomes and revisions remain exact.",
+        "Older reads and exact Replace retries cannot roll back current high-water or reactivate a revoked grant; original outcomes and revisions remain exact.",
         "Human governance change, freeze/export/import/acceptance/activation and separated-governor proxy/publication reject with zero Event, Commit, head, generation, private state or notification effects even with complete archives and both service signatures.",
         "Foreign-current-authority verdicts, stale or expired outstanding outcomes never release product/ring/token. Valid same-Station key/endpoint updates do not advance governance_generation; every new release independently rechecks the actual current authorization and exact request window.",
         "Fresh authorized requests at the owning Station recover legal product/ring/token delivery, durable local publication and account-subscribe catch-up without repeating the private CAS or fanout."

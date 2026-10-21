@@ -11,10 +11,7 @@
       "$ref": "#/$defs/consent_list"
     },
     {
-      "$ref": "#/$defs/consent_grant_request_body"
-    },
-    {
-      "$ref": "#/$defs/consent_revoke_request_body"
+      "$ref": "#/$defs/consent_replace_request_body"
     },
     {
       "$ref": "#/$defs/consent_request_request_body"
@@ -45,43 +42,29 @@
         "invite",
         "voice_call",
         "video_call",
-        "presence",
-        "any"
-      ]
-    },
-    "consent_state": {
-      "type": "string",
-      "enum": [
-        "active",
-        "revoked"
+        "presence"
       ]
     },
     "consent_view": {
       "type": "object",
+      "description": "Holder-private display summary only. Includes every stored scope regardless of effective window; empty scopes is a present current. Complete editing input requires current read.",
       "required": [
-        "consent_id",
         "peer",
-        "consent_scope",
-        "state",
+        "permission_scopes",
         "updated_at",
         "revision"
       ],
       "properties": {
-        "consent_id": {
-          "type": "string",
-          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
         "peer": {
           "$ref": "#/$defs/consent_peer"
         },
-        "consent_scope": {
-          "$ref": "#/$defs/consent_scope"
-        },
-        "state": {
-          "$ref": "#/$defs/consent_state"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
+        "permission_scopes": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/consent_scope"
+          }
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -107,14 +90,14 @@
       },
       "additionalProperties": false
     },
-    "consent_grant_request_body": {
+    "consent_replace_request_body": {
       "type": "object",
-      "description": "Carries one caller-signed ak.consent.grant Event. The current governance Station validates and serializes the update.",
+      "description": "One caller-signed complete ak.consent.replace Event, submitted unchanged under holder root-control-only authorization and exact expected_current CAS.",
       "required": [
-        "grant_event"
+        "consent_event"
       ],
       "properties": {
-        "grant_event": {
+        "consent_event": {
           "allOf": [
             {
               "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -124,7 +107,10 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.consent.grant"
+                      "const": "ak.consent.replace"
+                    },
+                    "payload": {
+                      "$ref": "./event-payload.schema.json#/$defs/consent_replace_payload"
                     }
                   },
                   "required": [
@@ -138,43 +124,7 @@
               ]
             }
           ],
-          "description": "Closed ak.consent.grant Event whose actor_id and authenticated holder are the path holder Principal Control Realm's current authority-root controller. authorization_ref MUST bind the current authority-root authorization. This root_control_only action supports neither separate managed-behalf execution nor grants: controller/agent consent_write delegations, general PCR writes, co-owner grants, automation, or payload approval evidence do not substitute. The service MUST submit these exact bytes through authority Event submission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify the authority-root binding, event.realm_id, and path holder; otherwise it rejects unauthorized."
-        }
-      },
-      "additionalProperties": false
-    },
-    "consent_revoke_request_body": {
-      "type": "object",
-      "description": "Carries one caller-signed ak.consent.revoke Event. The current governance Station applies it after the current consent revision without authority-ordered keyed set dots.",
-      "required": [
-        "revoke_event"
-      ],
-      "properties": {
-        "revoke_event": {
-          "allOf": [
-            {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
-            },
-            {
-              "properties": {
-                "event": {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.consent.revoke"
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "realm_id"
-                  ]
-                }
-              },
-              "required": [
-                "event"
-              ]
-            }
-          ],
-          "description": "Closed ak.consent.revoke Event whose actor_id and authenticated holder are the path holder Principal Control Realm's current authority-root controller. authorization_ref MUST bind the current authority-root authorization. This root_control_only action supports neither separate managed-behalf execution nor a controller/agent consent_write delegation or general PCR/co-owner grant. Its payload.consent_id MUST equal the consent_id of the ak.consent.grant being revoked. The service MUST submit these exact bytes through authority Event submission and MUST NOT co-sign, rebuild or synthesize the Event."
+          "description": "One caller-signed complete ak.consent.replace Event, submitted unchanged under holder root-control-only authorization and exact expected_current CAS. Never delegate, merge, rebuild or co-sign."
         }
       },
       "additionalProperties": false
@@ -219,7 +169,6 @@
       "required": [
         "holder_account_id",
         "peer",
-        "consent_scope",
         "audience_actor_id",
         "nonce"
       ],
@@ -229,9 +178,6 @@
         },
         "peer": {
           "$ref": "#/$defs/consent_peer"
-        },
-        "consent_scope": {
-          "$ref": "#/$defs/consent_scope"
         },
         "audience_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -267,7 +213,7 @@
         "realm_id",
         "governance_generation",
         "effective_stream_head",
-        "consents",
+        "current",
         "evaluated_at",
         "expires_at",
         "proof"
@@ -288,11 +234,37 @@
         "effective_stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
-        "consents": {
-          "type": "array",
-          "items": {
-            "$ref": "./typed-current-result.schema.json#/$defs/consent_result"
-          }
+        "current": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "state",
+                "result"
+              ],
+              "properties": {
+                "state": {
+                  "const": "present"
+                },
+                "result": {
+                  "$ref": "./typed-current-result.schema.json#/$defs/consent_result"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "properties": {
+                "state": {
+                  "const": "never_written"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
         "evaluated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -307,9 +279,9 @@
       "additionalProperties": false,
       "x-arkret-signature-domain": "ak.consent.current_read.v1",
       "x-arkret-pcr-outward-event-kinds": [
-        "ak.consent.grant",
-        "ak.consent.revoke"
-      ]
+        "ak.consent.replace"
+      ],
+      "description": "Signed same-cut exact subject assertion: request_digest binds holder/peer/audience/nonce; PCR/generation/head binds the actual authority cut. Present contains complete original value including empty, expired, future and unevaluable entries. Never_written asserts no accepted current ever existed, never position zero or missing scope."
     }
   }
 }

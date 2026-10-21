@@ -259,8 +259,7 @@ MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 
 ### 3.5 Consent 与 identity link
 
 `ak.vector.consent.cache_invalidation.v1` MUST 证明：holder 撤销 Consent 后，仍登记的 invite、通话、presence 与
-MIMI 消费者在实际准入边界重判同一 typed current，不能用陈旧缓存或在途 preflight 授权；`any` 撤销必须失效该
-peer 的全部具体 scope cache，但不得撤销其它独立 Consent。较旧的读取结果或 exact Event 重放不得回退 current
+MIMI 消费者在实际准入边界重判同一 typed current，不能用陈旧缓存或在途 preflight 授权；已接受 empty 替换必须失效该 peer 全部 concrete scope cache；移除单项保留其它显式未变条目，没有 any／独立 record 兜底。较旧的读取结果或 exact Event 重放不得回退 current
 revision 或重新激活许可。invite delivery 对 requester 保持 opaque `deferred`，撤销与从未授权不得可区分。
 未登记 private-contact discovery／PSI 入口必须不可调用、不可广告且零索引变化；不存在正向查询或轮转义务。
 

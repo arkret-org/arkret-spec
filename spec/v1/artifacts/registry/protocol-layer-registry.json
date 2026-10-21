@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-21T10:55:31+08:00",
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
     "kernel": "Security and convergence primitives only: identity proof, native realm/circle/sidecar security scope shapes plus the create-only realm_genesis exception, Realm/Circle lifecycle, authority-commit/authz/membership/policy, MLS/key delivery, audit commitments, invitations, and device/account security. Sidecar domain Event kinds remain Extension-owned.",
@@ -100,8 +100,7 @@
       "ak.call.create",
       "ak.call.recording.start",
       "ak.call.state",
-      "ak.consent.grant",
-      "ak.consent.revoke",
+      "ak.consent.replace",
       "ak.contact.accepted",
       "ak.contact.rejected",
       "ak.contact.requested",

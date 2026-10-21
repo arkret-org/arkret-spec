@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 87,
+  "version": 89,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 1006,
-    "responsibility_identity_material": 647,
+    "typed_object_id": 998,
+    "responsibility_identity_material": 648,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -178,15 +178,6 @@
       "occurrences": 4,
       "example_path": "websocket-frame.schema.json#/$defs/challenge/properties/connection_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "consent_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 1,
-      "example_path": "invite-delivery-request.schema.json#/$defs/consent_grant_evidence/properties/consent_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
     },
     {
       "name": "constraint_id",
@@ -741,5 +732,5 @@
       "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ],
-  "generated_at": "2026-10-21T08:08:00+08:00"
+  "generated_at": "2026-10-21T11:01:47+08:00"
 }

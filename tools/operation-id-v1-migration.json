@@ -608,16 +608,12 @@
       "new": "ak.self.committed_event.stream.subscribe.v1"
     },
     {
-      "old": "ak.self.consent.command.grant",
-      "new": "ak.self.consent.command.grant.v1"
+      "old": "ak.self.consent.command.replace",
+      "new": "ak.self.consent.command.replace.v1"
     },
     {
       "old": "ak.self.consent.command.request",
       "new": "ak.self.consent.command.request.v1"
-    },
-    {
-      "old": "ak.self.consent.command.revoke",
-      "new": "ak.self.consent.command.revoke.v1"
     },
     {
       "old": "ak.self.consent.read.current",
@@ -790,10 +786,6 @@
     {
       "old": "ak.self.media_service_binding.read.resolve",
       "new": "ak.self.media_service_binding.read.resolve.v1"
-    },
-    {
-      "old": "ak.self.messages.command.prepare",
-      "new": "ak.self.messages.command.prepare.v1"
     },
     {
       "old": "ak.self.mls.read.group_state_material",

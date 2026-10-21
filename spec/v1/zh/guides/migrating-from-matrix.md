@@ -283,7 +283,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Event，写入 `consent_grant:<consent_id>` typed current result（commit-ordered projection，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.replace` 是 holder principal control Realm 中的 Event，写入 按完整 peer ActorId 选择的唯一 permissions current（原签整份替换，empty 保留 revision），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Event on consent typed current result 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 

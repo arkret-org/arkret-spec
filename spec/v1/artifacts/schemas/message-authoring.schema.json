@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/message-authoring.schema.json",
   "title": "Arkret Message Authoring",
-  "description": "Closed own-account preparation of one ordinary Message Event. Encryption happens before this request. Exact request replay returns the original complete unsigned Event; preparing never advances accepted state.",
+  "description": "Local SDK message intent, content and encryption binding. Ordinary messages are constructed and signed locally, then use the unified Event submission; no remote draft preparation operation exists.",
   "$defs": {
     "message_encryption_context": {
       "type": "object",
@@ -96,60 +96,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "message_prepare_request_body": {
-      "type": "object",
-      "required": [
-        "request_id",
-        "account_id",
-        "realm_id",
-        "intent",
-        "created_at"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "./account-operations.schema.json#/$defs/request_id"
-        },
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "intent": {
-          "$ref": "#/$defs/message_authoring_intent"
-        },
-        "created_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 1048576
-    },
-    "message_prepare_outcome": {
-      "type": "object",
-      "required": [
-        "request_digest",
-        "draft",
-        "observed_at",
-        "expires_at"
-      ],
-      "properties": {
-        "request_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "draft": {
-          "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-        },
-        "observed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 2097152
     }
   }
 }

@@ -509,8 +509,8 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
-    ConsentGrantRequestBody:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_grant_request_body
+    ConsentReplaceRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_replace_request_body
     ConsentRequestOutcome:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_outcome
     ConsentRequestRequestBody:
@@ -519,8 +519,6 @@ components:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_list
     ConsentResultView:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_view
-    ConsentRevokeRequestBody:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body
     ContactList:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
     ContactRejectOutcome:
@@ -720,10 +718,6 @@ components:
       $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome
     MediaServiceBindingRequestBody:
       $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body
-    MessagePrepareOutcome:
-      $ref: ../schemas/message-authoring.schema.json#/$defs/message_prepare_outcome
-    MessagePrepareRequestBody:
-      $ref: ../schemas/message-authoring.schema.json#/$defs/message_prepare_request_body
     MimiIdentifierQueryOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
@@ -5236,34 +5230,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MediaServiceBindingOutcome'
-  /_arkret/self/messages/prepare:
-    post:
-      operationId: ak.self.messages.command.prepare
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.messages.command.prepare.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Prepare one complete unsigned Message Event from a closed intent.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MessagePrepareRequestBody'
-      responses:
-        '200':
-          description: Complete unsigned Message Event draft bound to the exact request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessagePrepareOutcome'
   /_arkret/self/realm-joins/prepare:
     post:
       operationId: ak.self.realm_join.command.prepare
@@ -7833,10 +7799,8 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Read one holder-private consent result when the query has exactly one match.
-      description: Exact peer and optional consent_scope filtering applies only within the authenticated holder's current
-        results. Multiple matches fail with failed_precondition; callers needing a specific consent_id use the holder-private
-        list.
+      summary: Read one exact-peer current summary for display.
+      description: Exact peer identifies the one holder-private current summary; complete signing input requires current read.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7850,18 +7814,6 @@ paths:
         required: true
         schema:
           type: string
-      - name: consent_scope
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - invite
-          - direct_message
-          - voice_call
-          - video_call
-          - presence
-          - any
       responses:
         '200':
           description: Consent result.
@@ -7869,13 +7821,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentResultView'
-  /_arkret/self/consent/results/grant:
+  /_arkret/self/consent/results/replace:
     post:
-      operationId: ak.self.consent.command.grant
+      operationId: ak.self.consent.command.replace
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Grant scoped consent to a peer DID.
+      summary: Replace the complete exact-peer permission set.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7883,44 +7835,16 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.consent.command.grant.v1
+          const: ak.self.consent.command.replace.v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ConsentGrantRequestBody'
+              $ref: '#/components/schemas/ConsentReplaceRequestBody'
       responses:
         '200':
-          description: Consent granted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsentResultView'
-  /_arkret/self/consent/results/revoke:
-    post:
-      operationId: ak.self.consent.command.revoke
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Revoke scoped consent from a peer DID.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.consent.command.revoke.v1
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsentRevokeRequestBody'
-      responses:
-        '200':
-          description: Consent revoked.
+          description: Complete replacement accepted.
           content:
             application/json:
               schema:
@@ -10094,7 +10018,7 @@ paths:
   /_arkret/self/consent/current:
     post:
       operationId: ak.self.consent.read.current
-      summary: Holder-private full typed current for one exact peer and requested scope plus independent any records.
+      summary: Holder-private complete exact-peer present or explicit never-written at one authenticated cut.
         Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or
         media issuer. See zh/identity/consent-model.md section 6.3.1.
       parameters:
@@ -10124,7 +10048,7 @@ paths:
   /_arkret/peer/consent/current:
     post:
       operationId: ak.peer.consent.read.current
-      summary: Holder-private full typed current for one exact peer and requested scope plus independent any records.
+      summary: Holder-private complete exact-peer present or explicit never-written at one authenticated cut.
         Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or
         media issuer. See zh/identity/consent-model.md section 6.3.1.
       parameters:

@@ -507,7 +507,7 @@ Station MUST 判定 membership／policy／key-access checkpoint 是否已被 win
 Station 在转发前按 §8.2.2 判定。该判定先于 `epoch_update_required` 与 `epoch_mismatch`，不推进 `key_access_revision`。若 current scope 已被 winning Commit 覆盖，
 但本次发送冻结的 `epoch`、`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，
 MUST 返回顶层 `epoch_mismatch`（HTTP 409）。客户端 MUST 获取并验证 current public group result 与连续 MLS
-transition，在取得对应本地 private state 后重新加密，构造新的 prepare／submit 请求；不得把旧 ciphertext 改绑到新
+transition，在取得对应本地 private state 后重新加密，本地构造新的 signed Event 并 submit（先按终局规则恢复可能已接纳的旧 Event）；不得把旧 ciphertext 改绑到新
 epoch，也不得在原请求的 exact retry 中重新加密。`mls_governance_binding_stale` 只用于解密媒体服务的 join／token
 在 current group 尚未覆盖 current `key_access_revision` 时（[`media-service-binding.md` §8.2](./media-service-binding.md)），
 不表示本次请求引用了被取代的 epoch。上述 current send gate 不适用于已接受历史

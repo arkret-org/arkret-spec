@@ -844,7 +844,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.consent.grant"
+            "const": "ak.consent.replace"
           }
         },
         "required": [
@@ -854,26 +854,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.consent.revoke"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload"
+            "$ref": "./event-payload.schema.json#/$defs/consent_replace_payload"
           }
         }
       }
@@ -3532,7 +3513,7 @@
     "direct_conversation_bootstrap_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_bootstrap_participant.v1",
-      "description": "Pre-binding profile-scoped non-grant authority for a Direct Conversation between accepted founding unit and first legal binding endorsement. It requires one critical founding-unit ref. provisional_history_send authorizes only founder actions in the one scope-derived group; exact_pair_founding_completion applies once that same group holds exact authorized pair leaves. Both retire after the first binding. Neither phase authorizes a second Genesis/group, policy, grant, a third participant, another Strand or ordinary membership writes."
+      "description": "Pre-binding profile-scoped non-grant authority for a Direct Conversation between accepted founding unit and unique legal binding confirmation. It requires one critical founding-unit ref. provisional_history_send authorizes only founder actions in the one scope-derived group; exact_pair_founding_completion applies once that same group holds exact authorized pair leaves. Both retire after the first binding. Neither phase authorizes a second Genesis/group, policy, grant, a third participant, another Strand or ordinary membership writes."
     },
     "membership_compensation_delegation_ref": {
       "type": "string",
@@ -6057,8 +6038,7 @@
                 "ak.circle.restore",
                 "ak.circle.tombstone",
                 "ak.circle.update",
-                "ak.consent.grant",
-                "ak.consent.revoke",
+                "ak.consent.replace",
                 "ak.contact.accepted",
                 "ak.contact.rejected",
                 "ak.contact.requested",
@@ -6210,8 +6190,7 @@
             "ak.circle.restore",
             "ak.circle.tombstone",
             "ak.circle.update",
-            "ak.consent.grant",
-            "ak.consent.revoke",
+            "ak.consent.replace",
             "ak.contact.accepted",
             "ak.contact.rejected",
             "ak.contact.requested",

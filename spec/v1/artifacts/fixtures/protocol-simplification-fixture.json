@@ -1,0 +1,1103 @@
+{
+  "suite": "protocol_simplification",
+  "version": "2026-10-21.1",
+  "fixture_kind": "semantic",
+  "profile": "ak.profile.station.v1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.protocol_simplification.v1"
+  },
+  "description": "Normative semantic obligations and executed schema-only shape cases for local message authoring, one immutable binding and peer full-set Consent. Placeholder identifiers/proofs are schema examples, not cryptographic or production acceptance evidence. Reference model tests exercise CAS, MIMI diff and exact replay only; real PG/HTTP/MLS/cold recovery remains downstream.",
+  "covers_vectors": [
+    "ak.vector.consent.peer_current.v1",
+    "ak.vector.direct_conversation.single_confirmation.v1",
+    "ak.vector.message.local_authoring.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "schemas/event-payload.schema.json",
+    "schemas/typed-current-result.schema.json",
+    "schemas/consent-operations.schema.json",
+    "schemas/mimi-operations.schema.json",
+    "schemas/message-authoring.schema.json"
+  ],
+  "cases": [
+    {
+      "name": "close_voice_preserves_presence",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Remove voice only, preserve the complete presence entry and optional-member presence.",
+      "decision": "validate",
+      "assertions": [
+        "Remove voice only, preserve the complete presence entry and optional-member presence."
+      ]
+    },
+    {
+      "name": "concurrent_replace_requires_reconfirmation",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Only one exact prior revision succeeds; stale write has zero effects and requires a fresh read and user confirmation.",
+      "decision": "validate",
+      "assertions": [
+        "Only one exact prior revision succeeds; stale write has zero effects and requires a fresh read and user confirmation."
+      ]
+    },
+    {
+      "name": "empty_then_old_replay",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Accepted empty remains current when an older accepted Event is replayed; return the original finality only.",
+      "decision": "validate",
+      "assertions": [
+        "Accepted empty remains current when an older accepted Event is replayed; return the original finality only."
+      ]
+    },
+    {
+      "name": "station_is_part_of_peer",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Same principal at a different Station selects another peer and inherits no permission.",
+      "decision": "validate",
+      "assertions": [
+        "Same principal at a different Station selects another peer and inherits no permission."
+      ]
+    },
+    {
+      "name": "single_scope_not_multi_record_or",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Only one rule per scope; a second same-scope rule cannot authorize or create another current.",
+      "decision": "validate",
+      "assertions": [
+        "Only one rule per scope; a second same-scope rule cannot authorize or create another current."
+      ]
+    },
+    {
+      "name": "new_scope_default_denied",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Explicit all-select contains only the registered four scopes; future scope is absent and denied.",
+      "decision": "validate",
+      "assertions": [
+        "Explicit all-select contains only the registered four scopes; future scope is absent and denied."
+      ]
+    },
+    {
+      "name": "historical_intro_rechecks_current",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Original signed introduction/green-light does not restore a removed current invite entry.",
+      "decision": "validate",
+      "assertions": [
+        "Original signed introduction/green-light does not restore a removed current invite entry."
+      ]
+    },
+    {
+      "name": "opaque_request_not_permission",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "A private correlation or accepted_for_processing does not prove a current exists or grant permission.",
+      "decision": "validate",
+      "assertions": [
+        "A private correlation or accepted_for_processing does not prove a current exists or grant permission."
+      ]
+    },
+    {
+      "name": "no_server_merge",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Caller signs the complete target; facade cannot complete, alter or co-sign the set.",
+      "decision": "validate",
+      "assertions": [
+        "Caller signs the complete target; facade cannot complete, alter or co-sign the set."
+      ]
+    },
+    {
+      "name": "consent_not_contact_or_membership",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Independent Contact, Realm, device and membership gates are still required.",
+      "decision": "validate",
+      "assertions": [
+        "Independent Contact, Realm, device and membership gates are still required."
+      ]
+    },
+    {
+      "name": "complete_edit_keeps_ineligible_entries",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Expired, future and unknown-constrained entries remain in the same-cut editing value.",
+      "decision": "validate",
+      "assertions": [
+        "Expired, future and unknown-constrained entries remain in the same-cut editing value."
+      ]
+    },
+    {
+      "name": "three_empty_states",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Present without requested scope, present empty and never_written are distinct; only the last allows first-write predicate.",
+      "decision": "validate",
+      "assertions": [
+        "Present without requested scope, present empty and never_written are distinct; only the last allows first-write predicate."
+      ]
+    },
+    {
+      "name": "first_write_races_empty",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "A never_written attempt loses to another accepted empty and cannot overwrite it.",
+      "decision": "validate",
+      "assertions": [
+        "A never_written attempt loses to another accepted empty and cannot overwrite it."
+      ]
+    },
+    {
+      "name": "two_correlations_one_current",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Two purposes with distinct IDs serialize the same exact peer; second must refresh its stale prestate.",
+      "decision": "validate",
+      "assertions": [
+        "Two purposes with distinct IDs serialize the same exact peer; second must refresh its stale prestate."
+      ]
+    },
+    {
+      "name": "mimi_narrow_scope_diff",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "MIMI voice revoke that also changes presence is not_found with zero writes.",
+      "decision": "validate",
+      "assertions": [
+        "MIMI voice revoke that also changes presence is not_found with zero writes."
+      ]
+    },
+    {
+      "name": "mimi_exact_retry_after_native_change",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Exact accepted correlation/decision/Event retry returns original result after later native changes; never rolls them back.",
+      "decision": "validate",
+      "assertions": [
+        "Exact accepted correlation/decision/Event retry returns original result after later native changes; never rolls them back."
+      ]
+    },
+    {
+      "name": "correlation_no_edit_disclosure",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Requester/provider cannot read complete current, revision or never_written using an opaque ID.",
+      "decision": "validate",
+      "assertions": [
+        "Requester/provider cannot read complete current, revision or never_written using an opaque ID."
+      ]
+    },
+    {
+      "name": "any_request_no_expansion",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Native/MIMI any requests reject and do not expand; native invite remains excluded.",
+      "decision": "validate",
+      "assertions": [
+        "Native/MIMI any requests reject and do not expand; native invite remains excluded."
+      ]
+    },
+    {
+      "name": "founding_slot_still_unique",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "A confirmation does not replace founding uniqueness or create a second Realm.",
+      "decision": "validate",
+      "assertions": [
+        "A confirmation does not replace founding uniqueness or create a second Realm."
+      ]
+    },
+    {
+      "name": "roster_not_durable_welcome",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Two roster members without durable Welcome/provenance cannot confirm.",
+      "decision": "validate",
+      "assertions": [
+        "Two roster members without durable Welcome/provenance cannot confirm."
+      ]
+    },
+    {
+      "name": "leaf_replacement_requires_fresh_add",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.",
+      "decision": "validate",
+      "assertions": [
+        "Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains."
+      ]
+    },
+    {
+      "name": "two_devices_one_confirmation",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "At most one different Event wins; loser has zero writes and resolves the original Event ref.",
+      "decision": "validate",
+      "assertions": [
+        "At most one different Event wins; loser has zero writes and resolves the original Event ref."
+      ]
+    },
+    {
+      "name": "exact_event_not_semantic_retry",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.",
+      "decision": "validate",
+      "assertions": [
+        "Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome."
+      ]
+    },
+    {
+      "name": "no_ready_certificate",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Only the producer-signed accepted bound and covering Commit establish first completion.",
+      "decision": "validate",
+      "assertions": [
+        "Only the producer-signed accepted bound and covering Commit establish first completion."
+      ]
+    },
+    {
+      "name": "withdrawal_does_not_reset",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.",
+      "decision": "validate",
+      "assertions": [
+        "Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding."
+      ]
+    },
+    {
+      "name": "historical_handoff_and_late_ref",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent.",
+      "decision": "validate",
+      "assertions": [
+        "Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent."
+      ]
+    },
+    {
+      "name": "all_consumers_same_ref",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
+      "decision": "validate",
+      "assertions": [
+        "Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal."
+      ]
+    },
+    {
+      "name": "local_submit_without_prepare",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Legal canonical locally signed Message uses ordinary submit with no prepare operation.",
+      "decision": "validate",
+      "assertions": [
+        "Legal canonical locally signed Message uses ordinary submit with no prepare operation."
+      ]
+    },
+    {
+      "name": "all_inputs_have_real_sources",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Exact session/scope/config/authorizing refs are supplied by registered reads; missing inputs cannot be guessed.",
+      "decision": "validate",
+      "assertions": [
+        "Exact session/scope/config/authorizing refs are supplied by registered reads; missing inputs cannot be guessed."
+      ]
+    },
+    {
+      "name": "old_context_not_authority",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Submit rechecks all current gates even after local construction.",
+      "decision": "validate",
+      "assertions": [
+        "Submit rechecks all current gates even after local construction."
+      ]
+    },
+    {
+      "name": "intent_ciphertext_binding",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Local canonical Event must match the frozen actor/scope/content/AAD; no server rewrite or encryption.",
+      "decision": "validate",
+      "assertions": [
+        "Local canonical Event must match the frozen actor/scope/content/AAD; no server rewrite or encryption."
+      ]
+    },
+    {
+      "name": "unknown_keeps_bytes_generation",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Durably frozen exact signed Event and MLS state survive unknown/restart; no re-encryption or second sender generation.",
+      "decision": "validate",
+      "assertions": [
+        "Durably frozen exact signed Event and MLS state survive unknown/restart; no re-encryption or second sender generation."
+      ]
+    },
+    {
+      "name": "cursor_producer_assertions_survive",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Removed prepare test coverage must preserve independent account cursor and producer validation.",
+      "decision": "validate",
+      "assertions": [
+        "Removed prepare test coverage must preserve independent account cursor and producer validation."
+      ]
+    },
+    {
+      "name": "no_context_alias",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "No per-message context operation recreates the removed draft protocol.",
+      "decision": "validate",
+      "assertions": [
+        "No per-message context operation recreates the removed draft protocol."
+      ]
+    },
+    {
+      "name": "shared_types_survive",
+      "given": "The real accepted source and current authority gates described by the normative domain contract.",
+      "action": "Shared MessageAuthoringIntent/Submit/draft/encryption context and ordinary queue remain; epoch errors and original finality remain.",
+      "decision": "validate",
+      "assertions": [
+        "Shared MessageAuthoringIntent/Submit/draft/encryption context and ordinary queue remain; epoch errors and original finality remain."
+      ]
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "full_set_retains_expired_future_unknown_constraints",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ]
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "empty_is_signed_replacement",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": []
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "exact_present_revision",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "present",
+          "revision": {
+            "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "stream_position": 12
+          }
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ]
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "no_native_consent_id",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ],
+        "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('consent_id' was unexpected)"
+    },
+    {
+      "name": "any_permission_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": [
+          {
+            "consent_scope": "any"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.permissions[0].consent_scope: 'any' is not one of ['invite', 'voice_call', 'video_call', 'presence']"
+    },
+    {
+      "name": "no_inferred_empty_prestate",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: 'expected_current' is a required property"
+    },
+    {
+      "name": "never_written_no_fake_revision",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written",
+          "revision": {
+            "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "stream_position": 12
+          }
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.expected_current: {'state': 'never_written', 'revision': {'commit_id': 'ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'stream_position': 12}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "present_requires_revision",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "present"
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.expected_current: {'state': 'present'} is not valid under any of the given schemas"
+    },
+    {
+      "name": "no_status_axis",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call",
+            "expires_at": "2026-10-20T00:00:00.000Z"
+          },
+          {
+            "consent_scope": "presence",
+            "not_before": "2027-01-01T00:00:00.000Z",
+            "constraints": [
+              {
+                "unregistered": "keep"
+              }
+            ],
+            "reason": "retain exact optional fields"
+          }
+        ],
+        "status": "active"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('status' was unexpected)"
+    },
+    {
+      "name": "duplicate_scope_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/consent_replace_payload",
+      "instance": {
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_current": {
+          "state": "never_written"
+        },
+        "permissions": [
+          {
+            "consent_scope": "voice_call"
+          },
+          {
+            "consent_scope": "voice_call",
+            "reason": "second"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.permissions: Too many items match the given schema (expected at most 1)"
+    },
+    {
+      "name": "current_exact_peer",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "instance": {
+        "selector": {
+          "kind": "consent",
+          "peer_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stream_position": 12
+        },
+        "value": {
+          "permissions": [
+            {
+              "consent_scope": "voice_call",
+              "expires_at": "2026-10-20T00:00:00.000Z"
+            },
+            {
+              "consent_scope": "presence",
+              "not_before": "2027-01-01T00:00:00.000Z",
+              "constraints": [
+                {
+                  "unregistered": "keep"
+                }
+              ],
+              "reason": "retain exact optional fields"
+            }
+          ]
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "empty_current_keeps_revision",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "instance": {
+        "selector": {
+          "kind": "consent",
+          "peer_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stream_position": 12
+        },
+        "value": {
+          "permissions": []
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "no_id_current_selector",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "instance": {
+        "selector": {
+          "kind": "consent",
+          "consent_id": "any"
+        },
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stream_position": 12
+        },
+        "value": {
+          "permissions": [
+            {
+              "consent_scope": "voice_call",
+              "expires_at": "2026-10-20T00:00:00.000Z"
+            },
+            {
+              "consent_scope": "presence",
+              "not_before": "2027-01-01T00:00:00.000Z",
+              "constraints": [
+                {
+                  "unregistered": "keep"
+                }
+              ],
+              "reason": "retain exact optional fields"
+            }
+          ]
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.selector: 'peer_id' is a required property"
+    },
+    {
+      "name": "full_read_has_no_scope_filter",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+      "instance": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "audience_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "nonce": "aaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "scope_filtered_edit_read_rejected",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+      "instance": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "peer": {
+          "kind": "actor",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "audience_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "nonce": "aaaaaaaaaaaaaaaaaaaaaaaa",
+        "consent_scope": "voice_call"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('consent_scope' was unexpected)"
+    },
+    {
+      "name": "native_any_request_rejected",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
+      "instance": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "consent_scope": "any"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.consent_scope: 'any' is not one of ['invite', 'voice_call', 'video_call', 'presence']"
+    },
+    {
+      "name": "native_invite_request_still_rejected",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
+      "instance": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "consent_scope": "invite"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.consent_scope: 'invite' should not be valid under {'const': 'invite'}"
+    },
+    {
+      "name": "native_voice_request_legal",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
+      "instance": {
+        "holder_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "consent_scope": "voice_call"
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "single_binding_value",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
+      "instance": {
+        "binding_event_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "binding": {
+          "authorization_basis": {
+            "event_refs": [
+              "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC",
+              "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r"
+            ],
+            "kind": "accepted_contact"
+          },
+          "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+          "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+          "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+          "unordered_participant_ids": [
+            {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
+            },
+            {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              }
+            }
+          ],
+          "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "created_at": "2026-10-21T00:00:00.000Z"
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "endorsement_array_removed",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
+      "instance": {
+        "endorsements": [
+          {
+            "tag_id": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y:0",
+            "value": {
+              "authorization_basis": {
+                "event_refs": [
+                  "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC",
+                  "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r"
+                ],
+                "kind": "accepted_contact"
+              },
+              "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+              "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+              "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+              "unordered_participant_ids": [
+                {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                  }
+                },
+                {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                    "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+                  }
+                }
+              ],
+              "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "created_at": "2026-10-21T00:00:00.000Z"
+            }
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: 'binding_event_ref' is a required property"
+    },
+    {
+      "name": "bound_has_no_semantic_digest",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "instance": {
+        "authorization_basis": {
+          "event_refs": [
+            "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC",
+            "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r"
+          ],
+          "kind": "accepted_contact"
+        },
+        "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+        "unordered_participant_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+            }
+          }
+        ],
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "created_at": "2026-10-21T00:00:00.000Z",
+        "binding_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('binding_digest' was unexpected)"
+    },
+    {
+      "name": "local_shared_intent_remains_constructible",
+      "schema_ref": "schemas/message-authoring.schema.json#/$defs/message_authoring_intent",
+      "instance": {
+        "strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "track_name": "discussion",
+        "content": {
+          "kind": "plaintext",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "locally authored"
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "quarantine_supplies_exact_actor_for_peer_authoring",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "instance": {
+        "entry_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "source_peer_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "source_id": "ak:did_core:webvh:z6mkfixturestationexample",
+        "surface_kind": "consent_request",
+        "consent_scope": "voice_call",
+        "received_at": "2026-10-21T00:00:00.000Z",
+        "expires_at": "2026-10-22T00:00:00.000Z"
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "quarantine_principal_alone_cannot_supply_peer",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/quarantine_entry",
+      "instance": {
+        "entry_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "source_peer_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "source_id": "ak:did_core:webvh:z6mkfixturestationexample",
+        "surface_kind": "consent_request",
+        "consent_scope": "voice_call",
+        "received_at": "2026-10-21T00:00:00.000Z",
+        "expires_at": "2026-10-22T00:00:00.000Z"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: 'source_peer_actor_id' is a required property"
+    },
+    {
+      "name": "quarantine_close_matches_exact_peer",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/consent_revoke_invalidation",
+      "instance": {
+        "reason": "consent_revoke",
+        "peer_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "consent_scope": "invite",
+        "revoked_at": "2026-10-21T00:00:00.000Z",
+        "removed_entries": 1
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "quarantine_any_invalidation_rejected",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/consent_revoke_invalidation",
+      "instance": {
+        "reason": "consent_revoke",
+        "peer_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "consent_scope": "any",
+        "revoked_at": "2026-10-21T00:00:00.000Z",
+        "removed_entries": 1
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.consent_scope: 'invite' was expected"
+    }
+  ]
+}

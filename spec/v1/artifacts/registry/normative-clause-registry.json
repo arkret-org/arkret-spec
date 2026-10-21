@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T08:08:00+08:00",
+  "generated_at": "2026-10-21T11:01:47+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -339,20 +339,20 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
-      "section_digest": "sha256:e58751eb90121224a8f59a8729403e7831765567010d63ac92a8376ee7b9c17b",
-      "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. The current governance Station performs ordinary admission from authenticated Contact intervals and committed revocations; the origin Station need not be online, while a non-authority receiver can only queue or forward. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Event plus RealmCommit results without replaying governance history. The current gate follows the immutable founding authorization basis: accepted_contact requires current directional Contact grants; agent_controller requires the exact current controller-owned active Agent and accepted runtime key, without a Contact grant. Runtime key replacement does not rewrite founding or binding identity.",
+      "section_digest": "sha256:b61cc37e2007b6657eaf716668cdfcd0866de98c87fd3de087d3a52a001e7a45",
+      "requirement": "One immutable producer-signed bound Event and original covering Commit establish first exact-pair durable completion. Different equivalent Events conflict with zero writes; every Message/Signal/repair/watch/Agent ref is this one Event. Original founding uniqueness, current Contact/Agent gates and historical accepted-at identity remain independent.",
       "testability_grade": "audit",
-      "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin offline and the current governance Station online; verify each accepted Event has one covering RealmCommit and non-authority receivers only queue or forward. Repeat with the governance Station unavailable and require no shared accepted effect. Known Contact revocation and reload must preserve committed history while blocking later admission; delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref. Exercise owned-Agent bootstrap Message and Add admission without Contact, paused Agent rejection, controller/Station mismatch rejection, and current-key replacement under the same founding basis."
+      "test_plan": "Run single-confirmation schema/mutation vectors and concurrent different Event attempts, exact Event replay, resolver recovery, withdrawal/leaf repair/restart/handoff, offline founder sends and all current participant consumers. Real serialization, MLS provenance and source proofs require downstream production acceptance."
     },
     {
       "clause_id": "AK-NC-043",
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#72-bootstrap-participant-authority",
-      "section_digest": "sha256:2dde00a742fe9394eda3608da3e2f897c10a0512ccfd1b207400950bbd838f70",
-      "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it. Completion requires the currently occupied peer leaf creation Add and its own durable consume; Remove/re-add cannot inherit an obsolete receipt. Terminal first claims repair in the same group while preserving the immutable initial exact-pair ref.",
+      "section_digest": "sha256:e27dcab1d813c4c51c35664cd4272b4cf0b6f84761e275f242a7fc620aa20b33",
+      "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; all different later confirmation Events reject and cannot reactivate it. Completion requires the currently occupied peer leaf creation Add and its own durable consume; Remove/re-add cannot inherit an obsolete receipt. Terminal first claims repair in the same group while preserving the immutable initial exact-pair ref.",
       "testability_grade": "audit",
-      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation. Run terminal_founding_claim_repairs_the_same_group_and_keeps_the_first_binding_ref with terminal/pending/durable read cuts, fresh Remove/Add, rejected current-ref substitution and old consumed leaf receipt isolation; verify the four closed resolver admission states and original aa-runtime live repair. The same-Commit Remove is ordered after Add on the wire, and must retire only the before-state leaf. Contact peer endpoint source/reload/glare is additionally checked in Cotest direct_conversation_founding_live and the closed schema fixture."
+      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and zero-write rejection of different equivalent confirmations. Run terminal_founding_claim_repairs_the_same_group_and_keeps_the_first_binding_ref with terminal/pending/durable read cuts, fresh Remove/Add, rejected current-ref substitution and old consumed leaf receipt isolation; verify the four closed resolver admission states and original aa-runtime live repair. The same-Commit Remove is ordered after Add on the wire, and must retire only the before-state leaf. Contact peer endpoint source/reload/glare is additionally checked in Cotest direct_conversation_founding_live and the closed schema fixture."
     },
     {
       "clause_id": "AK-NC-044",
@@ -521,7 +521,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#924-welcomeconsume-与已接受的-founding-unit",
-      "section_digest": "sha256:c81f4bc48934e05947913f661c5e2e1ab6f6277bb822582a02636c846baf7b74",
+      "section_digest": "sha256:6eb01b279e98a1fd497f622120439e6096cb999e7e4f16716e1619b2eed8a312",
       "requirement": "Before decrypting a producer-signed MlsWelcomeDelivery, the recipient resolves its typed keypackage_claim_ref to the exact durable claim outcome through ak.self.keys.keypackages.read.claim.v1 at its own Account Station, verifies the destination receipt, recomputes the KeyPackage digest and signed LeafNode capabilities, verifies current endpoint authorization and the accepted winning Add Commit on the same Genesis lineage, and compares requester, recipient, KeyPackage, group and epoch bindings. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted. The original claim is consumed only after new group state is durably stored.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -562,11 +562,11 @@
       "clause_id": "AK-NC-070",
       "status": "active",
       "category": "security",
-      "source_anchor": "spec/v1/zh/sync/service-http-binding.md#28-普通消息的完整-authoring-准备",
-      "section_digest": "sha256:5774f815ba0eaf234bb2b807073d32068103dcc25545e18d680166b9e1df1460",
-      "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. Encrypted prepare and authority-forward submit into a definitely inactive scope return generic failed_precondition without a write; a temporarily unreadable current MLS result returns temporarily_unavailable with exact retry only before a Commit. When the current checkpoint awaits a winning Commit, failed_precondition with epoch_update_required requires the client to pause; when a ready current group differs from the frozen encryption context, top-level epoch_mismatch requires fresh local MLS state and a newly encrypted request. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
+      "source_anchor": "spec/v1/zh/sync/service-http-binding.md#28-普通消息的本地-authoring",
+      "section_digest": "sha256:701faf12a9b07d6b328b4855da19d1637048679582513e5b646c334a8eb553d9",
+      "requirement": "Ordinary Message authoring is local SDK canonical construction, caller signature and unified submit. All input groups use actual registered supply, never guessed scope. Before network freeze exact signed bytes/ciphertext/identity/MLS state. Unknown recovers original finality without re-encryption or second sender generation. Current submit identity/scope/MLS gates and epoch errors remain. Remote ordinary prepare, cache and TTL retire; security prepare remains.",
       "testability_grade": "audit",
-      "test_plan": "Audited against message-authoring.schema.json and operations-error-mapping.json: the review pass asserts message_authoring_content is a closed oneOf of plaintext and mls, that message_prepare_outcome returns only a draft with no acceptance, reservation or position, that epoch_mismatch is registered for prepare and current send admission, and that no prepare request member carries a key or would let the Station encrypt. A conformance run replays a byte-identical prepare and asserts a single ciphertext and no second sender ratchet generation; separate stale-group and pending-Commit cases assert epoch_mismatch versus epoch_update_required and the respective re-encrypt versus pause action. No vector exists because the obligation spans a client-local encryption step the vector harness does not author."
+      "test_plan": "Check message_authoring_contract supply operations and retained shared schema roots, absence of prepare route/advertisements, local submit schema and scope/session/epoch/unknown vectors. Production executor must preserve independent account cursor and producer assertions when retiring optional prepare cases."
     },
     {
       "clause_id": "AK-NC-071",
@@ -597,8 +597,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:893fa26698287810e7940b1b21d0bd37744187461bd574fac87426a81024f229",
-      "requirement": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
+      "section_digest": "sha256:c423f010293cbdecafcf8491a34e15c956dac922852a49338649fc75ae0a4ee5",
+      "requirement": "Complete exact-peer permission replacements invalidate affected current admission decisions for invite, call, presence and MIMI; empty closes all concrete scopes without any or independent-record fallback, revision never rolls back, excluded discovery/PSI stay unavailable and requester outcomes remain opaque.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.consent.cache_invalidation.v1"
@@ -869,8 +869,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/crypto-media/webrtc-signaling.md#3b-通话邀请的三层-consent-准入normative",
-      "section_digest": "sha256:9f4c1bd254239822d0661699fda046dbff187c35c905cef75da0a5d8bf4d50fe",
-      "requirement": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, independent grants, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery.",
+      "section_digest": "sha256:e431856adc4d0057d8551c38532bbfb8795e233163efc9c28c7c0c96ed762cdc",
+      "requirement": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, unique exact-peer concrete permissions with no OR fallback, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.consent.call_invitation_admission.v1"
