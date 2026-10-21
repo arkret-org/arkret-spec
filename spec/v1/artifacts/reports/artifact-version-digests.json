@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-21.5",
-      "generated_at": "2026-10-21T08:08:00+08:00",
-      "content_digest": "sha256:6eaca196a7046fd6f4ee86942a1fb9f3087f5bc95223bc5aec0ee01f07f67657"
+      "version": "2026-10-21.6",
+      "generated_at": "2026-10-21T10:38:29+08:00",
+      "content_digest": "sha256:076cc6485cd8a54d11cd5861a2d5ba4da289e82260f3478e6f9198259d6c565b"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -225,9 +225,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-10-21.3",
-      "generated_at": "2026-10-21T08:08:00+08:00",
-      "content_digest": "sha256:16f3e278e3dd65881ef8f30664c427a61940e5d4b7b9e7b6c1aca6383e119608"
+      "version": "2026-10-21.4",
+      "generated_at": "2026-10-21T10:38:29+08:00",
+      "content_digest": "sha256:15cb51fec6aac1b269a82e06b112894cc6275c7fe9f41941e936bce865777190"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-21.4",
-      "generated_at": "2026-10-21T08:08:00+08:00",
-      "content_digest": "sha256:f24d249495d471d8ad67f7eb1bc9715afa35eefe081078fcccb69122afad321f"
+      "version": "2026-10-21.6",
+      "generated_at": "2026-10-21T10:38:29+08:00",
+      "content_digest": "sha256:c6897c664931aee422e565f3edbe8b60cdedd69822d53464fda2b8076e753838"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -435,9 +435,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 46,
+      "version": 47,
       "generated_at": null,
-      "content_digest": "sha256:0143d91a8953afa56a559bbc2dd893d0870a5dc3a9391cad37b95a6010cc6aef"
+      "content_digest": "sha256:b62509567bedfcb48bb77a5625b3add363586a51f5e5098397fe962e265b7343"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-21.3",
-  "generated_at": "2026-10-21T08:08:00+08:00",
+  "version": "2026-10-21.4",
+  "generated_at": "2026-10-21T10:38:29+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -20,6 +20,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.applet_service.describe.v1",
       "sha256": "sha256:d8619f6f0b872d0f541540f5544abc8dfdfb782021de79a5ed1bfedcafe7bb82"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.applet_service.service_resolution.v1",
+      "sha256": "sha256:4b975746d9b8d601e2def278c91e356465686e6ccd9ef5b92889812e755f43af"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.archive_node.describe.v1",

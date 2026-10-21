@@ -26,6 +26,11 @@ Applet runtime 持有主体 DID／Device 私钥并生成候选；治理 Station 
 仍保留其它已有 Station 方向 edge 操作；双向 transaction 的方向、来源签名和接纳规则不变。
 管理员配置 submit 保留在 `ak.operation_bundle.station.applet_install.v1`，由治理站执行。
 通用 describe 与 Applet edge describe 是两个既有操作，角色通用 describe bundle 仍独立保留。
+Applet 自行提供现有公开 Service 解析接口时，MUST 声明
+`ak.operation_bundle.applet_service.service_resolution.v1`，其唯一成员为既有
+`ak.open.service.read.resolution.v1`。该声明不授予 Station 角色、主体控制或任何治理权限，
+也不替代 Applet edge bundle。通用 describe 与公开解析均遵守既有 exact `Arkret-Operation`
+选择与成功响应回显；method-native DID 文档／日志／见证地址不因此成为 Arkret operation。
 合并部署也必须按每个 endpoint 的真实 Service 身份和角色声明能力；共同进程或地址不授予代签权，
 不得借用另一个角色的 bundle，也不得以 HTTP 路由存在替代完整能力声明或完整实现验证。
 

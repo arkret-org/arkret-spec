@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.5",
+  "version": "2026-10-21.6",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T08:08:00+08:00",
+  "generated_at": "2026-10-21T10:38:29+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -18508,8 +18508,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-21.4",
-    "generated_at": "2026-10-21T08:08:00+08:00",
+    "version": "2026-10-21.6",
+    "generated_at": "2026-10-21T10:38:29+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18630,6 +18630,19 @@
         "members": [
           {
             "operation_id": "ak.server.read.describe.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.applet_service.service_resolution.v1",
+        "service_kind": "applet_service",
+        "deployment_evidence": [
+          "normative:zh/extensions/applet-management-source.md#1-权威与职责"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.open.service.read.resolution.v1",
             "binding_kind": "http_json"
           }
         ]

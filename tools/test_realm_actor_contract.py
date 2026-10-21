@@ -60,6 +60,10 @@ class RealmActorContractTests(unittest.TestCase):
                       members(bundles["ak.operation_bundle.station.applet_install.v1"]))
         self.assertEqual({("ak.server.read.describe.v1", "http_json")},
                          members(bundles["ak.operation_bundle.applet_service.describe.v1"]))
+        self.assertEqual({("ak.open.service.read.resolution.v1", "http_json")},
+                         members(bundles["ak.operation_bundle.applet_service.service_resolution.v1"]))
+        self.assertEqual("applet_service",
+                         bundles["ak.operation_bundle.applet_service.service_resolution.v1"]["service_kind"])
 
     def test_realm_mentions_use_native_content_without_account_notification_identity(self):
         registry = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
