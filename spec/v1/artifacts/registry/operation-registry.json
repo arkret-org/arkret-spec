@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.8",
+  "version": "2026-10-21.9",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T11:54:44+08:00",
+  "generated_at": "2026-10-21T15:45:28+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4728,7 +4728,14 @@
       }
     ],
     "fixture_ref": "fixtures/direct-conversation-admission-fixture.json",
-    "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4"
+    "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4",
+    "governance_station_qualification": {
+      "source_contract_ref": "#/event_kind_registry/direct_conversation_binding_contract/governance_station_policy",
+      "stage": "before_profile_admission_and_handoff_effects",
+      "event_kind": "ak.realm.governance_station.change",
+      "error_code": "failed_precondition",
+      "effect": "zero_writes_and_no_freeze"
+    }
   },
   "direct_conversation_signal_admission_mappings": {
     "profile": "ak.profile.direct_conversation_realm.v1",

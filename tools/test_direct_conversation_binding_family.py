@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from tools.artifact_lint.protocol_simplification import contract_errors
+from tools.artifact_lint.protocol_simplification import contract_errors, direct_governance_errors
 
 A = Path(__file__).resolve().parents[1] / "spec/v1/artifacts"
 
@@ -65,6 +65,56 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
         self.c["message_authoring_contract"]["branches"] = [
             row for row in self.c["message_authoring_contract"]["branches"] if row["kind"] != "sidecar"]
         self.assertTrue(self.errors())
+
+    def test_governance_policy_is_not_optional_or_mutable(self):
+        policy = self.c["event_kind_registry"]["direct_conversation_binding_contract"]["governance_station_policy"]
+        for field, replacement in [("mutable", True), ("governance_generation", 1),
+                                   ("binding_source", "current_profile"),
+                                   ("rejected_stages", ["change_admission"]),
+                                   ("public_generation_zero_authority_bundle", "not_found"),
+                                   ("per_message_online_probe_required", True)]:
+            original = policy[field]
+            policy[field] = replacement
+            self.assertTrue(self.errors(), field)
+            policy[field] = original
+
+    def test_governance_schema_and_profile_fences(self):
+        bundle = load("schemas/realm-authority-bundle.schema.json")
+        handoff = load("schemas/authority-commit-operations.schema.json")
+        profiles = load("profiles/conformance-profiles.json")
+        check = lambda: direct_governance_errors(bundle, handoff, profiles)
+        self.assertEqual(check(), [])
+        original = bundle["allOf"]
+        bundle["allOf"] = []
+        self.assertTrue(check())
+        bundle["allOf"] = original
+        original = handoff["$defs"]["handoff_request"]["allOf"]
+        handoff["$defs"]["handoff_request"]["allOf"] = original[:-1]
+        self.assertTrue(check())
+        handoff["$defs"]["handoff_request"]["allOf"] = original
+        profile = profiles["profile_requirements"]["ak.profile.direct_conversation_realm.v1"]
+        profile["rejected_event_kinds"].remove("ak.realm.governance_station.change")
+        self.assertTrue(check())
+        profile["rejected_event_kinds"].append("ak.realm.governance_station.change")
+        profile["root_owner_mask"]["stable_phase"]["allowed_root_control_actions"].append("ak.realm.governance_station.change")
+        self.assertTrue(check())
+
+    def test_governance_qualification_cannot_run_after_profile(self):
+        gate = self.c["operation_registry"]["direct_conversation_admission_mappings"]["governance_station_qualification"]
+        gate["stage"] = "after_profile_admission"
+        self.assertTrue(self.errors())
+        del self.c["operation_registry"]["direct_conversation_admission_mappings"]["governance_station_qualification"]
+        self.assertTrue(self.errors())
+
+    def test_direct_governance_cases_are_restrictions_not_live_credit(self):
+        rows = load("fixtures/protocol-simplification-fixture.json")["direct_governance_cases"]
+        self.assertEqual(len(rows), 10)
+        for row in rows:
+            allowed = row["genesis_purpose"] != "direct_conversation" or (
+                row["current_station"] == row["genesis_station"]
+                and row["current_generation"] == 0 and row["transitions"] == 0
+                and row["operation"] in {"current", "deployment_update", "historical_read"})
+            self.assertEqual(allowed, row["expected"], row["name"])
 
 
 if __name__ == "__main__":

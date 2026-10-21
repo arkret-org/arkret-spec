@@ -100,8 +100,28 @@ def contract_errors(contract, operations, typed):
     guard = contract["event_kind_registry"].get("direct_conversation_binding_contract", {})
     if (guard.get("first_write_predicate") != "never_written" or guard.get("replacement_allowed") is not False
             or guard.get("source_ref") != "enclosing_bound_event_id"
-            or guard.get("reset_on_withdrawal_leaf_removal_restart_or_handoff") is not False):
+            or guard.get("reset_on_withdrawal_leaf_removal_or_restart") is not False):
         errors.append("Binding must be write-once with permanent bootstrap exit")
+    policy = guard.get("governance_station_policy", {})
+    if (policy.get("binding_source") != "verified_accepted_direct_genesis"
+            or policy.get("purpose") != "direct_conversation"
+            or policy.get("governor") != "genesis_governance_station_id"
+            or policy.get("governance_generation") != 0
+            or policy.get("mutable") is not False
+            or policy.get("rejected_event_kinds") != ["ak.realm.governance_station.change"]
+            or policy.get("rejected_stages") != ["change_admission", "freeze", "handoff_export",
+                "handoff_import", "acceptance", "activation", "foreign_current_authority",
+                "handoff_chain_verification"]
+            or policy.get("rejection") != "failed_precondition_zero_effects"
+            or policy.get("public_generation_zero_authority_bundle") != "permitted_under_existing_disclosure"
+            or policy.get("per_message_online_probe_required") is not False):
+        errors.append("Direct governance must remain at its accepted genesis Station for life")
+    if contract["operation_registry"]["direct_conversation_admission_mappings"].get("governance_station_qualification") != {
+            "source_contract_ref": "#/event_kind_registry/direct_conversation_binding_contract/governance_station_policy",
+            "stage": "before_profile_admission_and_handoff_effects",
+            "event_kind": "ak.realm.governance_station.change", "error_code": "failed_precondition",
+            "effect": "zero_writes_and_no_freeze"}:
+        errors.append("Direct immutable governance qualification must precede profile admission")
     op_ids = {row["operation_id"] for row in contract["operation_registry"]["operations"]}
     if "ak.self.messages.command.prepare.v1" in op_ids:
         errors.append("Ordinary message prepare is retired")
@@ -128,3 +148,38 @@ def check_protocol_simplification(lint):
     for error in contract_errors(load_json(lint, path), load_json(lint, ARTIFACTS / "schemas/consent-operations.schema.json"),
                                  load_json(lint, ARTIFACTS / "schemas/typed-current-result.schema.json")):
         lint.fail(path, error)
+    bundle = load_json(lint, ARTIFACTS / "schemas/realm-authority-bundle.schema.json")
+    handoff = load_json(lint, ARTIFACTS / "schemas/authority-commit-operations.schema.json")
+    profiles = load_json(lint, ARTIFACTS / "profiles/conformance-profiles.json")
+    for error in direct_governance_errors(bundle, handoff, profiles):
+        lint.fail(path, error)
+
+
+def direct_governance_errors(bundle, handoff, profiles):
+    errors = []
+    condition = {"required": ["genesis_event"], "properties": {"genesis_event": {
+        "type": "object", "required": ["payload"], "properties": {"payload": {
+            "type": "object", "required": ["object"], "properties": {"object": {
+                "type": "object", "required": ["purpose"], "properties": {
+                    "purpose": {"const": "direct_conversation"}}}}}}}}}
+    rules = [rule for rule in bundle.get("allOf", []) if rule.get("if") == condition]
+    expected = {"authority_transitions": {"maxItems": 0}, "current_generation": {"const": 0},
+                "genesis_commit": {"properties": {"governance_generation": {"const": 0}}},
+                "current_assertion": {"properties": {"current_generation": {"const": 0},
+                                                     "last_handoff_ref": {"type": "null"}}}}
+    if len(rules) != 1 or rules[0].get("then", {}).get("properties") != expected:
+        errors.append("Direct authority bundles must close generation zero and empty transitions")
+    request = handoff["$defs"]["handoff_request"]
+    if {"not": {"required": ["authority_bundle"], "properties": {
+            "authority_bundle": condition}}} not in request.get("allOf", []):
+        errors.append("Direct handoff requests must be forbidden from the original genesis")
+    profile = profiles["profile_requirements"]["ak.profile.direct_conversation_realm.v1"]
+    if "ak.realm.governance_station.change" not in profile.get("rejected_event_kinds", []):
+        errors.append("Direct profile must explicitly reject governance Station changes")
+    if profile.get("governance_station_policy_ref") != (
+            "registry/contract-registry.json#/event_kind_registry/direct_conversation_binding_contract/governance_station_policy"):
+        errors.append("Direct profile must consume the canonical immutable governance policy")
+    if any("ak.realm.governance_station.change" in phase.get("allowed_root_control_actions", [])
+           for phase in profile["root_owner_mask"].values() if isinstance(phase, dict)):
+        errors.append("Direct root masks cannot authorize a governance transfer")
+    return errors

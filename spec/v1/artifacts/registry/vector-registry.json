@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-21T15:45:28+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5330,7 +5330,7 @@
       "applies_to_fixtures": [
         "protocol-simplification-fixture.json"
       ],
-      "description": "A confirmation does not replace founding uniqueness or create a second Realm.; Two roster members without durable Welcome/provenance cannot confirm.; Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.; At most one different Event wins; loser has zero writes and resolves the original Event ref.; Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.; Only the producer-signed accepted bound and covering Commit establish first completion.; Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.; Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent.; Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
+      "description": "A confirmation does not replace founding uniqueness or create a second Realm.; Two roster members without durable Welcome/provenance cannot confirm.; Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.; At most one different Event wins; loser has zero writes and resolves the original Event ref.; Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.; Only the producer-signed accepted bound and covering Commit establish first completion.; Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.; Restart and late replication preserve original Event/Commit and historical signer; cross-Station governance handoff is forbidden with zero effects and current gates remain independent.; Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"

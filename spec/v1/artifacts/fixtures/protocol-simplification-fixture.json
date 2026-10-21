@@ -1,13 +1,13 @@
 {
   "suite": "protocol_simplification",
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "fixture_kind": "semantic",
   "profile": "ak.profile.station.v1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol_simplification.v1"
   },
-  "description": "Normative semantic obligations and executed schema-only shape cases for local message authoring, one immutable binding and peer full-set Consent. Placeholder identifiers/proofs are schema examples, not cryptographic or production acceptance evidence. Reference model tests exercise CAS, MIMI diff and exact replay only; real PG/HTTP/MLS/cold recovery remains downstream.",
+  "description": "Normative semantic obligations and executed schema-only shape cases for local message authoring, one immutable binding and peer full-set Consent. Placeholder identifiers/proofs are schema examples, not cryptographic or production acceptance evidence. Reference model tests exercise CAS, MIMI diff and exact replay only; real PG/HTTP/MLS/cold recovery remains downstream. Direct governance cases are a bounded policy reference only, not signature, SQL or production acceptance evidence.",
   "covers_vectors": [
     "ak.vector.consent.peer_current.v1",
     "ak.vector.direct_conversation.single_confirmation.v1",
@@ -250,10 +250,10 @@
     {
       "name": "historical_handoff_and_late_ref",
       "given": "The real accepted source and current authority gates described by the normative domain contract.",
-      "action": "Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent.",
+      "action": "Restart and late replication preserve original Event/Commit and historical signer; cross-Station governance handoff is forbidden with zero effects and current gates remain independent.",
       "decision": "validate",
       "assertions": [
-        "Restart, late replication and handoff preserve original Event/Commit and historical signer; current gate remains independent."
+        "Restart and late replication preserve original Event/Commit and historical signer; cross-Station governance handoff is forbidden with zero effects and current gates remain independent."
       ]
     },
     {
@@ -1098,6 +1098,109 @@
       },
       "expect_valid": false,
       "first_expected_error": "$.consent_scope: 'invite' was expected"
+    }
+  ],
+  "direct_governance_cases": [
+    {
+      "name": "generation_zero_original_station",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "current",
+      "expected": true
+    },
+    {
+      "name": "same_station_endpoint_key_deployment_update",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "deployment_update",
+      "expected": true
+    },
+    {
+      "name": "pre_bound_root_change",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "change_admission",
+      "expected": false
+    },
+    {
+      "name": "bound_root_change",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "activation",
+      "expected": false
+    },
+    {
+      "name": "foreign_governor_at_zero",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "C",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "current",
+      "expected": false
+    },
+    {
+      "name": "same_governor_nonzero",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 1,
+      "transitions": 0,
+      "operation": "current",
+      "expected": false
+    },
+    {
+      "name": "valid_service_signed_transition_still_forbidden",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "C",
+      "current_generation": 1,
+      "transitions": 1,
+      "operation": "current",
+      "expected": false
+    },
+    {
+      "name": "mutable_profile_cannot_reclassify_genesis",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "C",
+      "current_generation": 1,
+      "transitions": 1,
+      "operation": "current",
+      "expected": false,
+      "claimed_profile": "collaboration"
+    },
+    {
+      "name": "cold_restart_original",
+      "genesis_purpose": "direct_conversation",
+      "genesis_station": "A",
+      "current_station": "A",
+      "current_generation": 0,
+      "transitions": 0,
+      "operation": "historical_read",
+      "expected": true
+    },
+    {
+      "name": "ordinary_collaboration_still_transferable",
+      "genesis_purpose": "collaboration",
+      "genesis_station": "A",
+      "current_station": "C",
+      "current_generation": 1,
+      "transitions": 1,
+      "operation": "activation",
+      "expected": true
     }
   ]
 }

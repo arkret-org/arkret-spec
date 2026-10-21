@@ -629,7 +629,7 @@ current `direct_conversation_binding` 在该唯一 Realm 中以 pair_key 为 sel
 
 exact signed Event retry 返回其原 accepted Commit，零新增效果；两设备生成不同但同固定 binding 的合法 Event，只允许一份完成一次 CAS，另一份 `duplicate_conflict`、零写入，重读 resolver 取得唯一原 ref，不伪报其新 Event accepted。绑定后再提交不同 Event 不累计确认。不同坐标／participants／basis／initial group 拒绝；两套矛盾的已确认事实是 authority 故障，保留证据并 suspended，不能按时钟／token 选 winner。
 
-首次合法确认后 bootstrap 永久退出。成员离开、Contact 撤回、leaf replacement、冷启动或 handoff 只影响当前 gate／repair，不能清除 binding、改 initial ref 或再次首次确认。交接和 peer 历史消费保留原 Event、covering Commit 与原 accepted-at signer；历史身份验证后仍独立检查当前披露及授权。
+首次合法确认后 bootstrap 永久退出。成员离开、Contact 撤回、leaf replacement 与冷启动只影响当前 gate／repair，不能清除 binding、改 initial ref 或再次首次确认。Direct 治理 Station 自 accepted genesis 起终身固定在原 governance_station_id，governance_generation 恒为0；在 founding／materialization／bound 的全部阶段禁止跨 Station 交接。合法 current controller 或旧／新 Station 双签不能改变该资格，不从可变 profile／角色标签重判 genesis。authority bundle／历史链必须拒绝非空 handoff chain、非零 generation 或不同 governor，普通 generation-0 bundle 仍可按原披露门取得。保持相同 Station DID core 身份的 endpoint／key／部署变化不改变治理身份或任期；不新增逐消息在线探测或任何 A/B 恢复机制。冷启动、迟到复制与 peer 历史消费保留原 Event、covering Commit 与原 accepted-at signer；历史身份验证后仍独立检查当前披露及授权。
 
 **发送证据与稳定引用（normative）**：普通 participant Message 的唯一 critical `direct_conversation_binding` ref、Signal、repair、owned Agent 与 watch 消费者 MUST 逐字引用这同一 binding_event_ref，且 covering RealmCommit 已确认。resolver found 必须返回该唯一原 EventId 和当前 group_state_ref。客户端使用自己 Station 的 exact resolver／committed submission decision 核 actor、Realm、intent 与 basis，不下载历史闭包、不等待第二方确认。缺当前材料则等待对应来源，不改坐标、不重建 group、不放松 current gates。§7.2 离线 founder 的受限 provisional history send 保留。
 
@@ -675,6 +675,8 @@ Chat／Topic 用户 metadata 使用同一 Realm group 下的完整 encrypted_met
 该权限不包含 `ak.strand.watch.set.others`，包括写 pair 中另一 participant 的 cell；失败按 closed participant evaluator 折叠为 `direct_conversation_participant_authority_denied`，零 durable 写入。membership、Contact／owned-Agent controller、MLS、device、executor delegation 与实际 target lifecycle gates 均继续适用。合法 authority 后保留 Strand watch whole-value CAS、读回与本人私有披露规则；未写 cell 的默认 mentions-only 不变。通知按实际 Strand 路由，不按 Main Chat 或 Topic 汇总后冒充目标。
 
 ### 8.4 admission reason producer 与优先级（normative）
+
+治理交接资格先从已验证 accepted 原 genesis 判定：Direct 的 ak.realm.governance_station.change 在本节七项 profile table 之前以 failed_precondition 零效果拒绝，任何阶段均不冻结、不导出交接、不导入、不签 acceptance、不激活。该资格门不扩大 root 或 participant authority，也不改变下列七项 reason 的相对优先级。
 
 Direct Conversation 的普通单 Event 写入继续使用 `ak.self.events.command.submit.v1`，请求中的 signed Event 位于
 `/event`，拒绝继续使用既有
@@ -857,7 +859,7 @@ Conformance **MUST** 覆盖：
 - pair materialization conflict：模拟受信 service 对同 pair 签出两组不同四-Commit unit 时两 Realm 全部冻结，**MUST NOT** 按 Realm token 词法顺序或到达时间选 winner，也 **MUST NOT** 发 tombstone；
 - 同对象 token 不同 Genesis 继续走 `object_identity_conflict`，**MUST NOT** 与 pair materialization conflict 合并为一个 selector；
 - 终态：`destroy` 与任意 `tombstone` 拒绝；合法 archive/freeze 及其反向操作沿普通路径生效且坐标不变；违规 terminal 后 slot 保持关闭且 resolver `suspended`；
-- binding：一次原签／Commit、同 Event retry、不同 Event 并发零写入与 resolver 原 ref 恢复、冷启动／迟到／handoff、Contact 撤回／leaf replacement 不重绑、离线 founder 发送和当前 source gates；不再验证等价背书集合或其摘要；
+- binding：一次原签／Commit、同 Event retry、不同 Event 并发零写入与 resolver 原 ref 恢复、冷启动／迟到原件保持、治理交接零效果拒绝、Contact 撤回／leaf replacement 不重绑、离线 founder 发送和当前 source gates；不再验证等价背书集合或其摘要；
 - owned Agent：controller↔own-Agent 只携 `direct_conversation_agent_provision` 时命中 DM variant；改用 `purpose="agent_control"`（那是 PCR genesis 分支，见 [`./key-management.md` §3.6.3](./key-management.md)）、同时携两个 DM roles 或 DM/PCR variants 多命中均零写入拒绝；Agent↔第三方分别覆盖 founder=Agent 与 founder=other；
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 

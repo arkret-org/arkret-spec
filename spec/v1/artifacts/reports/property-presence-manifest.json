@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9992,
+    "total_properties": 10008,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2315,
+      "optional": 2318,
       "optional_defaulted": 48,
-      "required": 7117,
-      "required_nullable": 310,
-      "tristate": 202
+      "required": 7125,
+      "required_nullable": 311,
+      "tristate": 206
     },
-    "tristate_occurrences": 202,
-    "tristate_audit_targets": 160,
+    "tristate_occurrences": 206,
+    "tristate_audit_targets": 164,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 148,
+      "absent_null_equivalent": 152,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -179,6 +179,10 @@
     "read-receipt.schema.json/properties/read_scope/allOf/5/then/properties/object_ref",
     "realm-actor-material.schema.json/$defs/device_revoke_outcome/allOf/0/then/properties/decided_at",
     "realm-actor-material.schema.json/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/then/properties/terminal_ref",
+    "realm-authority-bundle.schema.json/allOf/0/then/properties/authority_transitions",
+    "realm-authority-bundle.schema.json/allOf/0/then/properties/current_assertion",
+    "realm-authority-bundle.schema.json/allOf/0/then/properties/current_assertion/properties/last_handoff_ref",
+    "realm-authority-bundle.schema.json/allOf/0/then/properties/genesis_commit",
     "realm-commit.schema.json/allOf/0/then/properties/previous_commit_ref",
     "realm-genesis.schema.json/allOf/2/then/properties/initial_resolution",
     "realm-genesis.schema.json/allOf/3/then/properties/initial_resolution",
@@ -1324,6 +1328,46 @@
       "instance_path": "/outcome/terminal_ref",
       "occurrences": [
         "/$defs/outcome_record/properties/outcome/oneOf/3/allOf/0/then/properties/terminal_ref"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "realm-authority-bundle.schema.json",
+      "shape": "#",
+      "instance_path": "/authority_transitions",
+      "occurrences": [
+        "/allOf/0/then/properties/authority_transitions"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "realm-authority-bundle.schema.json",
+      "shape": "#",
+      "instance_path": "/current_assertion",
+      "occurrences": [
+        "/allOf/0/then/properties/current_assertion"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "realm-authority-bundle.schema.json",
+      "shape": "#",
+      "instance_path": "/current_assertion/last_handoff_ref",
+      "occurrences": [
+        "/allOf/0/then/properties/current_assertion/properties/last_handoff_ref"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "realm-authority-bundle.schema.json",
+      "shape": "#",
+      "instance_path": "/genesis_commit",
+      "occurrences": [
+        "/allOf/0/then/properties/genesis_commit"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3942,6 +3986,11 @@
         "/$defs/handoff_request/allOf/1/if/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose": "required",
         "/$defs/handoff_request/allOf/1/then/properties/handoff": "tristate",
         "/$defs/handoff_request/allOf/2/if/properties/handoff": "tristate",
+        "/$defs/handoff_request/allOf/3/not/properties/authority_bundle": "required_nullable",
+        "/$defs/handoff_request/allOf/3/not/properties/authority_bundle/properties/genesis_event": "required",
+        "/$defs/handoff_request/allOf/3/not/properties/authority_bundle/properties/genesis_event/properties/payload": "required",
+        "/$defs/handoff_request/allOf/3/not/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object": "required",
+        "/$defs/handoff_request/allOf/3/not/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose": "required",
         "/$defs/handoff_request/properties/authority_bundle": "required",
         "/$defs/handoff_request/properties/final_stream_heads": "required",
         "/$defs/handoff_request/properties/handoff": "required",
@@ -10615,6 +10664,17 @@
         "/$defs/current_assertion/properties/realm_id": "required",
         "/$defs/current_assertion/properties/realm_stream_head": "required",
         "/$defs/current_assertion/properties/signature": "required",
+        "/allOf/0/if/properties/genesis_event": "required",
+        "/allOf/0/if/properties/genesis_event/properties/payload": "required",
+        "/allOf/0/if/properties/genesis_event/properties/payload/properties/object": "required",
+        "/allOf/0/if/properties/genesis_event/properties/payload/properties/object/properties/purpose": "required",
+        "/allOf/0/then/properties/authority_transitions": "tristate",
+        "/allOf/0/then/properties/current_assertion": "tristate",
+        "/allOf/0/then/properties/current_assertion/properties/current_generation": "optional",
+        "/allOf/0/then/properties/current_assertion/properties/last_handoff_ref": "tristate",
+        "/allOf/0/then/properties/current_generation": "optional",
+        "/allOf/0/then/properties/genesis_commit": "tristate",
+        "/allOf/0/then/properties/genesis_commit/properties/governance_generation": "optional",
         "/properties/authority_transitions": "required",
         "/properties/bundle_issued_at": "required",
         "/properties/current_assertion": "required",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-authority-bundle.schema.json",
   "title": "Arkret Realm Authority Bundle",
-  "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams. Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. Other proven subject branches retain their existing rules. The public operation MUST NOT disclose a Human PCR bundle: indistinguishable not_found under pcr_governance_policy; its private native authority checks remain mandatory. Non-Human managed-device verification retains this carrier.",
+  "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams. Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. Other proven subject branches retain their existing rules. The public operation MUST NOT disclose a Human PCR bundle: indistinguishable not_found under pcr_governance_policy; its private native authority checks remain mandatory. Non-Human managed-device verification retains this carrier. Direct Conversation fixes the accepted genesis governance_station_id for life at generation zero: authority_transitions is empty and current_service_id equals that genesis Station, including the current assertion. Same-Station endpoint/key/deployment changes remain legal; normal generation-zero Direct bundles retain existing disclosure gates.",
   "type": "object",
   "required": [
     "realm_id",
@@ -131,5 +131,70 @@
   "x-arkret-pcr-outward-event-kinds": [
     "ak.realm.create",
     "ak.realm.governance_station.change"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "genesis_event"
+        ],
+        "properties": {
+          "genesis_event": {
+            "type": "object",
+            "required": [
+              "payload"
+            ],
+            "properties": {
+              "payload": {
+                "type": "object",
+                "required": [
+                  "object"
+                ],
+                "properties": {
+                  "object": {
+                    "type": "object",
+                    "required": [
+                      "purpose"
+                    ],
+                    "properties": {
+                      "purpose": {
+                        "const": "direct_conversation"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authority_transitions": {
+            "maxItems": 0
+          },
+          "current_generation": {
+            "const": 0
+          },
+          "genesis_commit": {
+            "properties": {
+              "governance_generation": {
+                "const": 0
+              }
+            }
+          },
+          "current_assertion": {
+            "properties": {
+              "current_generation": {
+                "const": 0
+              },
+              "last_handoff_ref": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    }
   ]
 }

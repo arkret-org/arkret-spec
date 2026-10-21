@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-21.2",
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "version": "2026-10-21.3",
+  "generated_at": "2026-10-21T15:45:28+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2011,7 +2011,8 @@
         "ak.invite.third_party",
         "ak.space.parent",
         "ak.strand.move",
-        "ak.strand.reorder"
+        "ak.strand.reorder",
+        "ak.realm.governance_station.change"
       ],
       "required_schemas": [
         "ak.schema.realm.v1",
@@ -2073,7 +2074,8 @@
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
         "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source.",
-        "Stable Direct Conversation participants may write only their own actual Chat watch cell through the accepted binding authority; others and bootstrap writes are denied, preserving whole-value CAS and private disclosure."
+        "Stable Direct Conversation participants may write only their own actual Chat watch cell through the accepted binding authority; others and bootstrap writes are denied, preserving whole-value CAS and private disclosure.",
+        "The accepted direct_conversation genesis fixes governance_station_id for life at governance_generation=0. All cross-Station handoff stages reject without effects; same-Station endpoint/key/deployment updates preserve identity and tenure. Normal generation-zero authority bundles and original historical verification retain existing disclosure gates; no new per-message online probe is introduced."
       ],
       "participant_authority": {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
@@ -2206,7 +2208,8 @@
           "unknown_reference_closure": "fail_closed",
           "successor_direct_conversation_forbidden": true
         }
-      }
+      },
+      "governance_station_policy_ref": "registry/contract-registry.json#/event_kind_registry/direct_conversation_binding_contract/governance_station_policy"
     },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",

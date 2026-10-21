@@ -2088,6 +2088,49 @@
               ]
             }
           }
+        },
+        {
+          "not": {
+            "required": [
+              "authority_bundle"
+            ],
+            "properties": {
+              "authority_bundle": {
+                "required": [
+                  "genesis_event"
+                ],
+                "properties": {
+                  "genesis_event": {
+                    "type": "object",
+                    "required": [
+                      "payload"
+                    ],
+                    "properties": {
+                      "payload": {
+                        "type": "object",
+                        "required": [
+                          "object"
+                        ],
+                        "properties": {
+                          "object": {
+                            "type": "object",
+                            "required": [
+                              "purpose"
+                            ],
+                            "properties": {
+                              "purpose": {
+                                "const": "direct_conversation"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ],
       "x-arkret-pcr-outward-event-kinds": [
@@ -2112,7 +2155,7 @@
         "ak.self.agent.pause",
         "ak.self.agent.resume"
       ],
-      "description": "Eligible non-Human PCR only when this is a PCR: verified accepted genesis provenance must satisfy the PCR profile pcr_governance_policy before any freeze/export/import/acceptance/activation. Human and unresolved provenance reject without effects; no subject flag in this DTO grants eligibility. "
+      "description": "Eligible non-Human PCR only when this is a PCR: verified accepted genesis provenance must satisfy the PCR profile pcr_governance_policy before any freeze/export/import/acceptance/activation. Human and unresolved provenance reject without effects; no subject flag in this DTO grants eligibility.  Direct Conversation accepted genesis is permanently ineligible, even with valid signatures and complete imports; rejection has no effects."
     },
     "account_device_historical_signer_fact": {
       "type": "object",

@@ -125,7 +125,7 @@ Schema id: `ak.schema.realm.v1`
 | `history_access` | yes | `enum(since_join, all_history_for_current_members)` | reducer 派生且在任一时点恰有一个 current 值；accepted MLS Genesis 要求 current 值为 `since_join`。 | scope-local 历史访问策略。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
-| `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；materialized Realm 由连续 handoff chain 派生当前值。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
+| `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；仅具备交接资格的 materialized Realm 由连续 handoff chain 派生当前值；Direct Conversation 永久保持 genesis Station 与 generation 0。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_commit`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
@@ -563,6 +563,8 @@ Realm（ak.schema.realm.v1，schema 层统一）
 Direct Conversation Realm 是 Collaboration Realm 的受约束形态，不是新的 Realm 类型。完整生命周期见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
 Direct Conversation Realm MUST：
+
+- 从已接受原 genesis 的 purpose=direct_conversation 固定终身治理 Station 与 generation 0，禁止跨 Station governance change／handoff；规则覆盖所有阶段且不能通过可变 profile、owner grant 或双站签名绕过。普通 generation-0 authority bundle、历史验签及同 Station 身份的 endpoint／key／部署变化保留，不新增在线探测或恢复机制。
 
 - 在 founding unit 之后提交该 scope 唯一的 `ak.mls.genesis`；其 accepted RealmCommit 把 Realm scope 不可逆激活为 standard RFC 9420，之后不存在明文内容写入分支。
 - genesis `purpose="direct_conversation"`；reducer 据此投影只读的 `fields.collaboration_role="direct_conversation"`（[§2.3.A](#23a-字段-carrier-inventorynormative)）。`schema_refs` 不承载该角色，`ak.profile.direct_conversation_realm.v1` 的适用条件是该 genesis `purpose`。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于身份控制类 Realm。

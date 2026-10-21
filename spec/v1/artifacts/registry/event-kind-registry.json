@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-21T15:45:28+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -9568,7 +9568,6 @@
       "current_contact_or_owned_agent_device_key_access_gates"
     ],
     "bootstrap_exit": "permanent_after_first_accepted_confirmation",
-    "reset_on_withdrawal_leaf_removal_restart_or_handoff": false,
     "consumers": [
       "message",
       "signal",
@@ -9576,6 +9575,32 @@
       "watch",
       "owned_agent"
     ],
-    "historical_verification": "original_accepted_at_identity_then_independent_current_gate"
+    "historical_verification": "original_accepted_at_identity_then_independent_current_gate",
+    "reset_on_withdrawal_leaf_removal_or_restart": false,
+    "governance_station_policy": {
+      "binding_source": "verified_accepted_direct_genesis",
+      "purpose": "direct_conversation",
+      "governor": "genesis_governance_station_id",
+      "governance_generation": 0,
+      "mutable": false,
+      "rejected_event_kinds": [
+        "ak.realm.governance_station.change"
+      ],
+      "rejected_stages": [
+        "change_admission",
+        "freeze",
+        "handoff_export",
+        "handoff_import",
+        "acceptance",
+        "activation",
+        "foreign_current_authority",
+        "handoff_chain_verification"
+      ],
+      "rejection": "failed_precondition_zero_effects",
+      "same_station_endpoint_key_deployment_update": "preserve_station_identity_and_governance_generation",
+      "public_generation_zero_authority_bundle": "permitted_under_existing_disclosure",
+      "historical_originals": "original_event_commit_and_accepted_at_signer_then_independent_current_gate",
+      "per_message_online_probe_required": false
+    }
   }
 }

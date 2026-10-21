@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.5",
+  "version": "2026-10-21.6",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T11:54:44+08:00",
+  "generated_at": "2026-10-21T15:45:28+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -339,10 +339,10 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
-      "section_digest": "sha256:b61cc37e2007b6657eaf716668cdfcd0866de98c87fd3de087d3a52a001e7a45",
-      "requirement": "One immutable producer-signed bound Event and original covering Commit establish first exact-pair durable completion. Different equivalent Events conflict with zero writes; every Message/Signal/repair/watch/Agent ref is this one Event. Original founding uniqueness, current Contact/Agent gates and historical accepted-at identity remain independent.",
+      "section_digest": "sha256:4c2c80e4eb2d30f2e527988e0cfacf7c1959878e5bc3327dc74c8888bb9aee2d",
+      "requirement": "One immutable producer-signed bound Event and original covering Commit establish first exact-pair durable completion. Different equivalent Events conflict with zero writes; every Message/Signal/repair/watch/Agent ref is this one Event. Original founding uniqueness, current Contact/Agent gates and historical accepted-at identity remain independent. Direct governance remains at its accepted genesis Station and generation zero for life; all cross-Station change and handoff paths are forbidden, without restricting lawful generation-zero disclosure or same-Station identity updates.",
       "testability_grade": "audit",
-      "test_plan": "Run single-confirmation schema/mutation vectors and concurrent different Event attempts, exact Event replay, resolver recovery, withdrawal/leaf repair/restart/handoff, offline founder sends and all current participant consumers. Real serialization, MLS provenance and source proofs require downstream production acceptance."
+      "test_plan": "Run single-confirmation schema/mutation vectors and concurrent different Event attempts, exact Event replay, resolver recovery, withdrawal/leaf repair/restart/late original refs and all-stage governance-change/handoff refusal with zero writes, offline founder sends and all current participant consumers. Real serialization, MLS provenance and source proofs require downstream production acceptance."
     },
     {
       "clause_id": "AK-NC-043",
