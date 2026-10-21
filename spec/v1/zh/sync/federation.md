@@ -253,7 +253,7 @@ target 状态的读取面 MUST 不泄露成员拓扑：未知 Event 与不可见
 Invite、Directory、DID route 和缓存 endpoint 只提供 locator candidate。治理身份由 Realm genesis 和连续的 old→new
 双签 handoff chain 证明。
 
-计划 handoff 前，new Station 必须导入 typed snapshot、所有 stream heads/tails、idempotency index、outbox 和公开
+计划 handoff 仅适用于 [迁移边界总表](./authority-commit-log.md#82-迁移与交接边界总表normative) 允许的治理对象；Human／用户管理 Agent PCR 与 Direct 均不得进入。计划 handoff 前，new Station 必须导入 typed snapshot、所有 stream heads/tails、idempotency index、outbox 和公开
 MLS state。Handoff transition 绑定私有 full-stream-head manifest digest，但公开 bundle 只暴露 Realm stream head。
 旧方在 cut 后永久拒写，新方从每条 stream 的各自直接后继位置开始。
 

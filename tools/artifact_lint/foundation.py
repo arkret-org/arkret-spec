@@ -4701,23 +4701,42 @@ def check_pcr_governance_policy(lint: Lint) -> None:
         "same_station_endpoint_key_deployment_update": "preserve_governance_generation",
         "public_authority_bundle_error": "not_found",
     }
+    agent = policy.get("agent", {})
+    required_agent = {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "required_evidence": ["accepted_agent_control_genesis", "accepted_controller_provision", "full_agent_controller_account_binding"],
+        "governor": "account_station",
+        "provenance_mutable": False,
+        "governance_generation": 0,
+        "rejected_event_kinds": ["ak.realm.governance_station.change"],
+        "rejected_stages": ["freeze", "handoff_export", "handoff_import", "acceptance", "activation", "remote_proxy", "remote_publication", "foreign_current_authority"],
+        "same_station_endpoint_key_deployment_update": "preserve_governance_generation",
+        "public_authority_bundle": "generation_zero_existing_disclosure",
+    }
+    if agent != required_agent:
+        lint.fail(path, "pcr_governance_policy user-managed Agent fixed account-Station boundary is incomplete")
+    schema_path = ARTIFACTS / "schemas" / "agent-authority-evidence.schema.json"
+    schema = load_json(lint, schema_path) or {}
+    bundle = schema.get("$defs", {}).get("agent_accepted_authority_bundle", {})
+    if "authority_transitions" in bundle.get("required", []) or "authority_transitions" in bundle.get("properties", {}):
+        lint.fail(schema_path, "fixed Agent authority closure must not carry a handoff history member")
     if human != required_human:
         lint.fail(path, "pcr_governance_policy Human fixed account-Station boundary is incomplete")
     if policy.get("binding_source") != "verified_accepted_genesis_provenance" or policy.get("unknown_provenance") != "reject_without_effects":
         lint.fail(path, "pcr_governance_policy must derive immutable accepted provenance and fail closed")
     expected = [
         {"purpose": "principal_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_organization_authority"},
-        {"purpose": "agent_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_controller_provision"},
     ]
     if policy.get("transferable_provenance") != expected:
-        lint.fail(path, "pcr_governance_policy must preserve independently authorized non-Human transfer branches")
+        lint.fail(path, "pcr_governance_policy must preserve only independently authorized Organization PCR transfer")
     if policy.get("transfer_preconditions") != ["current_controller_authorization", "generation_and_head_cas", "old_authority_online", "complete_frozen_import", "both_service_signatures"]:
         lint.fail(path, "pcr_governance_policy must retain every shared handoff precondition")
     change = "ak.realm.governance_station.change"
     if change in profile.get("required_event_kinds", []):
         lint.fail(path, "Human PCR must not require unconditional handoff support")
     if change not in profile.get("realm_event_kind_policy", {}).get("allowed_event_kinds", []) or policy.get("required_event_kinds_for_transferable_provenance") != [change]:
-        lint.fail(path, "shared PCR allowlist must retain conditional non-Human handoff support")
+        lint.fail(path, "shared PCR allowlist must retain conditional Organization handoff support")
     exposure_path = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
     exposure = load_json(lint, exposure_path) or {}
     scoped = {"ak.pcr_exposure_policy." + name + ".v1" for name in (
@@ -4726,9 +4745,9 @@ def check_pcr_governance_policy(lint: Lint) -> None:
     for row in exposure.get("authorization_policies", []):
         if row.get("policy_id") in scoped and (
             "pcr_governance_policy" not in row.get("description", "")
-            or "Human rejects without effects" not in row.get("description", "")
+            or "Human and user-managed Agent reject without effects" not in row.get("description", "")
         ):
-            lint.fail(exposure_path, "shared PCR migration exposure must exclude Human under pcr_governance_policy")
+            lint.fail(exposure_path, "shared PCR migration exposure must exclude Human and user-managed Agent under pcr_governance_policy")
 
 
 def check_pcr_exposure_registry(lint: Lint) -> None:

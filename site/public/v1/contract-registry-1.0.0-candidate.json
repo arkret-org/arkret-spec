@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.13",
+  "version": "2026-10-21.14",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T22:14:10+08:00",
+  "generated_at": "2026-10-21T22:25:25+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -6631,7 +6631,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Planned governance Station transfer intent for an eligible Realm; Human PCR rejects without effects under the PCR profile pcr_governance_policy.",
+        "payload": "Planned governance Station transfer intent for an eligible Realm; Human and user-managed Agent PCRs reject without effects under the PCR profile pcr_governance_policy.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_governance_station_change_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -9950,8 +9950,8 @@
         }
       }
     },
-    "version": "2026-10-21.3",
-    "generated_at": "2026-10-21T15:45:28+08:00",
+    "version": "2026-10-21.4",
+    "generated_at": "2026-10-21T21:31:04+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -10119,10 +10119,10 @@
           "event_kind": "ak.realm.governance_station.change",
           "storage_owner": "current_governance_station_authority_commit_store",
           "unique_key": "(envelope.realm_id, payload.expected_governance_generation)",
-          "precondition": "payload.expected_governance_generation equals the current authority-commit governance_generation and the current governance Station is still online; accepted genesis provenance MUST permit transfer under ak.profile.principal_control_realm.v1 pcr_governance_policy; Human PCR and unknown provenance are ineligible; accepted purpose=direct_conversation is permanently ineligible, from founding onward, using the immutable genesis original rather than a mutable profile or role",
+          "precondition": "payload.expected_governance_generation equals the current authority-commit governance_generation and the current governance Station is still online; accepted genesis provenance MUST permit transfer under ak.profile.principal_control_realm.v1 pcr_governance_policy; Human PCR, user-managed Agent PCR and unknown provenance are ineligible; accepted purpose=direct_conversation is permanently ineligible, from founding onward, using the immutable genesis original rather than a mutable profile or role",
           "accepted_effect": "freeze the exact planned handoff intent for the next generation; final activation still requires the closed RealmAuthorityHandoff snapshot/import/acceptance transaction",
           "exact_retry": "the same canonical Event bytes return the same frozen handoff intent and never allocate another generation",
-          "rejection": "stale generation, wrong current governance Station, conflicting next Station or mismatched Event bytes reject with zero stream, snapshot, handoff or typed-current-result writes; ineligible Human PCR rejects before freeze/export/import/acceptance/activation, without effects even with valid controller/service signatures and a complete archive; Direct Conversation rejects with failed_precondition and zero effects before any freeze/export/import/acceptance/activation",
+          "rejection": "stale generation, wrong current governance Station, conflicting next Station or mismatched Event bytes reject with zero stream, snapshot, handoff or typed-current-result writes; ineligible Human or user-managed Agent PCR rejects before freeze/export/import/acceptance/activation, without effects even with valid controller/service signatures and a complete archive; Direct Conversation rejects with failed_precondition and zero effects before any freeze/export/import/acceptance/activation",
           "counter_owner": "RealmCommit.governance_generation",
           "typed_current_result_effect": "none"
         }
@@ -15111,7 +15111,7 @@
         "http": "POST /_arkret/open/realm-authority/bundle",
         "grpc": "OpenRealmAuthority/Bundle",
         "mq": "open.realm_authority.read.bundle",
-        "notes": "Human PCR is excluded by verified accepted genesis provenance under the PCR profile pcr_governance_policy; return indistinguishable not_found without public genesis, Commit or current assertion disclosure. Native own-Station Human verification retains its original private authority. Ordinary Realms and eligible non-Human PCRs retain this public minimal authority carrier. Return a nonce-bound genesis-to-current authority chain; locators are hints and never authority.",
+        "notes": "Human PCR is excluded by verified accepted genesis provenance under the PCR profile pcr_governance_policy; return indistinguishable not_found without public genesis, Commit or current assertion disclosure. Native own-Station Human verification retains its original private authority. Ordinary Realms and eligible Organization PCRs retain this public minimal authority carrier. User-managed Agent PCRs retain only their existing generation-zero disclosure with no handoff transitions and original Account Station governance. Return a nonce-bound genesis-to-current authority chain; locators are hints and never authority.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
@@ -15478,7 +15478,7 @@
         "http": "POST /_arkret/peer/realm-authority/handoff",
         "grpc": "PeerRealmAuthority/Handoff",
         "mq": "peer.realm_authority.command.handoff",
-        "notes": "Check immutable accepted genesis provenance before any handoff effect; Human PCR and unresolved provenance reject without freeze, import or activation under the PCR profile pcr_governance_policy. Other eligible Realms retain the complete shared handoff contract. Install a planned dual-signed authority handoff after complete snapshot and all stream heads are imported.",
+        "notes": "Check immutable accepted genesis provenance before any handoff effect; Human PCR, user-managed Agent PCR and unresolved provenance reject without freeze, import or activation under the PCR profile pcr_governance_policy. Other eligible Realms retain the complete shared handoff contract. Install a planned dual-signed authority handoff after complete snapshot and all stream heads are imported.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
@@ -17973,7 +17973,7 @@
         "http": "POST /_arkret/self/consent/current",
         "grpc": "SelfConsent/ReadCurrent",
         "mq": "self.consent.read.current",
-        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
+        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable Organization holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "schema_resource",
@@ -17992,7 +17992,7 @@
         "http": "POST /_arkret/peer/consent/current",
         "grpc": "PeerConsent/ReadCurrent",
         "mq": "peer.consent.read.current",
-        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable non-Human holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
+        "notes": "Holder/controller-authorized exact-peer complete present or explicit never_written at one PCR serialized cut. No scope filter. Includes all expired, future and unevaluable entries. Existing audience/nonce/request digest/authority proof/30-second/generation/head fences apply. Peer access is only the verified transferable Organization holder hosting Station proxy; Human reads remain at the owning Station; requester and media issuer cannot read this value.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "schema_resource",
@@ -18069,7 +18069,7 @@
         "http": "POST /_arkret/peer/consent/proxy",
         "grpc": "PeerConsent/Proxy",
         "mq": "peer.consent.command.proxy",
-        "notes": "Separated-governor branch only for verified transferable non-Human PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification, and cross-Station proxy/publication/current read rejects without effects. No new holder_session authority is implied for other subjects. Only the exact holder hosting Station proxies the six closed private commands to its independently verified current PCR authority. Holder-session list/version/effects/policy commands require the exact holder Account and a currently active holder device rechecked in the same PCR lock. Station-context invite/request commands preserve the complete authenticated original source and original canonical evidence, use the original opaque result, and never return private values. Current, queue, quota, deduplication and final delivery CAS have one authority-local transaction; a remote verdict never authorizes a hosting-local CAS. Authority generation, nonce/request digest, exact result branch and the 30-second outstanding delivery window are mandatory. See identity/consent-model section 6.3.2. The closed nonce is the request id scoped by exact holder and governance_generation; the complete request digest fences byte-identical writes within the original outstanding window. Reads always reevaluate the current cut and do not replay authority.",
+        "notes": "Separated-governor branch only for verified transferable Organization PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification. Human and user-managed Agent cross-Station proxy/publication/current reads reject without effects; this does not grant Agent Consent or Human Device capabilities. No new holder_session authority is implied for other subjects. Only the exact holder hosting Station proxies the six closed private commands to its independently verified current PCR authority. Holder-session list/version/effects/policy commands require the exact holder Account and a currently active holder device rechecked in the same PCR lock. Station-context invite/request commands preserve the complete authenticated original source and original canonical evidence, use the original opaque result, and never return private values. Current, queue, quota, deduplication and final delivery CAS have one authority-local transaction; a remote verdict never authorizes a hosting-local CAS. Authority generation, nonce/request digest, exact result branch and the 30-second outstanding delivery window are mandatory. See identity/consent-model section 6.3.2. The closed nonce is the request id scoped by exact holder and governance_generation; the complete request digest fences byte-identical writes within the original outstanding window. Reads always reevaluate the current cut and do not replay authority.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "schema_resource",
@@ -18095,7 +18095,7 @@
         "http": "POST /_arkret/peer/consent/effects",
         "grpc": "PeerConsent/PublishEffects",
         "mq": "peer.consent.command.publish_effects",
-        "notes": "Separated-governor branch only for verified transferable non-Human PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification, and cross-Station proxy/publication/current read rejects without effects. No new holder_session authority is implied for other subjects. Only the independently verified current holder PCR authority is the RFC9421 Source; Destination is the exact holder hosting Station. Publish the three closed private cells at the actual current cut, with a CSPRNG nonce and a 30-second outstanding window. Authority-local acceptance and the durable publication intent commit atomically. Hosting only materializes original revisions and cursor-covered Station-CAS display, never accepts a second business CAS. Same revision with changed content, stale tenure/head/cell, an unknown source or an incomplete cut is rejected. Duplicate delivery does not change the business revision or repeat fanout. Hosting wakes devices under its own real Service identity. Pending intents migrate, and only the new authority may recover them. See identity/consent-model section 6.3.3.",
+        "notes": "Separated-governor branch only for verified transferable Organization PCR provenance under pcr_governance_policy. Human uses owning-Station native acceptance/read/notification. Human and user-managed Agent cross-Station proxy/publication/current reads reject without effects; this does not grant Agent Consent or Human Device capabilities. No new holder_session authority is implied for other subjects. Only the independently verified current holder PCR authority is the RFC9421 Source; Destination is the exact holder hosting Station. Publish the three closed private cells at the actual current cut, with a CSPRNG nonce and a 30-second outstanding window. Authority-local acceptance and the durable publication intent commit atomically. Hosting only materializes original revisions and cursor-covered Station-CAS display, never accepts a second business CAS. Same revision with changed content, stale tenure/head/cell, an unknown source or an incomplete cut is rejected. Duplicate delivery does not change the business revision or repeat fanout. Hosting wakes devices under its own real Service identity. Pending intents migrate, and only the new authority may recover them. See identity/consent-model section 6.3.3.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "success_shape_kind": "schema_resource",
@@ -18483,8 +18483,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-21.11",
-    "generated_at": "2026-10-21T15:57:44+08:00",
+    "version": "2026-10-21.12",
+    "generated_at": "2026-10-21T21:31:04+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

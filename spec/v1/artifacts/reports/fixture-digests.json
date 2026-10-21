@@ -92,8 +92,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "b8fbc4e29b81f1759b0124d0b570c88d9f999205e2a5f1b2893340c52c436d79",
-      "version": "2026-10-19"
+      "sha256": "4a4e5980ef3faae8a9ec5ba59d6bdd52a3ad658c4efa62afee6c1b5e8cf83c48",
+      "version": "2026-10-21"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
@@ -462,8 +462,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "e17ebe1f85ed3a02374f398c394bdf1d15022edd9ed5bfd9b1754d129a9686d0",
-      "version": 12
+      "sha256": "c179ce9483a14553c222c469ddf4368580dfdab94f08fa89f0efaf9ee10a4524",
+      "version": 13
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",

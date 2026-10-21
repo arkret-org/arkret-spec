@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-19",
+  "version": "2026-10-21",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit.v1"
@@ -64,11 +64,11 @@
     "public_bundle_head_count": 1,
     "new_generation_first_commit_uses_imported_head": true,
     "transferable_pcr_runtime": {
-      "scope": "Independently verified transferable non-Human PCR holders under authority-commit-log section 8.1; Human PCRs are excluded.",
+      "scope": "Independently verified transferable Organization PCR holders under authority-commit-log section 8.1; Human and user-managed Agent PCRs are excluded.",
       "independent_runtime_evidence_required": true,
       "human_consent_suite_proves_this_contract": false,
       "assertions": [
-        "A separately verified transferable non-Human holder retains the existing complete planned handoff case: incomplete import cannot activate, stale old-authority verdicts reject, exact outcomes/fences migrate, and new-authority proxy/publication recover without a second writer."
+        "A separately verified transferable Organization holder retains the existing complete planned handoff case: incomplete import cannot activate, stale old-authority verdicts reject, exact outcomes/fences migrate, and new-authority proxy/publication recover without a second writer."
       ]
     }
   },

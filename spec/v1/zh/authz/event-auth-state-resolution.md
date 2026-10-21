@@ -67,7 +67,7 @@ Snapshot 完整性由 current governing Station 对 closed body 的签名保证�
 
 ## 12. Governance Station 与领域规则
 
-每个 Realm 以 `governance_station_id` 建立 generation-0 authority，并只通过连续 `RealmAuthorityHandoff` 更换治理 Station。v1 领域规则和 digest 语义由协议版本固定；service key rotation 通过 service DID method history 处理。
+每个 Realm 以 `governance_station_id` 建立 generation-0 authority。只有 [迁移边界总表](../sync/authority-commit-log.md#82-迁移与交接边界总表normative) 明确允许的对象，才可通过连续 `RealmAuthorityHandoff` 更换治理 Station；共享验证算法不赋予 Human／用户管理 Agent PCR 或 Direct 交接资格。v1 领域规则和 digest 语义由协议版本固定；service key rotation 通过 service DID method history 处理。
 
 ## 13. 固定 content-address suite
 

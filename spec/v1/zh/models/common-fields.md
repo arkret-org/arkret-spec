@@ -486,7 +486,7 @@ value category，不会自动触发 DID Document 解析或在线验证。
 
 Station 永久停止服务时，其 Account 与 PCR 不提供跨 Station 延续、迁移或复活路径；在另一 Station
 注册同 principal 只会建立独立 Account。历史 Event / RealmCommit 的验证与保留不恢复死亡账号的当前行动权。
-同一 Station service DID core 的合法 endpoint／key／部署更新不改变 AccountId，也不推进 PCR 治理任期。Human PCR 固定该逻辑 Station，不允许账号不变而独立交接 PCR；其它主体的合法共享 handoff 仍保留，资格见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+同一 Station service DID core 的合法 endpoint／key／部署更新不改变 AccountId，也不推进 PCR 治理任期。Human／用户管理的 Agent PCR 固定该逻辑 Station，不允许账号不变而独立交接 PCR；独立 Organization PCR 与普通 Collaboration 的合法共享 handoff 保留，不能复活或转移原 Account；分类总表见 [`authority-commit-log.md` §8.2](../sync/authority-commit-log.md#82-迁移与交接边界总表normative)，资格见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
 生命周期边界见 [`../identity/account-lifecycle.md` §2](../identity/account-lifecycle.md#2-分层)。
 
 | 字段 | 出现对象 | 含义 |

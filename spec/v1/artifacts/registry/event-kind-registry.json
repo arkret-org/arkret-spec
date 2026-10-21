@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.3",
+  "version": "2026-10-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T15:45:28+08:00",
+  "generated_at": "2026-10-21T21:31:04+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -6177,7 +6177,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Planned governance Station transfer intent for an eligible Realm; Human PCR rejects without effects under the PCR profile pcr_governance_policy.",
+      "payload": "Planned governance Station transfer intent for an eligible Realm; Human and user-managed Agent PCRs reject without effects under the PCR profile pcr_governance_policy.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_governance_station_change_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {

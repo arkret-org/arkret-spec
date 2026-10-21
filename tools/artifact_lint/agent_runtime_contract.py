@@ -160,8 +160,8 @@ def check_agent_runtime_contract(lint: Lint) -> None:
     if defs['agent_authority_state_evidence'].get('x-arkret-max-canonical-bytes') != 262144 or 'x-arkret-max-canonical-bytes' in state:
         lint.fail(path, 'complete evidence must have one 262144-byte canonical limit')
     bundle = defs['agent_accepted_authority_bundle']
-    if set(bundle['required']) != {'realm_id', 'genesis_event', 'genesis_commit', 'authority_transitions', 'signer_histories'}:
-        lint.fail(path, 'accepted authority bundle must not require an online assertion')
+    if set(bundle['required']) != {'realm_id', 'genesis_event', 'genesis_commit', 'signer_histories'}:
+        lint.fail(path, 'fixed Agent authority bundle must be genesis-only without handoff or online assertion')
     if defs['agent_signer_dependency'].get('oneOf') is None or len(defs['agent_signer_dependency']['oneOf']) != 3:
         lint.fail(path, 'signer dependencies must retain the three closed sibling branches')
     carrier = defs['agent_producer_evidence']

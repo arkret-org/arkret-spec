@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 12,
+  "version": 13,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -1455,105 +1455,334 @@
       "writes_nothing": true
     },
     {
-      "name": "agent_governance_change_preserved",
+      "name": "agent_governance_change_zero_effects",
       "input": {
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
         "stage": "governance_change"
       },
-      "expected": "accept",
-      "writes_nothing": false
+      "expected": "reject",
+      "writes_nothing": true
     },
     {
-      "name": "agent_handoff_import_preserved",
+      "name": "agent_freeze_zero_effects",
       "input": {
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "freeze"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_handoff_export_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "handoff_export"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_handoff_import_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
         "stage": "handoff_import"
       },
-      "expected": "accept",
-      "writes_nothing": false
+      "expected": "reject",
+      "writes_nothing": true
     },
     {
-      "name": "agent_activation_preserved",
+      "name": "agent_acceptance_zero_effects",
       "input": {
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "acceptance"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_activation_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
         "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_remote_proxy_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "remote_proxy"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_remote_publication_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "remote_publication"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_foreign_current_authority_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "foreign_current_authority"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_fixed_station_genesis",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "genesis"
       },
       "expected": "accept",
       "writes_nothing": false
     },
     {
-      "name": "agent_missing_independent_evidence",
+      "name": "agent_fixed_station_native_current",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_fixed_station_public_authority_bundle",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "public_authority_bundle"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_fixed_station_endpoint_update",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "endpoint_update"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_fixed_station_key_update",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "key_update"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_fixed_station_deployment_update",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "deployment_update"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_foreign_genesis_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current",
+        "genesis_governor": "station_b"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_foreign_controller_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_b",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_foreign_current_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current",
+        "current_governor": "station_b"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_nonzero_generation_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 1,
+        "stage": "native_current"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_self_controller_zero_effects",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "controller_station": "station_a",
+        "controller_account_distinct": false,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_caller_label_zero_effects",
       "input": {
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "caller_claim",
-        "stage": "activation"
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current"
       },
       "expected": "reject",
       "writes_nothing": true
     },
     {
-      "name": "agent_missing_current_controller_authorization",
+      "name": "agent_unverified_provenance_zero_effects",
       "input": {
         "purpose": "agent_control",
         "genesis_admission": "delegated_pcr_genesis",
         "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "current_controller_authorization": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "agent_missing_generation_and_head_cas",
-      "input": {
-        "purpose": "agent_control",
-        "genesis_admission": "delegated_pcr_genesis",
-        "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "generation_and_head_cas": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "agent_missing_old_authority_online",
-      "input": {
-        "purpose": "agent_control",
-        "genesis_admission": "delegated_pcr_genesis",
-        "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "old_authority_online": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "agent_missing_complete_frozen_import",
-      "input": {
-        "purpose": "agent_control",
-        "genesis_admission": "delegated_pcr_genesis",
-        "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "complete_frozen_import": false
-      },
-      "expected": "reject",
-      "writes_nothing": true
-    },
-    {
-      "name": "agent_missing_both_service_signatures",
-      "input": {
-        "purpose": "agent_control",
-        "genesis_admission": "delegated_pcr_genesis",
-        "authority_evidence": "accepted_controller_provision",
-        "stage": "activation",
-        "both_service_signatures": false
+        "controller_station": "station_a",
+        "controller_account_distinct": true,
+        "generation_before": 0,
+        "generation_after": 0,
+        "stage": "native_current",
+        "provenance_verified": false
       },
       "expected": "reject",
       "writes_nothing": true

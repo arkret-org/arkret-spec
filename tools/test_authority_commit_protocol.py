@@ -42,6 +42,17 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                 if value["stage"] in {"endpoint_update", "key_update", "deployment_update"}:
                     return value["generation_before"] == value["generation_after"]
                 return value["stage"] in {"genesis", "native_current"}
+            agent = policy["agent"]
+            if (value["purpose"], value["genesis_admission"]) == (agent["purpose"], agent["genesis_admission"]):
+                if value["authority_evidence"] != "accepted_controller_provision":
+                    return False
+                if not (value["account_station"] == value.get("controller_station") == value["genesis_governor"] == value["current_governor"]):
+                    return False
+                if value.get("controller_account_distinct") is not True or value.get("generation_before") != 0 or value.get("generation_after") != 0:
+                    return False
+                if value["stage"] in ["governance_change"] + agent["rejected_stages"]:
+                    return False
+                return value["stage"] in {"genesis", "native_current", "public_authority_bundle", "endpoint_update", "key_update", "deployment_update"}
             if value["purpose"] == "collaboration":
                 eligible = value["authority_evidence"] == "accepted_ordinary_genesis"
             else:
@@ -76,7 +87,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         shared = read("fixtures/authority-commit-fixture.json")["handoff_private_manifest"]["transferable_pcr_runtime"]
         self.assertTrue(shared["independent_runtime_evidence_required"])
         self.assertFalse(shared["human_consent_suite_proves_this_contract"])
-        for obligation in ("non-Human", "complete planned handoff", "incomplete import", "stale old-authority", "exact outcomes/fences", "second writer"):
+        for obligation in ("Organization", "complete planned handoff", "incomplete import", "stale old-authority", "exact outcomes/fences", "second writer"):
             self.assertIn(obligation, " ".join(shared["assertions"]))
         self.assertIn("transferable_pcr_runtime", evidence["requirement"])
 
