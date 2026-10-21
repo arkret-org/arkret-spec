@@ -3568,8 +3568,7 @@
                 "direct_conversation_binding",
                 "direct_conversation_founding_unit",
                 "direct_conversation_contact_round",
-                "direct_conversation_agent_provision",
-                "applet_managed_actor_provision"
+                "direct_conversation_agent_provision"
               ]
             },
             "critical": {
