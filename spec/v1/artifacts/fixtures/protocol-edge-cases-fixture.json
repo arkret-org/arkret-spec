@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-26.1",
+  "version": "2026-10-21.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -168,12 +168,20 @@
         "monotonic_cumulative_ack",
         "cross_binding_token",
         "invalid_token",
-        "unacked_drop"
+        "unacked_drop",
+        "realm_device_welcome_only",
+        "realm_device_message_rejected_before_ack"
       ],
       "expected": {
         "cross_binding": "cursor_integrity_invalid",
         "invalid": "param_invalid",
-        "unacked_drop_lost": true
+        "unacked_drop_lost": true,
+        "realm_device_delivery_kinds": [
+          "mls_welcome"
+        ],
+        "realm_device_message_processing": false,
+        "realm_device_message_ack": false,
+        "ordinary_account_agent_unchanged": true
       }
     },
     {

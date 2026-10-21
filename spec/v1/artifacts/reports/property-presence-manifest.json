@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9992,
+    "total_properties": 9990,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2315,
+      "optional": 2312,
       "optional_defaulted": 48,
-      "required": 7117,
+      "required": 7118,
       "required_nullable": 310,
       "tristate": 202
     },
@@ -5391,11 +5391,9 @@
         "/properties/device_message_id": "required",
         "/properties/expires_at": "required",
         "/properties/kind": "required",
-        "/properties/recipient_account_id": "optional",
-        "/properties/recipient_actor_id": "optional",
+        "/properties/recipient_account_id": "required",
         "/properties/recipient_device_id": "required",
         "/properties/sender_account_id": "optional",
-        "/properties/sender_actor_id": "optional",
         "/properties/sender_agent_id": "optional",
         "/properties/sender_agent_key_authorize_event_id": "optional",
         "/properties/sender_agent_verification_method": "optional",
@@ -5405,10 +5403,7 @@
         "/properties/unsigned": "optional"
       },
       "conditionally_required": [
-        "/properties/recipient_account_id",
-        "/properties/recipient_actor_id",
         "/properties/sender_account_id",
-        "/properties/sender_actor_id",
         "/properties/sender_agent_id",
         "/properties/sender_agent_key_authorize_event_id",
         "/properties/sender_agent_verification_method",

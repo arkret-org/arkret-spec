@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-21T15:10:44+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4817,10 +4817,11 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Opaque delivery ack token, monotonic cumulative acknowledgement, binding rejection and lost escalation.",
+      "description": "Opaque delivery ack token, monotonic cumulative acknowledgement, binding rejection and lost escalation. Realm Device queues allow Welcome only and reject DeviceMessage before processing or ACK; ordinary Account/Agent behavior is unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/extensions/realm-actors.md"
       ]
     },
     {

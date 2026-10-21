@@ -10,6 +10,49 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_managed_queue_is_welcome_only_without_realm_device_message_identity(self):
+        registry = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
+        auth = registry["device_authentication"]
+        queue = auth["recipient_queue"]
+        self.assertEqual(["mls_welcome"], queue["delivery_kinds"])
+        self.assertFalse(queue["device_message_sender"])
+        self.assertFalse(queue["device_message_recipient"])
+        self.assertNotIn("ak.self.device_messages.command.send.v1", auth["operations"])
+        self.assertEqual(22, len(auth["operations"]))
+        self.assertEqual("reject_without_processing_or_ack", queue["unexpected_delivery"])
+        fixture = json.loads((ART / "fixtures/protocol-edge-cases-fixture.json").read_text(encoding="utf-8"))
+        expected = next(row["expected"] for row in fixture["cases"] if row["name"] == "explicit_delivery_ack")
+        self.assertEqual(queue["delivery_kinds"], expected["realm_device_delivery_kinds"])
+        self.assertFalse(expected["realm_device_message_processing"])
+        self.assertFalse(expected["realm_device_message_ack"])
+        self.assertTrue(expected["ordinary_account_agent_unchanged"])
+        account = {"principal_id": "ak:did_core:webvh:zPerson", "station_id": "ak:did_core:web:account.example"}
+        device = "ak:device:00000000-0000-7000-8000-000000000001"
+        envelope = {
+            "device_message_id": "ak:device_message:00000000-0000-7000-8000-000000000002",
+            "kind": "ak.key.verification.request", "sender_account_id": account,
+            "sender_device_id": device, "recipient_account_id": account,
+            "recipient_device_id": device, "sent_at": "2026-10-21T00:00:00.000Z",
+            "expires_at": "2026-10-21T01:00:00.000Z", "content": {},
+        }
+        validator = self.validator("device-message")
+        validator.validate(envelope)
+        sender = {k: v for k, v in envelope.items() if k != "sender_account_id"}
+        sender["sender_actor_id"] = actor()
+        self.assertFalse(validator.is_valid(sender))
+        recipient = {k: v for k, v in envelope.items() if k != "recipient_account_id"}
+        recipient["recipient_actor_id"] = actor()
+        self.assertFalse(validator.is_valid(recipient))
+        self.assertFalse(validator.is_valid({**envelope, "sender_actor_id": actor()}))
+        self.assertFalse(validator.is_valid({**envelope, "recipient_actor_id": actor()}))
+        station = {k: v for k, v in envelope.items() if not k.startswith("sender_")}
+        station.update(sender_id=account["station_id"], kind="ak.account_data.update")
+        validator.validate(station)
+        agent = {k: v for k, v in envelope.items() if not k.startswith("sender_")}
+        agent.update(sender_agent_id="ak:did_core:webvh:zAgent", sender_agent_verification_method="did:webvh:zAgent:agent.example#runtime",
+                     sender_agent_key_authorize_event_id=token("event"))
+        validator.validate(agent)
+
     def test_configuration_peer_wrapper_preserves_full_account_and_original_request(self):
         fixture = json.loads((ART / "fixtures/applet-management-source-fixture.json").read_text(encoding="utf-8"))
         execution = fixture["signature_kats"][0]["unsigned_host"]["intent"]

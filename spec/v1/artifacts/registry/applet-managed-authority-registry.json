@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T06:17:05+08:00",
+  "generated_at": "2026-10-21T15:01:20+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -257,7 +257,18 @@
         "actions": [],
         "control_rule": "own_exact_device_authorization_material_read"
       }
-    ]
+    ],
+    "recipient_queue": {
+      "normative_source": "zh/extensions/realm-actors.md",
+      "delivery_kinds": [
+        "mls_welcome"
+      ],
+      "device_message_sender": false,
+      "device_message_recipient": false,
+      "unexpected_delivery": "reject_without_processing_or_ack",
+      "cursor_and_ack": "existing_exact_realm_actor_device_scope_binding",
+      "channel_content": "authorized_native_event_stream"
+    }
   },
   "content_delivery": "exact_realm_actor_device_via_current_realm_governor",
   "realm_mentions": {

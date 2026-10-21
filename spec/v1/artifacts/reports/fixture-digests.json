@@ -492,8 +492,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "a2a3bf38754f8471abc23144db35cf5cf276e2ae3dff93da2a643d6bcf68c7ff",
-      "version": "2026-09-26.1"
+      "sha256": "dcf50c9f641e8a55555f81378947251a2a41f88b71d86cef209b63bf5f8edee8",
+      "version": "2026-10-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
