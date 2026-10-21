@@ -92,9 +92,9 @@ holder 可主动签发短期 green-light，绑定 holder、peer、scope、audien
 
 ### 6.3.1 Holder-private 完整 current 读取
 
-普通 Realm snapshot 不开放 holder PCR。完整编辑前态唯一复用 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）和仅供非 Human hosting 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`），closed DTO 见 `consent-operations.schema.json`。
+普通 Realm snapshot 不开放 holder PCR。完整编辑前态唯一复用 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）和仅供可交接 Organization PCR 的 hosting 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`），closed DTO 见 `consent-operations.schema.json`。
 
-request 为 exact `holder_account_id,peer,audience_actor_id,nonce`，没有 consent_scope filter；nonce 至少128 bit CSPRNG。self 的认证 holder／正式controller 必须通过既有 holder root 权限，audience 为 holder hosting Station 完整 Service ActorId。peer 只供已独立验证可交接非 Human PCR 的 exact hosting Station；Human 在 owning Station TCB 读取。requester、MIMI provider、邀请发起者、media issuer、另一 Station Account 与普通 Realm governor不得取得完整结果；correlation／purpose 不授予读取权。完整结果仅回原获准 holder／controller self 会话。
+request 为 exact `holder_account_id,peer,audience_actor_id,nonce`，没有 consent_scope filter；nonce 至少128 bit CSPRNG。self 的认证 holder／正式controller 必须通过既有 holder root 权限，audience 为 holder hosting Station 完整 Service ActorId。peer 只供已独立验证可交接 Organization PCR 的 exact hosting Station；Human 在 owning Station TCB 读取；用户管理的 Agent 不进入跨站代理分支，也不因此获得 Consent 能力。requester、MIMI provider、邀请发起者、media issuer、另一 Station Account 与普通 Realm governor不得取得完整结果；correlation／purpose 不授予读取权。完整结果仅回原获准 holder／controller self 会话。
 
 current authority 在与替换／私有接受相同的 PCR 串行化边界内以一次一致性 cut 读取，返回实际 PCR、generation、effective stream head 和闭合 current 分支：
 
@@ -122,7 +122,7 @@ peer 签名继续唯一引用 `ak.http_signature.scenario.consent_current_read.v
 
 Human 的 完整替换、current、quarantine、quota／去重、policy、delivery 最终 CAS 与通知在 owning Station 的同一 PCR 权威边界内完成；内部拆分仍须原子提交和耐久 exact retry，不产生 remote PCR governor、代理会话证明或跨 governor publication。普通设备同步、account subscribe 的 baseline／catch-up 和本地耐久通知保持。
 
-本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的非 Human PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，完整替换 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human 请求该跨站分支 MUST 零效果拒绝。
+本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的 Organization PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，完整替换 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human／用户管理的 Agent 请求该跨站分支 MUST 零效果拒绝。
 
 完整替换 MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
 
@@ -145,9 +145,9 @@ proxy 的写命令以 `(holder,governance_generation,nonce)` 与完整 request d
 
 hosting 侧 AccountData／device 更新只展示已验证 authority 接受的内容与原 revision，不独立推进该业务 revision，不构成第二个 CAS writer。变更接受后须使用原正式 actor-private 更新路径唤醒 holder；通知丢失时从当前 authority 读取并按已知 head／cell 高水位恢复，不能重新执行业务接受。Consent 关闭替换、quarantine invalidation 与最终 delivery 接受的线性顺序始终由当前方同一事务决定，两个数据库之间不假定分布式事务。
 
-### 6.3.3 非 Human 跨 governor 私有效果发布（normative）
+### 6.3.3 Organization 跨 governor 私有效果发布（normative）
 
-本节仅服务 §6.3.2 的已验证非 Human 分离 governor；Human 的本地通知不依赖此 peer publication，跨站请求零效果拒绝。
+本节仅服务 §6.3.2 的已验证 Organization 分离 governor；Human 的本地通知不依赖此 peer publication，Human／用户管理的 Agent 的跨站请求零效果拒绝。
 
 `ak.peer.consent.command.publish_effects.v1`（`POST /_arkret/peer/consent/effects`）是当前 PCR authority 到 exact holder hosting Station 的闭合发布载体，DTO 见 `consent-private-operations.schema.json`。它只发布 `holder_quarantine,invite_delivery,invite_receive_policy` 三个 required nullable cell 的完整原 revision/content；不是第七个 proxy 命令，不提供任意 key 或任意 AccountData PUT，也不放宽 §6.3.2 的 holder-session／station 两个 context。
 

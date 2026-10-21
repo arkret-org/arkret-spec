@@ -38,10 +38,12 @@ session 或业务关系；只有显式 current external claim、resolution succe
 
 **Human PCR 治理边界（normative）**：Human 注册创世的 governor 与完整 AccountId 的 Station 必须一致并保持同一逻辑 Station 身份；没有独立 Human PCR handoff。账号与控制域的认证、设备、pairing、session、recovery 与 KeyPackage current 均由该 Station TCB 负责，部署拆分不产生另一治理主体。合法同 Station endpoint／key／基础设施更新不改变账号或推进治理任期。判别依据与所有交接入口的拒绝合同见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
 
+**用户管理的 Agent PCR 治理边界（normative）**：Agent 与 controller 的完整 Account 及 accepted inception PCR 固定同一 Station，禁止独立跨 Station 交接。独立 DID、runtime 重配、备份恢复或 controller 委派不改变账号归属或 PCR governor；generation 固定0。合法同身份部署搬迁不属于交接。各类可迁／不可迁对象的完整分类见 [`authority-commit-log.md` §8.2](../sync/authority-commit-log.md#82-迁移与交接边界总表normative)。
+
 **Station 生命周期边界（normative）**：本文件所有账号找回与 reactivation 只作用于原 exact
 AccountId 和原 PCR lineage，MUST 遵守 [`common-fields.md` §4.2 的账号隔离铁律](../models/common-fields.md#42-主体引用字段)。
-Station 永久停止服务，其上的 Account 与 PCR 随之终止；协议不定义将其迁移或复活到另一 Station
-的路径。相同 principal 在另一 Station 的注册是独立账号创建，MUST NOT 继承原账号的 membership、
+Station 永久停止服务，其上的 Account 与固定同站的 Human／用户管理 Agent PCR 无法跨站延续；协议不定义将原账号迁移或复活到另一 Station
+的路径。已经合法完成的独立 Organization PCR／普通 Collaboration 治理交接仍保留其原 accepted 事实，后续动作仍须满足各自 current controller／账号资格，不因此复活失效 Account。相同 principal 在另一 Station 的注册是独立账号创建，MUST NOT 继承原账号的 membership、
 grant、owner/admin/RealmCommit-signing/recovery authority、设备授权或 PCR。Realm 的其他参与者只能凭自身有效
 授权继续治理或执行已定义的恢复流程，MUST NOT 以同 principal 账号替代死亡账号。
 网络超时或暂时离线不构成可验证的永久死亡证明，MUST NOT 单凭不可达自动签发账号终止事实、转移权限
@@ -189,11 +191,11 @@ Account Authority 从 durable onboarding checkpoint 取得 account subject、冻
 
 账号的唯一外部身份是 closed `AccountId {principal_id, station_id}`；两个字段均为规范化 `did_core_id`，必须作为一个原子值传递和比较。`authority` 表达“为什么有权”，由签名、grant、producer proof 与已确认授权状态 承载；`AccountId` 只表达“是谁”。协议和实现 MUST NOT 重新引入 authority-named identity、只按一个分量比较、把两个分量作为松散 identity 传递，或用 PCR / service-local key 替代 `AccountId`。
 
-`AccountId` 与创建它的 Station 数据谱系永久绑定。同一 `principal_id` 在另一 Station 上注册会形成新的 `AccountId`、新的账号和新的 PCR lineage，绝不是原账号的搬迁、恢复、接管、合并或别名。原 Station 上的 Event、PCR、投影、设备上下文、session、cursor、to-device queue、push registration、admission 与审计谱系 MUST NOT 迁移、合并、由另一 Station 接管、继承或改写为另一 `station_id`；DID 表示、DID Document、handle 或 resolution 变化不改变该绑定。Station 的进程、数据库、存储副本或同一运营方基础设施 MAY 做运维迁移/复制，但该操作不得改变 wire `AccountId`、权威历史或数据所有权。
+`AccountId` 与创建它的 Station 数据谱系永久绑定。同一 `principal_id` 在另一 Station 上注册会形成新的 `AccountId`、新的账号和新的 PCR lineage，绝不是原账号的搬迁、恢复、接管、合并或别名。原账号的设备上下文、session、cursor、to-device queue、push registration、账号投影、admission 与审计谱系 MUST NOT 迁移为另一 Station 的账号状态、合并、由另一 Account 接管、继承或改写为另一 `station_id`；DID 表示、DID Document、handle 或 resolution 变化不改变该绑定。Station 的进程、数据库、存储副本或同一运营方基础设施 MAY 做运维迁移/复制，但该操作不得改变 wire `AccountId`、权威历史或数据所有权。仅对 [`authority-commit-log.md` §8.2](../sync/authority-commit-log.md#82-迁移与交接边界总表normative) 明确可治理交接的 Realm／独立 Organization PCR，完整搬运仍保留原作者 AccountId 的 Event／Commit 与治理私态不构成账号迁移；Human／用户管理的 Agent PCR 不可使用此例外。
 
 **跨 Station 权限隔离（normative）**：即使 `principal_id` 完全相同，只要 `station_id` 不同，就是两个不同的 Account；二者之间 MUST NOT 因 principal 相等而产生任何隐式授权、权限继承、代行或恢复关系。任何 membership、capability、Realm root controller 或 recovery trustee 对 Account 的匹配 MUST 使用完整 `AccountId`。两个 Account 之间的显式授权也必须分别满足所用授权合同，不能由共同 principal 代替。
 
-**Station 永久失效边界（normative）**：如果承载该 Account 的 Station 及其原有权威谱系已永久不可恢复，该 Account 与 PCR 就不可恢复；协议 MUST NOT 通过另一个 Station 延续或复活它们。暂时离线或同一 Station 谱系内的运维恢复不属于此情形。Realm 本身不绑定服务器。普通 Realm 的 RealmCommit 确认服务故障切换或 root controller 变更必须满足各自独立的已登记授权与状态连续性合同；它们 MUST NOT 复活失效 Account，也不得把该 Account 的权限赋给另一 Station 上的同 principal Account。
+**Station 永久失效边界（normative）**：如果承载该 Account 的 Station 及其原有权威谱系已永久不可恢复，该 Account 与固定同站的 Human／用户管理 Agent PCR 就不可恢复；协议 MUST NOT 通过另一个 Station 延续或复活它们。暂时离线或同一 Station 谱系内的运维恢复不属于此情形。只有迁移边界总表允许的普通 Collaboration／独立 Organization PCR 可按旧方在线的双签计划交接改变治理站；旧站永久丢失不能自动故障接管。root controller 变更与治理 Station 交接分别满足各自独立的已登记授权与状态连续性合同；它们 MUST NOT 复活失效 Account，也不得把该 Account 的权限赋给另一 Station 上的同 principal Account。
 
 同一 Station 对同一 `AccountId` MUST 终身只创建一个 service-local account binding 与一条 PCR genesis lineage，并在 hard erasure 后保留 uniqueness tombstone，禁止 replacement `AccountId`、第二条 PCR lineage或重新 registration。该 create-once 约束不把既有 account 的 `active` status 变成一次性资源：§3 允许 deployment policy 门控的原 account reactivation。device、recovery、session、resolution、KeyPackage、secret storage 与 account status 可按本地 PCR lineage 分区，但 PCR id、genesis receipt 与 checkpoint 不得进入 membership、grant、Contact、Event 或 cache/query 的外部 identity。
 

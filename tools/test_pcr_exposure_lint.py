@@ -62,7 +62,7 @@ class PcrExposureLintTest(unittest.TestCase):
 
     def test_subject_policy_mutations_are_rejected(self) -> None:
         original = _load(PROFILES)
-        for mutation in ("human_transfer", "public_human_bundle", "unknown_fallback", "drop_org", "weaken_import", "unconditional_required"):
+        for mutation in ("human_transfer", "public_human_bundle", "agent_transfer", "agent_activation", "agent_public_bundle_ban", "unknown_fallback", "drop_org", "weaken_import", "unconditional_required"):
             with self.subTest(mutation=mutation):
                 profiles = copy.deepcopy(original)
                 profile = profiles["profile_requirements"]["ak.profile.principal_control_realm.v1"]
@@ -71,6 +71,12 @@ class PcrExposureLintTest(unittest.TestCase):
                     policy["human"]["rejected_stages"].remove("activation")
                 elif mutation == "public_human_bundle":
                     policy["human"]["rejected_stages"].remove("public_authority_bundle")
+                elif mutation == "agent_transfer":
+                    policy["transferable_provenance"].append({"purpose": "agent_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_controller_provision"})
+                elif mutation == "agent_activation":
+                    policy["agent"]["rejected_stages"].remove("activation")
+                elif mutation == "agent_public_bundle_ban":
+                    policy["agent"]["public_authority_bundle"] = "not_found"
                 elif mutation == "unknown_fallback":
                     policy["unknown_provenance"] = "ordinary_realm"
                 elif mutation == "drop_org":

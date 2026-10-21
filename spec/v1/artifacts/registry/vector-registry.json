@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.4",
+  "version": "2026-10-21.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T15:57:44+08:00",
+  "generated_at": "2026-10-21T21:29:59+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2698,7 +2698,7 @@
       "applies_to_fixtures": [
         "pcr-genesis-fixture.json"
       ],
-      "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, and an ordered atomic create-once PCR genesis unit whose two Events and two producer proofs share one canonical millisecond authoring checkpoint. Mutations of any time position, non-canonical wire time, and missing sub-millisecond floor reject with zero writes; an otherwise valid ordinary PCR Event may have proof.created_at later than event.created_at. Human fixed-account-Station governance and immutable accepted provenance reject every transfer or separated-governor operation without effects. Same-Station endpoint/key/deployment changes preserve tenure. Independently authorized Organization/Agent/Applet-managed and ordinary Realm handoff retain all shared preconditions; semantic cases do not establish production signature or transaction acceptance.",
+      "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, and an ordered atomic create-once PCR genesis unit whose two Events and two producer proofs share one canonical millisecond authoring checkpoint. Mutations of any time position, non-canonical wire time, and missing sub-millisecond floor reject with zero writes; an otherwise valid ordinary PCR Event may have proof.created_at later than event.created_at. Human fixed-account-Station governance and immutable accepted provenance reject every transfer or separated-governor operation without effects. Same-Station endpoint/key/deployment changes preserve tenure. User-managed Agent PCR is also fixed to its original Agent/controller Account Station at generation zero; all independent transfers reject without effects. Independently authorized Organization and ordinary Collaboration Realm handoff retain all shared preconditions; Realm Bot/Ghost control follows its owning Realm, without independent PCR; semantic cases do not establish production signature or transaction acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
       ]

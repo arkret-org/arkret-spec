@@ -29,7 +29,7 @@ Arkret 的核心抽象是 **signed Event + 逐 stream authority commit log + Rea
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Station 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Realm reducer；搜索和 View projection 都是派生层。 |
 | 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不作为权限主体。 |
-| 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、Event 发布链与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
+| 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 同 Station 身份可更换部署／endpoint，Handle 可重绑；Account、Human／用户管理 Agent PCR 与 Direct 不可跨站搬家。普通 Realm／独立 Organization PCR 的条件式治理交接见 [迁移边界总表](../sync/authority-commit-log.md#82-迁移与交接边界总表normative)。 |
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Realm、Actor、对象范围、用户授权和 capability 细分。 |
 | AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability 和 protocol session。 |

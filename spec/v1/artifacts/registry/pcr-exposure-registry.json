@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-21.2",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -11,7 +11,7 @@
     "Every exposure resolves exactly one reusable outward disclosure policy through outward_disclosure_policy_mapping, unless it carries an explicit outward_disclosure_policy_id override. The referenced policy is defined in outward-disclosure-policy-registry.json.",
     "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry.",
     "Existing self signer-key historical results for a self-submitted Human PCR target expose only query_signing_key: original same-Station self-admission and exact target must bind the authenticated recipient fullAccount to the actual Human producer fullAccount and complete immutable historical authorization/proof. Controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that same transaction. This does not expose PCR Events/history, grant scan/membership, alter floor, allow sibling/foreign admission, or reconstruct missing facts from current rows.",
-    "All carriers intersect the PCR profile pcr_governance_policy derived from verified accepted genesis provenance. Human PCR has no governance-change, handoff Snapshot/import, separated-governor proxy/publication or foreign-current-authority exposure; Human PCR genesis/Commit/current assertion MUST NOT be disclosed through the public authority-bundle operation; indistinguishable not_found applies. The shared union is not per-subject permission. Unknown provenance fails closed; ordinary client projections do not establish provenance."
+    "All carriers intersect the PCR profile pcr_governance_policy derived from verified accepted genesis provenance. Human PCR has no governance-change, handoff Snapshot/import, separated-governor proxy/publication or foreign-current-authority exposure; Human PCR genesis/Commit/current assertion MUST NOT be disclosed through the public authority-bundle operation; indistinguishable not_found applies. User-managed Agent PCR likewise forbids governance change, handoff and separated-governor proxy/publication/foreign current; existing generation-zero minimal authority disclosure remains governed by its own gates. The shared union is not per-subject permission. Unknown provenance fails closed; ordinary client projections do not establish provenance."
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
@@ -69,15 +69,15 @@
     },
     {
       "policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
-      "description": "Only verified transferable non-Human PCR provenance under the PCR profile pcr_governance_policy is eligible; Human rejects without effects. Only the exact old/new governing Stations of the independently verified signed planned handoff may exchange the complete frozen private Snapshot. New authority remains unavailable until all original, current, private native-effect and retry/fence material is completely imported and verified. This grants no ordinary peer or member history visibility."
+      "description": "Only verified transferable Organization PCR provenance under the PCR profile pcr_governance_policy is eligible; Human and user-managed Agent reject without effects. Only the exact old/new governing Stations of the independently verified signed planned handoff may exchange the complete frozen private Snapshot. New authority remains unavailable until all original, current, private native-effect and retry/fence material is completely imported and verified. This grants no ordinary peer or member history visibility."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
-      "description": "Only verified transferable non-Human PCR provenance under the PCR profile pcr_governance_policy is eligible; Human rejects without effects. Only the exact full holder Account hosting Station authenticated as Source may proxy to its independently verified current PCR authority. Private list/version/effects/policy values require the exact holder-session actor and active device rechecked at the PCR lock. Station-context admission commands have only the original opaque outcome. Exact request/nonce, current tenure, time window, source/head/cell high-water and current disclosure bind every response."
+      "description": "Only verified transferable Organization PCR provenance under the PCR profile pcr_governance_policy is eligible; Human and user-managed Agent reject without effects. Only the exact full holder Account hosting Station authenticated as Source may proxy to its independently verified current PCR authority. Private list/version/effects/policy values require the exact holder-session actor and active device rechecked at the PCR lock. Station-context admission commands have only the original opaque outcome. Exact request/nonce, current tenure, time window, source/head/cell high-water and current disclosure bind every response."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
-      "description": "Only verified transferable non-Human PCR provenance under the PCR profile pcr_governance_policy is eligible; Human rejects without effects. Only the independently verified current authority of the exact holder inception PCR publishes the closed three private-effect cells to that holder hosting Station. Source/generation/window/head/cell high-water and equal-revision content bind the projection. No peer history, human disclosure, second business acceptance or arbitrary key is authorized."
+      "description": "Only verified transferable Organization PCR provenance under the PCR profile pcr_governance_policy is eligible; Human and user-managed Agent reject without effects. Only the independently verified current authority of the exact holder inception PCR publishes the closed three private-effect cells to that holder hosting Station. Source/generation/window/head/cell high-water and equal-revision content bind the projection. No peer history, human disclosure, second business acceptance or arbitrary key is authorized."
     },
     {
       "policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
@@ -1058,5 +1058,5 @@
       ]
     }
   ],
-  "generated_at": "2026-10-21T10:55:31+08:00"
+  "generated_at": "2026-10-21T21:29:59+08:00"
 }

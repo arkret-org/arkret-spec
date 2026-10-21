@@ -421,7 +421,7 @@
       "properties": {
         "authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Governance Station of the Agent PCR. The consumer derives the expected Station from the AccountId.station_id of the complete Agent ActorId and MUST NOT take a self-reported authority as the expected one."
+          "description": "The immutable owning Station of the user-managed Agent PCR, Agent Account and controller Account pair. Derive it from the complete AccountId.station_id and accepted agent_control genesis/provision, never from a self-reported authority. No PCR handoff is permitted; every Commit is generation zero."
         },
         "agent_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -589,12 +589,11 @@
     },
     "agent_accepted_authority_bundle": {
       "type": "object",
-      "description": "Minimal accepted-at RealmAuthorityBundle projection for this PCR closure only. No online nonce/current assertion or routing authority. The genesis and consecutive handoffs determine each Commit generation; signer_histories are exactly the method-native histories used by Commit, producer dependency and state signatures. Unused records are surplus. It does not authorize other Events or controller binding.",
+      "description": "Minimal accepted-at genesis-only authority projection for a user-managed Agent PCR fixed to its Account Station at generation zero. No authority_transitions member, online nonce/current assertion or routing authority. signer_histories contain exactly the original Station method-native history needed at each actual signature time; key rotation is not governance transfer. Unused records are surplus. It does not authorize other Events or controller binding.",
       "required": [
         "realm_id",
         "genesis_event",
         "genesis_commit",
-        "authority_transitions",
         "signer_histories"
       ],
       "properties": {
@@ -606,12 +605,6 @@
         },
         "genesis_commit": {
           "$ref": "./realm-commit.schema.json"
-        },
-        "authority_transitions": {
-          "type": "array",
-          "items": {
-            "$ref": "./realm-authority-bundle.schema.json#/$defs/authority_transition"
-          }
         },
         "signer_histories": {
           "type": "array",

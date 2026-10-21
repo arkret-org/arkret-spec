@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-21.3",
-  "generated_at": "2026-10-21T15:45:28+08:00",
+  "version": "2026-10-21.4",
+  "generated_at": "2026-10-21T21:29:59+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2213,7 +2213,7 @@
     },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
-      "description": "Realm profile for a principal-scoped durable control stream. A human PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. Agent and Applet-managed genesis carry no founding device and hold exactly one ak.realm.create, so their devices are authorized by ordinary post-genesis successors. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
+      "description": "Realm profile for a principal-scoped durable control stream. A human PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. A user-managed Agent has one controller-executed agent_control create and no Human founding device; it retains its native Agent key/runtime rules and never acquires Human Device capabilities. Realm Bot/Ghost have no independent PCR. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -2388,7 +2388,7 @@
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md §3.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision.",
-        "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. The shared allowlist and required transfer support for independently verified Organization/Agent provenance do not authorize Human handoff; Realm Bot/Ghost have no independent PCR and their realm_control state follows the owning Realm handoff. pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
+        "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. User-managed Agent accepted genesis and controller provision likewise permanently bind its PCR and complete Agent/controller Accounts to the original Station at generation zero. Agent change/freeze/export/import/acceptance/activation/foreign-current/proxy/publication reject without effects; its dedicated accepted authority bundle has no authority_transitions member. Legitimate generation-zero Agent disclosure retains its existing gates and is not subject to the Human public-bundle ban. The shared allowlist and required transfer support apply only to independently verified Organization PCR provenance; Realm Bot/Ghost have no independent PCR and their realm_control state follows the owning Realm handoff. pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
       ],
       "pcr_governance_policy": {
         "binding_source": "verified_accepted_genesis_provenance",
@@ -2426,11 +2426,6 @@
             "purpose": "principal_control",
             "genesis_admission": "delegated_pcr_genesis",
             "authority_evidence": "accepted_organization_authority"
-          },
-          {
-            "purpose": "agent_control",
-            "genesis_admission": "delegated_pcr_genesis",
-            "authority_evidence": "accepted_controller_provision"
           }
         ],
         "transfer_preconditions": [
@@ -2442,7 +2437,34 @@
         ],
         "required_event_kinds_for_transferable_provenance": [
           "ak.realm.governance_station.change"
-        ]
+        ],
+        "agent": {
+          "purpose": "agent_control",
+          "genesis_admission": "delegated_pcr_genesis",
+          "required_evidence": [
+            "accepted_agent_control_genesis",
+            "accepted_controller_provision",
+            "full_agent_controller_account_binding"
+          ],
+          "governor": "account_station",
+          "provenance_mutable": false,
+          "governance_generation": 0,
+          "rejected_event_kinds": [
+            "ak.realm.governance_station.change"
+          ],
+          "rejected_stages": [
+            "freeze",
+            "handoff_export",
+            "handoff_import",
+            "acceptance",
+            "activation",
+            "remote_proxy",
+            "remote_publication",
+            "foreign_current_authority"
+          ],
+          "same_station_endpoint_key_deployment_update": "preserve_governance_generation",
+          "public_authority_bundle": "generation_zero_existing_disclosure"
+        }
       }
     },
     "ak.profile.core_event_store.v1": {
