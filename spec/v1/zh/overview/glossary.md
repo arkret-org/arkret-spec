@@ -250,8 +250,7 @@ see_also:
 | 缩写 | 全称 | 中文 | 权威出处 |
 | --- | --- | --- | --- |
 | `authority-commit` | Authority-issued stream commitment | 权威签发的流承诺 | §2 `authority-commit` 条目；[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) |
-| `PCR` | RealmActorId | Realm 受管主体标识 | Applet Bot／Ghost 的 RealmId＋独立 DID core；不随治理 Station 改变，不具有独立 PCR。 |
-| Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
+| `PCR` | Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
 | `E2EE` | End-to-End Encryption | 端到端加密 | §3 CC-04（大小写规则）；[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `DM` | Direct Message | 直接会话 | [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) |
 | `3PID` | Third-Party Identifier | 第三方标识符 | §2 `3PID` 条目；[`../sync/third-party-invites.md`](../sync/third-party-invites.md) |
