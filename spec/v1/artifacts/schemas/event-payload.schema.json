@@ -4846,7 +4846,7 @@
         },
         "member_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Exact member identity. All Station-hosted principals, including human, Agent, Ghost and integration actors, use the AccountId-bearing account variant; directly authoring services use the service variant."
+          "description": "Exact member identity. Station-hosted Human and user-managed Agent principals use the AccountId-bearing account variant; Applet Realm Bot/Ghost principals use the complete RealmActorId-bearing realm variant; directly authoring services use the service variant."
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
