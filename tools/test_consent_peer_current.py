@@ -2,7 +2,12 @@
 
 import copy
 import itertools
+import json
 import unittest
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 from tools.artifact_lint.protocol_simplification import ConsentModel, canonical, mimi_diff, valid_permissions
 
@@ -10,6 +15,25 @@ PEER = {"kind": "actor", "actor_id": {"kind": "account", "account_id": {
     "principal_id": "alice", "station_id": "station-a"}}}
 VOICE = {"consent_scope": "voice_call", "expires_at": "2020-01-01T00:00:00Z"}
 PRESENCE = {"consent_scope": "presence", "not_before": "2030-01-01T00:00:00Z", "constraints": [{"unknown": "keep"}]}
+
+
+class ConsentIntroductionSchemaTest(unittest.TestCase):
+    def test_introduction_uses_event_id_and_rejects_other_reference_shapes(self):
+        schemas = Path(__file__).resolve().parents[1] / "spec/v1/artifacts/schemas"
+        documents = [json.loads(p.read_text(encoding="utf-8")) for p in schemas.glob("*.json")]
+        registry = Registry().with_resources((doc["$id"], Resource.from_contents(doc)) for doc in documents)
+        document = json.loads((schemas / "invite-delivery-request.schema.json").read_text(encoding="utf-8"))
+        validator = Draft202012Validator({"$ref": document["$id"] + "#/$defs/introduction_evidence"}, registry=registry)
+        event_id = "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        evidence = {"kind": "consent_grant", "consent_grant_ref": event_id}
+        self.assertTrue(validator.is_valid(evidence))
+        self.assertFalse(validator.is_valid({**evidence, "consent_grant_ref": {
+            "event_id": event_id,
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_ref": {"kind": "realm", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"},
+            "stream_position": 12,
+        }}))
+        self.assertFalse(validator.is_valid({**evidence, "consent_id": "not-a-native-selector"}))
 
 
 def payload(entries, revision=None, peer=PEER):

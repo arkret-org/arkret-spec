@@ -54,7 +54,7 @@ current-v1 不提供 private-contact discovery 或 PSI；未登记入口不可�
 
 ### 4.1.2 引入证据
 
-holder 可主动提供原 accepted replacement 的 `CommittedEventRef` 作为 audience-bound introduction evidence；该原目标必须含 invite，并绑定完整 holder、peer。接收方在实际 delivery 向 current authority 检查同 peer 当前 invite 条目、窗口和来源。历史原签只帮助认证／定位，不是永久授权；证据不复制完整许可集合，也不授予 Realm 权限。
+holder 可主动提供原 accepted replacement 的 `EventId` 作为 audience-bound introduction evidence（`consent_grant_ref`，以 Invite delivery schema 的 event_ref 为准）；该原目标必须含 invite，并绑定完整 holder、peer。接收方在实际 delivery 向 current authority 检查同 peer 当前 invite 条目、窗口和来源。历史原签只帮助认证／定位，不是永久授权；证据不复制完整许可集合，也不授予 Realm 权限。无关 scope 替换保留 invite 时，不得仅因 current 指向另一个 replacement 就否认原引入来源；当前 invite 的实际准入仍须独立通过。
 
 ## 5. Effective Consent
 
