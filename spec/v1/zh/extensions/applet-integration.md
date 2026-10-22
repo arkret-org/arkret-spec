@@ -580,6 +580,8 @@ request digest、audience、nonce、当前治理链和所持 key。不得把 Ser
 
 ### 7.4 Query Actor
 
+该操作只属于 `ak.operation_bundle.applet_service.applet.v1`，不属于 `ak.operation_bundle.station.applet.v1` 或 Coland Station 部署原型。治理 Station 是调用方，不能把所有已安装 Applet 的主体汇总为本站 Applet 目录提供此操作；响应由已接受的当前 manager Applet Service 提供。
+
 ```text
 GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
 ```

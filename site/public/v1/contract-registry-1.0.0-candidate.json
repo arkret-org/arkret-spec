@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.7",
+  "version": "2026-10-22.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T07:58:47+08:00",
+  "generated_at": "2026-10-22T08:55:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -18348,8 +18348,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-22.5",
-    "generated_at": "2026-10-22T07:50:48+08:00",
+    "version": "2026-10-22.6",
+    "generated_at": "2026-10-22T08:55:19+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18970,10 +18970,6 @@
           "ak.deployment_prototype.coland_station.v1#applet"
         ],
         "members": [
-          {
-            "operation_id": "ak.edge.applet.actor.read.resolve.v1",
-            "binding_kind": "http_json"
-          },
           {
             "operation_id": "ak.edge.applet.command.transaction.v1",
             "binding_kind": "http_json"

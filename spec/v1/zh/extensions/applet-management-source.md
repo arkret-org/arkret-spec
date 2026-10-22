@@ -22,7 +22,7 @@ Applet runtime 持有主体 DID／Device 私钥并生成候选；治理 Station 
 能力发现 MUST 按上述职责使用真实服务角色。独立 Applet 使用 `service_kind=applet_service`，
 只有实际实现全部成员时才可声明 `ak.operation_bundle.applet_service.applet.v1`；
 该 bundle 包含现有 Applet edge 操作，包括主体候选 author 和配置 execute。
-治理 Station 的 `ak.operation_bundle.station.applet.v1` 不包含这两项 Applet 专属执行操作，
+治理 Station 的 `ak.operation_bundle.station.applet.v1` 不包含这两项 Applet 专属执行操作，也不包含当前 manager 专属的 `ak.edge.applet.actor.read.resolve.v1`；治理站按完整主体及 accepted manager 调用该查询，不能汇总所有 Applet 的主体作为本站目录回答。
 仍保留其它已有 Station 方向 edge 操作；双向 transaction 的方向、来源签名和接纳规则不变。
 管理员配置 submit 保留在 `ak.operation_bundle.station.applet_install.v1`，由治理站执行。
 通用 describe 与 Applet edge describe 是两个既有操作，角色通用 describe bundle 仍独立保留。
