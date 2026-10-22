@@ -269,14 +269,22 @@ Idempotency-Key: <opaque-string>
 GET /_arkret/edge/applet/actors/{actor_id}
 ```
 
-响应字段：`exists: boolean` required；`actor_id: did` optional；`display_name: string` optional；`external_ref: object` optional。
+路径中的 `actor_id` 是完整 `ActorId.realm` 的 RFC 8785 JCS JSON 经 percent-encoding 后的单个路径段，不能只传 DID Core。该查询由当前管理主体的 Applet Service 回答，调用与授权边界遵循 [Applet 集成 §7.4](applet-integration.md#74-query-actor)。
+
+响应字段：`exists: boolean` required；`actor_id: ActorId.realm` optional；`display_name: string` optional；`external_ref: object` optional。
 
 响应示例（非完整 schema）：
 
 ```json fragment
 {
   "exists": true,
-  "actor_id": "ak:did_core:webvh:z5GhostU123Scid",
+  "actor_id": {
+    "kind": "realm",
+    "realm_actor_id": {
+      "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
+      "principal_id": "ak:did_core:webvh:z5GhostU123Scid"
+    }
+  },
   "display_name": "Alice",
   "external_ref": {}
 }
