@@ -985,11 +985,11 @@ class IdentifierRoleSuffixTest(MutationHarness):
         def mutate(document):
             shape = document["$defs"]["applet_namespaces"]
             shape["required"] = [
-                "participants" if item == "actors" else item
+                "routes" if item == "realms" else item
                 for item in shape["required"]
             ]
-            shape["properties"]["participants"] = shape["properties"].pop(
-                "actors"
+            shape["properties"]["routes"] = shape["properties"].pop(
+                "realms"
             )
 
         errors = self.lint_with_file(

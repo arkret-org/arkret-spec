@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-21.4",
-  "generated_at": "2026-10-21T21:29:59+08:00",
+  "version": "2026-10-22.1",
+  "generated_at": "2026-10-22T07:58:47+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4170,7 +4170,7 @@
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery_authentication_record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
         "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
-        "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed.",
+        "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event MUST verify its original producer proof, complete actor_id, applet_id, authorization_ref and capability grants. A Realm actor must have accepted creation provenance and the exact current manager; an ordinary Account requires its actual delegation. Actor DID namespace matching is not supported and cannot establish ownership or authorization.",
         "managed_authority_contract_must": "Service-only install, 0..N independent Bot/Ghost; exact role creation actions, ordinary Service parent to terminal child and Device content supply follow registry/applet-managed-authority-registry.json and zh/authz/managed-governance.md."
       },
       "non_event_grant_authority_rules": [

@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-22.1",
   "suite": "realm_actor_signature_transcripts",
   "fixture_kind": "semantic",
   "runner": {
@@ -567,15 +567,16 @@
       "5252525252525252525252525252525252525252525252525252525252525252"
     ],
     "witness_test_seed_hex": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
-    "did": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
-    "scid": "QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33",
+    "did": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
+    "scid": "Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH",
     "log_entries": [
       {
-        "versionId": "1-QmPv4DuikRRLZfFhXqdxRRHw72UnoJ1gfJt1LmLtovMmEc",
+        "versionId": "1-QmNgSL54mPozbPSsfsZmnzcW7iT3g3coeiuycn412HrCgw",
         "versionTime": "2026-10-20T00:00:00Z",
         "parameters": {
           "method": "did:webvh:1.0",
-          "scid": "QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33",
+          "scid": "Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH",
+          "portable": true,
           "updateKeys": [
             "z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj"
           ],
@@ -595,17 +596,17 @@
           "@context": [
             "https://www.w3.org/ns/did/v1"
           ],
-          "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+          "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
           "verificationMethod": [
             {
-              "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-0",
-              "controller": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+              "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-0",
+              "controller": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
               "type": "Multikey",
               "publicKeyMultibase": "z6Mkigx47SBJifgafUEcSj7c54prQ8EpuVwvdqwaHkVGPpft"
             }
           ],
           "authentication": [
-            "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-0"
+            "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-0"
           ]
         },
         "proof": [
@@ -615,12 +616,12 @@
             "created": "2026-10-20T00:00:00Z",
             "verificationMethod": "did:key:z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj#z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z4h2GndYPBAmbdzukWPp9iV3oknXrXvz5q1oFkNLXWFPMzeKfo8qy8JQFo2TRYYvsuvCsug7dydeurNcVvmfB4gUN"
+            "proofValue": "z4WyKoHkHL2Nuep6rMDPZDrJMoJEoBkKNdhmbZw2GgvkHJwkyWVT8JHZmApoR2wNtaQWNND6yRs6ov6d3BjNMzVBF"
           }
         ]
       },
       {
-        "versionId": "2-QmYFTHdeWJBMiZERBTpWFFbHgXSuJBtiFnEyhMaesjeD47",
+        "versionId": "2-QmWbLaqufvrZk6qioSfjD7tNfmYPScAeAPHfH5JPX8x67E",
         "versionTime": "2026-10-20T00:01:00Z",
         "parameters": {
           "updateKeys": [
@@ -634,17 +635,17 @@
           "@context": [
             "https://www.w3.org/ns/did/v1"
           ],
-          "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+          "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
           "verificationMethod": [
             {
-              "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-1",
-              "controller": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+              "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-1",
+              "controller": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
               "type": "Multikey",
               "publicKeyMultibase": "z6MksPykuQeYh4zgthFRFBExrgo1dwFWWenY2TEJ9SvT9jn1"
             }
           ],
           "authentication": [
-            "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-1"
+            "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-1"
           ]
         },
         "proof": [
@@ -654,12 +655,12 @@
             "created": "2026-10-20T00:01:00Z",
             "verificationMethod": "did:key:z6Mkuhai1adkd5vSGvB99B2ezAUuZtfCf3zoYRN1ZM3XU2kQ#z6Mkuhai1adkd5vSGvB99B2ezAUuZtfCf3zoYRN1ZM3XU2kQ",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z2Axuak9jNiE72htPkVayUcsEvm5rY3yJpgqSokCocmviGgRxPgu8sWsDcz7sAr8awBuUx1hkjKuDKXvKi6jAWAfJ"
+            "proofValue": "z4qTtXggQe6ztHhBRo33kCU9wBTKz2Yr3AhfFg38rVCcDQriCDS92HkyqyxQkxy5ZZ2ADJUA8ZfxbnGBoi4KYWLLU"
           }
         ]
       },
       {
-        "versionId": "3-QmViYM2ZUQKt5PjStnboB9Aui6xfqCCjkA5fuGVxDpHcdq",
+        "versionId": "3-QmZSquPbrHTJW91MdnP5y11Gb3xjsz1wH85NWg8eT523tQ",
         "versionTime": "2026-10-20T00:02:00Z",
         "parameters": {
           "updateKeys": [
@@ -673,17 +674,17 @@
           "@context": [
             "https://www.w3.org/ns/did/v1"
           ],
-          "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+          "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
           "verificationMethod": [
             {
-              "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-2",
-              "controller": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+              "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2",
+              "controller": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
               "type": "Multikey",
               "publicKeyMultibase": "z6MkgcTiPMbTofzVghWywkKDM7SeNYnG4jPbFxerG2rVnV8A"
             }
           ],
           "authentication": [
-            "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-2"
+            "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2"
           ]
         },
         "proof": [
@@ -693,12 +694,12 @@
             "created": "2026-10-20T00:02:00Z",
             "verificationMethod": "did:key:z6MktnTdkL6pctG9M9F9MaAZW33iozYnWADS3YWwbH5JuBFe#z6MktnTdkL6pctG9M9F9MaAZW33iozYnWADS3YWwbH5JuBFe",
             "proofPurpose": "assertionMethod",
-            "proofValue": "zgepMMHQoyQx7BvT1bQvv7pV91Em5xLHtW3o3tUwPdEuV6auvs48fK6TB974YWsCrv5Uh93c89B6iSDuVmqjMS8h"
+            "proofValue": "z4XPxWufSE36XMvv3SZ581HexhWeXqTjbx8jZcZSDnzC5YLgMkj9o4x9hVbmLEr5ivtQNAFLRKQcCcjdwpWF9e5pF"
           }
         ]
       },
       {
-        "versionId": "4-QmQVtja7MjhWmX6hK9GMfssNecuNFSqAkyLbUddzY78nBV",
+        "versionId": "4-Qmcubrz8eKDKragi9PPvEebVzVk62b76SWXU7x1vpk2864",
         "versionTime": "2026-10-20T00:03:00Z",
         "parameters": {
           "updateKeys": [
@@ -712,17 +713,17 @@
           "@context": [
             "https://www.w3.org/ns/did/v1"
           ],
-          "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+          "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
           "verificationMethod": [
             {
-              "id": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-2",
-              "controller": "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot",
+              "id": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2",
+              "controller": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
               "type": "Multikey",
               "publicKeyMultibase": "z6MkgcTiPMbTofzVghWywkKDM7SeNYnG4jPbFxerG2rVnV8A"
             }
           ],
           "authentication": [
-            "did:webvh:QmSq13RtAfZ4jfQ7rQgHKpSUYqeqgCEwNsLnT2nxWSga33:applet.example:actors:bot#control-2"
+            "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2"
           ]
         },
         "proof": [
@@ -732,14 +733,14 @@
             "created": "2026-10-20T00:03:00Z",
             "verificationMethod": "did:key:z6MknUTxEAW2fexT3XGTBm5DK7ChSwTJ9rNbvGvPhaYP4AUN#z6MknUTxEAW2fexT3XGTBm5DK7ChSwTJ9rNbvGvPhaYP4AUN",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z238vzuJmuCkMf6MZiTpvJNtJbHQQTiAE6AaxfS4ARxQkRbYVQPtzWUZz3ehQyQXgwpAZ3JKkuqCSTH53i9aKckrp"
+            "proofValue": "z3XyD2qXqiKQj1r33aSX6JqAVv8q1oz5p2TWQV5vr6KgzdRa3ADvaHvjUTksCxTkgXuF7BgDjRWu8K3TazYaHyvkp"
           }
         ]
       }
     ],
     "witness_records": [
       {
-        "versionId": "1-QmPv4DuikRRLZfFhXqdxRRHw72UnoJ1gfJt1LmLtovMmEc",
+        "versionId": "1-QmNgSL54mPozbPSsfsZmnzcW7iT3g3coeiuycn412HrCgw",
         "proof": [
           {
             "type": "DataIntegrityProof",
@@ -747,12 +748,12 @@
             "created": "2026-10-20T00:00:00Z",
             "verificationMethod": "did:key:z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD#z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z46eMwKKxEHueVgF9xKNCoezU4KYuBnPBCg3dd4AQPTSFJ3C4kQS5VW4AV97eWLysgtU7uHbnVQUbkWnZHBaGSger"
+            "proofValue": "z2qAmcxLuozhkfL1q24KwEFMvQ4TYTH52SKss8BsyGgzoq5nekLTT83X4SrxHpFkZtxcTJdGDqnY6B7cmdnTrTHEt"
           }
         ]
       },
       {
-        "versionId": "2-QmYFTHdeWJBMiZERBTpWFFbHgXSuJBtiFnEyhMaesjeD47",
+        "versionId": "2-QmWbLaqufvrZk6qioSfjD7tNfmYPScAeAPHfH5JPX8x67E",
         "proof": [
           {
             "type": "DataIntegrityProof",
@@ -760,12 +761,12 @@
             "created": "2026-10-20T00:01:00Z",
             "verificationMethod": "did:key:z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD#z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z4BbKHszyibXomWQ8xAsJRo9W3Nos3g4s4wXcruQwDipXHrmsZz8W5NSam4yXYwmqAYLuQeHKdhWVtFPzu2n6Y41P"
+            "proofValue": "z32gfW9hY6QvEtdoShXyKgfcb9YWEMf1BFp6gnLCcjxLkTM5JpAkJsjYiCvtgKyDA2huYameMQxuVd1ia11eTh4WD"
           }
         ]
       },
       {
-        "versionId": "3-QmViYM2ZUQKt5PjStnboB9Aui6xfqCCjkA5fuGVxDpHcdq",
+        "versionId": "3-QmZSquPbrHTJW91MdnP5y11Gb3xjsz1wH85NWg8eT523tQ",
         "proof": [
           {
             "type": "DataIntegrityProof",
@@ -773,12 +774,12 @@
             "created": "2026-10-20T00:02:00Z",
             "verificationMethod": "did:key:z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD#z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD",
             "proofPurpose": "assertionMethod",
-            "proofValue": "zHtpowK52Ctv79UhqHDyN9Qhe3USKoenFShYEKgQCRVBERAVF9UsbBePvEZsd6vbPTXEmh4ict3HV9F3tJ9pSK51"
+            "proofValue": "z2dEqFUj2xTWrqAqPXJ8LnGCsEEMUukrsAxDjC5BNueBdn5Mss9C3Em9V1a5KEX21hhoQ79dY23aPUDsJyBGq9GyU"
           }
         ]
       },
       {
-        "versionId": "4-QmQVtja7MjhWmX6hK9GMfssNecuNFSqAkyLbUddzY78nBV",
+        "versionId": "4-Qmcubrz8eKDKragi9PPvEebVzVk62b76SWXU7x1vpk2864",
         "proof": [
           {
             "type": "DataIntegrityProof",
@@ -786,7 +787,7 @@
             "created": "2026-10-20T00:03:00Z",
             "verificationMethod": "did:key:z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD#z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD",
             "proofPurpose": "assertionMethod",
-            "proofValue": "z2cPPZjzkFhTKgKgB3Q8x5vr1qXnwVpvKh6kGK1pGKuDb7GS7A5TzwVJXwA2CiSnPyUhRN2S55fsDbdD8YckPfXe5"
+            "proofValue": "z51oc7Cfnd4mwkLVo8iaYd1wCaip9LxPbnA4uzoj88H6LATrCnrykrTUeBF4taw9r1DeB4q1J4b5uXK6ykhNE3cUy"
           }
         ]
       }

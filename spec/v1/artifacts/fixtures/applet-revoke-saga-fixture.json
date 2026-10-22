@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-09-29.1",
+  "version": "2026-10-22.1",
   "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
@@ -35,10 +35,11 @@
         }
       ],
       "membership_removals": [],
-      "widget_token_refs": []
+      "widget_token_refs": [],
+      "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
-    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
-    "expected_revoke_plan_digest": "sha256:9aec14f9475a65107a3c3f4b44de10e3aa602cc9df3727bb7919fd7bba9f2f07"
+    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"widget_token_refs\":[]}",
+    "expected_revoke_plan_digest": "sha256:27c404f7ef424a89e47abfd88aad09c88a5973a6578e18cc918af004cfa5ea1c"
   },
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

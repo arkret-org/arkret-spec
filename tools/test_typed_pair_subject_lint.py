@@ -1,6 +1,6 @@
 """Grammar tests for the `typed_pair` typed current result subject.
 
-`zh/models/realm-and-space.md` section 3.6 is the only paragraph that pins a
+`zh/models/realm-and-space.md` section 3.6 first pins a
 family to this subject kind, and it pins two properties that a free-form
 component list cannot carry: the wire form
 `strand_position:<board_space_id>:<strand_id>` MUST stay invertible, and a
@@ -43,12 +43,11 @@ class TypedPairSubjectTest(unittest.TestCase):
     def test_the_registered_strand_position_subject_is_accepted(self) -> None:
         self.assertEqual(errors_for(LIVE), [])
 
-    def test_every_registry_use_of_typed_pair_is_the_strand_position_subject(self) -> None:
-        """The grammar is pinned by one section, so one shape may use it.
+    def test_every_registry_use_of_typed_pair_is_a_registered_closed_pair(self) -> None:
+        """Every use is pinned to its own normative family and fixed types.
 
-        A second, differently shaped `typed_pair` would mean some other family
-        had adopted the kind without a paragraph fixing its components, which is
-        how a subject kind becomes a name three parties spell differently.
+        Strand position and Applet registration each pin their exact two typed
+        components. Any unregistered family or changed order must fail.
         """
         registry = gate.load_json(gate.Lint(), gate.EVENT_KIND_REGISTRY)
         observed = [
@@ -60,11 +59,15 @@ class TypedPairSubjectTest(unittest.TestCase):
         ]
         self.assertEqual(
             sorted(kind for kind, _, _ in observed),
-            ["ak.strand.move", "ak.strand.move", "ak.strand.reorder"],
+            ["ak.applet.registration", "ak.strand.move", "ak.strand.move", "ak.strand.reorder"],
         )
         for kind, family, selector in observed:
-            self.assertEqual(family, "strand_position", kind)
-            self.assertEqual(selector, LIVE, kind)
+            if kind == "ak.applet.registration":
+                self.assertEqual(family, "applet_registration")
+                self.assertEqual(selector, {"kind": "typed_pair", "components": [{"kind": "id:applet", "field": "payload.applet_id"}, {"kind": "id:did_core", "field": "payload.service_id"}]})
+            else:
+                self.assertEqual(family, "strand_position", kind)
+                self.assertEqual(selector, LIVE, kind)
 
     def test_an_arity_other_than_two_is_reported(self) -> None:
         for components in ([LIVE["components"][0]], LIVE["components"] + [LIVE["components"][0]], []):

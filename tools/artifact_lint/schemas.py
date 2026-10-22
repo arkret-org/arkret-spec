@@ -232,9 +232,7 @@ _INLINE_DID_KEY_ENCODING_POINTERS = {
 # segment is the wildcard, so the value never denotes a resolvable identifier and
 # no shared DID type can express it.  Each pointer is registered exactly, so a
 # real DID literal still cannot hide behind this category.
-_NAMESPACE_DID_PATTERN_POINTERS = {
-    "applet-package.schema.json#/$defs/actor_namespace_pattern/pattern",
-}
+_NAMESPACE_DID_PATTERN_POINTERS: set[str] = set()
 
 
 def check_did_boundary_allowlist(lint: Lint) -> None:

@@ -1416,6 +1416,26 @@
       ]
     },
     {
+      "schema_path": "applet-authority-material.schema.json#/$defs/outcome/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-bot-operations.schema.json#/$defs/bot_preview_request_body/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "applet-configuration-operations.schema.json#/$defs/execution_intent/properties/governance_station_id",
       "property_name": "governance_station_id",
       "semantic_category": "responsibility_identity_material",
@@ -1466,6 +1486,16 @@
       ]
     },
     {
+      "schema_path": "applet-configuration-operations.schema.json#/$defs/intent/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "applet-configuration-operations.schema.json#/$defs/peer_request/properties/requester_account_id",
       "property_name": "requester_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -1483,16 +1513,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "applet-edge-operations.schema.json#/$defs/applet_actor_view/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
       ]
     },
     {
@@ -1626,6 +1646,16 @@
       ]
     },
     {
+      "schema_path": "applet-install-operations.schema.json#/$defs/applet_install_outcome/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "applet-install-operations.schema.json#/$defs/applet_membership_remove_intent/properties/member_id",
       "property_name": "member_id",
       "semantic_category": "responsibility_identity_material",
@@ -1633,6 +1663,46 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "applet-install-operations.schema.json#/$defs/applet_revoke_plan/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-install-plan.schema.json#/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {
@@ -5826,7 +5896,7 @@
       ]
     },
     {
-      "schema_path": "policy.schema.json#/$defs/applet_target/oneOf/1/properties/actor_id",
+      "schema_path": "policy.schema.json#/$defs/applet_target/oneOf/2/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -5836,7 +5906,17 @@
       ]
     },
     {
-      "schema_path": "policy.schema.json#/$defs/applet_target/oneOf/3/properties/actor_id",
+      "schema_path": "policy.schema.json#/$defs/applet_target/oneOf/3/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "policy.schema.json#/$defs/applet_target/oneOf/4/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -7918,6 +7998,16 @@
     {
       "schema_path": "typed-current-result.schema.json#/$defs/agent_status_result/properties/selector/properties/agent_id",
       "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/applet_registration_result/properties/selector/properties/service_id",
+      "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

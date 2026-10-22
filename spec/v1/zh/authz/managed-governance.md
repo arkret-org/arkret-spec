@@ -17,7 +17,7 @@ updated: 2026-10-19
 ## 1. 身份、默认值与规则组合
 
 Agent selector **MUST** 使用 accepted ownership 的完整 controller／Agent AccountId。
-Applet selector 是 `all`、完整请求人 Actor、exact `(applet_id,effective_scope)` installation，或经 accepted
+Applet selector 是 `all`、`applet`（精确 AppletId 的全部 Service）、完整请求人 Actor、exact `(applet_id,service_id,effective_scope)` installation，或经 accepted
 Realm actor create 验证的完整 Bot／Ghost Actor。Profile、同 DID host、URL、显示名和裸 principal **MUST NOT** 替代这些事实。
 requester 的 actor_id 必须是当次真实认证请求人（安装／调用人为完整 Account，创建为 exact Service），不能倒用安装者；requester 只对安装、创建申请与调用人的决策匹配；持续交付 **MUST NOT** 因无法确定当次请求人而跳过 installation／managed actor 规则。
 
@@ -136,7 +136,7 @@ parent 与 child 各 **MUST** 恰有一条 allow、grant_local 的 `applet_autho
 Service身份／historical signer证据沿 accepted registration与原签grant解析。Station不能代Service签Event。
 没有普通控制、role许可、实际业务 action 或有效 parent均拒绝。创建 grant不能当message action的parent。
 
-parent revoke、期限、registration实例／epoch或相应scope安装失效即时使child ineffective，不逐个铸造child revoke。
+parent revoke、期限、本 Service 的 registration实例／epoch或相应scope安装失效即时使child ineffective，不逐个铸造child revoke。其它 Service 不受这次精确撤销影响；明确 applet target 的 deny 仍覆盖其全部 Service，精确 allow 不覆盖该 deny。聚合 quota 与 Ghost tuple 去重不得按 Service 分裂。
 Service 沿 `ak.edge.applet.command.transaction.v1` 的封闭原 issuer 准入原签撤销自己的 accepted terminal child，携 exact revision；业务 parent 已失效也不阻止合法收权，不赋一般 revoke 权。child revoke只影响自己；parent共享quota按原parent／constraint／Service／时间切片原子消耗，新增主体／设备／child不重置总额。
 所有 membership-derived reading、直接 grant、订阅、Blob、未来MLS材料及跨站新交付 **MUST** 继续受该managed主体的
 当前 Applet业务上界与安装fence限制；不能用另一许可入口绕过来源。

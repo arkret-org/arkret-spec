@@ -8,6 +8,7 @@
     "schema",
     "plan_id",
     "applet_id",
+    "service_id",
     "package_digest",
     "registration_epoch",
     "effective_scope",
@@ -32,6 +33,9 @@
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id"
+    },
+    "service_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "package_digest": {
       "$ref": "#/$defs/digest"

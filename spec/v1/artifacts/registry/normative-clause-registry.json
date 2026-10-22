@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T02:10:00+08:00",
+  "generated_at": "2026-10-22T07:36:05+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -857,7 +857,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#4-applet-授权来源与持续上界",
-      "section_digest": "sha256:e1768ea204666ac0b1ed5b473cf88744c76cb4291b5889013b85c6dff9907efd",
+      "section_digest": "sha256:532238b1ec6ed44a3d59d11eb8608b5e46f229529e80fdf5ce457a32457ff94a",
       "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted Realm actor. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Realm actor child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Realm actor producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Realm must fail. Service child grant and issuer revoke use the registered Applet transaction admission, not the self/events creation/recovery exception. Current-binding material separates current installation from original grant provenance; inactive reveals no replacement Service. Historical creation confirmation and independent recovery do not require active business installation, and confer no business authority.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -3331,6 +3331,29 @@
           ]
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.applet.registration"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "scope_ref": {
+            "properties": {
+              "kind": {
+                "const": "realm"
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {

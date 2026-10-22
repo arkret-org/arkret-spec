@@ -38,6 +38,7 @@
       "type": "object",
       "required": [
         "applet_id",
+        "service_id",
         "effective_scope",
         "registration",
         "grant_events",
@@ -47,6 +48,9 @@
       "properties": {
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "effective_scope": {
           "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"

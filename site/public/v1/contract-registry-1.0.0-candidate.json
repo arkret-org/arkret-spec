@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.2",
+  "version": "2026-10-22.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T02:11:00+08:00",
+  "generated_at": "2026-10-22T08:55:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -478,7 +478,7 @@
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
       "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_revision CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
       "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md.",
-      "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, namespace and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
+      "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, immutable Applet provenance and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
       "realm_actor_control": "Current complete Realm actor controller method, exact private stream and immutable Applet binding. No Device or Service substitution, executed_by or envelope authorization_ref. Kind-specific CAS, status, installation and management permission checks remain required. Governance status uses its separate capability branch.",
       "realm_actor_recovery": "Current manager Service, complete target Realm actor, enabled accepted recovery policy, exact manager/policy/control/status/generation CAS, native pre-rotation and independent new control PoP. Only recovery.begin/control.reset in realm_control; no business grant, Device, Account or generic Service substitution. Prepare fences old devices; finish checks published exact native evidence. No per-reset human approval."
     },
@@ -1587,8 +1587,17 @@
           {
             "result_family": "applet_registration",
             "result_selector": {
-              "kind": "id:applet",
-              "field": "payload.applet_id"
+              "kind": "typed_pair",
+              "components": [
+                {
+                  "kind": "id:applet",
+                  "field": "payload.applet_id"
+                },
+                {
+                  "kind": "id:did_core",
+                  "field": "payload.service_id"
+                }
+              ]
             },
             "result_projection": {
               "kind": "set",
@@ -1597,7 +1606,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
-            "notes": "extensions/applet-schema.md section 1. AppletId selects the accepted complete registration snapshot. Installer authority, package proof, registration_epoch evidence, service/controller identities and namespace conflicts are checked before replacement; a failed guard writes nothing."
+            "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_revision is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream, including Circle installation intents. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
           }
         ]
       },
@@ -9806,8 +9815,8 @@
         }
       }
     },
-    "version": "2026-10-22.1",
-    "generated_at": "2026-10-22T02:10:00+08:00",
+    "version": "2026-10-22.4",
+    "generated_at": "2026-10-22T07:58:47+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -14050,7 +14059,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view",
-        "notes": ""
+        "notes": "Path is percent-encoded RFC8785 JCS of the complete closed ActorId, never a bare principal. For Realm actors only their authenticated current governance Station may query the already accepted manager Service. Verify authority and exact creation/current manager; no namespace discovery, enumeration, cross-Applet takeover or private external-tuple disclosure to another caller. Unknown and invisible targets return not_found. Ordinary Accounts use their own existing directory and delegation contracts and are not targets of this managed-actor lookup."
       },
       {
         "operation_id": "ak.edge.applet.command.transaction.v1",
@@ -16620,7 +16629,7 @@
         "http": "POST /_arkret/self/current-results/exact",
         "grpc": "SelfCurrentResults/ReadExact",
         "mq": "self.current_results.query.exact",
-        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated.",
+        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply a null CAS only in the explicitly registered first-write branches; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated. Exact applet_registration selector includes AppletId and ServiceId within the request Realm. Only an authenticated administrator with current ak.realm.admin for that Realm may read this installation CAS basis; never_written requires complete accepted history. No cross-Realm search or public enumeration.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
@@ -18339,8 +18348,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-22.2",
-    "generated_at": "2026-10-22T02:11:00+08:00",
+    "version": "2026-10-22.6",
+    "generated_at": "2026-10-22T08:55:19+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18961,10 +18970,6 @@
           "ak.deployment_prototype.coland_station.v1#applet"
         ],
         "members": [
-          {
-            "operation_id": "ak.edge.applet.actor.read.resolve.v1",
-            "binding_kind": "http_json"
-          },
           {
             "operation_id": "ak.edge.applet.command.transaction.v1",
             "binding_kind": "http_json"
@@ -20073,8 +20078,7 @@
           "active_applet_registration_exact",
           "realm_actor_creation_scope",
           "realm_actor_candidate_and_controller_proof",
-          "realm_actor_creation_atomic",
-          "ghost_actor_namespace_match"
+          "realm_actor_creation_atomic"
         ],
         "target_event_kinds": [
           "ak.realm.actor.create"
@@ -22033,8 +22037,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-21.2",
-    "generated_at": "2026-10-21T22:14:10+08:00",
+    "version": "2026-10-22.1",
+    "generated_at": "2026-10-22T07:36:05+08:00",
     "metadata_authority": "contract_registry_section",
     "constraint_evaluation_contract": {
       "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",
@@ -24088,7 +24092,7 @@
           "consumed_by": [
             "extensions/applet-schema.md §1"
           ],
-          "note": "Profile, namespace, webhook and requested-scope decisions read the accepted registration snapshot."
+          "note": "Exact Realm/Applet/Service registration snapshot and signed CAS basis. Independent Services coexist; managed actor ownership comes only from accepted creation/current manager, never a DID namespace."
         }
       },
       {
@@ -24348,8 +24352,8 @@
         }
       }
     ],
-    "version": "2026-10-20.1",
-    "generated_at": "2026-10-20T00:18:13+08:00",
+    "version": "2026-10-22.1",
+    "generated_at": "2026-10-22T07:36:05+08:00",
     "metadata_authority": "contract_registry_section",
     "call_current_contract": {
       "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",
@@ -24700,7 +24704,46 @@
         "RA-HANDOFF-6"
       ]
     },
-    "peer_material_operation_id": "ak.peer.realm_actor.read.material.v1"
+    "peer_material_operation_id": "ak.peer.realm_actor.read.material.v1",
+    "service_change": {
+      "scope": "same_applet_complete_data_and_keys",
+      "registration_key": [
+        "realm_id",
+        "applet_id",
+        "service_id"
+      ],
+      "installation_key": [
+        "applet_id",
+        "service_id",
+        "effective_scope"
+      ],
+      "registration_cas_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload/properties/expected_revision",
+      "publisher": "immutable_verified_controller",
+      "managed_did_hosting": "applet_arranged_independent_of_service_host_and_governor",
+      "managed_webvh_portable": true,
+      "managed_actor_namespace_required": false,
+      "managed_actor_namespace_exclusive": false,
+      "actor_manager_cardinality": 1,
+      "transfer_unit": "one_complete_realm_actor",
+      "cross_applet_transfer": false,
+      "inherit_grants_or_devices": false,
+      "ghost_tuple_key": [
+        "realm_id",
+        "applet_id",
+        "protocol",
+        "instance_id",
+        "external_id"
+      ],
+      "governance_handoff_requires_actor_relocation": false,
+      "same_service_deployment_changes_generation": false,
+      "custody_writer": "single",
+      "normative_ref": "zh/extensions/realm-actors.md#7-管理-service-转交",
+      "registration_scope_kind": "realm",
+      "namespace_buckets": [
+        "realms",
+        "handles"
+      ]
+    }
   },
   "contact_current_contract": {
     "normative_source": "zh/identity/contact-and-direct-conversation.md",

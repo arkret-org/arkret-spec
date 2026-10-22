@@ -67,13 +67,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "6745b04187134709fa77236832d753b507acb66076e37be71703d1b26589478b",
-      "version": "2026-10-09.1"
+      "sha256": "2a3ec6a10d18d37b0f9bd558eaa93d4b7d7a67fc09c2f6d255e1674d1854984c",
+      "version": "2026-10-22.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
-      "sha256": "7a0f64b0385fd2c31f641cee4d6031034bad90fc347c2cdae1cb6f242d3e4f26",
-      "version": "2026-09-29.1"
+      "sha256": "347a58213602b4e71a0ea793b786ec406906e31b6d7454be6f26e8588327b69b",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
@@ -307,8 +307,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "ffcc0f636c7490ba12c11b833caf2fd260014febbc0c2bb63efeb431d84c669c",
-      "version": "2026-09-26.1"
+      "sha256": "a737c7ce3651ec2545bc61ea655a2faf3e13912fe8fa1383306fb0f963fa4206",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
@@ -532,8 +532,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "54e31fa1868cb78e9dca62cc8da132c8457f09b5e762c98718ee13009fa830d4",
-      "version": "2026-10-21.1"
+      "sha256": "26ad99dc7432484d2c5ab523dcae85e330fcb66cac4ce38beae5a034660ac081",
+      "version": "2026-10-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",

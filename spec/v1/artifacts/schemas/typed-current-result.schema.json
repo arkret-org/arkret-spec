@@ -448,7 +448,8 @@
           "type": "object",
           "required": [
             "kind",
-            "applet_id"
+            "applet_id",
+            "service_id"
           ],
           "properties": {
             "kind": {
@@ -456,12 +457,20 @@
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            },
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false
         },
         "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
+          "properties": {
+            "kind": {
+              "const": "realm"
+            }
+          }
         },
         "revision": {
           "$ref": "#/$defs/revision"

@@ -10,6 +10,121 @@ from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, ac
 
 
 class RealmActorContractTests(unittest.TestCase):
+    def test_service_registration_keys_keep_independent_current_instances(self):
+        catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        event = next(r for r in catalog["event_kind_registry"]["event_kinds"] if r["event_kind"] == "ak.applet.registration")
+        selector = event["result_writes"][0]["result_selector"]
+        self.assertEqual("typed_pair", selector["kind"])
+        self.assertEqual(["payload.applet_id", "payload.service_id"], [x["field"] for x in selector["components"]])
+        self.assertEqual(["id:applet", "id:did_core"], [x["kind"] for x in selector["components"]])
+        fields = [x["field"].removeprefix("payload.") for x in selector["components"]]
+        applet = "ak:applet:0195be74-0000-7000-8000-000000000001"
+        current = {}
+
+        def accept(payload):
+            key = canonical([payload[f] for f in fields])
+            prior = current.get(key)
+            if payload["expected_revision"] != (prior[0] if prior else None):
+                return False
+            revision = max([r[0] for r in current.values()] or [0]) + 1
+            instance = prior[2] if prior and prior[1] == payload["registration_epoch"] else revision
+            current[key] = (revision, payload["registration_epoch"], instance)
+            return True
+
+        old = dict(applet_id=applet, service_id="ak:did_core:webvh:zOld", expected_revision=None, registration_epoch="old")
+        new = dict(old, service_id="ak:did_core:webvh:zNew", registration_epoch="new")
+        self.assertTrue(accept(old))
+        saved = dict(current)
+        self.assertTrue(accept(new))
+        self.assertTrue(all(current[k][1:] == v[1:] for k, v in saved.items()))
+        self.assertFalse(accept(dict(new, registration_epoch="racing-writer")))
+        self.assertTrue(accept(dict(old, expected_revision=1)))
+        self.assertEqual(2, len(current))
+        self.assertTrue(all(current[k][1:] == v[1:] for k, v in saved.items()))
+        self.assertFalse(accept(dict(old, expected_revision=1)))
+
+    def test_registration_current_has_one_realm_stream_across_circle_installs(self):
+        from jsonschema import Draft202012Validator
+        envelope = json.loads((ART / "schemas/event-envelope.schema.json").read_text(encoding="utf-8"))
+        guard = next(r for r in envelope["allOf"] if r.get("if", {}).get("properties", {}).get("kind", {}).get("const") == "ak.applet.registration" and "scope_ref" in r.get("then", {}).get("properties", {}))
+        validator = Draft202012Validator(guard)
+        validator.validate({"kind": "ak.applet.registration", "scope_ref": {"kind": "realm", "realm_id": token("realm")}})
+        self.assertFalse(validator.is_valid({"kind": "ak.applet.registration", "scope_ref": {"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}}))
+        stream = self.validator("typed-current-result", "#/$defs/applet_registration_result/properties/source_stream_ref")
+        stream.validate({"kind": "realm", "realm_id": token("realm")})
+        self.assertFalse(stream.is_valid({"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}))
+
+    def test_service_selectors_are_required_and_cannot_widen_revoke(self):
+        applet = "ak:applet:0195be74-0000-7000-8000-000000000001"
+        service = "ak:did_core:webvh:zRuntime"
+        scope = {"kind": "realm", "realm_id": token("realm")}
+        selector = {"kind": "applet_registration", "applet_id": applet, "service_id": service}
+        self.validator("typed-current-result", "#/$defs/applet_registration_result/properties/selector").validate(selector)
+        self.validator("exact-current-results-read", "#/$defs/exact_current_result_selector").validate(selector)
+        missing = {k: v for k, v in selector.items() if k != "service_id"}
+        self.assertFalse(self.validator("exact-current-results-read", "#/$defs/exact_current_result_selector").is_valid(missing))
+        policy = self.validator("policy", "#/$defs/applet_target")
+        policy.validate({"kind": "applet", "applet_id": applet})
+        policy.validate({"kind": "installation", "applet_id": applet, "service_id": service, "effective_scope": scope})
+        self.assertFalse(policy.is_valid({"kind": "installation", "applet_id": applet, "effective_scope": scope}))
+        plan = json.loads((ART / "fixtures/applet-revoke-saga-fixture.json").read_text(encoding="utf-8"))["preview_plan_digest_kat"]
+        changed = dict(plan["revoke_plan"], service_id="ak:did_core:webvh:zOther")
+        self.assertNotEqual(plan["expected_revoke_plan_digest"], digest(changed))
+        for name, definition in [("applet-install-operations", "applet_revoke_request_body"), ("applet-install-operations", "applet_revoke_preview_request_body"), ("applet-configuration-operations", "intent"), ("applet-bot-operations", "bot_preview_request_body")]:
+            schema = json.loads((ART / f"schemas/{name}.schema.json").read_text(encoding="utf-8"))["$defs"][definition]
+            self.assertIn("service_id", schema["required"])
+
+    def test_registration_cas_is_signed_event_material_not_package_epoch(self):
+        event = json.loads((ART / "schemas/event-payload.schema.json").read_text(encoding="utf-8"))["$defs"]["applet_registration_payload"]
+        self.assertIn("expected_revision", event["required"])
+        v = self.validator("event-payload", "#/$defs/applet_registration_payload/properties/expected_revision")
+        v.validate(None)
+        v.validate({"commit_id": token("realm_commit"), "stream_position": 1})
+        self.assertFalse(v.is_valid(1))
+        package = json.loads((ART / "schemas/applet-package.schema.json").read_text(encoding="utf-8"))
+        epoch = json.loads((ART / "schemas/applet-registration-epoch-transcript.schema.json").read_text(encoding="utf-8"))
+        self.assertNotIn("expected_revision", package["properties"])
+        self.assertNotIn("expected_revision", epoch["$defs"]["derived_registration"]["properties"])
+        self.assertNotEqual(digest({"expected_revision": None}), digest({"expected_revision": {"commit_id": token("realm_commit"), "stream_position": 1}}))
+
+    def test_managed_namespaces_cannot_reintroduce_host_ownership(self):
+        validator = self.validator("applet-package", "#/$defs/applet_namespaces")
+        validator.validate({"realms": [], "handles": []})
+        self.assertFalse(validator.is_valid({"realms": [], "handles": [], "actors": []}))
+        self.assertFalse(validator.is_valid({"realms": [], "handles": [], "actors": [{"exclusive": True, "pattern": "did:webvh:*:host.example:actor:*"}]}))
+        schema = json.loads((ART / "schemas/applet-package.schema.json").read_text(encoding="utf-8"))
+        self.assertNotIn("actor_namespace_pattern", schema["$defs"])
+        self.assertNotIn("actor_namespace_entry", schema["$defs"])
+        catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        ghost = next(r for r in catalog["capability_action_registry"]["actions"] if r["action"] == "ak.applet.ghost.provision")
+        self.assertNotIn("ghost_actor_namespace_match", ghost["required_evaluator_checks"])
+        self.assertIn("active_applet_registration_exact", ghost["required_evaluator_checks"])
+
+    def test_same_applet_change_retains_identity_and_separates_hosting(self):
+        contract = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))["realm_actor_contract"]["service_change"]
+        self.assertEqual("immutable_verified_controller", contract["publisher"])
+        self.assertEqual(1, contract["actor_manager_cardinality"])
+        self.assertFalse(contract["cross_applet_transfer"])
+        self.assertFalse(contract["inherit_grants_or_devices"])
+        self.assertFalse(contract["managed_actor_namespace_required"])
+        self.assertFalse(contract["managed_actor_namespace_exclusive"])
+        self.assertFalse(contract["governance_handoff_requires_actor_relocation"])
+        self.assertFalse(contract["same_service_deployment_changes_generation"])
+        self.assertNotIn("service_id", contract["ghost_tuple_key"])
+        vector = native_recovery_fixture(relocate=True)
+        result = verify_native_recovery(vector, accepted_prefix=vector["log_entries"][:2])
+        self.assertNotEqual(vector["did"], result["did"])
+        self.assertEqual(vector["did"].split(":")[2], result["did"].split(":")[2])
+        self.assertTrue(result["did"].endswith(":hosting.example:actors:bot"))
+        with self.assertRaises(ValueError):
+            verify_native_recovery(native_recovery_fixture(relocate=True, portable=False))
+        with self.assertRaises(ValueError):
+            verify_native_recovery(vector, accepted_prefix=native_recovery_fixture()["log_entries"])
+        no_witness = copy.deepcopy(vector)
+        no_witness["witness_records"].pop()
+        with self.assertRaises(ValueError):
+            verify_native_recovery(no_witness)
+
     def test_managed_queue_is_welcome_only_without_realm_device_message_identity(self):
         registry = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
         auth = registry["device_authentication"]
@@ -58,7 +173,7 @@ class RealmActorContractTests(unittest.TestCase):
         execution = fixture["signature_kats"][0]["unsigned_host"]["intent"]
         request = {
             "command": "configure",
-            "intent": {k: execution[k] for k in ("request_id", "effective_scope", "selection")},
+            "intent": {k: execution[k] for k in ("request_id", "service_id", "effective_scope", "selection")},
         }
         wrapper = {"requester_account_id": execution["originating_actor_id"]["account_id"],
                    "request": request}
@@ -93,6 +208,7 @@ class RealmActorContractTests(unittest.TestCase):
         members = lambda row: {(entry["operation_id"], entry["binding_kind"])
                                for entry in row["members"]}
         exclusive = {
+            ("ak.edge.applet.actor.read.resolve.v1", "http_json"),
             ("ak.edge.applet.managed_actor.command.author.v1", "http_json"),
             ("ak.edge.applet.configuration.command.execute.v1", "http_json"),
         }

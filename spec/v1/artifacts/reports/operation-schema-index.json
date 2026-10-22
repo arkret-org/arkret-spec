@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-22.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T02:10:00+08:00",
+  "generated_at": "2026-10-22T02:11:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4828,6 +4828,7 @@
         "required": [
           "install_id",
           "applet_id",
+          "service_id",
           "registration_event_ref",
           "registration_epoch",
           "capability_grant_refs",
@@ -4839,6 +4840,7 @@
         "properties": [
           "install_id",
           "applet_id",
+          "service_id",
           "registration_event_ref",
           "registration_epoch",
           "capability_grant_refs",
@@ -4859,6 +4861,7 @@
         "required": [
           "revoke_plan_digest",
           "effective_scope",
+          "service_id",
           "reason_code",
           "revoke_mode",
           "capability_revoke_events",
@@ -4867,6 +4870,7 @@
         "properties": [
           "revoke_plan_digest",
           "effective_scope",
+          "service_id",
           "reason_code",
           "revoke_mode",
           "capability_revoke_events",
@@ -4960,11 +4964,13 @@
         "schema_kind": "object",
         "required": [
           "effective_scope",
+          "service_id",
           "reason_code",
           "revoke_mode"
         ],
         "properties": [
           "effective_scope",
+          "service_id",
           "reason_code",
           "revoke_mode"
         ],
@@ -8664,10 +8670,12 @@
         "schema_kind": "object",
         "required": [
           "effective_scope",
+          "service_id",
           "request_id"
         ],
         "properties": [
           "effective_scope",
+          "service_id",
           "request_id",
           "display_name"
         ],
@@ -8706,6 +8714,7 @@
         "schema_kind": "object",
         "required": [
           "applet_id",
+          "service_id",
           "effective_scope",
           "registration",
           "grant_events",
@@ -8714,6 +8723,7 @@
         ],
         "properties": [
           "applet_id",
+          "service_id",
           "effective_scope",
           "registration",
           "grant_events",

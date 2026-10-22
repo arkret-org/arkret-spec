@@ -746,6 +746,22 @@
           "type": "object",
           "required": [
             "kind",
+            "applet_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "applet"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
             "actor_id"
           ],
           "properties": {
@@ -763,6 +779,7 @@
           "required": [
             "kind",
             "applet_id",
+            "service_id",
             "effective_scope"
           ],
           "properties": {
@@ -771,6 +788,9 @@
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            },
+            "service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             },
             "effective_scope": {
               "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"

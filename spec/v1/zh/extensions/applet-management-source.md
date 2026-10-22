@@ -22,7 +22,7 @@ Applet runtime 持有主体 DID／Device 私钥并生成候选；治理 Station 
 能力发现 MUST 按上述职责使用真实服务角色。独立 Applet 使用 `service_kind=applet_service`，
 只有实际实现全部成员时才可声明 `ak.operation_bundle.applet_service.applet.v1`；
 该 bundle 包含现有 Applet edge 操作，包括主体候选 author 和配置 execute。
-治理 Station 的 `ak.operation_bundle.station.applet.v1` 不包含这两项 Applet 专属执行操作，
+治理 Station 的 `ak.operation_bundle.station.applet.v1` 不包含这两项 Applet 专属执行操作，也不包含当前 manager 专属的 `ak.edge.applet.actor.read.resolve.v1`；治理站按完整主体及 accepted manager 调用该查询，不能汇总所有 Applet 的主体作为本站目录回答。
 仍保留其它已有 Station 方向 edge 操作；双向 transaction 的方向、来源签名和接纳规则不变。
 管理员配置 submit 保留在 `ak.operation_bundle.station.applet_install.v1`，由治理站执行。
 通用 describe 与 Applet edge describe 是两个既有操作，角色通用 describe bundle 仍独立保留。
@@ -36,7 +36,7 @@ Applet 自行提供现有公开 Service 解析接口时，MUST 声明
 
 ## 2. 管理员主动配置
 
-配置 intent 固定 request_id、effective_scope、new_bot 或 existing_realm_actor 选择。
+配置 intent 固定 request_id、service_id、effective_scope、new_bot 或 existing_realm_actor 选择。
 existing 选择必须包含同 Realm 的完整 ActorId.realm，匹配当前 Applet／manager，不能用显示名或裸 core 认领。
 governor 检查真实 Account 操作者权限、current registration、安装与 Policy，持久化意图后再调用 runtime。
 execution_intent 绑定 Applet／Service、原始治理任期、scope、registration／epoch、操作者和选择；
@@ -59,7 +59,7 @@ created／reused 结果必须带原真实创建 Commit；pending／unknown 没�
 `ak.peer.applet.configuration.command.submit.v1`
 （`POST /_arkret/peer/applets/{applet_id}/configuration`）转交封闭的
 `{requester_account_id, request}`：前者从已认证会话取得完整 AccountId，后者为原 self 请求，
-保留 command、intent 和可选 approval_signatures，不改写操作者、scope、选择或审批。
+保留 command、intent 和可选 approval_signatures，不改写操作者、Service、scope、选择或审批。
 同站场景直接调用同一个治理处理器，不复制出第二套授权规则。
 
 peer 请求 MUST 遵守既有 S2S RFC 9421 签名、完整正文绑定、来源／目标、重放窗口与幂等规则；
@@ -80,7 +80,7 @@ peer 响应复用原 outcome，账号站交付前 MUST 再核本人的当前会�
 
 ## 3. 自动 Ghost 与按操作审批
 
-治理方可授持续自动 Ghost 创建许可，约束 namespace、scope、quota、有效期及当前安装。
+治理方可授持续自动 Ghost 创建许可，约束 external protocol／instance、scope、聚合 quota、有效期及当前 Service 安装。
 每个 create 仍核许可、完整主体签名与 tuple 唯一性；不因此要求每个 Ghost 都另点确认。
 require_review 才创建审批；deny 零写。管理员主动 Bot 配置与 Applet 自动创建使用同一候选和接纳合同。
 

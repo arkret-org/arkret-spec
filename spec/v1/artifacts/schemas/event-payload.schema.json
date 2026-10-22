@@ -1073,10 +1073,11 @@
     },
     "applet_registration_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / Realm-policy-authorized administrator actor and checked by the Station authorization capability. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
+      "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot service). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / Realm-policy-authorized administrator actor and checked by the Station authorization capability. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
       "required": [
         "applet_id",
         "service_id",
+        "expected_revision",
         "controller_principal_id",
         "base_url",
         "claimed_profiles",
@@ -1100,6 +1101,17 @@
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the service hosting the applet runtime."
+        },
+        "expected_revision": {
+          "oneOf": [
+            {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact current revision for this Realm/Applet/Service. Null asserts never written. The installer Event signs this precondition; it is excluded from the publisher package, registration epoch and security-binding equality. Same-epoch reassertion preserves the accepted instance; another Service never replaces it."
         },
         "controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -1131,7 +1143,7 @@
         },
         "namespaces": {
           "$ref": "applet-package.schema.json#/$defs/applet_namespaces",
-          "description": "Applet namespace claims (actors / realms / handles patterns). Namespace match alone never grants write capability."
+          "description": "Realm/portal and handle routing claims only. Actor DID namespaces are not registered; identity and delegation are verified from accepted creation/current manager and actual grants."
         },
         "receive_events": {
           "type": "boolean"
