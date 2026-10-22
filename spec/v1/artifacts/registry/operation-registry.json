@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.6",
+  "version": "2026-10-22.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T08:55:19+08:00",
+  "generated_at": "2026-10-22T10:09:43+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -5435,22 +5435,6 @@
         },
         {
           "operation_id": "ak.edge.applet.read.ping.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.edge.applet.read.protocol_metadata.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.edge.applet.realm.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
           "binding_kind": "http_json"
         }
       ]

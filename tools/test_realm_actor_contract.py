@@ -208,6 +208,10 @@ class RealmActorContractTests(unittest.TestCase):
         members = lambda row: {(entry["operation_id"], entry["binding_kind"])
                                for entry in row["members"]}
         exclusive = {
+            ("ak.edge.applet.realm.read.resolve.v1", "http_json"),
+            ("ak.edge.applet.read.protocol_metadata.v1", "http_json"),
+            ("ak.edge.applet.third_party_users.read.list.v1", "http_json"),
+            ("ak.edge.applet.third_party_locations.read.list.v1", "http_json"),
             ("ak.edge.applet.actor.read.resolve.v1", "http_json"),
             ("ak.edge.applet.managed_actor.command.author.v1", "http_json"),
             ("ak.edge.applet.configuration.command.execute.v1", "http_json"),

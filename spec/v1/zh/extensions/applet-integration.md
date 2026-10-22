@@ -578,6 +578,8 @@ request digest、audience、nonce、当前治理链和所持 key。不得把 Ser
 控制更新、卸载后的维护、原结果恢复及 manager 转交分别按 Realm actors §5–8 执行。
 治理换任沿原 RealmId 取得当前治理方，不再查询另一个 Bot／Ghost Account Station 或 PCR。
 
+Realm／portal alias 解析、外部协议元数据、外部用户映射和外部 location 查询同样只属于 Applet Service 操作包，不属于 Station 操作包或 Coland Station 部署原型。治理 Station MUST 按已选定的精确 Applet／Service 安装调用该 Applet；MUST NOT 扫描全部安装、广播查询或取首条匹配。Applet 继续按本节已有来源签名、目标 Service、安装／namespace 和当前治理边界回答；外部用户映射还须核对完整 tuple 与 accepted current manager。未声明的可选适配能力按 §15 返回 `unsupported_feature`，不得伪造映射。
+
 ### 7.4 Query Actor
 
 该操作只属于 `ak.operation_bundle.applet_service.applet.v1`，不属于 `ak.operation_bundle.station.applet.v1` 或 Coland Station 部署原型。治理 Station 是调用方，不能把所有已安装 Applet 的主体汇总为本站 Applet 目录提供此操作；响应由已接受的当前 manager Applet Service 提供。
