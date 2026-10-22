@@ -7236,11 +7236,12 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-          maxLength: 512
+          minLength: 1
+          maxLength: 8192
+        description: Percent-encoded RFC 8785 JCS of one complete closed ActorId. Decode and validate before lookup; bare DID Core is invalid.
       responses:
         '200':
-          description: Applet actor namespace resolve
+          description: Exact authorized Applet actor lookup
           content:
             application/json:
               schema:

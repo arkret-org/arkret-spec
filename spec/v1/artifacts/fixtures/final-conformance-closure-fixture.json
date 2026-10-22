@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-26.1",
+  "version": "2026-10-22.1",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -56,7 +56,7 @@
         "source_destination_and_content_digest_bound",
         "idempotent_replay_returns_cached_outcome",
         "idempotency_identity_body_drift_rejected",
-        "active_install_and_actor_namespace_required"
+        "active_exact_service_install_and_accepted_manager_required"
       ],
       "required_components": [
         "@method",
@@ -73,7 +73,14 @@
         "destination_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "key_ref": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
-        "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost"
+        "actor_id": {
+          "kind": "realm",
+          "realm_actor_id": {
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+            "principal_id": "ak:did_core:webvh:zManagedClosure"
+          }
+        },
+        "manager_service_id": "ak:did_core:webvh:z6mkfixturebridgeexample"
       },
       "transactions": [
         {
@@ -104,7 +111,6 @@
           "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "created": 1786550400,
           "expires": 1786550700,
-          "actor_namespace": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost",
           "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "expected": {
             "decision": "accept",
@@ -137,7 +143,15 @@
             "delivery_authentication_record_canonical_bytes_utf8": "{\"content_digest\":\"sha-256=:u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"created\":1786550400,\"destination_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"direction\":\"applet_to_arkret_inbound\",\"expires\":1786550700,\"idempotency_key\":\"tx-001\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixturebridgeexample\",\"verification_key_digest\":\"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"verification_method\":\"did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1\"}",
             "delivery_authentication_record_digest": "sha256:8639a66a3a306cbd3d01a2284f0b817d84b1437719af35feb4125cd1d9cc78c3",
             "side_effects_applied": true
-          }
+          },
+          "actor_id": {
+            "kind": "realm",
+            "realm_actor_id": {
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+              "principal_id": "ak:did_core:webvh:zManagedClosure"
+            }
+          },
+          "manager_service_id": "ak:did_core:webvh:z6mkfixturebridgeexample"
         },
         {
           "name": "missing_signature",
@@ -251,7 +265,7 @@
           }
         },
         {
-          "name": "actor_namespace_mismatch",
+          "name": "accepted_manager_mismatch",
           "signature_present": true,
           "covered_components": [
             "@method",
@@ -269,12 +283,19 @@
           "destination_id_header": "ak:did_core:webvh:z6mkfixtureprincipalexample",
           "content_digest_matches_body": true,
           "arkret_operation": "ak.edge.applet.command.transaction.v1",
-          "actor_namespace": "did:webvh:z6mkfixture:alice.example",
           "authorization_ref_owner": "ak:did_core:webvh:z6mkfixturebridgeexample",
           "expected": {
             "decision": "reject",
-            "reason": "applet_namespace_mismatch"
-          }
+            "reason": "applet_registration_unauthorized"
+          },
+          "actor_id": {
+            "kind": "realm",
+            "realm_actor_id": {
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+              "principal_id": "ak:did_core:webvh:zManagedClosure"
+            }
+          },
+          "manager_service_id": "ak:did_core:webvh:zDifferentManager"
         }
       ]
     },

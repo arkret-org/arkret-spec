@@ -19,6 +19,7 @@ updated: 2026-07-02
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "expected_revision": null,
   "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://applet.example/applet",
   "claimed_profiles": [
@@ -29,7 +30,6 @@ updated: 2026-07-02
     "slack"
   ],
   "namespaces": {
-    "actors": [],
     "realms": [],
     "handles": []
   },
@@ -74,9 +74,10 @@ updated: 2026-07-02
 
 唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_auth`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
 
+- registration 的 `expected_revision` 是安装管理员签入 Event 的 Service 级 CAS 前态，不属于 package，也不进入 epoch transcript 或安全绑定等价比较；null 仅允许该 Service 从未登记。相同 Applet 的其它 Service 不提供此 revision。
 - `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
 - `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh|did:key`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` 使用其合成稳定 version id。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
-- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
+- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、两个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
 - 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
 - transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
 
@@ -109,7 +110,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `base_url` | yes | Applet API base URL。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
 | `protocols` | yes | 外部协议标识数组。 |
-| `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
+| `namespaces` | yes | `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
 | `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `did` 下的 DID URL，该 `did` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
@@ -179,7 +180,7 @@ Service 返回唯一原签 create_event，其中候选的控制签名与外层 S
 ```json fragment
 {
   "exclusive": true,
-  "pattern": "did:webvh:*:applet.example:ghost:*"
+  "pattern": "slack:team:*:channel:*"
 }
 ```
 Pattern 语法：
@@ -190,14 +191,12 @@ Pattern 语法：
 
 **Segment 分隔符（normative）**：segment 边界由 pattern 所属命名空间决定，匹配前 pattern 与目标字符串按相同分隔符集合切分：
 
-- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:webvh:*:slack-bridge.example:ghost:*` 匹配 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
-- **Actor namespace pattern 的形状约束（normative）**：`did:webvh` 的 SCID 在第三个 segment，而每个 Ghost MUST 有自己独立的 validated SCID（[`applet-integration.md` §3.4](./applet-integration.md)），因此覆盖 Ghost 的 pattern 的 SCID 段只能是 `*`。`namespaces.actors[]` 的每条 `pattern` MUST 满足：(a) 以 `did:webvh:` 开头；(b) 第三个 segment 是 `*` 或一个非空的具体 SCID；(c) 紧随其后的 host segment 是**字面量**（MUST NOT 是 `*` 或 `**`）且逐字等于 registration `service_id` 当前已验证解析出的那个 bare `did` 的 host segment；(d) host 之后 MUST 至少还有一个 segment。任一条不成立 MUST 在 install preview 与 commit 上 fail closed，code=`applet_namespace_pattern_invalid`。此外，把 registration 自己 `service_id` 的 SCID 写死在第三段的 pattern **永不命中任何合规 Ghost**（合规 Ghost 的 SCID 必然不等于 service SCID），MUST 以同一 code 拒绝；写死**其它**具体 SCID 的 pattern 合法，它表示一个只覆盖该单一 actor 的 namespace。
 - **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slack.acme.example/*` 匹配单层 path，`slack.acme.example/**` 匹配多层 path。
 - 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按下方 §2.1 在切分后的 segment 序列上进行，其拒绝后注册者的义务见 [`applet-integration.md` §4.1](./applet-integration.md)。
 
 ### 2.1 Exclusive namespace 冲突判定（normative）
 
-同一 namespace bucket 内的两条 exclusive pattern **冲突**，当且仅当存在至少一个字符串同时被两者匹配（两者匹配语言的交非空）。判定只看 pattern 形状：实现 MUST NOT 以“当前没有实际 actor / Realm / handle 同时命中”为由放行，也 MUST NOT 只在两条 pattern 逐字节相同时才判冲突。
+同一 namespace bucket 内的两条 exclusive pattern **冲突**，当且仅当存在至少一个字符串同时被两者匹配（两者匹配语言的交非空）。判定只看 pattern 形状：实现 MUST NOT 以“当前没有实际 Realm / handle 同时命中”为由放行，也 MUST NOT 只在两条 pattern 逐字节相同时才判冲突。
 
 对同一 bucket 内的两条 pattern P、Q：
 
@@ -205,7 +204,6 @@ Pattern 语法：
 2. 逐位比较 token：literal 与 literal MUST 逐字节相等（转义后的字面量 `*` 按 literal `*` 比较）；`*` 与任意**单个**非空 token（包括对方的 `*`）兼容。
 3. 两条都不含 `**` 时：token 数量不等即判**不冲突**；数量相等且逐位全部兼容即判**冲突**。
 4. 含 `**` 时（按上文只可能出现在 realm / handle bucket 的 `/`-分隔尾段）：`**` 之前的部分按第 2、3 条逐位比较；`**` 与对方剩余的 `/`-分隔尾段兼容，当且仅当对方剩余尾段至少含一个 segment（对方的 `**` 满足该条）。`**` MUST NOT 与仍由 `:` 分隔的剩余部分兼容。
-5. Actor bucket 的 SCID 段按第 2 条处理：`*` 与 `*`、`*` 与任意具体 SCID 都兼容。因此 SCID 段普遍为 `*` 之后，actor namespace 的排他性**只由 host 段承载**——§2 的 host 段字面量约束是 exclusive 判定仍然可用的唯一依据；没有它，两条 `did:webvh:*:*:ghost:*` 形状的 pattern 会与全网所有 actor namespace 冲突。
 
 冲突比较的对象是**其它** `applet_id` 当前 active 的 exclusive namespace claim。同一 `applet_id` 自身 registration 的重申、renew，或为新 `effective_scope` 复用同一 registration 的 install，MUST NOT 与自己判冲突。判定为冲突时，registry 与执行安装准入的 Station MUST 拒绝后注册者，code=`applet_namespace_conflict`。
 

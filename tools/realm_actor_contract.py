@@ -112,7 +112,7 @@ def signature_fixture():
     original = cases[0].pop("unsigned_projection")
     cases[0]["candidate"] = {**original, "control_signature": cases[0]["signature"]}
     from tools.realm_actor_mls_contract import handoff_fixture
-    return {"version": "2026-10-21.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material. MLS claim handoff hosts verify distinct real signers with synthetic ledger digests, not an actual authority import.", "cases": cases, "device_possession": device_possession_fixture(), "native_recovery": native_recovery_fixture(), "mls_claim_handoff": handoff_fixture()}
+    return {"version": "2026-10-22.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material. MLS claim handoff hosts verify distinct real signers with synthetic ledger digests, not an actual authority import.", "cases": cases, "device_possession": device_possession_fixture(), "native_recovery": native_recovery_fixture(), "mls_claim_handoff": handoff_fixture()}
 
 
 def device_possession_fixture():
@@ -280,21 +280,21 @@ def native_verify(document, proof, public):
     Ed25519PublicKey.from_public_bytes(raw_key[2:]).verify(unbase58(proof["proofValue"][1:]), data)
 
 
-def native_recovery_fixture():
+def native_recovery_fixture(*, relocate=False, portable=True):
     """Construct a bounded native chain; public test seeds, no live resolver."""
     roots = [Ed25519PrivateKey.from_private_bytes(bytes([70 + i]) * 32) for i in range(5)]
     controls = [Ed25519PrivateKey.from_private_bytes(bytes([80 + i]) * 32) for i in range(3)]
     witness = Ed25519PrivateKey.from_private_bytes(bytes([90]) * 32)
     placeholder = "did:webvh:{SCID}:applet.example:actors:bot"
     document = lambda did, i: {"@context": ["https://www.w3.org/ns/did/v1"], "id": did, "verificationMethod": [{"id": did + f"#control-{i}", "controller": did, "type": "Multikey", "publicKeyMultibase": multikey(controls[i])}], "authentication": [did + f"#control-{i}"]}
-    first = {"versionId": "{SCID}", "versionTime": "2026-10-20T00:00:00Z", "parameters": {"method": "did:webvh:1.0", "scid": "{SCID}", "updateKeys": [multikey(roots[0])], "nextKeyHashes": [multihash(multikey(roots[1]).encode())], "witness": {"threshold": 1, "witnesses": [{"id": "did:key:" + multikey(witness)}]}}, "state": document(placeholder, 0)}
+    first = {"versionId": "{SCID}", "versionTime": "2026-10-20T00:00:00Z", "parameters": {"method": "did:webvh:1.0", "scid": "{SCID}", "portable": portable, "updateKeys": [multikey(roots[0])], "nextKeyHashes": [multihash(multikey(roots[1]).encode())], "witness": {"threshold": 1, "witnesses": [{"id": "did:key:" + multikey(witness)}]}}, "state": document(placeholder, 0)}
     scid = multihash(canonical(first))
     first = json.loads(json.dumps(first).replace("{SCID}", scid))
     did = placeholder.replace("{SCID}", scid)
     entries, witnesses = [], []
     previous = scid
     for i in range(4):
-        entry = first if i == 0 else {"versionId": previous, "versionTime": f"2026-10-20T00:0{i}:00Z", "parameters": {"updateKeys": [multikey(roots[i])], "nextKeyHashes": [multihash(multikey(roots[i + 1]).encode())]}, "state": document(did, min(i, 2))}
+        entry = first if i == 0 else {"versionId": previous, "versionTime": f"2026-10-20T00:0{i}:00Z", "parameters": {"updateKeys": [multikey(roots[i])], "nextKeyHashes": [multihash(multikey(roots[i + 1]).encode())]}, "state": document(did.replace(":applet.example:", ":hosting.example:") if relocate and i >= 2 else did, min(i, 2))}
         entry["versionId"] = f"{i+1}-" + multihash(canonical(entry))
         entry["proof"] = [native_sign(entry, roots[i], entry["versionTime"])]
         entries.append(entry)
@@ -317,6 +317,8 @@ def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
     if multihash(canonical(preliminary)) != scid or vector["scid"] != scid:
         raise ValueError("invalid SCID")
     previous, next_hashes, spent = scid, None, set()
+    portable = entries[0]["parameters"].get("portable", False)
+    previous_did = vector["did"]
     witness_id = entries[0]["parameters"]["witness"]["witnesses"][0]["id"]
     for i, entry in enumerate(entries):
         unsigned = {k: v for k, v in entry.items() if k != "proof"}
@@ -332,8 +334,14 @@ def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
         if any(multihash(k.encode()) == params["nextKeyHashes"][0] for k in spent | {key}):
             raise ValueError("spent next key")
         state = entry["state"]
-        if state["id"] != vector["did"] or f":{scid}:" not in state["id"]:
+        if not state["id"].startswith(f"did:webvh:{scid}:") or (i == 0 and state["id"] != vector["did"]):
             raise ValueError("DID/core/locator mismatch")
+        if state["id"] != previous_did and not portable:
+            raise ValueError("relocation lacks predecessor portability")
+        portable = params.get("portable", portable)
+        if portable is not True:
+            raise ValueError("managed DID must retain portability")
+        previous_did = state["id"]
         control = state["verificationMethod"][0]
         if control["controller"] != state["id"] or control["id"] not in state["authentication"] or control["publicKeyMultibase"] == key or multihash(control["publicKeyMultibase"].encode()) in params["nextKeyHashes"]:
             raise ValueError("control/update key confusion")
@@ -345,4 +353,4 @@ def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
             native_verify({"versionId": entry["versionId"]}, records[0]["proof"][0], witness_id.removeprefix("did:key:"))
         spent.add(key)
         previous, next_hashes = entry["versionId"], params["nextKeyHashes"]
-    return {"did": vector["did"], "method_history_head": digest(entries[-1]), "version_id": previous}
+    return {"did": previous_did, "method_history_head": digest(entries[-1]), "version_id": previous}

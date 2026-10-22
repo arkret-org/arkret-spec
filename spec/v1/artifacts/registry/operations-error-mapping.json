@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-10-22.1",
+  "version": "2026-10-22.3",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T05:34:11+08:00",
+  "generated_at": "2026-10-22T07:58:47+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -53,7 +53,7 @@
         "invalid_membership_transition",
         "applet_revoked"
       ],
-      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when a business delivery has no active effective install (pure historical creation confirmation uses its original accepted binding and current private recipient eligibility), or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when a business delivery has no active effective install (pure historical creation confirmation uses its original accepted binding and current private recipient eligibility), or when a managed Event actor lacks accepted creation/current-manager provenance or an ordinary Account lacks actual delegation. See zh/extensions/applet-integration.md §7.3.1.",
       "codes": []
     },
     {
@@ -1284,7 +1284,7 @@
         "snapshot_capacity_exceeded",
         "approval_carrier_unregistered"
       ],
-      "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts. Recomputing the plan re-runs the actor namespace pattern shape and exclusive conflict checks, so a package that previewed cleanly against a stale view still fails closed here with the same codes.",
+      "description": "Applet install commit recomputes the exact Service InstallPlan, binds approval to plan_digest, persists idempotency state, and atomically accepts registration/grant facts. It rechecks the signed Service registration CAS, publisher/controller proof, Realm/handle namespace syntax and exclusive conflicts. Stale previews fail closed with the registered errors and zero effects. Installation creates no actor, Profile or membership.",
       "codes": []
     },
     {
@@ -1319,7 +1319,7 @@
         "applet_namespace_conflict",
         "applet_registration_unauthorized"
       ],
-      "description": "Applet install preview validates controller proof, package schema, DID/key binding, actor namespace pattern shape, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan. An actor namespace pattern that is not did:webvh, pins the registration's own service SCID, carries a non-literal host segment, or has no segment after the host is applet_namespace_pattern_invalid; a wildcard-versus-wildcard exclusive collision with another applet_id's active claim is applet_namespace_conflict.",
+      "description": "Applet install preview validates publisher/controller proof, closed package schema, exact Service DID/key binding, Realm/handle namespace syntax and conflicts, signed registration CAS, requested capabilities and Realm/Circle Policy. Actor DID patterns are not registered and never establish ownership. Invalid remaining namespace syntax is applet_namespace_pattern_invalid; exclusive conflicts with another Applet are applet_namespace_conflict.",
       "codes": []
     },
     {

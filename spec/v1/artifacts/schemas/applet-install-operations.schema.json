@@ -120,6 +120,7 @@
       "required": [
         "install_id",
         "applet_id",
+        "service_id",
         "registration_event_ref",
         "registration_epoch",
         "capability_grant_refs",
@@ -141,6 +142,9 @@
         },
         "applet_id": {
           "$ref": "#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "registration_event_ref": {
           "$ref": "#/$defs/event_ref"
@@ -193,6 +197,7 @@
       "required": [
         "revoke_plan_digest",
         "effective_scope",
+        "service_id",
         "reason_code",
         "revoke_mode",
         "capability_revoke_events",
@@ -204,6 +209,9 @@
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -296,12 +304,16 @@
       "type": "object",
       "required": [
         "effective_scope",
+        "service_id",
         "reason_code",
         "revoke_mode"
       ],
       "properties": {
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -322,6 +334,7 @@
       "type": "object",
       "required": [
         "applet_id",
+        "service_id",
         "effective_scope",
         "registration_epoch",
         "reason_code",
@@ -333,6 +346,9 @@
       "properties": {
         "applet_id": {
           "$ref": "#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"

@@ -145,9 +145,16 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         for name, branch in branches.items():
             with self.subTest(name=name):
                 self.assertIn("source_stream_ref", branch["required"])
+                expected_stream = (
+                    {"$ref": "./realm-actor.schema.json#/$defs/control_scope"}
+                    if name.startswith("realm_actor_")
+                    else {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"}
+                )
+                if name == "applet_registration_result":
+                    expected_stream["properties"] = {"kind": {"const": "realm"}}
                 self.assertEqual(
                     branch["properties"]["source_stream_ref"],
-                    {"$ref": "./realm-actor.schema.json#/$defs/control_scope"} if name.startswith("realm_actor_") else {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"},
+                    expected_stream,
                 )
                 self.assertFalse(branch.get("additionalProperties", True))
         self.assertEqual(

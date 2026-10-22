@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T22:14:10+08:00",
+  "generated_at": "2026-10-22T07:36:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -238,8 +238,7 @@
         "active_applet_registration_exact",
         "realm_actor_creation_scope",
         "realm_actor_candidate_and_controller_proof",
-        "realm_actor_creation_atomic",
-        "ghost_actor_namespace_match"
+        "realm_actor_creation_atomic"
       ],
       "target_event_kinds": [
         "ak.realm.actor.create"

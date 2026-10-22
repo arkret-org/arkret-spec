@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10012,
+    "total_properties": 10026,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2316,
+      "optional": 2317,
       "optional_defaulted": 48,
-      "required": 7131,
-      "required_nullable": 311,
-      "tristate": 206
+      "required": 7142,
+      "required_nullable": 312,
+      "tristate": 207
     },
-    "tristate_occurrences": 206,
+    "tristate_occurrences": 207,
     "tristate_audit_targets": 164,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 152,
@@ -98,6 +98,7 @@
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
     "event-envelope.schema.json/allOf/138/then/properties/scope_ref",
     "event-envelope.schema.json/allOf/147/then/if/properties/payload",
+    "event-envelope.schema.json/allOf/154/then/properties/scope_ref",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
     "event-payload.schema.json/$defs/capability_grant_payload/properties/grant/allOf/0/then/properties/issuer_authority_refs",
     "event-payload.schema.json/$defs/circle_member_state_payload/properties/expected_membership",
@@ -715,7 +716,8 @@
       "shape": "#",
       "instance_path": "/scope_ref",
       "occurrences": [
-        "/allOf/138/then/properties/scope_ref"
+        "/allOf/138/then/properties/scope_ref",
+        "/allOf/154/then/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3286,6 +3288,7 @@
         "/$defs/outcome/properties/effective_scope": "required",
         "/$defs/outcome/properties/grant_events": "required",
         "/$defs/outcome/properties/registration": "required",
+        "/$defs/outcome/properties/service_id": "required",
         "/$defs/request/properties/effective_scope": "required",
         "/$defs/request/properties/grant_ids": "required"
       }
@@ -3299,7 +3302,8 @@
         "/$defs/bot_preview_outcome/properties/authoring_request/allOf/1/properties/purpose": "optional",
         "/$defs/bot_preview_request_body/properties/display_name": "optional",
         "/$defs/bot_preview_request_body/properties/effective_scope": "required",
-        "/$defs/bot_preview_request_body/properties/request_id": "required"
+        "/$defs/bot_preview_request_body/properties/request_id": "required",
+        "/$defs/bot_preview_request_body/properties/service_id": "required"
       }
     },
     "applet-configuration-operations.schema.json": {
@@ -3340,6 +3344,7 @@
         "/$defs/intent/properties/effective_scope": "required",
         "/$defs/intent/properties/request_id": "required",
         "/$defs/intent/properties/selection": "required",
+        "/$defs/intent/properties/service_id": "required",
         "/$defs/outcome/properties/admission_status": "required",
         "/$defs/outcome/properties/intent_digest": "required",
         "/$defs/outcome/properties/request_id": "required",
@@ -3574,6 +3579,7 @@
         "/$defs/applet_install_outcome/properties/registration_epoch": "required",
         "/$defs/applet_install_outcome/properties/registration_event_ref": "required",
         "/$defs/applet_install_outcome/properties/rejections": "required",
+        "/$defs/applet_install_outcome/properties/service_id": "required",
         "/$defs/applet_install_outcome/properties/widget_policy_ref": "required_nullable",
         "/$defs/applet_install_preview_request_body/properties/applet_package": "required",
         "/$defs/applet_install_preview_request_body/properties/authoring_request_basis": "required",
@@ -3605,11 +3611,13 @@
         "/$defs/applet_revoke_plan/properties/reason_code": "required",
         "/$defs/applet_revoke_plan/properties/registration_epoch": "required",
         "/$defs/applet_revoke_plan/properties/revoke_mode": "required",
+        "/$defs/applet_revoke_plan/properties/service_id": "required",
         "/$defs/applet_revoke_plan/properties/widget_token_refs": "required",
         "/$defs/applet_revoke_preview_outcome/properties/revoke_plan": "required",
         "/$defs/applet_revoke_preview_request_body/properties/effective_scope": "required",
         "/$defs/applet_revoke_preview_request_body/properties/reason_code": "required",
         "/$defs/applet_revoke_preview_request_body/properties/revoke_mode": "required",
+        "/$defs/applet_revoke_preview_request_body/properties/service_id": "required",
         "/$defs/applet_revoke_request_body/properties/capability_revoke_events": "required",
         "/$defs/applet_revoke_request_body/properties/capability_revoke_events/items/allOf/1/properties/event": "optional",
         "/$defs/applet_revoke_request_body/properties/capability_revoke_events/items/allOf/1/properties/event/allOf/1/properties/kind": "required",
@@ -3620,6 +3628,7 @@
         "/$defs/applet_revoke_request_body/properties/reason_code": "required",
         "/$defs/applet_revoke_request_body/properties/revoke_mode": "required",
         "/$defs/applet_revoke_request_body/properties/revoke_plan_digest": "required",
+        "/$defs/applet_revoke_request_body/properties/service_id": "required",
         "/$defs/applet_revoke_submitted_event_step/properties/effect_kind": "required",
         "/$defs/applet_revoke_submitted_event_step/properties/reason_code": "optional",
         "/$defs/applet_revoke_submitted_event_step/properties/status": "required",
@@ -3671,6 +3680,7 @@
         "/properties/registration_epoch": "required",
         "/properties/requested_scopes": "required",
         "/properties/schema": "required",
+        "/properties/service_id": "required",
         "/properties/warnings": "required",
         "/properties/widget_effect": "required"
       }
@@ -3680,9 +3690,6 @@
         "ak.schema.applet_package.v1"
       ],
       "properties": {
-        "/$defs/actor_namespace_entry/properties/exclusive": "required",
-        "/$defs/actor_namespace_entry/properties/pattern": "required",
-        "/$defs/applet_namespaces/properties/actors": "required",
         "/$defs/applet_namespaces/properties/handles": "required",
         "/$defs/applet_namespaces/properties/realms": "required",
         "/$defs/delegation_policy/properties/enabled": "required",
@@ -6232,6 +6239,9 @@
         "/allOf/153/if/properties/kind": "required",
         "/allOf/153/then/properties/actor_id": "optional",
         "/allOf/153/then/properties/actor_id/allOf/1/properties/kind": "optional",
+        "/allOf/154/if/properties/kind": "required",
+        "/allOf/154/then/properties/scope_ref": "tristate",
+        "/allOf/154/then/properties/scope_ref/properties/kind": "optional",
         "/allOf/16/if/properties/kind": "required",
         "/allOf/16/then/properties/payload": "optional",
         "/allOf/17/if/properties/kind": "required",
@@ -6580,6 +6590,7 @@
         "/$defs/applet_registration_payload/properties/claimed_profiles": "required",
         "/$defs/applet_registration_payload/properties/controller_principal_id": "required",
         "/$defs/applet_registration_payload/properties/created_at": "required",
+        "/$defs/applet_registration_payload/properties/expected_revision": "required_nullable",
         "/$defs/applet_registration_payload/properties/manifest": "required",
         "/$defs/applet_registration_payload/properties/manifest/properties/claimed_profiles": "required",
         "/$defs/applet_registration_payload/properties/manifest/properties/delegation_policy": "required",
@@ -9860,14 +9871,17 @@
         "/$defs/agent_target/oneOf/2/properties/agent_account_id": "required",
         "/$defs/agent_target/oneOf/2/properties/kind": "required",
         "/$defs/applet_target/oneOf/0/properties/kind": "required",
-        "/$defs/applet_target/oneOf/1/properties/actor_id": "required",
+        "/$defs/applet_target/oneOf/1/properties/applet_id": "required",
         "/$defs/applet_target/oneOf/1/properties/kind": "required",
-        "/$defs/applet_target/oneOf/2/properties/applet_id": "required",
-        "/$defs/applet_target/oneOf/2/properties/effective_scope": "required",
+        "/$defs/applet_target/oneOf/2/properties/actor_id": "required",
         "/$defs/applet_target/oneOf/2/properties/kind": "required",
-        "/$defs/applet_target/oneOf/3/properties/actor_id": "required",
-        "/$defs/applet_target/oneOf/3/properties/actor_id/allOf/1/properties/kind": "optional",
+        "/$defs/applet_target/oneOf/3/properties/applet_id": "required",
+        "/$defs/applet_target/oneOf/3/properties/effective_scope": "required",
         "/$defs/applet_target/oneOf/3/properties/kind": "required",
+        "/$defs/applet_target/oneOf/3/properties/service_id": "required",
+        "/$defs/applet_target/oneOf/4/properties/actor_id": "required",
+        "/$defs/applet_target/oneOf/4/properties/actor_id/allOf/1/properties/kind": "optional",
+        "/$defs/applet_target/oneOf/4/properties/kind": "required",
         "/$defs/management_review_requirement/properties/approver_actor_ids": "required",
         "/$defs/management_review_requirement/properties/max_age_seconds": "required",
         "/$defs/management_review_requirement/properties/threshold": "required",
@@ -12812,7 +12826,9 @@
         "/$defs/applet_registration_result/properties/selector": "required",
         "/$defs/applet_registration_result/properties/selector/properties/applet_id": "required",
         "/$defs/applet_registration_result/properties/selector/properties/kind": "required",
+        "/$defs/applet_registration_result/properties/selector/properties/service_id": "required",
         "/$defs/applet_registration_result/properties/source_stream_ref": "required",
+        "/$defs/applet_registration_result/properties/source_stream_ref/properties/kind": "required",
         "/$defs/applet_registration_result/properties/value": "required",
         "/$defs/calendar_metadata_context/properties/event_kind": "required",
         "/$defs/calendar_metadata_context/properties/payload_digest": "required",

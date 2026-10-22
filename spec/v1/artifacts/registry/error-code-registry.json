@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-22.1",
-  "generated_at": "2026-10-22T02:10:00+08:00",
+  "version": "2026-10-22.4",
+  "generated_at": "2026-10-22T07:50:48+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1901,7 +1901,7 @@
       "code": "applet_namespace_pattern_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "A namespaces.actors pattern in the submitted Applet package or derived registration violates the actor namespace pattern shape: it is not a did:webvh pattern, its SCID segment is neither '*' nor a non-empty SCID, it pins the registration's own service SCID in the SCID segment so it can never match a compliant Ghost, its host segment is not a literal equal to the host of the bare did the service_id currently resolves to, or no segment follows that host. Install preview and install commit both fail closed. See zh/extensions/applet-schema.md 2 and zh/extensions/applet-integration.md 4.1.",
+      "description": "A Realm/portal or handle namespace pattern violates the registered segment, wildcard or escaping grammar. Preview and commit fail closed. Actor DID namespaces are not supported. See zh/extensions/applet-schema.md section 2.",
       "type_uri": "https://arkret.org/problems/applet_namespace_pattern_invalid",
       "title": "Applet namespace pattern invalid",
       "status": "active"
@@ -2988,7 +2988,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Sub-reason for a delegated-handoff Event rejection when auth_data.executed_by is not within the applet_id registration's declared service / bot DID set or namespaces.actors pattern. Prevents a grant scoped to one applet from being exercised under an unrelated applet_id. See zh/extensions/applet-integration.md §11.",
+      "description": "Realm/portal or handle routing target does not match the applicable namespace. This is not an Actor identity or delegation check; managed Actor provenance failures use applet_registration_unauthorized or capability_denied.",
       "status": "active"
     },
     {

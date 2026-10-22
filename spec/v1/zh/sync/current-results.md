@@ -133,7 +133,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `agent_sidecar_exchange_controls`：以 `(sidecar_id, source_context_ref)` 选择 encrypted control
   assertion keyed set；`exchange_id` 只在认证密文明文内，禁止复制到 selector。获授权参与者解密后按
   `exchange_id`、`basis_event_ids` 与 `action` 折叠 coordinator / terminal 状态；
-- `applet_registration`：以 `applet_id` 选择 accepted 完整 registration snapshot；package proof、
+- `applet_registration`：在所属 Realm 内以 `applet_id, service_id` 选择 accepted 完整 registration snapshot；安装管理员原 exact read 可取同 selector 的 revision／never_written，仍要求 ak.realm.admin；新增 Service 不覆盖其它 Service，registration Event 与 source_stream_ref 固定为所属 Realm stream；每个新 accepted Event 更新 revision，同安全 epoch 连续段保留授权实例起点，exact 原 Event 重试不新增 revision。registry 的 typed_pair 顺序固定为 AppletId、Service DidCoreId；内部可逆表示为 `applet_registration:<applet_id>:<service_id>`，先解析固定 UUID AppletId，再将余部作为完整 did_core（不得按冒号随意截断其 core），两个成员均按各自类型校验；它不是新增 wire ID、权限或通用 selector。package proof、
   `registration_epoch`、namespace 与 installer authority 全部在置换前验证；
 - `key_backup_active_series`：以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
   后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；

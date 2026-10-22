@@ -28,11 +28,11 @@ AccountId 仍永久绑定 `principal_id, station_id`；RealmActorId 永久绑定
 控制方法 **MUST** 为 DID Document 声明、且与 active updateKeys／nextKeyHashes 分离的方法；原生 update key 只能签 DID 日志，不能签本合同控制 Event、Device 或业务。
 校验 `project(initial_resolution.did) == actor_id.realm_actor_id.principal_id`，并保留完整原 DID、
 方法证据和原始签名。不得从 core 反拼 DID，不得以 Service 声明、namespace 命中或自带公钥验签替代身份权威。
-Applet 可托管 DID 日志并保管主体控制密钥、Device 私钥与私有 MLS 状态；治理 Station 只管理授权与公开验证材料。
+Applet **MUST** 安排 DID 文档与完整原生日志的托管，并保管主体控制密钥、Device 私钥与私有 MLS 状态；可使用公共运行时、独立托管组件或 Station 的托管设施，但不要求成为 Station。治理 Station 管理授权、accepted 控制状态与公开验证材料，不强制承担原始 HTTP 托管。受管 WebVH 的 inception **MUST** 设置 portable=true，后继 **MUST** 保持该有效能力；这只保障 Applet 的合法托管迁址，不是 Realm 治理交接前置。
 治理方或管理员有权暂停主体，不因此取得主体私钥或代签权。
 
-Ghost 的 SCID **MUST** 独立于 Service 和 controller；创建时完整 DID 的 host 与注册 Service 的
-已验证 bare DID host 相同，host 后至少有一个路径分段，并匹配登记的 actors namespace。
+Bot／Ghost 的 SCID **MUST** 独立于 Service 和 controller；托管 host/path 与管理 Service 的地址独立，
+不要求同域、额外路径分段或 actors namespace 匹配，不产生受管 DID 地址空间的排他占用。原生 URL、安全网络目标、完整连续日志、持钥证明与创建授权仍全部验证。
 Bot／Ghost 的 AppletId、初始角色和创建来源不可改；当前管理 Service 是独立状态。
 同 core 合法密钥／定位更新保持身份；换 core 创建新主体。退役身份保留占用，不得重新创建复活。
 
@@ -92,7 +92,7 @@ governance status 与 recovery.set 不命中例外。recovery.begin／control.re
 
 创建保留 `ak.applet.bot.provision`／`ak.applet.ghost.provision`，按 candidate.creation_scope 验权。
 创建许可与安装是不同事实；安装不会自动创建主体、Device、成员、Profile、grant child 或 MLS 成员。
-持续自动 Ghost 许可可在明确 namespace、scope、配额、过期与当前安装约束下多次创建，
+持续自动 Ghost 许可可在明确 external protocol／instance、scope、配额、过期与当前 Service 安装约束下多次创建，
 每次仍核真实许可但不重复要求管理员交互；Policy 要求逐候选审批时才进入对应审批。
 管理员主动创建 Bot 已通过真实管理授权与适用审批时，不再伪造一轮 Applet 向管理员的同意申请。
 批准必须绑定精确 candidate／Service Event，不批准一个未确定主体身份的占位请求。
@@ -243,12 +243,19 @@ management_authorization_ref 是治理方授予该新 Service、该完整 actor 
 一次接受原子换 manager、最终原生 resolution 与 generation，旧 manager 业务链和旧 Devices 失效。新 Service 不继承旧 parent／child、
 安装 epoch 或 Device；独立取得安装／grant、显式 owner resume、授权新 Device 后才可业务使用。
 governance gate 不受 owner resume 影响。中断保持 paused，以 exact 结果续跑，不自动回滚旧 key／manager。
-Ghost 初始 host 检查保留历史事实；转交要求新 registration 显式接纳已有完整 DID namespace 及原生连续性，
-不强迫 DID 改成新 Service host。
+新旧 Service 的登记与 scope 安装 **MUST** 并存；只切换完整目标 actor，不追加共享 DID 接管名单，不改变其它主体的登记、parent、manager、恢复许可或 Device。新 Service 不得因此管理同 Applet 的全部主体；原 Service 即使已无主体也不自动卸载。原 AppletId 与已验证 publisher/controller 来源不变，禁止跨 Applet 转交。
 
 转交无需旧 Service 的普通业务签名，但 **MUST** 满足§10.6的原生更新权交接、主体有效新控制授权与原治理许可。只有日常 control key 或管理员许可不足以转交 DID；无合法原生材料不得接管同身份。
 协议不转移私钥，也不能证明部署人员没有复制新 key；runtime 必须实际隔离新 key。
 普通 Service 同 core 的端点／key 更新继续原 registration／DID 规则，不伪装为 manager.change。
+
+本节只覆盖同一 Applet、全部数据与密钥完整保留的 Service 变更。保留历史控制/native 材料、Device 与 MLS 私态、原签 outbox、cursor/ACK、tuple、未决意图和固定结果，不表示旧 key、旧 Device 或旧 grant 永久有效。不同 Service 仍须执行上述隔离新密钥、原生更新权转交与 generation 递增；owner paused 时先依原合同终结 pending。旧共享 parent 继续服务其它主体，新 Service 已迁入主体不受下一次转交影响。
+
+同一 ServiceId 只换机器／进程时，manager 与 generation 不因部署而变；旧实例 **MUST** 停止写入同一 custody journal、native next key 与 MLS ratchet 后再启新实例，高可用亦保持单一写序。数据副本或摘要相等不证明旧实例已停，也不授予治理权。同 Service 登记的安全 epoch 若改变，仍按其实际依赖处理授权失效。
+
+DID 地址优先独立稳定。确需改变 host/path 时，按 identity-did 的同 SCID 原生迁址验证有效前驱 portable、直接前驱、预承诺更新 key、完整 history 与适用 witness，并经本合同 control/manager 接纳新 resolution。仅 Core 相同不足以接纳；历史 anchor 仍与其历史文档的完整 DID／原签字节严格匹配，不改写历史 VM。新定位从已验证 accepted resolution 得出，不从 Core 猜 URL，不只信 HTTP redirect；接纳新地址与完整证据后不依赖旧 host 永久在线。仅持旧 URL 的外部解析器在旧域名失联后未必能发现新址，本合同不新增全球 Core 查询服务。发布日志不可回滚，不重签 sibling，不以业务服务或治理方改变自动触发迁址。
+
+Realm 治理交接沿 §9 完整移交所有 Service 登记、scope grants、管理 current、历史证据、pending/outcome、去重与聚合 quota；不搬 Applet 私钥、MLS 私态或 DID 原始托管，不要求各主体迁址或全部 Applet 在线签名。manager.change 与 handoff 以冻结 cut 和前态 CAS 排序，只有当前治理方接纳。普通 Account／个人 Agent 与 PCR 规则不变；丢失密钥恢复仍走独立恢复合同，本节不提供接管、退役复活或映射替换。
 
 ## 8. Exact 控制材料与历史验签
 

@@ -59,12 +59,16 @@
       "type": "object",
       "required": [
         "request_id",
+        "service_id",
         "effective_scope",
         "selection"
       ],
       "properties": {
         "request_id": {
           "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "effective_scope": {
           "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"

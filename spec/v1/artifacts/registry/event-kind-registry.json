@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-22.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T02:10:00+08:00",
+  "generated_at": "2026-10-22T07:58:47+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -24,7 +24,7 @@
     "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
     "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_revision CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
     "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md.",
-    "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, namespace and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
+    "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, immutable Applet provenance and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
     "realm_actor_control": "Current complete Realm actor controller method, exact private stream and immutable Applet binding. No Device or Service substitution, executed_by or envelope authorization_ref. Kind-specific CAS, status, installation and management permission checks remain required. Governance status uses its separate capability branch.",
     "realm_actor_recovery": "Current manager Service, complete target Realm actor, enabled accepted recovery policy, exact manager/policy/control/status/generation CAS, native pre-rotation and independent new control PoP. Only recovery.begin/control.reset in realm_control; no business grant, Device, Account or generic Service substitution. Prepare fences old devices; finish checks published exact native evidence. No per-reset human approval."
   },
@@ -1133,8 +1133,17 @@
         {
           "result_family": "applet_registration",
           "result_selector": {
-            "kind": "id:applet",
-            "field": "payload.applet_id"
+            "kind": "typed_pair",
+            "components": [
+              {
+                "kind": "id:applet",
+                "field": "payload.applet_id"
+              },
+              {
+                "kind": "id:did_core",
+                "field": "payload.service_id"
+              }
+            ]
           },
           "result_projection": {
             "kind": "set",
@@ -1143,7 +1152,7 @@
             }
           },
           "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
-          "notes": "extensions/applet-schema.md section 1. AppletId selects the accepted complete registration snapshot. Installer authority, package proof, registration_epoch evidence, service/controller identities and namespace conflicts are checked before replacement; a failed guard writes nothing."
+          "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_revision is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream, including Circle installation intents. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
         }
       ]
     },

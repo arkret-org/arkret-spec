@@ -1452,6 +1452,7 @@
           "ak.schema.applet.v1",
           "ak.schema.applet_authority_material.v1",
           "ak.schema.applet_bot_authoring_request_basis.v1",
+          "ak.schema.applet_bot_operations.v1",
           "ak.schema.applet_configuration_operations.v1",
           "ak.schema.applet_device_authentication.v1",
           "ak.schema.applet_edge_operations.v1",

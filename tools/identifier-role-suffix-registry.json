@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-22.1",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -683,14 +683,6 @@
       "reason": "Existing Sidecar authority-cut field denotes the accepted stream-head evidence as one semantic value, serialized as an ordered EventId array; its established signed/read wire name remains authority_stream_head."
     },
     {
-      "file": "applet-package.schema.json",
-      "pointer": "/$defs/actor_namespace_entry/properties/pattern",
-      "reason": "Wildcard namespace pattern over actor did:webvh DIDs, not a DID identifier. The SCID segment is the wildcard because every Ghost carries its own validated SCID, so the value never denotes one resolvable DID and cannot take a _did role suffix.",
-      "terminal_categories": [
-        "did"
-      ]
-    },
-    {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
       "terminal_categories": [
@@ -882,5 +874,6 @@
       ],
       "reason": "Exact accepted realm delegation byline projected without renaming the signed payload field."
     }
-  ]
+  ],
+  "generated_at": "2026-10-22T07:50:48+08:00"
 }

@@ -2977,8 +2977,9 @@ def _check_result_selector(
 def _check_typed_pair_components(lint: Lint, ref: str, selector: Any) -> None:
     """A `typed_pair` subject is a reversible two-component typed-ID encoding.
 
-    `zh/models/realm-and-space.md` section 3.6 is the only paragraph that pins a
-    family to this kind, and it pins the reason too: the wire form
+    `zh/models/realm-and-space.md` section 3.6 pins strand position;
+    `zh/sync/current-results.md` section 2 pins Applet/Service registration.
+    Each family fixes two typed components. The strand form
     `strand_position:<board_space_id>:<strand_id>` MUST stay invertible, so the
     SHA-256 subject of `tuple`/`composite` is explicitly not applicable and a
     reader MUST validate BOTH typed-ID components rather than slicing the tail.
