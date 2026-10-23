@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.1",
+  "version": "2026-10-23.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-23T09:31:20+08:00",
+  "generated_at": "2026-10-23T10:19:20+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -128,39 +128,6 @@
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_authentication_proof"
-    },
-    {
-      "context": "ak.account_registration_control_proof.v1",
-      "object_family": "account_registration_control_proof",
-      "binding_fields": [
-        "proof_kind",
-        "challenge_id",
-        "challenge",
-        "purpose",
-        "request_canonical_digest",
-        "account_subject",
-        "principal_id",
-        "did",
-        "did_version_id",
-        "log_head_digest",
-        "control_key_digest",
-        "dpop_jkt",
-        "audience_id",
-        "origin",
-        "trust_domain",
-        "issued_at",
-        "expires_at",
-        "verification_method",
-        "witness_evidence?"
-      ],
-      "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof",
-      "injected_fields": [
-        {
-          "field": "log_head_digest",
-          "source": "Method-native digest derived from the verified entry pinned by did_version_id; not an independently supplied wire field. See identity/account-lifecycle.md."
-        }
-      ]
     },
     {
       "context": "ak.accountability_grant_proof.v1",
@@ -1870,6 +1837,41 @@
       "defined_in": "zh/extensions/realm-actors.md",
       "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/4",
       "unsigned_projection_schema_ref": "schemas/realm-actor.schema.json#/$defs/recovery_acceptance_transcript"
+    },
+    {
+      "object_family": "account_registration_control_proof",
+      "binding_fields": [
+        "proof_kind",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "request_canonical_digest",
+        "account_subject",
+        "principal_id",
+        "did",
+        "did_version_id",
+        "control_key_digest",
+        "registration_anchor_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience_id",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_method",
+        "signature_algorithm"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof",
+      "domain": "ak.account_registration_control_proof.v1",
+      "primitive": "detached_signature"
     }
   ]
 }

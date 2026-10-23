@@ -9,12 +9,15 @@
     },
     {
       "$ref": "#/$defs/registration_did_evidence"
+    },
+    {
+      "$ref": "#/$defs/published_registration_did_evidence"
     }
   ],
   "$defs": {
     "registration_did_evidence_draft": {
       "type": "object",
-      "description": "Client-authored historical DID evidence before Account Authority acceptance. control_proof signs canonical_json({context:'ak.registration_did_evidence_control_proof.v1',principal_id,did,adapter_version,method_history_head,version_id,control_key_digest,method_evidence_digest,verification_method,created_at}); method_evidence_digest is sha256 over RFC 8785 JCS of method_evidence. accepted_at is deliberately absent: the Account Authority adds it only after the exact did_operation has been accepted by the registry.",
+      "description": "Client-authored historical DID evidence before Account Authority acceptance. control_proof signs canonical_json({context:'ak.registration_did_evidence_control_proof.v1',principal_id,did,adapter_version,method_history_head,version_id,control_key_digest,method_evidence_digest,verification_method,created_at}); method_evidence_digest is sha256 over RFC 8785 JCS of method_evidence. accepted_at is deliberately absent: the Account Authority adds it only after the exact did_operation has been accepted by the registry. For published_identity the same draft binds evidence re-derived from the complete terminal anchor, including every applicable witness proof; its completion adds validated_at instead of accepted_at. Signing and verification cannot be restricted to seq=1 or an empty witness set.",
       "required": [
         "principal_id",
         "did",
@@ -106,6 +109,67 @@
         }
       },
       "additionalProperties": false
+    },
+    "published_registration_did_evidence": {
+      "type": "object",
+      "description": "Historical evidence for complete published-DID registration. validated_at is the designated fact owner durable first acceptance time for this exact current-validated registration evidence, retained by the Account Authority through an authenticated exact result. It is not DID publication time, versionTime or a registry receipt. No accepted_at member is permitted. Replay preserves validated_at and the original draft signature. Full evidence digest is committed by PCR genesis acceptance.",
+      "required": [
+        "principal_id",
+        "did",
+        "adapter_version",
+        "validated_at",
+        "method_history_head",
+        "version_id",
+        "control_key_digest",
+        "method_evidence",
+        "control_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/webvh_did"
+        },
+        "adapter_version": {
+          "const": "did:webvh:1.0"
+        },
+        "validated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "method_history_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_id": {
+          "type": "string",
+          "pattern": "^(?!ak:)",
+          "minLength": 1
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "method_evidence": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/evidence_receipt"
+        },
+        "control_proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature",
+          "description": "Registration control signature whose transcript digest is committed by the pcr_genesis_unit receipt."
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_registration_did_evidence": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/registration_did_evidence"
+        },
+        {
+          "$ref": "#/$defs/published_registration_did_evidence"
+        }
+      ],
+      "description": "Closed complete historical registration evidence, discriminated by accepted_at for new registry publication or validated_at for existing-DID validation. Exactly one branch, never caller-authored timing."
     }
   }
 }

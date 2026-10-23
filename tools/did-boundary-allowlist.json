@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "categories": [
     "registration_or_binding",
     "resolution_or_did_document",
@@ -41,6 +41,10 @@
     },
     {
       "pointer": "account-operations.schema.json#/$defs/identity_creation_registration/properties/did/$ref",
+      "category": "registration_or_binding"
+    },
+    {
+      "pointer": "account-operations.schema.json#/$defs/published_identity_registration/properties/did/$ref",
       "category": "registration_or_binding"
     },
     {
@@ -138,6 +142,10 @@
     {
       "pointer": "realm-genesis.schema.json#/allOf/2/then/properties/initial_resolution/properties/did/$ref",
       "category": "resolution_or_did_document"
+    },
+    {
+      "pointer": "registration-did-evidence.schema.json#/$defs/published_registration_did_evidence/properties/did/$ref",
+      "category": "registration_or_binding"
     },
     {
       "pointer": "registration-did-evidence.schema.json#/$defs/registration_did_evidence/properties/did/$ref",

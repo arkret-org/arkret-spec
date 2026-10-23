@@ -387,7 +387,7 @@
     },
     "account_registration_control_proof": {
       "type": "object",
-      "description": "Closed control proof for binding an already-published did to principal_id through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control. The Account Authority resolves did at high freshness, requires project(did)=principal_id, and selects the current active update key of the entry pinned by did_version_id from verified method history rather than from request-supplied key material. The signature covers every field except signature as canonical JSON with domain separator ak.account_registration_control_proof.v1 and MUST replay the durable challenge issued by ak.gate.account.command.issue_did_binding_challenge.v1.",
+      "description": "Fresh current-control authorization for complete published-DID account registration. It is valid only with published_identity. The request_canonical_digest binds that complete branch, including its lease/fence, full anchor, evidence draft, ordered genesis and initial session. The signature is UTF8(ak.account_registration_control_proof.v1 followed by LF) followed by RFC8785_JCS of this complete object with only signature omitted. No method-derived field is injected into the signed object. The verified terminal active update key signs; the verifier independently checks high-tier currentness at challenge and first registration admission. The explicit anchor/genesis/session/lease fields are reconstructed from the frozen published_identity request and separately compared at Station PCR admission; request_canonical_digest does not substitute for these bindings.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -399,6 +399,14 @@
         "did",
         "did_version_id",
         "control_key_digest",
+        "registration_anchor_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
+        "identity_creation_lease_id",
+        "lease_fence",
         "dpop_jkt",
         "audience_id",
         "origin",
@@ -406,6 +414,7 @@
         "issued_at",
         "expires_at",
         "verification_method",
+        "signature_algorithm",
         "signature"
       ],
       "properties": {
@@ -453,6 +462,36 @@
           "$ref": "#/$defs/sha256_digest",
           "description": "SHA-256 over the canonical multikey bytes of the verified current active update key."
         },
+        "registration_anchor_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over RFC 8785 JCS of the complete principal_registration_anchor. The verifier recomputes it from the submitted anchor."
+        },
+        "pcr_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Principal Control Realm id obtained only by retyping the exact root-signed ak.realm.create event_id; it is not derived from principal_id and MUST equal the pcr_genesis_unit create Event's retyped id."
+        },
+        "realm_create_payload_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Canonical digest of the ak.realm.create payload only. Event ids and envelope digests MUST NOT be added as separate proof members; the existing request_canonical_digest still commits the complete closed request."
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Canonical digest of the founding ak.device.authorize payload only. Event ids and envelope digests MUST NOT be added as separate proof members; the existing request_canonical_digest still commits the complete closed request."
+        },
+        "initial_session_request_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 digest of RFC 8785 JCS InitialSessionGrantIntent. The embedded session_public_key MUST thumbprint to dpop_jkt; this binds the first Standard grant intent without turning it into a separate root-signed object."
+        },
+        "genesis_unit_kinds": {
+          "$ref": "#/$defs/pcr_genesis_unit_kinds"
+        },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt",
           "description": "DPoP holder thumbprint echoed by the durable challenge."
@@ -475,18 +514,19 @@
         },
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "Current active update-key DID URL under did. The verifier parses its bare DID component with the registered adapter and requires the projected did_core_id to equal principal_id; it never appends a fragment to principal_id."
+          "description": "Exact control-key verification method derived from the validated terminal anchor entry, including a method-native did:key controller method when applicable. It is not a device key or a DID Document authentication/assertion method."
         },
-        "witness_evidence": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Method-native witness / freshness evidence digest for the external DID, required by deployments that do not host the DID themselves."
+        "signature_algorithm": {
+          "const": "Ed25519"
         },
         "signature": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
         }
       },
       "additionalProperties": false,
-      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected.",
+      "x-arkret-signature-domain": "ak.account_registration_control_proof.v1"
     },
     "account_handoff_authentication_proof": {
       "type": "object",
@@ -567,12 +607,21 @@
       "type": "object",
       "description": "Server-persisted identity-creation checkpoint, readable only by the authenticated current holder of the owning service account's identity-creation lease. It is NOT public: an unfinished reservation would otherwise leak that a specific account is mid-registration, and abandoning it would leave a permanent public trace. Once registration completes the public artifact is the published method-native anchor itself, so this checkpoint never needs to become public. It contains the exact unpublished or already-published registration anchor, never recovery words, seed material, private keys, or an encrypted root export.",
       "required": [
+        "binding_kind",
         "principal_id",
         "did",
         "registration_anchor_digest",
         "principal_registration_anchor"
       ],
       "properties": {
+        "binding_kind": {
+          "type": "string",
+          "enum": [
+            "identity_creation",
+            "published_did"
+          ],
+          "description": "Frozen reservation purpose. It cannot be switched by renewal, takeover, replay or abandonment."
+        },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
@@ -611,11 +660,12 @@
             "active",
             "reserved",
             "did_published",
+            "did_validated",
             "pcr_accepted",
             "account_bound",
             "completed"
           ],
-          "description": "Account-Authority-authored durable identity-creation saga state. Clients MUST derive their onboarding phase from this value and MUST NOT infer a phase from local checkpoint presence. reserved_identity MUST be absent only in active and present in every later state."
+          "description": "Account-Authority-authored durable identity-creation saga state. Clients MUST derive their onboarding phase from this value and MUST NOT infer a phase from local checkpoint presence. reserved_identity MUST be absent only in active and present in every later state. identity_creation uses did_published; published_did uses did_validated, meaning durable independent validation, never registry acceptance. These alternatives cannot be converted into one another."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -1128,6 +1178,8 @@
         "did",
         "did_version_id",
         "control_key_digest",
+        "identity_creation_lease_id",
+        "lease_fence",
         "operation_status",
         "registration_anchor_digest",
         "issued_at",
@@ -1143,7 +1195,7 @@
             "published_did",
             "identity_creation"
           ],
-          "description": "Discriminates the already-published DID proof branch from account-first identity creation."
+          "description": "Frozen registration branch: new DID publication or complete already-published DID account initialization."
         },
         "account_authority_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1175,38 +1227,40 @@
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id",
-          "description": "Present only when binding_kind=identity_creation. The published_did branch creates no identity-creation lease."
+          "description": "Required in both registration branches; identifies the account initialization lease/fence."
         },
         "lease_fence": {
           "type": "integer",
           "minimum": 1,
-          "description": "Present only when binding_kind=identity_creation."
+          "description": "Required in both registration branches; identifies the account initialization lease/fence."
         },
         "operation_status": {
           "type": "string",
           "enum": [
             "accepted",
             "duplicate"
-          ]
+          ],
+          "description": "identity_creation preserves the exact registry accepted/duplicate status. published_did uses accepted for the first durable validation acceptance and replays that same value; it never claims publication or invents a registry duplicate."
         },
         "registration_anchor_digest": {
           "$ref": "#/$defs/sha256_digest",
-          "description": "SHA-256 of RFC 8785 JCS of the complete frozen typed principal_registration_anchor, including the exact method-native material of the selected branch. For binding_kind=identity_creation it is the submitted anchor; for published_did the Account Authority freezes the anchor it reconstructed from the verified method history at did_version_id. The verifier MUST recompute it from that typed object; serializing a raw JSON transport with different optional-member treatment is not equivalent."
+          "description": "SHA-256 over RFC8785 JCS of the exact complete typed anchor submitted and independently verified for the selected branch. The authenticated result must match the client frozen anchor."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, registration_anchor_digest, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
+          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, registration_anchor_digest, and the account initialization lease/fence in both branches. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
         }
       },
+      "additionalProperties": false,
       "allOf": [
         {
           "if": {
             "properties": {
               "binding_kind": {
-                "const": "identity_creation"
+                "const": "published_did"
               }
             },
             "required": [
@@ -1214,30 +1268,14 @@
             ]
           },
           "then": {
-            "required": [
-              "identity_creation_lease_id",
-              "lease_fence"
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "identity_creation_lease_id"
-                  ]
-                },
-                {
-                  "required": [
-                    "lease_fence"
-                  ]
-                }
-              ]
+            "properties": {
+              "operation_status": {
+                "const": "accepted"
+              }
             }
           }
         }
-      ],
-      "additionalProperties": false
+      ]
     },
     "account_registration_verification_policy": {
       "type": "object",
@@ -1454,7 +1492,7 @@
     },
     "account_register_request_body": {
       "type": "object",
-      "description": "Canonical account binding request. Exactly one branch is required: proof binds an already-published did, while identity_creation carries the account-first DID operation and PCR genesis unit. In either branch every repeated principal_id and did in the selected proof/creation objects and genesis initial_resolution MUST equal the outer values byte-for-byte, and the Account Authority MUST independently require project(did)=principal_id before any write.",
+      "description": "Complete Human account initialization. Exactly one closed branch: identity_creation, or proof together with published_identity. A proof alone is invalid. Both branches establish one account-local PCR, its founding device and initial Standard session under the same live account/holder/lease/fence. Repeated DID/principal coordinates must agree and project(did)=principal_id. Top-level device_id is forbidden; the device is bound inside the genesis descriptor and initial_session.",
       "required": [
         "principal_id",
         "did"
@@ -1470,11 +1508,11 @@
         "display_name": {
           "$ref": "#/$defs/display_name"
         },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
         "proof": {
           "$ref": "#/$defs/account_registration_control_proof"
+        },
+        "published_identity": {
+          "$ref": "#/$defs/published_identity_registration"
         },
         "identity_creation": {
           "$ref": "#/$defs/identity_creation_registration"
@@ -1486,7 +1524,8 @@
       "oneOf": [
         {
           "required": [
-            "proof"
+            "proof",
+            "published_identity"
           ],
           "not": {
             "required": [
@@ -1499,8 +1538,17 @@
             "identity_creation"
           ],
           "not": {
-            "required": [
-              "proof"
+            "anyOf": [
+              {
+                "required": [
+                  "proof"
+                ]
+              },
+              {
+                "required": [
+                  "published_identity"
+                ]
+              }
             ]
           }
         }
@@ -1513,7 +1561,9 @@
         "principal_id",
         "state",
         "devices",
-        "binding_receipt"
+        "binding_receipt",
+        "session_grant_outcome",
+        "pcr_genesis_commits"
       ],
       "properties": {
         "principal_id": {
@@ -1548,7 +1598,7 @@
         },
         "pcr_genesis_commits": {
           "type": "array",
-          "description": "Optional authorized disclosure of the two PCR genesis RealmCommit objects in registered unit order.",
+          "description": "Required two accepted genesis RealmCommits in registered order in either successful registration branch. No binding-only success exists.",
           "minItems": 2,
           "maxItems": 2,
           "prefixItems": [
@@ -2095,30 +2145,58 @@
     },
     "did_binding_challenge_request_body": {
       "type": "object",
-      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED did to principal_id. Unlike identity_binding_challenge_request_body this carries no unpublished principal_registration_anchor and no PCR genesis digests: the DID already exists, and the Account Authority resolves did at high freshness, requires project(did)=principal_id, and never attempts to resolve did_core_id directly.",
       "required": [
         "request_id",
+        "identity_creation_lease_id",
+        "lease_fence",
         "principal_id",
-        "did"
+        "did",
+        "principal_registration_anchor",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest"
       ],
       "properties": {
         "request_id": {
           "$ref": "#/$defs/request_id"
         },
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
         "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id to bind. It is not directly resolvable."
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did": {
           "$ref": "#/$defs/did",
-          "description": "Already-published DID. The Account Authority MUST resolve it at the high freshness tier, require project(did)=principal_id, and MUST NOT accept caller-supplied DID history."
+          "description": "Complete standard DID whose registered method adapter MUST project to the principal_id the Account Authority derives from principal_registration_anchor."
+        },
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
+        },
+        "pcr_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "realm_create_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "founding_authorize_payload_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "initial_session_request_digest": {
+          "$ref": "#/$defs/sha256_digest"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Freeze complete published-DID account initialization intent under the live lease/fence. The caller supplies the full anchor as primary material; the designated fact owner independently resolves the DID at high tier and requires the current verified head/key and exact anchor to agree. Caller history is never trusted as a resolution result. No registry write or PCR effect occurs here."
     },
     "did_binding_challenge_outcome": {
       "type": "object",
-      "description": "Persisted, single-use server challenge for binding an already-published did to principal_id. The client copies every field from challenge_id through expires_at into account_registration_control_proof, adds proof_kind, request_canonical_digest and verification_method, and signs the closed proof with the current active update key of the entry pinned by did_version_id. The client MUST byte-compare principal_id, did and every other echoed field against what it expects before signing and MUST fail closed on any mismatch. request_id is idempotency metadata and is not part of the signed transcript.",
+      "description": "Durable single-use published-DID challenge. Existing echoed identity/key/holder fields are compared with the frozen request and authenticated account context. The record additionally retains the entire request, lease/fence, anchor and PCR/genesis/initial-session digests. Register requires proof plus published_identity, rechecks currentness before first acceptance and freezes the exact outcome. No witness_evidence string substitutes for independently verified method-native witness/freshness.",
       "required": [
         "request_id",
         "challenge_id",
@@ -2174,10 +2252,6 @@
         },
         "control_key_digest": {
           "$ref": "#/$defs/sha256_digest"
-        },
-        "witness_evidence": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Method-native witness / freshness evidence digest resolved for this DID. Deployments that do not host the DID MUST require it: same-origin trust between registry and Station does not extend to third-party DIDs."
         },
         "dpop_jkt": {
           "$ref": "#/$defs/dpop_jkt"
@@ -2242,10 +2316,11 @@
     },
     "identity_abandonment_outcome": {
       "type": "object",
-      "description": "Recorded terminal outcome of an explicit abandonment. One transaction recorded the orphan-anchor tombstone / audit reservation, suppressed the reserved_identity_creation checkpoint on every holder-readable surface and released the identity-creation lease. There is exactly one success terminal; every other terminal is an error reply. Whether the orphan anchor is annotated on a discovery surface, when its handle and namespace are released and how long the reservation is retained are deployment governance and are not carried here.",
+      "description": "Exact terminal outcome of explicitly abandoning the frozen local registration reservation before any PCR acceptance. identity_creation retains the orphan-anchor rule. published_did cancels only this account initialization attempt and tombstones its request/challenge: it never deactivates, globally tombstones or makes the external DID unusable. Both suppress the old holder-readable checkpoint and release the lease atomically; unresolved PCR dispatch must be reconciled first.",
       "required": [
         "request_id",
         "account_subject",
+        "binding_kind",
         "principal_id",
         "did_version_id",
         "abandoned_at"
@@ -2257,9 +2332,16 @@
         "account_subject": {
           "$ref": "#/$defs/account_subject"
         },
+        "binding_kind": {
+          "type": "string",
+          "enum": [
+            "identity_creation",
+            "published_did"
+          ]
+        },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "The abandoned provisional principal. Its published entry 0 is now a permanently unusable orphan anchor: it MUST NOT be reused and continuity MUST NOT be claimed over it."
+          "description": "Principal of the abandoned local reservation. Only binding_kind=identity_creation has provisional orphan-anchor consequences; published_did retains its independent DID and may start a fresh authorized registration."
         },
         "did_version_id": {
           "allOf": [
@@ -2317,6 +2399,45 @@
         }
       },
       "additionalProperties": false
+    },
+    "published_identity_registration": {
+      "type": "object",
+      "required": [
+        "identity_creation_lease_id",
+        "lease_fence",
+        "did",
+        "principal_registration_anchor",
+        "registration_did_evidence_draft",
+        "pcr_genesis_unit",
+        "initial_session"
+      ],
+      "properties": {
+        "identity_creation_lease_id": {
+          "$ref": "#/$defs/opaque_registration_id"
+        },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
+        },
+        "registration_did_evidence_draft": {
+          "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft",
+          "description": "Dedicated client registration-evidence control signature over the full terminal-derived method evidence. It is distinct from the outer account_registration_control_proof, is not primary method material, and must bind the same verified anchor coordinates and applicable witness evidence."
+        },
+        "pcr_genesis_unit": {
+          "$ref": "./principal-operations.schema.json#/$defs/pcr_genesis_unit"
+        },
+        "initial_session": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete already-published Human DID account initialization material. Submitted together with the outer proof, never alone. The live lease/fence reserves this Station account initialization, not publication of another DID. The exact anchor, evidence draft, ordered PCR genesis and initial session are all bound by proof.request_canonical_digest. No DID operation is published, replayed to a registry or hosted by this branch."
     }
   }
 }

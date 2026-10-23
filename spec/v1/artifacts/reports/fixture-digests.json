@@ -511,6 +511,11 @@
       "version": "2026-09-19"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/published-did-registration-fixture.json",
+      "sha256": "be1ed0fe7a2800a4d5cb5568a9b47332d029f120874af454a4a659d7bd17a030",
+      "version": 1
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
       "sha256": "33a2daed7045203f90f45826cc50c8c39c5c5b03dfc57abd49ecbed9ac0bb178",
       "version": "2026-09-19.1"

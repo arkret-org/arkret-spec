@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-20.1",
+  "version": "2026-10-23.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-20T00:18:13+08:00",
+  "generated_at": "2026-10-23T10:19:20+08:00",
   "description": "Closed coverage of every fixture resolution_commitment value. A pointer containing :: enters canonical JSON stored in the string selected by the left-hand RFC 6901 pointer.",
   "rules": [
     "Every fixture object shaped as {did, method_history_head, version_id}, including one embedded in a canonical JSON string, MUST have exactly one row.",
@@ -36,12 +36,12 @@
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/0/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
+      "pointer": "/cases/0/complete_wire_event/payload/object/initial_resolution",
       "evidence_id": "human_pcr"
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/0/complete_wire_event/payload/object/initial_resolution",
+      "pointer": "/cases/0/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
       "evidence_id": "human_pcr"
     },
     {
@@ -51,8 +51,8 @@
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/5/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
-      "evidence_id": "agent_inception"
+      "pointer": "/cases/25/complete_wire_event/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
@@ -61,7 +61,82 @@
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/25/complete_wire_event/payload/object/initial_resolution",
+      "pointer": "/cases/5/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
+      "evidence_id": "agent_inception"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/request/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/0/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/1/instance/identity_creation/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/10/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/11/instance/identity_creation/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/11/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/12/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/13/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/14/instance/published_identity/pcr_genesis_unit/events/1/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/3/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/4/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/5/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/6/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/7/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
+      "evidence_id": "human_pcr"
+    },
+    {
+      "fixture": "published-did-registration-fixture.json",
+      "pointer": "/schema_validation_cases/8/instance/published_identity/pcr_genesis_unit/events/0/payload/object/initial_resolution",
       "evidence_id": "human_pcr"
     },
     {
@@ -85,16 +160,6 @@
       "evidence_id": "schema_service"
     },
     {
-      "fixture": "schema-validation-fixture.json",
-      "pointer": "/schema_validation_cases/0/instance/service_resolution",
-      "evidence_id": "schema_service"
-    },
-    {
-      "fixture": "websocket-binding-fixture.json",
-      "pointer": "/bundle_closure_cases/0/instance/service_resolution",
-      "evidence_id": "websocket_service"
-    },
-    {
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/0/candidate/initial_resolution",
       "evidence_id": "agent_inception"
@@ -113,6 +178,16 @@
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/4/unsigned_projection/payload_without_control_signature/next_resolution",
       "evidence_id": "agent_inception"
+    },
+    {
+      "fixture": "schema-validation-fixture.json",
+      "pointer": "/schema_validation_cases/0/instance/service_resolution",
+      "evidence_id": "schema_service"
+    },
+    {
+      "fixture": "websocket-binding-fixture.json",
+      "pointer": "/bundle_closure_cases/0/instance/service_resolution",
+      "evidence_id": "websocket_service"
     }
   ]
 }

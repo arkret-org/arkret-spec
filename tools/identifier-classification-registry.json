@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 94,
+  "version": 95,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 995,
-    "responsibility_identity_material": 657,
+    "typed_object_id": 996,
+    "responsibility_identity_material": 658,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -346,7 +346,7 @@
       "name": "identity_creation_lease_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{22,128}$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 6,
+      "occurrences": 9,
       "example_path": "account-operations.schema.json#/$defs/identity_creation_lease/properties/identity_creation_lease_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
@@ -711,7 +711,7 @@
       "name": "version_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 11,
+      "occurrences": 12,
       "example_path": "did-webvh-witness-receipt.schema.json#/properties/version_id",
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
     },
@@ -732,5 +732,5 @@
       "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ],
-  "generated_at": "2026-10-23T09:45:25+08:00"
+  "generated_at": "2026-10-23T10:19:20+08:00"
 }

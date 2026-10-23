@@ -334,7 +334,7 @@
     },
     "pcr_genesis_submit_request": {
       "type": "object",
-      "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration anchor, the identity-root control proof and the two Event proofs. The Station verifies principal_registration_anchor and registration_did_evidence without consulting current DID resolution.",
+      "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration anchor, the identity-root control proof and the two Event proofs. The designated method fact owner verifies the primary anchor and historical evidence; the Station admits the exact frozen unit. Within one authenticated TCB, exact verified method facts are carried through the registered channel without repeating the same method history; independent trust boundaries verify independently. Historical genesis verification never substitutes current DID resolution. Exactly one registration control proof is carried: identity_creation_control_proof with accepted_at evidence, or account_registration_control_proof with validated_at evidence. For the latter the authenticated exact owner must separately validate proof.request_canonical_digest recomputed by the fact owner from the original register body with only proof.request_canonical_digest and proof.signature omitted; the original body remains durable owner material. Both proof variants authorize the same complete ordered PCR unit and initial session, not a DID publication or a second lineage.",
       "required": [
         "account_authority_id",
         "principal_id",
@@ -346,7 +346,6 @@
         "registration_request_digest",
         "principal_registration_anchor",
         "registration_did_evidence",
-        "identity_creation_control_proof",
         "genesis_unit"
       ],
       "properties": {
@@ -383,10 +382,10 @@
         },
         "principal_registration_anchor": {
           "$ref": "./principal-registration-anchor.schema.json",
-          "description": "Exact closed registration anchor accepted during registration. Its canonical digest MUST equal identity_creation_control_proof.registration_anchor_digest, the Station MUST re-derive did, did_version_id, method_history_head and the root control key from it alone, and it is historical verifier input that MUST NOT be replaced with current resolver output."
+          "description": "Exact frozen closed registration anchor. Its canonical digest MUST equal the selected control proof registration_anchor_digest. The responsible verifier derives did, version, history head and active root key from this primary material; same-TCB consumers carry the authenticated exact result and independently compare their own account, operation, unit and state bindings. It is historical input and MUST NOT be replaced with current resolver output."
         },
         "registration_did_evidence": {
-          "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence",
+          "$ref": "./registration-did-evidence.schema.json#/$defs/accepted_registration_did_evidence",
           "description": "Complete Account-Authority-accepted historical evidence. Its canonical digest is reverse-bound by the pcr_genesis_unit receipt."
         },
         "identity_creation_control_proof": {
@@ -394,6 +393,9 @@
         },
         "genesis_unit": {
           "$ref": "#/$defs/pcr_genesis_unit"
+        },
+        "account_registration_control_proof": {
+          "$ref": "./account-operations.schema.json#/$defs/account_registration_control_proof"
         }
       },
       "allOf": [
@@ -402,11 +404,43 @@
         }
       ],
       "additionalProperties": false,
-      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected.",
+      "oneOf": [
+        {
+          "required": [
+            "identity_creation_control_proof"
+          ],
+          "not": {
+            "required": [
+              "account_registration_control_proof"
+            ]
+          },
+          "properties": {
+            "registration_did_evidence": {
+              "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence"
+            }
+          }
+        },
+        {
+          "required": [
+            "account_registration_control_proof"
+          ],
+          "not": {
+            "required": [
+              "identity_creation_control_proof"
+            ]
+          },
+          "properties": {
+            "registration_did_evidence": {
+              "$ref": "./registration-did-evidence.schema.json#/$defs/published_registration_did_evidence"
+            }
+          }
+        }
+      ]
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Neither signer has an accepted Arkret signer projection before this unit, so neither producer proof is resolved through the ordinary device directory. The first key is resolved only from principal_registration_anchor, registration_did_evidence and identity_creation_control_proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Neither signer has an accepted Arkret signer projection before this unit, so neither producer proof is resolved through the ordinary device directory. The first key is resolved only from principal_registration_anchor, registration_did_evidence and the selected registration control proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
       "required": [
         "events"
       ],

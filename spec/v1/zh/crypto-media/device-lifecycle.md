@@ -262,6 +262,8 @@ Arkret v1 只有一个 principal device model：DID 是 identity-root key log；
 
 ### 5.1 PCR genesis 与首设备（normative）
 
+本节同样适用于已发布 DID 注册：初始账号与 PCR 未存在时，必须由注册时已验证 terminal 的当前 active update key 授权完整 unit，不能要求旧 inception key。`account-lifecycle.md` §2.1.2a 的完整 `proof + published_identity` 分支仍执行本节全部 create-once／首设备／lease 门；它不发布 DID。已有 accepted PCR 不得凭当前 DID key 再次 genesis。
+
 首次创建 PCR 必须提交一个 closed ordered unit：
 
 1. `ak.realm.create`：由 registration-time DID control key 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor` 与 durable registration evidence digest。

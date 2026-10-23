@@ -1497,7 +1497,7 @@
     },
     "InitialSessionGrantIntent": {
       "type": "object",
-      "description": "Initial Standard SessionGrant intent embedded in identity_creation registration. It reuses the DPoP holder key established by account handoff; Account Authority recomputes RFC 7638 thumbprint of session_public_key and requires equality with the handoff/control-proof dpop_jkt. It is not a separate authorization or credential.",
+      "description": "Initial Standard SessionGrant intent embedded in either complete Human registration branch. It reuses the DPoP holder key established by account handoff; Account Authority recomputes RFC 7638 thumbprint of session_public_key and requires equality with the handoff/control-proof dpop_jkt. It is not a separate authorization or credential.",
       "required": [
         "device_id",
         "session_public_key",

@@ -496,6 +496,16 @@
       ]
     },
     {
+      "schema_path": "account-operations.schema.json#/$defs/published_identity_registration/properties/did",
+      "property_name": "did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
       "schema_path": "account-operations.schema.json#/$defs/reserved_identity_creation/properties/did",
       "property_name": "did",
       "semantic_category": "responsibility_identity_material",
@@ -6733,6 +6743,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "registration-did-evidence.schema.json#/$defs/published_registration_did_evidence/properties/did",
+      "property_name": "did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:webvh_did"
+      ]
+    },
+    {
+      "schema_path": "registration-did-evidence.schema.json#/$defs/published_registration_did_evidence/properties/principal_id",
+      "property_name": "principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {

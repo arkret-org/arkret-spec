@@ -607,6 +607,8 @@ Resolver policy MUST 至少定义：
 
 ### 4.2 Resolution 的 PCR 持久化与审计发布
 
+Human 首次账号初始化不要求 DID 同时首次发布。已有且已轮换的 `did:webvh` 依 `account-lifecycle.md` §2.1.2a 完成独立 current 验证、完整注册锚与本账号唯一 PCR／首设备／session；不能以 proof-only 绑定替代创世，不重新发布外部 DID。注册后的 immutable creation anchor 与日常设备权威规则相同。
+
 principal 创建时，注册方 MUST 接收 `did`，用 method adapter 验证其 inception/current control、method history 与本地 trust policy，并确认 `project(did)` 逐字等于待创建的 `did_core_id`。验证通过后，PCR genesis 的 `initial_resolution` MUST 同时承诺 `did`、`method_history_head` 与 `version_id`；服务端不得只把它留在临时注册会话或私有账号表。
 
 PCR reducer MUST 以 create-locked typed current result family `identity_resolution` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`；其 payload 只携 `next {did, method_history_head, version_id}`，前序状态只来自 Event envelope 中唯一一条针对 `identity_resolution:null` 的 `expected_revision` precondition，其 `value` 是完整的 current `resolution_projection`。admission MUST 验证：

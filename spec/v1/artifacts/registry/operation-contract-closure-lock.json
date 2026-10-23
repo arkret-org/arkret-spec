@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-23.2",
-  "generated_at": "2026-10-23T09:31:21+08:00",
+  "version": "2026-10-23.4",
+  "generated_at": "2026-10-23T10:19:21+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -81,7 +81,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
-      "sha256": "sha256:720610fc21fd0124abd9ed5d8870800e279d0d15ef934598484c35baed70a703"
+      "sha256": "sha256:d222d5c4887e7c2a2160c3c47c4d599da918b987f8b2888f877fc818899892bb"
     },
     {
       "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
@@ -89,15 +89,15 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_did_binding_challenge.v1",
-      "sha256": "sha256:f48b53f60a4ef27ace834d25f0dee621c5910e845587b2c24f083666a3b0c59c"
+      "sha256": "sha256:211ff55ee4fe429b5aeb1a94340b959dc4147871a325b05a63611e556a12dd20"
     },
     {
       "operation_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
-      "sha256": "sha256:9fcd16bae879d3f3f77b21d1795a8dbaf5520fecaf413a04d9af266a453a72d3"
+      "sha256": "sha256:fb5fea38dd0a554e8e822a1b09e6018ea2ada456368b28c816477703eae52457"
     },
     {
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
-      "sha256": "sha256:56d8ae260d5054dc093a0948ab627c5c4d5c74af57c06210a92b1755e39b4ffc"
+      "sha256": "sha256:ad80530adb1e400b6d30d180ed5dc53ebf4deca8f96386782d3294c1b29cca20"
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant.v1",
@@ -121,7 +121,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:3dfcf1159a3cb720f62e5843dbb5cab34092879073500a672c166e22641063bc"
+      "sha256": "sha256:040a9ad2890f7bf8b3266c884004a96bf6a564066d39fbddc5d386ac9912190e"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -133,7 +133,7 @@
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
-      "sha256": "sha256:5dbbaf54e6bac523bbaf58920269777727529c381074908fd8166656d2e9a263"
+      "sha256": "sha256:ad94325a612bc3b1ad903e2faa959b98bf3632e2ff3c7d85fc3f3cbdeda4262d"
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
@@ -141,7 +141,7 @@
     },
     {
       "operation_id": "ak.gate.account.read.onboarding.v1",
-      "sha256": "sha256:e928215273e5dce5a58c78b56273a773363ed6597d0bcdcc458e113e3f8c51ba"
+      "sha256": "sha256:498837d74484e15aaf0980accca13083913dfda506438325959ed0a5cb847474"
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",

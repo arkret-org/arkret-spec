@@ -571,6 +571,7 @@
         "required": [
           "request_id",
           "account_subject",
+          "binding_kind",
           "principal_id",
           "did_version_id",
           "abandoned_at"
@@ -578,6 +579,7 @@
         "properties": [
           "request_id",
           "account_subject",
+          "binding_kind",
           "principal_id",
           "did_version_id",
           "abandoned_at"
@@ -627,13 +629,27 @@
         "schema_kind": "object",
         "required": [
           "request_id",
+          "identity_creation_lease_id",
+          "lease_fence",
           "principal_id",
-          "did"
+          "did",
+          "principal_registration_anchor",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest"
         ],
         "properties": [
           "request_id",
+          "identity_creation_lease_id",
+          "lease_fence",
           "principal_id",
-          "did"
+          "did",
+          "principal_registration_anchor",
+          "pcr_realm_id",
+          "realm_create_payload_digest",
+          "founding_authorize_payload_digest",
+          "initial_session_request_digest"
         ],
         "closed": true
       },
@@ -667,7 +683,6 @@
           "did",
           "did_version_id",
           "control_key_digest",
-          "witness_evidence",
           "dpop_jkt",
           "audience_id",
           "origin",
@@ -1079,7 +1094,8 @@
             "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
             "schema_kind": null,
             "required": [
-              "proof"
+              "proof",
+              "published_identity"
             ],
             "properties": [],
             "closed": false
@@ -1102,7 +1118,9 @@
           "principal_id",
           "state",
           "devices",
-          "binding_receipt"
+          "binding_receipt",
+          "session_grant_outcome",
+          "pcr_genesis_commits"
         ],
         "properties": [
           "principal_id",
