@@ -163,4 +163,4 @@ if __name__ == '__main__':
         if OUT.read_text(encoding='utf-8') != content:
             raise SystemExit('MIMI claim fixture drift')
     else:
-        OUT.write_text(content, encoding='utf-8')
+        OUT.write_text(content, encoding='utf-8', newline='\n')

@@ -142,5 +142,5 @@ def build():
 
 
 if __name__ == '__main__':
-    OUT.write_text(json.dumps(build(), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    OUT.write_text(json.dumps(build(), ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
     print(OUT.name)
