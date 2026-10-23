@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.2",
+  "version": "2026-10-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T02:11:00+08:00",
+  "generated_at": "2026-10-23T09:31:20+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1803,36 +1803,49 @@
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
         "schema_kind": "object",
         "required": [
-          "requester_id",
-          "strand_id",
-          "device_id"
+          "claim_request_id",
+          "intended_realm_id",
+          "mls_group_id",
+          "claim_purpose",
+          "required_capabilities",
+          "expires_at",
+          "service_binding",
+          "requester_authorization"
         ],
         "properties": [
-          "requester_id",
-          "strand_id",
-          "device_id",
-          "mimi_room_uri",
-          "realm_id",
+          "claim_request_id",
+          "target_account_id",
+          "target_actor_id",
+          "requester_account_id",
+          "requester_actor_id",
+          "intended_realm_id",
           "mls_group_id",
-          "epoch",
-          "proofs"
+          "claim_purpose",
+          "required_capabilities",
+          "expires_at",
+          "target_device_ids",
+          "target_keypackage_ref",
+          "target_agent_id",
+          "target_agent_verification_method",
+          "target_agent_key_authorize_event_id",
+          "timeout_ms",
+          "strand_id",
+          "pair_key",
+          "last_resort_allowed",
+          "service_binding",
+          "requester_authorization"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
-        "schema_kind": "object",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+        "schema_kind": null,
         "required": [],
-        "properties": [
-          "keypackages",
-          "group_info",
-          "failures",
-          "signature"
-        ],
-        "closed": true
+        "properties": [],
+        "closed": false
       }
     },
     {

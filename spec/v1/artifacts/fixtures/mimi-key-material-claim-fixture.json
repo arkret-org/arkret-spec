@@ -1,0 +1,1139 @@
+{
+  "version": "2026-10-23.3",
+  "profile": "ak.profile.mimi_interop.v1",
+  "suite": "mimi_key_material_claim",
+  "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "command": "python -B -m unittest tools.test_mimi_key_material_claim_contract"
+  },
+  "generated_by": "tools/generate_mimi_key_material_fixture.py",
+  "description": "Native closed carriers, real participant/receipt Ed25519 signatures and adapter boundary mutations. Authority facts are synthetic inputs; this fixture is not live provider, MLS processing, database atomicity or product acceptance evidence.",
+  "machine_contracts": [
+    "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+    "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome"
+  ],
+  "participant_public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+  "destination_public_key": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+  "request": {
+    "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+    "target_account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+    },
+    "target_device_ids": [
+      "ak:device:01904100-0000-7000-8000-00000000aa11"
+    ],
+    "requester_account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+    },
+    "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+    "claim_purpose": "realm_membership",
+    "required_capabilities": [
+      "ak.content.v1",
+      "mimi.content.v1"
+    ],
+    "expires_at": "2026-08-25T17:38:02.920Z",
+    "service_binding": {
+      "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+      "destination_id": "ak:did_core:webvh:z6mkfixturestationa"
+    },
+    "requester_authorization": {
+      "kind": "device",
+      "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+      "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+      "signed_at": "2026-08-25T17:33:02.920Z",
+      "signature": {
+        "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+        "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+      }
+    },
+    "last_resort_allowed": false
+  },
+  "outcome": {
+    "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+    "state": "claimed",
+    "claim_outcome": {
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "claims": [
+        {
+          "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+          "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+          "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+          "capabilities": [
+            "ak.content.v1",
+            "mimi.content.v1"
+          ],
+          "expires_at": "2026-08-25T17:38:02.920Z"
+        }
+      ],
+      "claim_receipt": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+        "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+        "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+        "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "request": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "target_account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          },
+          "target_device_ids": [
+            "ak:device:01904100-0000-7000-8000-00000000aa11"
+          ],
+          "requester_account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+          },
+          "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+          "claim_purpose": "realm_membership",
+          "required_capabilities": [
+            "ak.content.v1",
+            "mimi.content.v1"
+          ],
+          "expires_at": "2026-08-25T17:38:02.920Z",
+          "last_resort_allowed": false
+        },
+        "claimed_at": "2026-08-25T17:33:02.920Z",
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "signature": {
+          "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+          "signature_algorithm": "Ed25519",
+          "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+        }
+      }
+    }
+  },
+  "world": {
+    "provider_id": "ak:did_core:webvh:z6mkfixturepsexample",
+    "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+    "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+    "idempotency_key": "AAAAAAAAAAAAAAAAAAAAAQ",
+    "room_uri": "mimi://station.example/room",
+    "binding_room_uri": "mimi://station.example/room",
+    "binding_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "binding_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+    "binding_active": true,
+    "native_authorized": true
+  },
+  "schema_validation_cases": [
+    {
+      "name": "native_participant_authorized_request",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "target_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "target_device_ids": [
+          "ak:device:01904100-0000-7000-8000-00000000aa11"
+        ],
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1",
+          "mimi.content.v1"
+        ],
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "service_binding": {
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "requester_authorization": {
+          "kind": "device",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "signed_at": "2026-08-25T17:33:02.920Z",
+          "signature": {
+            "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+          }
+        },
+        "last_resort_allowed": false
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "complete_original_claim_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "pending_uses_native_state",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "pending",
+        "retry_after_ms": 100
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "old_provider_only_request_rejected",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "requester_id": "ak:did_core:webvh:z6mkfixturepsexample",
+        "strand_id": "ak:strand:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11"
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'claim_request_id' is a required property"
+    },
+    {
+      "name": "old_narrow_keypackages_outcome_rejected",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "keypackages": [
+          {
+            "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+            "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+            "mls_keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'claim_request_id' is a required property"
+    },
+    {
+      "name": "missing_requester_authorization",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "target_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "target_device_ids": [
+          "ak:device:01904100-0000-7000-8000-00000000aa11"
+        ],
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1",
+          "mimi.content.v1"
+        ],
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "service_binding": {
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "last_resort_allowed": false
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'requester_authorization' is a required property"
+    },
+    {
+      "name": "missing_service_binding",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "target_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "target_device_ids": [
+          "ak:device:01904100-0000-7000-8000-00000000aa11"
+        ],
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1",
+          "mimi.content.v1"
+        ],
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "requester_authorization": {
+          "kind": "device",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "signed_at": "2026-08-25T17:33:02.920Z",
+          "signature": {
+            "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+          }
+        },
+        "last_resort_allowed": false
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'service_binding' is a required property"
+    },
+    {
+      "name": "missing_claim_request_id",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "target_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "target_device_ids": [
+          "ak:device:01904100-0000-7000-8000-00000000aa11"
+        ],
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1",
+          "mimi.content.v1"
+        ],
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "service_binding": {
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "requester_authorization": {
+          "kind": "device",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "signed_at": "2026-08-25T17:33:02.920Z",
+          "signature": {
+            "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+          }
+        },
+        "last_resort_allowed": false
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'claim_request_id' is a required property"
+    },
+    {
+      "name": "missing_target_account_id",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "target_device_ids": [
+          "ak:device:01904100-0000-7000-8000-00000000aa11"
+        ],
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+        },
+        "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "claim_purpose": "realm_membership",
+        "required_capabilities": [
+          "ak.content.v1",
+          "mimi.content.v1"
+        ],
+        "expires_at": "2026-08-25T17:38:02.920Z",
+        "service_binding": {
+          "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+          "destination_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "requester_authorization": {
+          "kind": "device",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+          "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+          "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "signed_at": "2026-08-25T17:33:02.920Z",
+          "signature": {
+            "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+          }
+        },
+        "last_resort_allowed": false
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:{'claim_request_id': 'AAAAAAAAAAAAAAAAAAAAAQ', 'target_device_ids': ['ak:device:01904100-0000-7000-8000-00000000aa11'], 'requester_account_id': {'principal_id': 'ak:did_core:webvh:z6mkfixture', 'station_id': 'ak:did_core:webvh:z6mkfixturepsexample'}, 'intended_realm_id': 'ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5', 'mls_group_id': 'QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4', 'claim_purpose': 'realm_membership', 'required_capabilities': ['ak.content.v1', 'mimi.content.v1'], 'expires_at': '2026-08-25T17:38:02.920Z', 'service_binding': {'source_id': 'ak:did_core:webvh:z6mkfixturepsexample', 'destination_id': 'ak:did_core:webvh:z6mkfixturestationa'}, 'requester_authorization': {'kind': 'device', 'verification_method': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'requester_device_id': 'ak:device:0196419b-0000-7000-8000-000000000001', 'device_authorize_event_id': 'ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape', 'signed_at': '2026-08-25T17:33:02.920Z', 'signature': {'kid': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'sig': 'ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA'}}, 'last_resort_allowed': False} is not valid under any of the given schemas"
+    },
+    {
+      "name": "claim_missing_claim_id",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'claim_id' is a required property"
+    },
+    {
+      "name": "claim_missing_keypackage_ref",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'keypackage_ref' is a required property"
+    },
+    {
+      "name": "claim_missing_device_id",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:{'claim_id': 'ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee', 'keypackage_ref': 'sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d', 'actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:webvh:z6mkkatordinary', 'station_id': 'ak:did_core:webvh:z6mkfixturestationa'}}, 'principal_id': 'ak:did_core:webvh:z6mkkatordinary', 'device_authorize_event_id': 'ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape', 'keypackage': 'AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE', 'capabilities': ['ak.content.v1', 'mimi.content.v1'], 'expires_at': '2026-08-25T17:38:02.920Z'} is not valid under any of the given schemas"
+    },
+    {
+      "name": "claim_missing_expires_at",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ]
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'expires_at' is a required property"
+    },
+    {
+      "name": "claim_missing_capabilities",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'capabilities' is a required property"
+    },
+    {
+      "name": "missing_native_signed_receipt",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ]
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:'claim_receipt' is a required property"
+    },
+    {
+      "name": "no_mimi_signature_mirror",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        },
+        "signature": {
+          "kid": "provider",
+          "sig": "AA"
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed ('signature' was unexpected)"
+    },
+    {
+      "name": "no_mimi_available_count_mirror",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        },
+        "available_count": 1
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed ('available_count' was unexpected)"
+    },
+    {
+      "name": "no_mimi_failures_mirror",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "instance": {
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "state": "claimed",
+        "claim_outcome": {
+          "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+          "claims": [
+            {
+              "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
+              "keypackage_ref": "sha256:95f8eb03931af6fee3cbdd963c3801b341baa4c59e616b2917f2f1009cf0c52d",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+              "device_id": "ak:device:01904100-0000-7000-8000-00000000aa11",
+              "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+              "keypackage": "AAEAASB-uNKQy_D49-Zpbm8YBbl2seaEaD2EbQ_8eIYZRHESFiABmwfDPbM5rzAGgpKH1w43IK0RoQ8kaboUwdB0BGGnUSADoQe_884Qvh1w3RjnS8CZZ-TWMJulDV8d3IZkElUxuAABQIl7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2thdG9yZGluYXJ5Iiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmEifSwia2luZCI6ImFjY291bnQifQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAw0y-jU2OTBqErac9KIhF14ADXqQwaPi1qir3ghvUa6F6P6r9hxo_PxheuQcct2kRCocsZRlTiR08yo_ZAp5EDQBAQODWS6lYVRgeJn6tBu-6qAVETp1Wv0ucO9eUfk8sfvrm58t8mHECZqOFP4O8Z_G-frrYvkMVZkfvUnuoL-c_pAE",
+              "capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z"
+            }
+          ],
+          "claim_receipt": {
+            "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
+            "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
+            "request": {
+              "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+              "target_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkkatordinary",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              },
+              "target_device_ids": [
+                "ak:device:01904100-0000-7000-8000-00000000aa11"
+              ],
+              "requester_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+              },
+              "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+              "claim_purpose": "realm_membership",
+              "required_capabilities": [
+                "ak.content.v1",
+                "mimi.content.v1"
+              ],
+              "expires_at": "2026-08-25T17:38:02.920Z",
+              "last_resort_allowed": false
+            },
+            "claimed_at": "2026-08-25T17:33:02.920Z",
+            "expires_at": "2026-08-25T17:38:02.920Z",
+            "signature": {
+              "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
+              "signature_algorithm": "Ed25519",
+              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+            }
+          }
+        },
+        "failures": []
+      },
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties are not allowed ('failures' was unexpected)"
+    }
+  ],
+  "decision_cases": [
+    {
+      "name": "eligible_native_source",
+      "overrides": {},
+      "expect_valid": true
+    },
+    {
+      "name": "reject_provider_id",
+      "overrides": {
+        "provider_id": "ak:did_core:webvh:z6mkfixturestationa"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_source_id",
+      "overrides": {
+        "source_id": "ak:did_core:webvh:z6mkfixturestationa"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_destination_id",
+      "overrides": {
+        "destination_id": "ak:did_core:webvh:z6mkfixturepsexample"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_idempotency_key",
+      "overrides": {
+        "idempotency_key": "another-request"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_binding_room_uri",
+      "overrides": {
+        "binding_room_uri": "mimi://station.example/other"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_binding_realm_id",
+      "overrides": {
+        "binding_realm_id": "another-realm"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_binding_group_id",
+      "overrides": {
+        "binding_group_id": "another-group"
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_binding_active",
+      "overrides": {
+        "binding_active": false
+      },
+      "expect_valid": false
+    },
+    {
+      "name": "reject_native_authorized",
+      "overrides": {
+        "native_authorized": false
+      },
+      "expect_valid": false
+    }
+  ],
+  "native_lifecycle_cases": [
+    {
+      "fixture": "keypackage-lifecycle-fixture.json",
+      "case": "peer_claim_atomic_idempotency"
+    },
+    {
+      "fixture": "keypackage-lifecycle-fixture.json",
+      "case": "peer_claim_double_authorization_privacy"
+    },
+    {
+      "fixture": "keypackage-lifecycle-fixture.json",
+      "case": "welcome_add_commit_and_claim_record_binding"
+    },
+    {
+      "fixture": "keypackage-lifecycle-fixture.json",
+      "case": "welcome_consume_only_after_durable_group_state"
+    }
+  ]
+}

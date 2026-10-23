@@ -2,14 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/mimi-operations.schema.json",
   "title": "Arkret MIMI Operation DTOs",
-  "description": "Closed request/response DTOs for MIMI provider interop operation bindings.",
+  "description": "Closed request/response DTOs for MIMI provider interop. Key-material uses the existing keypackage-operations claim request and command outcome directly, as registered by operation-registry.",
   "anyOf": [
-    {
-      "$ref": "#/$defs/mimi_key_material_request_body"
-    },
-    {
-      "$ref": "#/$defs/mimi_key_material_outcome"
-    },
     {
       "$ref": "#/$defs/mimi_room_update_request_body"
     },
@@ -193,129 +187,6 @@
         "retry_after_ms": {
           "type": "integer",
           "minimum": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "keypackage": {
-      "type": "object",
-      "required": [
-        "device_id",
-        "mls_keypackage"
-      ],
-      "properties": {
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "keypackage_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "mls_keypackage": {
-          "$ref": "#/$defs/base64url"
-        }
-      },
-      "additionalProperties": false
-    },
-    "group_info": {
-      "type": "object",
-      "required": [
-        "mls_group_id",
-        "epoch",
-        "group_info"
-      ],
-      "properties": {
-        "mls_group_id": {
-          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "group_info": {
-          "$ref": "#/$defs/base64url"
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_key_material_request_body": {
-      "type": "object",
-      "x-arkret-proof-context": "ak.mimi_key_material_request_proof.v1",
-      "required": [
-        "requester_id",
-        "strand_id",
-        "device_id"
-      ],
-      "properties": {
-        "requester_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "mimi_room_uri": {
-          "$ref": "#/$defs/mimi_room_uri"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "mls_group_id": {
-          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "proofs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/proof"
-          },
-          "minItems": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_key_material_outcome": {
-      "type": "object",
-      "x-arkret-proof-context": "ak.mimi_key_material_outcome_proof.v1",
-      "anyOf": [
-        {
-          "required": [
-            "keypackages"
-          ]
-        },
-        {
-          "required": [
-            "group_info"
-          ]
-        },
-        {
-          "required": [
-            "failures"
-          ]
-        }
-      ],
-      "properties": {
-        "keypackages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/keypackage"
-          }
-        },
-        "group_info": {
-          "$ref": "#/$defs/group_info"
-        },
-        "failures": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/failure"
-          }
-        },
-        "signature": {
-          "$ref": "#/$defs/signature"
         }
       },
       "additionalProperties": false

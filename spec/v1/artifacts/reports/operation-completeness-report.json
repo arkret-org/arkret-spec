@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.9",
+  "version": "2026-10-23.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T10:09:43+08:00",
+  "generated_at": "2026-10-23T09:31:20+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -706,11 +706,11 @@
       "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/MimiKeyMaterialRequestBody",
-        "response": "#/components/schemas/MimiKeyMaterialOutcome"
+        "request": "#/components/schemas/KeyPackagesClaimRequestBody",
+        "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -722,10 +722,6 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body
-    MimiKeyMaterialOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome
-    MimiKeyMaterialRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body
     MimiNotifyOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome
     MimiNotifyRequestBody:
@@ -6665,6 +6661,24 @@ paths:
         schema:
           type: string
           const: ak.open.mimi.exchange.request_key_material.v1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        description: Exact claim_request_id; shared with the native destination claim ledger.
+        schema:
+          type: string
+      - name: Provider-ID
+        in: header
+        required: true
+        description: Authorized source Station, equal to Source-Service-ID and service_binding.source_id.
+        schema:
+          type: string
+      - name: MIMI-Room-URI
+        in: header
+        required: true
+        description: Signed room locator whose current accepted binding matches intended_realm_id and mls_group_id.
+        schema:
+          type: string
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -6676,13 +6690,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiKeyMaterialOutcome'
+                $ref: '#/components/schemas/PeerKeyPackagesClaimOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiKeyMaterialRequestBody'
+              $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/update:
     post:
       operationId: ak.open.mimi.command.update_room

@@ -265,7 +265,7 @@ MIMI facade 至少定义以下 canonical operation：
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
 | `ak.open.mimi.read.provider_directory.v1` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
-| `ak.open.mimi.exchange.request_key_material.v1` | `POST /_arkret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
+| `ak.open.mimi.exchange.request_key_material.v1` | `POST /_arkret/open/mimi/key-material` | 现有 KeyPackage claim 的 MIMI 适配入口，复用原生请求、领取账本和带状态结果（§6）。 |
 | `ak.open.mimi.command.update_room.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
 | `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
@@ -328,6 +328,8 @@ HTTP Message Signature profile（仅适用于上述逐条登记的 provider-to-p
   - `content-digest`
   - `source-service-id`、`destination-service-id`、`provider-id`
   - `mimi-room-uri`（条件项：room-scoped endpoint 必需）
+  - `idempotency-key`（条件项：`request_key_material` 必需）
+  - `source-trust-domain`、`destination-trust-domain`（条件项：`request_key_material` 跨 trust domain 时必需）
   <!-- END ak-http-signature-covered-set -->
 
   `created`、`expires`、`keyid` 与 `alg="ed25519"` 参数 MUST 存在；时效窗口判据是
@@ -355,6 +357,8 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret Event�
 
 MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。单值形态由 `mimi-operations.schema.json#/$defs/signature` 定义，数组形态由各对象族自己内联的 `proofs[]`（元素为 `#/$defs/proof`）定义；两者的 `domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Station service DID。
 
+`request_key_material` 的请求与结果直接复用 §6 的原生 claim 载体，不属于本节的 detached payload proof 对象族；其 participant authorization、claim receipt 和 transport signature 各自沿现有合同验证，不另加 MIMI request/outcome proof。
+
 **每个对象族一个 context（normative）**：`mimi-operations.schema.json` 是 DTO 容器而不是一个对象族，因此**不存在**覆盖全文件的 MIMI operation context。持有 detached proof 的对象族逐个登记独立 context，schema 侧以 `x-arkret-proof-context` 逐字投影；对象族、context 与 operation 的对应关系分别以 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 和 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 经 schema ref 连接后的结果为唯一真源，本节不复述派生 join 表。
 
 发送方 MUST 先从 request/outcome body 移除顶层 `signature` 或 `proofs` 成员（删除成员本身，不是置为 `null`），保留所有实际存在的 optional 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_body))`，再以 canonical JSON 编码并签署下列 transcript：
@@ -371,7 +375,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
   "audience": "<destination Station service DID>"
 }
 ```
-transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_actor_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `holder_account_id` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
+transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_request_consent_request_body.requester_actor_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_request_consent_request_body` 加 `holder_account_id` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
 
 字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer` 等于该族的发起方字段、下述当前权威来源授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 context/operation/domain/audience 绑定和 JWS。**接收方 MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得被另一个族接受，跨 operation 与 request/outcome 方向的重放由 context 本身阻断，不依赖 `operation_id` 是否被某个实现纳入 transcript。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；若 carried Event ID 不等于当前 canonical Event bytes 的重算值，MUST 以 `event_id_digest_mismatch` 拒绝且不得提前泄露 holder state；只有不同 canonical preimage 各自重算为同一个完整 EventId 时才按 `witness_disagreement` 隔离。
 
@@ -379,21 +383,24 @@ transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`�
 
 - Account 发起的 `request_consent` 与 holder 的 `update_consent` MUST 按 exact AccountId（principal、Station）解析当前 accepted PCR generation 内的设备授权，并验证 method、设备状态、撤销与 generation；DID Document 只用于已登记的身份解析，不是普通设备签名的授权目录。MUST NOT 要求把设备 key 加入 DID Document，也 MUST NOT 用 root/update/recovery key 签普通 MIMI 操作。`update_consent` 仍须满足 §10 的 authority-root controller 和 Event admission；operation proof 不另授 consent 写权限。
 - Agent requester 使用其 exact Actor 的当前 accepted runtime key，MUST 验证 lifecycle、controller/accountability、当前 key authorization、immutable provision ceiling、key scope 与本 operation 的 session scope。Agent key 不是 controller device。接收 Station 已持有这些当前私有权威事实时，可结合其已验证的 AgentRuntime session grant；grant 必须绑定同一 Actor、verification method 与当前 authorization。仅有 runtime 自报 key、公开 DID key 或 service transport signature 均不足以准入。
-- provider 发起的 key-material / identifier request 的 `requester_id` 是 service principal；无 requester 的 identifier proof 绑定已认证 source service。服务 proof 与服务 outcome 从相应 service 的 accepted key binding／受信 DID authority 取得 key，不得将这种 service 验签规则用于 Account 或 Agent。
+- provider 发起的 identifier request 的 `requester_id` 是 service principal；无 requester 的 identifier proof 绑定已认证 source service。服务 proof 与服务 outcome 从相应 service 的 accepted key binding／受信 DID authority 取得 key，不得将这种 service 验签规则用于 Account 或 Agent。key-material 的实际 requester 与 source Station 必须满足 §6 的原生 claim 授权，provider 服务身份不能替代 participant authorization。
 - 远端 Account／Agent 必须通过该 operation 获准使用的当前、保密 authority evidence 验证，证据须绑定 exact identity 与签名 method；实际请求、目标 verifier 和范围由请求自身签名及授权检查绑定。`request_consent` 当前没有通用远端 PCR 披露 carrier；裸 ActorId、provider assertion、同 principal 的本机账号、历史 Event 或其它 operation 的 signer evidence 均不补足这个缺口。没有合法证据来源时 MUST 在创建 correlation 或读取 holder 私有状态前 fail closed（`proof_invalid`），MUST NOT 推导并查询远端私有 PCR。此限制不影响接收 Station 本地可验证的 requester 向任意 exact holder 地址发起 opaque request。
 
-Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。§5 封闭清单内的 operation 还 MUST 同时通过本节的 HTTP Message Signature，与是否跨 provider 或携带有效会话无关：provider transport proof 与 actor operation proof 缺一不可，任何一层都不得替代另一层。
+Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。§5 封闭清单内的 operation 还 MUST 同时通过 §5 的 HTTP Message Signature，与是否跨 provider 或携带有效会话无关：provider transport proof 与适用的 participant authorization / actor operation proof 缺一不可，任何一层都不得替代另一层。
 
 ## 6. Key Material
 
-`ak.open.mimi.exchange.request_key_material.v1` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
+`ak.open.mimi.exchange.request_key_material.v1` 是 [`../crypto-media/device-lifecycle.md` §9.0.1／§9.2](../crypto-media/device-lifecycle.md) 现有 claim 的适配入口。请求 MUST 直接符合 `keypackage-operations.schema.json#/$defs/keypackages_claim_request_body`，结果 MUST 直接符合同文件的 `peer_keypackages_claim_command_outcome`，不另包一层 MIMI DTO，不裁剪或复制 claim 字段，也不提供 GroupInfo-only 成功分支。
 
-- target MIMI identifier 或 DID / pairwise DID。
-- intended MIMI room URI 和 Arkret `realm_id`。
-- required content profile、MLS capabilities 和 cipher suites。
-- requester provider DID 和 proof。
+**适用资格与目标绑定**：调用 provider MUST 同时是该原生 claim 获准的 source Station；HTTP `Provider-ID`、`Source-Service-ID` 和 request 的 `service_binding.source_id` MUST 逐字相等，`Destination-Service-ID` MUST 等于 `service_binding.destination_id` 及实际接收 authority。source Station MUST 先按原生合同验证 exact requester 的 current device／Agent／已登记 Realm Device authorization，再转发其原签 canonical request。只有外部 provider 身份、目标 holder 同意或有效服务签名，均不能替代原生 participant authorization 与业务范围资格；不满足时 MUST fail closed，不得新增 provider-only requester 分支或由 facade 代签。
 
-响应 MUST 返回 claimed KeyPackage、`claim_id`、`keypackage_ref`、device binding、expiry 和 supported capabilities。KeyPackage 被 Welcome 成功使用后 MUST 进入 `consumed`。不可见用户、无可用设备、policy denied 和不存在目标 SHOULD 使用统一失败形态，避免枚举。
+目标只由标准 claim 的 closed selector 确定，不从 provider 身份、自由 DID、MIMI identifier 或相似标识猜测。请求 MUST 通过原生 current membership／policy／endpoint gates，`required_capabilities` MUST 包含 `mimi.content.v1`，`last_resort_allowed` MUST 缺省或为 `false`，返回包 MUST 为 single-use。能力与 cipher suite 验证沿用原生 KeyPackage／LeafNode 和 MLS group 规则，不另设能力镜像。请求 MUST 携带 §5 已签覆盖的 `MIMI-Room-URI`；接收 authority MUST 在 claim CAS 的同一接受边界核对该 URI 的 current accepted room binding、`intended_realm_id`、`mls_group_id` 与实际 effective scope，错 room／Realm／group 或失效 binding 均不得领取。room URI 只定位既存 binding，不授予权限，也不加入第二套 participant transcript。
+
+**唯一账本与结果恢复**：适配入口 MUST 使用原生 destination authority 的同一 `(source_id, claim_request_id)` ledger 与 canonical request digest；MIMI／原生接口不得按 URL 或 operation id 分出第二个领取域。`Idempotency-Key` MUST 等于 `claim_request_id`，HTTP signature 除 §5 的 provider 覆盖项外还 MUST 覆盖该 header，以及跨 trust domain 时原生 service-to-service 合同要求的两个 trust-domain header。首次成功与 exact replay 均返回原生带状态结果及原签 `claim_outcome`；其中 `claims[]` 已含 `claim_id`、KeyPackage bytes／ref、endpoint binding、expiry 与 capabilities，`claim_receipt` 负责原生签名归责。不得另外要求 MIMI outcome `signature` 或重新签发领取收据。响应丢失后只能按原生规则重放同一 canonical request，或以原 source 身份使用既有 `ak.peer.keys.keypackages.read.claim.v1` 查询；不得换领取身份、改请求或另领替代包。
+
+**Welcome 与核销**：沿用原生 `MlsWelcomeDelivery.keypackage_claim_ref`，逐字引用上述 `claim_id`；Welcome 入队与单次绑定、recipient 查询原 claim、成功处理后 durable 保存群状态，再调用既有 `ak.self.keys.keypackages.command.consume.v1` 的完整规则均由 device-lifecycle §9 规定。发送或返回 KeyPackage 不等于 consumed；同一 claim 不得绑定第二份 Welcome，到期／撤权不得重新成为可用包。到期、重放、错 scope、撤权与 consume 响应丢失均复用原生拒绝／恢复规则，不新增 MIMI consume、查询端点或生命周期。
+
+通过 transport 认证后的目标不存在、不可见、无材料、能力不满足、授权／policy 拒绝 MUST 使用原生不透明 `claim_failed` 外观，不返回目标设备列表、库存数或逐设备失败原因。transport 失败仍按 §5 在读取目标状态前拒绝。该最小 profile 不提供仅凭外部 provider 身份代领的通用互通能力；实现声明仍须满足已登记 profile 的全部要求，不能因本节收敛而豁免验收。
 
 ## 7. Message Submission
 

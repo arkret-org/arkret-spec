@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -138,15 +138,6 @@
           "basis": "domain_subject",
           "reason": "A secret storage item is the domain noun for one stored secret; the object carries its own `item_kind` discriminator, so `item` is the subject rather than a row wrapper.",
           "anchor": "spec/v1/zh/crypto-media/key-backup.md"
-        },
-        {
-          "id": "mimi-group-info-external-literal",
-          "file": "mimi-operations.schema.json",
-          "pointer": "/$defs/group_info",
-          "name": "group_info",
-          "basis": "external_literal",
-          "reason": "RFC 9420 GroupInfo projected verbatim into the MIMI interop surface; the object also carries a `group_info` member of the same external name.",
-          "external_anchor": "RFC 9420 section 12.4.3.2 GroupInfo"
         },
         {
           "id": "saved-item-domain-subject",

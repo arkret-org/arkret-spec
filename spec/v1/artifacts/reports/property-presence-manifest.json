@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10026,
+    "total_properties": 10008,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2317,
+      "optional": 2307,
       "optional_defaulted": 48,
-      "required": 7142,
+      "required": 7134,
       "required_nullable": 312,
       "tristate": 207
     },
@@ -9364,14 +9364,8 @@
         "/$defs/failure/properties/reason_code": "required",
         "/$defs/failure/properties/retry_after_ms": "optional",
         "/$defs/failure/properties/target_ref": "optional",
-        "/$defs/group_info/properties/epoch": "required",
-        "/$defs/group_info/properties/group_info": "required",
-        "/$defs/group_info/properties/mls_group_id": "required",
         "/$defs/identifier/properties/identifier_commitment": "required",
         "/$defs/identifier/properties/kind": "required",
-        "/$defs/keypackage/properties/device_id": "required",
-        "/$defs/keypackage/properties/keypackage_ref": "optional",
-        "/$defs/keypackage/properties/mls_keypackage": "required",
         "/$defs/mimi_identifier_query_outcome/properties/has_more": "required",
         "/$defs/mimi_identifier_query_outcome/properties/matches": "required",
         "/$defs/mimi_identifier_query_outcome/properties/matches/items/properties/identifier_commitment": "required",
@@ -9383,18 +9377,6 @@
         "/$defs/mimi_identifier_query_request_body/properties/privacy_profile": "optional",
         "/$defs/mimi_identifier_query_request_body/properties/proofs": "optional",
         "/$defs/mimi_identifier_query_request_body/properties/requester_id": "optional",
-        "/$defs/mimi_key_material_outcome/properties/failures": "optional",
-        "/$defs/mimi_key_material_outcome/properties/group_info": "optional",
-        "/$defs/mimi_key_material_outcome/properties/keypackages": "optional",
-        "/$defs/mimi_key_material_outcome/properties/signature": "optional",
-        "/$defs/mimi_key_material_request_body/properties/device_id": "required",
-        "/$defs/mimi_key_material_request_body/properties/epoch": "optional",
-        "/$defs/mimi_key_material_request_body/properties/mimi_room_uri": "optional",
-        "/$defs/mimi_key_material_request_body/properties/mls_group_id": "optional",
-        "/$defs/mimi_key_material_request_body/properties/proofs": "optional",
-        "/$defs/mimi_key_material_request_body/properties/realm_id": "optional",
-        "/$defs/mimi_key_material_request_body/properties/requester_id": "required",
-        "/$defs/mimi_key_material_request_body/properties/strand_id": "required",
         "/$defs/mimi_notify_outcome/properties/accepted": "required",
         "/$defs/mimi_notify_outcome/properties/retry_after_ms": "optional",
         "/$defs/mimi_notify_request_body/properties/notification": "required",
@@ -9488,12 +9470,7 @@
         "/$defs/signature/properties/kind": "required",
         "/$defs/signature/properties/payload_digest": "required",
         "/$defs/signature/properties/verification_method": "required"
-      },
-      "conditionally_required": [
-        "/$defs/mimi_key_material_outcome/properties/failures",
-        "/$defs/mimi_key_material_outcome/properties/group_info",
-        "/$defs/mimi_key_material_outcome/properties/keypackages"
-      ]
+      }
     },
     "mls-commit-submission.schema.json": {
       "schema_ids": [

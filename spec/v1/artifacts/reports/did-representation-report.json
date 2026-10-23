@@ -5526,16 +5526,6 @@
       ]
     },
     {
-      "schema_path": "mimi-operations.schema.json#/$defs/mimi_key_material_request_body/properties/requester_id",
-      "property_name": "requester_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "mimi-operations.schema.json#/$defs/mimi_notify_request_body/properties/origin_provider_id",
       "property_name": "origin_provider_id",
       "semantic_category": "responsibility_identity_material",

@@ -1446,6 +1446,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "sdk_conformance_claim": run_sdk_conformance_claim_check,
         "contact_round_kat": run_contact_round_kat_check,
         "contact_current_contract": run_contact_current_contract_check,
+        "mimi_key_material_claim_contract": lambda: subprocess.run([sys.executable, "-B", "-m", "unittest", "tools.test_mimi_key_material_claim_contract"], cwd=ROOT).returncode,
         "handle_claim_kat": run_handle_claim_kat_check,
         "content_bound_event_id_kat": run_content_bound_event_id_check,
         "applet_delivery_authentication_kat": run_applet_delivery_authentication_kat_check,

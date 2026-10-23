@@ -282,8 +282,6 @@ class ProofContextClosureLintTest(unittest.TestCase):
         families = {
             "mimi_identifier_query_request_body": "ak.mimi_identifier_query_request_proof.v1",
             "mimi_identifier_query_outcome": "ak.mimi_identifier_query_outcome_proof.v1",
-            "mimi_key_material_request_body": "ak.mimi_key_material_request_proof.v1",
-            "mimi_key_material_outcome": "ak.mimi_key_material_outcome_proof.v1",
             "mimi_request_consent_request_body": "ak.mimi_request_consent_request_proof.v1",
         }
         def repack_registry(document) -> None:
@@ -305,7 +303,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 node["properties"]["proofs"] = {"$ref": "#/$defs/proofs"}
         errors = self._run_with_mutations({REGISTRY: repack_registry, SCHEMAS / "mimi-operations.schema.json": repack_schema})
         self.assertAnyContains(errors, "is a packed shared-proof leaf")
-        self.assertAnyContains(errors, "5 object families")
+        self.assertAnyContains(errors, f"{len(families)} object families")
 
 
     def test_each_dto_request_family_needs_its_own_row(self) -> None:
