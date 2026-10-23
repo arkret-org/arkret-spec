@@ -66,7 +66,7 @@ invite/locator 必须携带 `service_resolution` 作为发现载体。可选 tra
 
 引入信任分档(normative):**高信任档** = `{locator_ref, consent_grant, shared_realm}`;**发现信任档** = `{handle_claim}`;**低信任档** = `{same_station, explicit_address, 无 / 非法 evidence}`。该分档同时决定 §5 的分级披露行为。
 
-`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.replace` 必须原先由被邀请方(`invite_address.account_id`)为完整 inviter 签发且目标包含 invite；实际接收向其 current authority 检查同 peer 唯一集合当前 invite 条目、窗口与约束。旧 ref 不替代 current，不能复活已关闭项。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
+`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.replace` 必须原先由被邀请方(`invite_address.account_id`)为完整 inviter 签发且目标包含 invite；实际接收向其 current authority 检查同 peer 唯一集合当前 invite 条目、窗口与约束。`consent_grant_ref` 只定位授权材料，不能替代当前集合或复活已关闭项。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
 `InviteAddress` 唯一收件身份是 `account_id`。`handle_claim` evidence 的接收方验证：`handle_claim.claim.handle == evidence.handle`，`handle_claim.claim.subject_account_id` MUST 精确等于 `invite_address.account_id`，`handle_claim.status=verified`，`as_of < fresh_until` 且当前时刻仍在该 signed freshness window 内，`claim.expires_at` 未过期，`claim.proofs[0..1]` 与顶层 `evidence` 均有效，`revocation` 为 null，且 `claim.issuer_id` / Directory / `claim.visibility` / `claim.audience` 满足该账号的 policy 与部署约束。任何校验失败 MUST 降级按低信任 explicit address 处理；不得从 handle、DID Document 或当前服务补齐 AccountId 分量。
 
