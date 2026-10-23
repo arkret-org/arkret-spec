@@ -254,11 +254,15 @@
     },
     "principal_resolution_update_payload": {
       "type": "object",
-      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects did to the envelope actor_id and performs a strict CAS against the signed resolution_projection expected_revision precondition before accepting a method-valid successor.",
+      "description": "Signed PCR resolution CAS payload. expected_revision is the exact accepted identity_resolution source revision in the full Account PCR; the old projection and method boundary are read from that source at the same transaction cut before independent method-native successor verification.",
       "required": [
+        "expected_revision",
         "next"
       ],
       "properties": {
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
         "next": {
           "$ref": "#/$defs/resolution_commitment"
         }
@@ -341,7 +345,7 @@
           }
         }
       ],
-      "description": "One accepted post-genesis resolution successor Event. Its exact resolution-typed current result expected_revision precondition and predecessor fields are mandatory under Event dispatch."
+      "description": "One accepted post-genesis resolution successor Event. payload.expected_revision binds the exact covering Commit of its immediately preceding accepted resolution Event in the same full Account PCR lineage."
     },
     "current_resolution_event": {
       "oneOf": [
@@ -525,7 +529,7 @@
         },
         "next_audit_cursor": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Present exactly when history_complete is false. It equals the value.resolution_event_ref inside the exact expected_revision precondition of the oldest supplied Event, which is that Event's guarded immediate predecessor and the next Event the caller has not seen. The caller continues the audit walk by requesting again with this ref already held; it never skips the omitted segment or reads a payload echo."
+          "description": "Present exactly when history_complete is false. Resolve payload.expected_revision of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown."
         },
         "method_history_evidence": {
           "$ref": "#/$defs/method_history_evidence"

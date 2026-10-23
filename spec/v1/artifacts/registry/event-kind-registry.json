@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.4",
+  "version": "2026-10-23",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T07:58:47+08:00",
+  "generated_at": "2026-10-23T13:01:46+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2776,7 +2776,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one expected_revision guard for ak:result:identity_resolution:null whose value is the whole current resolution_projection; the payload carries only next and mirrors no predecessor coordinate. The Event remains the auditable history source.",
+      "payload": "Owner-authored CAS update of the exact Account PCR identity_resolution singleton. The closed signed payload is {expected_revision, next}; expected_revision is the exact {commit_id, stream_position} of the accepted resolution result. Admission reads the old projection at the same PCR cut and independently verifies a continuous method-native successor. No envelope precondition or whole-value guard is accepted.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
       "result_writes": [
         {
@@ -2811,7 +2811,7 @@
             }
           },
           "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
-          "notes": "identity-did.md line 586 makes this the only post-genesis writer of the create-locked identity_resolution singleton and closes its payload on next, a resolution_commitment. The selector is JSON null because that paragraph addresses the guarded result as identity_resolution:null, exactly as the ak.realm.create write already does. The stored value is the five-member resolution_projection, so the three owner-signed members come from payload.next and the two reducer-derived ones from the carrying envelope; taking them from the payload instead is what the admission contract means by 'predecessor event/history coordinates come only from that signed precondition, never from payload mirrors'."
+          "notes": "identity-did.md section 4.2: the only post-genesis writer of identity_resolution. payload.expected_revision guards its accepted source Commit without copying its old value. The five-member projection takes did, method_history_head and version_id from payload.next, resolution_event_ref and updated_at from the carrying Event. A revision mismatch rejects the entire unit before any writes."
         }
       ],
       "id_source": "not_an_object_id",

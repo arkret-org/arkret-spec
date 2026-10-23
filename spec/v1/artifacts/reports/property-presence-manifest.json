@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10044,
+    "total_properties": 10045,
     "total_schema_documents": 176,
     "by_presence_class": {
       "optional": 2306,
       "optional_defaulted": 48,
-      "required": 7171,
+      "required": 7172,
       "required_nullable": 312,
       "tristate": 207
     },
@@ -8209,6 +8209,7 @@
         "/$defs/principal_resolution_projection_attestation_core/properties/issued_at": "required",
         "/$defs/principal_resolution_projection_attestation_core/properties/method_history_evidence_digest": "required",
         "/$defs/principal_resolution_projection_attestation_core/properties/resolution_projection": "required",
+        "/$defs/principal_resolution_update_payload/properties/expected_revision": "required",
         "/$defs/principal_resolution_update_payload/properties/next": "required",
         "/$defs/public_principal_resolution/properties/account_id": "required",
         "/$defs/public_principal_resolution/properties/method_history_evidence": "required",
