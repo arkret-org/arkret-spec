@@ -97,7 +97,11 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
 
     def test_directory_resolution_uses_public_metadata_entry(self) -> None:
         directory = self.documents["directory"]["$defs"]
-        self.assertEqual(directory["directory_realm_resolution_response_body"].get("$ref"), "#/$defs/public_realm_directory_entry")
+        self.assertIn("public_realm_directory_entry", directory)
+        self.assertNotIn("directory_realm_resolution_response_body", directory)
+        openapi = (ROOT / "spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml").read_text(encoding="utf-8")
+        self.assertIn("$ref: '#/components/schemas/PublicRealmDirectoryEntry'", openapi)
+        self.assertNotIn("DirectoryRealmResolutionResponseBody", openapi)
         self.assertNotIn("realm_preview", directory)
         self.assertNotIn("directory_target_resolution_outcome", directory)
 

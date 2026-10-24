@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T15:53:32+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -766,7 +766,7 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry",
       "notes": ""
     },
     {
@@ -2610,8 +2610,8 @@
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "/",
       "retry_safe": true,
-      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body",
+      "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
       "durable_effect": {
         "kind": "none",
         "rationale": "No Event is admitted, but the Station durably records the current subject generation and exact signed request before returning"
@@ -3015,7 +3015,7 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response_body",
       "durable_effect": {
         "kind": "event_log",

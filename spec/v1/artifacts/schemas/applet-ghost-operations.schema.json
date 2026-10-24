@@ -5,20 +5,13 @@
   "description": "Closed preview, commit, and outcome DTOs for receiver-side Applet-managed Ghost provisioning. The commit carrier is exactly the signed authoring request plus its role-neutral managed-actor bundle.",
   "oneOf": [
     {
-      "$ref": "#/$defs/ghost_preview_request_body"
+      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
     },
     {
-      "$ref": "#/$defs/ghost_preview_response_body"
+      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_response_body"
     }
   ],
   "$defs": {
-    "ghost_preview_request_body": {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
-    },
-    "ghost_preview_response_body": {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
-      "x-arkret-name-role": "response_body"
-    },
     "existing_managed_actor": {
       "type": "object",
       "required": [

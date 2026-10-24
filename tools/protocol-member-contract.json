@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:2288c04d291f4a9a2a29dfc1116a2654177a239d0822e1d16433e2e3c4ec1e29",
+  "contract_digest": "sha256:448aed30449bbedce9f1b3c7f6a0f955db415f5b657e936c7ef81308b1cd7d59",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -8146,7 +8146,7 @@
             "$ref": "./principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body"
           },
           {
-            "$ref": "#/$defs/agent_sidecar_ensure_response_body"
+            "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_response_body"
           },
           {
             "$ref": "#/$defs/agent_sidecar_view"
@@ -9847,10 +9847,6 @@
                 "failed"
               ]
             }
-          },
-          "agent_sidecar_ensure_response_body": {
-            "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
-            "x-arkret-name-role": "response_body"
           },
           "agent_sidecar_mls_context": {
             "type": "object",
@@ -12844,20 +12840,13 @@
         "description": "Closed preview, commit, and outcome DTOs for receiver-side Applet-managed Ghost provisioning. The commit carrier is exactly the signed authoring request plus its role-neutral managed-actor bundle.",
         "oneOf": [
           {
-            "$ref": "#/$defs/ghost_preview_request_body"
+            "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
           },
           {
-            "$ref": "#/$defs/ghost_preview_response_body"
+            "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_response_body"
           }
         ],
         "$defs": {
-          "ghost_preview_request_body": {
-            "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
-          },
-          "ghost_preview_response_body": {
-            "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
-            "x-arkret-name-role": "response_body"
-          },
           "existing_managed_actor": {
             "type": "object",
             "required": [
@@ -29250,7 +29239,7 @@
             "$ref": "#/$defs/contact_request_response_body"
           },
           {
-            "$ref": "./contact-operations.schema.json#/$defs/contact_respond_request_body"
+            "$ref": "./contact-operations.schema.json#/$defs/contact_accept_request_body"
           },
           {
             "$ref": "#/$defs/contact_respond_response_body"
@@ -31095,10 +31084,6 @@
               }
             ],
             "x-arkret-name-role": "response_body"
-          },
-          "contact_respond_request_body": {
-            "$ref": "#/$defs/contact_accept_request_body",
-            "x-arkret-name-role": "request_body"
           },
           "contact_scope": {
             "type": "string",
@@ -43707,7 +43692,7 @@
             "$ref": "#/$defs/directory_resolve_realm_request_body"
           },
           {
-            "$ref": "#/$defs/directory_realm_resolution_response_body"
+            "$ref": "#/$defs/public_realm_directory_entry"
           }
         ],
         "$defs": {
@@ -43794,10 +43779,6 @@
               }
             },
             "additionalProperties": false
-          },
-          "directory_realm_resolution_response_body": {
-            "$ref": "#/$defs/public_realm_directory_entry",
-            "x-arkret-name-role": "response_body"
           }
         }
       }
@@ -111491,7 +111472,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:64914138b7965bdfeb6ded3d00fd7713216c3fa768bd04339c5853e64c6309ba"
+      "digest": "sha256:c446edb2455ee5cc8e8307e60191d2cedc086c339a9cccb6754f3a48d2dc9d4d"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -112063,7 +112044,7 @@
           "$ref": "../schemas/contact-operations.schema.json#/$defs/contact_request_response_body"
         },
         "ContactRespondRequestBody": {
-          "$ref": "../schemas/contact-operations.schema.json#/$defs/contact_respond_request_body"
+          "$ref": "../schemas/contact-operations.schema.json#/$defs/contact_accept_request_body"
         },
         "ContactRespondResponseBody": {
           "$ref": "../schemas/contact-operations.schema.json#/$defs/contact_respond_response_body"
@@ -112159,8 +112140,8 @@
         "DirectConversationResolveResponseBody": {
           "$ref": "../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body"
         },
-        "DirectoryRealmResolutionResponseBody": {
-          "$ref": "../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body"
+        "PublicRealmDirectoryEntry": {
+          "$ref": "../schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry"
         },
         "DirectoryRealmSearchResponseBody": {
           "$ref": "../schemas/directory-operations.schema.json#/$defs/directory_realm_search_response_body"
@@ -112213,10 +112194,10 @@
           "$ref": "../schemas/query.schema.json#/$defs/field_filter"
         },
         "GhostPreviewRequestBody": {
-          "$ref": "../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body"
+          "$ref": "../schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
         },
         "GhostPreviewResponseBody": {
-          "$ref": "../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body"
+          "$ref": "../schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_response_body"
         },
         "IdentityAbandonmentRequestBody": {
           "$ref": "../schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body"
@@ -122297,7 +122278,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/DirectoryRealmResolutionResponseBody"
+                    "$ref": "#/components/schemas/PublicRealmDirectoryEntry"
                   }
                 }
               }

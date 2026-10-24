@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.3",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-23T13:01:46+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -497,11 +497,21 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "public_metadata",
+          "indexed_at",
+          "expires_at"
+        ],
+        "properties": [
+          "realm_id",
+          "public_metadata",
+          "indexed_at",
+          "expires_at"
+        ],
+        "closed": true
       }
     },
     {
@@ -4938,11 +4948,16 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request"
+        ],
+        "properties": [
+          "authoring_request",
+          "existing_managed_actor"
+        ],
+        "closed": true
       }
     },
     {
@@ -5707,11 +5722,69 @@
       "operation_id": "ak.self.contact.command.respond.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
+        "schema_kind": "oneOf",
+        "required": [
+          "phase",
+          "operation_id",
+          "idempotency_key"
+        ],
+        "properties": [
+          "phase",
+          "operation_id",
+          "idempotency_key",
+          "peer",
+          "request_event_ref",
+          "action",
+          "granted_to_peer_scopes",
+          "reservation_handle",
+          "signed_event"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
+            "schema_kind": "object",
+            "required": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "peer",
+              "request_event_ref",
+              "action",
+              "granted_to_peer_scopes"
+            ],
+            "properties": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "peer",
+              "request_event_ref",
+              "action",
+              "granted_to_peer_scopes"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
+            "schema_kind": "object",
+            "required": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "reservation_handle",
+              "signed_event"
+            ],
+            "properties": [
+              "phase",
+              "operation_id",
+              "idempotency_key",
+              "reservation_handle",
+              "signed_event"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response_body",

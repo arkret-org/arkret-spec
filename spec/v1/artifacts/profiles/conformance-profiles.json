@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-24.1",
-  "generated_at": "2026-10-24T14:22:45+08:00",
+  "version": "2026-10-24.2",
+  "generated_at": "2026-10-24T15:53:32+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1969,7 +1969,7 @@
       ],
       "wire_contract_refs": [
         "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
-        "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
         "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
         "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",

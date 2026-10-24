@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T15:53:32+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -247,10 +247,10 @@
       "http": "POST /_arkret/find/directory/resolve-realm",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryResolveRealmRequestBody",
-        "response": "#/components/schemas/DirectoryRealmResolutionResponseBody"
+        "response": "#/components/schemas/PublicRealmDirectoryEntry"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1830,8 +1830,8 @@
       "surface_class": "interop_bridge",
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body",
+      "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/GhostPreviewRequestBody",
         "response": "#/components/schemas/GhostPreviewResponseBody"
@@ -2205,7 +2205,7 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRespondRequestBody",

@@ -14,7 +14,7 @@
       "$ref": "#/$defs/directory_resolve_realm_request_body"
     },
     {
-      "$ref": "#/$defs/directory_realm_resolution_response_body"
+      "$ref": "#/$defs/public_realm_directory_entry"
     }
   ],
   "$defs": {
@@ -101,10 +101,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "directory_realm_resolution_response_body": {
-      "$ref": "#/$defs/public_realm_directory_entry",
-      "x-arkret-name-role": "response_body"
     }
   }
 }

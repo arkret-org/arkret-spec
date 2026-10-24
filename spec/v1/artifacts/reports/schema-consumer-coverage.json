@@ -45,8 +45,8 @@
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 7,
-      "inbound": 56,
-      "outbound": 67,
+      "inbound": 55,
+      "outbound": 66,
       "prose": 106,
       "prose_only": 4,
       "schema_reference": 166,
@@ -907,8 +907,6 @@
       "schema_id": "ak.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "consumers": {
-        "inbound": "fragment",
-        "outbound": "fragment",
         "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
@@ -933,6 +931,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.edge.applet.managed_actor.command.author.v1",
+          "ak.self.applet.ghost.command.preview.v1",
           "ak.self.applet.install.command.preview.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."

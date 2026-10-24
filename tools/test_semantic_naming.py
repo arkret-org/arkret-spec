@@ -7,11 +7,16 @@ import tempfile
 from pathlib import Path
 from jsonschema import Draft202012Validator
 
-from .artifact_lint.semantic_naming import capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors
+from .artifact_lint.semantic_naming import canonical_body_alias_errors,capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors
 from .protocol_member_contract import REFERENCE, check, compare, contract_shape, derive, registry_contract_shape
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_canonical_body_alias_cannot_reintroduce_an_equivalent_second_name(self):
+        alias = {'$ref': './canonical.schema.json#/$defs/receipt', 'x-arkret-name-role': 'response_body'}
+        self.assertTrue(canonical_body_alias_errors('issue_response_body', alias))
+        self.assertEqual(canonical_body_alias_errors('issue_response_body', {**alias, 'required': ['nonce']}), [])
+
     def test_capture_prose_references_follow_the_schema_member(self):
         self.assertEqual(capture_member_reference_errors('recording_transition.capture_metadata.retention'), [])
         self.assertTrue(capture_member_reference_errors('recording_transition.result.retention'))

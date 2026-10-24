@@ -531,7 +531,7 @@ components:
     ContactRequestResponseBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_response_body
     ContactRespondRequestBody:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request_body
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_accept_request_body
     ContactRespondResponseBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_response_body
     ContactScopeUpdateRequestBody:
@@ -595,8 +595,6 @@ components:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request_body
     DirectConversationResolveResponseBody:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body
-    DirectoryRealmResolutionResponseBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body
     DirectoryRealmSearchResponseBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_search_response_body
     DirectoryResolveRealmRequestBody:
@@ -632,9 +630,9 @@ components:
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
     GhostPreviewRequestBody:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body
     GhostPreviewResponseBody:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body
+      $ref: ../schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_response_body
     IdentityAbandonmentRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body
     IdentityAbandonmentResponseBody:
@@ -809,6 +807,8 @@ components:
       $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
     Problem:
       $ref: ../schemas/http-problem-details.schema.json
+    PublicRealmDirectoryEntry:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry
     PushNotifyRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_request_body
     PushNotifyResponseBody:
@@ -8112,7 +8112,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryRealmResolutionResponseBody'
+                $ref: '#/components/schemas/PublicRealmDirectoryEntry'
       requestBody:
         required: true
         content:

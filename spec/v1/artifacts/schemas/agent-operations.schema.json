@@ -65,7 +65,7 @@
       "$ref": "./principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_ensure_response_body"
+      "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_response_body"
     },
     {
       "$ref": "#/$defs/agent_sidecar_view"
@@ -1766,10 +1766,6 @@
           "failed"
         ]
       }
-    },
-    "agent_sidecar_ensure_response_body": {
-      "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
-      "x-arkret-name-role": "response_body"
     },
     "agent_sidecar_mls_context": {
       "type": "object",

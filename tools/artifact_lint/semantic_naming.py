@@ -76,6 +76,14 @@ def member_role_errors(name: str, node: dict) -> list[str]:
     return []
 
 
+def canonical_body_alias_errors(name: str, node: dict) -> list[str]:
+    annotations = {'$ref', 'title', 'description', '$comment', 'x-arkret-name-role'}
+    normalized = snake(name) if name[:1].isupper() else name
+    if normalized.endswith(('_request_body', '_response_body')) and '$ref' in node and not (set(node) - annotations):
+        return ['use the canonical referenced type directly instead of a duplicate Body alias']
+    return []
+
+
 def enum_errors(node: dict, owner: str | None = None) -> list[str]:
     values = node.get("enum", [node["const"]] if "const" in node else [])
     if not values:
@@ -160,6 +168,8 @@ def check_semantic_naming(lint: Lint) -> None:
             if "/$defs/" in pointer and pointer.rsplit("/$defs/",1)[-1].count("/") == 0:
                 for error in type_role_errors(pointer.rsplit("/",1)[-1],role_shape(node)):
                     lint.fail(path,f"{pointer}: {error}")
+                for error in canonical_body_alias_errors(pointer.rsplit('/', 1)[-1], node):
+                    lint.fail(path, f'{pointer}: {error}')
             if pointer.startswith("/components/schemas/") and pointer.count("/") == 3:
                 for error in type_role_errors(pointer.rsplit("/",1)[-1],role_shape(node)):
                     lint.fail(path,f"{pointer}: {error}")
