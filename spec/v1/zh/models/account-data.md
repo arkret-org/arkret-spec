@@ -77,8 +77,8 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 ### 5.2 冲突响应与客户端重试
 
-`cas_conflict` 与 `resource.get` 的 `not_found` MUST 使用闭合 details 形态
-[`account-data-operations.schema.json#/$defs/account_data_cas_conflict_details`](../../artifacts/schemas/account-data-operations.schema.json)：至少包含 `account_data_key` 与 `current_revision`；当前持有 live value 时 MUST 附带 `current_entry`，使客户端无需第二次往返即可解密、合并并发出**恰好一次**新的 CAS 写。key 未设置或处于 tombstone 时 MUST 省略 `current_entry`，`current_revision` 仍然权威。
+`cas_conflict` 与 `resource.get` 的 `not_found` MUST 使用闭合的 Problem 扩展片段
+[`account-data-operations.schema.json#/$defs/account_data_revision_problem_extensions`](../../artifacts/schemas/account-data-operations.schema.json)：字段平铺于 RFC 9457 Problem 的顶层扩展成员，不增加 details 包装。至少包含 `account_data_key` 与 `current_revision`；当前持有 live value 时 MUST 附带 `current_entry`，使客户端无需第二次往返即可解密、合并并发出**恰好一次**新的 CAS 写。key 未设置或处于 tombstone 时 MUST 省略 `current_entry`，`current_revision` 仍然权威。
 
 客户端重试循环 MUST 是：读取当前 `(revision, content)` → 解密 → 按该 data type 的领域规则（例如 HLC last-writer-wins、delete-wins、集合并）在明文上合并 → 用 `expected_server_revision = current_revision` 重新加密写回。领域规则因此运行在客户端，而不是被伪装成服务端能力。
 
@@ -86,7 +86,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 `deletion_mode` 由 registry row 声明：
 
-- `physical_delete`：`ak.self.account_data.resource.delete.v1` 写入一个有版本的 tombstone，`revision` 推进；`resource.get` 返回 `not_found` 并在 details 中给出 `current_revision`。服务端 MAY 在不短于 `account_data_tombstone_retention_ms`（见 [`../conformance/scalability-constraints.md` §7](../conformance/scalability-constraints.md)）后 GC tombstone 元数据，但 MUST 永久保留 `revision` 高水位。该 key 之后 MAY 被重新创建：调用方以 `expected_server_revision = current_revision` 写入即可。
+- `physical_delete`：`ak.self.account_data.resource.delete.v1` 写入一个有版本的 tombstone，`revision` 推进；`resource.get` 返回 `not_found` 并在 Problem 的顶层扩展成员中给出 `current_revision`。服务端 MAY 在不短于 `account_data_tombstone_retention_ms`（见 [`../conformance/scalability-constraints.md` §7](../conformance/scalability-constraints.md)）后 GC tombstone 元数据，但 MUST 永久保留 `revision` 高水位。该 key 之后 MAY 被重新创建：调用方以 `expected_server_revision = current_revision` 写入即可。
 - `value_tombstone`：删除态本身是一个通过 `ak.account_data.set` 写入的 value（例如 `status="deleted"`）。这类 key MUST NOT 使用 `resource.delete`，因为其领域要求删除是**不可复活的终态**，必须在 tombstone GC 之后仍然可被任何设备观察到。
 
 ### 5.4 登记要求

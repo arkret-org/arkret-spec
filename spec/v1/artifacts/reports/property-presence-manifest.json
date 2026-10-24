@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10295,
+    "total_properties": 10298,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2435,
       "optional_defaulted": 47,
-      "required": 7294,
+      "required": 7297,
       "required_nullable": 312,
       "tristate": 207
     },
@@ -1989,9 +1989,6 @@
         "ak.schema.account_data_operations.v1"
       ],
       "properties": {
-        "/$defs/account_data_cas_conflict_details/properties/account_data_key": "required",
-        "/$defs/account_data_cas_conflict_details/properties/current_entry": "optional",
-        "/$defs/account_data_cas_conflict_details/properties/current_revision": "required",
         "/$defs/account_data_delete_request_body/properties/set_event": "required",
         "/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event": "required",
         "/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event/properties/kind": "required",
@@ -2006,7 +2003,10 @@
         "/$defs/account_data_replace_request_body/properties/set_event": "required",
         "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event": "required",
         "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/kind": "required",
-        "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/payload": "required"
+        "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/payload": "required",
+        "/$defs/account_data_revision_problem_extensions/properties/account_data_key": "required",
+        "/$defs/account_data_revision_problem_extensions/properties/current_entry": "optional",
+        "/$defs/account_data_revision_problem_extensions/properties/current_revision": "required"
       }
     },
     "account-device-signer-evidence.schema.json": {
@@ -9321,6 +9321,9 @@
         "ak.schema.invite.v1"
       ],
       "properties": {
+        "/$defs/invite_live_target_occupied_problem_extensions/properties/create_event_id": "required",
+        "/$defs/invite_live_target_occupied_problem_extensions/properties/invite_id": "required",
+        "/$defs/invite_live_target_occupied_problem_extensions/properties/reason_code": "required",
         "/$defs/third_party_invite/allOf/0/if/properties/oob_code_kind": "required",
         "/$defs/third_party_invite/allOf/1/if/properties/oob_code_kind": "required",
         "/$defs/third_party_invite/properties/display_name_hint": "optional",

@@ -790,6 +790,36 @@
       },
       "additionalProperties": false,
       "x-arkret-name-role": "response_body"
+    },
+    "invite_live_target_occupied_problem_extensions": {
+      "type": "object",
+      "description": "Closed top-level RFC 9457 extensions for failed_precondition with reason_code=invite_live_target_occupied. The occupying create_event_id determines invite_id by retype; no Event is accepted and no current write is produced.",
+      "x-arkret-name-role": "problem_extensions",
+      "required": [
+        "reason_code",
+        "invite_id",
+        "create_event_id"
+      ],
+      "properties": {
+        "reason_code": {
+          "const": "invite_live_target_occupied",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions/properties/reason_code",
+            "owner": "invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions/properties/reason_code",
+            "values": [
+              "invite_live_target_occupied"
+            ]
+          }
+        },
+        "invite_id": {
+          "$ref": "#/properties/id"
+        },
+        "create_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "patternProperties": {

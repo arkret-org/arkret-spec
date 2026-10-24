@@ -39,9 +39,9 @@ FORBIDDEN_SYMBOLIC_LITERALS = frozenset(
     }
 )
 
-# NC-TYPE-001 closed wrapper table. A component may end in at most one of these;
-# a name ending in two stacked wrapper words (RequestBodyBody) is a rename
-# artifact, not a domain noun.
+# NC-TYPE-001 role vocabulary. Different roles can compose when the contract
+# requires it (SnapshotRef, ListResponseBody); repeated copies of one role
+# such as RequestBodyBody are rename artifacts, not additional domain meaning.
 STRUCTURAL_WRAPPER_WORDS = (
     "RequestBody",
     "ResponseBody",

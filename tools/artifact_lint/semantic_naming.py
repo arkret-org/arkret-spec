@@ -17,7 +17,9 @@ ROLE_TAILS = {
     "attempt_outcome": "outcome", "terminal_outcome": "outcome",
     "planned_event": "planned_event", "status_record": "record",
     "progress": "progress", "retained_fact": "record", "keyed_entry": "entry",
+    "lookup_response": "lookup_response_body", "signature_input": "signature_input",
 }
+NAME_ROLES = set(ROLE_TAILS) | {"current_state", "domain_value"}
 MEMBER_PATTERNS = {
     "count": r"(?:[a-z][a-z0-9_]*_)?count(?:_per_[a-z][a-z0-9_]*)?",
     "instant": r"[a-z][a-z0-9_]*_at",
@@ -47,6 +49,9 @@ def type_role_errors(name: str, node: dict) -> list[str]:
     role = node.get("x-arkret-name-role")
     normalized = snake(name) if name[:1].isupper() else name
     errors = []
+    if 'x-arkret-name-role' in node and (not isinstance(role, str) or role not in NAME_ROLES):
+        errors.append('unknown semantic type role; declare the actual registered contract role')
+        role = None
     if normalized in {"result", "results"} or normalized.endswith(("_result", "_results")):
         errors.append("Result is not a semantic protocol role")
     if normalized in {"row", "rows"} or normalized.endswith(("_row", "_rows")) or role == "row":
@@ -65,6 +70,12 @@ def type_role_errors(name: str, node: dict) -> list[str]:
                                              for value in child.get("enum", [child.get("const")])):
                 errors.append("Outcome admits an unsettled status")
     props = node.get("properties", {})
+    if (normalized == 'problem' or normalized.endswith('_problem')) and node.get('type') == 'object' and props:
+        standard = {'type', 'title', 'status', 'detail'}
+        if not standard <= set(props) or not standard <= set(node.get('required', [])):
+            errors.append('Problem names a complete RFC 9457 body; a field fragment uses ProblemExtensions')
+    if role == 'problem_extensions' and {'type', 'title', 'status', 'detail', 'instance'} & set(props):
+        errors.append('ProblemExtensions must not redeclare standard Problem members')
     if normalized.endswith('_snapshot'):
         boundary = node.get('x-arkret-snapshot-boundary', {})
         required = set(node.get('required', []))
@@ -103,6 +114,8 @@ def member_role_errors(name: str, node: dict) -> list[str]:
                     child.get('enum', [child.get('const')]) if isinstance(value, str)):
                 return ['Outcome member admits an unsettled status in its processing scope']
     role = node.get("x-arkret-member-role")
+    if 'x-arkret-member-role' in node and (not isinstance(role, str) or role not in MEMBER_PATTERNS):
+        return ['unknown semantic member role; role metadata cannot waive the naming contract']
     pattern = MEMBER_PATTERNS.get(role)
     if pattern and not re.fullmatch(pattern, name):
         return [f"{role} member violates its positive name grammar"]
@@ -225,6 +238,7 @@ def retired_contract_reference_errors(text: str) -> list[str]:
                     'AccountCurrentView': 'AccountStateView'}
     replacements.update({'PeerKeyPackagesClaimRequestBody': 'KeyPackagesClaimRequestBody', 'PeerKeyPackagesClaimResponseBody': 'PeerKeyPackagesClaimCommandResponseBody', 'ErasureReceiptResource': 'ErasureReceiptPackage', 'ErasureReceiptSubmitRequestBody': 'ErasureReceiptPackage', 'AppletThirdPartyLocationLookupResponseBody': 'AppletRealmView'})
     replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'DidBindingWitness', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
+    replacements.update({'AccountDataCasConflict': 'AccountDataRevisionProblemExtensions', 'AccountDataCasConflictDetails': 'AccountDataRevisionProblemExtensions', 'account_data_cas_conflict_details': 'account_data_revision_problem_extensions', 'InviteLiveTargetOccupiedProblem': 'InviteLiveTargetOccupiedProblemExtensions'})
     return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
             if re.search(r'\b' + old + r'\b', text)]
 

@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:db4fd3c351a9980a141e7178fab079fb7731b8412e67c96b3a0d8b986e936889",
+  "contract_digest": "sha256:17111b0454ab3d1451db3ba67492d07221f9178539c709f5ae26954302ef3d73",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -444,7 +444,7 @@
             "$ref": "#/$defs/account_data_delete_response_body"
           },
           {
-            "$ref": "#/$defs/account_data_cas_conflict_details"
+            "$ref": "#/$defs/account_data_revision_problem_extensions"
           }
         ],
         "$defs": {
@@ -625,9 +625,9 @@
             "additionalProperties": false,
             "x-arkret-name-role": "response_body"
           },
-          "account_data_cas_conflict_details": {
+          "account_data_revision_problem_extensions": {
             "type": "object",
-            "description": "Closed error.details payload for cas_conflict and not_found on ak.self.account_data.resource.*. It always carries the current revision so the caller can decrypt, re-apply its domain merge rule and issue exactly one new compare-and-set write without a second round trip.",
+            "description": "Closed RFC 9457 Problem extension members for cas_conflict and not_found on ak.self.account_data.resource.*. Members are merged at the top level of Problem, never nested in details. The current revision allows one bounded caller-side merge and CAS retry.",
             "required": [
               "account_data_key",
               "current_revision"
@@ -644,7 +644,8 @@
                 "description": "Present only when the key currently holds a live value. Omitted when the key is unset or holds a tombstone; current_revision is still authoritative in that case."
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-arkret-name-role": "problem_extensions"
           }
         }
       }
@@ -72325,6 +72326,36 @@
             },
             "additionalProperties": false,
             "x-arkret-name-role": "response_body"
+          },
+          "invite_live_target_occupied_problem_extensions": {
+            "type": "object",
+            "description": "Closed top-level RFC 9457 extensions for failed_precondition with reason_code=invite_live_target_occupied. The occupying create_event_id determines invite_id by retype; no Event is accepted and no current write is produced.",
+            "x-arkret-name-role": "problem_extensions",
+            "required": [
+              "reason_code",
+              "invite_id",
+              "create_event_id"
+            ],
+            "properties": {
+              "reason_code": {
+                "const": "invite_live_target_occupied",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions/properties/reason_code",
+                  "owner": "invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions/properties/reason_code",
+                  "values": [
+                    "invite_live_target_occupied"
+                  ]
+                }
+              },
+              "invite_id": {
+                "$ref": "#/properties/id"
+              },
+              "create_event_id": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "patternProperties": {
@@ -111436,7 +111467,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:0d4f810bd40f961b748e83602f391f447e79087d3512d3c2a5179b011fa63864"
+      "digest": "sha256:915bc811d4bd80bafe090d47222eda311487012c71ee3b1efefa51d870d61883"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -111452,7 +111483,7 @@
     },
     {
       "file": "error-code-registry.json",
-      "digest": "sha256:72d209ead1082e2761a8cce303fe16871b0dab02a37d5267670bd91ed36c7cc2"
+      "digest": "sha256:61e108ae3abe874a694c8c3cf5597aeec7e7c78eb552a7c5a200a535fc18f166"
     },
     {
       "file": "event-kind-vector-gap-registry.json",
@@ -111496,7 +111527,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:e03087e9349f40aced3425a09a1c670ab7aa3e021a605f11f43fbd517ae2b0eb"
+      "digest": "sha256:9e401511e7b55118e9d1dffb7fb5bfec87394827daa614d5ceb9aec0193b1f7c"
     },
     {
       "file": "operation-clause-registry.json",
@@ -111504,7 +111535,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:e66e57c905614e14707570f66ab31917de8812c83db09efc5c53150b8b2d4c5c"
+      "digest": "sha256:e1b330485a998d29494f185d0fdefe5f89c2c163d7f701e1efbfa900bac12e50"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -112187,6 +112218,9 @@
         },
         "InviteDeliveryResponseBody": {
           "$ref": "../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body"
+        },
+        "InviteLiveTargetOccupiedProblemExtensions": {
+          "$ref": "../schemas/invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions"
         },
         "InviteLocatorIssueRequestBody": {
           "$ref": "../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body"

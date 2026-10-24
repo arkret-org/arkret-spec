@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.5",
+  "version": "2026-10-25.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T23:34:31+08:00",
+  "generated_at": "2026-10-25T06:36:16+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -15824,7 +15824,7 @@
         "http": "GET /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Get",
         "mq": "self.account_data.resource.get",
-        "notes": "Reads one account_data entry by account_data_key key, including its compare-and-set revision. Returns not_found when the key is unset or holds a tombstone; the not_found error.details carry account_data_cas_conflict_details so the caller still learns current_revision.",
+        "notes": "Reads one account_data entry by account_data_key key, including its compare-and-set revision. Returns not_found when the key is unset or holds a tombstone; the not_found Problem extension members carry account_data_revision_problem_extensions so the caller still learns current_revision.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
@@ -15834,7 +15834,7 @@
         "http": "PUT /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Replace",
         "mq": "self.account_data.resource.replace",
-        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_cas_conflict_details and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -18369,8 +18369,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-24.5",
-    "generated_at": "2026-10-24T23:34:31+08:00",
+    "version": "2026-10-25.1",
+    "generated_at": "2026-10-25T06:40:18+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

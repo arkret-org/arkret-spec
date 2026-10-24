@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-24.3",
-  "generated_at": "2026-10-24T16:57:30+08:00",
+  "version": "2026-10-25.1",
+  "generated_at": "2026-10-25T06:36:16+08:00",
   "source_of_truth": true,
   "codes": [
     {
@@ -4101,7 +4101,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no current state write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3.",
+      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no current state write; the closed top-level Problem extensions is InviteLiveTargetOccupiedProblemExtensions carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3.",
       "status": "active"
     },
     {

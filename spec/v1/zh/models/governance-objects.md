@@ -271,12 +271,12 @@ approval constraint。它 MUST 在跨 grant 合并
 `request_canonical_digest`。
 
 **未满足时的拒绝形态**：`effective_approval_required=true` 而计票不足时，该操作 MUST NOT 被接受。
-准入返回既有的 `error.code=claim_required`，`error.details.reason_code=approval_required`；
+准入返回既有的 RFC 9457 Problem（`type=https://arkret.org/problems/claim_required`），顶层扩展成员 `reason_code=approval_required`；
 v1 **不**为本层新造错误码或 reason code。该判定属 `require_review` 类而非 `deny` 类：
 补齐证据后重试是规范给出的路径，实现 MUST NOT 把它记成对该 actor 的永久拒绝，
 也 MUST NOT 降级成 `quarantine`。
 
-`error.details` MUST 携带足以让调用方行动的信息：本次的 action token 与
+Problem 顶层扩展成员 MUST 携带足以让调用方行动的信息：本次的 action token 与
 `effective_approval_quorum`，以及已计入的票数。它 **MUST NOT** 枚举命中了哪些配置的 subject
 （`policy_id` / `action_id`），否则一个没有 Policy 读权限的调用方会从错误信封里推断出
 Realm 内 Policy 对象的存在与命名。
@@ -381,7 +381,7 @@ Schema id: `ak.schema.invite.v1`
   - 直接邀请的 live 集合是 `{pending}`。`claimed` **不属于**该集合：它只用于 3PID 流程（见本节 state 转换条），直接 DID invite 永远到不了 `claimed`。
   - `ak.invite.create` MUST 在同一个 Event 内原子写三条 current state：`invite_lifecycle`（`(initial) -> pending`）、`invite_directed_invitee`（create-locked 写入 `{invitee_account_id}`，是本 slot 的反向索引，见下方释放写两条）与该 slot（`set {create_event_id}`）。`invite_id` 是稳定领域身份；治理 Station 在提交位置验证该 ID 尚未存在。后续每一条 state-changing Event MUST 在 payload 里声明它读到的前态 `previous_state`（与 `agent_deactivate_payload.previous_status` 同一惯用法），reducer 在接纳事务内拿它与冻结前态比较，因此一条按 `pending` 编写的 Event 不能落在已变成 `claimed` 的 invite 上；`previous_state` 是**声明的前态**，不是生产者侧的顺序或因果依据。冻结前态已是终态时按下方终态条返回 `invite_already_terminal`；冻结前态是非终态但不等于声明值时，reducer MUST 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝（与 [`common-fields.md` §5.2](./common-fields.md) 的同态／非法前态拒绝同一惯用法），MUST NOT 改写为 `cas_conflict`，也不另立专用 reason：客户端的唯一恢复动作都是重读 `invite_lifecycle` 后按新前态重新编写。
   - 两条并发 create 争用同一 `commit-ordered projection` 槽位。命令按唯一安全日志顺序执行，reducer 在提交位置读该槽位的冻结前态；至多一个占槽成功，另一个得到持久拒绝结果。数据库唯一索引只是实现保护，不能替代协议状态。
-  - **重复 create 的唯一结果是无效重复**：命中已占用的 slot 时，reducer MUST 以 `failed_precondition` + `reason_code="invite_live_target_occupied"` 原子拒绝。该 Event **不被接受**、不进 canonical history、不产生任何 current state write、投影或通知。closed `error.details` 是 [`service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem`](../../artifacts/schemas/service-operation-dtos.schema.json)，即 `{reason_code, invite_id, create_event_id}`；提交者必须先持有 invite capability 才会走到这一步，回显占用者不构成额外披露。MUST NOT 把它旁路成 `cas_conflict`（[`../sync/service-http-binding.md` §3.1.4](../sync/service-http-binding.md) 明禁把 state-changing Event 的 precondition 失败改写为 `cas_conflict`）。**不存在「语义幂等重投」分支**：`invite_id` 是 `retype(create_event.event_id)`，第二条 Event 天然算不出第一条的 id；`idempotent_replay="same_event_identity_replay_noop"` 只覆盖同一 Event 的重投；把它当成幂等成功会让一条已进 history 的 Event 携带零 registered write，与「每个 kind MUST 派生恰好一条匹配 write」直接冲突。
+  - **重复 create 的唯一结果是无效重复**：命中已占用的 slot 时，reducer MUST 以 `failed_precondition` + `reason_code="invite_live_target_occupied"` 原子拒绝。该 Event **不被接受**、不进 canonical history、不产生任何 current state write、投影或通知。closed Problem 扩展片段 是 [`invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions`](../../artifacts/schemas/service-operation-dtos.schema.json)，即 `{reason_code, invite_id, create_event_id}`；提交者必须先持有 invite capability 才会走到这一步，回显占用者不构成额外披露。MUST NOT 把它旁路成 `cas_conflict`（[`../sync/service-http-binding.md` §3.1.4](../sync/service-http-binding.md) 明禁把 state-changing Event 的 precondition 失败改写为 `cas_conflict`）。**不存在「语义幂等重投」分支**：`invite_id` 是 `retype(create_event.event_id)`，第二条 Event 天然算不出第一条的 id；`idempotent_replay="same_event_identity_replay_noop"` 只覆盖同一 Event 的重投；把它当成幂等成功会让一条已进 history 的 Event 携带零 registered write，与「每个 kind MUST 派生恰好一条匹配 write」直接冲突。
   - **客户端语义（normative）**：收到 `invite_live_target_occupied` 后 MUST 读取已有 Invite。占用者为 `pending`；有效且未消费时，以原 `invite_id` 为稳定幂等键恢复 private delivery，复用冻结目标与原期限，不重签公开 Invite。永久放弃或策略决定失效时，由有权 writer 提交 `revoked` 或 `expired` 后才能另建邀请。投递失败、响应不明或预算耗尽本身不释放 slot。
   - **liveness 只看 current state，不看墙钟（normative）**：slot 被占用即 live，直到一条已登记的 Event 释放它。`expires_at` 到达**不会**自动释放格子，它只是授权 writer 提交 `ak.invite.revoke(target_state="expired")` 的理由。receiver MUST NOT 用本地时间比较合成「该 invite 已不再 live」。
   - 3PID invite 不占用该 slot（`ak.invite.third_party` 不写它）。已 `claimed` 的 3PID invite 是否阻塞对同一 AccountId 的后续直接邀请，属 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) 的职责，v1 不在本 slot 内表达。3PID invite 的去重与 claim 规则仍由该文件定义。

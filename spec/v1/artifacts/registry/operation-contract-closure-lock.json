@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-24.9",
-  "generated_at": "2026-10-24T23:34:34+08:00",
+  "version": "2026-10-25.1",
+  "generated_at": "2026-10-25T06:36:16+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -445,15 +445,15 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.delete.v1",
-      "sha256": "sha256:a951aa0a614b64349992b0b090b67a55402860652b936b08fff45a3ce3b41290"
+      "sha256": "sha256:a5578f6d1c64359f144933649e8f51bb0d7df0e6ef2c6d4409f410d8005cd1a8"
     },
     {
       "operation_id": "ak.self.account_data.resource.get.v1",
-      "sha256": "sha256:04106e5c56f8b660d5ca243b82eeb1d4cf5a81bfadcf9e060955b698c7c4ea99"
+      "sha256": "sha256:91a1da213d8bce0c9f16dfd46736c4c45264dfb58724f9aa008e68024e2e53fb"
     },
     {
       "operation_id": "ak.self.account_data.resource.replace.v1",
-      "sha256": "sha256:1a5f92fd3ebc4277ce637c739789b9184b378ea7e3dae4c0b3f47e72e8d0eed9"
+      "sha256": "sha256:fb4248bdc4539d6a12d47c49ec98506fd52e75816de11aed44b46a377f630eea"
     },
     {
       "operation_id": "ak.self.actor_private_events.command.submit.v1",
@@ -549,7 +549,7 @@
     },
     {
       "operation_id": "ak.self.authz.invites.read.list.v1",
-      "sha256": "sha256:4d4ff4b9fd6a3cba66164160435d201b2f550a53ebf58ace9710a208d6396c74"
+      "sha256": "sha256:05c7532cb9e5dbb0d456e07531afe429f4109a99f1ed6a5faa5e613378f24838"
     },
     {
       "operation_id": "ak.self.authz.read.check.v1",

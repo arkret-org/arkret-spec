@@ -119,7 +119,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - <!-- rule_id: NC-BOOL-001 --> **R1 布尔许可与义务**：许可字段 MUST 使用 `<axis>_allowed`，强制义务 MUST 使用 `<axis>_required`；wire boolean MUST NOT 使用 `allow_*`、`require_*`、`requires_*`、`deny_*`、`force_*` 或负极性 `no_*` / `disallow_*`。`include_*` 只用于请求侧投影开关；`*_present` 只用于 fixture/诊断，或逐路径登记的不回显原材料审计摘要。
 - <!-- rule_id: NC-COUNT-001 --> **R2 计数与长度**：元素个数 MUST 使用 `_count`，字节数 MUST 使用 `_bytes`，字符/码位数 MUST 使用 `_chars` / `_code_points`；Arkret wire、registry 语义字段与 fixture 断言 MUST NOT 使用 `_len`、`_length` 或 `_size`。`cardinality` 只用于 registry 的关系基数元数据。
 - <!-- rule_id: NC-ENUM-001 --> **R3 符号枚举值**：Arkret 自有符号型枚举 MUST 使用 snake_case。只有外部规范定义了该字面值且 Arkret 必须逐字节往返时才可例外，并须登记外部章节/codepoint；数值区间、URI 与 media type 按各自词法。
-- <!-- rule_id: NC-TYPE-001 --> **R4 类型名**：JSON Schema `$defs` 键 MUST 使用 snake_case；OpenAPI schema component 与规范自有的概念类型名 MUST 使用 PascalCase。PascalCase 中的缩写 MUST 按普通单词折叠大小写（例如 `MlsCommitSubmission`、`DidOperationSubmitResponseBody`），不得写成连续全大写片段（例如 `MLS…`、`DID…`）；外部标准要求逐字引用的类型名不在此改写。类型 MUST 按实际角色命名；消息体使用 `RequestBody` / `ResponseBody`，当前领域状态使用 `Current<Family>`，已定处理结局使用 `Outcome`，裁决使用 `Decision`，验证判定使用 `Verdict`，解析材料使用 `Resolution`。集合与领域结构按下方角色表使用 `View`、`Record`、`Entry`、`List`、`Page`、`Set`、`Snapshot`、`Envelope`、`Frame`、`Payload`、`Submission`、`Receipt`、`Ref`、`Proof`、`Attestation`、`Evidence`、`Transcript`、`Metadata`、`Artifact`、`Problem` / `ProblemExtensions`、`Parameters` 或 `Fields`；领域主语不受机械后缀表限制，但 MUST NOT 用泛化 `Result` 或 `Row` 充当角色。`View` 表示读取投影或组合，与放在列表、分页或单项读取中无关；不得因承载位置另造同形类型。内部 SQL 映射行和实际表格行不属于泛化协议角色，真实表格领域对象按所属合同命名。`service-operation-dtos.schema.json` 作为 OpenAPI DTO 镜像是已登记结构例外。 canonical schema 的 `RequestBody` / `ResponseBody` 定义 MUST NOT 只是对另一类型的裸 `$ref` alias；应直接复用唯一 canonical 类型。OpenAPI 对该 canonical 类型的镜像引用不新增独立协议类型。
+- <!-- rule_id: NC-TYPE-001 --> **R4 类型名**：JSON Schema `$defs` 键 MUST 使用 snake_case；OpenAPI schema component 与规范自有的概念类型名 MUST 使用 PascalCase。PascalCase 中的缩写 MUST 按普通单词折叠大小写（例如 `MlsCommitSubmission`、`DidOperationSubmitResponseBody`），不得写成连续全大写片段（例如 `MLS…`、`DID…`）；外部标准要求逐字引用的类型名不在此改写。类型 MUST 按 §2.0.2 的选名顺序和实际角色命名；独立消息体合同使用 `RequestBody` / `ResponseBody`，当前领域状态使用 `Current<Family>`，已定处理结局使用 `Outcome`，裁决使用 `Decision`，验证判定使用 `Verdict`，解析材料使用 `Resolution`。集合与领域结构按下方角色表使用 `View`、`Record`、`Entry`、`List`、`Page`、`Set`、`Snapshot`、`Envelope`、`Frame`、`Payload`、`Submission`、`Receipt`、`Ref`、`Proof`、`Attestation`、`Evidence`、`Transcript`、`Metadata`、`Artifact`、`Problem` / `ProblemExtensions`、`Parameters` 或 `Fields`；领域主语不受机械后缀表限制，但 MUST NOT 用泛化 `Result` 或 `Row` 充当角色。`View` 表示读取投影或组合，与放在列表、分页或单项读取中无关；不得因承载位置另造同形类型。内部 SQL 映射行和实际表格行不属于泛化协议角色，真实表格领域对象按所属合同命名。`service-operation-dtos.schema.json` 作为 OpenAPI DTO 镜像是已登记结构例外。 canonical schema 的 `RequestBody` / `ResponseBody` 定义 MUST NOT 只是对另一类型的裸 `$ref` alias；应直接复用唯一 canonical 类型。OpenAPI 对该 canonical 类型的镜像引用不新增独立协议类型。
 - <!-- rule_id: NC-CODE-001 --> **R5 机器原因码**：机器可枚举原因 MUST 使用 `reason_code` / `<domain>_reason_code`，协议标准错误码 MUST 使用 `error_code`；`failure_code` / `rejection_code` 等中间形态禁止。
 - <!-- rule_id: NC-EVIDENCE-001 --> **R6 证据材料名词**：`proof` 是可独立验证的密码学命题材料；`attestation` 是第三方对范围/状态的签发断言；`receipt` 是请求状态回执；`witness` 是背书角色；`commitment` 是集合/树承诺；`transcript` 是签名/KDF 的规范输入。`evidence` 仅用于可容纳至少两类上述材料的多态容器。
 - <!-- rule_id: NC-ARTIFACT-001 --> **R7 artifact 文件与 provenance**：artifact 文件名 MUST 为 kebab-case。类别词按数据形态使用：`registry`、`table`、`graph`、`report`、`index`、`digests`、`fixture`、`manifest`、`probes`；provenance 由真实数据流决定，canonical artifact 使用 `source_of_truth: true`，派生 artifact 使用 `source_of_truth: false` 且声明非空 `generated_from` / `generated_by`。
@@ -127,6 +127,72 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - <!-- rule_id: NC-LEXEME-001 --> **R9 canonical 领域词、缩写与命名域限定**：Arkret 自有的 wire 字段、JSON Schema `$defs`、OpenAPI / 规范概念类型、符号枚举、registry symbol、profile / operation / event / schema ID、fixture wire specimen、normative JSON 示例与公开 SDK API，MUST 使用完整 canonical 领域词；普通英文单词不得因长度而截短。缩写只有四种 authority：外部标准或算法的 canonical initialism、[`overview/glossary.md`](../overview/glossary.md) 明确定义的 Arkret initialism、已登记结构词（v1 为 `id` / `ref`）以及带精确外部锚点的逐字 literal。具体 canonical word、禁用 alias 与非 contract 边界由 [`canonical-lexeme-registry.json`](../../artifacts/registry/canonical-lexeme-registry.json) 唯一登记；新增 compact token 必须先进入其中一个 authority，MUST NOT 由调用点自行发明。`organization` 是完整领域词，`org` 不是 initialism：Arkret 自有名称 MUST 使用 `organization_membership` / `OrganizationMembershipClaim` / `represented_organization_id`，MUST NOT 使用 `org_membership` / `OrgMembershipClaim` / `represented_org`。Internet `.org` 域名、opaque/external identifier payload、changelog 与明确的 negative case 不属于 Arkret contract name，必须保持原值。字段若承载 Organization DID，还须叠加 §2.1 的 identifier 规则并使用 `organization_id` 或 `<role>_organization_id`；`organization` 只可命名嵌入的 Organization value，不能作为 DID 字段的省略写法。Arkret 是本规范内部名称的默认命名域；Arkret 自有字段、类型、claim kind 与 symbolic value MUST NOT 再加冗余的 `arkret_` / `Arkret` 产品前缀，因此使用 `organization_membership_credential` / `OrganizationMembershipCredential`，不得使用 `arkret_organization_membership_credential` / `ArkretOrganizationMembershipCredential`。只有外部所有者的扩展点、共享全局命名空间、密码学 domain-separation label，或确需区分 provider/backend 的 discriminator 才可带产品/协议限定词，而且精确名称与边界必须先登记；外部语义优先使用其稳定 authority 名（例如 `oidc` / `scim` / `mimi` / `matrix`），不得为了假设的未来冲突先加泛化前缀。`ak.` symbolic namespace 与 `ak:` typed-ID namespace 是全局序列化协议命名空间，不属于冗余产品前缀。`external_organization_authorization` 中的 `external` 描述相对受控 Realm 的协作主体角色，不是来源命名域，因此不受本判据删除；若它将来表示某个外部协议定义的对象，则必须改用该协议的已登记 authority，而不是把 `external` 当作万能 namespace。规范、构件和实现 MUST 只接受 registry 登记的 canonical 名称。
 - <!-- rule_id: NC-HASH-001 --> **既有 hash 词汇判据**：`_hash` / `_hashes`、`hash_profile`、`hash_algorithm` 在 Arkret wire 中禁止。本判据同时适用于 **Arkret 自有类型名**（JSON Schema `$defs` 键与规范概念类型名）：承载自描述摘要的 canonical 类型名是 `digest`，MUST NOT 命名为 `hash`——否则规则会在同一份文档里既禁止又使用同一个词。RFC 9420 / did:webvh 等逐字面外部字段只按登记的精确路径 + JSON Pointer 保留，不得使用按名全局白名单。
 - <!-- rule_id: NC-CLASSIFICATION-001 --> **四轴分类后缀**：`kind` / `type` / `class` / `tier` 的逐字段许可、闭集与异轴声明由 [`classification-field-registry.json`](../../artifacts/registry/classification-field-registry.json) 唯一登记，轴级判据表只引用该 registry，不复制条目。
+
+#### 2.0.2 类型命名的分类与选名顺序（normative）
+
+R4 的词汇分属不同分类轴，MUST NOT 当作一组可互换、互斥的通用后缀。命名先确定下列事实，再选择最短且无歧义的词：
+
+| 分类轴 | 先回答的问题 | 对命名的约束 |
+| --- | --- | --- |
+| 所有者与命名域 | Arkret 合同、精确外部 literal，还是实现私有结构？ | 确定 R1-R9 的适用面与精确例外；SQL 行、语言错误通道、第三方原生字段各有其边界。 |
+| 领域身份与独立目的 | 是否已有 canonical 对象；签名、授权、重放、保留和演进义务是否相同？ | 同一合同复用同一类型；不同目的不能仅因字段同形合并。领域主语本身可构成完整名字。 |
+| 对象职责与处理阶段 | 是领域值、当前状态、读取投影、保留事实、关联项、截点快照、裁决、验证判定或已定结局？ | 按实际职责选 Current、View、Record、Entry、Snapshot、Decision、Verdict、Outcome 等词；未结算阶段用 Progress/Status。 |
+| 集合与载体 | 有何分页、唯一性、排序或覆盖合同；承载完整领域对象还是新的消息体/外层结构？ | List/Page/Set 与 Body/Envelope/Frame 是集合或承载义务，不能改变元素身份，也不能为同一对象再造 alias。 |
+| 字段与表示 | 是主体标识、引用、数量、时刻、许可/义务、事实、意向，还是编码材料？ | 结合 lexical context、terminal 约束及职责，分别应用 §2.1、R1/R2/R5/R6 和编码词汇；不能从 Rust/TS 容器或旧名字反推角色。 |
+
+选名 MUST 按以下顺序复核：
+
+1. 先确认所有者与已有 canonical 合同。已有对象直接跨单项读取、列表元素和操作 body 复用；传输位置与语言命名空间不创建新协议身份。
+2. 对确实独立的合同，确定领域主语、主职责及必要的 caller/作用域/步骤限定；不得先挑后缀再把数据解释成该职责。名字通常为“必要限定 + 领域主语 + 主职责”，不机械追加已由领域名表达的词。
+3. 只有新的承载或集合义务才增加相应类型。已有 `AppletRealmView` 可以直接作为 lookup 的 body；确需独立 exists/identity 查询消息体时才使用 `LookupResponseBody`。canonical 对象复用优先于按操作名新建 Body，不能为遵守后缀表引入同形 alias 或无合同的单字段包装。
+4. 最后检查字段语法、标识符类别、单位、单复数、枚举归属及精确例外。`View` 是一级领域对象，`CurrentView` 是该领域的 current family；它们不因此变成调用方读取投影。`RealmStateSnapshotRef` 表示对 Snapshot 的引用材料，`IdentityLogListResponseBody` 表示 list 操作的消息体；不同角色词的合法组合不等于重复包装，机械重复同一角色仍禁止。
+
+类型名只有一个完整合同，内部成员可以分别承担其它角色；不同分类轴的特征并不要求全部堆进类型名。名称不能替代 schema、authority、签名或完整性证据。 机器角色注解只使用已登记词汇；未知或拼写错误的注解 MUST 失败，不能使约束失效。例外 MUST 具名绑定当前仍有效的精确 owner 与合同/外部锚点；旧 envelope、旧用途或已失效的描述不能继续授权豁免，也不能沿同名字段或 `$ref` 传播。
+
+类型与成员的角色 MUST 先由其合同决定，再选择名字；不能从旧名字反推职责，也不能把以下词当成通用输出近义词。
+
+  | 角色 | 唯一职责与命名 |
+  | --- | --- |
+  | RequestBody / ResponseBody | 确需独立合同的 binding 消息体；HTTP path、query、header、status 或 trailer 的本次传输元数据在独立 envelope 建模。业务字段或嵌入材料不因与 HTTP 术语同名而改变角色。完整 HTTP 消息 envelope 独立建模。独立领域对象、Receipt、Page、View、Snapshot 可以直接作为 body，不增加同形 alias 或单字段包装。 |
+  | CurrentState / Current&lt;Family&gt; | 给定读取 cut 上带 selector、source_stream_ref、revision、value 的权威现状。具体名字完整保留 current-state registry 的 family；不是某个流程的终态，也不承诺缓存永久新鲜。 |
+  | Outcome | 一个明确步骤或流程已定的结局；pending / prepared / unknown 的同一步骤状态不是 Outcome。受理尝试的结局不等于最终送达，必须明确 Attempt 等对象。 |
+  | Decision / Verdict / Resolution | 分别为有权主体的裁决、验证检查的判定、名称或引用解析材料；不得互换。 |
+  | View | caller／用途限定的读取投影或组合。列表与单项读取使用同一 canonical 类型；不得把展示投影称为保留记录或完整快照。 |
+  | Record | 合同要求保留的事实，须明确记录身份、事实来源与保留／后继规则。临时读取包装、可重算摘要及共享字段片段不是 Record。 |
+  | Entry | 具有明确 key、绑定、tag、dot 或索引关联职责的条目。仅仅位于数组或 map 中不足以使用 Entry；公共协议 MUST NOT 使用泛化 Row，字段也不得以 row 表示未限定领域角色的对象。 |
+  | Progress / Status / State | Progress 是流程的推进信息，可包含未完成阶段；Status 是单个对象的状态判别；State 是所属领域的完整状态值。它们不得冒充同一流程的已定 Outcome。 |
+  | List / Page / Set | List 无续读；Page 为明确游标、continuation 与 has_more 判据的片段；Set 具有唯一性与 canonical 排序语义；元素仍复用其 canonical 类型。 |
+  | Snapshot | 在明确 cut 上冻结、且有覆盖／完整性边界的对象。cut 可由内容地址、版本、同读事务或协议 head 确定，不强求时间戳；普通摘要、列表元素及即时读取包装不是 Snapshot，不推导跨 stream 总顺序。 |
+  | Envelope / Frame / Payload / Submission | 分别为带上下文的外层载体、传输帧、kind 绑定领域正文、提交处理的原子单元或证明组合；Submission 不表示已受理。 |
+  | Receipt / Metadata / Artifact | 分别为合同固定阶段的回执、对已有对象或过程的描述、具名输出产物。 |
+  | Problem / ProblemExtensions | 完整规范错误对象／仅有扩展成员的片段。HTTP Problem 使用 RFC 9457 顶层 type URI 与扩展成员，不使用 error.code/details 包装；闭合对象不能用互相排斥成员的 allOf 强行拼接。 |
+  | Parameters / Fields | 操作输入的部分参数集合／可复用共享字段片段；两者不冒充完整 RequestBody。 |
+
+  同字节结构只有在领域身份、签名目的、授权／重放边界与演进义务相同的情况下才合并为唯一 canonical 类型；同形本身不构成合并依据。不同承载位置、生成语言或服务命名空间不得造成重复类型。外部标准的原生结构不受 Arkret 重命名；本地 Rust `Result<T, E>` 错误通道也不属于协议 Result 包装。
+
+  Outcome 的名字与合同 MUST 指明结算范围。尝试的 accepted／deferred／rejected 只能说明该次尝试已定，不表示传播、清理或送达完成；整个流程仍可能 pending 时应使用 Progress。裁决前的 apply／replay／reject 分类使用 Decision，验证结果使用 Verdict。
+
+  KeyPackage upload 响应的 `accepted_count` 是本次上传接纳的 KeyPackage 数量；隔离失效摘要的 `removed_entry_count` 是本次撤销移除的条目数量。两者均按 R2 使用计数名称，不使用布尔形态或集合复数。
+
+  字段同样按职责使用 `current_state`、`material`、`capture_metadata`、`outcome`、`decision`、`verdict` 或 `resolutions` 等。`Result / result` 不作为泛化协议结构角色。签名、authority、freshness 与授权义务由所属合同决定，名字本身不构成证据。
+
+  许可使用 `_allowed`、义务使用 `_required`，事实使用正极性状态名，实现能力使用 `_supported`，请求意向使用 `_requested`。controller selection 仍是偏好与 capability 的交集，不因 allowed 字段而成为授权。
+
+  计数按单数语义轴使用 `_count`，上下界在前，周期在后，例如 `max_channel_count`、`operation_count_per_minute`。普通绝对时刻使用 `_at`；`not_before`、calendar recurrence `until` 和精确外部 literal 按所属合同保留。原始序列化缓冲区明确使用 `_base64` 或 `_base64url`，不得双编码；signature、nonce、digest、typed ref 等角色 terminal 固定其唯一编码。
+
+  命名角色、全部 enum／const 的 ownership、开放槽和外部例外由实际 schema terminal 与精确 owner 元数据闭合。例外不得随字段同名或 $ref 传播。门禁分别报告声明覆盖与语义裁决；walker 覆盖不能替代语义证明。
+
+
+#### 公共角色边界的落点
+
+Agent grant 读取摘要为 `agent_grant_view`，不是完整授权集合快照。`agent_participation_view` 携带 selection、version 与下一次替换输入，不声明治理 ceilings 的完整性。设备 key 读取使用 `device_key_view`／`peer_device_key_view`：前者包含 own-Station 已验证投影，后者保留 peer 原签 attestation；两者不得因同为 View 而合并或丢弃验证义务。算法映射中的 `signed_prekey` 是签名预密钥材料，不是通用 key 记录。
+
+Realm Actor current 材料中，present 项携带 `current_state` 与匹配同一 stream／revision 的 `source_ref`；exact current read 的 present 分支也使用 `current_state`。这两个 envelope 的授权、nonce、freshness 与 selector 范围各自保持原合同，名称相同不使它们成为可互换响应。请求状态读取为 `request_status_view`，原 Event／Commit 材料为 `event_material`。
+
+仍有待执行清理义务的级联不构成整个流程的已定 Outcome；不得为未登记的级联状态创建新的公共 wire carrier。擦除 receipt 的 outcome 结算本次执行尝试；部分完成与法律保留阻断不得被解释为所有擦除义务已完成。披露给邀请发送方的 delivery outcome 仅结算本次 holder admission／delivery 步骤，不证明客户端最终收取。
+
+`resolver_policy_snapshot` 以完整六成员 canonical 对象的 JCS 为 digest 输入，信任根成员逐字为 `trust_roots`。`IdentityDocumentView` 的唯一成员为 required `did_document` 和 optional `normalized_view`、`method_evidence`、`cached_at`；DID 原文继续保留外部标准字段，projection 不增加序列或 receipt 别名。
+
 
 ### 2.1 Identifier 字段命名约定（normative）
 
@@ -515,50 +581,6 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
 主体字段新增策略：
 
 - 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`controller`）登记的是语义 stem，不豁免 §2.1.3 的主体类别与 carrier 后缀；其 identifier 字段按合同使用 `issuer_id`、`inviter_account_id`、`holder_service_id` / `holder_account_id`、`controller_id` 等形态。durable provenance/byline 只有在 registry 精确登记为完整 `<past-participle>_by` 角色后才能使用裸名（例如 `approved_by`、`revoked_by`），并按职责强类型为 `DidCoreId`、`Did`、DID URL 或闭合 union；不得追加 identifier 后缀。时间点独立使用 `<verb>_at`。
-- 类型与成员的角色 MUST 先由其合同决定，再选择名字；不能从旧名字反推职责，也不能把以下词当成通用输出近义词。
-
-  | 角色 | 唯一职责与命名 |
-  | --- | --- |
-  | RequestBody / ResponseBody | binding 的实际消息体；不含本次 HTTP 的 path、query、header、status 或 trailer。完整 HTTP 消息 envelope 独立建模。独立领域对象、Receipt、Page、View、Snapshot 可以直接作为 body，不增加同形 alias 或单字段包装。 |
-  | CurrentState / Current&lt;Family&gt; | 给定读取 cut 上带 selector、source_stream_ref、revision、value 的权威现状。具体名字完整保留 current-state registry 的 family；不是某个流程的终态，也不承诺缓存永久新鲜。 |
-  | Outcome | 一个明确步骤或流程已定的结局；pending / prepared / unknown 的同一步骤状态不是 Outcome。受理尝试的结局不等于最终送达，必须明确 Attempt 等对象。 |
-  | Decision / Verdict / Resolution | 分别为有权主体的裁决、验证检查的判定、名称或引用解析材料；不得互换。 |
-  | View | caller／用途限定的读取投影或组合。列表与单项读取使用同一 canonical 类型；不得把展示投影称为保留记录或完整快照。 |
-  | Record | 合同要求保留的事实，须明确记录身份、事实来源与保留／后继规则。临时读取包装、可重算摘要及共享字段片段不是 Record。 |
-  | Entry | 具有明确 key、绑定、tag、dot 或索引关联职责的条目。仅仅位于数组或 map 中不足以使用 Entry；公共协议 MUST NOT 使用泛化 Row，字段也不得以 row 表示未限定领域角色的对象。 |
-  | Progress / Status / State | Progress 是流程的推进信息，可包含未完成阶段；Status 是单个对象的状态判别；State 是所属领域的完整状态值。它们不得冒充同一流程的已定 Outcome。 |
-  | List / Page / Set | List 无续读；Page 为明确游标、continuation 与 has_more 判据的片段；Set 具有唯一性与 canonical 排序语义。一次 exists／identity 查询使用 LookupResponseBody。 |
-  | Snapshot | 在明确 cut 上冻结、且有覆盖／完整性边界的对象。cut 可由内容地址、版本、同读事务或协议 head 确定，不强求时间戳；普通摘要、列表元素及即时读取包装不是 Snapshot，不推导跨 stream 总顺序。 |
-  | Envelope / Frame / Payload / Submission | 分别为带上下文的外层载体、传输帧、kind 绑定领域正文、提交处理的原子单元或证明组合；Submission 不表示已受理。 |
-  | Receipt / Metadata / Artifact | 分别为合同固定阶段的回执、对已有对象或过程的描述、具名输出产物。 |
-  | Problem / ProblemExtensions | 完整规范错误对象／仅有扩展成员的片段。HTTP Problem 使用 RFC 9457 顶层 type URI 与扩展成员，不使用 error.code/details 包装；闭合对象不能用互相排斥成员的 allOf 强行拼接。 |
-  | Parameters / Fields | 操作输入的部分参数集合／可复用共享字段片段；两者不冒充完整 RequestBody。 |
-
-  同字节结构只有在领域身份、签名目的、授权／重放边界与演进义务相同的情况下才合并为唯一 canonical 类型；同形本身不构成合并依据。不同承载位置、生成语言或服务命名空间不得造成重复类型。外部标准的原生结构不受 Arkret 重命名；本地 Rust `Result<T, E>` 错误通道也不属于协议 Result 包装。
-
-  Outcome 的名字与合同 MUST 指明结算范围。尝试的 accepted／deferred／rejected 只能说明该次尝试已定，不表示传播、清理或送达完成；整个流程仍可能 pending 时应使用 Progress。裁决前的 apply／replay／reject 分类使用 Decision，验证结果使用 Verdict。
-
-  KeyPackage upload 响应的 `accepted_count` 是本次上传接纳的 KeyPackage 数量；隔离失效摘要的 `removed_entry_count` 是本次撤销移除的条目数量。两者均按 R2 使用计数名称，不使用布尔形态或集合复数。
-
-  字段同样按职责使用 `current_state`、`material`、`capture_metadata`、`outcome`、`decision`、`verdict` 或 `resolutions` 等。`Result / result` 不作为泛化协议结构角色。签名、authority、freshness 与授权义务由所属合同决定，名字本身不构成证据。
-
-  许可使用 `_allowed`、义务使用 `_required`，事实使用正极性状态名，实现能力使用 `_supported`，请求意向使用 `_requested`。controller selection 仍是偏好与 capability 的交集，不因 allowed 字段而成为授权。
-
-  计数按单数语义轴使用 `_count`，上下界在前，周期在后，例如 `max_channel_count`、`operation_count_per_minute`。普通绝对时刻使用 `_at`；`not_before`、calendar recurrence `until` 和精确外部 literal 按所属合同保留。原始序列化缓冲区明确使用 `_base64` 或 `_base64url`，不得双编码；signature、nonce、digest、typed ref 等角色 terminal 固定其唯一编码。
-
-  命名角色、全部 enum／const 的 ownership、开放槽和外部例外由实际 schema terminal 与精确 owner 元数据闭合。例外不得随字段同名或 $ref 传播。门禁分别报告声明覆盖与语义裁决；walker 覆盖不能替代语义证明。
-
-
-#### 公共角色边界的落点
-
-Agent grant 读取摘要为 `agent_grant_view`，不是完整授权集合快照。`agent_participation_view` 携带 selection、version 与下一次替换输入，不声明治理 ceilings 的完整性。设备 key 读取使用 `device_key_view`／`peer_device_key_view`：前者包含 own-Station 已验证投影，后者保留 peer 原签 attestation；两者不得因同为 View 而合并或丢弃验证义务。算法映射中的 `signed_prekey` 是签名预密钥材料，不是通用 key 记录。
-
-Realm Actor current 材料中，present 项携带 `current_state` 与匹配同一 stream／revision 的 `source_ref`；exact current read 的 present 分支也使用 `current_state`。这两个 envelope 的授权、nonce、freshness 与 selector 范围各自保持原合同，名称相同不使它们成为可互换响应。请求状态读取为 `request_status_view`，原 Event／Commit 材料为 `event_material`。
-
-仍有待执行清理义务的级联不构成整个流程的已定 Outcome；不得为未登记的级联状态创建新的公共 wire carrier。擦除 receipt 的 outcome 结算本次执行尝试；部分完成与法律保留阻断不得被解释为所有擦除义务已完成。披露给邀请发送方的 delivery outcome 仅结算本次 holder admission／delivery 步骤，不证明客户端最终收取。
-
-`resolver_policy_snapshot` 以完整六成员 canonical 对象的 JCS 为 digest 输入，信任根成员逐字为 `trust_roots`。`IdentityDocumentView` 的唯一成员为 required `did_document` 和 optional `normalized_view`、`method_evidence`、`cached_at`；DID 原文继续保留外部标准字段，projection 不增加序列或 receipt 别名。
-
 ### 4.3 角色名词登记索引
 
 下表收敛 v1 已确立的 crypto / governance 角色名词，供读 spec / 评审命名时一次定位。本表是 **informative 索引**：每个角色的字段形态、约束与 normative 语义以「权威定义」列指向的 schema / glossary / 专属章节为单一真相源，本表不重复承载约束，也不得与权威定义冲突。新增 normative 文本引入主体 / 操作者归属字段时，先查本表确认是否已有既定角色名词，再按上文「主体字段新增策略」决定复用或使用 `<verb>_by`。

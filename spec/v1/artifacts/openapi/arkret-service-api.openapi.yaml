@@ -649,6 +649,8 @@ components:
       $ref: ../schemas/invite-delivery-request.schema.json
     InviteDeliveryResponseBody:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body
+    InviteLiveTargetOccupiedProblemExtensions:
+      $ref: ../schemas/invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions
     InviteLocatorIssueRequestBody:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body
     InviteLocatorIssueResponseBody:

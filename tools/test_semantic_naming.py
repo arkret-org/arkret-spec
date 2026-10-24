@@ -12,6 +12,37 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_role_axes_preserve_domains_and_canonical_reuse(self):
+        from .artifact_lint.naming import stacked_wrapper_words
+        for name, role in [('View', 'domain_value'), ('CurrentView', 'current_state'),
+                           ('AppletRealmView', 'view'), ('RealmStateSnapshotRef', 'domain_value'),
+                           ('IdentityLogListResponseBody', 'response_body')]:
+            self.assertEqual(type_role_errors(name, {'x-arkret-name-role': role}), [], name)
+            self.assertIsNone(stacked_wrapper_words(name))
+        self.assertTrue(canonical_body_alias_errors('applet_realm_lookup_response_body',
+            {'$ref': './applet-edge-operations.schema.json#/$defs/applet_realm_view'}))
+        self.assertEqual(type_role_errors('UserLookupResponseBody', {'x-arkret-name-role': 'lookup_response'}), [])
+        self.assertTrue(type_role_errors('UserView', {'x-arkret-name-role': 'lookup_response'}))
+
+    def test_unknown_role_annotations_cannot_silently_disable_constraints(self):
+        for role in ('snaphot', 'made_up_view', None, ['view']):
+            self.assertTrue(type_role_errors('OwnerView', {'x-arkret-name-role': role}), role)
+        for role in ('cout', 'allowed', None, ['count']):
+            self.assertTrue(member_role_errors('entry_count', {'x-arkret-member-role': role}), role)
+
+    def test_problem_fragment_cannot_claim_the_complete_problem_role(self):
+        fragment = {'type': 'object', 'properties': {'reason_code': {'const': 'occupied'}},
+                    'required': ['reason_code']}
+        self.assertTrue(type_role_errors('TargetOccupiedProblem', fragment))
+        self.assertTrue(type_role_errors('Problem', fragment))
+        self.assertTrue(type_role_errors('TargetOccupiedProblemExtensions', {**fragment,
+            'x-arkret-name-role': 'problem_extensions', 'properties': {'status': {'type': 'integer'}}}))
+        self.assertEqual(type_role_errors('TargetOccupiedProblemExtensions',
+            {**fragment, 'x-arkret-name-role': 'problem_extensions'}), [])
+        body = {'type': 'object', 'properties': {key: {} for key in ('type', 'title', 'status', 'detail')},
+                'required': ['type', 'title', 'status', 'detail']}
+        self.assertEqual(type_role_errors('TargetOccupiedProblem', body), [])
+
     def test_openapi_aliases_cannot_duplicate_a_shared_canonical_type(self):
         reference = {'$ref': '../schemas/example.schema.json#/$defs/shared'}
         self.assertEqual(openapi_component_alias_errors({'Shared': reference}), [])
@@ -124,6 +155,8 @@ class SemanticNamingTests(unittest.TestCase):
         for name in ('RealmView', 'account_data_entry', 'CurrentMimiRoomBinding'):
             self.assertEqual(type_role_errors(name, {}), [])
         self.assertTrue(retired_contract_reference_errors('ContactListRow stream_row'))
+        for retired in ('AccountDataCasConflict', 'AccountDataCasConflictDetails', 'account_data_cas_conflict_details', 'InviteLiveTargetOccupiedProblem'):
+            self.assertTrue(retired_contract_reference_errors(retired))
 
 
     def test_error_and_reason_code_authority_is_in_the_release_freeze(self):

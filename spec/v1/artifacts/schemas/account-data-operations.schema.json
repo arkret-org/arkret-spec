@@ -17,7 +17,7 @@
       "$ref": "#/$defs/account_data_delete_response_body"
     },
     {
-      "$ref": "#/$defs/account_data_cas_conflict_details"
+      "$ref": "#/$defs/account_data_revision_problem_extensions"
     }
   ],
   "$defs": {
@@ -198,9 +198,9 @@
       "additionalProperties": false,
       "x-arkret-name-role": "response_body"
     },
-    "account_data_cas_conflict_details": {
+    "account_data_revision_problem_extensions": {
       "type": "object",
-      "description": "Closed error.details payload for cas_conflict and not_found on ak.self.account_data.resource.*. It always carries the current revision so the caller can decrypt, re-apply its domain merge rule and issue exactly one new compare-and-set write without a second round trip.",
+      "description": "Closed RFC 9457 Problem extension members for cas_conflict and not_found on ak.self.account_data.resource.*. Members are merged at the top level of Problem, never nested in details. The current revision allows one bounded caller-side merge and CAS retry.",
       "required": [
         "account_data_key",
         "current_revision"
@@ -217,7 +217,8 @@
           "description": "Present only when the key currently holds a live value. Omitted when the key is unset or holds a tombstone; current_revision is still authoritative in that case."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "problem_extensions"
     }
   }
 }

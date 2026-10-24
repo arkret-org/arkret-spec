@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -83,17 +83,8 @@
         }
       ],
       "enforcement": "predicate+registry",
-      "enforcement_scope": "The predicate decides acronym folding, stacked wrapper words and rejected wrapper roles; distinguishing a domain subject from a wrapper role is registry-driven via rejected_wrapper_words.",
+      "enforcement_scope": "Role and lexical checks enforce declared names, closed annotation vocabulary and canonical reuse. Ownership, identity, independent purpose and primary role are selected in the order of common-fields 2.0.2; semantic selection is not inferred from a suffix or from matching fields.",
       "exact_path_exceptions": [
-        {
-          "id": "account-data-cas-conflict-error-details",
-          "file": "account-data-operations.schema.json",
-          "pointer": "/$defs/account_data_cas_conflict_details",
-          "name": "account_data_cas_conflict_details",
-          "basis": "internal_structure",
-          "reason": "Names the closed `error.details` member it populates, so the type tracks the field rather than inventing a wrapper role. Renaming the type without renaming that member would break the one-name-per-semantic rule in the other direction.",
-          "anchor": "spec/v1/zh/sync/service-http-binding.md"
-        },
         {
           "id": "rsvp-response-domain-subject",
           "file": "event-payload.schema.json",
