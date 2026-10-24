@@ -6,14 +6,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "nullable_timestamp": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/timestamp"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
     "claim_variant": {
       "oneOf": [

@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -72,7 +72,7 @@
         "openapi_schema_component",
         "conceptual_type_name"
       ],
-      "predicate": "$defs use snake_case; Arkret-owned PascalCase type names fold acronym segments as ordinary words; OpenAPI components use registered structural wrapper suffixes",
+      "predicate": "Public roles use one canonical semantic owner; reject generic Row and Result type/member roles, require settled Outcome scope and required Snapshot cut/coverage members; equivalent object assertions require canonical reuse or an exact reviewed distinct signing or operation purpose.",
       "narrative_section": "R4",
       "exceptions": [
         {

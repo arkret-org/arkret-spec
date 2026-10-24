@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 97,
+  "version": 98,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 996,
-    "responsibility_identity_material": 658,
+    "typed_object_id": 995,
+    "responsibility_identity_material": 657,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -280,7 +280,7 @@
       "name": "external_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 5,
+      "occurrences": 4,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/external_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -363,7 +363,7 @@
       "name": "instance_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 6,
+      "occurrences": 5,
       "example_path": "applet-edge-operations.schema.json#/$defs/external_ref/properties/instance_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -732,5 +732,5 @@
       "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ],
-  "generated_at": "2026-10-24T19:19:39+08:00"
+  "generated_at": "2026-10-24T15:42:50+00:00"
 }

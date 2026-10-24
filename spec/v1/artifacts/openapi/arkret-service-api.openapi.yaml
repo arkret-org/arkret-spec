@@ -471,7 +471,7 @@ components:
     AppletRevokeResponseBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body
     AppletThirdPartyLocationLookupResponseBody:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
     AppletThirdPartyUserLookupResponseBody:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body
     AppletTransactionRequestBody:
@@ -606,9 +606,9 @@ components:
     EffectiveGrantSnapshot:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot
     ErasureReceiptResource:
-      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource
+      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package
     ErasureReceiptSubmitRequestBody:
-      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body
+      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package
     ErasureReceiptSubmitResponseBody:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body
     EventDeliveryStatusRequestBody:
@@ -6759,7 +6759,7 @@ paths:
         The signed Event realm/scope must equal the accepted target's derived governance scope; absent, invisible
         and scope-mismatched targets all return not_found. The service forwards exact bytes through authority Event
         submission and never authors, rebuilds, co-signs or adds preconditions. Exact replay returns the stored
-        submitted outcome; the same Event id with different bytes returns duplicate_conflict. routed_to is omitted
+        submitted outcome; the same Event id with different bytes returns duplicate_conflict. routed_to_ids is omitted
         unless the caller independently holds moderation/governance capability for the exact scope.
       security:
       - sessionGrantAuth: []

@@ -29,7 +29,7 @@
       "$ref": "./contact-operations.schema.json#/$defs/contact_tombstone_request_body"
     },
     {
-      "$ref": "#/$defs/contact_tombstone"
+      "$ref": "#/$defs/contact_tombstone_response_body"
     },
     {
       "$ref": "./contact-operations.schema.json#/$defs/contact_scope_update_request_body"
@@ -2101,9 +2101,6 @@
         ]
       }
     },
-    "contact_tombstone": {
-      "$ref": "#/$defs/contact_tombstone_response_body"
-    },
     "contact_tombstone_response_body": {
       "allOf": [
         {
@@ -2472,7 +2469,8 @@
                   "accepted",
                   "duplicate"
                 ]
-              }
+              },
+              "x-arkret-outcome-scope": "peer_contact_admission_attempt"
             }
           },
           "required": [
@@ -2541,7 +2539,8 @@
               "duplicate",
               "deferred"
             ]
-          }
+          },
+          "x-arkret-outcome-scope": "peer_contact_admission_attempt"
         },
         "control_material_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
@@ -2577,7 +2576,8 @@
                     "accepted",
                     "duplicate"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "peer_contact_admission_attempt"
               }
             },
             "required": [
@@ -2694,7 +2694,8 @@
                       "values": [
                         "accepted"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                   }
                 },
                 "required": [
@@ -2741,7 +2742,8 @@
                       "values": [
                         "duplicate"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                   }
                 },
                 "required": [
@@ -2788,7 +2790,8 @@
                       "values": [
                         "deferred"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                   }
                 },
                 "required": [
@@ -2927,7 +2930,8 @@
               "duplicate",
               "deferred"
             ]
-          }
+          },
+          "x-arkret-outcome-scope": "peer_contact_admission_attempt"
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id"
@@ -3052,7 +3056,8 @@
                         "values": [
                           "accepted"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                     }
                   },
                   "required": [
@@ -3129,7 +3134,8 @@
                         "values": [
                           "duplicate"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                     }
                   },
                   "required": [
@@ -3217,7 +3223,8 @@
                         "values": [
                           "deferred"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                     }
                   },
                   "required": [
@@ -3303,7 +3310,8 @@
                         "values": [
                           "deferred"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                     }
                   },
                   "required": [

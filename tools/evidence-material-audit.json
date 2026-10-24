@@ -1,5 +1,5 @@
 {
-  "version": 50,
+  "version": 51,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
@@ -897,7 +897,7 @@
       "key": "signer_evidence_ref",
       "occurrences": 2,
       "disposition": "qualifier",
-      "reason": "Locates the immutable historical signer evidence containing this exact device attestation; the client-facing query_device_record and the Station-to-Station peer_query_device_record carry the same reference."
+      "reason": "Locates the immutable historical signer evidence containing this exact device attestation; the client-facing device_key_view and the Station-to-Station peer_device_key_view carry the same reference."
     },
     {
       "file": "mimi-operations.schema.json",

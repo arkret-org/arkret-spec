@@ -1742,7 +1742,8 @@
           }
         },
         "claim_outcome": {
-          "$ref": "#/$defs/keypackages_claim_response_body"
+          "$ref": "#/$defs/keypackages_claim_response_body",
+          "x-arkret-outcome-scope": "origin_keypackage_claim_attempt"
         },
         "consume_receipt": {
           "$ref": "#/$defs/keypackage_consume_receipt"

@@ -63,7 +63,8 @@
           "partially_completed",
           "blocked_by_legal_hold"
         ]
-      }
+      },
+      "x-arkret-outcome-scope": "one_storage_boundary_erasure_execution_attempt"
     },
     "erased_classes": {
       "type": "array",
@@ -231,7 +232,8 @@
               "values": [
                 "blocked_by_legal_hold"
               ]
-            }
+            },
+            "x-arkret-outcome-scope": "one_storage_boundary_erasure_execution_attempt"
           }
         },
         "required": [

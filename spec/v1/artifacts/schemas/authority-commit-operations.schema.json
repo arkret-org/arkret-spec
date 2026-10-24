@@ -1699,7 +1699,8 @@
             {
               "$ref": "#/$defs/registered_atomic_unit_rejection"
             }
-          ]
+          ],
+          "x-arkret-outcome-scope": "registered_atomic_unit_admission_attempt"
         }
       },
       "additionalProperties": false,

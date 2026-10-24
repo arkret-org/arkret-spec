@@ -162,7 +162,7 @@
           "type": "object",
           "required": [
             "status",
-            "row",
+            "current_state",
             "source_ref"
           ],
           "properties": {
@@ -177,7 +177,7 @@
                 ]
               }
             },
-            "row": {
+            "current_state": {
               "oneOf": [
                 {
                   "$ref": "./current-state.schema.json#/$defs/current_realm_actor_identity"
@@ -210,7 +210,7 @@
             },
             "source_ref": {
               "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-              "description": "Original accepted source of this selector at the same private read cut; stream and revision equal the row."
+              "description": "Original accepted source of this selector at the same private read cut; stream and revision equal current_state."
             }
           },
           "additionalProperties": false
@@ -251,7 +251,7 @@
         }
       ]
     },
-    "current_record": {
+    "current_material": {
       "type": "object",
       "required": [
         "entries"
@@ -269,7 +269,7 @@
       },
       "additionalProperties": false
     },
-    "event_record": {
+    "event_material": {
       "type": "object",
       "required": [
         "event",
@@ -392,7 +392,7 @@
       ],
       "x-arkret-name-role": "status_view"
     },
-    "request_status_record": {
+    "request_status_view": {
       "type": "object",
       "required": [
         "target_request_digest",
@@ -425,8 +425,8 @@
                   ],
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
-                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/2/properties/status",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/2/properties/status",
                     "values": [
                       "pending",
                       "unknown",
@@ -451,8 +451,8 @@
                   "const": "recovery",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
-                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/status",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/status",
                     "values": [
                       "recovery"
                     ]
@@ -470,8 +470,8 @@
                   ],
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
-                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/state",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/state",
                     "values": [
                       "pending",
                       "completed",
@@ -500,8 +500,8 @@
                         "const": "pending",
                         "x-arkret-value-ownership": {
                           "class": "owned_symbol",
-                          "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
-                          "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                          "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                          "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/allOf/0/if/properties/state",
                           "values": [
                             "pending"
                           ]
@@ -533,7 +533,7 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-name-role": "status_record"
+      "x-arkret-name-role": "status_view"
     },
     "realm_actor_material_response_body": {
       "type": "object",
@@ -618,13 +618,13 @@
         "material": {
           "oneOf": [
             {
-              "$ref": "#/$defs/current_record"
+              "$ref": "#/$defs/current_material"
             },
             {
-              "$ref": "#/$defs/event_record"
+              "$ref": "#/$defs/event_material"
             },
             {
-              "$ref": "#/$defs/request_status_record"
+              "$ref": "#/$defs/request_status_view"
             }
           ]
         },
@@ -658,7 +658,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/current_record"
+                "$ref": "#/$defs/current_material"
               },
               "control_stream_head": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -688,7 +688,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/event_record"
+                "$ref": "#/$defs/event_material"
               },
               "control_stream_head": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -718,7 +718,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/request_status_record"
+                "$ref": "#/$defs/request_status_view"
               }
             }
           }
@@ -808,13 +808,13 @@
         "material": {
           "oneOf": [
             {
-              "$ref": "#/$defs/current_record"
+              "$ref": "#/$defs/current_material"
             },
             {
-              "$ref": "#/$defs/event_record"
+              "$ref": "#/$defs/event_material"
             },
             {
-              "$ref": "#/$defs/request_status_record"
+              "$ref": "#/$defs/request_status_view"
             }
           ]
         }
@@ -844,7 +844,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/current_record"
+                "$ref": "#/$defs/current_material"
               },
               "control_stream_head": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -874,7 +874,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/event_record"
+                "$ref": "#/$defs/event_material"
               },
               "control_stream_head": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -904,7 +904,7 @@
           "then": {
             "properties": {
               "material": {
-                "$ref": "#/$defs/request_status_record"
+                "$ref": "#/$defs/request_status_view"
               }
             }
           }

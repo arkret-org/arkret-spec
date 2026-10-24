@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -1303,7 +1303,7 @@
       },
       "assertions": [
         "the claim record carries the accepted authorization Event id of its own closed branch, and the device and Agent ids are an exact XOR rather than two optional members",
-        "on the device branch the requester Station obtains the target device's signed peer_query_device_record through ak.peer.keys.read.lookup.v1 with purpose mls_group_admission, verifies it by the section 8.2 rules, and requires attestation device_authorize_event_id to equal the claim record's and device_signing_key_did to be the key that verified the KeyPackage and LeafNode signatures; the Agent branch keeps its existing Agent signer evidence rule; no producer's control history is ever replayed",
+        "on the device branch the requester Station obtains the target device's signed peer_device_key_view through ak.peer.keys.read.lookup.v1 with purpose mls_group_admission, verifies it by the section 8.2 rules, and requires attestation device_authorize_event_id to equal the claim record's and device_signing_key_did to be the key that verified the KeyPackage and LeafNode signatures; the Agent branch keeps its existing Agent signer evidence rule; no producer's control history is ever replayed",
         "the destination-signed claim_receipt is verified over the claim bytes the requester recomputes, not over a reserialization the response supplies",
         "all four checks -- peer device-directory attestation (or Agent signer evidence), claim receipt, KeyPackage signature and every selector -- complete before the KeyPackage is installed and before a Welcome is authored, so a later mismatch cannot be discovered after the group already exists",
         "any one of the eight mutations blocks both installing the KeyPackage and authoring the Welcome; neither is reached on a partial verification",
@@ -1312,7 +1312,7 @@
       "peer_device_directory_lookup": {
         "operation_id": "ak.peer.keys.read.lookup.v1",
         "purpose": "mls_group_admission",
-        "row_type": "peer_query_device_record",
+        "row_type": "peer_device_key_view",
         "verification": "device-lifecycle.md section 8.2 four rules",
         "attestation_device_authorize_event_id_equals_claim_record": true,
         "attestation_device_signing_key_did_verifies_keypackage_and_leaf_node_signature": true,

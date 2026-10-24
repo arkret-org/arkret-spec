@@ -3086,7 +3086,7 @@
       ]
     },
     {
-      "schema_path": "device-revocation-state.schema.json#/$defs/common_record/properties/account_id",
+      "schema_path": "device-revocation-state.schema.json#/$defs/device_revocation_fields/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
@@ -4328,16 +4328,6 @@
     {
       "schema_path": "event-payload.schema.json#/$defs/realm_policy_bundle_payload/properties/handle_issuer_policies/items/properties/issuer_id",
       "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/allowed_service_ids",
-      "property_name": "allowed_service_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

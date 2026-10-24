@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 76,
+    "total_fields": 77,
     "by_classification": {
       "bounded_free_text": 6,
       "closed_enum": 33,
-      "closed_literal": 19,
+      "closed_literal": 20,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -461,9 +461,9 @@
     },
     {
       "schema_file": "realm-link-operations.schema.json",
-      "shape": "realm_link_entry",
+      "shape": "realm_link_view",
       "field": "status",
-      "pointer": "#/$defs/realm_link_entry/properties/status",
+      "pointer": "#/$defs/realm_link_view/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -544,6 +544,14 @@
       "shape": "EventDisclosure",
       "field": "status",
       "pointer": "#/$defs/EventDisclosure/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "ModerationReportResponseBody",
+      "field": "status",
+      "pointer": "#/$defs/ModerationReportResponseBody/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },

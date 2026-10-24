@@ -15,6 +15,7 @@ ROLE_TAILS = {
     "shared_fields": "fields", "problem_extensions": "problem_extensions",
     "attempt_outcome": "outcome", "terminal_outcome": "outcome",
     "planned_event": "planned_event", "status_record": "record",
+    "progress": "progress", "retained_fact": "record", "keyed_entry": "entry",
 }
 MEMBER_PATTERNS = {
     "count": r"(?:[a-z][a-z0-9_]*_)?count(?:_per_[a-z][a-z0-9_]*)?",
@@ -55,6 +56,15 @@ def type_role_errors(name: str, node: dict) -> list[str]:
                                              for value in child.get("enum", [child.get("const")])):
                 errors.append("Outcome admits an unsettled status")
     props = node.get("properties", {})
+    if normalized.endswith('_snapshot'):
+        boundary = node.get('x-arkret-snapshot-boundary', {})
+        required = set(node.get('required', []))
+        for axis in ('cut_fields', 'coverage_fields'):
+            fields = boundary.get(axis)
+            if not isinstance(fields, list) or not fields or len(fields) != len(set(fields)):
+                errors.append(f'Snapshot requires explicit nonempty {axis}')
+            elif any(field not in props or field not in required for field in fields):
+                errors.append(f'Snapshot {axis} must name required canonical members')
     if normalized.endswith("_page"):
         if not any(k in props for k in ("next_cursor", "continuation", "next_after", "has_more")):
             errors.append("Page requires a continuation contract")
@@ -67,8 +77,17 @@ def type_role_errors(name: str, node: dict) -> list[str]:
 
 
 def member_role_errors(name: str, node: dict) -> list[str]:
+    if name == 'row' or name.endswith(('_row', '_result', '_results')) or name == 'result':
+        return ['generic Row/Result is not an owned protocol member role']
     if not isinstance(node,dict):
-        return []
+        node = {}
+    if name == 'outcome' or name.endswith('_outcome'):
+        if not node.get('x-arkret-outcome-scope'):
+            return ['Outcome member requires its exact settled processing scope']
+        for _pointer, child in enumerate_schema_nodes('member', node):
+            if isinstance(child, dict) and any(value in NONTERMINAL for value in
+                    child.get('enum', [child.get('const')]) if isinstance(value, str)):
+                return ['Outcome member admits an unsettled status in its processing scope']
     role = node.get("x-arkret-member-role")
     pattern = MEMBER_PATTERNS.get(role)
     if pattern and not re.fullmatch(pattern, name):
@@ -138,12 +157,18 @@ def capture_member_reference_errors(text: str) -> list[str]:
 def retired_contract_reference_errors(text: str) -> list[str]:
     replacements = {'MlsGroupCurrent': 'MlsGroupValue', 'TypedCurrentRow': 'CurrentState',
                     'AccountCurrentView': 'AccountStateView'}
-    replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'WebvhWitnessIdentity', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
+    replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'DidBindingWitness', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
     return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
             if re.search(r'\b' + old + r'\b', text)]
 
 
 def check_semantic_naming(lint: Lint) -> None:
+    try:
+        from tools.public_type_duplicates import check as check_duplicates
+    except ImportError:
+        from public_type_duplicates import check as check_duplicates
+    for error in check_duplicates(ROOT):
+        lint.fail(ARTIFACTS / 'schemas', error)
     text_paths = sorted((ROOT / 'spec/v1/zh').rglob('*.md'))
     text_paths += sorted(ARTIFACTS.rglob('*.json'))
     for path in text_paths:
@@ -160,6 +185,8 @@ def check_semantic_naming(lint: Lint) -> None:
         if not isinstance(document,dict):
             continue
         def role_shape(node, seen=None, context_path=path, context_document=document):
+            if not isinstance(node, dict):
+                return {}
             seen = set() if seen is None else seen
             reference = node.get("$ref")
             if not isinstance(reference, str) or reference in seen:
@@ -189,6 +216,10 @@ def check_semantic_naming(lint: Lint) -> None:
         for pointer,node in enumerate_schema_nodes(path.name,document):
             if not isinstance(node,dict):
                 continue
+            if pointer == '' and path.suffix == '.json':
+                root_name = path.name.removesuffix('.schema.json').replace('-', '_')
+                for error in type_role_errors(root_name, role_shape(node)):
+                    lint.fail(path, f'root: {error}')
             if "/$defs/" in pointer and pointer.rsplit("/$defs/",1)[-1].count("/") == 0:
                 for error in type_role_errors(pointer.rsplit("/",1)[-1],role_shape(node)):
                     lint.fail(path,f"{pointer}: {error}")
@@ -200,7 +231,7 @@ def check_semantic_naming(lint: Lint) -> None:
             for error in enum_errors(node,path.name+'#'+pointer):
                 lint.fail(path,f"{pointer}: {error}")
         for occurrence in enumerate_schema_properties(path.name,document):
-            for error in member_role_errors(occurrence.name,occurrence.shape):
+            for error in member_role_errors(occurrence.name,role_shape(occurrence.shape)):
                 lint.fail(path,f"{occurrence.pointer}: {error}")
 
 

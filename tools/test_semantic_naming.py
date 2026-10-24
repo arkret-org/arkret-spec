@@ -12,6 +12,69 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_account_revocation_names_match_their_exact_subject_scope(self):
+        from referencing import Registry, Resource
+        from .realm_actor_contract import actor, token
+        schemas = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas'
+        documents = [json.loads(path.read_text(encoding='utf-8')) for path in schemas.glob('*.json')]
+        registry = Registry().with_resources((doc['$id'], Resource.from_contents(doc)) for doc in documents)
+
+        def validator(name):
+            return Draft202012Validator({'$ref': 'https://arkret.org/v1/schemas/device-revocation-state.schema.json#/$defs/' + name}, registry=registry)
+
+        common = {'schema': 'ak.schema.device_revocation_state.v1',
+                  'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'},
+                  'device_id': 'ak:device:01964137-0000-7000-8000-000000000001',
+                  'target_device_authorize_event_id': token('event'), 'target_device_generation_ref': 1,
+                  'proposal_event_id': token('event', 2), 'accepted_at': '2026-10-24T00:00:00.000Z', 'acceptance_sequence': 1}
+        for name, status, extras in [
+            ('device_revocation_pending_state', 'revocation_pending', {'denied_actions': ['session_grant_issue_or_refresh', 'device_pairing_code_claim', 'keypackage_claim', 'to_device_write', 'event_write']}),
+            ('device_revocation_rejected_state', 'revocation_rejected', {}),
+            ('device_revoked_state', 'revoked', {'committed_at': '2026-10-24T00:00:01.000Z'}),
+        ]:
+            account = {**common, 'status': status, **extras}
+            realm = {**account, 'actor_id': actor()}
+            del realm['account_id']
+            for candidate in (account, realm):
+                validator(name).validate(candidate)
+                validator('device_revocation_record').validate(candidate)
+            validator('account_' + name).validate(account)
+            validator('account_device_revocation_record').validate(account)
+            self.assertFalse(validator('account_' + name).is_valid(realm))
+            self.assertFalse(validator('account_device_revocation_record').is_valid(realm))
+            if status != 'revocation_rejected':
+                validator('account_device_revocation_gate_record').validate(account)
+                self.assertFalse(validator('account_device_revocation_gate_record').is_valid(realm))
+            else:
+                self.assertFalse(validator('account_device_revocation_gate_record').is_valid(account))
+
+    def test_snapshot_cannot_be_an_unbounded_summary_or_pin_optional_fields(self):
+        snapshot = {'type': 'object', 'required': ['version', 'members'],
+                    'properties': {'version': {'type': 'integer'}, 'members': {'type': 'array'}},
+                    'x-arkret-snapshot-boundary': {'cut_fields': ['version'], 'coverage_fields': ['members']}}
+        self.assertEqual(type_role_errors('membership_snapshot', snapshot), [])
+        for mutation in ('missing_boundary', 'unknown_cut', 'optional_coverage'):
+            changed = copy.deepcopy(snapshot)
+            if mutation == 'missing_boundary':
+                del changed['x-arkret-snapshot-boundary']
+            elif mutation == 'unknown_cut':
+                changed['x-arkret-snapshot-boundary']['cut_fields'] = ['read_at']
+            else:
+                changed['required'].remove('members')
+            self.assertTrue(type_role_errors('membership_snapshot', changed), mutation)
+
+    def test_singular_row_and_nested_result_names_are_not_field_role_exceptions(self):
+        for name in ('row', 'current_row', 'result', 'policy_results', 'session_grant_result'):
+            self.assertTrue(member_role_errors(name, {'type': 'object'}), name)
+        for name in ('current_state', 'policy_evaluations', 'issued_session'):
+            self.assertEqual(member_role_errors(name, {'type': 'object'}), [])
+
+    def test_outcome_members_need_a_settled_scope_even_without_a_named_enum(self):
+        scope = {'x-arkret-outcome-scope': 'holder_admission_attempt'}
+        self.assertTrue(member_role_errors('outcome', {'enum': ['accepted']}))
+        self.assertEqual(member_role_errors('outcome', {**scope, 'enum': ['accepted', 'deferred']}), [])
+        self.assertTrue(member_role_errors('outcome', {**scope, 'enum': ['pending']}))
+
     def test_public_rows_and_role_metadata_are_rejected(self):
         for name, node in [('RealmRow', {}), ('realm_row', {}), ('Row', {}),
                            ('realm_view', {'x-arkret-name-role': 'row'}),

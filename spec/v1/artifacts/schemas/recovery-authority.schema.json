@@ -19,14 +19,14 @@
       "description": "Exact durable outcome for one completed recovery transaction. If the original account was deactivated, successful issuance also means the Account Authority atomically restored that same account and authored its deactivated-to-active successor; no replacement account or second PCR is created.",
       "required": [
         "transaction_id",
-        "session_grant_outcome",
+        "issued_session",
         "issued_at"
       ],
       "properties": {
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
         },
-        "session_grant_outcome": {
+        "issued_session": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
         },
         "issued_at": {

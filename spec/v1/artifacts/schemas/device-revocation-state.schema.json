@@ -12,13 +12,31 @@
     "device_revocation_record": {
       "oneOf": [
         {
-          "$ref": "#/$defs/device_revocation_pending_state"
+          "$ref": "#/$defs/account_device_revocation_record"
         },
         {
-          "$ref": "#/$defs/device_revocation_rejected_state"
-        },
-        {
-          "$ref": "#/$defs/device_revoked_state"
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/device_revocation_gate_record"
+                },
+                {
+                  "$ref": "#/$defs/device_revocation_rejected_state"
+                }
+              ]
+            },
+            {
+              "required": [
+                "actor_id"
+              ],
+              "not": {
+                "required": [
+                  "account_id"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -107,7 +125,7 @@
       "maxItems": 5,
       "uniqueItems": true
     },
-    "common_record": {
+    "device_revocation_fields": {
       "type": "object",
       "required": [
         "schema",
@@ -123,8 +141,8 @@
           "const": "ak.schema.device_revocation_state.v1",
           "x-arkret-value-ownership": {
             "class": "namespaced_symbol",
-            "authority": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
-            "owner": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
+            "authority": "device-revocation-state.schema.json#/$defs/device_revocation_fields/properties/schema",
+            "owner": "device-revocation-state.schema.json#/$defs/device_revocation_fields/properties/schema",
             "values": [
               "ak.schema.device_revocation_state.v1"
             ]
@@ -181,12 +199,13 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "shared_fields"
     },
     "device_revocation_pending_state": {
       "allOf": [
         {
-          "$ref": "#/$defs/common_record"
+          "$ref": "#/$defs/device_revocation_fields"
         },
         {
           "type": "object",
@@ -217,7 +236,7 @@
     "device_revocation_rejected_state": {
       "allOf": [
         {
-          "$ref": "#/$defs/common_record"
+          "$ref": "#/$defs/device_revocation_fields"
         },
         {
           "type": "object",
@@ -244,7 +263,7 @@
     "device_revoked_state": {
       "allOf": [
         {
-          "$ref": "#/$defs/common_record"
+          "$ref": "#/$defs/device_revocation_fields"
         },
         {
           "type": "object",
@@ -271,6 +290,92 @@
         }
       ],
       "unevaluatedProperties": false
+    },
+    "account_device_revocation_pending_state": {
+      "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_revocation_pending_state"
+        },
+        {
+          "required": [
+            "account_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        }
+      ]
+    },
+    "account_device_revocation_rejected_state": {
+      "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_revocation_rejected_state"
+        },
+        {
+          "required": [
+            "account_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        }
+      ]
+    },
+    "account_device_revoked_state": {
+      "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_revoked_state"
+        },
+        {
+          "required": [
+            "account_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        }
+      ]
+    },
+    "account_device_revocation_gate_record": {
+      "description": "Account-only retained pending/revoked gate facts; rejected records remain audit history.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_revocation_gate_record"
+        },
+        {
+          "required": [
+            "account_id"
+          ],
+          "not": {
+            "required": [
+              "actor_id"
+            ]
+          }
+        }
+      ]
+    },
+    "account_device_revocation_record": {
+      "description": "Account-only retained revocation fact; rejects the distinct Realm actor subject branch.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/account_device_revocation_pending_state"
+        },
+        {
+          "$ref": "#/$defs/account_device_revocation_rejected_state"
+        },
+        {
+          "$ref": "#/$defs/account_device_revoked_state"
+        }
+      ]
     }
   }
 }

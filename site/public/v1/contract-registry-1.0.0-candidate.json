@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.4",
+  "version": "2026-10-24.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T19:15:25+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -2864,7 +2864,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "Only ordinary Human registration_anchor initializes its existing PCR generation. Realm actors initialize their separate generation at ak.realm.actor.create."
           },
           {
@@ -3009,7 +3009,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. The keys/query device_generation_state object presents only current_device_generation_ref; there is no generation-level status (5.5.4)."
           }
         ],
@@ -5531,7 +5531,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
           },
           {
@@ -5656,7 +5656,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
           }
         ],
@@ -5733,7 +5733,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
           },
           {
@@ -5864,7 +5864,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+            "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
             "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
           }
         ],
@@ -6882,7 +6882,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm privacy-preserving search policy",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
+        "payload_schema_ref": "schemas/search-service.schema.json#/$defs/search_policy",
         "id_source": "not_an_object_id",
         "state_writes": [
           {
@@ -6894,7 +6894,7 @@
                 "field": "payload"
               }
             },
-            "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
+            "value_schema_ref": "schemas/search-service.schema.json#/$defs/search_policy",
             "notes": "zh/sync/privacy-preserving-search.md. Per-Realm singleton policy: the Event envelope supplies the Realm namespace, so no subject duplicates realm_id. The complete closed payload is replaced atomically; enabled profiles, service allowlist, data classes, leakage class, rotation cadence and revocation behavior are one invariant. Invalid profile combinations or unauthorized plaintext/reversible data reject before the write."
           }
         ],
@@ -9815,8 +9815,8 @@
         }
       }
     },
-    "version": "2026-10-24.2",
-    "generated_at": "2026-10-24T16:52:58+08:00",
+    "version": "2026-10-24.3",
+    "generated_at": "2026-10-24T23:34:31+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -14218,7 +14218,7 @@
         "mq": "edge.applet.third_party_locations.query.list",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body",
+        "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
         "notes": ""
       },
       {
@@ -15148,7 +15148,7 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
-        "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+        "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
         "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
         "durable_effect": {
           "kind": "none",
@@ -15163,7 +15163,7 @@
         "notes": "Service-authenticated exact receipt-package lookup for the issuer, receiver or an explicitly authorized auditor. It is non-enumerating: unauthorized, unknown and hidden receipt identifiers produce the same not_found response. The returned retained stub is the exact object accepted with the receipt and MUST NOT be reconstructed from later state.",
         "body_class": "none",
         "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource"
+        "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
       },
       {
         "operation_id": "ak.peer.events.command.submit.v1",
@@ -18369,8 +18369,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-24.4",
-    "generated_at": "2026-10-24T19:15:25+08:00",
+    "version": "2026-10-24.5",
+    "generated_at": "2026-10-24T23:34:31+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

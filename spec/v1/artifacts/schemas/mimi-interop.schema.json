@@ -475,7 +475,8 @@
                   "completed",
                   "rolled_back"
                 ]
-              }
+              },
+              "x-arkret-outcome-scope": "mimi_room_binding_migration_execution"
             },
             "migration_proof": {
               "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_migration_proof"

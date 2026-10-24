@@ -29,9 +29,6 @@
       "$ref": "#/$defs/applet_third_party_user_lookup_response_body"
     },
     {
-      "$ref": "#/$defs/applet_third_party_location_lookup_response_body"
-    },
-    {
       "$ref": "#/$defs/third_party_user_query"
     }
   ],
@@ -488,25 +485,6 @@
           }
         }
       ],
-      "x-arkret-name-role": "lookup_response"
-    },
-    "applet_third_party_location_lookup_response_body": {
-      "type": "object",
-      "required": [
-        "exists"
-      ],
-      "properties": {
-        "exists": {
-          "type": "boolean"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "external_ref": {
-          "$ref": "#/$defs/external_ref"
-        }
-      },
-      "additionalProperties": false,
       "x-arkret-name-role": "lookup_response"
     },
     "applet_event_transaction_request_body": {

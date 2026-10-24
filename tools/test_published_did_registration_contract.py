@@ -63,7 +63,7 @@ class PublishedDidRegistrationContract(unittest.TestCase):
 
     def test_success_and_relay_cannot_omit_initialization(self):
         outcome = self.account['account_register_response_body']
-        self.assertTrue({'pcr_genesis_commits', 'session_grant_outcome', 'binding_receipt'} <= set(outcome['required']))
+        self.assertTrue({'pcr_genesis_commits', 'issued_session', 'binding_receipt'} <= set(outcome['required']))
         receipt = self.account['account_binding_receipt']
         self.assertTrue({'identity_creation_lease_id', 'lease_fence'} <= set(receipt['required']))
         relay = json.loads((ART / 'schemas/principal-operations.schema.json').read_text(encoding='utf-8'))['$defs']['pcr_genesis_submit_request_body']

@@ -3051,7 +3051,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+            "$ref": "./search-service.schema.json#/$defs/search_policy"
           }
         }
       }

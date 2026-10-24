@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.2",
+  "version": "2026-10-24.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T16:52:58+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2410,7 +2410,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "Only ordinary Human registration_anchor initializes its existing PCR generation. Realm actors initialize their separate generation at ak.realm.actor.create."
         },
         {
@@ -2555,7 +2555,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. The keys/query device_generation_state object presents only current_device_generation_ref; there is no generation-level status (5.5.4)."
         }
       ],
@@ -5077,7 +5077,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
         },
         {
@@ -5202,7 +5202,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
         }
       ],
@@ -5279,7 +5279,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
         },
         {
@@ -5410,7 +5410,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_actor_device_generation_value",
+          "value_schema_ref": "schemas/keys-operations.schema.json#/$defs/device_generation_state",
           "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
         }
       ],
@@ -6428,7 +6428,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm privacy-preserving search policy",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
+      "payload_schema_ref": "schemas/search-service.schema.json#/$defs/search_policy",
       "id_source": "not_an_object_id",
       "state_writes": [
         {
@@ -6440,7 +6440,7 @@
               "field": "payload"
             }
           },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
+          "value_schema_ref": "schemas/search-service.schema.json#/$defs/search_policy",
           "notes": "zh/sync/privacy-preserving-search.md. Per-Realm singleton policy: the Event envelope supplies the Realm namespace, so no subject duplicates realm_id. The complete closed payload is replaced atomically; enabled profiles, service allowlist, data classes, leakage class, rotation cadence and revocation behavior are one invariant. Invalid profile combinations or unauthorized plaintext/reversible data reject before the write."
         }
       ],

@@ -49,7 +49,7 @@
       "outbound": 66,
       "prose": 106,
       "prose_only": 4,
-      "schema_reference": 166,
+      "schema_reference": 167,
       "startup_compile": 230,
       "vectors": 114
     },
@@ -4036,6 +4036,7 @@
       "file": "schemas/search-service.schema.json",
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
+        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

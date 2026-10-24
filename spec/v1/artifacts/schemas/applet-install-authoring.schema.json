@@ -81,41 +81,6 @@
       },
       "additionalProperties": false
     },
-    "ghost_external_tuple": {
-      "type": "object",
-      "required": [
-        "protocol",
-        "instance_id",
-        "external_id"
-      ],
-      "properties": {
-        "protocol": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
-        },
-        "instance_id": {
-          "allOf": [
-            {
-              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "external_id": {
-          "allOf": [
-            {
-              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "registration_epoch_evidence": {
       "$ref": "./applet-registration-epoch-evidence.schema.json"
     },
@@ -417,7 +382,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "external_ref": {
-          "$ref": "#/$defs/ghost_external_tuple"
+          "$ref": "./realm-actor.schema.json#/$defs/ghost_external_tuple"
         },
         "display_name": {
           "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
@@ -586,7 +551,7 @@
       ],
       "properties": {
         "external_ref": {
-          "$ref": "#/$defs/ghost_external_tuple"
+          "$ref": "./realm-actor.schema.json#/$defs/ghost_external_tuple"
         },
         "display_name": {
           "$ref": "./string-profiles.schema.json#/$defs/display_text_256"

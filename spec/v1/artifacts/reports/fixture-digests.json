@@ -42,8 +42,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "08ecbce95bf1e2359582ce284c2af6fce86e8633b97c55491de6772f79db1b05",
-      "version": "2026-10-24.1"
+      "sha256": "7b41c10eeb6023c868f68d66a26f1ba9dff3672c9225f493c3f661c436291e38",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -277,8 +277,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/exact-current-state-read-fixture.json",
-      "sha256": "ca0295f7c2fb116d1b4218ec640a9eaeef79fc9d4b8e53641c773fc659ec0e4b",
-      "version": "2026-10-24.1"
+      "sha256": "4756fcb10f9930826308268a7546c9985a8279aa9e959131a67d095eadab7322",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/expected-state-digest-kat-fixture.json",
@@ -372,8 +372,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "d1be132b405a3d5f53bb5fceb3c8d55bfcc6340e42716a63deda8751efb8b55c",
-      "version": "2026-10-24.1"
+      "sha256": "fd0e04b028a320ab81465b9d4614408583815ee99fef914e68b8565ad6ce3557",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
@@ -542,8 +542,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "931edfe13da426d284c1ff330f8e84d4dbf1fcf5e7011a0379eb03a1bd6501f7",
-      "version": "2026-10-24.1"
+      "sha256": "136a23137dddb68d4cb80e68f7d031ce93c50d1459a5ba48cef59ba7162b5b2f",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",

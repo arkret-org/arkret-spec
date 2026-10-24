@@ -185,5 +185,16 @@
       },
       "additionalProperties": false
     }
+  },
+  "x-arkret-name-role": "snapshot",
+  "x-arkret-snapshot-boundary": {
+    "cut_fields": [
+      "governance_generation",
+      "visible_stream_heads"
+    ],
+    "coverage_fields": [
+      "current_state_entries",
+      "retention_and_history_floor"
+    ]
   }
 }

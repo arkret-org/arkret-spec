@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -446,11 +446,11 @@
         "expected_version": "7"
       },
       "expected": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_entry",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_view",
         "runtime_without_grant": "failed_precondition"
       },
       "assertions": [
-        "session scope_details.participation entries are isomorphic to agent_participation_entry",
+        "session scope_details.participation entries are isomorphic to agent_participation_view",
         "the overlay is a behavior contract and not an authorization boundary",
         "missing backing capability grant still fails the runtime operation"
       ]

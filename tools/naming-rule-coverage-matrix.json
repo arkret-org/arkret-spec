@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 3,
+  "version": 4,
   "kind": "naming_rule_coverage_matrix",
   "source_of_truth": false,
   "generated_from": [
@@ -159,7 +159,8 @@
       ],
       "tests": [
         "tools/test_naming_gate_lint.py",
-        "tools/test_semantic_naming.py"
+        "tools/test_semantic_naming.py",
+        "tools/test_public_type_duplicates.py"
       ],
       "coverage_level": "partial",
       "residual_gap": "Acronym folding, forbidden Result and generic Row names, declared body/current/outcome roles, collection shapes and exact enum authority are decided mechanically. Selecting the domain meaning and body boundary of every ordinary type still requires semantic review; annotations are not a proof of that choice."
@@ -1155,5 +1156,5 @@
       "residual_gap": "The slug field registry pins every bare `slug` occurrence to a declared owning context and the check closes the wire surface in both directions: a bare slug outside a registered context fails, a registered context whose pointer stops resolving fails, and a reference name must be `<entity>_slug` (with an optional role/time qualifier) for an entity that has a registered owning context. Whether a context genuinely is the owning object of its entity is the human judgement recorded per registry row, the same epistemic status as the identifier classification registry."
     }
   ],
-  "generated_at": "2026-10-24T19:19:39+08:00"
+  "generated_at": "2026-10-24T23:37:46+08:00"
 }

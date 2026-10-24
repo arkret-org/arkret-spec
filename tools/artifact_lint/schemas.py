@@ -3417,7 +3417,7 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("contact-operations.schema.json", ("$defs", "reject_acceptance_receipt"), "reject_event_ref", "reject_digest"),
     ("contact-operations.schema.json", ("$defs", "peer_contact_mirror_receipt"), "signed_event_ref", "signed_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "DirectConversationFoundingAuthorityEvidence", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
-    ("device-revocation-state.schema.json", ("$defs", "common_record"), "proposal_event_id", "proposal_digest"),
+    ("device-revocation-state.schema.json", ("$defs", "device_revocation_fields"), "proposal_event_id", "proposal_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 3), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 4), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 5), "group_state_ref", "group_state_digest"),

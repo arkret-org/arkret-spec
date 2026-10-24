@@ -97,7 +97,7 @@ class ExactCurrentStateReadTest(unittest.TestCase):
             registry=self.resource_registry,
         )
         entry = next(
-            case["value"]["entry"] for case in self.fixture["valid_outcomes"]
+            case["value"]["current_state"] for case in self.fixture["valid_outcomes"]
             if case["name"] == "authorized_relation_present_snapshot_carrier"
         )
         self.assertEqual([], list(validator.iter_errors([entry])))

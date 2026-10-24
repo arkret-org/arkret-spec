@@ -4361,20 +4361,6 @@
       "additionalProperties": false,
       "x-arkret-name-role": "current_state"
     },
-    "device_generation_value": {
-      "type": "object",
-      "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
-      "required": [
-        "current_device_generation_ref"
-      ],
-      "properties": {
-        "current_device_generation_ref": {
-          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
-        }
-      },
-      "additionalProperties": false
-    },
     "current_device_generation": {
       "type": "object",
       "description": "Singleton PCR-local device generation fence (family device_generation). The selector carries no component beyond its kind: one principal control Realm has exactly one generation. Both writers are registered Event kinds, which is why this family has no genesis-only initializer -- the registration_anchor branch of ak.device.authorize IS the pcr_genesis_unit's second member.",
@@ -4412,7 +4398,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/device_generation_value"
+          "$ref": "./keys-operations.schema.json#/$defs/device_generation_state"
         }
       },
       "additionalProperties": false,
@@ -4992,7 +4978,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+          "$ref": "./search-service.schema.json#/$defs/search_policy"
         }
       },
       "additionalProperties": false,
@@ -6022,20 +6008,6 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_device_generation_value": {
-      "type": "object",
-      "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
-      "required": [
-        "current_device_generation_ref"
-      ],
-      "properties": {
-        "current_device_generation_ref": {
-          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
-        }
-      },
-      "additionalProperties": false
-    },
     "current_realm_actor_device_generation": {
       "type": "object",
       "required": [
@@ -6055,7 +6027,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/realm_actor_device_generation_value"
+          "$ref": "./keys-operations.schema.json#/$defs/device_generation_state"
         }
       },
       "additionalProperties": false,

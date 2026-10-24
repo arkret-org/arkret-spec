@@ -523,13 +523,20 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
   | CurrentState / Current&lt;Family&gt; | 给定读取 cut 上带 selector、source_stream_ref、revision、value 的权威现状。具体名字完整保留 current-state registry 的 family；不是某个流程的终态，也不承诺缓存永久新鲜。 |
   | Outcome | 一个明确步骤或流程已定的结局；pending / prepared / unknown 的同一步骤状态不是 Outcome。受理尝试的结局不等于最终送达，必须明确 Attempt 等对象。 |
   | Decision / Verdict / Resolution | 分别为有权主体的裁决、验证检查的判定、名称或引用解析材料；不得互换。 |
-  | View / Record / Entry | 分别为读取投影或组合、保留事实、具有 key／绑定／dot 等语法职责的条目。View 不因出现在集合中变成另一类型；不能因为位于数组就要求 Record 或 Entry。公共协议 MUST NOT 用泛化 Row 后缀表示集合元素。 |
+  | View | caller／用途限定的读取投影或组合。列表与单项读取使用同一 canonical 类型；不得把展示投影称为保留记录或完整快照。 |
+  | Record | 合同要求保留的事实，须明确记录身份、事实来源与保留／后继规则。临时读取包装、可重算摘要及共享字段片段不是 Record。 |
+  | Entry | 具有明确 key、绑定、tag、dot 或索引关联职责的条目。仅仅位于数组或 map 中不足以使用 Entry；公共协议 MUST NOT 使用泛化 Row，字段也不得以 row 表示未限定领域角色的对象。 |
+  | Progress / Status / State | Progress 是流程的推进信息，可包含未完成阶段；Status 是单个对象的状态判别；State 是所属领域的完整状态值。它们不得冒充同一流程的已定 Outcome。 |
   | List / Page / Set | List 无续读；Page 为明确游标、continuation 与 has_more 判据的片段；Set 具有唯一性与 canonical 排序语义。一次 exists／identity 查询使用 LookupResponseBody。 |
-  | Snapshot | 指定 cut 且有明确覆盖／完整性边界的快照；不推导跨 stream 总顺序。 |
+  | Snapshot | 在明确 cut 上冻结、且有覆盖／完整性边界的对象。cut 可由内容地址、版本、同读事务或协议 head 确定，不强求时间戳；普通摘要、列表元素及即时读取包装不是 Snapshot，不推导跨 stream 总顺序。 |
   | Envelope / Frame / Payload / Submission | 分别为带上下文的外层载体、传输帧、kind 绑定领域正文、提交处理的原子单元或证明组合；Submission 不表示已受理。 |
   | Receipt / Metadata / Artifact | 分别为合同固定阶段的回执、对已有对象或过程的描述、具名输出产物。 |
   | Problem / ProblemExtensions | 完整规范错误对象／仅有扩展成员的片段。HTTP Problem 使用 RFC 9457 顶层 type URI 与扩展成员，不使用 error.code/details 包装；闭合对象不能用互相排斥成员的 allOf 强行拼接。 |
   | Parameters / Fields | 操作输入的部分参数集合／可复用共享字段片段；两者不冒充完整 RequestBody。 |
+
+  同字节结构只有在领域身份、签名目的、授权／重放边界与演进义务相同的情况下才合并为唯一 canonical 类型；同形本身不构成合并依据。不同承载位置、生成语言或服务命名空间不得造成重复类型。外部标准的原生结构不受 Arkret 重命名；本地 Rust `Result<T, E>` 错误通道也不属于协议 Result 包装。
+
+  Outcome 的名字与合同 MUST 指明结算范围。尝试的 accepted／deferred／rejected 只能说明该次尝试已定，不表示传播、清理或送达完成；整个流程仍可能 pending 时应使用 Progress。裁决前的 apply／replay／reject 分类使用 Decision，验证结果使用 Verdict。
 
   字段同样按职责使用 `current_state`、`material`、`capture_metadata`、`outcome`、`decision`、`verdict` 或 `resolutions` 等。`Result / result` 不作为泛化协议结构角色。签名、authority、freshness 与授权义务由所属合同决定，名字本身不构成证据。
 
@@ -538,6 +545,17 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
   计数按单数语义轴使用 `_count`，上下界在前，周期在后，例如 `max_channel_count`、`operation_count_per_minute`。普通绝对时刻使用 `_at`；`not_before`、calendar recurrence `until` 和精确外部 literal 按所属合同保留。原始序列化缓冲区明确使用 `_base64` 或 `_base64url`，不得双编码；signature、nonce、digest、typed ref 等角色 terminal 固定其唯一编码。
 
   命名角色、全部 enum／const 的 ownership、开放槽和外部例外由实际 schema terminal 与精确 owner 元数据闭合。例外不得随字段同名或 $ref 传播。门禁分别报告声明覆盖与语义裁决；walker 覆盖不能替代语义证明。
+
+
+#### 公共角色边界的落点
+
+Agent grant 读取摘要为 `agent_grant_view`，不是完整授权集合快照。`agent_participation_view` 携带 selection、version 与下一次替换输入，不声明治理 ceilings 的完整性。设备 key 读取使用 `device_key_view`／`peer_device_key_view`：前者包含 own-Station 已验证投影，后者保留 peer 原签 attestation；两者不得因同为 View 而合并或丢弃验证义务。算法映射中的 `signed_prekey` 是签名预密钥材料，不是通用 key 记录。
+
+Realm Actor current 材料中，present 项携带 `current_state` 与匹配同一 stream／revision 的 `source_ref`；exact current read 的 present 分支也使用 `current_state`。这两个 envelope 的授权、nonce、freshness 与 selector 范围各自保持原合同，名称相同不使它们成为可互换响应。请求状态读取为 `request_status_view`，原 Event／Commit 材料为 `event_material`。
+
+仍有待执行清理义务的级联不构成整个流程的已定 Outcome；不得为未登记的级联状态创建新的公共 wire carrier。擦除 receipt 的 outcome 结算本次执行尝试；部分完成与法律保留阻断不得被解释为所有擦除义务已完成。披露给邀请发送方的 delivery outcome 仅结算本次 holder admission／delivery 步骤，不证明客户端最终收取。
+
+`resolver_policy_snapshot` 以完整六成员 canonical 对象的 JCS 为 digest 输入，信任根成员逐字为 `trust_roots`。`IdentityDocumentView` 的唯一成员为 required `did_document` 和 optional `normalized_view`、`method_evidence`、`cached_at`；DID 原文继续保留外部标准字段，projection 不增加序列或 receipt 别名。
 
 ### 4.3 角色名词登记索引
 

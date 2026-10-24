@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 SCHEMAS = Path(__file__).resolve().parents[1] / "spec/v1/artifacts/schemas"
-DEVICE_RECORDS = ("query_device_record", "peer_query_device_record")
+DEVICE_RECORDS = ("device_key_view", "peer_device_key_view")
 
 
 class DeviceHistoryEvidenceSchemaTest(unittest.TestCase):
@@ -33,8 +33,8 @@ class DeviceHistoryEvidenceSchemaTest(unittest.TestCase):
             self.assertNotIn("signer_evidence_digest", record["properties"], name)
 
     def test_client_and_station_rows_stay_distinct_carriers(self):
-        client = self.keys["$defs"]["query_device_record"]
-        station = self.keys["$defs"]["peer_query_device_record"]
+        client = self.keys["$defs"]["device_key_view"]
+        station = self.keys["$defs"]["peer_device_key_view"]
         self.assertIn("device_projection", client["required"])
         self.assertNotIn("device_projection_attestation", client["properties"])
         self.assertIn("device_projection_attestation", station["required"])

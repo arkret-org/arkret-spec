@@ -294,7 +294,7 @@
     },
     "agent_status": {
       "type": "string",
-      "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. Pairing and key facts are reflected through the generic readiness axis and open-handle fields, never through a fourth generic state axis (key-management.md §3.6.1).",
+      "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. Pairing and key facts are reflected through the generic readiness axis and open-handle fields, never through a fourth generic state axis (key-management.md Â§3.6.1).",
       "enum": [
         "active",
         "paused",
@@ -511,7 +511,7 @@
       },
       "additionalProperties": false
     },
-    "grant_snapshot": {
+    "agent_grant_view": {
       "type": "object",
       "required": [
         "grant_id",
@@ -532,7 +532,9 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "view",
+      "description": "Controller-visible capability grant projection; no complete grant-set cut or completeness assertion is carried."
     },
     "key_state": {
       "type": "object",
@@ -750,7 +752,7 @@
           "$ref": "#/$defs/event_id"
         },
         "device_grant": {
-          "$ref": "#/$defs/grant_snapshot"
+          "$ref": "#/$defs/agent_grant_view"
         },
         "key_backup_hint": {
           "type": "object",
@@ -1079,7 +1081,7 @@
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md §3.1 exemption on the payload field."
+          "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md Â§3.1 exemption on the payload field."
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"
@@ -1570,7 +1572,7 @@
         "grants": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/grant_snapshot"
+            "$ref": "#/$defs/agent_grant_view"
           }
         },
         "key_state": {
@@ -1888,7 +1890,7 @@
     "agent_participation_scope": {
       "$ref": "./principal-operations.schema.json#/$defs/participation_scope"
     },
-    "agent_participation_entry": {
+    "agent_participation_view": {
       "type": "object",
       "required": [
         "target_scope",
@@ -1911,8 +1913,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "decimal_text",
-              "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
-              "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
+              "authority": "agent-operations.schema.json#/$defs/agent_participation_view/properties/version/not",
+              "owner": "agent-operations.schema.json#/$defs/agent_participation_view/properties/version/not",
               "values": [
                 "0"
               ]
@@ -1935,8 +1937,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "decimal_text",
-                  "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
-                  "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
+                  "authority": "agent-operations.schema.json#/$defs/agent_participation_view/properties/next_replace_input/properties/expected_version/not",
+                  "owner": "agent-operations.schema.json#/$defs/agent_participation_view/properties/next_replace_input/properties/expected_version/not",
                   "values": [
                     "0"
                   ]
@@ -1957,8 +1959,8 @@
                 "const": "9223372036854775807",
                 "x-arkret-value-ownership": {
                   "class": "decimal_text",
-                  "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
-                  "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
+                  "authority": "agent-operations.schema.json#/$defs/agent_participation_view/allOf/0/if/properties/version",
+                  "owner": "agent-operations.schema.json#/$defs/agent_participation_view/allOf/0/if/properties/version",
                   "values": [
                     "9223372036854775807"
                   ]
@@ -1982,7 +1984,8 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "view"
     },
     "agent_participation_response_body": {
       "type": "object",
@@ -1997,7 +2000,7 @@
         "participation_entries": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/agent_participation_entry"
+            "$ref": "#/$defs/agent_participation_view"
           }
         }
       },

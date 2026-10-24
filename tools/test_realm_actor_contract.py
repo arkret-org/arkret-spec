@@ -258,7 +258,7 @@ class RealmActorContractTests(unittest.TestCase):
             {"kind": "mention", "subject_actor_id": actor()})
 
     def test_device_revoke_terminal_material_is_closed(self):
-        validator = self.validator("realm-actor-material", "#/$defs/request_status_record")
+        validator = self.validator("realm-actor-material", "#/$defs/request_status_view")
         for state in ["pending", "accepted", "rejected"]:
             outcome = {"status": "device_revoke", "proposal_ref": committed(4, 2),
                        "device_id": "ak:device:00000000-0000-7000-8000-000000000001", "authorization_ref": committed(),
@@ -464,7 +464,7 @@ class RealmActorContractTests(unittest.TestCase):
         value["subject_actor_id"]={"kind":"account","account_id":account}
         self.assertFalse(mention.is_valid(value))
         record = {"schema":"ak.schema.device_revocation_state.v1", "actor_id":actor(), "device_id":"ak:device:0195be74-0000-7000-8000-000000000001", "target_device_authorize_event_id":token("event"), "target_device_generation_ref":1,"proposal_event_id":token("event",2),"accepted_at":"2026-10-19T00:00:00.000Z","acceptance_sequence":1}
-        validator = self.validator("device-revocation-state", "#/$defs/common_record")
+        validator = self.validator("device-revocation-state", "#/$defs/device_revocation_fields")
         validator.validate(record)
         self.assertFalse(validator.is_valid({**record,"account_id":account}))
 
@@ -613,7 +613,7 @@ class RealmActorContractTests(unittest.TestCase):
     def test_kr_private_recovery_current_and_terminal_carrier(self):
         value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":committed()["commit_id"],"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
         self.validator("current-state","#/$defs/current_realm_actor_recovery").validate(value)
-        self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","row":value,"source_ref":committed()})
+        self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","current_state":value,"source_ref":committed()})
         self.assertFalse(self.validator("realm-actor-material","#/$defs/current_entry").is_valid({"status":"never_written","selector":value["selector"]}))
 
     def test_private_current_source_is_required_closed_and_signed(self):
@@ -653,7 +653,7 @@ class RealmActorContractTests(unittest.TestCase):
             verify_native_recovery(vector)
 
     def test_kr_lifecycle_terminal_reference_is_mandatory(self):
-        validator = self.validator("realm-actor-material", "#/$defs/request_status_record")
+        validator = self.validator("realm-actor-material", "#/$defs/request_status_view")
         for state in ["pending", "completed", "cancelled", "superseded"]:
             outcome = {"status": "recovery", "begin_ref": committed(), "state": state,
                        "terminal_ref": None if state == "pending" else committed(4, 2)}

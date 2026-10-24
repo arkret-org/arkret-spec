@@ -83,7 +83,7 @@
       "$ref": "#/$defs/EventDeliveryStatusRequestBody"
     },
     {
-      "$ref": "#/$defs/EventSubmitEnvelope"
+      "$ref": "./event-envelope.schema.json"
     },
     {
       "$ref": "#/$defs/EventsSubmitBatchRequestBody"
@@ -466,7 +466,7 @@
             "type": "object"
           }
         },
-        "policy_results": {
+        "policy_evaluations": {
           "type": "array",
           "items": {
             "type": "object"
@@ -1446,10 +1446,6 @@
       },
       "additionalProperties": false
     },
-    "EventSubmitEnvelope": {
-      "$ref": "./event-envelope.schema.json",
-      "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the complete canonical Event shape, including the required producer-signed scope_ref. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
-    },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
       "description": "Legacy-named typed array retained only as the nested prepared_event_unit request in security-transaction.schema.json. It is not an ak.self.events.command.submit.v1 request: that operation accepts only authority-commit-operations.schema.json#/$defs/self_submit_request_body, including its closed ordinary_realm_bootstrap branch. The parent security transaction fixes the recovery unit type, slot count, order and authorization; this array alone grants no generic Event batch admission.",
@@ -1510,7 +1506,16 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-name-role": "snapshot"
+      "x-arkret-name-role": "snapshot",
+      "x-arkret-snapshot-boundary": {
+        "cut_fields": [
+          "state_digest",
+          "evaluated_at"
+        ],
+        "coverage_fields": [
+          "grants"
+        ]
+      }
     },
     "IdentityDocumentView": {
       "type": "object",
@@ -1869,12 +1874,25 @@
     "ModerationReportResponseBody": {
       "type": "object",
       "required": [
-        "report_id"
+        "report_id",
+        "status"
       ],
       "properties": {
         "report_id": {
           "type": "string",
           "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
+        },
+        "status": {
+          "const": "submitted",
+          "description": "Immutable submit acceptance; later queue resolution never rewrites this response.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody/properties/status",
+            "values": [
+              "submitted"
+            ]
+          }
         },
         "routed_to_ids": {
           "type": "array",
@@ -3382,6 +3400,7 @@
       "required": [
         "scid",
         "method",
+        "portable",
         "updateKeys",
         "nextKeyHashes"
       ],
@@ -3400,6 +3419,10 @@
               "did:webvh:1.0"
             ]
           }
+        },
+        "portable": {
+          "type": "boolean",
+          "description": "Verbatim native portability parameter covered by the DID log entry; required by this closed inception carrier."
         },
         "updateKeys": {
           "type": "array",
@@ -3644,7 +3667,7 @@
             "participations": {
               "type": "array",
               "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
+                "$ref": "./agent-operations.schema.json#/$defs/agent_participation_view"
               }
             }
           },

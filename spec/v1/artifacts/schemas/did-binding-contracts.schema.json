@@ -441,7 +441,23 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "snapshot",
+      "x-arkret-snapshot-boundary": {
+        "cut_fields": [
+          "policy_profile",
+          "accepted_did_methods",
+          "fail_mode",
+          "trust_roots",
+          "profile_policy"
+        ],
+        "coverage_fields": [
+          "accepted_did_methods",
+          "fail_mode",
+          "trust_roots",
+          "profile_policy"
+        ]
+      }
     },
     "evidence_dependencies": {
       "type": "object",

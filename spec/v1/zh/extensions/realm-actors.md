@@ -283,7 +283,7 @@ current/event 的 head 必非 null。outcome 可在主体创建前恢复完整 l
 旧任期 Event 保留原签 Event／Commit，外层由当前治理方签，不能改写历史任期。
 
 current.entries 与请求 selector 一一同序、无遗漏无额外；每项为
-`{status:"present",row:CurrentState,source_ref:CommittedEventRef}` 或
+`{status:"present",current_state:CurrentState,source_ref:CommittedEventRef}` 或
 `{status:"never_written",selector}`。source_ref MUST 是同一读取事务中产生该 selector 当前值的真实
 原 accepted Event／Commit：stream_ref 逐字等于 row.source_stream_ref，且为目标 Realm 的 realm_control；
 commit_id／stream_position 逐字等于 row.revision，位置不得超过 control_stream_head。

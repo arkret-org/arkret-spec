@@ -184,6 +184,10 @@ accepted 后才能按原计划永久清理；治理交接不得生成另一撤�
 
 `SecurityRotationTransaction` 固定绑定 revoke Event、replacement secret/backup material 与清理步骤。完成结果携带该 revoke Event 的 `CommittedEventRef`；exact replay 返回同一结果，异内容使用同一 transaction id 时返回 conflict。
 
+#### Account 设备撤销的类型边界
+
+Account 设备摘要中的撤销状态只接受 `account_id` 主体，禁止 `actor_id`。其精确类型为 `account_device_revocation_pending_state`、`account_device_revocation_rejected_state` 与 `account_device_revoked_state`；准入 gate 读取组合为 `account_device_revocation_gate_record`。它们是现有通用撤销状态的 Account 分支收紧，不改变记录字段、签名输入、generation 或保留义务。通用 `device_revocation_record` 继续覆盖 Account 与 Realm actor 两种既有主体；SDK 的 Account 专用 API 不得以通用类名宣称接受 Realm actor 分支。
+
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
 
 企业通常强制要求使用 Okta、Google Workspace 等中心化身份提供商 (IdP) 进行认证。在不破坏去中心化端到端加密前提下，本协议引入 **Auth Gateway (认证网关)** 模式。
@@ -732,7 +736,7 @@ POST /_arkret/self/keys/claim
 ```
 
 - `canonical_json` 为 RFC 8785 JCS（见 [`../conformance/encoding.md`](../conformance/encoding.md)）；缺省的 `one_time_keys` / `fallback_keys` MUST 规范化为空对象 `{}` 后参与签名，不得省略键，保证发送方与验签方对同一批次得到逐字节一致的输入。
-- 批次内每个 `key_record.signature` 仍按其各自语义独立链接到 PCR current accepted-device key；`device_signature` 额外对**整批**签名，防止服务端或中间人对批次做增删/重排。
+- 批次内每个 `signed_prekey.signature` 仍按其各自语义独立链接到 PCR current accepted-device key；`device_signature` 额外对**整批**签名，防止服务端或中间人对批次做增删/重排。
 - `device_signature.kid` MUST 指向该设备身份 key；服务端 MUST 用该设备权威 `device_public_key_did`(§5.2)验签，失败 MUST 拒绝上传（`param_invalid`）。
 
 `POST /_arkret/self/keys/query` 请求字段：
@@ -746,17 +750,17 @@ POST /_arkret/self/keys/claim
 
 服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester AccountId 与被查询 `account_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 Contact／call／session 明确定义的共享上下文（Contact 场景不要求存在共同 Realm）。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(account_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
 
-响应字段：`device_keys: array` required，每项 `{account_id, device_keys}`，内层 `device_keys` 为 device ID → `query_device_record`；`failures: array` optional，账号级失败用 exact `account_id`；`device_generations: array` optional，每项 `{account_id, generation_state}`（§8.2 第 3 条的输入）。两个外层数组按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝，同 core 不同 Station 不得合并。每个 `(account_id, device_id)` 的 `query_device_record`：prekey bundle 收在 `algorithms`（算法名 → key_record）子字段下；同级只携带 `trust_algorithms`、`device_projection` 与 `signer_evidence_ref`（见下方 §8.2）。设备公钥、状态与 authorization/generation 坐标只在 `device_projection` 内出现一次，不在 row 或更外层重复展开。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`；Station↔Station 面的已签 row 是另一个类型 `$defs/peer_query_device_record`。
+响应字段：`device_keys: array` required，每项 `{account_id, device_keys}`，内层 `device_keys` 为 device ID → `device_key_view`；`failures: array` optional，账号级失败用 exact `account_id`；`device_generations: array` optional，每项 `{account_id, generation_state}`（§8.2 第 3 条的输入）。两个外层数组按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝，同 core 不同 Station 不得合并。每个 `(account_id, device_id)` 的 `device_key_view`：prekey bundle 收在 `algorithms`（算法名 → signed_prekey）子字段下；同级只携带 `trust_algorithms`、`device_projection` 与 `signer_evidence_ref`（见下方 §8.2）。设备公钥、状态与 authorization/generation 坐标只在 `device_projection` 内出现一次，不在 row 或更外层重复展开。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/device_key_view`；Station↔Station 面的已签 row 是另一个类型 `$defs/peer_device_key_view`。
 
-`POST /_arkret/self/keys/claim` 的 `one_time_keys` 请求为 closed `{account_id, device_algorithms}` entries，内层 `device_algorithms` 是 device ID 到算法名的映射；响应同名字段为 `{account_id, device_keys}` entries，内层为 device ID 到算法/key_record 的映射。外层均按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝；one-time key 的原子消费、授权、失败与重试定位都绑定 exact `(account_id, device_id)`，不得把同 core 不同 Station 合并。scalar device ID / algorithm map 不承载复合账号身份，继续保留。每个 `account_id.station_id` MUST 等于本 Station：单次 one-time prekey 的原子消费只在其 origin Station 成立，跨站单次材料走 §9.2 的 KeyPackage claim，MUST NOT 为非 MLS one-time prekey 另建第二套联邦消费 ledger；非本 Station 目标按 §8.2 的非枚举形态失败。
+`POST /_arkret/self/keys/claim` 的 `one_time_keys` 请求为 closed `{account_id, device_algorithms}` entries，内层 `device_algorithms` 是 device ID 到算法名的映射；响应同名字段为 `{account_id, device_keys}` entries，内层为 device ID 到算法/signed_prekey 的映射。外层均按 JCS(account_id) 无符号 UTF-8 字节排序，重复 AccountId MUST 拒绝；one-time key 的原子消费、授权、失败与重试定位都绑定 exact `(account_id, device_id)`，不得把同 core 不同 Station 合并。scalar device ID / algorithm map 不承载复合账号身份，继续保留。每个 `account_id.station_id` MUST 等于本 Station：单次 one-time prekey 的原子消费只在其 origin Station 成立，跨站单次材料走 §9.2 的 KeyPackage claim，MUST NOT 为非 MLS one-time prekey 另建第二套联邦消费 ledger；非本 Station 目标按 §8.2 的非枚举形态失败。
 
 #### 8.2 设备验签公钥目录（normative）
 
-`keys/query` 是**跨账号** 的关系门控面。它有两个**不同类型**的 device row，不得互相替代：客户端面的 `query_device_record` 与 Station↔Station 面（§8.2.1）的 `peer_query_device_record`。
+`keys/query` 是**跨账号** 的关系门控面。它有两个**不同类型**的 device row，不得互相替代：客户端面的 `device_key_view` 与 Station↔Station 面（§8.2.1）的 `peer_device_key_view`。
 
-客户端面的 `query_device_record` MUST 恰以 `algorithms`、`trust_algorithms`、`device_projection` 与 `signer_evidence_ref` 为成员。`device_projection` MUST 恰以 `device_signing_key_did`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref`、`device_status`、`attested_at`、`expires_at` 与 `authorization_window` 为成员，是这些值在本 row 内的**唯一**出现位置。该 row **MUST NOT** 携带 origin 的 `device_projection_attestation`、其 detached proof/JWS，或任何只为验证该 proof 而存在的 wrapper；客户端也 MUST NOT 把 `device_projection` 当作可转交的 portable evidence。
+客户端面的 `device_key_view` MUST 恰以 `algorithms`、`trust_algorithms`、`device_projection` 与 `signer_evidence_ref` 为成员。`device_projection` MUST 恰以 `device_signing_key_did`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref`、`device_status`、`attested_at`、`expires_at` 与 `authorization_window` 为成员，是这些值在本 row 内的**唯一**出现位置。该 row **MUST NOT** 携带 origin 的 `device_projection_attestation`、其 detached proof/JWS，或任何只为验证该 proof 而存在的 wrapper；客户端也 MUST NOT 把 `device_projection` 当作可转交的 portable evidence。
 
-Station↔Station 面的 `peer_query_device_record` MUST 恰以 `algorithms`、`trust_algorithms`、`device_projection_attestation` 与 `signer_evidence_ref` 为成员；设备公钥、状态与 authorization/generation 坐标只存在于已签 attestation 中。
+Station↔Station 面的 `peer_device_key_view` MUST 恰以 `algorithms`、`trust_algorithms`、`device_projection_attestation` 与 `signer_evidence_ref` 为成员；设备公钥、状态与 authorization/generation 坐标只存在于已签 attestation 中。
 
 两个 row 的 `account_id` 都由外层 entry 定位、`device_id` 都由内层 map key 定位，不是 device row 的镜像字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
@@ -766,7 +770,7 @@ origin Station MUST 在签发时从同一耐久读取 cut 的 PCR typed `device_
 
 普通 Event 的历史 signer evidence 认证与当前 `keys/query` 结果验收分开。历史认证 MUST 从完整来源证据按源签名 `attested_at` 验证当时的 method、assertion 能力、签名、精确 Account/设备授权实例及原授权窗口；MUST NOT 要求接收站曾在证明短 `expires_at` 前见过该原件，也不得把本地首次观察时间增加为授权坐标。相同完整证据 K 的接收站按相同关闭集合归约，首次取得证据时短缓存已过期不制造历史 revoke 或独立 origin 重签门槛。这里使用 `attested_at` 认证源在当时作出的事实，绝不冒充本地观察时间；新的 live 操作仍核真实授权期限及已知关闭，有限期历史仍执行 authority-commit existence anchor 规则。下列新鲜度门只约束本次当前设备查询结果及明确要求它的新 key-access / Signal / E2EE 动作。
 
-自己 Station MUST 先对远端 origin 的已签 row 验证以下全部规则，验证通过后才可把它投影成客户端面的 `query_device_record`；**MUST NOT** 把未验证的 peer row 去掉 proof 当作已验证结果交给客户端。客户端消费该 Station 的结果时，只在 `device_projection` 上执行第 2–4 项的请求、密钥、generation 和状态绑定及有效期检查，不解析 origin DID history：
+自己 Station MUST 先对远端 origin 的已签 row 验证以下全部规则，验证通过后才可把它投影成客户端面的 `device_key_view`；**MUST NOT** 把未验证的 peer row 去掉 proof 当作已验证结果交给客户端。客户端消费该 Station 的结果时，只在 `device_projection` 上执行第 2–4 项的请求、密钥、generation 和状态绑定及有效期检查，不解析 origin DID history：
 
 1. attestation proof 的 controller 投影后**精确等于** `attestation.account_id.station_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；
 2. 外层 entry 的 exact `account_id` 与内层 `device_id` map key 必须分别与已签 attestation 同名字段一致，自己 Station 才可投影该 row；投影出的 `device_projection` MUST 逐字保留已验签 attestation 的 `device_signing_key_did`、`hpke_key`、`device_authorize_event_id`、`authorized_generation_ref`、`device_status`、`authorization_window`、`attested_at` 与 `expires_at`，MUST NOT 改写、补位或延长其中任何值。客户端只从 `device_projection` 取这些值，并 MUST 核对外层 `account_id` 与内层 `device_id` map key 逐字等于本次请求的 selector；
@@ -823,8 +827,8 @@ peer 读取面交付。因此 v1 的
 完整 canonical 请求上限 64 KiB，完整响应上限 512 KiB；超界整体失败，不得截断或分页。响应为 closed
 `{request_id, requester_account_id?, requester_actor_id?, device_keys[], device_generations[]?, failures[]?}`，
 请求与响应的两个 requester 字段均必须恰选一项，显式 null、双填、漏填一律拒绝；响应逐字回显请求的
-`request_id` 与完整 requester 分支。本面的 device row 类型是 `peer_query_device_record`——origin 自签的
-`device_projection_attestation` 加 `signer_evidence_ref`，**不是**客户端面的 `query_device_record`；`failures[]`
+`request_id` 与完整 requester 分支。本面的 device row 类型是 `peer_device_key_view`——origin 自签的
+`device_projection_attestation` 加 `signer_evidence_ref`，**不是**客户端面的 `device_key_view`；`failures[]`
 与 `device_generations[]` 的形态与 §8.2 逐字相同。
 
 destination MUST 在读取任何目标状态**之前**完成 transport 认证与 header/body 绑定，然后独立判定授权，
@@ -844,7 +848,7 @@ MLS 执行仍只按既有 `ak.mls.commit`、membership 与 policy 规则；本�
 它不授予成员准入、目标设备授权或任何管理权。目标仍仅限普通 Account Device selectors，不开放 Realm
 Bot／Ghost 设备目录、私有控制流或 Contact／call 用途，不转发设备凭据。
 
-判定通过的每个 `(account_id, device_id)` 返回完整已签 `peer_query_device_record`。**未通过、目标不存在、不可见、已撤销、
+判定通过的每个 `(account_id, device_id)` 返回完整已签 `peer_device_key_view`。**未通过、目标不存在、不可见、已撤销、
 已 fence 或 policy 拒绝一律收敛为同一形态**：省略该 row 或写入 `reason_code=device_result_unavailable` 的
 `failures` 项；destination MUST NOT 用 HTTP 状态码、响应大小或 per-target reason 区分它们，并 MUST 对
 `(Source-Service-ID, 完整 requester 分支)` 与 `(Source-Service-ID, target account_id)` 分别限速，不得按裸 principal 合并不同身份。transport
@@ -1141,7 +1145,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
    `Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
 
-成功响应的反方向也必须闭合。每条 `keypackage_claim_record` MUST 携带与分支一致的 principal/device 或 Agent endpoint、authorization Event id、完整 KeyPackage bytes 与 capabilities；目标 Station 的签名 `claim_receipt` 覆盖 exact claim bytes，可验证归责。requester MUST 从完整 bytes 重算 digest，核对 claim receipt、KeyPackage 签名、signed LeafNode capabilities 与所有 selector，并核对签名方授权：device 分支下，requester Station MUST 按 §8.2.1 以既有 `purpose=mls_group_admission` 经 `ak.peer.keys.read.lookup.v1` 取得目标设备的已签 `peer_query_device_record`，按 §8.2 的四条规则验证，并要求 attestation 的 `device_authorize_event_id` 逐字等于 claim record 的 `device_authorize_event_id`、`device_signing_key_did` 正是验过 KeyPackage／LeafNode 签名的 key；Agent 分支维持现行 Agent signer evidence 规则不变。任一不匹配或取材失败都不得安装 KeyPackage 或 author Welcome。wire 不得携 PCR/control-history/device/Agent signer-evidence sidecar，外部 verifier 不重放 PCR genesis、RealmCommit 或完整控制历史。
+成功响应的反方向也必须闭合。每条 `keypackage_claim_record` MUST 携带与分支一致的 principal/device 或 Agent endpoint、authorization Event id、完整 KeyPackage bytes 与 capabilities；目标 Station 的签名 `claim_receipt` 覆盖 exact claim bytes，可验证归责。requester MUST 从完整 bytes 重算 digest，核对 claim receipt、KeyPackage 签名、signed LeafNode capabilities 与所有 selector，并核对签名方授权：device 分支下，requester Station MUST 按 §8.2.1 以既有 `purpose=mls_group_admission` 经 `ak.peer.keys.read.lookup.v1` 取得目标设备的已签 `peer_device_key_view`，按 §8.2 的四条规则验证，并要求 attestation 的 `device_authorize_event_id` 逐字等于 claim record 的 `device_authorize_event_id`、`device_signing_key_did` 正是验过 KeyPackage／LeafNode 签名的 key；Agent 分支维持现行 Agent signer evidence 规则不变。任一不匹配或取材失败都不得安装 KeyPackage 或 author Welcome。wire 不得携 PCR/control-history/device/Agent signer-evidence sidecar，外部 verifier 不重放 PCR genesis、RealmCommit 或完整控制历史。
 
 `claim_request_id` MUST 由 CSPRNG 生成并含至少 128 bits 不可预测熵。它是同一 claim transaction 的唯一随机值：HTTP `Idempotency-Key` 与 durable ledger key MUST 是同一值；`MlsWelcomeDelivery.keypackage_claim_ref` 必须解析到该 exact ledger 项及其 destination-signed `claim_receipt.claim_request_id`，不在 Welcome wire 中重复该随机值。byte-identical replay 必须复用同一值；新尝试必须生成新值；同一 `(source_id, claim_request_id)` 下任何其它 request bytes 均为 `duplicate_conflict`。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 判据是 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 的共享窗口，本节不另定数值。participant signature 绑定 source / destination service DID；外层 service signature 另绑定双方 trust domain，合并阻断转发到另一目标或另一部署的重放。
 

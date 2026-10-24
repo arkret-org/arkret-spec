@@ -248,7 +248,8 @@
           "$ref": "#/$defs/mls_add_authority_attestation"
         },
         "claim_outcome": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_response_body"
+          "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
+          "x-arkret-outcome-scope": "origin_keypackage_claim_attempt"
         }
       },
       "additionalProperties": false,

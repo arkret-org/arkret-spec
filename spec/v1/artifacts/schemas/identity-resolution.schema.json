@@ -533,6 +533,7 @@
         "genesis_commits",
         "current_resolution_event",
         "predecessor_resolution_events",
+        "predecessor_resolution_commits",
         "accepted_commit",
         "history_complete"
       ],
@@ -576,6 +577,14 @@
           "items": {
             "$ref": "#/$defs/resolution_update_event"
           }
+        },
+        "predecessor_resolution_commits": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          },
+          "description": "Original covering RealmCommit for each predecessor_resolution_events item, one-to-one in the same newest-to-oldest order. Event reference, PCR stream, generation and original source proof remain verified; no Commit may be synthesized from current state."
         },
         "accepted_commit": {
           "$ref": "./realm-commit.schema.json",

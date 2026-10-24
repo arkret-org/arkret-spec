@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.4",
+  "version": "2026-10-24.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T19:15:25+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -509,7 +509,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#921-双重授权与签名-transcript",
-      "section_digest": "sha256:f633fcdcd77b68c9997d1596699c84aaeda18316a97be558c421614d2a9d0bbf",
+      "section_digest": "sha256:c584cee250e7c0cebb208c8bc4e34f5272edb1b2efb33edabf55747d3e08be4f",
       "requirement": "Every peer KeyPackage claim binds the accepted authorization Event id of its closed branch and a destination-signed claim_receipt over the exact claim bytes. On the device branch the requester Station verifies the target device's signed peer directory attestation obtained through ak.peer.keys.read.lookup.v1 with purpose mls_group_admission, requiring its device_authorize_event_id to equal the claim record's and its device_signing_key_did to verify the KeyPackage and LeafNode signatures; the Agent branch keeps its Agent signer evidence rule. The requester completes that check, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome. The wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history.",
       "testability_grade": "vector",
       "evidence_refs": [

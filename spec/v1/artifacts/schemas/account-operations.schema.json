@@ -244,7 +244,7 @@
           "maxItems": 128,
           "uniqueItems": true,
           "items": {
-            "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
+            "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revocation_gate_record"
           },
           "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by acceptance_sequence and Event id. At most 128 distinct unresolved transactions may be admitted; exact replay consumes no slot, a terminal rejected result removes one pending slot, and an already revoked generation accepts no new transaction. Committing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
         }
@@ -329,7 +329,7 @@
             "properties": {
               "revocation_states": {
                 "items": {
-                  "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_pending_state"
+                  "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revocation_pending_state"
                 }
               }
             }
@@ -361,7 +361,7 @@
             "properties": {
               "revocation_states": {
                 "contains": {
-                  "$ref": "./device-revocation-state.schema.json#/$defs/device_revoked_state"
+                  "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revoked_state"
                 },
                 "minContains": 1
               }
@@ -1752,7 +1752,8 @@
       ],
       "properties": {
         "outcome": {
-          "$ref": "#/$defs/account_registration_audit_outcome"
+          "$ref": "#/$defs/account_registration_audit_outcome",
+          "x-arkret-outcome-scope": "account_registration_attempt"
         },
         "policy_digest": {
           "$ref": "#/$defs/digest"
@@ -1908,7 +1909,7 @@
         "state",
         "devices",
         "binding_receipt",
-        "session_grant_outcome",
+        "issued_session",
         "pcr_genesis_commits"
       ],
       "properties": {
@@ -1939,7 +1940,7 @@
         "binding_receipt": {
           "$ref": "#/$defs/account_binding_receipt"
         },
-        "session_grant_outcome": {
+        "issued_session": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
         },
         "pcr_genesis_commits": {

@@ -1420,6 +1420,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     runners = {
+        "public_type_semantics": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_semantic_naming", "tools.test_public_type_duplicates"], cwd=ROOT).returncode,
         "realm_actor_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_realm_actor_contract"], cwd=ROOT).returncode,
         "applet_management_source_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_management_source"], cwd=ROOT).returncode,
         "applet_device_scope_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_device_scope_contract"], cwd=ROOT).returncode,

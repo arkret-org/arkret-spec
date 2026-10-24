@@ -632,13 +632,13 @@
     },
     {
       "schema": "device-revocation-state.schema.json",
-      "json_pointer": "/$defs/common_record/properties/proposal_event_id",
+      "json_pointer": "/$defs/device_revocation_fields/properties/proposal_event_id",
       "field": "proposal_event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "device-revocation-state.schema.json",
-      "json_pointer": "/$defs/common_record/properties/target_device_authorize_event_id",
+      "json_pointer": "/$defs/device_revocation_fields/properties/target_device_authorize_event_id",
       "field": "target_device_authorize_event_id",
       "classification": "complete_event_id"
     },

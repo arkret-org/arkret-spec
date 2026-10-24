@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.3",
+  "version": "2026-10-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T19:15:25+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -289,7 +289,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Session scope_details.participation entries are isomorphic to agent_participation_entry and are a behavior contract, not an authorization boundary: a runtime operation without the backing capability grant still fails with failed_precondition.",
+      "description": "Session scope_details.participation entries are isomorphic to agent_participation_view and are a behavior contract, not an authorization boundary: a runtime operation without the backing capability grant still fails with failed_precondition.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]

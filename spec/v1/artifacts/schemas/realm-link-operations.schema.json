@@ -49,7 +49,7 @@
     "link_status": {
       "$ref": "./event-payload.schema.json#/$defs/hierarchy_link_status"
     },
-    "realm_link_entry": {
+    "realm_link_view": {
       "type": "object",
       "required": [
         "realm_id",
@@ -86,7 +86,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "view"
     },
     "realm_link_list": {
       "type": "object",
@@ -120,7 +121,7 @@
         "links": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/realm_link_entry"
+            "$ref": "#/$defs/realm_link_view"
           }
         }
       },

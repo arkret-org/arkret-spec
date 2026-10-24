@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -234,7 +234,7 @@
       "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body",
+        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
         "schema_kind": "object",
         "required": [
           "exists"
@@ -242,6 +242,7 @@
         "properties": [
           "exists",
           "realm_id",
+          "title",
           "external_ref"
         ],
         "closed": true
@@ -778,12 +779,12 @@
         "schema_kind": "object",
         "required": [
           "transaction_id",
-          "session_grant_outcome",
+          "issued_session",
           "issued_at"
         ],
         "properties": [
           "transaction_id",
-          "session_grant_outcome",
+          "issued_session",
           "issued_at"
         ],
         "closed": true
@@ -1119,7 +1120,7 @@
           "state",
           "devices",
           "binding_receipt",
-          "session_grant_outcome",
+          "issued_session",
           "pcr_genesis_commits"
         ],
         "properties": [
@@ -1132,7 +1133,7 @@
           "profile",
           "registration_audit",
           "binding_receipt",
-          "session_grant_outcome",
+          "issued_session",
           "pcr_genesis_commits"
         ],
         "closed": true
@@ -2537,13 +2538,15 @@
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
         "schema_kind": "object",
         "required": [
-          "package"
+          "receipt",
+          "retained_stub"
         ],
         "properties": [
-          "package"
+          "receipt",
+          "retained_stub"
         ],
         "closed": true
       },
@@ -2611,13 +2614,15 @@
       "operation_id": "ak.peer.erasure_receipt.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource",
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
         "schema_kind": "object",
         "required": [
-          "package"
+          "receipt",
+          "retained_stub"
         ],
         "properties": [
-          "package"
+          "receipt",
+          "retained_stub"
         ],
         "closed": true
       }
@@ -5085,7 +5090,7 @@
           "decision",
           "matched_grants",
           "applied_constraints",
-          "policy_results",
+          "policy_evaluations",
           "missing_proofs",
           "checkpoint",
           "freshness_state",
@@ -6034,7 +6039,7 @@
           "realm_id",
           "governance_generation",
           "effective_stream_head",
-          "entry",
+          "current_state",
           "selector"
         ],
         "closed": true,
@@ -6047,14 +6052,14 @@
               "realm_id",
               "governance_generation",
               "effective_stream_head",
-              "entry"
+              "current_state"
             ],
             "properties": [
               "status",
               "realm_id",
               "governance_generation",
               "effective_stream_head",
-              "entry"
+              "current_state"
             ],
             "closed": true
           },
@@ -6783,6 +6788,7 @@
           "genesis_commits",
           "current_resolution_event",
           "predecessor_resolution_events",
+          "predecessor_resolution_commits",
           "accepted_commit",
           "history_complete"
         ],
@@ -6794,6 +6800,7 @@
           "genesis_commits",
           "current_resolution_event",
           "predecessor_resolution_events",
+          "predecessor_resolution_commits",
           "accepted_commit",
           "history_complete",
           "next_audit_cursor",
@@ -7687,10 +7694,12 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody",
         "schema_kind": "object",
         "required": [
-          "report_id"
+          "report_id",
+          "status"
         ],
         "properties": [
           "report_id",
+          "status",
           "routed_to_ids"
         ],
         "closed": true

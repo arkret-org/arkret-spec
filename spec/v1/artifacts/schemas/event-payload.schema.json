@@ -6786,7 +6786,8 @@
               "completed",
               "rolled_back"
             ]
-          }
+          },
+          "x-arkret-outcome-scope": "mimi_room_binding_migration_execution"
         },
         "migration_proof": {
           "$ref": "#/$defs/mimi_room_binding_migration_proof"
@@ -9503,115 +9504,6 @@
             "$ref": "#/$defs/did_core_id"
           },
           "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle current state on a fresh basis before accepting ak.invite.claim."
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_search_policy_payload": {
-      "type": "object",
-      "required": [
-        "enabled_profile_refs",
-        "allowed_service_ids",
-        "data_classes"
-      ],
-      "properties": {
-        "enabled_profile_refs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "ak.profile.search.client_index.v1",
-              "ak.profile.search.blind_index.v1",
-              "ak.profile.search.forward_private.v1"
-            ],
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/enabled_profile_refs/items",
-              "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/enabled_profile_refs/items",
-              "values": [
-                "ak.profile.search.client_index.v1",
-                "ak.profile.search.blind_index.v1",
-                "ak.profile.search.forward_private.v1"
-              ]
-            }
-          },
-          "uniqueItems": true
-        },
-        "allowed_service_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "uniqueItems": true
-        },
-        "data_classes": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "encrypted_index",
-              "blind_tokens",
-              "plaintext",
-              "reversible_summary"
-            ],
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/data_classes/items",
-              "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/data_classes/items",
-              "values": [
-                "encrypted_index",
-                "blind_tokens",
-                "plaintext",
-                "reversible_summary"
-              ]
-            }
-          },
-          "uniqueItems": true
-        },
-        "index_retention_ms": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "revocation_behavior": {
-          "type": "string",
-          "enum": [
-            "fail_closed",
-            "drop_stale"
-          ],
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/revocation_behavior",
-            "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/revocation_behavior",
-            "values": [
-              "fail_closed",
-              "drop_stale"
-            ]
-          }
-        },
-        "leakage_class": {
-          "type": "string",
-          "enum": [
-            "deterministic_token",
-            "forward_private",
-            "access_hiding"
-          ],
-          "default": "deterministic_token",
-          "description": "Machine-readable search leakage class. ak.profile.search.blind_index.v1 uses deterministic_token; ak.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles.",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/leakage_class",
-            "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/leakage_class",
-            "values": [
-              "deterministic_token",
-              "forward_private",
-              "access_hiding"
-            ]
-          }
-        },
-        "token_rotation_cadence_ms": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Maximum intended interval between search token generations for profiles that rotate index keys or OPRF blinds."
         }
       },
       "additionalProperties": false

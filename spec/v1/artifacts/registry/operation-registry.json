@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.4",
+  "version": "2026-10-24.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T19:15:25+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -657,7 +657,7 @@
       "mq": "edge.applet.third_party_locations.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
       "notes": ""
     },
     {
@@ -1587,7 +1587,7 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
-      "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
+      "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
       "durable_effect": {
         "kind": "none",
@@ -1602,7 +1602,7 @@
       "notes": "Service-authenticated exact receipt-package lookup for the issuer, receiver or an explicitly authorized auditor. It is non-enumerating: unauthorized, unknown and hidden receipt identifiers produce the same not_found response. The returned retained stub is the exact object accepted with the receipt and MUST NOT be reconstructed from later state.",
       "body_class": "none",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource"
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",

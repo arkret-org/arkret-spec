@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:7896a8fdcb2cc5ea0a01641e71177b363247fa0ef1a237af7b0c9887a6025ded",
+  "contract_digest": "sha256:bd1b311b9bc49376f62c7de3ee0741bd407d6654b20029aa6e001ef7ddcf9d59",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -937,7 +937,7 @@
                 "maxItems": 128,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
+                  "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revocation_gate_record"
                 },
                 "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by acceptance_sequence and Event id. At most 128 distinct unresolved transactions may be admitted; exact replay consumes no slot, a terminal rejected result removes one pending slot, and an already revoked generation accepts no new transaction. Committing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
               }
@@ -1022,7 +1022,7 @@
                   "properties": {
                     "revocation_states": {
                       "items": {
-                        "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_pending_state"
+                        "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revocation_pending_state"
                       }
                     }
                   }
@@ -1054,7 +1054,7 @@
                   "properties": {
                     "revocation_states": {
                       "contains": {
-                        "$ref": "./device-revocation-state.schema.json#/$defs/device_revoked_state"
+                        "$ref": "./device-revocation-state.schema.json#/$defs/account_device_revoked_state"
                       },
                       "minContains": 1
                     }
@@ -2442,7 +2442,8 @@
             ],
             "properties": {
               "outcome": {
-                "$ref": "#/$defs/account_registration_audit_outcome"
+                "$ref": "#/$defs/account_registration_audit_outcome",
+                "x-arkret-outcome-scope": "account_registration_attempt"
               },
               "policy_digest": {
                 "$ref": "#/$defs/digest"
@@ -2598,7 +2599,7 @@
               "state",
               "devices",
               "binding_receipt",
-              "session_grant_outcome",
+              "issued_session",
               "pcr_genesis_commits"
             ],
             "properties": {
@@ -2629,7 +2630,7 @@
               "binding_receipt": {
                 "$ref": "#/$defs/account_binding_receipt"
               },
-              "session_grant_outcome": {
+              "issued_session": {
                 "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
               },
               "pcr_genesis_commits": {
@@ -3601,9 +3602,6 @@
           }
         ],
         "$defs": {
-          "entry": {
-            "$ref": "./current-state.schema.json"
-          },
           "current": {
             "type": "object",
             "required": [
@@ -3630,7 +3628,7 @@
               "entries": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/entry"
+                  "$ref": "./current-state.schema.json"
                 }
               }
             },
@@ -8375,7 +8373,7 @@
           },
           "agent_status": {
             "type": "string",
-            "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. Pairing and key facts are reflected through the generic readiness axis and open-handle fields, never through a fourth generic state axis (key-management.md §3.6.1).",
+            "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. Pairing and key facts are reflected through the generic readiness axis and open-handle fields, never through a fourth generic state axis (key-management.md Â§3.6.1).",
             "enum": [
               "active",
               "paused",
@@ -8592,7 +8590,7 @@
             },
             "additionalProperties": false
           },
-          "grant_snapshot": {
+          "agent_grant_view": {
             "type": "object",
             "required": [
               "grant_id",
@@ -8613,7 +8611,9 @@
                 "$ref": "#/$defs/timestamp"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-arkret-name-role": "view",
+            "description": "Controller-visible capability grant projection; no complete grant-set cut or completeness assertion is carried."
           },
           "key_state": {
             "type": "object",
@@ -8831,7 +8831,7 @@
                 "$ref": "#/$defs/event_id"
               },
               "device_grant": {
-                "$ref": "#/$defs/grant_snapshot"
+                "$ref": "#/$defs/agent_grant_view"
               },
               "key_backup_hint": {
                 "type": "object",
@@ -9160,7 +9160,7 @@
               },
               "principal_control_realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id",
-                "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md §3.1 exemption on the payload field."
+                "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md Â§3.1 exemption on the payload field."
               },
               "slug": {
                 "$ref": "#/$defs/agent_slug"
@@ -9651,7 +9651,7 @@
               "grants": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/grant_snapshot"
+                  "$ref": "#/$defs/agent_grant_view"
                 }
               },
               "key_state": {
@@ -9969,7 +9969,7 @@
           "agent_participation_scope": {
             "$ref": "./principal-operations.schema.json#/$defs/participation_scope"
           },
-          "agent_participation_entry": {
+          "agent_participation_view": {
             "type": "object",
             "required": [
               "target_scope",
@@ -9992,8 +9992,8 @@
                   ],
                   "x-arkret-value-ownership": {
                     "class": "decimal_text",
-                    "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
-                    "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
+                    "authority": "agent-operations.schema.json#/$defs/agent_participation_view/properties/version/not",
+                    "owner": "agent-operations.schema.json#/$defs/agent_participation_view/properties/version/not",
                     "values": [
                       "0"
                     ]
@@ -10016,8 +10016,8 @@
                       ],
                       "x-arkret-value-ownership": {
                         "class": "decimal_text",
-                        "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
-                        "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
+                        "authority": "agent-operations.schema.json#/$defs/agent_participation_view/properties/next_replace_input/properties/expected_version/not",
+                        "owner": "agent-operations.schema.json#/$defs/agent_participation_view/properties/next_replace_input/properties/expected_version/not",
                         "values": [
                           "0"
                         ]
@@ -10038,8 +10038,8 @@
                       "const": "9223372036854775807",
                       "x-arkret-value-ownership": {
                         "class": "decimal_text",
-                        "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
-                        "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
+                        "authority": "agent-operations.schema.json#/$defs/agent_participation_view/allOf/0/if/properties/version",
+                        "owner": "agent-operations.schema.json#/$defs/agent_participation_view/allOf/0/if/properties/version",
                         "values": [
                           "9223372036854775807"
                         ]
@@ -10063,7 +10063,8 @@
                   ]
                 }
               }
-            ]
+            ],
+            "x-arkret-name-role": "view"
           },
           "agent_participation_response_body": {
             "type": "object",
@@ -10078,7 +10079,7 @@
               "participation_entries": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/agent_participation_entry"
+                  "$ref": "#/$defs/agent_participation_view"
                 }
               }
             },
@@ -12187,9 +12188,6 @@
             "$ref": "#/$defs/applet_third_party_user_lookup_response_body"
           },
           {
-            "$ref": "#/$defs/applet_third_party_location_lookup_response_body"
-          },
-          {
             "$ref": "#/$defs/third_party_user_query"
           }
         ],
@@ -12644,25 +12642,6 @@
             ],
             "x-arkret-name-role": "lookup_response"
           },
-          "applet_third_party_location_lookup_response_body": {
-            "type": "object",
-            "required": [
-              "exists"
-            ],
-            "properties": {
-              "exists": {
-                "type": "boolean"
-              },
-              "realm_id": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              },
-              "external_ref": {
-                "$ref": "#/$defs/external_ref"
-              }
-            },
-            "additionalProperties": false,
-            "x-arkret-name-role": "lookup_response"
-          },
           "applet_event_transaction_request_body": {
             "type": "object",
             "description": "Producer Event submission, committed Event delivery, and/or Signal delivery under the existing per-delivery source authentication rules; at least one non-empty array is required. events is Applet-to-Station only; committed_events is Station-to-Applet only.",
@@ -12946,41 +12925,6 @@
               "jws": {
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
-              }
-            },
-            "additionalProperties": false
-          },
-          "ghost_external_tuple": {
-            "type": "object",
-            "required": [
-              "protocol",
-              "instance_id",
-              "external_id"
-            ],
-            "properties": {
-              "protocol": {
-                "type": "string",
-                "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
-              },
-              "instance_id": {
-                "allOf": [
-                  {
-                    "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
-              },
-              "external_id": {
-                "allOf": [
-                  {
-                    "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
               }
             },
             "additionalProperties": false
@@ -13286,7 +13230,7 @@
                 "$ref": "#/$defs/did_core_id"
               },
               "external_ref": {
-                "$ref": "#/$defs/ghost_external_tuple"
+                "$ref": "./realm-actor.schema.json#/$defs/ghost_external_tuple"
               },
               "display_name": {
                 "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
@@ -13455,7 +13399,7 @@
             ],
             "properties": {
               "external_ref": {
-                "$ref": "#/$defs/ghost_external_tuple"
+                "$ref": "./realm-actor.schema.json#/$defs/ghost_external_tuple"
               },
               "display_name": {
                 "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
@@ -13867,7 +13811,7 @@
                         "event": {
                           "allOf": [
                             {
-                              "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+                              "$ref": "./event-envelope.schema.json"
                             },
                             {
                               "type": "object",
@@ -13911,7 +13855,7 @@
                         "event": {
                           "allOf": [
                             {
-                              "$ref": "./service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope"
+                              "$ref": "./event-envelope.schema.json"
                             },
                             {
                               "type": "object",
@@ -17614,7 +17558,7 @@
                 "then": {
                   "properties": {
                     "payload": {
-                      "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+                      "$ref": "./search-service.schema.json#/$defs/search_policy"
                     }
                   }
                 }
@@ -21892,7 +21836,8 @@
                   {
                     "$ref": "#/$defs/registered_atomic_unit_rejection"
                   }
-                ]
+                ],
+                "x-arkret-outcome-scope": "registered_atomic_unit_admission_attempt"
               }
             },
             "additionalProperties": false,
@@ -29254,7 +29199,7 @@
             "$ref": "./contact-operations.schema.json#/$defs/contact_tombstone_request_body"
           },
           {
-            "$ref": "#/$defs/contact_tombstone"
+            "$ref": "#/$defs/contact_tombstone_response_body"
           },
           {
             "$ref": "./contact-operations.schema.json#/$defs/contact_scope_update_request_body"
@@ -31326,9 +31271,6 @@
               ]
             }
           },
-          "contact_tombstone": {
-            "$ref": "#/$defs/contact_tombstone_response_body"
-          },
           "contact_tombstone_response_body": {
             "allOf": [
               {
@@ -31697,7 +31639,8 @@
                         "accepted",
                         "duplicate"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                   }
                 },
                 "required": [
@@ -31766,7 +31709,8 @@
                     "duplicate",
                     "deferred"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "peer_contact_admission_attempt"
               },
               "control_material_digest": {
                 "$ref": "./principal-operations.schema.json#/$defs/digest",
@@ -31802,7 +31746,8 @@
                           "accepted",
                           "duplicate"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                     }
                   },
                   "required": [
@@ -31919,7 +31864,8 @@
                             "values": [
                               "accepted"
                             ]
-                          }
+                          },
+                          "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                         }
                       },
                       "required": [
@@ -31966,7 +31912,8 @@
                             "values": [
                               "duplicate"
                             ]
-                          }
+                          },
+                          "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                         }
                       },
                       "required": [
@@ -32013,7 +31960,8 @@
                             "values": [
                               "deferred"
                             ]
-                          }
+                          },
+                          "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                         }
                       },
                       "required": [
@@ -32152,7 +32100,8 @@
                     "duplicate",
                     "deferred"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "peer_contact_admission_attempt"
               },
               "recipient_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -32277,7 +32226,8 @@
                               "values": [
                                 "accepted"
                               ]
-                            }
+                            },
+                            "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                           }
                         },
                         "required": [
@@ -32354,7 +32304,8 @@
                               "values": [
                                 "duplicate"
                               ]
-                            }
+                            },
+                            "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                           }
                         },
                         "required": [
@@ -32442,7 +32393,8 @@
                               "values": [
                                 "deferred"
                               ]
-                            }
+                            },
+                            "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                           }
                         },
                         "required": [
@@ -32528,7 +32480,8 @@
                               "values": [
                                 "deferred"
                               ]
-                            }
+                            },
+                            "x-arkret-outcome-scope": "peer_contact_admission_attempt"
                           }
                         },
                         "required": [
@@ -39019,20 +38972,6 @@
             "additionalProperties": false,
             "x-arkret-name-role": "current_state"
           },
-          "device_generation_value": {
-            "type": "object",
-            "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
-            "required": [
-              "current_device_generation_ref"
-            ],
-            "properties": {
-              "current_device_generation_ref": {
-                "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-                "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
-              }
-            },
-            "additionalProperties": false
-          },
           "current_device_generation": {
             "type": "object",
             "description": "Singleton PCR-local device generation fence (family device_generation). The selector carries no component beyond its kind: one principal control Realm has exactly one generation. Both writers are registered Event kinds, which is why this family has no genesis-only initializer -- the registration_anchor branch of ak.device.authorize IS the pcr_genesis_unit's second member.",
@@ -39070,7 +39009,7 @@
                 "$ref": "#/$defs/revision"
               },
               "value": {
-                "$ref": "#/$defs/device_generation_value"
+                "$ref": "./keys-operations.schema.json#/$defs/device_generation_state"
               }
             },
             "additionalProperties": false,
@@ -39650,7 +39589,7 @@
                 "$ref": "#/$defs/revision"
               },
               "value": {
-                "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+                "$ref": "./search-service.schema.json#/$defs/search_policy"
               }
             },
             "additionalProperties": false,
@@ -40680,20 +40619,6 @@
             },
             "additionalProperties": false
           },
-          "realm_actor_device_generation_value": {
-            "type": "object",
-            "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
-            "required": [
-              "current_device_generation_ref"
-            ],
-            "properties": {
-              "current_device_generation_ref": {
-                "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-                "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
-              }
-            },
-            "additionalProperties": false
-          },
           "current_realm_actor_device_generation": {
             "type": "object",
             "required": [
@@ -40713,7 +40638,7 @@
                 "$ref": "#/$defs/revision"
               },
               "value": {
-                "$ref": "#/$defs/realm_actor_device_generation_value"
+                "$ref": "./keys-operations.schema.json#/$defs/device_generation_state"
               }
             },
             "additionalProperties": false,
@@ -42315,13 +42240,31 @@
           "device_revocation_record": {
             "oneOf": [
               {
-                "$ref": "#/$defs/device_revocation_pending_state"
+                "$ref": "#/$defs/account_device_revocation_record"
               },
               {
-                "$ref": "#/$defs/device_revocation_rejected_state"
-              },
-              {
-                "$ref": "#/$defs/device_revoked_state"
+                "allOf": [
+                  {
+                    "oneOf": [
+                      {
+                        "$ref": "#/$defs/device_revocation_gate_record"
+                      },
+                      {
+                        "$ref": "#/$defs/device_revocation_rejected_state"
+                      }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "actor_id"
+                    ],
+                    "not": {
+                      "required": [
+                        "account_id"
+                      ]
+                    }
+                  }
+                ]
               }
             ]
           },
@@ -42410,7 +42353,7 @@
             "maxItems": 5,
             "uniqueItems": true
           },
-          "common_record": {
+          "device_revocation_fields": {
             "type": "object",
             "required": [
               "schema",
@@ -42426,8 +42369,8 @@
                 "const": "ak.schema.device_revocation_state.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
-                  "owner": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
+                  "authority": "device-revocation-state.schema.json#/$defs/device_revocation_fields/properties/schema",
+                  "owner": "device-revocation-state.schema.json#/$defs/device_revocation_fields/properties/schema",
                   "values": [
                     "ak.schema.device_revocation_state.v1"
                   ]
@@ -42484,12 +42427,13 @@
                   ]
                 }
               }
-            ]
+            ],
+            "x-arkret-name-role": "shared_fields"
           },
           "device_revocation_pending_state": {
             "allOf": [
               {
-                "$ref": "#/$defs/common_record"
+                "$ref": "#/$defs/device_revocation_fields"
               },
               {
                 "type": "object",
@@ -42520,7 +42464,7 @@
           "device_revocation_rejected_state": {
             "allOf": [
               {
-                "$ref": "#/$defs/common_record"
+                "$ref": "#/$defs/device_revocation_fields"
               },
               {
                 "type": "object",
@@ -42547,7 +42491,7 @@
           "device_revoked_state": {
             "allOf": [
               {
-                "$ref": "#/$defs/common_record"
+                "$ref": "#/$defs/device_revocation_fields"
               },
               {
                 "type": "object",
@@ -42574,6 +42518,92 @@
               }
             ],
             "unevaluatedProperties": false
+          },
+          "account_device_revocation_pending_state": {
+            "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/device_revocation_pending_state"
+              },
+              {
+                "required": [
+                  "account_id"
+                ],
+                "not": {
+                  "required": [
+                    "actor_id"
+                  ]
+                }
+              }
+            ]
+          },
+          "account_device_revocation_rejected_state": {
+            "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/device_revocation_rejected_state"
+              },
+              {
+                "required": [
+                  "account_id"
+                ],
+                "not": {
+                  "required": [
+                    "actor_id"
+                  ]
+                }
+              }
+            ]
+          },
+          "account_device_revoked_state": {
+            "description": "Account-only device revocation state. Realm-actor state belongs to the generic parent; this projection cannot silently accept it.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/device_revoked_state"
+              },
+              {
+                "required": [
+                  "account_id"
+                ],
+                "not": {
+                  "required": [
+                    "actor_id"
+                  ]
+                }
+              }
+            ]
+          },
+          "account_device_revocation_gate_record": {
+            "description": "Account-only retained pending/revoked gate facts; rejected records remain audit history.",
+            "allOf": [
+              {
+                "$ref": "#/$defs/device_revocation_gate_record"
+              },
+              {
+                "required": [
+                  "account_id"
+                ],
+                "not": {
+                  "required": [
+                    "actor_id"
+                  ]
+                }
+              }
+            ]
+          },
+          "account_device_revocation_record": {
+            "description": "Account-only retained revocation fact; rejects the distinct Realm actor subject branch.",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/account_device_revocation_pending_state"
+              },
+              {
+                "$ref": "#/$defs/account_device_revocation_rejected_state"
+              },
+              {
+                "$ref": "#/$defs/account_device_revoked_state"
+              }
+            ]
           }
         }
       }
@@ -43022,7 +43052,23 @@
                   }
                 }
               }
-            ]
+            ],
+            "x-arkret-name-role": "snapshot",
+            "x-arkret-snapshot-boundary": {
+              "cut_fields": [
+                "policy_profile",
+                "accepted_did_methods",
+                "fail_mode",
+                "trust_roots",
+                "profile_policy"
+              ],
+              "coverage_fields": [
+                "accepted_did_methods",
+                "fail_mode",
+                "trust_roots",
+                "profile_policy"
+              ]
+            }
           },
           "evidence_dependencies": {
             "type": "object",
@@ -44069,13 +44115,7 @@
             "$ref": "#/$defs/erasure_receipt_package"
           },
           {
-            "$ref": "#/$defs/erasure_receipt_submit_request_body"
-          },
-          {
             "$ref": "#/$defs/erasure_receipt_submit_response_body"
-          },
-          {
-            "$ref": "#/$defs/erasure_receipt_resource"
           }
         ],
         "$defs": {
@@ -44120,19 +44160,6 @@
                 }
               }
             ],
-            "additionalProperties": false
-          },
-          "erasure_receipt_submit_request_body": {
-            "type": "object",
-            "description": "Canonical body of ak.peer.erasure_receipt.command.submit.v1. Idempotency-Key is a required signed HTTP header and is not duplicated in the body.",
-            "required": [
-              "package"
-            ],
-            "properties": {
-              "package": {
-                "$ref": "#/$defs/erasure_receipt_package"
-              }
-            },
             "additionalProperties": false
           },
           "erasure_receipt_acceptance": {
@@ -44241,19 +44268,6 @@
               }
             ],
             "x-arkret-name-role": "response_body"
-          },
-          "erasure_receipt_resource": {
-            "type": "object",
-            "description": "Result of ak.peer.erasure_receipt.resource.get.v1. The package is byte-identical in semantic content to the accepted submit package; no later lookup may substitute another retained stub.",
-            "required": [
-              "package"
-            ],
-            "properties": {
-              "package": {
-                "$ref": "#/$defs/erasure_receipt_package"
-              }
-            },
-            "additionalProperties": false
           }
         }
       }
@@ -44324,7 +44338,8 @@
                 "partially_completed",
                 "blocked_by_legal_hold"
               ]
-            }
+            },
+            "x-arkret-outcome-scope": "one_storage_boundary_erasure_execution_attempt"
           },
           "erased_classes": {
             "type": "array",
@@ -44492,7 +44507,8 @@
                     "values": [
                       "blocked_by_legal_hold"
                     ]
-                  }
+                  },
+                  "x-arkret-outcome-scope": "one_storage_boundary_erasure_execution_attempt"
                 }
               },
               "required": [
@@ -47990,7 +48006,7 @@
             "then": {
               "properties": {
                 "payload": {
-                  "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+                  "$ref": "./search-service.schema.json#/$defs/search_policy"
                 }
               }
             }
@@ -60570,7 +60586,8 @@
                     "completed",
                     "rolled_back"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "mimi_room_binding_migration_execution"
               },
               "migration_proof": {
                 "$ref": "#/$defs/mimi_room_binding_migration_proof"
@@ -63287,115 +63304,6 @@
             },
             "additionalProperties": false
           },
-          "realm_search_policy_payload": {
-            "type": "object",
-            "required": [
-              "enabled_profile_refs",
-              "allowed_service_ids",
-              "data_classes"
-            ],
-            "properties": {
-              "enabled_profile_refs": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "ak.profile.search.client_index.v1",
-                    "ak.profile.search.blind_index.v1",
-                    "ak.profile.search.forward_private.v1"
-                  ],
-                  "x-arkret-value-ownership": {
-                    "class": "namespaced_symbol",
-                    "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/enabled_profile_refs/items",
-                    "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/enabled_profile_refs/items",
-                    "values": [
-                      "ak.profile.search.client_index.v1",
-                      "ak.profile.search.blind_index.v1",
-                      "ak.profile.search.forward_private.v1"
-                    ]
-                  }
-                },
-                "uniqueItems": true
-              },
-              "allowed_service_ids": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/did_core_id"
-                },
-                "uniqueItems": true
-              },
-              "data_classes": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "encrypted_index",
-                    "blind_tokens",
-                    "plaintext",
-                    "reversible_summary"
-                  ],
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/data_classes/items",
-                    "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/data_classes/items",
-                    "values": [
-                      "encrypted_index",
-                      "blind_tokens",
-                      "plaintext",
-                      "reversible_summary"
-                    ]
-                  }
-                },
-                "uniqueItems": true
-              },
-              "index_retention_ms": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "revocation_behavior": {
-                "type": "string",
-                "enum": [
-                  "fail_closed",
-                  "drop_stale"
-                ],
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/revocation_behavior",
-                  "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/revocation_behavior",
-                  "values": [
-                    "fail_closed",
-                    "drop_stale"
-                  ]
-                }
-              },
-              "leakage_class": {
-                "type": "string",
-                "enum": [
-                  "deterministic_token",
-                  "forward_private",
-                  "access_hiding"
-                ],
-                "default": "deterministic_token",
-                "description": "Machine-readable search leakage class. ak.profile.search.blind_index.v1 uses deterministic_token; ak.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles.",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/leakage_class",
-                  "owner": "event-payload.schema.json#/$defs/realm_search_policy_payload/properties/leakage_class",
-                  "values": [
-                    "deterministic_token",
-                    "forward_private",
-                    "access_hiding"
-                  ]
-                }
-              },
-              "token_rotation_cadence_ms": {
-                "type": "integer",
-                "minimum": 0,
-                "description": "Maximum intended interval between search token generations for profiles that rotate index keys or OPRF blinds."
-              }
-            },
-            "additionalProperties": false
-          },
           "realm_set_default_strand_payload": {
             "type": "object",
             "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a current state expected_revision precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts expected_revision null and is only valid while the current state is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
@@ -65967,7 +65875,7 @@
             "additionalProperties": false,
             "x-arkret-name-role": "request_body"
           },
-          "exact_current_state_entry": {
+          "exact_current_state": {
             "oneOf": [
               {
                 "$ref": "./current-state.schema.json#/$defs/current_relation"
@@ -66008,7 +65916,7 @@
               "realm_id",
               "governance_generation",
               "effective_stream_head",
-              "entry"
+              "current_state"
             ],
             "properties": {
               "status": {
@@ -66031,8 +65939,8 @@
               "effective_stream_head": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_head"
               },
-              "entry": {
-                "$ref": "#/$defs/exact_current_state_entry"
+              "current_state": {
+                "$ref": "#/$defs/exact_current_state"
               }
             },
             "additionalProperties": false
@@ -68346,14 +68254,7 @@
             "$ref": "./time.schema.json#/$defs/timestamp"
           },
           "nullable_timestamp": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/timestamp"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "./time.schema.json#/$defs/nullable_timestamp"
           },
           "claim_variant": {
             "oneOf": [
@@ -70435,6 +70336,7 @@
               "genesis_commits",
               "current_resolution_event",
               "predecessor_resolution_events",
+              "predecessor_resolution_commits",
               "accepted_commit",
               "history_complete"
             ],
@@ -70478,6 +70380,14 @@
                 "items": {
                   "$ref": "#/$defs/resolution_update_event"
                 }
+              },
+              "predecessor_resolution_commits": {
+                "type": "array",
+                "maxItems": 256,
+                "items": {
+                  "$ref": "./realm-commit.schema.json"
+                },
+                "description": "Original covering RealmCommit for each predecessor_resolution_events item, one-to-one in the same newest-to-oldest order. Event reference, PCR stream, generation and original source proof remain verified; no Commit may be synthesized from current state."
               },
               "accepted_commit": {
                 "$ref": "./realm-commit.schema.json",
@@ -71078,7 +70988,8 @@
                     "delivered",
                     "blocked"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "holder_invite_admission_and_delivery_attempt"
               },
               "received_at": {
                 "$ref": "#/$defs/timestamp"
@@ -75688,7 +75599,8 @@
                 }
               },
               "claim_outcome": {
-                "$ref": "#/$defs/keypackages_claim_response_body"
+                "$ref": "#/$defs/keypackages_claim_response_body",
+                "x-arkret-outcome-scope": "origin_keypackage_claim_attempt"
               },
               "consume_receipt": {
                 "$ref": "#/$defs/keypackage_consume_receipt"
@@ -76346,22 +76258,22 @@
               "minimum": 0
             }
           },
-          "algorithm_key_records": {
+          "algorithm_prekeys": {
             "type": "object",
             "propertyNames": {
               "$ref": "#/$defs/non_empty_string"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/key_record"
+              "$ref": "#/$defs/signed_prekey"
             }
           },
-          "device_key_records": {
+          "device_prekeys": {
             "type": "object",
             "propertyNames": {
               "$ref": "#/$defs/device_id"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/algorithm_key_records"
+              "$ref": "#/$defs/algorithm_prekeys"
             }
           },
           "account_device_key_entries": {
@@ -76378,7 +76290,7 @@
                   "$ref": "./common-ids.schema.json#/$defs/account_id"
                 },
                 "device_keys": {
-                  "$ref": "#/$defs/device_key_records"
+                  "$ref": "#/$defs/device_prekeys"
                 }
               },
               "additionalProperties": false
@@ -76388,7 +76300,7 @@
           "did_key": {
             "type": "string",
             "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-            "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key_did (device-lifecycle.md §5.2 / §5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal did, validate its bare did through the registered adapter, require project(did) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
+            "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key_did (device-lifecycle.md Ã‚Â§5.2 / Ã‚Â§5.4). To check SignalEnvelope and durable Event proofs, receivers resolve a verification_method DID URL under the verified principal did, validate its bare did through the registered adapter, require project(did) to equal the actor/principal did_core_id, and require its fragment to equal the full ak:device:<uuidv7> id. Constructing a verification method by appending a fragment to did_core_id is forbidden."
           },
           "device_generation_state": {
             "type": "object",
@@ -76598,7 +76510,7 @@
             },
             "additionalProperties": false
           },
-          "query_device_record": {
+          "device_key_view": {
             "type": "object",
             "description": "Per-(account_id, device_id) entry in keys_query_response_body, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
             "required": [
@@ -76613,7 +76525,7 @@
                 "description": "Exact account_device signer evidence the origin Station retained with its Station attester closure before the row was returned. It keeps pointing at that complete immutable evidence object: it is neither recomputed from this pruned projection nor an additional device-authority claim."
               },
               "algorithms": {
-                "$ref": "#/$defs/algorithm_key_records"
+                "$ref": "#/$defs/algorithm_prekeys"
               },
               "trust_algorithms": {
                 "type": "array",
@@ -76626,7 +76538,8 @@
                 "$ref": "#/$defs/verified_device_projection"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-arkret-name-role": "view"
           },
           "query_device_keys": {
             "type": "object",
@@ -76634,7 +76547,7 @@
               "$ref": "#/$defs/device_id"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/query_device_record"
+              "$ref": "#/$defs/device_key_view"
             }
           },
           "query_account_device_entries": {
@@ -76658,9 +76571,9 @@
             },
             "description": "One device-key result group per exact AccountId on the self surface. The returning Station MUST have matched each verified attestation's account_id and device_id against this account_id and its enclosing device_id key before projecting the row. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
           },
-          "peer_query_device_record": {
+          "peer_device_key_view": {
             "type": "object",
-            "description": "Per-(account_id, device_id) entry in peer_keys_query_response_body, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+            "description": "Per-(account_id, device_id) entry in peer_keys_query_response_body, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing device_key_view: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
             "required": [
               "signer_evidence_ref",
               "algorithms",
@@ -76673,21 +76586,22 @@
                 "description": "Exact account_device signer evidence retained with its Station attester closure before this row is returned. Its embedded attestation equals this row's attestation byte for byte; the ref is not an additional device-authority claim."
               },
               "algorithms": {
-                "$ref": "#/$defs/algorithm_key_records"
+                "$ref": "#/$defs/algorithm_prekeys"
               },
               "trust_algorithms": {
                 "type": "array",
                 "items": {
                   "$ref": "#/$defs/non_empty_string"
                 },
-                "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+                "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the Ã‚Â§5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
               },
               "device_projection_attestation": {
                 "$ref": "#/$defs/device_projection_attestation",
                 "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key_did, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. Its account_id and device_id MUST match the enclosing result group and device key; its signer MUST project onto account_id.station_id."
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-arkret-name-role": "view"
           },
           "peer_query_device_keys": {
             "type": "object",
@@ -76695,7 +76609,7 @@
               "$ref": "#/$defs/device_id"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/peer_query_device_record"
+              "$ref": "#/$defs/peer_device_key_view"
             }
           },
           "peer_query_account_device_entries": {
@@ -76778,7 +76692,7 @@
             "minItems": 1,
             "maxItems": 16
           },
-          "key_record": {
+          "signed_prekey": {
             "type": "object",
             "required": [
               "key",
@@ -77006,10 +76920,10 @@
                 "$ref": "#/$defs/signature"
               },
               "one_time_keys": {
-                "$ref": "#/$defs/algorithm_key_records"
+                "$ref": "#/$defs/algorithm_prekeys"
               },
               "fallback_keys": {
-                "$ref": "#/$defs/algorithm_key_records"
+                "$ref": "#/$defs/algorithm_prekeys"
               }
             },
             "additionalProperties": false
@@ -77024,7 +76938,7 @@
                 "$ref": "#/$defs/algorithm_counts"
               },
               "fallback_keys": {
-                "$ref": "#/$defs/algorithm_key_records"
+                "$ref": "#/$defs/algorithm_prekeys"
               }
             },
             "additionalProperties": false,
@@ -77241,7 +77155,7 @@
           },
           "peer_keys_query_response_body": {
             "type": "object",
-            "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing query_device_record. Echo request_id and the complete mutually exclusive requester branch exactly.",
+            "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing device_key_view. Echo request_id and the complete mutually exclusive requester branch exactly.",
             "required": [
               "request_id",
               "device_keys"
@@ -80340,7 +80254,8 @@
                         "completed",
                         "rolled_back"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "mimi_room_binding_migration_execution"
                   },
                   "migration_proof": {
                     "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_migration_proof"
@@ -81710,7 +81625,8 @@
                 "$ref": "#/$defs/mls_add_authority_attestation"
               },
               "claim_outcome": {
-                "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_response_body"
+                "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
+                "x-arkret-outcome-scope": "origin_keypackage_claim_attempt"
               }
             },
             "additionalProperties": false,
@@ -89487,7 +89403,7 @@
                 "type": "object",
                 "required": [
                   "status",
-                  "row",
+                  "current_state",
                   "source_ref"
                 ],
                 "properties": {
@@ -89502,7 +89418,7 @@
                       ]
                     }
                   },
-                  "row": {
+                  "current_state": {
                     "oneOf": [
                       {
                         "$ref": "./current-state.schema.json#/$defs/current_realm_actor_identity"
@@ -89535,7 +89451,7 @@
                   },
                   "source_ref": {
                     "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-                    "description": "Original accepted source of this selector at the same private read cut; stream and revision equal the row."
+                    "description": "Original accepted source of this selector at the same private read cut; stream and revision equal current_state."
                   }
                 },
                 "additionalProperties": false
@@ -89576,7 +89492,7 @@
               }
             ]
           },
-          "current_record": {
+          "current_material": {
             "type": "object",
             "required": [
               "entries"
@@ -89594,7 +89510,7 @@
             },
             "additionalProperties": false
           },
-          "event_record": {
+          "event_material": {
             "type": "object",
             "required": [
               "event",
@@ -89717,7 +89633,7 @@
             ],
             "x-arkret-name-role": "status_view"
           },
-          "request_status_record": {
+          "request_status_view": {
             "type": "object",
             "required": [
               "target_request_digest",
@@ -89750,8 +89666,8 @@
                         ],
                         "x-arkret-value-ownership": {
                           "class": "owned_symbol",
-                          "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
-                          "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
+                          "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/2/properties/status",
+                          "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/2/properties/status",
                           "values": [
                             "pending",
                             "unknown",
@@ -89776,8 +89692,8 @@
                         "const": "recovery",
                         "x-arkret-value-ownership": {
                           "class": "owned_symbol",
-                          "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
-                          "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
+                          "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/status",
+                          "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/status",
                           "values": [
                             "recovery"
                           ]
@@ -89795,8 +89711,8 @@
                         ],
                         "x-arkret-value-ownership": {
                           "class": "owned_symbol",
-                          "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
-                          "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
+                          "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/state",
+                          "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/properties/state",
                           "values": [
                             "pending",
                             "completed",
@@ -89825,8 +89741,8 @@
                               "const": "pending",
                               "x-arkret-value-ownership": {
                                 "class": "owned_symbol",
-                                "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
-                                "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                                "authority": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                                "owner": "realm-actor-material.schema.json#/$defs/request_status_view/properties/request_status/oneOf/3/allOf/0/if/properties/state",
                                 "values": [
                                   "pending"
                                 ]
@@ -89858,7 +89774,7 @@
               }
             },
             "additionalProperties": false,
-            "x-arkret-name-role": "status_record"
+            "x-arkret-name-role": "status_view"
           },
           "realm_actor_material_response_body": {
             "type": "object",
@@ -89943,13 +89859,13 @@
               "material": {
                 "oneOf": [
                   {
-                    "$ref": "#/$defs/current_record"
+                    "$ref": "#/$defs/current_material"
                   },
                   {
-                    "$ref": "#/$defs/event_record"
+                    "$ref": "#/$defs/event_material"
                   },
                   {
-                    "$ref": "#/$defs/request_status_record"
+                    "$ref": "#/$defs/request_status_view"
                   }
                 ]
               },
@@ -89983,7 +89899,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/current_record"
+                      "$ref": "#/$defs/current_material"
                     },
                     "control_stream_head": {
                       "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -90013,7 +89929,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/event_record"
+                      "$ref": "#/$defs/event_material"
                     },
                     "control_stream_head": {
                       "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -90043,7 +89959,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/request_status_record"
+                      "$ref": "#/$defs/request_status_view"
                     }
                   }
                 }
@@ -90133,13 +90049,13 @@
               "material": {
                 "oneOf": [
                   {
-                    "$ref": "#/$defs/current_record"
+                    "$ref": "#/$defs/current_material"
                   },
                   {
-                    "$ref": "#/$defs/event_record"
+                    "$ref": "#/$defs/event_material"
                   },
                   {
-                    "$ref": "#/$defs/request_status_record"
+                    "$ref": "#/$defs/request_status_view"
                   }
                 ]
               }
@@ -90169,7 +90085,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/current_record"
+                      "$ref": "#/$defs/current_material"
                     },
                     "control_stream_head": {
                       "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -90199,7 +90115,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/event_record"
+                      "$ref": "#/$defs/event_material"
                     },
                     "control_stream_head": {
                       "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -90229,7 +90145,7 @@
                 "then": {
                   "properties": {
                     "material": {
-                      "$ref": "#/$defs/request_status_record"
+                      "$ref": "#/$defs/request_status_view"
                     }
                   }
                 }
@@ -92536,7 +92452,7 @@
           "link_status": {
             "$ref": "./event-payload.schema.json#/$defs/hierarchy_link_status"
           },
-          "realm_link_entry": {
+          "realm_link_view": {
             "type": "object",
             "required": [
               "realm_id",
@@ -92573,7 +92489,8 @@
                 "$ref": "#/$defs/timestamp"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-arkret-name-role": "view"
           },
           "realm_link_list": {
             "type": "object",
@@ -92607,7 +92524,7 @@
               "links": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/realm_link_entry"
+                  "$ref": "#/$defs/realm_link_view"
                 }
               }
             },
@@ -93273,6 +93190,17 @@
             },
             "additionalProperties": false
           }
+        },
+        "x-arkret-name-role": "snapshot",
+        "x-arkret-snapshot-boundary": {
+          "cut_fields": [
+            "governance_generation",
+            "visible_stream_heads"
+          ],
+          "coverage_fields": [
+            "current_state_entries",
+            "retention_and_history_floor"
+          ]
         }
       }
     },
@@ -93620,14 +93548,14 @@
             "description": "Exact durable outcome for one completed recovery transaction. If the original account was deactivated, successful issuance also means the Account Authority atomically restored that same account and authored its deactivated-to-active successor; no replacement account or second PCR is created.",
             "required": [
               "transaction_id",
-              "session_grant_outcome",
+              "issued_session",
               "issued_at"
             ],
             "properties": {
               "transaction_id": {
                 "$ref": "#/$defs/transaction_id"
               },
-              "session_grant_outcome": {
+              "issued_session": {
                 "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
               },
               "issued_at": {
@@ -94745,7 +94673,8 @@
                 "evidence_insufficient",
                 "service_defined"
               ]
-            }
+            },
+            "x-arkret-outcome-scope": "recovery_session_execution"
           },
           "outcome_reason_code": {
             "type": "string",
@@ -94845,7 +94774,8 @@
                         "completed"
                       ]
                     }
-                  }
+                  },
+                  "x-arkret-outcome-scope": "recovery_session_execution"
                 }
               },
               "required": [
@@ -97586,10 +97516,12 @@
           },
           "revoke_command_outcome": {
             "$ref": "#/$defs/revoke_command_outcome",
-            "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut."
+            "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut.",
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           },
           "terminal_outcome": {
-            "$ref": "#/$defs/terminal_outcome"
+            "$ref": "#/$defs/terminal_outcome",
+            "x-arkret-outcome-scope": "security_transaction_execution"
           }
         },
         "allOf": [
@@ -97690,12 +97622,14 @@
                         "values": [
                           "completed"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "security_transaction_execution"
                     }
                   },
                   "required": [
                     "outcome"
-                  ]
+                  ],
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 }
               },
               "required": [
@@ -97709,7 +97643,8 @@
                   "required": [
                     "receipt_id",
                     "completion_attestation"
-                  ]
+                  ],
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 }
               }
             }
@@ -97739,12 +97674,14 @@
                         "values": [
                           "completed"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "security_transaction_execution"
                     }
                   },
                   "required": [
                     "outcome"
-                  ]
+                  ],
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 }
               },
               "required": [
@@ -97768,7 +97705,8 @@
                         ]
                       }
                     ]
-                  }
+                  },
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 },
                 "revoke_command_outcome": {
                   "properties": {
@@ -97781,9 +97719,11 @@
                         "values": [
                           "accepted"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                     }
-                  }
+                  },
+                  "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                 }
               },
               "required": [
@@ -97838,12 +97778,14 @@
                           "aborted",
                           "expired"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "security_transaction_execution"
                     }
                   },
                   "required": [
                     "outcome"
-                  ]
+                  ],
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 }
               }
             },
@@ -97860,9 +97802,11 @@
                         "values": [
                           "rejected"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                     }
-                  }
+                  },
+                  "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                 }
               }
             }
@@ -97887,9 +97831,11 @@
                         "values": [
                           "accepted"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                     }
-                  }
+                  },
+                  "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                 }
               }
             },
@@ -97932,9 +97878,11 @@
                             "aborted",
                             "expired"
                           ]
-                        }
+                        },
+                        "x-arkret-outcome-scope": "security_transaction_execution"
                       }
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   }
                 }
               }
@@ -97980,9 +97928,11 @@
                         "values": [
                           "accepted"
                         ]
-                      }
+                      },
+                      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                     }
-                  }
+                  },
+                  "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
                 }
               }
             }
@@ -98019,7 +97969,8 @@
                     "accepted",
                     "rejected"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
               },
               "decided_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
@@ -98597,12 +98548,14 @@
                             "values": [
                               "completed"
                             ]
-                          }
+                          },
+                          "x-arkret-outcome-scope": "security_transaction_execution"
                         }
                       },
                       "required": [
                         "outcome"
-                      ]
+                      ],
+                      "x-arkret-outcome-scope": "security_transaction_execution"
                     }
                   },
                   "required": [
@@ -98879,12 +98832,14 @@
                             "values": [
                               "completed"
                             ]
-                          }
+                          },
+                          "x-arkret-outcome-scope": "security_transaction_execution"
                         }
                       },
                       "required": [
                         "outcome"
-                      ]
+                      ],
+                      "x-arkret-outcome-scope": "security_transaction_execution"
                     }
                   },
                   "required": [
@@ -98943,7 +98898,8 @@
                       "values": [
                         "completed"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   },
                   "completed_at": {
                     "$ref": "./time.schema.json#/$defs/timestamp"
@@ -98973,7 +98929,8 @@
                       "values": [
                         "aborted"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   },
                   "completed_at": {
                     "$ref": "./time.schema.json#/$defs/timestamp"
@@ -99001,7 +98958,8 @@
                       "values": [
                         "expired"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   },
                   "completed_at": {
                     "$ref": "./time.schema.json#/$defs/timestamp"
@@ -100506,7 +100464,7 @@
             "$ref": "#/$defs/EventDeliveryStatusRequestBody"
           },
           {
-            "$ref": "#/$defs/EventSubmitEnvelope"
+            "$ref": "./event-envelope.schema.json"
           },
           {
             "$ref": "#/$defs/EventsSubmitBatchRequestBody"
@@ -100889,7 +100847,7 @@
                   "type": "object"
                 }
               },
-              "policy_results": {
+              "policy_evaluations": {
                 "type": "array",
                 "items": {
                   "type": "object"
@@ -101869,10 +101827,6 @@
             },
             "additionalProperties": false
           },
-          "EventSubmitEnvelope": {
-            "$ref": "./event-envelope.schema.json",
-            "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the complete canonical Event shape, including the required producer-signed scope_ref. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
-          },
           "EventsSubmitBatchRequestBody": {
             "type": "object",
             "description": "Legacy-named typed array retained only as the nested prepared_event_unit request in security-transaction.schema.json. It is not an ak.self.events.command.submit.v1 request: that operation accepts only authority-commit-operations.schema.json#/$defs/self_submit_request_body, including its closed ordinary_realm_bootstrap branch. The parent security transaction fixes the recovery unit type, slot count, order and authorization; this array alone grants no generic Event batch admission.",
@@ -101933,7 +101887,16 @@
               }
             },
             "additionalProperties": false,
-            "x-arkret-name-role": "snapshot"
+            "x-arkret-name-role": "snapshot",
+            "x-arkret-snapshot-boundary": {
+              "cut_fields": [
+                "state_digest",
+                "evaluated_at"
+              ],
+              "coverage_fields": [
+                "grants"
+              ]
+            }
           },
           "IdentityDocumentView": {
             "type": "object",
@@ -102291,12 +102254,25 @@
           "ModerationReportResponseBody": {
             "type": "object",
             "required": [
-              "report_id"
+              "report_id",
+              "status"
             ],
             "properties": {
               "report_id": {
                 "type": "string",
                 "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
+              },
+              "status": {
+                "const": "submitted",
+                "description": "Immutable submit acceptance; later queue resolution never rewrites this response.",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody/properties/status",
+                  "owner": "service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody/properties/status",
+                  "values": [
+                    "submitted"
+                  ]
+                }
               },
               "routed_to_ids": {
                 "type": "array",
@@ -103778,6 +103754,7 @@
             "required": [
               "scid",
               "method",
+              "portable",
               "updateKeys",
               "nextKeyHashes"
             ],
@@ -103796,6 +103773,10 @@
                     "did:webvh:1.0"
                   ]
                 }
+              },
+              "portable": {
+                "type": "boolean",
+                "description": "Verbatim native portability parameter covered by the DID log entry; required by this closed inception carrier."
               },
               "updateKeys": {
                 "type": "array",
@@ -104040,7 +104021,7 @@
                   "participations": {
                     "type": "array",
                     "items": {
-                      "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
+                      "$ref": "./agent-operations.schema.json#/$defs/agent_participation_view"
                     }
                   }
                 },
@@ -111469,7 +111450,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:8fa1488e32e0cab92f04193f8bab4514376eacfcdc02799ebc7d834d14d93f77"
+      "digest": "sha256:0d4f810bd40f961b748e83602f391f447e79087d3512d3c2a5179b011fa63864"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -111529,7 +111510,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:8ed30510f8e290aef28461fb96e406e3a83874c842b9aee8d20e8fec13ac8c02"
+      "digest": "sha256:e03087e9349f40aced3425a09a1c670ab7aa3e021a605f11f43fbd517ae2b0eb"
     },
     {
       "file": "operation-clause-registry.json",
@@ -111613,7 +111594,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:ac135d82676c7ff55fa4e1f7ef8d3c8b65f62746319ed1a84a41d8734295d7d8"
+      "digest": "sha256:d8f816a130b7d2fac0202e1c5902c60c1973a0553c9f5e51bfddbb1b30afe2da"
     }
   ],
   "openapi": {
@@ -111955,7 +111936,7 @@
           "$ref": "../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body"
         },
         "AppletThirdPartyLocationLookupResponseBody": {
-          "$ref": "../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body"
+          "$ref": "../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
         },
         "AppletThirdPartyUserLookupResponseBody": {
           "$ref": "../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body"
@@ -112157,10 +112138,10 @@
           "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot"
         },
         "ErasureReceiptResource": {
-          "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource"
+          "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
         },
         "ErasureReceiptSubmitRequestBody": {
-          "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body"
+          "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
         },
         "ErasureReceiptSubmitResponseBody": {
           "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body"
@@ -112175,12 +112156,12 @@
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
-        "EventView": {
-          "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"
-        },
         "EventsSubscribeFrame": {
           "x-arkret-schema-ref": "../schemas/committed-event-subscribe-frame.schema.json",
           "$ref": "../schemas/committed-event-subscribe-frame.schema.json"
+        },
+        "EventView": {
+          "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"
         },
         "ExactCurrentStateReadRequestBody": {
           "$ref": "../schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body"
@@ -112633,17 +112614,17 @@
         "ThirdPartyInvitePresentResponseBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_present_response_body"
         },
-        "ThirdPartyInviteProvisionRequestBody": {
-          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body"
-        },
-        "ThirdPartyInviteProvisionResponseBody": {
-          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body"
-        },
         "ThirdPartyInviteProvisioningStatusRequestBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body"
         },
         "ThirdPartyInviteProvisioningStatusResponseBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body"
+        },
+        "ThirdPartyInviteProvisionRequestBody": {
+          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body"
+        },
+        "ThirdPartyInviteProvisionResponseBody": {
+          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body"
         },
         "WatchAuditReadRequestBody": {
           "$ref": "../schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body"
@@ -120627,7 +120608,7 @@
               }
             }
           ],
-          "description": "Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The authenticated session principal must equal both the event.actor_id signing principal and payload.reporter_id. The signed Event realm/scope must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return not_found. The service forwards exact bytes through authority Event submission and never authors, rebuilds, co-signs or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns duplicate_conflict. routed_to is omitted unless the caller independently holds moderation/governance capability for the exact scope.",
+          "description": "Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The authenticated session principal must equal both the event.actor_id signing principal and payload.reporter_id. The signed Event realm/scope must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return not_found. The service forwards exact bytes through authority Event submission and never authors, rebuilds, co-signs or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns duplicate_conflict. routed_to_ids is omitted unless the caller independently holds moderation/governance capability for the exact scope.",
           "security": [
             {
               "sessionGrantAuth": [],

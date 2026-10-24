@@ -86,7 +86,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         # SUPPLY-004 regression guard: the participation read surface must keep
         # returning the verbatim next_replace_input echo container.
         def mutate(schema):
-            entry = schema["$defs"]["agent_participation_entry"]
+            entry = schema["$defs"]["agent_participation_view"]
             entry["required"] = [
                 name for name in entry["required"] if name != "next_replace_input"
             ]

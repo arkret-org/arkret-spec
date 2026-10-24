@@ -165,11 +165,11 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
   [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
   需要给 producer 取得该 exact revision 时，只能调用
-  `ak.self.current_states.read.exact.v1`：它以 closed `primary_conflict_domain`、moderation `target_ref` 或
+  `ak.self.current_state.read.exact.v1`：它以 closed `primary_conflict_domain`、moderation `target_ref` 或
   `agent_interaction{agent_account_id}`
   读取一个 selector，并在同一 durable cut 返回当前治理任期、effective stream head 与 selector-identical
-  `present` entry／获授权 `never_written`。`never_written` 为 Relation create 的 null CAS 以及 Agent mode
-  首写／已确认私人默认开口；Relation update/tombstone 与 moderation lift 必须消费 `present.revision`。
+  `present.current_state`／获授权 `never_written`。`never_written` 为 Relation create 的 null CAS 以及 Agent mode
+  首写／已确认私人默认开口；Relation update/tombstone 与 moderation lift 必须消费 `present.current_state.revision`。
   Agent mode read 必须已获授权知道 exact Agent AccountId，不能用 guessed ID 探测私人参与；返回的 mode
   不授予 selector/profile 披露或第三方唤醒权。权限不足、不可见、未知或跨 Realm 统一
   `not_found`，不得通过 absence 分支枚举状态；generation/head/selector 不匹配一律 fail closed；
@@ -203,7 +203,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `identity_accountability`：以 `(issuer principal, subject principal, 归一化 exact scope set)` 选择一条问责背书；第三个分量按 `ak.accountability_scope_set.v1` 摘要，因此 wire 上的单个字符串与它的单元素数组落在同一个 subject；它有两个写入方（独立的 `ak.identity.accountability_grant` 与 `ak.agent.provision` 的原子问责投影），见 [`../models/actor.md` §3.3.1](../models/actor.md)；
 - `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
 
-  自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_states.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
+  自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_state.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
   三条 `ak.pin.*` 各加一条断言，roster、remove-wins 与冲突视图都是读侧折叠（见 [`../models/pins.md` §4.1](../models/pins.md)）；
 - `direct_conversation_binding`：以 pair_key 选择唯一 Realm 内一次不可变确认，value 为原 binding_event_ref 与完整 binding payload；无 set／dot／去重／代表引用，见 [Contact §8.3](../identity/contact-and-direct-conversation.md)。founding admission 仍负责唯一创建；
@@ -371,7 +371,7 @@ MUST NOT 随投影缓存重建而清除。
 的 exact current read；它在同一治理任期和 effective stream head 下明确区分未写入与写后清空。
 该精确响应也只是一时观察，不豁免提交时的当前授权与 CAS 再验证。
 
-Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_states.read.exact.v1` 已登记 policy selector，
+Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_state.read.exact.v1` 已登记 policy selector，
 仅当前 scope 有 `ak.policy.set` 权限者可得原 typed row 或权威 never_written；不凭省略推断初次 null，
 不枚举其他 Policy，read permission 不代替写入时的 current CAS 和审批校验。
 

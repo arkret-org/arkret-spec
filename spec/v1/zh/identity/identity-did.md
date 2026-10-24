@@ -647,6 +647,10 @@ Profile 是该 current state 的公开 **current projection**，可以发布当�
 
 DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影为同一个 `did_core_id`，就是上述 resolution update；历史 Event 的 `actor_id`、grant subject 与 membership reference 不变。若 method 或 identity core 改变并产生不同 `did_core_id`，则是新主体：其 Event、设备、capability、账号和 Realm membership 独立。需要转移业务关系时必须走普通 re-grant、重新邀请、账号显式换绑或治理恢复，并在 UI 中明确显示主体已改变。
 
+#### PCR 审计载体的原件配对
+
+`principal_resolution_audit_evidence` 的 `genesis_commits` 恰为两个原始连续 Commit，依序覆盖 `principal_genesis_event` 与 `founding_device_authorize_event`；`accepted_commit` 覆盖 `current_resolution_event`。`predecessor_resolution_events` 按从新到旧的顺序披露，每项必须有同序一一对应的 `predecessor_resolution_commits` 原件，逐项绑定相同 PCR stream、Event ref、generation 与原始签名。不得从 current state 重建 Commit，不得用单个 genesis Commit 代替原子 genesis 对。此修正只闭合已登记审计证据的完整表示，不改变读取授权、history_depth／cursor 边界或 PCR 治理资格。
+
 #### 4.2.1 `did:webvh` 健康检查
 
 实现 MUST 对 `did:webvh` resolver policy 定义主动健康检查：

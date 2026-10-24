@@ -80,10 +80,12 @@
     },
     "revoke_command_outcome": {
       "$ref": "#/$defs/revoke_command_outcome",
-      "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut."
+      "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut.",
+      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
     },
     "terminal_outcome": {
-      "$ref": "#/$defs/terminal_outcome"
+      "$ref": "#/$defs/terminal_outcome",
+      "x-arkret-outcome-scope": "security_transaction_execution"
     }
   },
   "allOf": [
@@ -184,12 +186,14 @@
                   "values": [
                     "completed"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "security_transaction_execution"
               }
             },
             "required": [
               "outcome"
-            ]
+            ],
+            "x-arkret-outcome-scope": "security_transaction_execution"
           }
         },
         "required": [
@@ -203,7 +207,8 @@
             "required": [
               "receipt_id",
               "completion_attestation"
-            ]
+            ],
+            "x-arkret-outcome-scope": "security_transaction_execution"
           }
         }
       }
@@ -233,12 +238,14 @@
                   "values": [
                     "completed"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "security_transaction_execution"
               }
             },
             "required": [
               "outcome"
-            ]
+            ],
+            "x-arkret-outcome-scope": "security_transaction_execution"
           }
         },
         "required": [
@@ -262,7 +269,8 @@
                   ]
                 }
               ]
-            }
+            },
+            "x-arkret-outcome-scope": "security_transaction_execution"
           },
           "revoke_command_outcome": {
             "properties": {
@@ -275,9 +283,11 @@
                   "values": [
                     "accepted"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
               }
-            }
+            },
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           }
         },
         "required": [
@@ -332,12 +342,14 @@
                     "aborted",
                     "expired"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "security_transaction_execution"
               }
             },
             "required": [
               "outcome"
-            ]
+            ],
+            "x-arkret-outcome-scope": "security_transaction_execution"
           }
         }
       },
@@ -354,9 +366,11 @@
                   "values": [
                     "rejected"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
               }
-            }
+            },
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           }
         }
       }
@@ -381,9 +395,11 @@
                   "values": [
                     "accepted"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
               }
-            }
+            },
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           }
         }
       },
@@ -426,9 +442,11 @@
                       "aborted",
                       "expired"
                     ]
-                  }
+                  },
+                  "x-arkret-outcome-scope": "security_transaction_execution"
                 }
-              }
+              },
+              "x-arkret-outcome-scope": "security_transaction_execution"
             }
           }
         }
@@ -474,9 +492,11 @@
                   "values": [
                     "accepted"
                   ]
-                }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
               }
-            }
+            },
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           }
         }
       }
@@ -513,7 +533,8 @@
               "accepted",
               "rejected"
             ]
-          }
+          },
+          "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
         },
         "decided_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1091,12 +1112,14 @@
                       "values": [
                         "completed"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   }
                 },
                 "required": [
                   "outcome"
-                ]
+                ],
+                "x-arkret-outcome-scope": "security_transaction_execution"
               }
             },
             "required": [
@@ -1373,12 +1396,14 @@
                       "values": [
                         "completed"
                       ]
-                    }
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
                   }
                 },
                 "required": [
                   "outcome"
-                ]
+                ],
+                "x-arkret-outcome-scope": "security_transaction_execution"
               }
             },
             "required": [
@@ -1437,7 +1462,8 @@
                 "values": [
                   "completed"
                 ]
-              }
+              },
+              "x-arkret-outcome-scope": "security_transaction_execution"
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1467,7 +1493,8 @@
                 "values": [
                   "aborted"
                 ]
-              }
+              },
+              "x-arkret-outcome-scope": "security_transaction_execution"
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1495,7 +1522,8 @@
                 "values": [
                   "expired"
                 ]
-              }
+              },
+              "x-arkret-outcome-scope": "security_transaction_execution"
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"

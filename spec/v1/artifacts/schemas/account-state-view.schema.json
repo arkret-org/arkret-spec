@@ -12,9 +12,6 @@
     }
   ],
   "$defs": {
-    "entry": {
-      "$ref": "./current-state.schema.json"
-    },
     "current": {
       "type": "object",
       "required": [
@@ -41,7 +38,7 @@
         "entries": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/entry"
+            "$ref": "./current-state.schema.json"
           }
         }
       },

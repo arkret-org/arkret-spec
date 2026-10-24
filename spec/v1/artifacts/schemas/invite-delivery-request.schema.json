@@ -349,7 +349,8 @@
               "delivered",
               "blocked"
             ]
-          }
+          },
+          "x-arkret-outcome-scope": "holder_invite_admission_and_delivery_attempt"
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
