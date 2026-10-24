@@ -3092,6 +3092,28 @@ def check_reaction_routing_cross_sender_equality(lint: Lint, path: Path, data: d
     ]:
         lint.fail(path, "reaction routing context must stay closed and sender-independent")
 
+def check_fixture_schema_references(lint: Lint, owner: Path, data: Any) -> None:
+    """Resolve artifact-valued fixture references, including descriptive metadata."""
+    for json_path, reference, key in walk_json(data):
+        if not isinstance(key, str) or not key.endswith("schema_ref") or not isinstance(reference, str):
+            continue
+        reference = reference.removeprefix("spec/v1/artifacts/")
+        # Typed IDs and external/user JSON values are not artifact references.
+        if not reference.startswith("schemas/"):
+            continue
+        schema_path = resolve_artifact_schema_ref(lint, owner, reference)
+        if schema_path is None:
+            continue
+        document = load_json(lint, schema_path)
+        try:
+            target = resolve_json_pointer(document, "#" + reference.partition("#")[2])
+        except (KeyError, IndexError, ValueError, TypeError) as error:
+            lint.fail(owner, f"{json_path}: fixture schema reference does not resolve: {reference}: {error}")
+            continue
+        if not isinstance(target, (dict, bool)):
+            lint.fail(owner, f"{json_path}: fixture schema reference must target a schema node: {reference}")
+
+
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
     registry_path = ARTIFACTS / "registry" / "contract-registry.json"
@@ -3110,6 +3132,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
+        check_fixture_schema_references(lint, path, data)
         check_fixture_operation_contracts(lint, path, data, operation_contracts)
         if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
             check_private_kdf_full_width_nonce(lint, path, data)

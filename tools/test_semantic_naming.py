@@ -24,6 +24,22 @@ class SemanticNamingTests(unittest.TestCase):
         self.assertEqual(type_role_errors('UserLookupResponseBody', {'x-arkret-name-role': 'lookup_response'}), [])
         self.assertTrue(type_role_errors('UserView', {'x-arkret-name-role': 'lookup_response'}))
 
+    def test_fixture_metadata_schema_references_cannot_drift(self):
+        from .artifact_lint.core import ARTIFACTS, Lint
+        from .artifact_lint.fixtures import check_fixture_schema_references
+        canonical = "schemas/invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions"
+        owner = ARTIFACTS / "fixtures/protocol-edge-cases-fixture.json"
+        valid = Lint()
+        for ref in (canonical, "spec/v1/artifacts/" + canonical):
+            check_fixture_schema_references(valid, owner, {"expected": {"extensions_schema_ref": ref}})
+        check_fixture_schema_references(valid, owner, {"content": {"schema_ref": "ak:schema_profile:opaque"}})
+        self.assertEqual(valid.errors, [])
+        for ref in (canonical + "_misspelled", "schemas/missing.schema.json", "schemas/../outside.json",
+                    "schemas/invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions/description"):
+            lint = Lint()
+            check_fixture_schema_references(lint, owner, {"expected": {"extensions_schema_ref": ref}})
+            self.assertTrue(lint.errors, ref)
+
     def test_unknown_role_annotations_cannot_silently_disable_constraints(self):
         for role in ('snaphot', 'made_up_view', None, ['view']):
             self.assertTrue(type_role_errors('OwnerView', {'x-arkret-name-role': role}), role)
