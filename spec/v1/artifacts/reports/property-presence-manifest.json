@@ -83,13 +83,13 @@
     "capability-grant.schema.json/allOf/1/then/properties/issuer_authority_refs",
     "consent-private-operations.schema.json/$defs/proxy_request_body/allOf/0/else/properties/context",
     "consent-private-operations.schema.json/$defs/proxy_request_body/allOf/0/then/properties/context",
-    "contact-operations.schema.json/$defs/contact_list_row/allOf/2/then/properties/peer",
     "contact-operations.schema.json/$defs/contact_round_basis/allOf/0/else/properties/request_receipts",
     "contact-operations.schema.json/$defs/contact_round_basis/allOf/0/then/properties/request_receipts",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/else/properties/current_proofs",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/else/properties/request_receipts",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/then/properties/current_proofs",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/then/properties/request_receipts",
+    "contact-operations.schema.json/$defs/contact_view/allOf/2/then/properties/peer",
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/0/then/properties/mirror_receipt",
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/1/then/properties/mirror_receipt",
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/2/then/properties/mirror_receipt",
@@ -190,7 +190,7 @@
     "realm-commit.schema.json/allOf/0/then/properties/previous_commit_ref",
     "realm-genesis.schema.json/allOf/2/then/properties/initial_resolution",
     "realm-genesis.schema.json/allOf/3/then/properties/initial_resolution",
-    "realm-organization-operations.schema.json/$defs/realm_organization_relationship_row/properties/expires_at",
+    "realm-organization-operations.schema.json/$defs/realm_organization_relationship_view/properties/expires_at",
     "realm.schema.json/properties/default_strand_id",
     "recovery-policy.schema.json/$defs/recovery_key_agreement_entry/properties/revoked_at",
     "recovery-policy.schema.json/$defs/recovery_key_entry/properties/revoked_at",
@@ -212,36 +212,36 @@
     "service-describe.schema.json/allOf/2/then/properties/verified_profiles",
     "service-describe.schema.json/allOf/3/then/properties/authentication_metadata",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetResponseBody/allOf/0/if/properties/deliveries",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/created_at",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/created_by",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/stage",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/stage_changed_at",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/state_changed_at",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/title",
-    "service-operation-dtos.schema.json/$defs/MorphRow/properties/updated_at",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/created_at",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/created_by",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/stage",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/stage_changed_at",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/state_changed_at",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/title",
+    "service-operation-dtos.schema.json/$defs/MorphView/properties/updated_at",
     "service-operation-dtos.schema.json/$defs/ServiceRegistrationEnsureRequestBody/properties/previous_receipt",
     "service-operation-dtos.schema.json/$defs/SessionGrantIntrospectGrant/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SessionGrantIntrospectGrant/allOf/0/then/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/created_at",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/created_by",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/parent_space_id",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/rank",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/state_changed_at",
-    "service-operation-dtos.schema.json/$defs/SpaceRow/properties/updated_at",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/board_space_id",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/created_at",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/created_by",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/list_space_id",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/rank",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/stage",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/stage_changed_at",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/state_changed_at",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/summary",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/title",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/updated_at",
-    "service-operation-dtos.schema.json/$defs/StrandRow/properties/updated_by",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/created_at",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/created_by",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/parent_space_id",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/rank",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/state_changed_at",
+    "service-operation-dtos.schema.json/$defs/SpaceView/properties/updated_at",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/board_space_id",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/created_at",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/created_by",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/list_space_id",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/rank",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/stage",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/stage_changed_at",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/state_changed_at",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/summary",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/title",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/updated_at",
+    "service-operation-dtos.schema.json/$defs/StrandView/properties/updated_by",
     "strand.schema.json/allOf/2/then/properties/metadata",
     "view.schema.json/$defs/query/properties/relation",
     "watch-audit-operations.schema.json/$defs/watch_audit_submission/allOf/1/properties/event"
@@ -618,16 +618,6 @@
     },
     {
       "schema_file": "contact-operations.schema.json",
-      "shape": "/$defs/contact_list_row",
-      "instance_path": "/peer",
-      "occurrences": [
-        "/$defs/contact_list_row/allOf/2/then/properties/peer"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "contact-operations.schema.json",
       "shape": "/$defs/contact_round_basis",
       "instance_path": "/request_receipts",
       "occurrences": [
@@ -655,6 +645,16 @@
       "occurrences": [
         "/$defs/contact_round_evidence_bundle/allOf/0/else/properties/request_receipts",
         "/$defs/contact_round_evidence_bundle/allOf/0/then/properties/request_receipts"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "contact-operations.schema.json",
+      "shape": "/$defs/contact_view",
+      "instance_path": "/peer",
+      "occurrences": [
+        "/$defs/contact_view/allOf/2/then/properties/peer"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1427,10 +1427,10 @@
     },
     {
       "schema_file": "realm-organization-operations.schema.json",
-      "shape": "/$defs/realm_organization_relationship_row",
+      "shape": "/$defs/realm_organization_relationship_view",
       "instance_path": "/expires_at",
       "occurrences": [
-        "/$defs/realm_organization_relationship_row/properties/expires_at"
+        "/$defs/realm_organization_relationship_view/properties/expires_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1620,70 +1620,70 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/created_at",
       "occurrences": [
-        "/$defs/MorphRow/properties/created_at"
+        "/$defs/MorphView/properties/created_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/created_by",
       "occurrences": [
-        "/$defs/MorphRow/properties/created_by"
+        "/$defs/MorphView/properties/created_by"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/stage",
       "occurrences": [
-        "/$defs/MorphRow/properties/stage"
+        "/$defs/MorphView/properties/stage"
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/stage_changed_at",
       "occurrences": [
-        "/$defs/MorphRow/properties/stage_changed_at"
+        "/$defs/MorphView/properties/stage_changed_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/state_changed_at",
       "occurrences": [
-        "/$defs/MorphRow/properties/state_changed_at"
+        "/$defs/MorphView/properties/state_changed_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/title",
       "occurrences": [
-        "/$defs/MorphRow/properties/title"
+        "/$defs/MorphView/properties/title"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/MorphRow",
+      "shape": "/$defs/MorphView",
       "instance_path": "/updated_at",
       "occurrences": [
-        "/$defs/MorphRow/properties/updated_at"
+        "/$defs/MorphView/properties/updated_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1722,180 +1722,180 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/created_at",
       "occurrences": [
-        "/$defs/SpaceRow/properties/created_at"
+        "/$defs/SpaceView/properties/created_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/created_by",
       "occurrences": [
-        "/$defs/SpaceRow/properties/created_by"
+        "/$defs/SpaceView/properties/created_by"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/parent_space_id",
       "occurrences": [
-        "/$defs/SpaceRow/properties/parent_space_id"
+        "/$defs/SpaceView/properties/parent_space_id"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/rank",
       "occurrences": [
-        "/$defs/SpaceRow/properties/rank"
+        "/$defs/SpaceView/properties/rank"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/state_changed_at",
       "occurrences": [
-        "/$defs/SpaceRow/properties/state_changed_at"
+        "/$defs/SpaceView/properties/state_changed_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/SpaceRow",
+      "shape": "/$defs/SpaceView",
       "instance_path": "/updated_at",
       "occurrences": [
-        "/$defs/SpaceRow/properties/updated_at"
+        "/$defs/SpaceView/properties/updated_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/board_space_id",
       "occurrences": [
-        "/$defs/StrandRow/properties/board_space_id"
+        "/$defs/StrandView/properties/board_space_id"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/created_at",
       "occurrences": [
-        "/$defs/StrandRow/properties/created_at"
+        "/$defs/StrandView/properties/created_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/created_by",
       "occurrences": [
-        "/$defs/StrandRow/properties/created_by"
+        "/$defs/StrandView/properties/created_by"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/list_space_id",
       "occurrences": [
-        "/$defs/StrandRow/properties/list_space_id"
+        "/$defs/StrandView/properties/list_space_id"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/rank",
       "occurrences": [
-        "/$defs/StrandRow/properties/rank"
+        "/$defs/StrandView/properties/rank"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/stage",
       "occurrences": [
-        "/$defs/StrandRow/properties/stage"
+        "/$defs/StrandView/properties/stage"
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/stage_changed_at",
       "occurrences": [
-        "/$defs/StrandRow/properties/stage_changed_at"
+        "/$defs/StrandView/properties/stage_changed_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/state_changed_at",
       "occurrences": [
-        "/$defs/StrandRow/properties/state_changed_at"
+        "/$defs/StrandView/properties/state_changed_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/summary",
       "occurrences": [
-        "/$defs/StrandRow/properties/summary"
+        "/$defs/StrandView/properties/summary"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/title",
       "occurrences": [
-        "/$defs/StrandRow/properties/title"
+        "/$defs/StrandView/properties/title"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/updated_at",
       "occurrences": [
-        "/$defs/StrandRow/properties/updated_at"
+        "/$defs/StrandView/properties/updated_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "/$defs/StrandRow",
+      "shape": "/$defs/StrandView",
       "instance_path": "/updated_by",
       "occurrences": [
-        "/$defs/StrandRow/properties/updated_by"
+        "/$defs/StrandView/properties/updated_by"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -2398,6 +2398,12 @@
         "/$defs/account_filter/properties/realm_ids": "optional",
         "/$defs/account_filter/properties/stream_refs": "optional",
         "/$defs/account_filter/properties/window_limit": "optional_defaulted",
+        "/$defs/account_realm_view/properties/activity_position": "required",
+        "/$defs/account_realm_view/properties/default_strand_id": "optional",
+        "/$defs/account_realm_view/properties/membership": "required",
+        "/$defs/account_realm_view/properties/realm_id": "required",
+        "/$defs/account_realm_view/properties/revision": "required",
+        "/$defs/account_realm_view/properties/title": "optional",
         "/$defs/account_revision_stale_problem/allOf/1/properties/continuation_cursor": "required",
         "/$defs/account_revision_stale_problem/allOf/1/properties/status": "optional",
         "/$defs/account_revision_stale_problem/allOf/1/properties/type": "optional",
@@ -2487,12 +2493,6 @@
         "/$defs/realm_list_parameters/properties/limit": "optional_defaulted",
         "/$defs/realm_list_removal/properties/realm_id": "required",
         "/$defs/realm_list_removal/properties/revision": "required",
-        "/$defs/realm_list_row/properties/activity_position": "required",
-        "/$defs/realm_list_row/properties/default_strand_id": "optional",
-        "/$defs/realm_list_row/properties/membership": "required",
-        "/$defs/realm_list_row/properties/realm_id": "required",
-        "/$defs/realm_list_row/properties/revision": "required",
-        "/$defs/realm_list_row/properties/title": "optional",
         "/$defs/realm_stream_window/properties/complete": "required",
         "/$defs/realm_stream_window/properties/e2ee_epoch": "tristate",
         "/$defs/realm_stream_window/properties/e2ee_epoch/oneOf/1/properties/epoch": "required",
@@ -3099,8 +3099,8 @@
         "/$defs/key_state/properties/requested_scope": "required",
         "/$defs/key_state/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/operation_status_view/properties/status": "required",
-        "/$defs/pending_sidecar_access_reconciliation_row/properties/agent_id": "required",
-        "/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase": "required"
+        "/$defs/pending_sidecar_access_reconciliation/properties/agent_id": "required",
+        "/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase": "required"
       },
       "conditionally_required": [
         "/$defs/agent_participation_entry/properties/next_replace_input",
@@ -3422,6 +3422,9 @@
         "/$defs/applet_committed_event/properties/event": "required",
         "/$defs/applet_committed_event/properties/producer_device_evidence": "optional",
         "/$defs/applet_committed_event/properties/producer_signer_fact": "optional",
+        "/$defs/applet_event_rejection/properties/event_id": "optional",
+        "/$defs/applet_event_rejection/properties/reason_code": "required",
+        "/$defs/applet_event_rejection/properties/retry_after_ms": "optional",
         "/$defs/applet_event_transaction_request_body/properties/applet_id": "required",
         "/$defs/applet_event_transaction_request_body/properties/committed_events": "optional",
         "/$defs/applet_event_transaction_request_body/properties/events": "optional",
@@ -3464,9 +3467,6 @@
         "/$defs/protocol_instance/properties/display_name": "required",
         "/$defs/protocol_instance/properties/external_ref": "optional",
         "/$defs/protocol_instance/properties/instance_id": "required",
-        "/$defs/rejected_event_row/properties/event_id": "optional",
-        "/$defs/rejected_event_row/properties/reason_code": "required",
-        "/$defs/rejected_event_row/properties/retry_after_ms": "optional",
         "/$defs/third_party_query/properties/external_id": "required",
         "/$defs/third_party_query/properties/instance_id": "optional",
         "/$defs/third_party_query/properties/protocol": "required",
@@ -3658,8 +3658,8 @@
         "/$defs/applet_revoke_submitted_event_step/properties/reason_code": "optional",
         "/$defs/applet_revoke_submitted_event_step/properties/status": "required",
         "/$defs/applet_revoke_submitted_event_step/properties/submitted_event_id": "required",
-        "/$defs/rejected_scope_row/properties/reason_code": "required",
-        "/$defs/rejected_scope_row/properties/requested_scope": "optional"
+        "/$defs/applet_scope_rejection/properties/reason_code": "required",
+        "/$defs/applet_scope_rejection/properties/requested_scope": "optional"
       }
     },
     "applet-install-plan.schema.json": {
@@ -5168,25 +5168,6 @@
         "/$defs/contact_lineage/properties/signature": "required",
         "/$defs/contact_lineage/properties/trust_domain_id": "required",
         "/$defs/contact_lineage/properties/version": "required",
-        "/$defs/contact_list_row/allOf/0/if/properties/state": "required",
-        "/$defs/contact_list_row/allOf/1/if/properties/state": "required",
-        "/$defs/contact_list_row/allOf/2/then/properties/peer": "tristate",
-        "/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind": "optional",
-        "/$defs/contact_list_row/allOf/2/then/properties/state": "optional",
-        "/$defs/contact_list_row/properties/bidirectional_scopes": "required",
-        "/$defs/contact_list_row/properties/contact_agents": "optional",
-        "/$defs/contact_list_row/properties/direct_conversation": "optional",
-        "/$defs/contact_list_row/properties/effective_scopes": "optional",
-        "/$defs/contact_list_row/properties/granted_by_peer_scopes": "required",
-        "/$defs/contact_list_row/properties/granted_to_peer_scopes": "required",
-        "/$defs/contact_list_row/properties/next_prepare_input": "optional",
-        "/$defs/contact_list_row/properties/peer": "required",
-        "/$defs/contact_list_row/properties/peer_endpoint": "optional",
-        "/$defs/contact_list_row/properties/request_event_ref": "optional",
-        "/$defs/contact_list_row/properties/request_message": "optional",
-        "/$defs/contact_list_row/properties/response_event_ref": "optional",
-        "/$defs/contact_list_row/properties/state": "required",
-        "/$defs/contact_list_row/properties/tombstone_event_ref": "optional",
         "/$defs/contact_next_prepare_input/properties/contact_round_id": "required",
         "/$defs/contact_next_prepare_input/properties/predecessor_event_ref": "required",
         "/$defs/contact_next_prepare_input/properties/version": "required",
@@ -5391,6 +5372,25 @@
         "/$defs/contact_tombstone_request_body/oneOf/1/properties/signed_event": "required",
         "/$defs/contact_tombstone_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind": "required",
         "/$defs/contact_tombstone_response_body/allOf/1/properties/operation_kind": "required",
+        "/$defs/contact_view/allOf/0/if/properties/state": "required",
+        "/$defs/contact_view/allOf/1/if/properties/state": "required",
+        "/$defs/contact_view/allOf/2/then/properties/peer": "tristate",
+        "/$defs/contact_view/allOf/2/then/properties/peer/properties/kind": "optional",
+        "/$defs/contact_view/allOf/2/then/properties/state": "optional",
+        "/$defs/contact_view/properties/bidirectional_scopes": "required",
+        "/$defs/contact_view/properties/contact_agents": "optional",
+        "/$defs/contact_view/properties/direct_conversation": "optional",
+        "/$defs/contact_view/properties/effective_scopes": "optional",
+        "/$defs/contact_view/properties/granted_by_peer_scopes": "required",
+        "/$defs/contact_view/properties/granted_to_peer_scopes": "required",
+        "/$defs/contact_view/properties/next_prepare_input": "optional",
+        "/$defs/contact_view/properties/peer": "required",
+        "/$defs/contact_view/properties/peer_endpoint": "optional",
+        "/$defs/contact_view/properties/request_event_ref": "optional",
+        "/$defs/contact_view/properties/request_message": "optional",
+        "/$defs/contact_view/properties/response_event_ref": "optional",
+        "/$defs/contact_view/properties/state": "required",
+        "/$defs/contact_view/properties/tombstone_event_ref": "optional",
         "/$defs/direct_conversation_summary/properties/binding_event_ref": "required",
         "/$defs/direct_conversation_summary/properties/main_strand_id": "required",
         "/$defs/direct_conversation_summary/properties/realm_id": "required",
@@ -5617,12 +5617,12 @@
       "conditionally_required": [
         "/$defs/contact_current_material/properties/round_events",
         "/$defs/contact_lineage/properties/predecessor_event_ref",
-        "/$defs/contact_list_row/properties/next_prepare_input",
-        "/$defs/contact_list_row/properties/request_event_ref",
         "/$defs/contact_round_basis/properties/glare_concurrency_attestations",
         "/$defs/contact_round_basis/properties/normal_response_receipt",
         "/$defs/contact_round_evidence_bundle/properties/glare_concurrency_attestations",
         "/$defs/contact_round_evidence_bundle/properties/normal_response_receipt",
+        "/$defs/contact_view/properties/next_prepare_input",
+        "/$defs/contact_view/properties/request_event_ref",
         "/$defs/normal_response_acceptance_receipt/properties/predecessor_event_ref",
         "/$defs/peer_contact_control_receipt/properties/control_material_digest",
         "/$defs/peer_contact_event_submit_response_body/properties/current_proof",
@@ -11885,21 +11885,21 @@
         "/$defs/realm_organization_relationship_list/properties/declared_organization_hint_ids": "required",
         "/$defs/realm_organization_relationship_list/properties/realm_id": "required",
         "/$defs/realm_organization_relationship_list/properties/relationships": "required",
-        "/$defs/realm_organization_relationship_row/properties/control_scopes": "required",
-        "/$defs/realm_organization_relationship_row/properties/delegation_ref": "optional",
-        "/$defs/realm_organization_relationship_row/properties/expires_at": "tristate",
-        "/$defs/realm_organization_relationship_row/properties/issued_at": "required",
-        "/$defs/realm_organization_relationship_row/properties/issuer_role": "required",
-        "/$defs/realm_organization_relationship_row/properties/lifecycle_phase": "required",
-        "/$defs/realm_organization_relationship_row/properties/not_before": "optional",
-        "/$defs/realm_organization_relationship_row/properties/organization_id": "required",
-        "/$defs/realm_organization_relationship_row/properties/realm_commit_ref": "optional",
-        "/$defs/realm_organization_relationship_row/properties/relationship": "required",
-        "/$defs/realm_organization_relationship_row/properties/revokes_statement_id": "optional",
-        "/$defs/realm_organization_relationship_row/properties/statement_id": "required",
-        "/$defs/realm_organization_relationship_row/properties/status": "required",
-        "/$defs/realm_organization_relationship_row/properties/supersedes_statement_id": "optional",
-        "/$defs/realm_organization_relationship_row/properties/updated_at": "optional"
+        "/$defs/realm_organization_relationship_view/properties/control_scopes": "required",
+        "/$defs/realm_organization_relationship_view/properties/delegation_ref": "optional",
+        "/$defs/realm_organization_relationship_view/properties/expires_at": "tristate",
+        "/$defs/realm_organization_relationship_view/properties/issued_at": "required",
+        "/$defs/realm_organization_relationship_view/properties/issuer_role": "required",
+        "/$defs/realm_organization_relationship_view/properties/lifecycle_phase": "required",
+        "/$defs/realm_organization_relationship_view/properties/not_before": "optional",
+        "/$defs/realm_organization_relationship_view/properties/organization_id": "required",
+        "/$defs/realm_organization_relationship_view/properties/realm_commit_ref": "optional",
+        "/$defs/realm_organization_relationship_view/properties/relationship": "required",
+        "/$defs/realm_organization_relationship_view/properties/revokes_statement_id": "optional",
+        "/$defs/realm_organization_relationship_view/properties/statement_id": "required",
+        "/$defs/realm_organization_relationship_view/properties/status": "required",
+        "/$defs/realm_organization_relationship_view/properties/supersedes_statement_id": "optional",
+        "/$defs/realm_organization_relationship_view/properties/updated_at": "optional"
       }
     },
     "realm-profile.schema.json": {
@@ -11936,10 +11936,10 @@
         "/$defs/realm_stream_page/properties/next_cursor": "optional",
         "/$defs/realm_stream_page/properties/realm_id": "required",
         "/$defs/realm_stream_page/properties/streams": "required",
-        "/$defs/realm_stream_row/properties/head_commit_ref": "required",
-        "/$defs/realm_stream_row/properties/next_position": "required",
-        "/$defs/realm_stream_row/properties/readable_floor": "optional",
-        "/$defs/realm_stream_row/properties/stream_ref": "required"
+        "/$defs/realm_stream_view/properties/head_commit_ref": "required",
+        "/$defs/realm_stream_view/properties/next_position": "required",
+        "/$defs/realm_stream_view/properties/readable_floor": "optional",
+        "/$defs/realm_stream_view/properties/stream_ref": "required"
       }
     },
     "realm-state-snapshot.schema.json": {
@@ -12953,14 +12953,14 @@
         "/$defs/CommittedEventView/oneOf/0/properties/event": "required",
         "/$defs/CommittedEventView/oneOf/1/properties/commit": "required",
         "/$defs/CommittedEventView/oneOf/1/properties/event_disclosure": "required",
-        "/$defs/DeviceMessageDeliveredRow/properties/device_message_id": "required",
-        "/$defs/DeviceMessageDeliveredRow/properties/status": "required",
+        "/$defs/DeviceMessageDeliveredEntry/properties/device_message_id": "required",
+        "/$defs/DeviceMessageDeliveredEntry/properties/status": "required",
         "/$defs/DeviceMessageTarget/properties/content": "required",
         "/$defs/DeviceMessageTarget/properties/device_message_id": "required",
         "/$defs/DeviceMessageTarget/properties/expires_at": "required",
         "/$defs/DeviceMessageTarget/properties/kind": "required",
-        "/$defs/DeviceMessageUnknownRow/properties/device_message_id": "required",
-        "/$defs/DeviceMessageUnknownRow/properties/status": "required",
+        "/$defs/DeviceMessageUnknownEntry/properties/device_message_id": "required",
+        "/$defs/DeviceMessageUnknownEntry/properties/status": "required",
         "/$defs/DeviceMessagesAcknowledgementRequestBody/properties/acknowledgement_token": "required",
         "/$defs/DeviceMessagesAcknowledgementResponseBody/properties/pruned_count": "required",
         "/$defs/DeviceMessagesGetResponseBody/allOf/0/if/properties/deliveries": "tristate",
@@ -12992,8 +12992,8 @@
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/agent_provision_ref": "required",
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/controller_binding_digest": "required",
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/kind": "required",
-        "/$defs/EffectiveCapabilityGrantRow/properties/grant": "required",
-        "/$defs/EffectiveCapabilityGrantRow/properties/revision": "required",
+        "/$defs/EffectiveCapabilityGrantView/properties/grant": "required",
+        "/$defs/EffectiveCapabilityGrantView/properties/revision": "required",
         "/$defs/EffectiveGrantSnapshot/properties/evaluated_at": "required",
         "/$defs/EffectiveGrantSnapshot/properties/grants": "required",
         "/$defs/EffectiveGrantSnapshot/properties/state_digest": "required",
@@ -13065,19 +13065,19 @@
         "/$defs/MorphPage/properties/next_cursor": "optional",
         "/$defs/MorphPage/properties/realm_id": "required",
         "/$defs/MorphPage/properties/total_count": "required",
-        "/$defs/MorphRow/allOf/0/if/properties/stage_changed_at": "required",
-        "/$defs/MorphRow/allOf/0/then/properties/stage": "required",
-        "/$defs/MorphRow/properties/created_at": "tristate",
-        "/$defs/MorphRow/properties/created_by": "tristate",
-        "/$defs/MorphRow/properties/morph_id": "required",
-        "/$defs/MorphRow/properties/morph_kind": "required",
-        "/$defs/MorphRow/properties/realm_id": "required",
-        "/$defs/MorphRow/properties/stage": "tristate",
-        "/$defs/MorphRow/properties/stage_changed_at": "tristate",
-        "/$defs/MorphRow/properties/state": "required",
-        "/$defs/MorphRow/properties/state_changed_at": "tristate",
-        "/$defs/MorphRow/properties/title": "tristate",
-        "/$defs/MorphRow/properties/updated_at": "tristate",
+        "/$defs/MorphView/allOf/0/if/properties/stage_changed_at": "required",
+        "/$defs/MorphView/allOf/0/then/properties/stage": "required",
+        "/$defs/MorphView/properties/created_at": "tristate",
+        "/$defs/MorphView/properties/created_by": "tristate",
+        "/$defs/MorphView/properties/morph_id": "required",
+        "/$defs/MorphView/properties/morph_kind": "required",
+        "/$defs/MorphView/properties/realm_id": "required",
+        "/$defs/MorphView/properties/stage": "tristate",
+        "/$defs/MorphView/properties/stage_changed_at": "tristate",
+        "/$defs/MorphView/properties/state": "required",
+        "/$defs/MorphView/properties/state_changed_at": "tristate",
+        "/$defs/MorphView/properties/title": "tristate",
+        "/$defs/MorphView/properties/updated_at": "tristate",
         "/$defs/OrganizationControlProof/allOf/0/if/properties/proof_kind": "required",
         "/$defs/OrganizationControlProof/properties/proof_kind": "required",
         "/$defs/OrganizationControlProof/properties/proofs": "required",
@@ -13302,44 +13302,44 @@
         "/$defs/SpacePage/properties/realm_id": "required",
         "/$defs/SpacePage/properties/spaces": "required",
         "/$defs/SpacePage/properties/total_count": "required",
-        "/$defs/SpaceRow/properties/created_at": "tristate",
-        "/$defs/SpaceRow/properties/created_by": "tristate",
-        "/$defs/SpaceRow/properties/encrypted_metadata": "optional",
-        "/$defs/SpaceRow/properties/kind": "required",
-        "/$defs/SpaceRow/properties/parent_space_id": "tristate",
-        "/$defs/SpaceRow/properties/rank": "tristate",
-        "/$defs/SpaceRow/properties/realm_id": "required",
-        "/$defs/SpaceRow/properties/space_id": "required",
-        "/$defs/SpaceRow/properties/state": "required",
-        "/$defs/SpaceRow/properties/state_changed_at": "tristate",
-        "/$defs/SpaceRow/properties/title": "optional",
-        "/$defs/SpaceRow/properties/updated_at": "tristate",
+        "/$defs/SpaceView/properties/created_at": "tristate",
+        "/$defs/SpaceView/properties/created_by": "tristate",
+        "/$defs/SpaceView/properties/encrypted_metadata": "optional",
+        "/$defs/SpaceView/properties/kind": "required",
+        "/$defs/SpaceView/properties/parent_space_id": "tristate",
+        "/$defs/SpaceView/properties/rank": "tristate",
+        "/$defs/SpaceView/properties/realm_id": "required",
+        "/$defs/SpaceView/properties/space_id": "required",
+        "/$defs/SpaceView/properties/state": "required",
+        "/$defs/SpaceView/properties/state_changed_at": "tristate",
+        "/$defs/SpaceView/properties/title": "optional",
+        "/$defs/SpaceView/properties/updated_at": "tristate",
         "/$defs/StrandPage/properties/has_more": "required",
         "/$defs/StrandPage/properties/next_cursor": "optional",
         "/$defs/StrandPage/properties/realm_id": "required",
         "/$defs/StrandPage/properties/strands": "required",
         "/$defs/StrandPage/properties/total_count": "required",
-        "/$defs/StrandRow/allOf/0/if/properties/stage_changed_at": "required",
-        "/$defs/StrandRow/allOf/0/then/properties/stage": "required",
-        "/$defs/StrandRow/properties/assigned_actor_ids": "optional",
-        "/$defs/StrandRow/properties/assigned_to_relations": "optional",
-        "/$defs/StrandRow/properties/board_space_id": "tristate",
-        "/$defs/StrandRow/properties/created_at": "tristate",
-        "/$defs/StrandRow/properties/created_by": "tristate",
-        "/$defs/StrandRow/properties/is_default": "required",
-        "/$defs/StrandRow/properties/list_space_id": "tristate",
-        "/$defs/StrandRow/properties/rank": "tristate",
-        "/$defs/StrandRow/properties/realm_id": "required",
-        "/$defs/StrandRow/properties/stage": "tristate",
-        "/$defs/StrandRow/properties/stage_changed_at": "tristate",
-        "/$defs/StrandRow/properties/state": "required",
-        "/$defs/StrandRow/properties/state_changed_at": "tristate",
-        "/$defs/StrandRow/properties/strand_id": "required",
-        "/$defs/StrandRow/properties/summary": "tristate",
-        "/$defs/StrandRow/properties/title": "tristate",
-        "/$defs/StrandRow/properties/topic": "optional",
-        "/$defs/StrandRow/properties/updated_at": "tristate",
-        "/$defs/StrandRow/properties/updated_by": "tristate",
+        "/$defs/StrandView/allOf/0/if/properties/stage_changed_at": "required",
+        "/$defs/StrandView/allOf/0/then/properties/stage": "required",
+        "/$defs/StrandView/properties/assigned_actor_ids": "optional",
+        "/$defs/StrandView/properties/assigned_to_relations": "optional",
+        "/$defs/StrandView/properties/board_space_id": "tristate",
+        "/$defs/StrandView/properties/created_at": "tristate",
+        "/$defs/StrandView/properties/created_by": "tristate",
+        "/$defs/StrandView/properties/is_default": "required",
+        "/$defs/StrandView/properties/list_space_id": "tristate",
+        "/$defs/StrandView/properties/rank": "tristate",
+        "/$defs/StrandView/properties/realm_id": "required",
+        "/$defs/StrandView/properties/stage": "tristate",
+        "/$defs/StrandView/properties/stage_changed_at": "tristate",
+        "/$defs/StrandView/properties/state": "required",
+        "/$defs/StrandView/properties/state_changed_at": "tristate",
+        "/$defs/StrandView/properties/strand_id": "required",
+        "/$defs/StrandView/properties/summary": "tristate",
+        "/$defs/StrandView/properties/title": "tristate",
+        "/$defs/StrandView/properties/topic": "optional",
+        "/$defs/StrandView/properties/updated_at": "tristate",
+        "/$defs/StrandView/properties/updated_by": "tristate",
         "/$defs/StrandWatchCurrentNeverWritten/properties/governance_generation": "required",
         "/$defs/StrandWatchCurrentNeverWritten/properties/realm_id": "required",
         "/$defs/StrandWatchCurrentNeverWritten/properties/selector": "required",
@@ -13360,7 +13360,7 @@
         "/$defs/AcceptedDevicePossessionProof/properties/predecessor_session_grant_id",
         "/$defs/AcceptedDevicePossessionProof/properties/request_id",
         "/$defs/DeviceMessagesGetResponseBody/properties/acknowledgement_token",
-        "/$defs/MorphRow/properties/stage",
+        "/$defs/MorphView/properties/stage",
         "/$defs/OrganizationControlProof/properties/quorum_threshold",
         "/$defs/SessionGrantIntrospectGrant/properties/device_binding",
         "/$defs/SessionGrantIntrospectGrant/properties/device_id",
@@ -13369,9 +13369,9 @@
         "/$defs/SessionGrantIntrospectRequestBody/properties/id",
         "/$defs/SessionGrantIntrospectResponseBody/properties/grant",
         "/$defs/SignedSessionGrantClaims/properties/device_binding",
-        "/$defs/SpaceRow/properties/encrypted_metadata",
-        "/$defs/SpaceRow/properties/title",
-        "/$defs/StrandRow/properties/stage"
+        "/$defs/SpaceView/properties/encrypted_metadata",
+        "/$defs/SpaceView/properties/title",
+        "/$defs/StrandView/properties/stage"
       ]
     },
     "signal-envelope.schema.json": {

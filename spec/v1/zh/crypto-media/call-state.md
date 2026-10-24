@@ -288,7 +288,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 | SFU 身份交叉校验与续期 | 原有效 join、其 Commit 时点、原 public participant_binding 与该 entry 的 participant_signing_key；客户端独立重建九字段并验 Ed25519，issuer 同时核当前认证主体、participant_id、focus、media 与全部当前门禁 |
 | P2P／mesh | 既有 signed answer proof 与 admission 验证职责不变；current join 不捏造 SFU participant/key，不把 delta 当 producer envelope |
 | leave／restore 与 kick 旧 leg 拒绝 | 对应整轴 revision、有效目标及其原来源；restore 不移除 kick，空后态仍保留 last_source |
-| Event producer／MLS／附件独立验证 | 仍用既有获准完整 stream_row，或本次冻结自签 Event＋对应 self accepted outcome，及 exact historical signer 材料；current 内 delta 不是完整 Event，嵌套 Commit 不自行授予 signer query 或历史读取 |
+| Event producer／MLS／附件独立验证 | 仍用既有获准完整 committed_event_view，或本次冻结自签 Event＋对应 self accepted outcome，及 exact historical signer 材料；current 内 delta 不是完整 Event，嵌套 Commit 不自行授予 signer query 或历史读取 |
 | 授权审计／完整重建 | 原 accepted Event/RealmCommit 历史、producer proof 与原历史授权材料；按原 stream scan／exact Snapshot basis、披露权限和 history floor 读取，不从 current 猜出已移除历史 |
 
 所有原 accepted 历史按原保留与审计合同保存；本节只移除普通 current 的失效断言，不授权删除历史、

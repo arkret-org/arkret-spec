@@ -45,8 +45,8 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
         definitions = load("service-operation-dtos.schema.json")["$defs"]
         retained = [
             ("SessionGrantReplayExpiredProblemExtensions", "state", "expired"),
-            ("DeviceMessageDeliveredRow", "status", "delivered"),
-            ("DeviceMessageUnknownRow", "status", "unknown"),
+            ("DeviceMessageDeliveredEntry", "status", "delivered"),
+            ("DeviceMessageUnknownEntry", "status", "unknown"),
         ]
         for definition, member, expected in retained:
             with self.subTest(definition=definition, member=member):

@@ -242,14 +242,14 @@
     },
     {
       "schema": "applet-edge-operations.schema.json",
-      "json_pointer": "/$defs/applet_transaction_response_body/properties/committed_event_refs",
-      "field": "committed_event_refs",
+      "json_pointer": "/$defs/applet_event_rejection/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "applet-edge-operations.schema.json",
-      "json_pointer": "/$defs/rejected_event_row/properties/event_id",
-      "field": "event_id",
+      "json_pointer": "/$defs/applet_transaction_response_body/properties/committed_event_refs",
+      "field": "committed_event_refs",
       "classification": "complete_event_id"
     },
     {
@@ -434,24 +434,6 @@
     },
     {
       "schema": "contact-operations.schema.json",
-      "json_pointer": "/$defs/contact_list_row/properties/request_event_ref",
-      "field": "request_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "contact-operations.schema.json",
-      "json_pointer": "/$defs/contact_list_row/properties/response_event_ref",
-      "field": "response_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "contact-operations.schema.json",
-      "json_pointer": "/$defs/contact_list_row/properties/tombstone_event_ref",
-      "field": "tombstone_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "contact-operations.schema.json",
       "json_pointer": "/$defs/contact_next_prepare_input/properties/predecessor_event_ref",
       "field": "predecessor_event_ref",
       "classification": "complete_event_id"
@@ -502,6 +484,24 @@
       "schema": "contact-operations.schema.json",
       "json_pointer": "/$defs/contact_tombstone_request_body/oneOf/0/properties/predecessor_event_ref",
       "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_view/properties/request_event_ref",
+      "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_view/properties/response_event_ref",
+      "field": "response_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_view/properties/tombstone_event_ref",
+      "field": "tombstone_event_ref",
       "classification": "complete_event_id"
     },
     {

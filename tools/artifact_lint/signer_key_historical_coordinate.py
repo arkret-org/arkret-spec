@@ -135,24 +135,24 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
         lint.fail(AUTHORITY_SCHEMA, "committed_event_ref must remain the closed four-coordinate reference")
     scan = authority_defs.get("stream_scan_response_body")
     scan_items = scan.get("properties", {}).get("committed_events", {}).get("items", {}).get("$ref") if isinstance(scan, dict) else None
-    if scan_items != "#/$defs/stream_row":
-        lint.fail(AUTHORITY_SCHEMA, "per-stream scan must continue to carry canonical stream_row values")
+    if scan_items != "./service-operation-dtos.schema.json#/$defs/CommittedEventView":
+        lint.fail(AUTHORITY_SCHEMA, "per-stream scan must continue to carry canonical committed_event_view values")
     account_sync = load_json(lint, ACCOUNT_SYNC_SCHEMA)
     realm_sync = _defs(account_sync).get("realm_sync_entry")
     account_items = realm_sync.get("properties", {}).get("committed_events", {}).get("items", {}).get("$ref") if isinstance(realm_sync, dict) else None
-    if account_items != "./authority-commit-operations.schema.json#/$defs/stream_row":
-        lint.fail(ACCOUNT_SYNC_SCHEMA, "account subscribe must continue to carry the same canonical stream_row")
+    if account_items != "./service-operation-dtos.schema.json#/$defs/CommittedEventView":
+        lint.fail(ACCOUNT_SYNC_SCHEMA, "account subscribe must continue to carry the same canonical committed_event_view")
 
     contract = load_json(lint, CONTRACT)
     registry = contract.get("operation_registry") if isinstance(contract, dict) else None
     operation = _find(registry.get("operations") if isinstance(registry, dict) else None, "operation_id", OPERATION_ID)
     notes = operation.get("notes") if isinstance(operation, dict) else None
-    for marker in ("committed_event_ref", "stream_row", "may differ", "without current-query fallback"):
+    for marker in ("committed_event_ref", "committed_event_view", "may differ", "without current-query fallback"):
         if not isinstance(notes, str) or marker not in notes:
             lint.fail(CONTRACT, f"signer-key operation notes are missing {marker!r}")
 
     consumption = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {})
-    if consumption.get("historical_producer_coordinates") != "original_authorized_self_stream_row_or_bound_self_submission_exact_committed_event_ref":
+    if consumption.get("historical_producer_coordinates") != "original_authorized_self_committed_event_view_or_bound_self_submission_exact_committed_event_ref":
         lint.fail(CONTRACT, "historical source contract must retain stream rows and bound self submissions")
     if consumption.get("self_submission_historical_source") != SELF_SUBMISSION_RULE:
         lint.fail(CONTRACT, "self submission source must preserve exact binding, immutable authorization and restricted PCR rules")
@@ -176,7 +176,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
             "account_subscribe.realm_sync_entry.committed_events",
             "ak.self.committed_event.read.scan.v1.stream_scan_response_body.committed_events",
         ]:
-            lint.fail(FIXTURE, "fixture must retain exactly the two existing stream_row carrier sources")
+            lint.fail(FIXTURE, "fixture must retain exactly the two existing committed_event_view carrier sources")
         if fixture.get("construction_sources") != fixture.get("carrier_sources", []) + ["self_submit.frozen_signed_request_and_bound_accepted_outcome"]:
             lint.fail(FIXTURE, "fixture must close coordinate construction over existing rows and bound self submissions")
         if fixture.get("self_submission_rule") != SELF_SUBMISSION_RULE:

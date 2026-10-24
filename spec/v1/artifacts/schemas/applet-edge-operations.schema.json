@@ -95,7 +95,7 @@
       },
       "additionalProperties": false
     },
-    "rejected_event_row": {
+    "applet_event_rejection": {
       "type": "object",
       "required": [
         "reason_code"
@@ -261,7 +261,7 @@
         "rejections": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/rejected_event_row"
+            "$ref": "#/$defs/applet_event_rejection"
           }
         },
         "retry_after_ms": {

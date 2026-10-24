@@ -12,6 +12,17 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_public_rows_and_role_metadata_are_rejected(self):
+        for name, node in [('RealmRow', {}), ('realm_row', {}), ('Row', {}),
+                           ('realm_view', {'x-arkret-name-role': 'row'}),
+                           ('stream_row', {'$ref': '#/$defs/CommittedEventView'})]:
+            with self.subTest(name=name):
+                self.assertTrue(type_role_errors(name, node))
+        for name in ('RealmView', 'account_data_entry', 'CurrentMimiRoomBinding'):
+            self.assertEqual(type_role_errors(name, {}), [])
+        self.assertTrue(retired_contract_reference_errors('ContactListRow stream_row'))
+
+
     def test_error_and_reason_code_authority_is_in_the_release_freeze(self):
         root = Path(__file__).resolve().parents[1]
         registry = json.loads((root / 'spec/v1/artifacts/registry/error-code-registry.json').read_text(encoding='utf-8'))

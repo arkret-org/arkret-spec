@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1578,7 +1578,7 @@
       "file": "schemas/signer-key-operations.schema.json",
       "fragment": "#/$defs/query_request_body",
       "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified stream_row, never a bare EventId or current projection."
+      "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified committed_event_view, never a bare EventId or current projection."
     },
     {
       "schema_id": "ak.schema.space.v1",

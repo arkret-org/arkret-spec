@@ -10,7 +10,7 @@ from .naming import enumerate_schema_nodes, enumerate_schema_properties
 ROLE_TAILS = {
     "request_body": "request_body", "response_body": "response_body",
     "decision": "decision", "verdict": "verdict", "key_resolution": "resolution",
-    "page": "page", "row": "row", "set": "set", "snapshot": "snapshot",
+    "page": "page", "set": "set", "snapshot": "snapshot",
     "status_view": "view", "view": "view", "parameters": "parameters",
     "shared_fields": "fields", "problem_extensions": "problem_extensions",
     "attempt_outcome": "outcome", "terminal_outcome": "outcome",
@@ -39,6 +39,8 @@ def type_role_errors(name: str, node: dict) -> list[str]:
     errors = []
     if normalized == "result" or normalized.endswith("_result"):
         errors.append("Result is not a semantic protocol role")
+    if normalized == "row" or normalized.endswith("_row") or role == "row":
+        errors.append("Row is not a public protocol role; use the actual domain role")
     if role == "current_state" and not normalized.startswith("current_"):
         errors.append("current state type must retain the Current<Family> prefix")
     if role in ROLE_TAILS and not normalized.endswith(ROLE_TAILS[role]):
@@ -136,6 +138,7 @@ def capture_member_reference_errors(text: str) -> list[str]:
 def retired_contract_reference_errors(text: str) -> list[str]:
     replacements = {'MlsGroupCurrent': 'MlsGroupValue', 'TypedCurrentRow': 'CurrentState',
                     'AccountCurrentView': 'AccountStateView'}
+    replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'WebvhWitnessIdentity', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
     return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
             if re.search(r'\b' + old + r'\b', text)]
 

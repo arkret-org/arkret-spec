@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.3",
+  "version": "2026-10-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T16:52:58+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -11625,7 +11625,7 @@
         "file": "schemas/signer-key-operations.schema.json",
         "fragment": "#/$defs/query_request_body",
         "status": "active",
-        "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified stream_row, never a bare EventId or current projection."
+        "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified committed_event_view, never a bare EventId or current projection."
       },
       {
         "schema_id": "ak.schema.space.v1",
@@ -11856,8 +11856,8 @@
         "file": "schemas/decimal-integers.schema.json"
       }
     ],
-    "version": "2026-10-24.1",
-    "generated_at": "2026-10-24T14:14:05+08:00",
+    "version": "2026-10-24.2",
+    "generated_at": "2026-10-24T19:15:25+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -16224,7 +16224,7 @@
         "http": "GET /_arkret/self/authz/effective-grants",
         "grpc": "SelfAuthz/GetEffectiveGrants",
         "mq": "self.authz.grants.query.effective",
-        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. subject_actor_id is the only accepted subject parameter, so subject, subject_station_id and subject_account_id are invalid; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed. Each returned EffectiveCapabilityGrantRow MUST atomically pair one active effective CapabilityGrant with the exact revision of that same capability_grant current state. That row revision is the only relinquish authoring basis; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute. Unauthorized, missing and terminal grants remain non-enumerating. A query carrying at is evaluation-only and MUST be refreshed without at before authoring. After refresh or cas_conflict a client MUST obtain explicit user reconfirmation before signing against the newly read revision.",
+        "notes": "Query parameters are realm_id, optional subject_actor_id and optional at. subject_actor_id is a percent-encoded canonical JSON ActorId, including Account and Service branches. Omission selects the authenticated credential's exact ActorId. subject_actor_id is the only accepted subject parameter, so subject, subject_station_id and subject_account_id are invalid; no principal-only, local-service, bearer-service, DID-document or inferred-routing fallback is allowed. Each returned EffectiveCapabilityGrantView MUST atomically pair one active effective CapabilityGrant with the exact revision of that same capability_grant current state. That row revision is the only relinquish authoring basis; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute. Unauthorized, missing and terminal grants remain non-enumerating. A query carrying at is evaluation-only and MUST be refreshed without at before authoring. After refresh or cas_conflict a client MUST obtain explicit user reconfirmation before signing against the newly read revision.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot"
@@ -17569,7 +17569,7 @@
         "http": "POST /_arkret/self/signer-keys/query",
         "grpc": "SelfSignerKeys/Resolve",
         "mq": "self.signer_keys.query.resolve",
-        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_base64url after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan committed_event_view, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_base64url after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
@@ -18369,8 +18369,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-24.3",
-    "generated_at": "2026-10-24T16:52:58+08:00",
+    "version": "2026-10-24.4",
+    "generated_at": "2026-10-24T19:15:25+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -22481,8 +22481,8 @@
         ]
       }
     ],
-    "version": "2026-10-24.1",
-    "generated_at": "2026-10-24T14:14:05+08:00",
+    "version": "2026-10-24.2",
+    "generated_at": "2026-10-24T19:15:25+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -22594,7 +22594,7 @@
       "new_operations": false,
       "authority_origin": "current_governance_station_original_commit_or_snapshot",
       "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
-      "historical_producer_coordinates": "original_authorized_self_stream_row_or_bound_self_submission_exact_committed_event_ref",
+      "historical_producer_coordinates": "original_authorized_self_committed_event_view_or_bound_self_submission_exact_committed_event_ref",
       "failure": "existing_operation_refusal_or_unavailable_no_state_advancement",
       "self_submission_historical_source": {
         "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",
@@ -24357,8 +24357,8 @@
         }
       }
     ],
-    "version": "2026-10-24.1",
-    "generated_at": "2026-10-24T14:14:05+08:00",
+    "version": "2026-10-24.2",
+    "generated_at": "2026-10-24T19:15:25+08:00",
     "metadata_authority": "contract_registry_section",
     "call_current_contract": {
       "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",
@@ -24393,7 +24393,7 @@
           "canonical_write_dot",
           "original_realm_commit"
         ],
-        "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_stream_row_or_self_submit_pair_only"
+        "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_committed_event_view_or_self_submit_pair_only"
       },
       "complete_by_shape_and_enclosing_signature": true,
       "partial_allowed": false,

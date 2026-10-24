@@ -1166,7 +1166,7 @@
           "type": "array",
           "maxItems": 100,
           "items": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
+            "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
           },
           "description": "Caller-visible committed Event views delivered by this Realm bucket. Each item carries its RealmCommit, so there is no cross-stream protocol order."
         }
@@ -1732,7 +1732,7 @@
         }
       ]
     },
-    "realm_list_row": {
+    "account_realm_view": {
       "type": "object",
       "properties": {
         "realm_id": {
@@ -1756,8 +1756,8 @@
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
-            "owner": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
+            "authority": "account-subscribe-frame.schema.json#/$defs/account_realm_view/properties/membership",
+            "owner": "account-subscribe-frame.schema.json#/$defs/account_realm_view/properties/membership",
             "values": [
               "join",
               "knock"
@@ -1797,7 +1797,7 @@
           "maxItems": 100,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/realm_list_row"
+            "$ref": "#/$defs/account_realm_view"
           }
         },
         "next_cursor": {
@@ -1854,7 +1854,7 @@
           "maxItems": 100,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/realm_list_row"
+            "$ref": "#/$defs/account_realm_view"
           }
         },
         "removals": {

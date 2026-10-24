@@ -2311,9 +2311,6 @@
       },
       "additionalProperties": false
     },
-    "stream_row": {
-      "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
-    },
     "stream_scan_response_body": {
       "type": "object",
       "description": "Positional scan result over caller-visible committed Event views. There is no cursor or cross-stream order; continuation uses stream_position from committed_events[].",
@@ -2327,7 +2324,7 @@
           "maxItems": 1000,
           "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
           "items": {
-            "$ref": "#/$defs/stream_row"
+            "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
           }
         },
         "readable_floor": {
@@ -2686,7 +2683,7 @@
           "maxItems": 1000,
           "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
           "items": {
-            "$ref": "#/$defs/stream_row"
+            "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
           }
         },
         "readable_floor": {

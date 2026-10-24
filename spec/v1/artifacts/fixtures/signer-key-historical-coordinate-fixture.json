@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
@@ -8,7 +8,7 @@
   "schema_refs": {
     "request": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
     "outcome": "schemas/signer-key-operations.schema.json#/$defs/query_response_body",
-    "carrier": "schemas/authority-commit-operations.schema.json#/$defs/stream_row"
+    "carrier": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"
   },
   "carrier_sources": [
     "account_subscribe.realm_sync_entry.committed_events",

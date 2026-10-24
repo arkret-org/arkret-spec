@@ -1246,7 +1246,7 @@
       ]
     },
     {
-      "schema_path": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/agent_id",
+      "schema_path": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -6686,7 +6686,7 @@
       ]
     },
     {
-      "schema_path": "realm-organization-operations.schema.json#/$defs/realm_organization_relationship_row/properties/organization_id",
+      "schema_path": "realm-organization-operations.schema.json#/$defs/realm_organization_relationship_view/properties/organization_id",
       "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -7526,7 +7526,7 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/created_by",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MorphView/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -7966,7 +7966,7 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/SpaceRow/properties/created_by",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/SpaceView/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -7976,7 +7976,7 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/assigned_actor_ids",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandView/properties/assigned_actor_ids",
       "property_name": "assigned_actor_ids",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -7986,7 +7986,7 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/created_by",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandView/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -7996,7 +7996,7 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/updated_by",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandView/properties/updated_by",
       "property_name": "updated_by",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",

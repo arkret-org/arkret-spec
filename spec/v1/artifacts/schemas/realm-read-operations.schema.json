@@ -24,7 +24,7 @@
     "cursor": {
       "$ref": "./authorization-operations.schema.json#/$defs/cursor"
     },
-    "realm_stream_row": {
+    "realm_stream_view": {
       "type": "object",
       "description": "One authority stream of the Realm that this caller is permitted to know exists and whose Commit chain is already established. Progress uses the same {head_commit_ref, next_position} shape as zh/sync/service-surface.md section 4.6, and readable_floor is the same anchor the scan surface returns, so a client can enumerate, bind its permitted prefix and continue the tail without a second vocabulary.",
       "required": [
@@ -69,7 +69,7 @@
           "maxItems": 500,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/realm_stream_row"
+            "$ref": "#/$defs/realm_stream_view"
           },
           "description": "Rows sorted by unsigned bytes of RFC 8785 JCS(stream_ref), the same order the subscribe frame truncates in, so enumeration and delivery agree on which streams a bounded window kept. The Realm stream is a row like any other."
         },

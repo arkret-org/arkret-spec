@@ -202,8 +202,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
-      "sha256": "65f6900cd4a11374b2a42033375f8385b915ff86c50c3bdcd28f099980ec83d1",
-      "version": "2026-10-24.1"
+      "sha256": "1e1c0f575a1515ffbf6450cf5188b24c75328d96eeef8633b71a390bce0814ae",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -652,8 +652,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-      "sha256": "faa1732577778a24e735cad5fc4f56873820b87b094813c33d2d2b4c5ecff475",
-      "version": "2026-10-24.1"
+      "sha256": "4d4718048f528e4ee2e15e2acd2d4d2ebfff574cda22ba8ff6eab963fd3b5591",
+      "version": "2026-10-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",

@@ -486,7 +486,7 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
 `ak.vector.signer_key.historical_commit_coordinate.v1` MUST 证明：account subscribe 与 per-stream scan 的已验证
-`stream_row{commit,event}` 及本次冻结 self 提交 Event 与 bound accepted outcome 原 Commit 配对是封闭坐标来源；
+`committed_event_view{commit,event}` 及本次冻结 self 提交 Event 与 bound accepted outcome 原 Commit 配对是封闭坐标来源；
 self 提交 MUST 核对请求、分支、aggregate slot、内容引用及完整账号/Station/会话绑定，不能推进 head/floor
 或强制下载 PCR 历史。两个 historical selector 都携完整
 `committed_event_ref` 并拒绝裸 `event_id`。selector target 与 key `authorization_ref` 分别验证且允许不相等；

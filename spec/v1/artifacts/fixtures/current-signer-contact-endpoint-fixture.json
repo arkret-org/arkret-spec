@@ -1,6 +1,6 @@
 {
   "suite": "current_signer_contact_endpoint",
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "covers_vectors": [
     "ak.vector.signer_key.human_current_privacy.v1",
     "ak.vector.contact.peer_endpoint_selector.v1"
@@ -224,7 +224,7 @@
     },
     {
       "name": "accepted_human_endpoint",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": true,
       "instance": {
         "peer": {
@@ -251,7 +251,7 @@
     },
     {
       "name": "endpoint_requires_contact_event_ref",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -278,7 +278,7 @@
     },
     {
       "name": "endpoint_requires_device_id",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -305,7 +305,7 @@
     },
     {
       "name": "endpoint_forbids_pending_outgoing",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -329,7 +329,7 @@
     },
     {
       "name": "endpoint_forbids_pending_incoming",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -353,7 +353,7 @@
     },
     {
       "name": "endpoint_forbids_rejected",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -377,7 +377,7 @@
     },
     {
       "name": "endpoint_forbids_expired",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -401,7 +401,7 @@
     },
     {
       "name": "endpoint_forbids_tombstoned",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -425,7 +425,7 @@
     },
     {
       "name": "endpoint_forbids_agent",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {
@@ -460,7 +460,7 @@
     },
     {
       "name": "endpoint_forbids_extra_evidence",
-      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_view",
       "expect_valid": false,
       "instance": {
         "peer": {

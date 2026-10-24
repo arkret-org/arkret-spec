@@ -133,7 +133,7 @@ class SelfSignerResultTests(unittest.TestCase):
                                       "predecessor_event_ref": self.committed_ref()["event_id"]},
                "peer_endpoint": {"contact_event_ref": self.committed_ref()["event_id"],
                                  "device_id": "ak:device:01964137-0000-7000-8000-000000000001"}}
-        validator = self.validator("contact_list_row", "contact-operations.schema.json")
+        validator = self.validator("contact_view", "contact-operations.schema.json")
         validator.validate(row)
         for field in ["contact_event_ref", "device_id"]:
             changed = copy.deepcopy(row)

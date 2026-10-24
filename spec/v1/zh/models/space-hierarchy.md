@@ -82,7 +82,7 @@ workflow placement MUST 属于同一个实际 Realm：
 
 ## 7. Query
 
-本节定义**客户端导航算法**，不定义独立 wire read surface。v1 的 Space 集合读取使用已登记的 `ak.self.space.read.list.v1`（HTTP `GET /_arkret/self/realms/{realm_id}/spaces`；gRPC `SelfSpace/List`；MQ `self.space.query.list`），返回 [`SpacePage` / `SpaceRow`](../../artifacts/schemas/service-operation-dtos.schema.json)。它是调用方可见的派生读模型，不是 canonical truth source；当前父边的权威语义仍由 §3 引用的 `space_parent` family 决定。
+本节定义**客户端导航算法**，不定义独立 wire read surface。v1 的 Space 集合读取使用已登记的 `ak.self.space.read.list.v1`（HTTP `GET /_arkret/self/realms/{realm_id}/spaces`；gRPC `SelfSpace/List`；MQ `self.space.query.list`），返回 [`SpacePage` / `SpaceView`](../../artifacts/schemas/service-operation-dtos.schema.json)。它是调用方可见的派生读模型，不是 canonical truth source；当前父边的权威语义仍由 §3 引用的 `space_parent` family 决定。
 
 HTTP 的查询参数只有现有 binding 定义的 `include_terminal`、`cursor`、`limit`，分页结果携带 `total`、`has_more` 和可选 `next_cursor`。具体 shape 与参数上限见 [HTTP binding](../../artifacts/openapi/arkret-service-api.openapi.yaml)。本节不增加树查询的请求字段、响应 schema、operation、binding 或 bundle。
 
@@ -91,7 +91,7 @@ HTTP 的查询参数只有现有 binding 定义的 `include_terminal`、`cursor`
 1. 以 `space_id` 索引已加载行，按已知 `parent_space_id` 组织同 Realm 父子关系；起点、显示深度和本地 `children` 数组只是 UI 选择，不发送为额外 wire 查询字段。遍历 MUST 有界并检测重复节点；环与不可用结构引用遵守 [`realm-and-space.md` §3.4–§3.5](./realm-and-space.md#35-akspaceparent-因果父边)，不得重选 current parent 或将无效边投影成有效 contains。
 2. `parent_space_id` 在 list 行中可缺席或为 null。成员缺席 MUST NOT 被当作已确认 root；显式 null 或已验证 `space_parent` current 的 null 成员才表达已知无父。若非空 parent 未在已加载材料中，客户端 MUST 保留该引用的不完整状态，不能将 child 改挂到 canonical root。父节点缺席可能来自分页、授权过滤或状态变化；即使 `has_more=false`，也不能证明缺席 parent 不存在、不可读或已终态，跨页结果也不承诺同一权威 cut。
 3. list 不提供隐藏祖先链或 `accessible=false` 节点。客户端 MAY 为已经披露的 parent 引用显示本地“不可用／未加载”提示，但 MUST NOT 推断该 parent 的 metadata、Realm 摘要、上级、可读性或存在性，也不得为补齐导航扩大读取授权。没有已披露 parent 引用时不得合成具名占位节点。该提示不是服务端返回的隐藏 parent。
-4. Realm 摘要只能来自调用方独立获授权的既有 Realm 材料；`SpaceRow.realm_id` 仅标明归属，不携带摘要或授予额外读取权。Space 行的 `title` / `encrypted_metadata` 仍遵守其 schema 与既有解密授权；树形展示不增加可见字段。
+4. Realm 摘要只能来自调用方独立获授权的既有 Realm 材料；`SpaceView.realm_id` 仅标明归属，不携带摘要或授予额外读取权。Space 行的 `title` / `encrypted_metadata` 仍遵守其 schema 与既有解密授权；树形展示不增加可见字段。
 
 本裁决撤销原散文中的 `root_space_id` / `depth` / `include_hidden_parent` / `include_realm_summary` 请求合同及 `accessible` / nested `children` 响应承诺；局部导航不被声称为原树查询的无损替换。未来若需要服务端树查询，MUST 先登记精确 operation、schema、binding、bundle、分页／深度／不可读 parent／防枚举规则与 conformance 向量，不得以本节作为未登记接口的依据。
 

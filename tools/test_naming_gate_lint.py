@@ -433,7 +433,7 @@ class WrapperWordTest(unittest.TestCase):
                 expected,
                 name,
             )
-        for name in ("events_submit_outcome", "realm_list_row", "stream_row", "resultant_policy"):
+        for name in ("events_submit_outcome", "account_realm_view", "stream_row", "resultant_policy"):
             self.assertIsNone(
                 unregistered_snake_wrapper_word(name, DEFAULT_REJECTED_WRAPPER_WORDS), name
             )

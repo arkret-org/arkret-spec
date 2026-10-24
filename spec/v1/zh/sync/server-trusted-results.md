@@ -98,7 +98,7 @@ MUST NOT 推进 stream head/floor、宣称已读取 timeline，或要求下载/�
 Call 的完整有效 current 按 [call-state §4.3](../crypto-media/call-state.md#43-完整有效-current-与接受来源normative)
 携带原有效 join/remove 与 Commit，以及原 SFU issuer 的窄公钥；消费 Station 独立验原时点 issuer
 方法权威，普通客户端独立验 participant_binding。该 key 不是 Event producer key；current 的 delta
-和嵌套 Commit 不构成完整 stream_row，也不新增历史 signer selector 来源、历史读取许可或裸 verified。
+和嵌套 Commit 不构成完整 committed_event_view，也不新增历史 signer selector 来源、历史读取许可或裸 verified。
 收到完整 Event 时本节 producer／MLS／附件职责照旧，缺原件或 exact 历史 key 的相关操作失败关闭。
 
 ## 3. 转发与缓存
@@ -204,7 +204,7 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 `realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
 或因 key bytes 相同而合并授权代次。构造来源封闭为以下既有输入：已验证
-`realm_sync_entry.committed_events[]` 或 `stream_scan_response_body.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
+`realm_sync_entry.committed_events[]` 或 `stream_scan_response_body.committed_events[]` 的 `committed_event_view{commit,event}`：客户端先验证
 该 row 所属认证 self 结果的原 RealmCommit generation／stream／position／predecessor，消费 Station 先验治理签名；
 普通客户端按 §2.1 消费该原件并核对 `commit.event_ref == event.event_id`，
 再逐字复制四坐标；或者 §2.1 本次 self 提交的冻结完整自签请求 Event 与 bound accepted outcome

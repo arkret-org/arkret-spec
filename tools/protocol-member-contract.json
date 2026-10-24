@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:562cb5b51ef2498e114cac0baa0783632f363599c5f993aadbb88af5ce07f872",
+  "contract_digest": "sha256:7896a8fdcb2cc5ea0a01641e71177b363247fa0ef1a237af7b0c9887a6025ded",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -4832,7 +4832,7 @@
                 "type": "array",
                 "maxItems": 100,
                 "items": {
-                  "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
+                  "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
                 },
                 "description": "Caller-visible committed Event views delivered by this Realm bucket. Each item carries its RealmCommit, so there is no cross-stream protocol order."
               }
@@ -5395,7 +5395,7 @@
               }
             ]
           },
-          "realm_list_row": {
+          "account_realm_view": {
             "type": "object",
             "properties": {
               "realm_id": {
@@ -5419,8 +5419,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
-                  "owner": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/account_realm_view/properties/membership",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/account_realm_view/properties/membership",
                   "values": [
                     "join",
                     "knock"
@@ -5456,7 +5456,7 @@
                 "maxItems": 100,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/realm_list_row"
+                  "$ref": "#/$defs/account_realm_view"
                 }
               },
               "next_cursor": {
@@ -5513,7 +5513,7 @@
                 "maxItems": 100,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/realm_list_row"
+                  "$ref": "#/$defs/account_realm_view"
                 }
               },
               "removals": {
@@ -9792,7 +9792,7 @@
             },
             "additionalProperties": false
           },
-          "pending_sidecar_access_reconciliation_row": {
+          "pending_sidecar_access_reconciliation": {
             "type": "object",
             "required": [
               "agent_id",
@@ -9813,8 +9813,8 @@
                 "description": "Closed reconciliation phase. Clients derive localized explanatory text from this phase; no parallel reason string is carried.",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
-                  "owner": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
+                  "authority": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase",
+                  "owner": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase",
                   "values": [
                     "mls_welcome",
                     "mls_remove",
@@ -9938,7 +9938,7 @@
               "pending_access_reconciliations": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/pending_sidecar_access_reconciliation_row"
+                  "$ref": "#/$defs/pending_sidecar_access_reconciliation"
                 }
               }
             },
@@ -12253,7 +12253,7 @@
             },
             "additionalProperties": false
           },
-          "rejected_event_row": {
+          "applet_event_rejection": {
             "type": "object",
             "required": [
               "reason_code"
@@ -12418,7 +12418,7 @@
               "rejections": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/rejected_event_row"
+                  "$ref": "#/$defs/applet_event_rejection"
                 }
               },
               "retry_after_ms": {
@@ -13670,7 +13670,7 @@
           "effective_scope": {
             "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
           },
-          "rejected_scope_row": {
+          "applet_scope_rejection": {
             "type": "object",
             "required": [
               "reason_code"
@@ -13802,7 +13802,7 @@
               "rejections": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/rejected_scope_row"
+                  "$ref": "#/$defs/applet_scope_rejection"
                 }
               }
             },
@@ -14361,7 +14361,7 @@
               "rejections": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/rejected_scope_row"
+                  "$ref": "#/$defs/applet_scope_rejection"
                 }
               }
             },
@@ -22493,9 +22493,6 @@
             },
             "additionalProperties": false
           },
-          "stream_row": {
-            "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
-          },
           "stream_scan_response_body": {
             "type": "object",
             "description": "Positional scan result over caller-visible committed Event views. There is no cursor or cross-stream order; continuation uses stream_position from committed_events[].",
@@ -22509,7 +22506,7 @@
                 "maxItems": 1000,
                 "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
                 "items": {
-                  "$ref": "#/$defs/stream_row"
+                  "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
                 }
               },
               "readable_floor": {
@@ -22868,7 +22865,7 @@
                 "maxItems": 1000,
                 "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
                 "items": {
-                  "$ref": "#/$defs/stream_row"
+                  "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
                 }
               },
               "readable_floor": {
@@ -29998,7 +29995,7 @@
               "contacts": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/contact_list_row"
+                  "$ref": "#/$defs/contact_view"
                 }
               },
               "next_cursor": {
@@ -30014,7 +30011,7 @@
             ],
             "x-arkret-name-role": "page"
           },
-          "contact_list_row": {
+          "contact_view": {
             "type": "object",
             "required": [
               "peer",
@@ -30082,8 +30079,8 @@
                       "const": "accepted",
                       "x-arkret-value-ownership": {
                         "class": "owned_symbol",
-                        "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
-                        "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
+                        "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/0/if/properties/state",
+                        "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/0/if/properties/state",
                         "values": [
                           "accepted"
                         ]
@@ -30114,8 +30111,8 @@
                       "const": "pending_incoming",
                       "x-arkret-value-ownership": {
                         "class": "owned_symbol",
-                        "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
-                        "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
+                        "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/1/if/properties/state",
+                        "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/1/if/properties/state",
                         "values": [
                           "pending_incoming"
                         ]
@@ -30151,8 +30148,8 @@
                       "const": "accepted",
                       "x-arkret-value-ownership": {
                         "class": "owned_symbol",
-                        "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
-                        "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
+                        "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/state",
+                        "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/state",
                         "values": [
                           "accepted"
                         ]
@@ -30164,8 +30161,8 @@
                           "const": "human",
                           "x-arkret-value-ownership": {
                             "class": "owned_symbol",
-                            "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
-                            "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
+                            "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/peer/properties/kind",
+                            "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/peer/properties/kind",
                             "values": [
                               "human"
                             ]
@@ -86854,7 +86851,7 @@
                   "pending_access_reconciliations": {
                     "type": "array",
                     "items": {
-                      "$ref": "./agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row"
+                      "$ref": "./agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation"
                     },
                     "uniqueItems": true
                   }
@@ -92745,7 +92742,7 @@
               ]
             }
           },
-          "realm_organization_relationship_row": {
+          "realm_organization_relationship_view": {
             "type": "object",
             "required": [
               "statement_id",
@@ -92847,7 +92844,7 @@
               "relationships": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/realm_organization_relationship_row"
+                  "$ref": "#/$defs/realm_organization_relationship_view"
                 },
                 "description": "Projected ak.realm.organization statement rows (verified_active and revoked_or_expired), latest-per-(organization_id, relationship)."
               },
@@ -92925,7 +92922,7 @@
           "cursor": {
             "$ref": "./authorization-operations.schema.json#/$defs/cursor"
           },
-          "realm_stream_row": {
+          "realm_stream_view": {
             "type": "object",
             "description": "One authority stream of the Realm that this caller is permitted to know exists and whose Commit chain is already established. Progress uses the same {head_commit_ref, next_position} shape as zh/sync/service-surface.md section 4.6, and readable_floor is the same anchor the scan surface returns, so a client can enumerate, bind its permitted prefix and continue the tail without a second vocabulary.",
             "required": [
@@ -92970,7 +92967,7 @@
                 "maxItems": 500,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/realm_stream_row"
+                  "$ref": "#/$defs/realm_stream_view"
                 },
                 "description": "Rows sorted by unsigned bytes of RFC 8785 JCS(stream_ref), the same order the subscribe frame truncates in, so enumeration and delivery agree on which streams a bounded window kept. The Realm stream is a row like any other."
               },
@@ -101470,7 +101467,7 @@
                     "$ref": "./common-ids.schema.json#/$defs/device_id"
                   },
                   "additionalProperties": {
-                    "$ref": "#/$defs/DeviceMessageDeliveredRow"
+                    "$ref": "#/$defs/DeviceMessageDeliveredEntry"
                   }
                 }
               },
@@ -101486,7 +101483,7 @@
                     "$ref": "./common-ids.schema.json#/$defs/device_id"
                   },
                   "additionalProperties": {
-                    "$ref": "#/$defs/DeviceMessageUnknownRow"
+                    "$ref": "#/$defs/DeviceMessageUnknownEntry"
                   }
                 }
               }
@@ -101894,7 +101891,7 @@
             },
             "additionalProperties": false
           },
-          "EffectiveCapabilityGrantRow": {
+          "EffectiveCapabilityGrantView": {
             "type": "object",
             "description": "One active effective capability grant and the exact revision of that same capability_grant current state, read atomically by the governing Station. This revision is the only valid authoring basis for a subject-signed ak.capability.relinquish Event; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute for it.",
             "required": [
@@ -101923,7 +101920,7 @@
               "grants": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/EffectiveCapabilityGrantRow"
+                  "$ref": "#/$defs/EffectiveCapabilityGrantView"
                 }
               },
               "state_digest": {
@@ -102857,7 +102854,7 @@
               "morphs": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/MorphRow"
+                  "$ref": "#/$defs/MorphView"
                 }
               },
               "total_count": {
@@ -102875,7 +102872,7 @@
             },
             "x-arkret-name-role": "page"
           },
-          "MorphRow": {
+          "MorphView": {
             "type": "object",
             "additionalProperties": false,
             "allOf": [
@@ -102928,8 +102925,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/state",
-                  "owner": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/state",
+                  "authority": "service-operation-dtos.schema.json#/$defs/MorphView/properties/state",
+                  "owner": "service-operation-dtos.schema.json#/$defs/MorphView/properties/state",
                   "values": [
                     "active",
                     "archived",
@@ -102956,8 +102953,8 @@
                     ],
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/stage/oneOf/0",
-                      "owner": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/stage/oneOf/0",
+                      "authority": "service-operation-dtos.schema.json#/$defs/MorphView/properties/stage/oneOf/0",
+                      "owner": "service-operation-dtos.schema.json#/$defs/MorphView/properties/stage/oneOf/0",
                       "values": [
                         "draft",
                         "proposed",
@@ -102997,7 +102994,7 @@
                 "$ref": "./time.schema.json#/$defs/nullable_timestamp"
               }
             },
-            "x-arkret-name-role": "row"
+            "x-arkret-name-role": "view"
           },
           "SpacePage": {
             "type": "object",
@@ -103015,7 +103012,7 @@
               "spaces": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/SpaceRow"
+                  "$ref": "#/$defs/SpaceView"
                 }
               },
               "total_count": {
@@ -103033,7 +103030,7 @@
             },
             "x-arkret-name-role": "page"
           },
-          "SpaceRow": {
+          "SpaceView": {
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -103078,8 +103075,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/SpaceRow/properties/state",
-                  "owner": "service-operation-dtos.schema.json#/$defs/SpaceRow/properties/state",
+                  "authority": "service-operation-dtos.schema.json#/$defs/SpaceView/properties/state",
+                  "owner": "service-operation-dtos.schema.json#/$defs/SpaceView/properties/state",
                   "values": [
                     "active",
                     "archived",
@@ -103129,7 +103126,7 @@
                 }
               }
             ],
-            "x-arkret-name-role": "row"
+            "x-arkret-name-role": "view"
           },
           "StrandPage": {
             "type": "object",
@@ -103147,7 +103144,7 @@
               "strands": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/StrandRow"
+                  "$ref": "#/$defs/StrandView"
                 }
               },
               "total_count": {
@@ -103165,7 +103162,7 @@
             },
             "x-arkret-name-role": "page"
           },
-          "StrandRow": {
+          "StrandView": {
             "type": "object",
             "additionalProperties": false,
             "allOf": [
@@ -103215,8 +103212,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/state",
-                  "owner": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/state",
+                  "authority": "service-operation-dtos.schema.json#/$defs/StrandView/properties/state",
+                  "owner": "service-operation-dtos.schema.json#/$defs/StrandView/properties/state",
                   "values": [
                     "active",
                     "archived",
@@ -103243,8 +103240,8 @@
                     ],
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/stage/oneOf/0",
-                      "owner": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/stage/oneOf/0",
+                      "authority": "service-operation-dtos.schema.json#/$defs/StrandView/properties/stage/oneOf/0",
+                      "owner": "service-operation-dtos.schema.json#/$defs/StrandView/properties/stage/oneOf/0",
                       "values": [
                         "draft",
                         "proposed",
@@ -103350,7 +103347,7 @@
                 "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ak.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-token or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
               }
             },
-            "x-arkret-name-role": "row"
+            "x-arkret-name-role": "view"
           },
           "ServiceDidDocument": {
             "type": "object",
@@ -104968,7 +104965,7 @@
             "additionalProperties": false,
             "x-arkret-name-role": "response_body"
           },
-          "DeviceMessageDeliveredRow": {
+          "DeviceMessageDeliveredEntry": {
             "type": "object",
             "required": [
               "device_message_id",
@@ -104980,11 +104977,11 @@
               },
               "status": {
                 "const": "delivered",
-                "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownRow. It is a positional discriminator, not a success-only outcome constant.",
+                "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownEntry. It is a positional discriminator, not a success-only outcome constant.",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredRow/properties/status",
-                  "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredRow/properties/status",
+                  "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredEntry/properties/status",
+                  "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredEntry/properties/status",
                   "values": [
                     "delivered"
                   ]
@@ -104993,7 +104990,7 @@
             },
             "additionalProperties": false
           },
-          "DeviceMessageUnknownRow": {
+          "DeviceMessageUnknownEntry": {
             "type": "object",
             "required": [
               "device_message_id",
@@ -105005,11 +105002,11 @@
               },
               "status": {
                 "const": "unknown",
-                "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredRow. It is a positional discriminator, not a success-only outcome constant.",
+                "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredEntry. It is a positional discriminator, not a success-only outcome constant.",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownRow/properties/status",
-                  "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownRow/properties/status",
+                  "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownEntry/properties/status",
+                  "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownEntry/properties/status",
                   "values": [
                     "unknown"
                   ]
@@ -106500,7 +106497,7 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/signer-key-operations.schema.json",
-        "description": "Closed own-Station signing-key results for one current invocation or one exact authority-committed historical Event. Historical coordinates come only from a verified stream_row delivered by account subscribe or per-stream scan. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
+        "description": "Closed own-Station signing-key results for one current invocation or one exact authority-committed historical Event. Historical coordinates come only from a verified committed_event_view delivered by account subscribe or per-stream scan. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
         "$defs": {
           "signing_account_actor_id": {
             "type": "object",
@@ -106735,7 +106732,7 @@
               },
               "committed_event_ref": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
               }
             },
             "additionalProperties": false
@@ -106782,7 +106779,7 @@
               },
               "committed_event_ref": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
               }
             },
             "additionalProperties": false
@@ -107225,7 +107222,7 @@
               },
               "committed_event_ref": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+                "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
               }
             },
             "additionalProperties": false
@@ -111472,7 +111469,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:d69c16983bb612af70754bac87a83d867c7c9c43da2eb075ff770e204969b859"
+      "digest": "sha256:8fa1488e32e0cab92f04193f8bab4514376eacfcdc02799ebc7d834d14d93f77"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -111504,7 +111501,7 @@
     },
     {
       "file": "forbidden-wire-fields.json",
-      "digest": "sha256:3a4a71de6d61766050086b153c81b94723229a9f9da75d23b5078a8df12ad9ec"
+      "digest": "sha256:765b7d79aded17bcc67bbc174faa1daab7dc812f16f0de3131b5c02adef73c8b"
     },
     {
       "file": "hpke-suite-registry.json",
@@ -111532,7 +111529,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:4b4f29d3667703097f75d256f4cd3d518d2611b6762e4129729584a40225638a"
+      "digest": "sha256:8ed30510f8e290aef28461fb96e406e3a83874c842b9aee8d20e8fec13ac8c02"
     },
     {
       "file": "operation-clause-registry.json",
@@ -111556,7 +111553,7 @@
     },
     {
       "file": "pcr-exposure-registry.json",
-      "digest": "sha256:4590359eb694bcb8498839900e2770719c9e1f7947e3758abdf40f34197b56b9"
+      "digest": "sha256:4c19a54b30f09f00574d64054fd00ab842803588eee28d76681ebf9de9bb8481"
     },
     {
       "file": "preimage-identity-exemption-registry.json",
@@ -111588,7 +111585,7 @@
     },
     {
       "file": "repeated-enum-registry.json",
-      "digest": "sha256:42e6e30ad35c5315b370e242c9a9f473d9aded0fa46afb92d648460ad3cec44f"
+      "digest": "sha256:e4d2b76c4fa94a9a5b4245e0016caf39df1a35ef1e0e678c370941d406c7691f"
     },
     {
       "file": "request-material-supply-exemption-registry.json",
@@ -111616,7 +111613,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:293f315af5195c7c6f56a5e606306054c66f76e80c2b625663ff031dc121cecb"
+      "digest": "sha256:ac135d82676c7ff55fa4e1f7ef8d3c8b65f62746319ed1a84a41d8734295d7d8"
     }
   ],
   "openapi": {
@@ -111773,14 +111770,14 @@
         "AccountDataDeleteResponseBody": {
           "$ref": "../schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body"
         },
+        "AccountDataEntry": {
+          "$ref": "../schemas/account-data-operations.schema.json#/$defs/account_data_entry"
+        },
         "AccountDataList": {
           "$ref": "../schemas/account-data-operations.schema.json#/$defs/account_data_list"
         },
         "AccountDataReplaceRequestBody": {
           "$ref": "../schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body"
-        },
-        "AccountDataRow": {
-          "$ref": "../schemas/account-data-operations.schema.json#/$defs/account_data_entry"
         },
         "AccountDevicePairRequestBody": {
           "$ref": "../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body"
@@ -112178,12 +112175,12 @@
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
         },
+        "EventView": {
+          "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"
+        },
         "EventsSubscribeFrame": {
           "x-arkret-schema-ref": "../schemas/committed-event-subscribe-frame.schema.json",
           "$ref": "../schemas/committed-event-subscribe-frame.schema.json"
-        },
-        "EventView": {
-          "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"
         },
         "ExactCurrentStateReadRequestBody": {
           "$ref": "../schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body"
@@ -112636,17 +112633,17 @@
         "ThirdPartyInvitePresentResponseBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_present_response_body"
         },
-        "ThirdPartyInviteProvisioningStatusRequestBody": {
-          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body"
-        },
-        "ThirdPartyInviteProvisioningStatusResponseBody": {
-          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body"
-        },
         "ThirdPartyInviteProvisionRequestBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body"
         },
         "ThirdPartyInviteProvisionResponseBody": {
           "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body"
+        },
+        "ThirdPartyInviteProvisioningStatusRequestBody": {
+          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body"
+        },
+        "ThirdPartyInviteProvisioningStatusResponseBody": {
+          "$ref": "../schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body"
         },
         "WatchAuditReadRequestBody": {
           "$ref": "../schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body"
@@ -123855,7 +123852,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/AccountDataRow"
+                    "$ref": "#/components/schemas/AccountDataEntry"
                   }
                 }
               }
@@ -123915,7 +123912,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/AccountDataRow"
+                    "$ref": "#/components/schemas/AccountDataEntry"
                   }
                 }
               }

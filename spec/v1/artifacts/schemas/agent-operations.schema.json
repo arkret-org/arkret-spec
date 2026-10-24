@@ -1711,7 +1711,7 @@
       },
       "additionalProperties": false
     },
-    "pending_sidecar_access_reconciliation_row": {
+    "pending_sidecar_access_reconciliation": {
       "type": "object",
       "required": [
         "agent_id",
@@ -1732,8 +1732,8 @@
           "description": "Closed reconciliation phase. Clients derive localized explanatory text from this phase; no parallel reason string is carried.",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
-            "owner": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
+            "authority": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase",
+            "owner": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase",
             "values": [
               "mls_welcome",
               "mls_remove",
@@ -1857,7 +1857,7 @@
         "pending_access_reconciliations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/pending_sidecar_access_reconciliation_row"
+            "$ref": "#/$defs/pending_sidecar_access_reconciliation"
           }
         }
       },

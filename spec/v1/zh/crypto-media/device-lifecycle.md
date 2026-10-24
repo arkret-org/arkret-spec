@@ -616,8 +616,9 @@ Content-Type: application/json
 
 - **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、任一非 exact retry 目标的 `expires_at` 不合法（`param_invalid`）、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) Problem Details）；此时不入队任何消息。
 - **部分成功**（请求被接受、至少一个目标被处理，但部分设备落入 `unknown_devices`）：逐设备结果只由必填的 `delivered` / `unknown_devices` typed map 表达，不附加通用布尔判别。
+- **条目类型**：`delivered` 的元素为 `DeviceMessageDeliveredEntry`，`unknown_devices` 的元素为 `DeviceMessageUnknownEntry`；两者都仅包含 `device_message_id` 与固定 `status`。这里的 delivered 包括已入队，MUST NOT 被解释为终端已收取或已读，也不是最终送达 Outcome。
 - **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
-- `unknown_devices` 只表示收件方不可投递：设备不存在、不可见、已撤销、已 fence 或非本地时，row 只含 `device_message_id` 与 `status`，各原因 MUST 不可区分。`expires_at` 是发送方请求字段，其失败只走整体拒绝，MUST NOT 计入 `unknown_devices`。固定向量为 `ak.vector.sync.device_message_send_admission.v1`。
+- `unknown_devices` 只表示收件方不可投递：设备不存在、不可见、已撤销、已 fence 或非本地时，条目只含 `device_message_id` 与 `status`，各原因 MUST 不可区分。`expires_at` 是发送方请求字段，其失败只走整体拒绝，MUST NOT 计入 `unknown_devices`。固定向量为 `ak.vector.sync.device_message_send_admission.v1`。
 
 请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址；发送设备身份由认证会话和最终 envelope 的 `sender_device_id` 绑定：
 

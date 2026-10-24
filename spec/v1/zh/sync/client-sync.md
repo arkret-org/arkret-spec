@@ -162,8 +162,8 @@ RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后�
 
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
 signer-key selector 的 `committed_event_ref` 可从已验证 `realm_sync_entry.committed_events[]` 的
-`stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
-`stream_scan_response_body.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
+`committed_event_view{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
+`stream_scan_response_body.committed_events[]` 复用同一个 `committed_event_view`。两条面必须核对 Commit signature／generation、
 Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
 Event 字段、account sibling map 或 signer 专用 carrier，也不得从 current projection、cursor、producer time、
 arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可验 producer envelope，必须保持 unresolved。

@@ -347,12 +347,12 @@ components:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body
     AccountDataDeleteResponseBody:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body
+    AccountDataEntry:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
     AccountDataList:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
     AccountDataReplaceRequestBody:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body
-    AccountDataRow:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
     AccountDevicePairRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
     AccountDevicePairResponseBody:
@@ -9155,7 +9155,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDataRow'
+                $ref: '#/components/schemas/AccountDataEntry'
     put:
       operationId: ak.self.account_data.resource.replace
       security:
@@ -9193,7 +9193,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDataRow'
+                $ref: '#/components/schemas/AccountDataEntry'
     delete:
       operationId: ak.self.account_data.resource.delete
       security:

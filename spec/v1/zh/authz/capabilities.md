@@ -768,7 +768,7 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 - target guard 需要 target 才能校验 issuer / root-controller / subject 关系，所以 target grant 尚未投影时治理方 **MUST NOT** 接纳该 revoke / relinquish，也 **MUST NOT** 预写未经关系校验的 tombstone。提交方 MAY 把它留在本地队列（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md) 的 `queued` 本地持久态），在 target grant 可见后**重新**检查 target guard 与 exact revision 并重新提交；该本地待发状态不是共享 reducer 状态，也不得被当作已接纳。接纳发生在治理方的单次原子接纳事务内，因此不存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。材料不全时 MUST NOT 反过来伪造终局拒绝——未知不是 rejected。
 
 subject authoring 的唯一 revision 读面是 `ak.self.authz.grants.read.effective.v1`：治理 Station MUST 从同一次原子
-`capability_grant` current-state 快照返回 closed `EffectiveCapabilityGrantRow { grant, revision }`。`revision` MUST 与该 row 的
+`capability_grant` current-state 快照返回 closed `EffectiveCapabilityGrantView { grant, revision }`。`revision` MUST 与该 row 的
 canonical grant value 属于同一个 current state；列表级 `state_digest`、`evaluated_at`、Event id、本地历史折叠或其它
 Realm checkpoint 都不能替代它。客户端选择 row 后只能逐字复制该 `revision` 到 `ak.capability.relinquish.expected_revision`；
 缺少 revision 时 MUST 禁止 authoring。页面刷新或 `cas_conflict` 后必须重新读取并让用户重新确认，MUST NOT 静默替换
@@ -822,7 +822,7 @@ capability 授权状态投影到 current state family `capability_grant`。该 f
 - **终态**：已撤销或主动放弃的 `grant_id` 不得通过重放或另一条 create Event 复活。
 - **压缩**：可以压缩 payload，但必须保留 grant ID、terminal status、revision 与 Commit 引用，snapshot / export 不得把 terminal grant 计为有效授权。
 
-`ak.self.authz.grants.read.effective.v1` 的每个 `EffectiveCapabilityGrantRow` MUST 由本节所定义的同一个
+`ak.self.authz.grants.read.effective.v1` 的每个 `EffectiveCapabilityGrantView` MUST 由本节所定义的同一个
 `capability_grant` current state 原子读取 grant value 与 revision；它是 revoke / relinquish authoring 的 exact CAS carrier，
 不是新的授权真相。列表级 digest 仅绑定整次查询结果，绝不等于任一 row revision。带 `at` 的查询只在该求值时点筛选
 effective 集合，不是历史 current-state snapshot，也不是可直接签名的 authoring basis；发起 relinquish 前客户端 MUST

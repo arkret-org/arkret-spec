@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.3",
+  "version": "2026-10-24.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T16:52:58+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1545,7 +1545,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AccountDataRow"
+        "response": "#/components/schemas/AccountDataEntry"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1559,7 +1559,7 @@
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDataReplaceRequestBody",
-        "response": "#/components/schemas/AccountDataRow"
+        "response": "#/components/schemas/AccountDataEntry"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

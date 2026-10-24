@@ -151,6 +151,8 @@ controller 与 `service_id` 不同、unknown extension 试图改变路由、过�
 
 ## 4. Room Binding
 
+`CurrentMimiRoomBinding` 是 `current-state.schema.json#/$defs/current_mimi_room_binding` 的完整强类型：依次包含闭合 `selector: {kind: "mimi_room_binding", mimi_room_uri}`、`source_stream_ref`、`revision`、`value`。`source_stream_ref` MUST 来自精确覆盖该绑定 source Event 的已接受 RealmCommit，并与该 Commit 的 `realm_id`、`commit_id`、`stream_position` 一致；其 stream 的 Realm MUST 等于 `value.binding_scope.realm_id`；stream kind 沿用已接受 Commit 的真实值，不能从“控制面”术语推导为 Realm Actor 专用的 `realm_control` stream。selector URI MUST 等于 payload URI。缺失 covering Commit 或不匹配的坐标 MUST 拒绝，不能由 room URI、缓存或当前 head 猜测来源。facade 的 payload 投影不是完整 Current，也不得另保留三字段同名兼容类型。
+
 允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `mimi_room_binding` current state 的 state-changing Event registered projection。对应 Event kind 为 `ak.mimi.room_binding`；current state subject 是 `payload.mimi_room_uri`，registry 中的 `state_selector.kind` 为 `uri`。
 
 **`mimi_room_uri` canonical wire form 与 current state subject 编码（normative）**：`mimi_room_uri` 既是 wire 字段又是 current state selector 的 preimage 与排序键，因此它 MUST 是**封闭 canonical 形态**；receiver MUST NOT 先归一化再接受，非 canonical 输入 MUST 以 `schema_violation` 拒绝。若 `mimi://Example.com/r/1` 与 `mimi://example.com/r/1` 各落一个 current state，同一 room 就能有两个「首个 accepted binding」，§4.2 的初始状态与 `revoked` 终态都能靠换写法绕过。

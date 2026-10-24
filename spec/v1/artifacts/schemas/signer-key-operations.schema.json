@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signer-key-operations.schema.json",
   "title": "Arkret Signer Key Operations",
-  "description": "Closed own-Station signing-key results for one current invocation or one exact authority-committed historical Event. Historical coordinates come only from a verified stream_row delivered by account subscribe or per-stream scan. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
+  "description": "Closed own-Station signing-key results for one current invocation or one exact authority-committed historical Event. Historical coordinates come only from a verified committed_event_view delivered by account subscribe or per-stream scan. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
   "$defs": {
     "signing_account_actor_id": {
       "type": "object",
@@ -237,7 +237,7 @@
         },
         "committed_event_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
         }
       },
       "additionalProperties": false
@@ -284,7 +284,7 @@
         },
         "committed_event_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
         }
       },
       "additionalProperties": false
@@ -727,7 +727,7 @@
         },
         "committed_event_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified committed_event_view, never from a bare Event, current projection, cursor, time or cache order."
         }
       },
       "additionalProperties": false

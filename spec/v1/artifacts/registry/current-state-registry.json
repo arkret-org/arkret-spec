@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-state families derived from authority-committed Events. Selectors are domain types, never alternate current state IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_state_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -1097,7 +1097,7 @@
         "canonical_write_dot",
         "original_realm_commit"
       ],
-      "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_stream_row_or_self_submit_pair_only"
+      "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_committed_event_view_or_self_submit_pair_only"
     },
     "complete_by_shape_and_enclosing_signature": true,
     "partial_allowed": false,

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T19:15:25+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -224,7 +224,7 @@
     "new_operations": false,
     "authority_origin": "current_governance_station_original_commit_or_snapshot",
     "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
-    "historical_producer_coordinates": "original_authorized_self_stream_row_or_bound_self_submission_exact_committed_event_ref",
+    "historical_producer_coordinates": "original_authorized_self_committed_event_view_or_bound_self_submission_exact_committed_event_ref",
     "failure": "existing_operation_refusal_or_unavailable_no_state_advancement",
     "self_submission_historical_source": {
       "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",

@@ -141,19 +141,19 @@
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
+      "shape": "applet_event_rejection",
+      "field": "reason_code",
+      "pointer": "#/$defs/applet_event_rejection/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-edge-operations.schema.json",
       "shape": "applet_transaction_response_body",
       "field": "status",
       "pointer": "#/$defs/applet_transaction_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "applet-edge-operations.schema.json",
-      "shape": "rejected_event_row",
-      "field": "reason_code",
-      "pointer": "#/$defs/rejected_event_row/properties/reason_code",
-      "classification": "validated_open_reason_code",
-      "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
     {
       "schema_file": "applet-install-operations.schema.json",
@@ -253,9 +253,9 @@
     },
     {
       "schema_file": "applet-install-operations.schema.json",
-      "shape": "rejected_scope_row",
+      "shape": "applet_scope_rejection",
       "field": "reason_code",
-      "pointer": "#/$defs/rejected_scope_row/properties/reason_code",
+      "pointer": "#/$defs/applet_scope_rejection/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -469,9 +469,9 @@
     },
     {
       "schema_file": "realm-organization-operations.schema.json",
-      "shape": "realm_organization_relationship_row",
+      "shape": "realm_organization_relationship_view",
       "field": "status",
-      "pointer": "#/$defs/realm_organization_relationship_row/properties/status",
+      "pointer": "#/$defs/realm_organization_relationship_view/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -509,17 +509,17 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageDeliveredRow",
+      "shape": "DeviceMessageDeliveredEntry",
       "field": "status",
-      "pointer": "#/$defs/DeviceMessageDeliveredRow/properties/status",
+      "pointer": "#/$defs/DeviceMessageDeliveredEntry/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageUnknownRow",
+      "shape": "DeviceMessageUnknownEntry",
       "field": "status",
-      "pointer": "#/$defs/DeviceMessageUnknownRow/properties/status",
+      "pointer": "#/$defs/DeviceMessageUnknownEntry/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },

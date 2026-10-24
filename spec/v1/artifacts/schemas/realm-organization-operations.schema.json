@@ -123,7 +123,7 @@
         ]
       }
     },
-    "realm_organization_relationship_row": {
+    "realm_organization_relationship_view": {
       "type": "object",
       "required": [
         "statement_id",
@@ -225,7 +225,7 @@
         "relationships": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/realm_organization_relationship_row"
+            "$ref": "#/$defs/realm_organization_relationship_view"
           },
           "description": "Projected ak.realm.organization statement rows (verified_active and revoked_or_expired), latest-per-(organization_id, relationship)."
         },

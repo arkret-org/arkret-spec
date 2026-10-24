@@ -770,7 +770,7 @@
         "contacts": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/contact_list_row"
+            "$ref": "#/$defs/contact_view"
           }
         },
         "next_cursor": {
@@ -786,7 +786,7 @@
       ],
       "x-arkret-name-role": "page"
     },
-    "contact_list_row": {
+    "contact_view": {
       "type": "object",
       "required": [
         "peer",
@@ -854,8 +854,8 @@
                 "const": "accepted",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
-                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
+                  "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/0/if/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/0/if/properties/state",
                   "values": [
                     "accepted"
                   ]
@@ -886,8 +886,8 @@
                 "const": "pending_incoming",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
-                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
+                  "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/1/if/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/1/if/properties/state",
                   "values": [
                     "pending_incoming"
                   ]
@@ -923,8 +923,8 @@
                 "const": "accepted",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
-                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
+                  "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/state",
                   "values": [
                     "accepted"
                   ]
@@ -936,8 +936,8 @@
                     "const": "human",
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
-                      "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
+                      "authority": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/peer/properties/kind",
+                      "owner": "contact-operations.schema.json#/$defs/contact_view/allOf/2/then/properties/peer/properties/kind",
                       "values": [
                         "human"
                       ]
