@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import posixpath
 from typing import Any
 
 from .core import ARTIFACTS, ROOT, Lint, load_json, load_yaml, resolve_json_pointer
@@ -128,10 +129,32 @@ def openapi_component_alias_errors(components: dict) -> list[str]:
             if set(assertions) == {operator} and isinstance(branches, list) and len(branches) == 1:
                 return target(branches[0])
         return None
-    owners = {}
     errors = []
-    for name, node in components.items():
-        reference = target(node)
+
+    def canonical(name, seen):
+        if name in seen:
+            errors.append(f'cyclic OpenAPI component alias: {name}')
+            return None
+        reference = target(components[name])
+        if reference is None:
+            return '#/components/schemas/' + name
+        prefix = '#/components/schemas/'
+        if reference.startswith(prefix):
+            destination = reference[len(prefix):]
+            if destination not in components:
+                errors.append(f'unknown OpenAPI component alias target: {reference}')
+                return None
+            return canonical(destination, seen | {name})
+        file_name, separator, fragment = reference.partition('#')
+        if file_name.startswith('https://arkret.org/v1/schemas/'):
+            file_name = '../schemas/' + file_name.rsplit('/', 1)[-1]
+        if '://' not in file_name:
+            file_name = posixpath.normpath(file_name)
+        return file_name + (separator + fragment if separator else '')
+
+    owners = {}
+    for name in components:
+        reference = canonical(name, set())
         if reference is None:
             continue
         if reference in owners:
@@ -139,6 +162,7 @@ def openapi_component_alias_errors(components: dict) -> list[str]:
         else:
             owners[reference] = name
     return errors
+
 
 
 def enum_errors(node: dict, owner: str | None = None) -> list[str]:

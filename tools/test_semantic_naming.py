@@ -21,6 +21,17 @@ class SemanticNamingTests(unittest.TestCase):
         self.assertEqual(openapi_component_alias_errors({
             'Shared': reference, 'Restricted': {**reference, 'required': ['purpose']}}), [])
 
+    def test_openapi_internal_aliases_and_equivalent_paths_cannot_restore_a_duplicate(self):
+        reference = {'$ref': '../schemas/example.schema.json#/$defs/shared'}
+        for shared in (reference, {'type': 'object', 'properties': {'x': {'type': 'string'}}}):
+            self.assertTrue(openapi_component_alias_errors({
+                'Shared': shared, 'Alias': {'$ref': '#/components/schemas/Shared'}}))
+        for alias in ('../schemas/./example.schema.json#/$defs/shared',
+                      'https://arkret.org/v1/schemas/example.schema.json#/$defs/shared'):
+            self.assertTrue(openapi_component_alias_errors({'Shared': reference, 'Alias': {'$ref': alias}}))
+        self.assertTrue(openapi_component_alias_errors({
+            'A': {'$ref': '#/components/schemas/B'}, 'B': {'$ref': '#/components/schemas/A'}}))
+
     def test_account_revocation_names_match_their_exact_subject_scope(self):
         from referencing import Registry, Resource
         from .realm_actor_contract import actor, token
