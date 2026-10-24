@@ -74,7 +74,9 @@ def object_duplicates(documents: dict[str, dict]) -> set[frozenset[str]]:
                 result.pop('$ref', None)
                 base = shape(target[1], target[0], seen | {identity})
                 if isinstance(base, dict):
-                    result = {**base, **result}
+                    # A sibling constrains the referenced schema as well; it
+                    # cannot replace an assertion with a weaker dictionary key.
+                    result = {'allOf': [base, result]} if result else base
         return result
 
     groups = defaultdict(list)

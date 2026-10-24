@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:aea9a3883bfeee26356b56e78c5e5a77354194512fed37c48481970f6f35fa0a",
+  "contract_digest": "sha256:db4fd3c351a9980a141e7178fab079fb7731b8412e67c96b3a0d8b986e936889",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -69291,7 +69291,7 @@
               "peer_actor_id",
               "consent_scope",
               "revoked_at",
-              "removed_entries"
+              "removed_entry_count"
             ],
             "properties": {
               "reason": {
@@ -69322,10 +69322,11 @@
               "revoked_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
               },
-              "removed_entries": {
+              "removed_entry_count": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 200
+                "maximum": 200,
+                "x-arkret-member-role": "count"
               }
             },
             "additionalProperties": false,
@@ -74368,12 +74369,14 @@
           "keypackages_upload_response_body": {
             "type": "object",
             "required": [
-              "accepted"
+              "accepted_count"
             ],
             "properties": {
-              "accepted": {
+              "accepted_count": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "x-arkret-member-role": "count",
+                "description": "Number of KeyPackages accepted by this upload attempt; not a boolean or a delivery guarantee."
               },
               "rejections": {
                 "type": "array",
@@ -97961,7 +97964,7 @@
             },
             "additionalProperties": false,
             "x-arkret-name-role": "terminal_outcome",
-            "x-arkret-outcome-scope": "revoke_command"
+            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
           },
           "revoke_proposal": {
             "type": "object",
@@ -98956,7 +98959,7 @@
               }
             ],
             "x-arkret-name-role": "terminal_outcome",
-            "x-arkret-outcome-scope": "terminal"
+            "x-arkret-outcome-scope": "security_transaction_execution"
           },
           "transaction_id": {
             "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"

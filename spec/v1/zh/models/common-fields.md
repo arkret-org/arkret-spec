@@ -538,6 +538,8 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
 
   Outcome 的名字与合同 MUST 指明结算范围。尝试的 accepted／deferred／rejected 只能说明该次尝试已定，不表示传播、清理或送达完成；整个流程仍可能 pending 时应使用 Progress。裁决前的 apply／replay／reject 分类使用 Decision，验证结果使用 Verdict。
 
+  KeyPackage upload 响应的 `accepted_count` 是本次上传接纳的 KeyPackage 数量；隔离失效摘要的 `removed_entry_count` 是本次撤销移除的条目数量。两者均按 R2 使用计数名称，不使用布尔形态或集合复数。
+
   字段同样按职责使用 `current_state`、`material`、`capture_metadata`、`outcome`、`decision`、`verdict` 或 `resolutions` 等。`Result / result` 不作为泛化协议结构角色。签名、authority、freshness 与授权义务由所属合同决定，名字本身不构成证据。
 
   许可使用 `_allowed`、义务使用 `_required`，事实使用正极性状态名，实现能力使用 `_supported`，请求意向使用 `_requested`。controller selection 仍是偏好与 capability 的交集，不因 allowed 字段而成为授权。

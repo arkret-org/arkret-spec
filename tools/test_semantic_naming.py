@@ -20,6 +20,9 @@ class SemanticNamingTests(unittest.TestCase):
             self.assertTrue(openapi_component_alias_errors({'Shared': reference, 'OperationBody': alias}))
         self.assertEqual(openapi_component_alias_errors({
             'Shared': reference, 'Restricted': {**reference, 'required': ['purpose']}}), [])
+        for key, value in [('default', {}), ('deprecated', True), ('readOnly', True)]:
+            self.assertTrue(openapi_component_alias_errors({
+                'Shared': reference, 'Alias': {**reference, key: value}}), key)
 
     def test_openapi_internal_aliases_and_equivalent_paths_cannot_restore_a_duplicate(self):
         reference = {'$ref': '../schemas/example.schema.json#/$defs/shared'}
@@ -84,16 +87,33 @@ class SemanticNamingTests(unittest.TestCase):
             self.assertTrue(type_role_errors('membership_snapshot', changed), mutation)
 
     def test_singular_row_and_nested_result_names_are_not_field_role_exceptions(self):
-        for name in ('row', 'current_row', 'result', 'policy_results', 'session_grant_result'):
+        for name in ('row', 'rows', 'current_row', 'current_rows', 'result', 'results', 'policy_results', 'session_grant_result'):
             self.assertTrue(member_role_errors(name, {'type': 'object'}), name)
         for name in ('current_state', 'policy_evaluations', 'issued_session'):
             self.assertEqual(member_role_errors(name, {'type': 'object'}), [])
+
+    def test_integer_collections_cannot_hide_element_counts(self):
+        for name in ('removed_entries', 'accepted_items', 'retained_records', 'submitted_outcomes'):
+            self.assertTrue(member_role_errors(name, {'type': 'integer'}), name)
+            self.assertTrue(member_role_errors(name, {'type': ['integer', 'null']}), name)
+            self.assertEqual(member_role_errors(name, {'type': 'array'}), [])
+            self.assertEqual(member_role_errors(name, {'type': ['string', 'null']}), [])
+        self.assertEqual(member_role_errors('removed_entry_count', {'type': 'integer', 'x-arkret-member-role': 'count'}), [])
+
+    def test_plural_role_names_cannot_restore_generic_rows_or_results(self):
+        for name in ('Rows', 'Results', 'RealmRows', 'realm_rows', 'realm_results'):
+            self.assertTrue(type_role_errors(name, {}), name)
 
     def test_outcome_members_need_a_settled_scope_even_without_a_named_enum(self):
         scope = {'x-arkret-outcome-scope': 'holder_admission_attempt'}
         self.assertTrue(member_role_errors('outcome', {'enum': ['accepted']}))
         self.assertEqual(member_role_errors('outcome', {**scope, 'enum': ['accepted', 'deferred']}), [])
         self.assertTrue(member_role_errors('outcome', {**scope, 'enum': ['pending']}))
+        for generic in ('terminal', 'attempt', 'outcome', ' ', True):
+            changed = {'x-arkret-name-role': 'terminal_outcome',
+                       'x-arkret-outcome-scope': generic, 'enum': ['accepted']}
+            self.assertTrue(member_role_errors('outcome', changed), generic)
+            self.assertTrue(type_role_errors('delivery_outcome', changed), generic)
 
     def test_public_rows_and_role_metadata_are_rejected(self):
         for name, node in [('RealmRow', {}), ('realm_row', {}), ('Row', {}),
@@ -132,10 +152,14 @@ class SemanticNamingTests(unittest.TestCase):
         alias = {'$ref': './canonical.schema.json#/$defs/receipt', 'x-arkret-name-role': 'response_body'}
         self.assertTrue(canonical_body_alias_errors('issue_response_body', alias))
         self.assertEqual(canonical_body_alias_errors('issue_response_body', {**alias, 'required': ['nonce']}), [])
+        for key, value in [('examples', [{}]), ('default', {}), ('deprecated', True),
+                           ('x-arkret-purpose', 'display'), ('readOnly', True)]:
+            self.assertTrue(canonical_body_alias_errors('issue_response_body', {**alias, key: value}), key)
         for operator in ('allOf', 'anyOf', 'oneOf'):
             wrapped = {operator: [{'allOf': [alias]}]}
             self.assertTrue(canonical_body_alias_errors('issue_response_body', wrapped))
             self.assertEqual(canonical_body_alias_errors('issue_response_body', {**wrapped, 'required': ['nonce']}), [])
+            self.assertEqual(canonical_body_alias_errors('issue_response_body', {operator: [True]}), [])
 
     def test_capture_prose_references_follow_the_schema_member(self):
         self.assertEqual(capture_member_reference_errors('recording_transition.capture_metadata.retention'), [])
@@ -197,7 +221,7 @@ class SemanticNamingTests(unittest.TestCase):
     def test_body_and_terminal_roles_are_distinct(self):
         self.assertEqual(type_role_errors('IssueResponseBody',{'x-arkret-name-role':'response_body'}),[])
         self.assertTrue(type_role_errors('IssueOutcome',{'x-arkret-name-role':'response_body'}))
-        settled={'x-arkret-name-role':'terminal_outcome','x-arkret-outcome-scope':'attempt','enum':['accepted','rejected']}
+        settled={'x-arkret-name-role':'terminal_outcome','x-arkret-outcome-scope':'holder_admission_attempt','enum':['accepted','rejected']}
         self.assertEqual(type_role_errors('AttemptOutcome',settled),[])
         self.assertTrue(type_role_errors('AttemptOutcome',{**settled,'enum':['accepted','pending']}))
 

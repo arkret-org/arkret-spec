@@ -29,6 +29,14 @@ MEMBER_PATTERNS = {
 SNAKE = re.compile(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)*\Z")
 NAMESPACED = re.compile(r"ak\.[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*\Z")
 NONTERMINAL = {"pending", "prepared", "preparing", "unknown", "in_progress", "running"}
+ALIAS_ANNOTATIONS = {'title', 'description', '$comment', 'examples', 'default',
+                     'deprecated', 'readOnly', 'writeOnly'}
+
+
+def settled_scope(node: dict) -> bool:
+    scope = node.get('x-arkret-outcome-scope')
+    return (isinstance(scope, str) and SNAKE.fullmatch(scope) is not None
+            and scope not in {'outcome', 'result', 'terminal', 'attempt', 'processing'})
 
 
 def snake(name: str) -> str:
@@ -39,9 +47,9 @@ def type_role_errors(name: str, node: dict) -> list[str]:
     role = node.get("x-arkret-name-role")
     normalized = snake(name) if name[:1].isupper() else name
     errors = []
-    if normalized == "result" or normalized.endswith("_result"):
+    if normalized in {"result", "results"} or normalized.endswith(("_result", "_results")):
         errors.append("Result is not a semantic protocol role")
-    if normalized == "row" or normalized.endswith("_row") or role == "row":
+    if normalized in {"row", "rows"} or normalized.endswith(("_row", "_rows")) or role == "row":
         errors.append("Row is not a public protocol role; use the actual domain role")
     if role == "current_state" and not normalized.startswith("current_"):
         errors.append("current state type must retain the Current<Family> prefix")
@@ -50,8 +58,8 @@ def type_role_errors(name: str, node: dict) -> list[str]:
     if normalized.endswith("_outcome"):
         if role not in {"terminal_outcome", "attempt_outcome"}:
             errors.append("Outcome requires an explicitly scoped settled processing role")
-        if not node.get("x-arkret-outcome-scope"):
-            errors.append("Outcome requires a nonempty processing scope")
+        if not settled_scope(node):
+            errors.append("Outcome requires a named domain processing scope")
         for _pointer, child in enumerate_schema_nodes("role", node):
             if isinstance(child, dict) and any(isinstance(value, str) and value in NONTERMINAL
                                              for value in child.get("enum", [child.get("const")])):
@@ -78,12 +86,17 @@ def type_role_errors(name: str, node: dict) -> list[str]:
 
 
 def member_role_errors(name: str, node: dict) -> list[str]:
-    if name == 'row' or name.endswith(('_row', '_result', '_results')) or name == 'result':
+    if name in {'row', 'rows', 'result', 'results'} or name.endswith(('_row', '_rows', '_result', '_results')):
         return ['generic Row/Result is not an owned protocol member role']
     if not isinstance(node,dict):
         node = {}
+    kinds = node.get('type')
+    kinds = kinds if isinstance(kinds, list) else [kinds]
+    if any(kind in ('integer', 'number') for kind in kinds) and name.endswith(
+            ('_entries', '_records', '_items', '_views', '_outcomes')):
+        return ['an element count must use _count, not a collection name']
     if name == 'outcome' or name.endswith('_outcome'):
-        if not node.get('x-arkret-outcome-scope'):
+        if not settled_scope(node):
             return ['Outcome member requires its exact settled processing scope']
         for _pointer, child in enumerate_schema_nodes('member', node):
             if isinstance(child, dict) and any(value in NONTERMINAL for value in
@@ -99,9 +112,11 @@ def member_role_errors(name: str, node: dict) -> list[str]:
 
 
 def canonical_body_alias_errors(name: str, node: dict) -> list[str]:
-    annotations = {'title', 'description', '$comment', 'x-arkret-name-role'}
     def transparent_reference(shape):
-        assertions = {key: value for key, value in shape.items() if key not in annotations}
+        if not isinstance(shape, dict):
+            return False
+        assertions = {key: value for key, value in shape.items()
+                      if key not in ALIAS_ANNOTATIONS and not key.startswith('x-')}
         if set(assertions) == {'$ref'}:
             return isinstance(assertions['$ref'], str)
         for operator in ('allOf', 'anyOf', 'oneOf'):
@@ -120,7 +135,7 @@ def openapi_component_alias_errors(components: dict) -> list[str]:
         if not isinstance(node, dict):
             return None
         assertions = {key: value for key, value in node.items()
-                      if key not in {'title', 'description', '$comment', 'examples'}
+                      if key not in ALIAS_ANNOTATIONS
                       and not key.startswith('x-')}
         if set(assertions) == {'$ref'} and isinstance(assertions['$ref'], str):
             return assertions['$ref']

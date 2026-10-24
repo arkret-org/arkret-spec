@@ -542,7 +542,7 @@
       },
       "additionalProperties": false,
       "x-arkret-name-role": "terminal_outcome",
-      "x-arkret-outcome-scope": "revoke_command"
+      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
     },
     "revoke_proposal": {
       "type": "object",
@@ -1537,7 +1537,7 @@
         }
       ],
       "x-arkret-name-role": "terminal_outcome",
-      "x-arkret-outcome-scope": "terminal"
+      "x-arkret-outcome-scope": "security_transaction_execution"
     },
     "transaction_id": {
       "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"

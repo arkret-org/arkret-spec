@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-24.7",
-  "generated_at": "2026-10-24T23:34:32+08:00",
+  "version": "2026-10-24.9",
+  "generated_at": "2026-10-24T23:34:34+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -265,11 +265,11 @@
     },
     {
       "operation_id": "ak.peer.consent.command.proxy.v1",
-      "sha256": "sha256:4c80b7c1bd78a832ef31afd996cd1ba6e8bf0af2d7862dba9445b6a43d82511c"
+      "sha256": "sha256:b2190c693693e8d203a72c0df50848d8446280c15a0a59d5123f444cfc8dcba0"
     },
     {
       "operation_id": "ak.peer.consent.command.publish_effects.v1",
-      "sha256": "sha256:94cf8cbff553f966f27a0db3e7dcf39b9eca148657afc53a6687653441ba2e52"
+      "sha256": "sha256:57d22590527111d4a34cf07edf9de993dc11b02d6d25ba2942cd71db1db59e51"
     },
     {
       "operation_id": "ak.peer.consent.read.current.v1",
@@ -765,7 +765,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",
-      "sha256": "sha256:34909572ae6dc5732aa935d2f846b712543a2c17a65d3e52d83c3e6fbaa5af40"
+      "sha256": "sha256:1344bea05f73876a093804bc4b4ed4e92d7b50621e88cf03365b132e236e98a1"
     },
     {
       "operation_id": "ak.self.keys.read.lookup.v1",
@@ -865,15 +865,15 @@
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:94374750648935ab0858c6ab8b7f36d647e7108ef6e5ac30df0884a265315138"
+      "sha256": "sha256:3bcf3a727001005354d168a8bbc0a62b4767c3f763ebcd8b990be3914a2ea146"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",
-      "sha256": "sha256:8ae3974f186cdb9d4efd75052067b0e94ee9747b672496fc4145684945a54207"
+      "sha256": "sha256:e9306e7d778adc2514762cdeb1030f161815a10c6200edc3e94ba56be5a7a444"
     },
     {
       "operation_id": "ak.self.security_transaction.resource.get.v1",
-      "sha256": "sha256:9b0721a9b8be24f147b210a3a5d1b02412927cf91ec5d5ae7cb8c3b1afc7b914"
+      "sha256": "sha256:328c180b3c059a9bd93df1cc0e71440a72de5b7431a6e608fe06c61431b57b63"
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",

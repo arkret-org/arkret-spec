@@ -5,6 +5,19 @@ from tools.public_type_duplicates import object_duplicates
 
 
 class PublicTypeDuplicateTests(unittest.TestCase):
+    def test_reference_siblings_are_conjunctions_not_overrides(self):
+        documents = {'one.schema.json': {'$defs': {
+            'strict': {'type': 'integer', 'minimum': 2},
+            'first': {'type': 'object', 'properties': {
+                'count': {'$ref': '#/$defs/strict', 'minimum': 1}}},
+            'second': {'type': 'object', 'properties': {
+                'count': {'type': 'integer', 'minimum': 1}}},
+        }}}
+        self.assertFalse(object_duplicates(documents))
+        documents['one.schema.json']['$defs']['second']['properties']['count'] = {
+            '$ref': '#/$defs/strict', 'minimum': 1}
+        self.assertTrue(object_duplicates(documents))
+
     def test_annotations_and_imported_scalars_cannot_hide_a_duplicate(self):
         documents = {
             'one.schema.json': {'$defs': {

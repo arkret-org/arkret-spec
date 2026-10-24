@@ -1,6 +1,6 @@
 {
   "suite": "protocol_simplification",
-  "version": "2026-10-24.1",
+  "version": "2026-10-25.2",
   "fixture_kind": "semantic",
   "profile": "ak.profile.station.v1",
   "runner": {
@@ -1076,7 +1076,7 @@
         },
         "consent_scope": "invite",
         "revoked_at": "2026-10-21T00:00:00.000Z",
-        "removed_entries": 1
+        "removed_entry_count": 1
       },
       "expect_valid": true
     },
@@ -1094,10 +1094,29 @@
         },
         "consent_scope": "any",
         "revoked_at": "2026-10-21T00:00:00.000Z",
-        "removed_entries": 1
+        "removed_entry_count": 1
       },
       "expect_valid": false,
       "first_expected_error": "$.consent_scope: 'invite' was expected"
+    },
+    {
+      "name": "quarantine_invalidation_rejects_collection_count_name",
+      "schema_ref": "schemas/holder-quarantine.schema.json#/$defs/consent_revoke_invalidation",
+      "instance": {
+        "reason": "consent_revoke",
+        "peer_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "consent_scope": "invite",
+        "revoked_at": "2026-10-21T00:00:00.000Z",
+        "removed_entries": 1
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: 'removed_entry_count' is a required property"
     }
   ],
   "direct_governance_cases": [

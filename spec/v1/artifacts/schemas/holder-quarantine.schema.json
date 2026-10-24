@@ -292,7 +292,7 @@
         "peer_actor_id",
         "consent_scope",
         "revoked_at",
-        "removed_entries"
+        "removed_entry_count"
       ],
       "properties": {
         "reason": {
@@ -323,10 +323,11 @@
         "revoked_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "removed_entries": {
+        "removed_entry_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 200
+          "maximum": 200,
+          "x-arkret-member-role": "count"
         }
       },
       "additionalProperties": false,

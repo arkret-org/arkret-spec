@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.4",
+  "version": "2026-10-24.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T19:15:25+08:00",
+  "generated_at": "2026-10-24T23:34:31+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7515,10 +7515,10 @@
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_response_body",
         "schema_kind": "object",
         "required": [
-          "accepted"
+          "accepted_count"
         ],
         "properties": [
-          "accepted",
+          "accepted_count",
           "rejections",
           "keypackage_refs"
         ],

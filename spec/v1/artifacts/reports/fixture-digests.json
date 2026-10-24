@@ -502,8 +502,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
-      "sha256": "7201660977f72650f76fdd4d2299f6b8e0ff68a0cef8e6a40e6e87a747b04c3d",
-      "version": "2026-10-24.1"
+      "sha256": "5173d1f1bb6ef8242456d3cea830ab410cc41c3973838e156f8b2ab2d5f0f11b",
+      "version": "2026-10-25.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",

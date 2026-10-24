@@ -528,12 +528,14 @@
     "keypackages_upload_response_body": {
       "type": "object",
       "required": [
-        "accepted"
+        "accepted_count"
       ],
       "properties": {
-        "accepted": {
+        "accepted_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count",
+          "description": "Number of KeyPackages accepted by this upload attempt; not a boolean or a delivery guarantee."
         },
         "rejections": {
           "type": "array",

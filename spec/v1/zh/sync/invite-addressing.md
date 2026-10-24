@@ -373,6 +373,8 @@ notify 分支的 holder-private 投递承载是 account-data 私有 current stat
 - 写入被 CAS 接受时，服务端 MUST 在同一事务推进 account subscribe 的 Station-CAS 投影位置，使 holder 的全部 active devices 可通过顶层 `account_data.station_cas` 的 cursor-covered upsert 取得 accepted revision/value；删除使用显式 remove。服务端 MAY 另以 `ak.account_data.update` actor-private device update 做低延迟唤醒，该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`recipient_account_id == holder`，`sender_id` 等于 `recipient_account_id.station_id` 与当前接收 Station 的 service identity；该分支不携 `sender_account_id`，不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。to-device 不是权威投影；离线或错过它的设备从 account subscribe baseline/catch-up 恢复，list/get 只作诊断与定点恢复。CAS 冲突或其它未接受写入不得推进投影或 fanout。
 - private delivery material MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 current state 是定向邀请送达被邀请方设备的唯一规范私有承载。定向邀请没有 bearer token：预览与接受的授权只来自治理 Station 已接受 Invite 对 exact invitee AccountId 的绑定——预览由被邀请方 Station 的服务间认证绑定该账号，接受由被邀请账号 producer 签名的 join Event 证明。
 
+`holder_quarantine.last_invalidation.removed_entry_count` 是本次 Consent 撤销实际移除的隔离条目数量（1..200），不是条目集合；成员顺序及其它字段以 holder-quarantine schema 为准。
+
 ### 7.1 加入前预览（normative）
 
 加入前预览与加入准备使用同一个权威来源：Realm 的 **current governance Station**。邀请方 Station、被邀请者自己的
