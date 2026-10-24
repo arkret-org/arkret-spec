@@ -470,8 +470,6 @@ components:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
     AppletRevokeResponseBody:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body
-    AppletThirdPartyLocationLookupResponseBody:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
     AppletThirdPartyUserLookupResponseBody:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body
     AppletTransactionRequestBody:
@@ -605,9 +603,7 @@ components:
       $ref: ../schemas/view.schema.json#/$defs/document_morph_view
     EffectiveGrantSnapshot:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot
-    ErasureReceiptResource:
-      $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package
-    ErasureReceiptSubmitRequestBody:
+    ErasureReceiptPackage:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package
     ErasureReceiptSubmitResponseBody:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body
@@ -787,14 +783,12 @@ components:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request_body
     PcrGenesisSubmitResponseBody:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_response_body
+    PeerKeyPackagesClaimCommandResponseBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body
     PeerKeyPackagesClaimQueryRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body
     PeerKeyPackagesClaimQueryResponseBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body
-    PeerKeyPackagesClaimRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
-    PeerKeyPackagesClaimResponseBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body
     PeerKeysQueryRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body
     PeerKeysQueryResponseBody:
@@ -2803,7 +2797,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErasureReceiptSubmitRequestBody'
+              $ref: '#/components/schemas/ErasureReceiptPackage'
       responses:
         '200':
           description: Receiver-signed accepted or duplicate acknowledgement.
@@ -2853,7 +2847,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErasureReceiptResource'
+                $ref: '#/components/schemas/ErasureReceiptPackage'
         '404':
           description: Unknown, hidden or unauthorized receipt.
           content:
@@ -3074,14 +3068,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PeerKeyPackagesClaimRequestBody'
+              $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
       responses:
         '200':
           description: Signed destination-authority claim outcome without inventory or per-device failure leakage.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PeerKeyPackagesClaimResponseBody'
+                $ref: '#/components/schemas/PeerKeyPackagesClaimCommandResponseBody'
   /_arkret/peer/keys/keypackages/claims/query:
     post:
       operationId: ak.peer.keys.keypackages.read.claim
@@ -7663,7 +7657,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PeerKeyPackagesClaimResponseBody'
+                $ref: '#/components/schemas/PeerKeyPackagesClaimCommandResponseBody'
       requestBody:
         required: true
         content:
@@ -8509,7 +8503,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletThirdPartyLocationLookupResponseBody'
+                $ref: '#/components/schemas/AppletRealmView'
   /_arkret/edge/applet/managed-actors/author:
     post:
       operationId: ak.edge.applet.managed_actor.command.author

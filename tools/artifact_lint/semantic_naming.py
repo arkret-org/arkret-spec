@@ -114,6 +114,33 @@ def canonical_body_alias_errors(name: str, node: dict) -> list[str]:
     return []
 
 
+def openapi_component_alias_errors(components: dict) -> list[str]:
+    def target(node):
+        if not isinstance(node, dict):
+            return None
+        assertions = {key: value for key, value in node.items()
+                      if key not in {'title', 'description', '$comment', 'examples'}
+                      and not key.startswith('x-')}
+        if set(assertions) == {'$ref'} and isinstance(assertions['$ref'], str):
+            return assertions['$ref']
+        for operator in ('allOf', 'anyOf', 'oneOf'):
+            branches = assertions.get(operator)
+            if set(assertions) == {operator} and isinstance(branches, list) and len(branches) == 1:
+                return target(branches[0])
+        return None
+    owners = {}
+    errors = []
+    for name, node in components.items():
+        reference = target(node)
+        if reference is None:
+            continue
+        if reference in owners:
+            errors.append(f'duplicate OpenAPI component aliases {owners[reference]} and {name}: {reference}')
+        else:
+            owners[reference] = name
+    return errors
+
+
 def enum_errors(node: dict, owner: str | None = None) -> list[str]:
     values = node.get("enum", [node["const"]] if "const" in node else [])
     if not values:
@@ -157,6 +184,7 @@ def capture_member_reference_errors(text: str) -> list[str]:
 def retired_contract_reference_errors(text: str) -> list[str]:
     replacements = {'MlsGroupCurrent': 'MlsGroupValue', 'TypedCurrentRow': 'CurrentState',
                     'AccountCurrentView': 'AccountStateView'}
+    replacements.update({'PeerKeyPackagesClaimRequestBody': 'KeyPackagesClaimRequestBody', 'PeerKeyPackagesClaimResponseBody': 'PeerKeyPackagesClaimCommandResponseBody', 'ErasureReceiptResource': 'ErasureReceiptPackage', 'ErasureReceiptSubmitRequestBody': 'ErasureReceiptPackage', 'AppletThirdPartyLocationLookupResponseBody': 'AppletRealmView'})
     replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'DidBindingWitness', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
     return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
             if re.search(r'\b' + old + r'\b', text)]
@@ -171,6 +199,7 @@ def check_semantic_naming(lint: Lint) -> None:
         lint.fail(ARTIFACTS / 'schemas', error)
     text_paths = sorted((ROOT / 'spec/v1/zh').rglob('*.md'))
     text_paths += sorted(ARTIFACTS.rglob('*.json'))
+    text_paths += sorted((ARTIFACTS / 'openapi').glob('*.yaml'))
     for path in text_paths:
         for error in retired_contract_reference_errors(path.read_text(encoding='utf-8')):
             lint.fail(path, error)
@@ -184,6 +213,9 @@ def check_semantic_naming(lint: Lint) -> None:
         document = load_yaml(lint,path) if path.suffix == ".yaml" else load_json(lint,path)
         if not isinstance(document,dict):
             continue
+        if path.suffix == '.yaml':
+            for error in openapi_component_alias_errors(document.get('components', {}).get('schemas', {})):
+                lint.fail(path, error)
         def role_shape(node, seen=None, context_path=path, context_document=document):
             if not isinstance(node, dict):
                 return {}

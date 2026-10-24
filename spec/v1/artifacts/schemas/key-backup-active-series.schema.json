@@ -50,7 +50,7 @@
       "description": "Retained old series used only for read-old-data or erasure transition. MUST NOT be treated as a primary recovery source."
     },
     "source_commit_ref": {
-      "$ref": "#/$defs/source_commit_ref",
+      "$ref": "./key-backup.schema.json#/properties/source_commit_ref",
       "description": "Principal Control Realm source RealmCommit and current identity-root device generation under which active_series_id was selected."
     },
     "issued_at": {
@@ -124,23 +124,6 @@
     },
     "backup_series_id": {
       "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
-    },
-    "source_commit_ref": {
-      "type": "object",
-      "required": [
-        "realm_commit_id",
-        "device_generation_ref"
-      ],
-      "properties": {
-        "realm_commit_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
-        },
-        "device_generation_ref": {
-          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced checkpoint."
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

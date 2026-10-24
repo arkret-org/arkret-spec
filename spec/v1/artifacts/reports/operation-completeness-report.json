@@ -155,7 +155,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AppletThirdPartyLocationLookupResponseBody"
+        "response": "#/components/schemas/AppletRealmView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -710,7 +710,7 @@
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesClaimRequestBody",
-        "response": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
+        "response": "#/components/schemas/PeerKeyPackagesClaimCommandResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -973,7 +973,7 @@
       "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
       "openapi_component_refs": {
-        "request": "#/components/schemas/ErasureReceiptSubmitRequestBody",
+        "request": "#/components/schemas/ErasureReceiptPackage",
         "response": "#/components/schemas/ErasureReceiptSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
@@ -987,7 +987,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ErasureReceiptResource"
+        "response": "#/components/schemas/ErasureReceiptPackage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1028,8 +1028,8 @@
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "openapi_component_refs": {
-        "request": "#/components/schemas/PeerKeyPackagesClaimRequestBody",
-        "response": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
+        "request": "#/components/schemas/KeyPackagesClaimRequestBody",
+        "response": "#/components/schemas/PeerKeyPackagesClaimCommandResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

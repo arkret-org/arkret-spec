@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10297,
+    "total_properties": 10295,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2435,
       "optional_defaulted": 47,
-      "required": 7296,
+      "required": 7294,
       "required_nullable": 312,
       "tristate": 207
     },
@@ -9421,8 +9421,6 @@
         "ak.schema.key_backup_active_series.v1"
       ],
       "properties": {
-        "/$defs/source_commit_ref/properties/device_generation_ref": "required",
-        "/$defs/source_commit_ref/properties/realm_commit_id": "required",
         "/properties/active_series_id": "required",
         "/properties/actor_id": "required",
         "/properties/backup_kind": "required",

@@ -7,6 +7,7 @@ from typing import Any
 from .core import ARTIFACTS, SPEC_ROOT, Lint, load_json
 
 
+KEY_BACKUP_SCHEMA = ARTIFACTS / "schemas" / "key-backup.schema.json"
 ACTIVE_SERIES_SCHEMA = ARTIFACTS / "schemas" / "key-backup-active-series.schema.json"
 KEYS_OPERATIONS_SCHEMA = ARTIFACTS / "schemas" / "keys-operations.schema.json"
 EVENT_PAYLOAD_SCHEMA = ARTIFACTS / "schemas" / "event-payload.schema.json"
@@ -29,6 +30,7 @@ def _find(rows: Any, key: str, value: str) -> dict[str, Any] | None:
 
 
 def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
+    key_backup = load_json(lint, KEY_BACKUP_SCHEMA)
     active_series = load_json(lint, ACTIVE_SERIES_SCHEMA)
     keys_operations = load_json(lint, KEYS_OPERATIONS_SCHEMA)
     event_payload = load_json(lint, EVENT_PAYLOAD_SCHEMA)
@@ -36,7 +38,7 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
     fixture = load_json(lint, FIXTURE)
     if not all(
         isinstance(value, dict)
-        for value in (active_series, keys_operations, event_payload, contract, fixture)
+        for value in (key_backup, active_series, keys_operations, event_payload, contract, fixture)
     ):
         return
 
@@ -44,12 +46,14 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
     properties = active_series.get("properties")
     if not isinstance(required, list) or required.count("source_commit_ref") != 1:
         _fail(lint, ACTIVE_SERIES_SCHEMA, "signed payload must require source_commit_ref exactly once")
-    if not isinstance(properties, dict) or properties.get("source_commit_ref", {}).get("$ref") != "#/$defs/source_commit_ref":
+    if not isinstance(properties, dict) or properties.get("source_commit_ref", {}).get("$ref") != "./key-backup.schema.json#/properties/source_commit_ref":
         _fail(lint, ACTIVE_SERIES_SCHEMA, "signed payload must expose only the canonical source_commit_ref definition")
     if isinstance(properties, dict) and "source_ref" in properties:
         _fail(lint, ACTIVE_SERIES_SCHEMA, "legacy source_ref alias is forbidden")
 
-    anchor = active_series.get("$defs", {}).get("source_commit_ref", {})
+    if 'source_commit_ref' in active_series.get('$defs', {}):
+        _fail(lint, ACTIVE_SERIES_SCHEMA, 'duplicate source checkpoint definition is forbidden')
+    anchor = key_backup.get('properties', {}).get('source_commit_ref', {})
     expected_fields = {"realm_commit_id", "device_generation_ref"}
     if set(anchor.get("required", [])) != expected_fields:
         _fail(lint, ACTIVE_SERIES_SCHEMA, "source_commit_ref must require exactly realm_commit_id and device_generation_ref")

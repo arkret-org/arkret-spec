@@ -992,7 +992,8 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
 
     generation_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
     backup_commit_ref = key_backup.get("properties", {}).get("source_commit_ref", {})
-    series_commit_ref = active_series.get("$defs", {}).get("source_commit_ref", {})
+    shared_checkpoint = './key-backup.schema.json#/properties/source_commit_ref'
+    series_commit_ref = (backup_commit_ref if active_series.get('properties', {}).get('source_commit_ref', {}).get('$ref') == shared_checkpoint else {})
     for path, commit_ref in (
         (key_backup_path, backup_commit_ref),
         (active_series_path, series_commit_ref),
@@ -2878,13 +2879,10 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
     canonical_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
     generation_paths = {
         "key-backup.schema.json": ("properties", "source_commit_ref", "properties", "device_generation_ref"),
-        "key-backup-active-series.schema.json": (
-            "$defs",
-            "source_commit_ref",
-            "properties",
-            "device_generation_ref",
-        ),
     }
+    if documents.get('key-backup-active-series.schema.json', {}).get('properties', {}).get('source_commit_ref', {}).get('$ref') != './key-backup.schema.json#/properties/source_commit_ref':
+        lint.fail(ARTIFACTS / 'schemas/key-backup-active-series.schema.json',
+                  'source_commit_ref must directly reuse the canonical key-backup checkpoint')
     for name, keys in generation_paths.items():
         node = documents.get(name)
         try:

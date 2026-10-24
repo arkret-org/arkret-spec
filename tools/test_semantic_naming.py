@@ -7,11 +7,20 @@ import tempfile
 from pathlib import Path
 from jsonschema import Draft202012Validator
 
-from .artifact_lint.semantic_naming import canonical_body_alias_errors,capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors,retired_contract_reference_errors
+from .artifact_lint.semantic_naming import openapi_component_alias_errors,canonical_body_alias_errors,capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors,retired_contract_reference_errors
 from .protocol_member_contract import REFERENCE, check, compare, contract_shape, derive, registry_contract_shape
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_openapi_aliases_cannot_duplicate_a_shared_canonical_type(self):
+        reference = {'$ref': '../schemas/example.schema.json#/$defs/shared'}
+        self.assertEqual(openapi_component_alias_errors({'Shared': reference}), [])
+        for alias in (reference, {**reference, 'description': 'another use'},
+                      {'allOf': [reference]}, {'oneOf': [reference]}):
+            self.assertTrue(openapi_component_alias_errors({'Shared': reference, 'OperationBody': alias}))
+        self.assertEqual(openapi_component_alias_errors({
+            'Shared': reference, 'Restricted': {**reference, 'required': ['purpose']}}), [])
+
     def test_account_revocation_names_match_their_exact_subject_scope(self):
         from referencing import Registry, Resource
         from .realm_actor_contract import actor, token

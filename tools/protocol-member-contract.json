@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:bd1b311b9bc49376f62c7de3ee0741bd407d6654b20029aa6e001ef7ddcf9d59",
+  "contract_digest": "sha256:aea9a3883bfeee26356b56e78c5e5a77354194512fed37c48481970f6f35fa0a",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -72385,7 +72385,7 @@
             "description": "Retained old series used only for read-old-data or erasure transition. MUST NOT be treated as a primary recovery source."
           },
           "source_commit_ref": {
-            "$ref": "#/$defs/source_commit_ref",
+            "$ref": "./key-backup.schema.json#/properties/source_commit_ref",
             "description": "Principal Control Realm source RealmCommit and current identity-root device generation under which active_series_id was selected."
           },
           "issued_at": {
@@ -72459,23 +72459,6 @@
           },
           "backup_series_id": {
             "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
-          },
-          "source_commit_ref": {
-            "type": "object",
-            "required": [
-              "realm_commit_id",
-              "device_generation_ref"
-            ],
-            "properties": {
-              "realm_commit_id": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
-              },
-              "device_generation_ref": {
-                "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-                "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced checkpoint."
-              }
-            },
-            "additionalProperties": false
           }
         }
       }
@@ -111935,9 +111918,6 @@
         "AppletRevokeResponseBody": {
           "$ref": "../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body"
         },
-        "AppletThirdPartyLocationLookupResponseBody": {
-          "$ref": "../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
-        },
         "AppletThirdPartyUserLookupResponseBody": {
           "$ref": "../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body"
         },
@@ -112137,10 +112117,7 @@
         "EffectiveGrantSnapshot": {
           "$ref": "../schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot"
         },
-        "ErasureReceiptResource": {
-          "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
-        },
-        "ErasureReceiptSubmitRequestBody": {
+        "ErasureReceiptPackage": {
           "$ref": "../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_package"
         },
         "ErasureReceiptSubmitResponseBody": {
@@ -112409,17 +112386,14 @@
         "PcrGenesisSubmitResponseBody": {
           "$ref": "../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_response_body"
         },
+        "PeerKeyPackagesClaimCommandResponseBody": {
+          "$ref": "../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body"
+        },
         "PeerKeyPackagesClaimQueryRequestBody": {
           "$ref": "../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body"
         },
         "PeerKeyPackagesClaimQueryResponseBody": {
           "$ref": "../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body"
-        },
-        "PeerKeyPackagesClaimRequestBody": {
-          "$ref": "../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body"
-        },
-        "PeerKeyPackagesClaimResponseBody": {
-          "$ref": "../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body"
         },
         "PeerKeysQueryRequestBody": {
           "$ref": "../schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body"
@@ -115400,7 +115374,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErasureReceiptSubmitRequestBody"
+                  "$ref": "#/components/schemas/ErasureReceiptPackage"
                 }
               }
             }
@@ -115477,7 +115451,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/ErasureReceiptResource"
+                    "$ref": "#/components/schemas/ErasureReceiptPackage"
                   }
                 }
               }
@@ -115731,7 +115705,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PeerKeyPackagesClaimRequestBody"
+                  "$ref": "#/components/schemas/KeyPackagesClaimRequestBody"
                 }
               }
             }
@@ -115742,7 +115716,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
+                    "$ref": "#/components/schemas/PeerKeyPackagesClaimCommandResponseBody"
                   }
                 }
               }
@@ -121556,7 +121530,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
+                    "$ref": "#/components/schemas/PeerKeyPackagesClaimCommandResponseBody"
                   }
                 }
               }
@@ -122851,7 +122825,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/AppletThirdPartyLocationLookupResponseBody"
+                    "$ref": "#/components/schemas/AppletRealmView"
                   }
                 }
               }

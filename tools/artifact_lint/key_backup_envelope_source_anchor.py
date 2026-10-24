@@ -26,9 +26,7 @@ def _find(rows: Any, key: str, value: str) -> dict[str, Any] | None:
     return next((row for row in rows if isinstance(row, dict) and row.get(key) == value), None)
 
 
-def _source_shape(schema: dict[str, Any], *, active_series: bool) -> dict[str, Any]:
-    if active_series:
-        return schema.get("$defs", {}).get("source_commit_ref", {})
+def _source_shape(schema: dict[str, Any]) -> dict[str, Any]:
     return schema.get("properties", {}).get("source_commit_ref", {})
 
 
@@ -78,7 +76,7 @@ def check_key_backup_envelope_source_anchor(lint: Lint) -> None:
         _fail(lint, ENVELOPE_SCHEMA, "envelope must reject unregistered top-level aliases")
 
     expected_fields = {"realm_commit_id", "device_generation_ref"}
-    anchor = _source_shape(envelope, active_series=False)
+    anchor = _source_shape(envelope)
     if set(anchor.get("required", [])) != expected_fields:
         _fail(lint, ENVELOPE_SCHEMA, "source_commit_ref must require exactly two canonical members")
     if set(anchor.get("properties", {})) != expected_fields:
@@ -94,17 +92,8 @@ def check_key_backup_envelope_source_anchor(lint: Lint) -> None:
     if generation.get("$ref") != "./recovery-session.schema.json#/$defs/pcr_generation_ref":
         _fail(lint, ENVELOPE_SCHEMA, "device_generation_ref must reuse the positive integer PCR generation definition")
 
-    active_anchor = _source_shape(active_series, active_series=True)
-    if {
-        "required": active_anchor.get("required"),
-        "properties": active_anchor.get("properties"),
-        "additionalProperties": active_anchor.get("additionalProperties"),
-    } != {
-        "required": anchor.get("required"),
-        "properties": anchor.get("properties"),
-        "additionalProperties": anchor.get("additionalProperties"),
-    }:
-        _fail(lint, ACTIVE_SERIES_SCHEMA, "active-series and envelope source anchors must have the same closed typed shape")
+    if _source_shape(active_series).get('$ref') != './key-backup.schema.json#/properties/source_commit_ref':
+        _fail(lint, ACTIVE_SERIES_SCHEMA, 'active-series and envelope source anchors must have the same closed typed shape through the canonical reference')
 
     if not _predecessor_rules_closed(envelope):
         _fail(lint, ENVELOPE_SCHEMA, "genesis/successor predecessor rules must remain independent and structurally closed")

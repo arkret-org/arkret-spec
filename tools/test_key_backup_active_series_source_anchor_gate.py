@@ -23,6 +23,7 @@ class KeyBackupActiveSeriesSourceAnchorGateTest(unittest.TestCase):
     def setUp(self) -> None:
         self.documents = {
             gate.ACTIVE_SERIES_SCHEMA.resolve(): read(gate.ACTIVE_SERIES_SCHEMA),
+            gate.KEY_BACKUP_SCHEMA.resolve(): read(gate.KEY_BACKUP_SCHEMA),
             gate.KEYS_OPERATIONS_SCHEMA.resolve(): read(gate.KEYS_OPERATIONS_SCHEMA),
             gate.EVENT_PAYLOAD_SCHEMA.resolve(): read(gate.EVENT_PAYLOAD_SCHEMA),
             gate.CONTRACT_REGISTRY.resolve(): read(gate.CONTRACT_REGISTRY),
@@ -64,23 +65,29 @@ class KeyBackupActiveSeriesSourceAnchorGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "require source_commit_ref exactly once")
 
+    def test_source_checkpoint_cannot_be_duplicated_in_the_active_series_schema(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]['$defs']['source_commit_ref'] = copy.deepcopy(
+                documents[gate.KEY_BACKUP_SCHEMA.resolve()]['properties']['source_commit_ref'])
+        self.assert_red(mutate, 'duplicate source checkpoint')
+
     def test_full_committed_event_ref_members_fail(self) -> None:
         def mutate(documents: dict) -> None:
-            anchor = documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]["$defs"]["source_commit_ref"]
+            anchor = documents[gate.KEY_BACKUP_SCHEMA.resolve()]["properties"]["source_commit_ref"]
             anchor["properties"]["commit_ref"] = {"type": "object"}
 
         self.assert_red(mutate, "exactly two members")
 
     def test_realm_commit_id_cannot_weaken_to_object(self) -> None:
         def mutate(documents: dict) -> None:
-            anchor = documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]["$defs"]["source_commit_ref"]
+            anchor = documents[gate.KEY_BACKUP_SCHEMA.resolve()]["properties"]["source_commit_ref"]
             anchor["properties"]["realm_commit_id"] = {"type": "object"}
 
         self.assert_red(mutate, "strong RealmCommitId")
 
     def test_source_anchor_cannot_be_open(self) -> None:
         def mutate(documents: dict) -> None:
-            documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]["$defs"]["source_commit_ref"]["additionalProperties"] = True
+            documents[gate.KEY_BACKUP_SCHEMA.resolve()]["properties"]["source_commit_ref"]["additionalProperties"] = True
 
         self.assert_red(mutate, "must remain closed")
 
