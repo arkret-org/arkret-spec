@@ -49,7 +49,7 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
                 },
                 "purpose": "ak.signal.v1",
                 "aead_profile": "ak.aead.aes128_gcm.v1",
-                "epoch": 1,
+                "epoch": "1",
                 "nonce": "A" * 16,
                 "ciphertext": "A" * 22,
             },

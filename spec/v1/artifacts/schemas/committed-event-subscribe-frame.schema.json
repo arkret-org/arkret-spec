@@ -20,7 +20,23 @@
         "resync_required",
         "unauthorized",
         "quarantined"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "committed-event-subscribe-frame.schema.json#/properties/kind",
+        "owner": "committed-event-subscribe-frame.schema.json#/properties/kind",
+        "values": [
+          "committed_event",
+          "checkpoint",
+          "heartbeat",
+          "catchup_complete",
+          "epoch_rotation",
+          "dropped",
+          "resync_required",
+          "unauthorized",
+          "quarantined"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -43,7 +59,15 @@
     {
       "properties": {
         "kind": {
-          "const": "committed_event"
+          "const": "committed_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/0/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/0/properties/kind",
+            "values": [
+              "committed_event"
+            ]
+          }
         },
         "payload": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
@@ -64,7 +88,15 @@
     {
       "properties": {
         "kind": {
-          "const": "epoch_rotation"
+          "const": "epoch_rotation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/1/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/1/properties/kind",
+            "values": [
+              "epoch_rotation"
+            ]
+          }
         },
         "payload": {
           "$ref": "#/$defs/epoch_rotation_payload"
@@ -96,7 +128,16 @@
           "enum": [
             "checkpoint",
             "catchup_complete"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/2/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/2/properties/kind",
+            "values": [
+              "checkpoint",
+              "catchup_complete"
+            ]
+          }
         }
       },
       "required": [
@@ -121,7 +162,15 @@
     {
       "properties": {
         "kind": {
-          "const": "dropped"
+          "const": "dropped",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/3/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/3/properties/kind",
+            "values": [
+              "dropped"
+            ]
+          }
         }
       },
       "required": [
@@ -138,7 +187,15 @@
     {
       "properties": {
         "kind": {
-          "const": "resync_required"
+          "const": "resync_required",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/4/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/4/properties/kind",
+            "values": [
+              "resync_required"
+            ]
+          }
         }
       },
       "required": [
@@ -162,7 +219,15 @@
     {
       "properties": {
         "kind": {
-          "const": "unauthorized"
+          "const": "unauthorized",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/5/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/5/properties/kind",
+            "values": [
+              "unauthorized"
+            ]
+          }
         }
       },
       "required": [
@@ -191,7 +256,15 @@
     {
       "properties": {
         "kind": {
-          "const": "heartbeat"
+          "const": "heartbeat",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/6/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/6/properties/kind",
+            "values": [
+              "heartbeat"
+            ]
+          }
         }
       },
       "required": [
@@ -225,7 +298,15 @@
     {
       "properties": {
         "kind": {
-          "const": "quarantined"
+          "const": "quarantined",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "committed-event-subscribe-frame.schema.json#/oneOf/7/properties/kind",
+            "owner": "committed-event-subscribe-frame.schema.json#/oneOf/7/properties/kind",
+            "values": [
+              "quarantined"
+            ]
+          }
         },
         "payload": {
           "type": "object",
@@ -239,7 +320,15 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "error_code": {
-              "const": "witness_disagreement"
+              "const": "witness_disagreement",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "committed-event-subscribe-frame.schema.json#/oneOf/7/properties/payload/properties/error_code",
+                "owner": "committed-event-subscribe-frame.schema.json#/oneOf/7/properties/payload/properties/error_code",
+                "values": [
+                  "witness_disagreement"
+                ]
+              }
             },
             "affected_stream_refs": {
               "type": "array",

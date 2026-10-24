@@ -103,7 +103,7 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
 
     def test_pending_intent_cannot_enter_shared_reducer(self) -> None:
         def mutate(documents: dict) -> None:
-            documents[gate.CONTRACT.resolve()]["event_kind_registry"]["actor_private_contracts"]["event_writes"][gate.EVENT_KIND]["shared_realm_effect"] = "typed_current_result"
+            documents[gate.CONTRACT.resolve()]["event_kind_registry"]["actor_private_contracts"]["event_writes"][gate.EVENT_KIND]["shared_realm_effect"] = "current_state"
 
         self.assert_red(mutate, "shared reducer")
 

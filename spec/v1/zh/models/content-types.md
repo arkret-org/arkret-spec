@@ -405,7 +405,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "body": "What should we order for the party?",
   "poll": {
     "kind": "disclosed",
-    "max_selections": 1,
+    "max_selection_count": 1,
     "question": {
       "kind": "ak.content.text",
       "body": "What should we order for the party?"
@@ -424,7 +424,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 | `kind` | const `ak.content.poll` | MUST | content block 判别。 |
 | `body` | `string` | MUST | fallback 文本，用于不支持 poll 渲染的客户端。 |
 | `poll.kind` | `string` | MUST | 计票披露模式；封闭枚举，v1 仅 `disclosed` 一个取值（schema 为 `const`），以 `ak.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
-| `poll.max_selections` | `integer`（≥ 1） | MUST | 单次响应最多可选 answer 数。 |
+| `poll.max_selection_count` | `integer`（≥ 1） | MUST | 单次响应最多可选 answer 数。 |
 | `poll.question` | content block | MAY | 题干富文本；省略时以 `body` 为题。 |
 | `poll.answers[]` | `array` | MUST | 候选项数组，每项 `{ id: string, text: content block }`；`id` 在同一 poll 内 MUST 唯一。 |
 
@@ -435,11 +435,11 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 | `kind` | const `ak.content.poll.response` | MUST | content block 判别。 |
 | `body` | `string` | MUST | fallback 文本。 |
 | `poll_response.poll_ref` | `id:message` | MUST | 指向承载该 poll 的 Message。 |
-| `poll_response.selections` | `array<string>` | MUST | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selections`。 |
+| `poll_response.selections` | `array<string>` | MUST | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selection_count`。 |
 
 **v1 准入边界（normative）**：正式 poll 与 response 只允许出现在明文 `ak.message.create.payload.content` 中。producer MUST NOT 将上述两种 block 放入 `encrypted_content`；持钥客户端即使解密后读到相同的 JSON，也 MUST NOT 将它当作正式 poll、response 或计票输入。治理 Station 对不透明密文只按普通加密 Message 准入，不能声称已验证其 poll 类型、选项或分区；`encrypted_content` 与 `poll_response_heads[]` 同时出现 MUST 以 `schema_violation` 拒绝并零写入。明文 poll 可用于未启用 E2EE 且允许明文 content 的 scope；不得为开放加密投票泄露题目、答案或选择到明文 sidecar。
 
-响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`。`poll_ref` MUST 解析到同一 Realm、同一有效 Circle scope 内已接受且包含目标 `ak.content.poll` block 的 Message；缺失、跨 scope 或不指向 poll 时接收方 MUST 拒绝 response Event。`selections` MUST 非空、无重复，且每个成员都属于该 poll 的闭合 answer-id 集合；去重后的成员数 MUST 不大于 `max_selections`。未知 answer 或超选 MUST 整体拒绝，不得过滤、截断或部分计票。
+响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`。`poll_ref` MUST 解析到同一 Realm、同一有效 Circle scope 内已接受且包含目标 `ak.content.poll` block 的 Message；缺失、跨 scope 或不指向 poll 时接收方 MUST 拒绝 response Event。`selections` MUST 非空、无重复，且每个成员都属于该 poll 的闭合 answer-id 集合；去重后的成员数 MUST 不大于 `max_selection_count`。未知 answer 或超选 MUST 整体拒绝，不得过滤、截断或部分计票。
 
 权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不物化为时间线中的独立 `MessageState`。poll Morph 或 Relation 只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`；对应一致性向量为 `ak.vector.message.poll_reducer.v1`。
 

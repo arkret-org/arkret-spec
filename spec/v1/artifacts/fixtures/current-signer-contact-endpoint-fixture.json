@@ -1,6 +1,6 @@
 {
   "suite": "current_signer_contact_endpoint",
-  "version": "2026-10-02.2",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.signer_key.human_current_privacy.v1",
     "ak.vector.contact.peer_endpoint_selector.v1"
@@ -18,7 +18,7 @@
   "schema_validation_cases": [
     {
       "name": "human_current_key_only",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_signer_key_resolution",
       "expect_valid": true,
       "instance": {
         "selector": {
@@ -36,13 +36,13 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       }
     },
     {
       "name": "human_current_forbids_authorization_ref",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -60,7 +60,7 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "authorization_ref": {
             "event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
             "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
@@ -72,11 +72,11 @@
           }
         }
       },
-      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'authorization_ref': {'event_id': 'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g', 'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd'}, 'stream_position': 7}}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_base64url': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'authorization_ref': {'event_id': 'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g', 'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd'}, 'stream_position': 7}}} is not valid under any of the given schemas"
     },
     {
       "name": "human_current_forbids_revision",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -94,18 +94,18 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "revision": {
             "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
             "stream_position": 15
           }
         }
       },
-      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'revision': {'commit_id': 'ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5', 'stream_position': 15}}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_base64url': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'revision': {'commit_id': 'ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5', 'stream_position': 15}}} is not valid under any of the given schemas"
     },
     {
       "name": "human_current_forbids_governance_generation",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -123,15 +123,15 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "governance_generation": 4
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "governance_generation": "4"
         }
       },
-      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'governance_generation': 4}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_base64url': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'governance_generation': '4'}} is not valid under any of the given schemas"
     },
     {
       "name": "key_only_forbids_current_admission_agent",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -148,14 +148,14 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       },
-      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'agent', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#runtime'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'agent', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#runtime'}, 'status': 'resolved', 'key': {'public_key_base64url': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}} is not valid under any of the given schemas"
     },
     {
       "name": "key_only_forbids_historical_event_agent",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_agent_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_agent_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -181,7 +181,7 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         },
         "accepted_at": "2026-09-10T00:00:00.000Z"
       },
@@ -189,7 +189,7 @@
     },
     {
       "name": "key_only_forbids_historical_event_account_device",
-      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_account_device_outcome",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_account_device_signer_key_resolution",
       "expect_valid": false,
       "instance": {
         "selector": {
@@ -216,7 +216,7 @@
         },
         "status": "resolved",
         "key": {
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         },
         "accepted_at": "2026-09-10T00:00:00.000Z"
       },

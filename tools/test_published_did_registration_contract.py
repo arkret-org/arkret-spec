@@ -62,11 +62,11 @@ class PublishedDidRegistrationContract(unittest.TestCase):
             self.assertNotEqual(request_digest(changed), request['proof']['request_canonical_digest'])
 
     def test_success_and_relay_cannot_omit_initialization(self):
-        outcome = self.account['account_register_outcome']
+        outcome = self.account['account_register_response_body']
         self.assertTrue({'pcr_genesis_commits', 'session_grant_outcome', 'binding_receipt'} <= set(outcome['required']))
         receipt = self.account['account_binding_receipt']
         self.assertTrue({'identity_creation_lease_id', 'lease_fence'} <= set(receipt['required']))
-        relay = json.loads((ART / 'schemas/principal-operations.schema.json').read_text(encoding='utf-8'))['$defs']['pcr_genesis_submit_request']
+        relay = json.loads((ART / 'schemas/principal-operations.schema.json').read_text(encoding='utf-8'))['$defs']['pcr_genesis_submit_request_body']
         self.assertEqual(len(relay['oneOf']), 2)
         self.assertEqual(relay['oneOf'][0]['properties']['registration_did_evidence']['$ref'].split('/')[-1], 'registration_did_evidence')
         self.assertEqual(relay['oneOf'][1]['properties']['registration_did_evidence']['$ref'].split('/')[-1], 'published_registration_did_evidence')
@@ -75,7 +75,7 @@ class PublishedDidRegistrationContract(unittest.TestCase):
         reserved = self.account['reserved_identity_creation']
         self.assertIn('binding_kind', reserved['required'])
         self.assertIn('did_validated', self.account['identity_creation_lease']['properties']['state']['enum'])
-        self.assertIn('binding_kind', self.account['identity_abandonment_outcome']['required'])
+        self.assertIn('binding_kind', self.account['identity_abandonment_response_body']['required'])
 
     def test_relay_rejects_cross_branch_proof_and_time_material(self):
         request = self.fixture['request']
@@ -84,7 +84,7 @@ class PublishedDidRegistrationContract(unittest.TestCase):
         evidence = dict(published['registration_did_evidence_draft'], validated_at='2026-08-09T00:00:01.000Z')
         relay = {key: proof[key] for key in ('principal_id', 'did', 'pcr_realm_id', 'did_version_id', 'control_key_digest')}
         relay.update(account_authority_id=proof['audience_id'], idempotency_key='published-registration-0001', registration_request_digest=proof['request_canonical_digest'], principal_registration_anchor=published['principal_registration_anchor'], registration_did_evidence=evidence, account_registration_control_proof=proof, genesis_unit=published['pcr_genesis_unit'])
-        validator = Draft202012Validator({'$ref': 'https://arkret.org/v1/schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request'}, registry=self.registry)
+        validator = Draft202012Validator({'$ref': 'https://arkret.org/v1/schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request_body'}, registry=self.registry)
         self.assertFalse(list(validator.iter_errors(relay)))
         for mutation in ('registry_time', 'both_proofs', 'no_proof'):
             changed = deepcopy(relay)

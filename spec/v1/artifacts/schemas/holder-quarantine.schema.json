@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/holder-quarantine.schema.json",
   "title": "Arkret Holder Quarantine",
-  "description": "Closed plaintext account-data typed current result value of ak.account.holder_quarantine. The recipient Station is the sole CAS writer; the typed current result is a pending-review pointer inbox and grants no membership, contact, or consent authority. surface_kind is the closed discriminator: invite_delivery entries reference an accepted invite Event and its introduction evidence, consent_request entries reference no Event at all. Contact delivery is not a branch here: a Contact request has its own pending_incoming state and MUST NOT get a second parallel review carrier.",
+  "description": "Closed plaintext account-data current state value of ak.account.holder_quarantine. The recipient Station is the sole CAS writer; the current state is a pending-review pointer inbox and grants no membership, contact, or consent authority. surface_kind is the closed discriminator: invite_delivery entries reference an accepted invite Event and its introduction evidence, consent_request entries reference no Event at all. Contact delivery is not a branch here: a Contact request has its own pending_incoming state and MUST NOT get a second parallel review carrier.",
   "type": "object",
   "required": [
     "schema",
@@ -11,7 +11,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.holder_quarantine.v1"
+      "const": "ak.schema.holder_quarantine.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "holder-quarantine.schema.json#/properties/schema",
+        "owner": "holder-quarantine.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.holder_quarantine.v1"
+        ]
+      }
     },
     "updated_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
@@ -40,7 +48,16 @@
         "invite_delivery",
         "consent_request"
       ],
-      "description": "Closed discriminator for the admission surface that produced this entry. An unregistered value fails closed."
+      "description": "Closed discriminator for the admission surface that produced this entry. An unregistered value fails closed.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "holder-quarantine.schema.json#/$defs/surface_kind",
+        "owner": "holder-quarantine.schema.json#/$defs/surface_kind",
+        "values": [
+          "invite_delivery",
+          "consent_request"
+        ]
+      }
     },
     "introduction_kind": {
       "type": "string",
@@ -51,11 +68,24 @@
         "handle_claim",
         "same_station",
         "explicit_address"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "holder-quarantine.schema.json#/$defs/introduction_kind",
+        "owner": "holder-quarantine.schema.json#/$defs/introduction_kind",
+        "values": [
+          "locator_ref",
+          "consent_grant",
+          "shared_realm",
+          "handle_claim",
+          "same_station",
+          "explicit_address"
+        ]
+      }
     },
     "quarantine_entry": {
       "type": "object",
-      "description": "One pending-review quarantined admission. Membership in quarantine_entries is the only state this typed current result expresses: an entry is pending review until the holder reviews it or its TTL discards it, so no status member is carried. The two surface_kind branches are closed and mutually exclusive; a member declared by the other branch is a schema violation.",
+      "description": "One pending-review quarantined admission. Membership in quarantine_entries is the only state this current state expresses: an entry is pending review until the holder reviews it or its TTL discards it, so no status member is carried. The two surface_kind branches are closed and mutually exclusive; a member declared by the other branch is a schema violation.",
       "required": [
         "entry_digest",
         "account_id",
@@ -74,7 +104,7 @@
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact holder of this account-data typed current result and recipient of the quarantined invite. The sole CAS writer is account_id.station_id; another account with the same principal core is a different holder."
+          "description": "Exact holder of this account-data current state and recipient of the quarantined invite. The sole CAS writer is account_id.station_id; another account with the same principal core is a different holder."
         },
         "source_peer_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -99,7 +129,18 @@
             "video_call",
             "presence"
           ],
-          "description": "Requested consent scope. The invite_delivery branch pins it to invite; the consent_request branch admits every other registered scope. The enum mirrors zh/identity/consent-model.md section 4."
+          "description": "Requested consent scope. The invite_delivery branch pins it to invite; the consent_request branch admits every other registered scope. The enum mirrors zh/identity/consent-model.md section 4.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/consent_scope",
+            "owner": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/consent_scope",
+            "values": [
+              "invite",
+              "voice_call",
+              "video_call",
+              "presence"
+            ]
+          }
         },
         "introduction_kind": {
           "$ref": "#/$defs/introduction_kind",
@@ -114,7 +155,17 @@
             "high",
             "discovery",
             "low"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/trust_tier",
+            "owner": "holder-quarantine.schema.json#/$defs/quarantine_entry/properties/trust_tier",
+            "values": [
+              "high",
+              "discovery",
+              "low"
+            ]
+          }
         },
         "invite_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -141,7 +192,15 @@
           "if": {
             "properties": {
               "surface_kind": {
-                "const": "invite_delivery"
+                "const": "invite_delivery",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/if/properties/surface_kind",
+                  "owner": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/if/properties/surface_kind",
+                  "values": [
+                    "invite_delivery"
+                  ]
+                }
               }
             },
             "required": [
@@ -159,7 +218,15 @@
             ],
             "properties": {
               "consent_scope": {
-                "const": "invite"
+                "const": "invite",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/then/properties/consent_scope",
+                  "owner": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/then/properties/consent_scope",
+                  "values": [
+                    "invite"
+                  ]
+                }
               }
             }
           },
@@ -201,7 +268,15 @@
             "properties": {
               "consent_scope": {
                 "not": {
-                  "const": "invite"
+                  "const": "invite",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/else/properties/consent_scope/not",
+                    "owner": "holder-quarantine.schema.json#/$defs/quarantine_entry/allOf/0/else/properties/consent_scope/not",
+                    "values": [
+                      "invite"
+                    ]
+                  }
                 }
               }
             }
@@ -221,13 +296,29 @@
       ],
       "properties": {
         "reason": {
-          "const": "consent_revoke"
+          "const": "consent_revoke",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/reason",
+            "owner": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/reason",
+            "values": [
+              "consent_revoke"
+            ]
+          }
         },
         "peer_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "consent_scope": {
-          "const": "invite"
+          "const": "invite",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/consent_scope",
+            "owner": "holder-quarantine.schema.json#/$defs/consent_revoke_invalidation/properties/consent_scope",
+            "values": [
+              "invite"
+            ]
+          }
         },
         "revoked_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

@@ -15,13 +15,37 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.account_data_encrypted_value.v1"
+      "const": "ak.schema.account_data_encrypted_value.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "account-data-encrypted-value.schema.json#/properties/schema",
+        "owner": "account-data-encrypted-value.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.account_data_encrypted_value.v1"
+        ]
+      }
     },
     "version": {
-      "const": "1.0"
+      "const": "1.0",
+      "x-arkret-value-ownership": {
+        "class": "version_text",
+        "authority": "account-data-encrypted-value.schema.json#/properties/version",
+        "owner": "account-data-encrypted-value.schema.json#/properties/version",
+        "values": [
+          "1.0"
+        ]
+      }
     },
     "aead_profile": {
-      "const": "ak.aead.xchacha20_poly1305.v1"
+      "const": "ak.aead.xchacha20_poly1305.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "account-data-encrypted-value.schema.json#/properties/aead_profile",
+        "owner": "account-data-encrypted-value.schema.json#/properties/aead_profile",
+        "values": [
+          "ak.aead.xchacha20_poly1305.v1"
+        ]
+      }
     },
     "key_ref": {
       "type": "string",
@@ -45,10 +69,26 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.account_data_encrypted_value.v1"
+          "const": "ak.schema.account_data_encrypted_value.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "account-data-encrypted-value.schema.json#/properties/aad/properties/schema",
+            "owner": "account-data-encrypted-value.schema.json#/properties/aad/properties/schema",
+            "values": [
+              "ak.schema.account_data_encrypted_value.v1"
+            ]
+          }
         },
         "version": {
-          "const": "1.0"
+          "const": "1.0",
+          "x-arkret-value-ownership": {
+            "class": "version_text",
+            "authority": "account-data-encrypted-value.schema.json#/properties/aad/properties/version",
+            "owner": "account-data-encrypted-value.schema.json#/properties/aad/properties/version",
+            "values": [
+              "1.0"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"

@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from tools.artifact_lint import result_effect_ownership as gate
+from tools.artifact_lint import effect_ownership as gate
 
 
 def event_row(document: dict, kind: str) -> dict:
@@ -23,7 +23,7 @@ def event_row(document: dict, kind: str) -> dict:
     )
 
 
-class ResultEffectOwnershipTest(unittest.TestCase):
+class EffectOwnershipTest(unittest.TestCase):
     def _run(self, mutate=None) -> list[str]:
         original = gate.load_json
         document = copy.deepcopy(original(gate.Lint(), gate.CONTRACT_REGISTRY))
@@ -38,7 +38,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
         gate.load_json = load_json
         try:
             lint = gate.Lint()
-            gate.check_result_effect_ownership(lint)
+            gate.check_effect_ownership(lint)
             return lint.errors
         finally:
             gate.load_json = original
@@ -54,26 +54,26 @@ class ResultEffectOwnershipTest(unittest.TestCase):
         gaps = [
             row["event_kind"]
             for row in document["event_kind_registry"]["event_kinds"]
-            if row.get("result_effect_ownership", {}).get("kind") == "owned_gap"
+            if row.get("effect_ownership", {}).get("kind") == "owned_gap"
         ]
         self.assertEqual(gaps, [])
 
     def test_active_durable_kind_cannot_omit_ownership(self) -> None:
         errors = self._new_errors(
-            lambda d: event_row(d, "ak.message.create").pop("result_effect_ownership")
+            lambda d: event_row(d, "ak.message.create").pop("effect_ownership")
         )
         self.assertTrue(any("must be a closed object" in error for error in errors), errors)
 
     def test_unknown_classification_is_reported(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.message.create")["result_effect_ownership"]["kind"] = "mystery"
+            event_row(document, "ak.message.create")["effect_ownership"]["kind"] = "mystery"
 
         errors = self._new_errors(mutate)
         self.assertTrue(any("must be one of" in error for error in errors), errors)
 
     def test_typed_writer_cannot_name_a_second_owner(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.reaction.add")["result_effect_ownership"][
+            event_row(document, "ak.reaction.add")["effect_ownership"][
                 "owner_report"
             ] = "arkret-work/tasks/spec-open/probe.md"
 
@@ -82,14 +82,14 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_typed_writer_requires_nonempty_result_writes(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.reaction.add").pop("result_writes")
+            event_row(document, "ak.reaction.add").pop("state_writes")
 
         errors = self._new_errors(mutate)
-        self.assertTrue(any("non-empty result_writes" in error for error in errors), errors)
+        self.assertTrue(any("non-empty state_writes" in error for error in errors), errors)
 
     def test_private_effect_must_resolve_to_a_covering_service_branch(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.contact.accepted")["result_effect_ownership"][
+            event_row(document, "ak.contact.accepted")["effect_ownership"][
                 "service_contract_id"
             ] = "ak.push.bridge.v1"
 
@@ -111,11 +111,11 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_service_branch_cannot_be_left_with_an_orphan_owner(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.contact.accepted")["result_effect_ownership"] = {
+            event_row(document, "ak.contact.accepted")["effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
                 "closure_condition": (
-                    "Register the complete result_writes[] contract for ak.contact.accepted, including every written family, exact selector, projection, value schema, guard and field source."
+                    "Register the complete state_writes[] contract for ak.contact.accepted, including every written family, exact selector, projection, value schema, guard and field source."
                 ),
             }
 
@@ -124,7 +124,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_audit_fact_must_resolve_its_normative_definition(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.audit.erasure_receipt")["result_effect_ownership"][
+            event_row(document, "ak.audit.erasure_receipt")["effect_ownership"][
                 "defined_in"
             ] = "zh/identity/missing.md"
 
@@ -134,12 +134,12 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_non_audit_durable_fact_cannot_gain_a_typed_write(self) -> None:
         def mutate(document: dict) -> None:
             row = event_row(document, "ak.applet.bridge_error")
-            row["result_writes"] = copy.deepcopy(
-                event_row(document, "ak.reaction.add")["result_writes"]
+            row["state_writes"] = copy.deepcopy(
+                event_row(document, "ak.reaction.add")["state_writes"]
             )
 
         errors = self._new_errors(mutate)
-        self.assertTrue(any("declares result_writes" in error for error in errors), errors)
+        self.assertTrue(any("declares state_writes" in error for error in errors), errors)
 
     def test_authority_commit_effect_cannot_duplicate_the_counter(self) -> None:
         def mutate(document: dict) -> None:
@@ -148,7 +148,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
                 for row in document["service_contracts"]
                 if row["contract_id"] == "ak.realm.governance_station_handoff.v1"
             )
-            service["branches"][0]["typed_current_result_effect"] = "realm_governance_generation"
+            service["branches"][0]["current_state_effect"] = "realm_governance_generation"
 
         errors = self._new_errors(mutate)
         self.assertTrue(any("duplicates governance_generation" in error for error in errors), errors)
@@ -156,11 +156,11 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_owned_gap_requires_a_live_owner_report(self) -> None:
         def mutate(document: dict) -> None:
             row = event_row(document, "ak.schema.define")
-            row.pop("result_writes")
-            row["result_effect_ownership"] = {
+            row.pop("state_writes")
+            row["effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/no-such-report.md",
-                "closure_condition": "Register ak.schema.define result_writes[] including family, selector, projection, value schema, guard and field source.",
+                "closure_condition": "Register ak.schema.define state_writes[] including family, selector, projection, value schema, guard and field source.",
             }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve() / "arkret-spec"
@@ -173,7 +173,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_owned_gap_requires_a_precise_closure_condition(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.schema.define")["result_effect_ownership"] = {
+            event_row(document, "ak.schema.define")["effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
                 "closure_condition": "later",
@@ -185,7 +185,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_owned_gap_cannot_hide_a_registered_writer(self) -> None:
         def mutate(document: dict) -> None:
             row = event_row(document, "ak.schema.define")
-            row["result_effect_ownership"] = {
+            row["effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
                 "closure_condition": "Register the complete typed result write contract and replace this temporary classification.",
@@ -196,7 +196,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_actor_private_kind_cannot_omit_ownership(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.device.push_route").pop("result_effect_ownership")
+            event_row(document, "ak.device.push_route").pop("effect_ownership")
 
         errors = self._new_errors(mutate)
         self.assertTrue(any("must be a closed object" in error for error in errors), errors)
@@ -254,7 +254,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_actor_private_effect_branch_cannot_be_orphaned(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.device.push_route")["result_effect_ownership"] = {
+            event_row(document, "ak.device.push_route")["effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
                 "closure_condition": (

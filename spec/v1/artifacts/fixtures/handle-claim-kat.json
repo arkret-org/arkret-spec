@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-10-24.1",
   "suite": "handle_claim_closed_transcripts",
   "runner": {
     "kind": "known_answer_tests",
@@ -116,22 +116,22 @@
         ]
       },
       "status": "verified",
-      "as_of": "2026-09-01T00:01:00.000Z",
       "verifier_id": "ak:did_core:webvh:z6mkfixtureverifier",
       "verified_at": "2026-09-01T00:01:00.000Z",
       "revocation": null,
-      "fresh_until": "2026-09-01T00:06:00.000Z",
       "status_proof": {
         "kind": "detached_jws",
         "verification_method": "did:webvh:z6mkfixtureverifier:verifier.example#key-1",
-        "payload_digest": "sha256:1e43e94d97eb74876e41d6eff05292f7e0d8767e9284ce243e49a23735e1053c",
+        "payload_digest": "sha256:8a4187ad66bf7cccd6f922a815ae8199276659694174600218660a010dbeef36",
         "created_at": "2026-09-01T00:01:00.000Z",
         "domain": "ak.handle_claim_status.v1",
         "proof_purpose": "status_attestation",
         "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
-      }
+      },
+      "cache_expires_at": "2026-09-01T00:06:00.000Z",
+      "evaluated_at": "2026-09-01T00:01:00.000Z"
     },
-    "expected_digest": "sha256:1e43e94d97eb74876e41d6eff05292f7e0d8767e9284ce243e49a23735e1053c"
+    "expected_digest": "sha256:8a4187ad66bf7cccd6f922a815ae8199276659694174600218660a010dbeef36"
   },
   "proof_signing_input": {
     "kind": "detached_jws",

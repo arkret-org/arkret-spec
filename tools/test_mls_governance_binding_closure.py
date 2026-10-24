@@ -157,7 +157,7 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
     def test_schema_must_publish_uint64_maximum(self) -> None:
         def mutate(value):
-            del value["$defs"]["mls_governance_binding"]["properties"]["key_access_revision"]["maximum"]
+            value["$defs"]["mls_governance_binding"]["properties"]["key_access_revision"]["$ref"] = "./decimal-integers.schema.json#/$defs/nonnegative_int64_decimal"
 
         self.assertTrue(any("key_access_revision must be uint64" in error for error in self._run(SCHEMA, mutate)))
 

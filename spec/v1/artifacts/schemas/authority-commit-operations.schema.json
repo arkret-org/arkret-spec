@@ -4,29 +4,29 @@
   "title": "Arkret Authority Commit Operations",
   "oneOf": [
     {
-      "$ref": "#/$defs/submit_request"
+      "$ref": "#/$defs/submit_request_body"
     },
     {
-      "$ref": "#/$defs/submit_outcome"
+      "$ref": "#/$defs/submit_response_body"
     },
     {
-      "$ref": "#/$defs/stream_scan_request"
+      "$ref": "#/$defs/stream_scan_request_body"
     },
     {
-      "$ref": "#/$defs/stream_scan_outcome"
+      "$ref": "#/$defs/stream_scan_response_body"
     },
     {
-      "$ref": "#/$defs/peer_stream_scan_outcome"
+      "$ref": "#/$defs/peer_stream_scan_response_body"
     },
     {
-      "$ref": "#/$defs/authority_bundle_request"
+      "$ref": "#/$defs/realm_authority_bundle_request_body"
     },
     {
-      "$ref": "#/$defs/handoff_request"
+      "$ref": "#/$defs/realm_authority_handoff_request_body"
     }
   ],
   "$defs": {
-    "submit_request": {
+    "submit_request_body": {
       "description": "One ordinary producer Event with the approval signatures its two approval layers require for the Event action or for this registered submit operation, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventAdmissionSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
       "oneOf": [
         {
@@ -35,9 +35,10 @@
         {
           "$ref": "./mls-commit-submission.schema.json"
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "submit_outcome": {
+    "submit_response_body": {
       "oneOf": [
         {
           "type": "object",
@@ -50,7 +51,16 @@
               "enum": [
                 "committed",
                 "duplicate"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/submit_response_body/oneOf/0/properties/status",
+                "owner": "authority-commit-operations.schema.json#/$defs/submit_response_body/oneOf/0/properties/status",
+                "values": [
+                  "committed",
+                  "duplicate"
+                ]
+              }
             },
             "commit": {
               "$ref": "./realm-commit.schema.json"
@@ -69,7 +79,16 @@
               "enum": [
                 "rejected",
                 "retryable_unavailable"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/submit_response_body/oneOf/1/properties/status",
+                "owner": "authority-commit-operations.schema.json#/$defs/submit_response_body/oneOf/1/properties/status",
+                "values": [
+                  "rejected",
+                  "retryable_unavailable"
+                ]
+              }
             },
             "reason_code": {
               "type": "string",
@@ -78,9 +97,10 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "self_submit_request": {
+    "self_submit_request_body": {
       "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true.",
       "oneOf": [
         {
@@ -101,13 +121,14 @@
         {
           "$ref": "#/$defs/audit_paired_event_unit_submission"
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "self_submit_outcome": {
+    "self_submit_response_body": {
       "description": "Closed self Event-submit outcome union. Aggregate outcomes cannot be parsed as an ordinary single-Event outcome.",
       "oneOf": [
         {
-          "$ref": "#/$defs/submit_outcome"
+          "$ref": "#/$defs/submit_response_body"
         },
         {
           "$ref": "#/$defs/direct_conversation_founding_acceptance_outcome"
@@ -121,9 +142,10 @@
         {
           "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "peer_submit_request": {
+    "peer_submit_request_body": {
       "type": "object",
       "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier.",
       "required": [
@@ -135,7 +157,17 @@
             "authority_forward",
             "committed_replication",
             "registered_atomic_unit"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/properties/branch",
+            "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/properties/branch",
+            "values": [
+              "authority_forward",
+              "committed_replication",
+              "registered_atomic_unit"
+            ]
+          }
         },
         "event_submission": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -180,7 +212,15 @@
           ],
           "properties": {
             "branch": {
-              "const": "authority_forward"
+              "const": "authority_forward",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/0/properties/branch",
+                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/0/properties/branch",
+                "values": [
+                  "authority_forward"
+                ]
+              }
             }
           },
           "not": {
@@ -219,7 +259,15 @@
                   "event": {
                     "properties": {
                       "kind": {
-                        "const": "ak.mls.genesis"
+                        "const": "ak.mls.genesis",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event/properties/kind",
+                          "values": [
+                            "ak.mls.genesis"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -256,7 +304,15 @@
           ],
           "properties": {
             "branch": {
-              "const": "authority_forward"
+              "const": "authority_forward",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/1/properties/branch",
+                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/1/properties/branch",
+                "values": [
+                  "authority_forward"
+                ]
+              }
             }
           },
           "not": {
@@ -302,7 +358,15 @@
           ],
           "properties": {
             "branch": {
-              "const": "authority_forward"
+              "const": "authority_forward",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/2/properties/branch",
+                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/2/properties/branch",
+                "values": [
+                  "authority_forward"
+                ]
+              }
             }
           },
           "not": {
@@ -352,7 +416,15 @@
           ],
           "properties": {
             "branch": {
-              "const": "committed_replication"
+              "const": "committed_replication",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/3/properties/branch",
+                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/3/properties/branch",
+                "values": [
+                  "committed_replication"
+                ]
+              }
             }
           },
           "not": {
@@ -407,7 +479,15 @@
           ],
           "properties": {
             "branch": {
-              "const": "registered_atomic_unit"
+              "const": "registered_atomic_unit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/4/properties/branch",
+                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/oneOf/4/properties/branch",
+                "values": [
+                  "registered_atomic_unit"
+                ]
+              }
             }
           },
           "not": {
@@ -493,36 +573,46 @@
         "ak.self.agent.deactivate",
         "ak.self.agent.pause",
         "ak.self.agent.resume"
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "peer_submit_outcome": {
+    "peer_submit_response_body": {
       "description": "Closed peer Event-submit outcome union. Replication reports one same-order item result for every input; registered units report exactly one indivisible outcome.",
       "oneOf": [
         {
-          "$ref": "#/$defs/peer_authority_forward_outcome"
+          "$ref": "#/$defs/peer_authority_forward_response_body"
         },
         {
-          "$ref": "#/$defs/peer_committed_replication_outcome"
+          "$ref": "#/$defs/peer_committed_replication_response_body"
         },
         {
-          "$ref": "#/$defs/peer_registered_atomic_unit_outcome"
+          "$ref": "#/$defs/peer_registered_atomic_unit_response_body"
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "peer_authority_forward_outcome": {
+    "peer_authority_forward_response_body": {
       "type": "object",
       "required": [
         "branch",
-        "outcome"
+        "response_body"
       ],
       "properties": {
         "branch": {
-          "const": "authority_forward"
+          "const": "authority_forward",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/peer_authority_forward_response_body/properties/branch",
+            "owner": "authority-commit-operations.schema.json#/$defs/peer_authority_forward_response_body/properties/branch",
+            "values": [
+              "authority_forward"
+            ]
+          }
         },
-        "outcome": {
+        "response_body": {
           "oneOf": [
             {
-              "$ref": "#/$defs/submit_outcome"
+              "$ref": "#/$defs/submit_response_body"
             },
             {
               "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
@@ -530,7 +620,8 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "committed_event_submission": {
       "type": "object",
@@ -587,7 +678,15 @@
                   "event": {
                     "properties": {
                       "kind": {
-                        "const": "ak.mls.commit"
+                        "const": "ak.mls.commit",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "authority-commit-operations.schema.json#/$defs/committed_event_submission/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/committed_event_submission/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                          "values": [
+                            "ak.mls.commit"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -630,7 +729,15 @@
                   "event": {
                     "properties": {
                       "kind": {
-                        "const": "ak.mls.commit"
+                        "const": "ak.mls.commit",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "authority-commit-operations.schema.json#/$defs/committed_event_submission/allOf/2/then/properties/event_submission/properties/event/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/committed_event_submission/allOf/2/then/properties/event_submission/properties/event/properties/kind",
+                          "values": [
+                            "ak.mls.commit"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -678,26 +785,28 @@
       "type": "object",
       "description": "Raw epoch-0 public material of one forwarded ak.mls.genesis: the exact bytes of the GroupInfo and ratchet_tree Blobs named by the Genesis payload group_info_ref and ratchet_tree_ref, as unpadded base64url. It carries no ref or digest echo; the refs in the signed Genesis are the only digest carrier. Each member is at most 5592406 characters, so each decodes to at most 4194304 bytes and the two together never exceed 8388608 bytes, the ak.peer.mls.read.group_state_material.v1 response bound; a longer member is schema_violation and there is no separate aggregate bound.",
       "required": [
-        "group_info_bytes_b64",
-        "ratchet_tree_bytes_b64"
+        "group_info_base64url",
+        "ratchet_tree_base64url"
       ],
       "properties": {
-        "group_info_bytes_b64": {
+        "group_info_base64url": {
           "type": "string",
           "minLength": 1,
           "maxLength": 5592406,
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         },
-        "ratchet_tree_bytes_b64": {
+        "ratchet_tree_base64url": {
           "type": "string",
           "minLength": 1,
           "maxLength": 5592406,
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false
     },
-    "peer_committed_replication_outcome": {
+    "peer_committed_replication_response_body": {
       "type": "object",
       "description": "Per-item replication outcome. replication_outcomes has exactly the same length and order as request.replications. Input order identifies each row, so an outcome does not repeat an index or source coordinates. rejected means that item was not stored. Transport retry replays the complete request body and returns the same outcomes. This branch has no accepted finality vocabulary.",
       "required": [
@@ -706,20 +815,29 @@
       ],
       "properties": {
         "branch": {
-          "const": "committed_replication"
+          "const": "committed_replication",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/peer_committed_replication_response_body/properties/branch",
+            "owner": "authority-commit-operations.schema.json#/$defs/peer_committed_replication_response_body/properties/branch",
+            "values": [
+              "committed_replication"
+            ]
+          }
         },
         "replication_outcomes": {
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
           "items": {
-            "$ref": "#/$defs/peer_committed_replication_outcome_record"
+            "$ref": "#/$defs/committed_event_replication_outcome"
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "peer_committed_replication_outcome_record": {
+    "committed_event_replication_outcome": {
       "oneOf": [
         {
           "type": "object",
@@ -731,7 +849,16 @@
               "enum": [
                 "stored",
                 "duplicate"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/committed_event_replication_outcome/oneOf/0/properties/status",
+                "owner": "authority-commit-operations.schema.json#/$defs/committed_event_replication_outcome/oneOf/0/properties/status",
+                "values": [
+                  "stored",
+                  "duplicate"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -744,7 +871,15 @@
           ],
           "properties": {
             "status": {
-              "const": "rejected"
+              "const": "rejected",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/committed_event_replication_outcome/oneOf/1/properties/status",
+                "owner": "authority-commit-operations.schema.json#/$defs/committed_event_replication_outcome/oneOf/1/properties/status",
+                "values": [
+                  "rejected"
+                ]
+              }
             },
             "reason_code": {
               "type": "string",
@@ -753,7 +888,9 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "attempt_outcome",
+      "x-arkret-outcome-scope": "committed_event_replication"
     },
     "ordinary_realm_bootstrap_unit_submission": {
       "type": "object",
@@ -765,7 +902,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "ordinary_realm_bootstrap"
+          "const": "ordinary_realm_bootstrap",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_unit_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_unit_submission/properties/unit_kind",
+            "values": [
+              "ordinary_realm_bootstrap"
+            ]
+          }
         },
         "idempotency_key": {
           "type": "string",
@@ -918,7 +1063,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.create"
+                  "const": "ak.realm.create",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.create"
+                    ]
+                  }
                 }
               }
             }
@@ -936,7 +1089,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.profile"
+                  "const": "ak.realm.profile",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.profile"
+                    ]
+                  }
                 }
               }
             }
@@ -954,7 +1115,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.policy_bundle"
+                  "const": "ak.realm.policy_bundle",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.policy_bundle"
+                    ]
+                  }
                 }
               }
             }
@@ -972,7 +1141,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.join_rule"
+                  "const": "ak.realm.join_rule",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.join_rule"
+                    ]
+                  }
                 }
               }
             }
@@ -990,7 +1167,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.history_access"
+                  "const": "ak.realm.history_access",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.history_access"
+                    ]
+                  }
                 }
               }
             }
@@ -1008,7 +1193,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.discovery"
+                  "const": "ak.realm.discovery",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.discovery"
+                    ]
+                  }
                 }
               }
             }
@@ -1026,7 +1219,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.alias"
+                  "const": "ak.realm.alias",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.alias"
+                    ]
+                  }
                 }
               }
             }
@@ -1044,7 +1245,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.plaintext_visible_services"
+                  "const": "ak.realm.plaintext_visible_services",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.plaintext_visible_services"
+                    ]
+                  }
                 }
               }
             }
@@ -1062,7 +1271,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.member.state"
+                  "const": "ak.member.state",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.member.state"
+                    ]
+                  }
                 }
               }
             }
@@ -1081,13 +1298,30 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "ordinary_realm_bootstrap"
+          "const": "ordinary_realm_bootstrap",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/unit_kind",
+            "values": [
+              "ordinary_realm_bootstrap"
+            ]
+          }
         },
         "status": {
           "enum": [
             "committed",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/status",
+            "values": [
+              "committed",
+              "duplicate"
+            ]
+          }
         },
         "commits": {
           "type": "array",
@@ -1098,7 +1332,9 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "ordinary_realm_bootstrap_acceptance"
     },
     "direct_conversation_founding_unit_submission": {
       "type": "object",
@@ -1110,7 +1346,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "direct_conversation_founding"
+          "const": "direct_conversation_founding",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_unit_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_unit_submission/properties/unit_kind",
+            "values": [
+              "direct_conversation_founding"
+            ]
+          }
         },
         "idempotency_key": {
           "type": "string",
@@ -1150,7 +1394,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.create"
+                  "const": "ak.realm.create",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.realm.create"
+                    ]
+                  }
                 }
               }
             }
@@ -1168,7 +1420,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.member.state"
+                  "const": "ak.member.state",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.member.state"
+                    ]
+                  }
                 },
                 "semantic_refs": {
                   "not": {
@@ -1182,7 +1442,16 @@
                           "enum": [
                             "direct_conversation_contact_round",
                             "direct_conversation_agent_provision"
-                          ]
+                          ],
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role",
+                            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role",
+                            "values": [
+                              "direct_conversation_contact_round",
+                              "direct_conversation_agent_provision"
+                            ]
+                          }
                         }
                       }
                     }
@@ -1205,7 +1474,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.strand.create"
+                  "const": "ak.strand.create",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.strand.create"
+                    ]
+                  }
                 },
                 "semantic_refs": {
                   "not": {
@@ -1219,7 +1496,16 @@
                           "enum": [
                             "direct_conversation_contact_round",
                             "direct_conversation_agent_provision"
-                          ]
+                          ],
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role",
+                            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role",
+                            "values": [
+                              "direct_conversation_contact_round",
+                              "direct_conversation_agent_provision"
+                            ]
+                          }
                         }
                       }
                     }
@@ -1241,7 +1527,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "direct_conversation_founding"
+          "const": "direct_conversation_founding",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_federation_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_federation_submission/properties/unit_kind",
+            "values": [
+              "direct_conversation_founding"
+            ]
+          }
         },
         "committed_events": {
           "type": "array",
@@ -1321,13 +1615,30 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "direct_conversation_founding"
+          "const": "direct_conversation_founding",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_acceptance_outcome/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_acceptance_outcome/properties/unit_kind",
+            "values": [
+              "direct_conversation_founding"
+            ]
+          }
         },
         "status": {
           "enum": [
             "committed",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_acceptance_outcome/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_acceptance_outcome/properties/status",
+            "values": [
+              "committed",
+              "duplicate"
+            ]
+          }
         },
         "commits": {
           "type": "array",
@@ -1338,7 +1649,9 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "direct_conversation_founding_acceptance"
     },
     "peer_registered_atomic_unit": {
       "description": "Closed source-committed atomic-unit union: Direct Conversation founding, membership compensation and audit_paired_event. No first admission or arbitrary Event collection.",
@@ -1354,7 +1667,7 @@
         }
       ]
     },
-    "peer_registered_atomic_unit_outcome": {
+    "peer_registered_atomic_unit_response_body": {
       "type": "object",
       "required": [
         "branch",
@@ -1362,7 +1675,15 @@
       ],
       "properties": {
         "branch": {
-          "const": "registered_atomic_unit"
+          "const": "registered_atomic_unit",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/peer_registered_atomic_unit_response_body/properties/branch",
+            "owner": "authority-commit-operations.schema.json#/$defs/peer_registered_atomic_unit_response_body/properties/branch",
+            "values": [
+              "registered_atomic_unit"
+            ]
+          }
         },
         "outcome": {
           "oneOf": [
@@ -1381,7 +1702,8 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "registered_atomic_unit_rejection": {
       "type": "object",
@@ -1395,10 +1717,27 @@
           "enum": [
             "direct_conversation_founding",
             "membership_compensation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/registered_atomic_unit_rejection/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/registered_atomic_unit_rejection/properties/unit_kind",
+            "values": [
+              "direct_conversation_founding",
+              "membership_compensation"
+            ]
+          }
         },
         "status": {
-          "const": "rejected"
+          "const": "rejected",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/registered_atomic_unit_rejection/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/registered_atomic_unit_rejection/properties/status",
+            "values": [
+              "rejected"
+            ]
+          }
         },
         "reason_code": {
           "type": "string",
@@ -1420,7 +1759,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "membership_compensation"
+          "const": "membership_compensation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_unit_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_unit_submission/properties/unit_kind",
+            "values": [
+              "membership_compensation"
+            ]
+          }
         },
         "event_submission": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -1441,7 +1788,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "membership_compensation"
+          "const": "membership_compensation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_federation_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_federation_submission/properties/unit_kind",
+            "values": [
+              "membership_compensation"
+            ]
+          }
         },
         "committed_event": {
           "$ref": "#/$defs/committed_event_submission"
@@ -1504,7 +1859,7 @@
         "executor_service_id",
         "verification_method",
         "resource_realm_id",
-        "deadline",
+        "expires_at",
         "action"
       ],
       "properties": {
@@ -1534,14 +1889,24 @@
         "resource_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "deadline": {
-          "$ref": "./principal-operations.schema.json#/$defs/timestamp"
+        "expires_at": {
+          "$ref": "./principal-operations.schema.json#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         },
         "action": {
           "enum": [
             "ak.member.compensate.leave",
             "ak.member.compensate.remove"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/action",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/action",
+            "values": [
+              "ak.member.compensate.leave",
+              "ak.member.compensate.remove"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -1565,7 +1930,15 @@
           "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
         },
         "status": {
-          "const": "join_terminal_failed"
+          "const": "join_terminal_failed",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_terminal_certificate/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_terminal_certificate/properties/status",
+            "values": [
+              "join_terminal_failed"
+            ]
+          }
         },
         "certified_at": {
           "$ref": "./principal-operations.schema.json#/$defs/timestamp"
@@ -1606,19 +1979,38 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "membership_compensation"
+          "const": "membership_compensation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_acceptance_outcome/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_acceptance_outcome/properties/unit_kind",
+            "values": [
+              "membership_compensation"
+            ]
+          }
         },
         "status": {
           "enum": [
             "committed",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/membership_compensation_acceptance_outcome/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/membership_compensation_acceptance_outcome/properties/status",
+            "values": [
+              "committed",
+              "duplicate"
+            ]
+          }
         },
         "commit": {
           "$ref": "./realm-commit.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "membership_compensation_acceptance"
     },
     "direct_conversation_founding_missing_dependency_list": {
       "type": "object",
@@ -1655,13 +2047,37 @@
       ],
       "properties": {
         "type": {
-          "const": "https://arkret.org/problems/dependency_missing"
+          "const": "https://arkret.org/problems/dependency_missing",
+          "x-arkret-value-ownership": {
+            "class": "uri",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/type",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/type",
+            "values": [
+              "https://arkret.org/problems/dependency_missing"
+            ]
+          }
         },
         "title": {
-          "const": "Dependency missing"
+          "const": "Dependency missing",
+          "x-arkret-value-ownership": {
+            "class": "human_text",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/title",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/title",
+            "values": [
+              "Dependency missing"
+            ]
+          }
         },
         "status": {
-          "const": 409
+          "const": 409,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem/properties/status",
+            "values": [
+              409
+            ]
+          }
         },
         "detail": {
           "type": "string",
@@ -1690,7 +2106,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "committed_event"
+              "const": "committed_event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/0/properties/kind",
+                "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/0/properties/kind",
+                "values": [
+                  "committed_event"
+                ]
+              }
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -1706,7 +2130,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_commit"
+              "const": "realm_commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/1/properties/kind",
+                "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/1/properties/kind",
+                "values": [
+                  "realm_commit"
+                ]
+              }
             },
             "commit_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
@@ -1725,7 +2157,16 @@
               "enum": [
                 "contact_round_evidence",
                 "agent_provision_ref"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/2/properties/kind",
+                "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/2/properties/kind",
+                "values": [
+                  "contact_round_evidence",
+                  "agent_provision_ref"
+                ]
+              }
             },
             "source_event_ref": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -1741,7 +2182,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "service_verification_method"
+              "const": "service_verification_method",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/3/properties/kind",
+                "owner": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/3/properties/kind",
+                "values": [
+                  "service_verification_method"
+                ]
+              }
             },
             "verification_method": {
               "type": "string",
@@ -1752,7 +2201,7 @@
         }
       ]
     },
-    "stream_scan_request": {
+    "stream_scan_request_body": {
       "type": "object",
       "description": "Positional single-stream scan request. Pagination is by stream_position, not by an opaque cursor: within one stream the governance Station's stream_position is a strict +1 total order, so the position IS the continuation token. Exactly one of after_position / before_position MUST be present; the exclusivity is structural (the oneOf below), so a request carrying both or neither is a schema violation and MUST NOT be repaired by picking a default direction. Both bounds are read inside the range this caller is permitted to read, never over the physical stream: null means 'from the oldest position this caller may read' (after_position) or 'from the newest position this caller may read' (before_position). Continuation is the caller's job: take the largest stream_position of this batch for after_position, the smallest for before_position.",
       "required": [
@@ -1790,7 +2239,7 @@
           "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
         },
         "after_position": {
-          "description": "Scan toward newer commits: return commits whose stream_position is strictly greater than this value, ascending. null starts at the oldest position this caller may read, which is position 0 only when that floor is the physical stream start; see stream_scan_outcome.readable_floor.",
+          "description": "Scan toward newer commits: return commits whose stream_position is strictly greater than this value, ascending. null starts at the oldest position this caller may read, which is position 0 only when that floor is the physical stream start; see stream_scan_response_body.readable_floor.",
           "oneOf": [
             {
               "type": "integer",
@@ -1819,7 +2268,8 @@
           "maximum": 1000
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "readable_floor": {
       "type": "object",
@@ -1846,7 +2296,17 @@
             "stream_start",
             "membership_join",
             "history_access_policy"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/readable_floor/properties/floor_reason",
+            "owner": "authority-commit-operations.schema.json#/$defs/readable_floor/properties/floor_reason",
+            "values": [
+              "stream_start",
+              "membership_join",
+              "history_access_policy"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -1854,7 +2314,7 @@
     "stream_row": {
       "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
     },
-    "stream_scan_outcome": {
+    "stream_scan_response_body": {
       "type": "object",
       "description": "Positional scan result over caller-visible committed Event views. There is no cursor or cross-stream order; continuation uses stream_position from committed_events[].",
       "required": [
@@ -1879,7 +2339,8 @@
           "description": "True when at least one further commit that this caller is permitted to read exists beyond this page in the requested direction, i.e. the scan stopped on limit. It is a statement about the caller's permitted range, never about the physical stream: a scan that stopped on the newest readable position (after_position) or on readable_floor.oldest_position (before_position) MUST set it false even when the Station holds further commits this caller may not read. History outside the caller's range MUST NOT set it, a page that stopped on the floor MUST NOT be presented as truncation, and truncated MUST NOT be used to conceal a floor. An empty committed_events[] with truncated false means the caller's permitted range is exhausted in that direction, never that the physical stream is empty or absent."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "committed_event_ref": {
       "type": "object",
@@ -1908,7 +2369,7 @@
       },
       "additionalProperties": false
     },
-    "authority_bundle_request": {
+    "realm_authority_bundle_request_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -1923,9 +2384,10 @@
           "pattern": "^[A-Za-z0-9_-]{43}$"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
-    "handoff_request": {
+    "realm_authority_handoff_request_body": {
       "type": "object",
       "required": [
         "handoff",
@@ -2010,7 +2472,16 @@
                                 "enum": [
                                   "principal_control",
                                   "agent_control"
-                                ]
+                                ],
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body/allOf/1/if/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                  "owner": "authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body/allOf/1/if/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                  "values": [
+                                    "principal_control",
+                                    "agent_control"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -2119,7 +2590,15 @@
                             ],
                             "properties": {
                               "purpose": {
-                                "const": "direct_conversation"
+                                "const": "direct_conversation",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body/allOf/3/not/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                  "owner": "authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body/allOf/3/not/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                  "values": [
+                                    "direct_conversation"
+                                  ]
+                                }
                               }
                             }
                           }
@@ -2155,7 +2634,8 @@
         "ak.self.agent.pause",
         "ak.self.agent.resume"
       ],
-      "description": "Eligible Organization PCR only when this is a PCR: verified accepted genesis provenance must satisfy the PCR profile pcr_governance_policy before any freeze/export/import/acceptance/activation. Human, user-managed Agent and unresolved provenance reject without effects; no subject flag in this DTO grants eligibility.  Direct Conversation accepted genesis is permanently ineligible, even with valid signatures and complete imports; rejection has no effects."
+      "description": "Eligible Organization PCR only when this is a PCR: verified accepted genesis provenance must satisfy the PCR profile pcr_governance_policy before any freeze/export/import/acceptance/activation. Human, user-managed Agent and unresolved provenance reject without effects; no subject flag in this DTO grants eligibility.  Direct Conversation accepted genesis is permanently ineligible, even with valid signatures and complete imports; rejection has no effects.",
+      "x-arkret-name-role": "request_body"
     },
     "account_device_historical_signer_fact": {
       "type": "object",
@@ -2192,7 +2672,7 @@
       },
       "additionalProperties": false
     },
-    "peer_stream_scan_outcome": {
+    "peer_stream_scan_response_body": {
       "type": "object",
       "description": "Peer-only authorized original rows and exactly one ordered original Commit-bound producer fact for every digest-bearing Full original, using the matching historical_producer_signer_fact branch for its actual producer. Withheld/redacted rows carry no fact. Handoff inventory covers the complete imported digest-bearing original target set, independent of member floors.",
       "required": [
@@ -2225,7 +2705,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "service_historical_signer_fact": {
       "type": "object",
@@ -2304,7 +2785,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.strand.watch.set"
+                  "const": "ak.strand.watch.set",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_watch_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_watch_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.strand.watch.set"
+                    ]
+                  }
                 },
                 "payload": {
                   "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload"
@@ -2328,7 +2817,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.circle.member.state"
+                  "const": "ak.circle.member.state",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.circle.member.state"
+                    ]
+                  }
                 },
                 "payload": {
                   "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
@@ -2362,7 +2859,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.audit.accessed"
+                  "const": "ak.audit.accessed",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.audit.accessed"
+                    ]
+                  }
                 },
                 "payload": {
                   "allOf": [
@@ -2379,7 +2884,16 @@
                           "enum": [
                             "watch_set_others",
                             "circle_member_set_others"
-                          ]
+                          ],
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
+                            "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
+                            "values": [
+                              "watch_set_others",
+                              "circle_member_set_others"
+                            ]
+                          }
                         }
                       }
                     }
@@ -2402,7 +2916,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "audit_paired_event"
+          "const": "audit_paired_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_event_unit_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_event_unit_submission/properties/unit_kind",
+            "values": [
+              "audit_paired_event"
+            ]
+          }
         },
         "events": {
           "type": "array",
@@ -2431,13 +2953,30 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "audit_paired_event"
+          "const": "audit_paired_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_event_acceptance_outcome/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_event_acceptance_outcome/properties/unit_kind",
+            "values": [
+              "audit_paired_event"
+            ]
+          }
         },
         "status": {
           "enum": [
             "committed",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_event_acceptance_outcome/properties/status",
+            "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_event_acceptance_outcome/properties/status",
+            "values": [
+              "committed",
+              "duplicate"
+            ]
+          }
         },
         "commits": {
           "type": "array",
@@ -2449,7 +2988,9 @@
         }
       },
       "additionalProperties": false,
-      "description": "Original source RealmCommits in business/audit order. Same stream, generation and consecutive positions; exact replay preserves the first outcome bytes. No unit-level acceptance receipt or new Event identity."
+      "description": "Original source RealmCommits in business/audit order. Same stream, generation and consecutive positions; exact replay preserves the first outcome bytes. No unit-level acceptance receipt or new Event identity.",
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "audit_paired_event_acceptance"
     },
     "audit_paired_event_federation_submission": {
       "type": "object",
@@ -2459,7 +3000,15 @@
       ],
       "properties": {
         "unit_kind": {
-          "const": "audit_paired_event"
+          "const": "audit_paired_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_event_federation_submission/properties/unit_kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_event_federation_submission/properties/unit_kind",
+            "values": [
+              "audit_paired_event"
+            ]
+          }
         },
         "committed_events": {
           "type": "array",
@@ -2568,9 +3117,7 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "effective_stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -2601,8 +3148,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "final_stream_heads_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
@@ -2624,7 +3170,7 @@
         "event_id",
         "actor_id",
         "verification_method",
-        "public_key_b64u",
+        "public_key_base64url",
         "accepted_at",
         "device_id",
         "authorization_event_id",
@@ -2632,7 +3178,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_device"
+          "const": "realm_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/realm_device_historical_signer_fact/properties/kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/realm_device_historical_signer_fact/properties/kind",
+            "values": [
+              "realm_device"
+            ]
+          }
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -2643,9 +3197,10 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$"
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -2670,13 +3225,21 @@
         "event_id",
         "actor_id",
         "verification_method",
-        "public_key_b64u",
+        "public_key_base64url",
         "accepted_at",
         "control_event_ref"
       ],
       "properties": {
         "kind": {
-          "const": "realm_control"
+          "const": "realm_control",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/realm_control_historical_signer_fact/properties/kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/realm_control_historical_signer_fact/properties/kind",
+            "values": [
+              "realm_control"
+            ]
+          }
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -2687,9 +3250,10 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$"
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -2708,7 +3272,7 @@
         "actor_id",
         "target_actor_id",
         "verification_method",
-        "public_key_b64u",
+        "public_key_base64url",
         "accepted_at",
         "applet_id",
         "registration_epoch",
@@ -2718,7 +3282,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_recovery_service"
+          "const": "realm_recovery_service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/realm_recovery_service_historical_signer_fact/properties/kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/realm_recovery_service_historical_signer_fact/properties/kind",
+            "values": [
+              "realm_recovery_service"
+            ]
+          }
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -2731,7 +3303,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "service"
+                  "const": "service",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "authority-commit-operations.schema.json#/$defs/realm_recovery_service_historical_signer_fact/properties/actor_id/allOf/1/properties/kind",
+                    "owner": "authority-commit-operations.schema.json#/$defs/realm_recovery_service_historical_signer_fact/properties/actor_id/allOf/1/properties/kind",
+                    "values": [
+                      "service"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -2746,10 +3326,11 @@
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

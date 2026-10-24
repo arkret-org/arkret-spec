@@ -75,7 +75,7 @@ class MimiKeyMaterialClaimContract(unittest.TestCase):
             'service_binding': request['service_binding'],
         }
         key = Ed25519PublicKey.from_public_bytes(unb64(self.fixture['participant_public_key']))
-        signature = unb64(auth['signature']['sig'])
+        signature = unb64(auth['signature']['signature'])
         prefix = b'ak.peer-keypackage-claim-authorization-v1\n'
         key.verify(signature, prefix + jcs(transcript))
         for branch in transcript:
@@ -99,7 +99,7 @@ class MimiKeyMaterialClaimContract(unittest.TestCase):
         self.assertLessEqual(receipt['expires_at'], publication['expires_at'])
         key = Ed25519PublicKey.from_public_bytes(unb64(self.fixture['destination_public_key']))
         body = {k: v for k, v in receipt.items() if k != 'signature'}
-        signature = unb64(receipt['signature']['sig'])
+        signature = unb64(receipt['signature']['signature'])
         prefix = b'ak.peer-keypackage-claim-receipt-v1\n'
         key.verify(signature, prefix + jcs(body))
         for field in body:

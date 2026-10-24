@@ -89,14 +89,14 @@ Schema id: `ak.schema.actor_profile.v1`
   - **Bot**：Applet 管辖的自动化 principal；其 lifecycle 与授权根来自 Applet registration/install/provisioning，MUST NOT 进入 Agent provisioning、pairing、Sidecar 或 controller membership cascade。
   - **Ghost Actor**：Applet 对外部主体的 Realm 内镜像，使用独立 DID 与完整 realm ActorId；创建来源、当前管理 Service、控制方法、双暂停门和 Device 代际独立核验。Profile 不携普通账号的 accountability/handle/agent_slug。具体合同见 [Realm Bot／Ghost](../extensions/realm-actors.md)。
 - **Agent 三轴正交（normative）**：Agent 通用 list/get 恰好暴露 lifecycle、readiness、presence。lifecycle (`active|paused|deactivated`) 只表达 controller intent；generic readiness (`ready|not_ready`) 的 closed blockers 只从主体级 durable runtime key 与 open pairing 派生，即 `runtime_key_missing|pairing_open`，不得复制 backup、session、KeyPackage、target grant/membership/reply/MLS facts；presence (`online|offline|unknown` + expiry/refresh) 只表达短时可达性。target-specific 事实只进入对应 operation 或 SDK local plan。pairing poll 的 `runtime_state` 只是 handle-local 诊断，不得进入 generic view/key_state 或成为第四轴。
-- **Realm membership 从属性（normative）**：Agent 的 canonical Realm membership 是独立、caller-signed 的 `ak.member.state`；它的 effective membership 还必须与 controller 当前状态做确定性 AND。Agent 的 `join` payload MUST 携 `agent_controller_binding`，逐字绑定 controller 的 exact `AccountId` 与当前 accepted controller `join` Event ID（该 Event ID 就是 membership generation ref）。在 controller/Agent 私聊完整原子 founding unit 内，允许按 [私聊 §6.1](../identity/contact-and-direct-conversation.md) 显式引用同批前序 controller join，整批 accepted 才生效；字段不得省略或由 receiver 推导。只有 `agent_member_result == join`、controller 当前 typed current result 仍由该 exact join Event 建立且为 `join`、Agent lifecycle 为 `active`、provision/accountability 绑定仍有效时，Agent 才是 effective member。controller 后续 rejoin 产生新的 join Event ID，旧 Agent join 永远不能自动复活。
+- **Realm membership 从属性（normative）**：Agent 的 canonical Realm membership 是独立、caller-signed 的 `ak.member.state`；它的 effective membership 还必须与 controller 当前状态做确定性 AND。Agent 的 `join` payload MUST 携 `agent_controller_binding`，逐字绑定 controller 的 exact `AccountId` 与当前 accepted controller `join` Event ID（该 Event ID 就是 membership generation ref）。在 controller/Agent 私聊完整原子 founding unit 内，允许按 [私聊 §6.1](../identity/contact-and-direct-conversation.md) 显式引用同批前序 controller join，整批 accepted 才生效；字段不得省略或由 receiver 推导。只有 `agent_member_result == join`、controller 当前 current state 仍由该 exact join Event 建立且为 `join`、Agent lifecycle 为 `active`、provision/accountability 绑定仍有效时，Agent 才是 effective member。controller 后续 rejoin 产生新的 join Event ID，旧 Agent join 永远不能自动复活。
 - controller 已是 active member 时，MAY 直接把自己控制且 lifecycle 为 `active` 的 Agent 从 `leave` 转为 `join`；该动作是 controller 对受控 principal 的显式授权，不是发给 Agent Runtime 的邀请，因此 MUST NOT 创建 pending invite、MUST NOT 要求 Agent opt-in，也 MUST NOT 走 `ak.invite.accept`。Reducer MUST 校验 active provisioning state、`ak.identity.accountability_grant`、Realm Agent policy、join policy 与 E2EE/MLS admission；仅凭 `accountable_principal_ids` 字面声明不得放行。普通成员不得用此路径加入其他 controller 的 Agent 或任意第三方 principal。
-- **无主残留禁止（normative）**：controller 的 membership 不再是 binding 所指的 active `join` 时，受控 Agent 从同一 accepted basis 起立即 effective-invalid，不得 author Event、取得 capability、接收新 delivery、领取 KeyPackage 或继续作为 MLS active member；该安全门不等待 cleanup Event，也不依赖缓存。canonical Agent member typed current result 只由显式签名 Event 改写，reducer、Station、数据库 trigger 均不得合成 Agent leave。
-- **显式 cascade 的 v1 边界（normative）**：`AgentMembershipCascadeSubmission` 与 exact-set cleanup record 是已登记的 typed 模型，但正式 `self_submit_request`／`self_submit_outcome` closed union 尚无对应分支。v1 不存在可调用的 cascade ingress；receiver MUST 对声称携带 `unit_kind="agent_membership_cascade"` 的提交失败关闭，不得把普通 Event body 当成原子 batch、合成 Agent leave，或返回 `terminal_applied_cleanup_pending`／`cleanup_completed` 的假 outcome。controller exact join generation 失效时，上一段的 effective-invalid 门立即生效；canonical Agent member typed current result 仍须由真实已签 Event 才能改变。typed 模型中 self leave exact set、第三方 terminal cleanup intent、原 initiator 签名及幂等/超时规则只限定将来若有正式载体时的验证语义，不构成 v1 操作可用性承诺。
+- **无主残留禁止（normative）**：controller 的 membership 不再是 binding 所指的 active `join` 时，受控 Agent 从同一 accepted basis 起立即 effective-invalid，不得 author Event、取得 capability、接收新 delivery、领取 KeyPackage 或继续作为 MLS active member；该安全门不等待 cleanup Event，也不依赖缓存。canonical Agent member current state 只由显式签名 Event 改写，reducer、Station、数据库 trigger 均不得合成 Agent leave。
+- **显式 cascade 的 v1 边界（normative）**：`AgentMembershipCascadeSubmission` 与 exact-set cleanup record 是已登记的 typed 模型，但正式 `self_submit_request_body`／`self_submit_response_body` closed union 尚无对应分支。v1 不存在可调用的 cascade ingress；receiver MUST 对声称携带 `unit_kind="agent_membership_cascade"` 的提交失败关闭，不得把普通 Event body 当成原子 batch、合成 Agent leave，或返回 `terminal_applied_cleanup_pending`／`cleanup_completed` 的假 outcome。controller exact join generation 失效时，上一段的 effective-invalid 门立即生效；canonical Agent member current state 仍须由真实已签 Event 才能改变。typed 模型中 self leave exact set、第三方 terminal cleanup intent、原 initiator 签名及幂等/超时规则只限定将来若有正式载体时的验证语义，不构成 v1 操作可用性承诺。
 - `membership_cause` 是 closed lifecycle cause，仅作审计分类，不授予 authority；它不能替代 terminal Event、exact controller binding、实际 signer 与正式 aggregate admission。自由文本 `reason` 最长 256 个 Unicode scalar values，不得作为 cascade 成立的证据。
 - `agent_slug` 是 Agent 的 **controller-scoped picker label**，仅在客户端已从授权来源取得目标完整 `subject_account_id` 后用于展示和逐字节绑定校验。当前 `agent_selector_claim` typed current 可证明该 label 绑定该已知目标；DID path、Actor Profile 字面值、roster 中的裸 slug 均不能反向构造 AccountId。v1 允许 `@holder/slug`（自有 Agent 可显示 `@me/slug`）作为已知完整候选的可读 UI 表示、过滤与显式选择输入；不得仅凭未绑定的 controller handle/holder/slug 组合自动寻址或推造完整 AccountId。选择已授权完整候选不要求全局 resolver、跨 Station 完整候选集或 absence proof；跨 Station 没有完整候选集/absence proof，单一 Station 的 current 行不能证明 principal 级唯一。`agent_slug` MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。多个当前可见 selector 值冲突时该 label 不得显示为 verified，且不得据此改选目标；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 `ak.agent.provision`。slug 变化不改写历史 mention 的已持久化 `subject_account_id`。
 
-- **唯一写入方（normative）**：`agent_selector_claim` 这个 typed current result family 只由 `ak.agent.provision`
+- **唯一写入方（normative）**：`agent_selector_claim` 这个 current state family 只由 `ak.agent.provision`
   的 selector 投影写入；协议不定义独立的 selector claim Event，也不定义可携带的签名 selector claim。
   namespace 是 principal 级 `(controller principal, agent_slug)`，**不加 Station**；被选中的目标是一个完整 AccountId。
   - provision 投影**没有**内层 selector proof，也 MUST NOT 为此新增一套签名或再复制一遍 agent principal。
@@ -142,7 +142,7 @@ Applet Realm Bot／Ghost 的管理来源由私有控制流的 identity／manager
 1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 committed 的问责记录，其 `issuer_id = <该 DID>`、`subject_id = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。**该记录有两个已登记来源，MUST 同时接受**（见下面的「问责记录只有一条，来源有两个」）：独立的 `ak.identity.accountability_grant`，以及 `ak.agent.provision` 的原子问责投影。MUST NOT 只搜索通用 kind。判定时刻 `now` 是接纳该 profile Event 的 RealmCommit 的 `committed_at`（治理 Station 在分配该 Commit 的同一接纳事务内读取问责记录，并锁住所依赖的记录行，使并发撤销排在该 Commit 之前或之后）；Event 的 `created_at` 不参与该判定，因此预签的 profile Event 不能在问责撤销后借旧时间被接纳。问责记录除上述 Applet closed creation exception 外只在 **issuer 的 Principal Control Realm** 中查找（两个来源都只写入那里，见下文）；issuer 的 PCR 不由接纳该 profile 的同一治理 Station 治理时，该 Station 读不到记录，结果即 `accountability_grant_missing`。同一 `(issuer, subject)` 的多个 exact-set 记录中任一满足条件即可。
 2. 任一 DID 条目不存在对应 active grant 时，reducer MUST 以 `failed_precondition`
    reason=`accountability_grant_missing` 拒绝整个 `ak.profile.create` / `ak.profile.update`
-   Event，且不得写入或裁剪后写入 Actor Profile typed current result。该判定只依赖签名 payload 与冻结的
+   Event，且不得写入或裁剪后写入 Actor Profile current state。该判定只依赖签名 payload 与冻结的
    control-plane basis，所有 verifier 必须得到相同结果。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
@@ -153,11 +153,11 @@ Applet Realm Bot／Ghost 的管理来源由私有控制流的 identity／manager
 （[`../identity/key-management.md` §3.6](../identity/key-management.md)：
 provision 原子投影问责事实，**后续独立变更仍使用通用 accountability Event**）。
 
-- **typed current result 身份**是 `(Realm, issuer principal, subject principal, 归一化 exact scope set)`。
+- **current state 身份**是 `(Realm, issuer principal, subject principal, 归一化 exact scope set)`。
   两侧第三个 subject 分量 MUST 都是
   `string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)`：
   裸 string 按 singleton set 解释，数组按既有 UTF-8 string-set 规则归一化。
-  provision 的 scope 是固定 const，仍走同一归一化，二者因此落在同一个 typed current result。
+  provision 的 scope 是固定 const，仍走同一归一化，二者因此落在同一个 current state。
   该函数先拒绝空集与重复项，再按原始 UTF-8 字节升序得到 `normalized_scopes`，构造唯一闭合 transcript
   `{"scopes": normalized_scopes}`；摘要输入固定为
   `UTF8("ak.accountability_scope_set.v1\n") || RFC8785_JCS({"scopes": normalized_scopes})`，
@@ -167,19 +167,19 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
 - **普通 issuer 的记录只存在于 issuer 的 PCR；Applet service closed aggregate 使用上述明确例外。** 普通 `ak.identity.accountability_grant` 的 `envelope.realm_id` MUST 是 issuer 的
   Principal Control Realm，`envelope.actor_id` MUST 是 issuer 本人（`admission=self_authored_proof`）；
   provision 的原子投影写入 controller（即 issuer）的 PCR。因此修改 provision 问责的通用 grant 落在原 controller
-  PCR 的同一个 typed current result。完整 AccountId 的授权、Station 绑定与
+  PCR 的同一个 current state。完整 AccountId 的授权、Station 绑定与
   issuer 签名检查仍各自独立执行；MUST NOT 用 principal 相同推导 Account 等价。
 - **canonical 业务值**固定为
   `{issuer_id, subject_id, accountability_scope（归一化排序数组）, not_before, expires_at?, grant_status}`。
   provision 映射 `controller_principal_id` / `agent_id`，通用 grant 映射 `issuer_id` / `subject_id`。
   两侧 MUST 使用显式登记的 `value_projection` 产出该形状，
-  MUST NOT 在普通 `result_projection.value.field` 路径里暗加改名或裁剪。
+  MUST NOT 在普通 `state_projection.value.field` 路径里暗加改名或裁剪。
 - **provision 派生值**：`not_before = envelope.created_at`，且 admission MUST 校验
   `payload.created_at == envelope.created_at`，避免两个签名时间产生歧义；
   `expires_at` **省略**（含义是不设时间到期，MUST NOT 写 JSON `null`，
   MUST NOT 采用服务器接收时间）；`grant_status = "active"`。
   时间条件成立不代表尚未 accepted 的 provision 可以提前生效。
-- **`source_event_ref` 与内层 `proof` MUST NOT 进入业务值。**来源身份已由该 typed current result 的 head Event
+- **`source_event_ref` 与内层 `proof` MUST NOT 进入业务值。**来源身份已由该 current state 的 head Event
   及其 accepted 证明承载；把 `event_id` 放进值会让语义完全相同的两个背书因来源不同变成异值，
   而无需把来源身份复制进业务值。读取与快照 MUST 保留 head 到源 Event 的
   可验证关联，MUST NOT 丢掉证据或任选一个来源。
@@ -207,21 +207,21 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
 
 完整机读形态由 [`accountability-grant.schema.json`](../../artifacts/schemas/accountability-grant.schema.json) 权威定义；payload 的 `schema` MUST 为 `ak.schema.accountability_grant.v1`。`proof.payload_digest` MUST 覆盖 `utf8("ak.accountability-grant-v1\n") || canonical_json(payload with proof omitted)`，且 verification method controller MUST 等于 `issuer`。
 
-`accountability_scope` 的 array 顺序不表达优先级、时间或授权强度；receiver MUST 接受合法 singleton array 与任意合法排列，且只在 typed current result subject 派生、领域相等比较和 projection 聚合时按 [`encoding.md` §9.5.1](../conformance/encoding.md) 的 canonical string-set 规则规范化，不得重写已签名 payload bytes。Canonical authoring API 对新 Event MUST 将单元素集合输出为 string，多元素集合按原始 UTF-8 bytes 升序输出为 array。
+`accountability_scope` 的 array 顺序不表达优先级、时间或授权强度；receiver MUST 接受合法 singleton array 与任意合法排列，且只在 current state subject 派生、领域相等比较和 projection 聚合时按 [`encoding.md` §9.5.1](../conformance/encoding.md) 的 canonical string-set 规则规范化，不得重写已签名 payload bytes。Canonical authoring API 对新 Event MUST 将单元素集合输出为 string，多元素集合按原始 UTF-8 bytes 升序输出为 array。
 
-Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立定址。同一 exact set 的 `active` 与 `revoked` 必须写入同一 typed current result；revoke 必须携带与被撤销 grant 完全相同的集合，子集 revoke 不表示从超集中做差集。若只需保留原集合的一部分，issuer 必须先 revoke 原 exact set，再签发目标 exact set。多个 exact-set typed current result 可同时 active；projection 展示的 active scopes 是这些 typed current result 的集合并集，撤销其中一个不得影响其它 typed current result。只要至少一个未过期的 active exact-set typed current result 存在，该 issuer/subject accountability 关系仍可验证。
+Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立定址。同一 exact set 的 `active` 与 `revoked` 必须写入同一 current state；revoke 必须携带与被撤销 grant 完全相同的集合，子集 revoke 不表示从超集中做差集。若只需保留原集合的一部分，issuer 必须先 revoke 原 exact set，再签发目标 exact set。多个 exact-set current state 可同时 active；projection 展示的 active scopes 是这些 current state 的集合并集，撤销其中一个不得影响其它 current state。只要至少一个未过期的 active exact-set current state 存在，该 issuer/subject accountability 关系仍可验证。
 
 **UI / projection 责任**:
 
 - 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与因既有 grant 后续过期 /
   revoked 而成为 unverified 的 DID 以可感知、可测试的 presentation invariant 区分；具体文案、
   图形、隐藏策略或控件形式属于实现自由，但 verified 与 unverified 两种状态不得在同一上下文中
-  呈现为等价信任暗示。缺失 grant 的新声明不会进入 typed current result，不属于此展示分支。
+  呈现为等价信任暗示。缺失 grant 的新声明不会进入 current state，不属于此展示分支。
 - 客户端 UI **MUST NOT** 仅根据 actor profile 字面值显示信任暗示。
 - Directory / Search 投影把 `accountable_principal_ids` 作为过滤条件时 MUST 只对 verified 条目生效。
 
 **Why**: 没有这层校验时,actor 可以伪造任意大型组织或知名实体作为"担保人",借此社工诱导对端；
-有了 grant-based 准入校验，虚假声明的整个 Event 会被确定性拒绝，不能进入 Actor Profile typed current result。
+有了 grant-based 准入校验，虚假声明的整个 Event 会被确定性拒绝，不能进入 Actor Profile current state。
 
 ## 4. 跨链路引用对照
 

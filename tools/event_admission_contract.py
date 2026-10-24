@@ -7,8 +7,10 @@ from pathlib import Path
 
 try:
     from .event_execution_contract import schema_definition as execution_schema
+    from .naming_metadata import owned_projection
 except ImportError:
     from event_execution_contract import schema_definition as execution_schema
+    from naming_metadata import owned_projection
 
 
 def nested(path: str, value: dict) -> dict:
@@ -106,7 +108,7 @@ def schema_definitions(registry: dict) -> dict:
         branches = selected_branches(row)
         if row.get("admission") == "conditional":
             guards.append({"if": kind_guard, "then": {"anyOf": [g for a, g in branches if a != "deny"]}})
-    return {
+    result = {
         "registered_execution_shape": execution_schema(registry),
         "registered_admission_shape": {
             "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
@@ -120,6 +122,29 @@ def schema_definitions(registry: dict) -> dict:
             ],
         },
     }
+    return {name:owned_projection(node,"event-envelope.schema.json","/$defs/"+name)
+            for name,node in result.items()}
+
+
+def planned_event_schema(registry: dict) -> dict:
+    rows=[row for row in registry['event_kinds']
+          if row.get('status')=='active' and row.get('wire_scope')=='durable_event']
+    node={
+        'type':'object','required':['event_kind','payload'],
+        'properties':{
+            'event_kind':{'enum':sorted(row['event_kind'] for row in rows)},
+            'payload':{'type':'object'},
+            'semantic_refs':{'type':'array','minItems':1,'maxItems':128,'uniqueItems':True,
+                             'items':{'$ref':'./event-envelope.schema.json#/$defs/semantic_ref'}},
+        },
+        'additionalProperties':False,
+        'allOf':[{'if':{'properties':{'event_kind':{'const':row['event_kind']}},'required':['event_kind']},
+                  'then':{'properties':{'payload':{'$ref':row['payload_schema_ref'].replace('schemas/','./',1)}}}}
+                 for row in rows],
+        '$comment':'Generated kind-to-payload projection of contract-registry.json event_kind_registry; an unsigned plan is not a signed or admitted Event.',
+        'x-arkret-name-role':'planned_event',
+    }
+    return owned_projection(node,'applet-install-plan.schema.json','/$defs/planned_event')
 
 
 def synchronize(root: Path, *, check: bool) -> None:
@@ -128,6 +153,15 @@ def synchronize(root: Path, *, check: bool) -> None:
     path = artifacts / "schemas/event-envelope.schema.json"
     schema = json.loads(path.read_text(encoding="utf-8"))
     definitions = schema_definitions(registry)
+    plan_path=artifacts/'schemas/applet-install-plan.schema.json'
+    plan=json.loads(plan_path.read_text(encoding='utf-8'))
+    planned=planned_event_schema(registry)
+    if check:
+        if plan['$defs'].get('planned_event') != planned:
+            raise ValueError('PlannedEvent kind/payload projection drift; run artifact_pipeline.py generate')
+    else:
+        plan['$defs']['planned_event']=planned
+        plan_path.write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
     references = [{"$ref": "#/$defs/registered_admission_shape"},
                   {"$ref": "#/$defs/registered_execution_shape"}]
     if check:

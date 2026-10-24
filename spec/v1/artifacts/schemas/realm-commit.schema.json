@@ -45,9 +45,8 @@
       "$ref": "./common-ids.schema.json#/$defs/event_id"
     },
     "governance_generation": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Tenure counter of the governing Station that signed this Commit; it advances only on an accepted ak.realm.governance_station.change. It is not the Realm authority-root delegation generation of typed-current-result.schema.json#/$defs/realm_authority_root_value, which advances only on ak.realm.authority.reset."
+      "description": "Tenure counter of the governing Station that signed this Commit; it advances only on an accepted ak.realm.governance_station.change. It is not the Realm authority-root delegation generation of current-state.schema.json#/$defs/realm_authority_root_value, which advances only on ak.realm.authority.reset.",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "authority_ref": {
       "oneOf": [
@@ -75,7 +74,15 @@
       "if": {
         "properties": {
           "stream_position": {
-            "const": 0
+            "const": 0,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "realm-commit.schema.json#/allOf/0/if/properties/stream_position",
+              "owner": "realm-commit.schema.json#/allOf/0/if/properties/stream_position",
+              "values": [
+                0
+              ]
+            }
           }
         },
         "required": [
@@ -111,7 +118,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-commit.schema.json#/$defs/stream_ref/oneOf/0/properties/kind",
+                "owner": "realm-commit.schema.json#/$defs/stream_ref/oneOf/0/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -128,7 +143,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle"
+              "const": "circle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-commit.schema.json#/$defs/stream_ref/oneOf/1/properties/kind",
+                "owner": "realm-commit.schema.json#/$defs/stream_ref/oneOf/1/properties/kind",
+                "values": [
+                  "circle"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -148,7 +171,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "sidecar"
+              "const": "sidecar",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-commit.schema.json#/$defs/stream_ref/oneOf/2/properties/kind",
+                "owner": "realm-commit.schema.json#/$defs/stream_ref/oneOf/2/properties/kind",
+                "values": [
+                  "sidecar"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -167,7 +198,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_control"
+              "const": "realm_control",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-commit.schema.json#/$defs/stream_ref/oneOf/3/properties/kind",
+                "owner": "realm-commit.schema.json#/$defs/stream_ref/oneOf/3/properties/kind",
+                "values": [
+                  "realm_control"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"

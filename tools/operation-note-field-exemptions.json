@@ -1,12 +1,12 @@
 {
-  "version": 10,
+  "version": 11,
   "source_of_truth": false,
-  "generated_at": "2026-10-23T10:19:20+08:00",
+  "generated_at": "2026-10-24T14:22:45+08:00",
   "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
   "operations": {
     "ak.gate.account.command.finalize_device_pairing.v1": [
       "account_handoff_grant",
-      "new_device_pubkey"
+      "new_device_public_key"
     ],
     "ak.gate.account.command.issue_did_binding_challenge.v1": [
       "account_handoff_grant"
@@ -125,7 +125,7 @@
       "source_peer_principal_id",
       "surface_kind"
     ],
-    "ak.self.current_results.read.exact.v1": [
+    "ak.self.current_state.read.exact.v1": [
       "expected_revision"
     ],
     "ak.self.device_messages.command.send.v1": [

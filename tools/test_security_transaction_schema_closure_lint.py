@@ -125,7 +125,7 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
 
     def test_create_caller_plan_digest_fails(self) -> None:
         def mutate(schema) -> None:
-            create = schema["$defs"]["recovery_create_request"]
+            create = schema["$defs"]["recovery_create_request_body"]
             create["properties"]["prepared_plan_digest"] = {"$ref": "#/$defs/digest"}
 
         errors = self._lint(mutate)
@@ -133,7 +133,7 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
 
     def test_continue_derived_step_fails(self) -> None:
         def mutate(schema) -> None:
-            request = schema["$defs"]["continue_request"]
+            request = schema["$defs"]["security_transaction_continue_request_body"]
             request["properties"]["expected_next_step"] = {"type": "string"}
 
         errors = self._lint(mutate)
@@ -141,14 +141,14 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
 
     def test_continue_must_require_attestation(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["continue_request"]["required"].remove("client_attestation")
+            schema["$defs"]["security_transaction_continue_request_body"]["required"].remove("client_attestation")
 
         errors = self._lint(mutate)
         self.assertTrue(any("client-attested terminal step" in error for error in errors), errors)
 
     def test_continue_kind_blind_index_gate_fails(self) -> None:
         def mutate(schema) -> None:
-            request = schema["$defs"]["continue_request"]
+            request = schema["$defs"]["security_transaction_continue_request_body"]
             request["allOf"] = [{"if": {"required": ["client_attestation"]}}]
 
         errors = self._lint(mutate)
@@ -156,7 +156,7 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
 
     def test_continue_kind_blind_maximum_fails(self) -> None:
         def mutate(schema) -> None:
-            request = schema["$defs"]["continue_request"]
+            request = schema["$defs"]["security_transaction_continue_request_body"]
             request["properties"]["expected_accepted_step_count"]["maximum"] = 4
 
         errors = self._lint(mutate)

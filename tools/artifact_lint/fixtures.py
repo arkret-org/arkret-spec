@@ -2432,17 +2432,17 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     if not carrier_fields.issubset(required):
         lint.fail(schema_path, "Applet revoke commit schema is missing its exact signed carrier")
 
-    preview = defs.get("applet_revoke_preview_outcome", {}) if isinstance(defs, dict) else {}
+    preview = defs.get("applet_revoke_preview_response_body", {}) if isinstance(defs, dict) else {}
     preview_properties = preview.get("properties", {}) if isinstance(preview, dict) else {}
     preview_required = preview.get("required", []) if isinstance(preview, dict) else []
     if "revoke_plan_digest" in preview_properties or "revoke_plan_digest" in preview_required:
         lint.fail(
             schema_path,
-            "applet_revoke_preview_outcome.revoke_plan_digest must be derived by the caller from "
+            "applet_revoke_preview_response_body.revoke_plan_digest must be derived by the caller from "
             "revoke_plan (SHA-256 over RFC 8785 JCS) and must not return to the preview wire",
         )
     if "revoke_plan" not in preview_required:
-        lint.fail(schema_path, "applet_revoke_preview_outcome must require the canonical revoke_plan")
+        lint.fail(schema_path, "applet_revoke_preview_response_body must require the canonical revoke_plan")
 
     kat = fixture.get("preview_plan_digest_kat")
     plan_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_plan"
@@ -3696,7 +3696,7 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
                     "consume receipt signing_input_base64url does not encode domain || JCS(unsigned receipt)",
                 )
             signature_text = case.get("signature")
-            if not isinstance(signature_object, dict) or signature_object.get("sig") != signature_text:
+            if not isinstance(signature_object, dict) or signature_object.get("signature") != signature_text:
                 lint.fail(fixture_path, "consume receipt inner and fixture signatures must match")
                 continue
             signature_bytes = decode_base64url("consume receipt signature", signature_text)
@@ -3746,7 +3746,7 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
         signature_object = {
             "kid": kid,
             "signature_algorithm": "Ed25519",
-            "sig": case.get("signature"),
+            "signature": case.get("signature"),
         }
         schema_ref = operation_schema_refs.get(operation_id)
         if not isinstance(schema_ref, str):
@@ -5054,10 +5054,10 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
             "log_entries element; two independently choosable copies let the wrapper and "
             "the log disagree while both stay schema-valid",
         )
-    if "prev_event_digest" in operation:
+    if "previous_event_digest" in operation:
         lint.fail(
             pcr_path,
-            "registration_did_operation MUST NOT carry prev_event_digest: inside an anchor "
+            "registration_did_operation MUST NOT carry previous_event_digest: inside an anchor "
             "the predecessor is the preceding log_entries elements",
         )
     if operation.get("did_method") != "webvh":
@@ -5077,11 +5077,11 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
             f"the terminal versionId numbers version {terminal_number} but the anchor carries "
             f"{len(entries)} log entries, so the log is not the complete history it claims",
         )
-    if "seq" in operation and operation["seq"] != terminal_number:
+    if "sequence" in operation and operation["sequence"] != terminal_number:
         lint.fail(
             pcr_path,
-            f"registration_did_operation.seq MUST equal the terminal version number "
-            f"{terminal_number}, got {operation['seq']!r}",
+            f"registration_did_operation.sequence MUST equal the terminal version number "
+            f"{terminal_number}, got {operation['sequence']!r}",
         )
     parameters = terminal.get("parameters")
     state = terminal.get("state")
@@ -5246,11 +5246,11 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
     if not isinstance(event, dict):
         lint.fail(content_path, f"{REGISTRATION_ANCHOR_CREATE_CASE}: no complete wire Event")
         return
-    if "prev_event_digest" in event:
+    if "previous_event_digest" in event:
         lint.fail(
             content_path,
             f"{REGISTRATION_ANCHOR_CREATE_CASE}: a genesis Event has no predecessor, so the "
-            "envelope MUST NOT carry prev_event_digest",
+            "envelope MUST NOT carry previous_event_digest",
         )
     proof = event.get("producer_proof")
     if proof is None:
@@ -5709,7 +5709,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         binding = sample.get("binding")
         if failure is not None:
             lint.fail(path, f"accepted[{index}] is not deterministic: {failure}")
-        elif decoded != binding:
+        elif {key: str(value) if key in ("previous_epoch", "next_epoch", "key_access_revision") else value for key,value in decoded.items()} != binding:
             lint.fail(path, f"accepted[{index}] does not decode to its stated binding")
         if not isinstance(binding, dict) or _binding_member_violation(binding) is not None:
             lint.fail(
@@ -5730,8 +5730,8 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             seen_scope_kinds.add(scope["kind"])
         for field in ("previous_epoch", "next_epoch", "key_access_revision"):
             value = binding.get(field)
-            if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= MLS_BINDING_UINT64_MAX:
-                lint.fail(path, f"accepted[{index}].binding.{field} must be an unsigned 64-bit integer")
+            if not isinstance(value, str) or re.fullmatch(r"0|[1-9][0-9]*", value) is None or int(value) > MLS_BINDING_UINT64_MAX:
+                lint.fail(path, f"accepted[{index}].binding.{field} must be a canonical unsigned 64-bit decimal string")
     if seen_scope_kinds != {"realm", "circle", "sidecar"}:
         lint.fail(path, "accepted KATs must cover Realm, Circle and Sidecar effective_scope branches")
 
@@ -5840,7 +5840,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         decoded, failure = _decode_binding(str(sample["encoded_map_hex"]))
         if failure is not None:
             lint.fail(path, f"samples[{index}] encoding is not deterministic: {failure}")
-        elif decoded != sample.get("binding"):
+        elif {key: str(value) if key in ("previous_epoch", "next_epoch", "key_access_revision") else value for key,value in decoded.items()} != sample.get("binding"):
             lint.fail(path, f"samples[{index}] encoding does not decode to its stated binding")
 
     equality_case = by_name.get("binding_matches_public_state_and_payload")
@@ -5868,7 +5868,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     }
     if not isinstance(replay_case, dict) or replay_case.get("expected") != expected_replay:
         lint.fail(path, "historical replay must stay valid without granting current send authority")
-    elif replay_case.get("historical_accepted_binding", {}).get("key_access_revision", -1) >= replay_case.get("current_public_state", {}).get("current_key_access_revision", -1):
+    elif int(replay_case.get("historical_accepted_binding", {}).get("key_access_revision", "-1")) >= replay_case.get("current_public_state", {}).get("current_key_access_revision", -1):
         lint.fail(path, "historical replay sample must carry an older numeric key_access_revision")
 
     schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
@@ -5904,7 +5904,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             lint.fail(schema_path, "mls_governance_binding decoder limits differ from the closure fixture")
         for field in ("previous_epoch", "next_epoch", "key_access_revision"):
             shape = binding_schema.get("properties", {}).get(field, {})
-            if shape.get("type") != "integer" or shape.get("minimum") != 0 or shape.get("maximum") != MLS_BINDING_UINT64_MAX:
+            if shape.get("$ref") != "./decimal-integers.schema.json#/$defs/uint64_decimal":
                 lint.fail(schema_path, f"mls_governance_binding.{field} must be uint64")
         head_shape = binding_schema.get("properties", {}).get("authority_stream_head", {})
         if head_shape.get("maxItems") != MLS_BINDING_MAX_COLLECTION_ITEMS or head_shape.get("uniqueItems") is not True:
@@ -5964,9 +5964,9 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
                 lint.fail(path, "proposal target_scope must equal the binding effective_scope field by field")
             if not isinstance(proposed, dict) or (
                 proposed.get("base_group_state_ref") is not None
-                or proposed.get("previous_epoch") != 0
-                or proposed.get("next_epoch") != 0
-                or proposed.get("key_access_revision") != 0
+                or proposed.get("previous_epoch") != "0"
+                or proposed.get("next_epoch") != "0"
+                or proposed.get("key_access_revision") != "0"
             ):
                 lint.fail(path, "the accepted proposal binding must be the exact 0 -> 0 Genesis form")
 
@@ -6431,8 +6431,8 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
     for row in rows or []:
         if not isinstance(row, dict) or row.get("event_kind") != partition.get("event_kind"):
             continue
-        for write in row.get("result_writes") or []:
-            projection = write.get("result_projection") if isinstance(write, dict) else None
+        for write in row.get("state_writes") or []:
+            projection = write.get("state_projection") if isinstance(write, dict) else None
             if isinstance(projection, dict) and projection.get("kind") == "apply_patch":
                 registered_paths = {
                     item for item in projection.get("allowed_paths") or [] if isinstance(item, str)
@@ -7314,7 +7314,7 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
         remove_each = missing_case.get("remove_each")
         if not isinstance(remove_each, list) or set(remove_each) != {
             "max_frame_bytes",
-            "max_channels",
+            "max_channel_count",
         }:
             lint.fail(path, "missing_limit_rejected remove_each drift")
         else:
@@ -7717,7 +7717,7 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
             except json.JSONDecodeError:
                 error_instance = None
             error_code = (
-                ((error_instance or {}).get("error") or {}).get("code")
+                ((error_instance or {}).get("error") or {}).get("error_code")
                 if isinstance(error_instance, dict)
                 else None
             )

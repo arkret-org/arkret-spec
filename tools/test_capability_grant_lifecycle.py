@@ -5,7 +5,7 @@ carries a status, and section 10.4 says two different authorities can close a
 Grant: `ak.capability.revoke` under issuer or root-controller authority, and
 `ak.capability.relinquish` under the target subject's own signature, which MUST
 NOT require `ak.capability.revoke`. Neither Event kind declared a
-`result_writes[]` row, so nothing in the registry could ever move a projected
+`state_writes[]` row, so nothing in the registry could ever move a projected
 Grant out of `active`, and the value schema had no slot to move it into --
 `revoked_at` alone cannot say which of the two authorities closed it.
 
@@ -42,8 +42,8 @@ def writes_by_kind() -> dict[str, list[dict]]:
     for row in registry["event_kind_registry"]["event_kinds"]:
         writes = [
             write
-            for write in (row.get("result_writes") or ())
-            if write["result_family"] == FAMILY
+            for write in (row.get("state_writes") or ())
+            if write["state_family"] == FAMILY
         ]
         if writes:
             found[row["event_kind"]] = writes
@@ -147,7 +147,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
     def test_automatic_realm_inheritance_cluster_is_absent(self) -> None:
         registry = load(REGISTRY)
         payloads = load(SCHEMAS / "event-payload.schema.json")["$defs"]
-        typed = load(SCHEMAS / "typed-current-result.schema.json")["$defs"]
+        typed = load(SCHEMAS / "current-state.schema.json")["$defs"]
         link_schema = load(SCHEMAS / "realm-link-operations.schema.json")
         event_kinds = {
             row["event_kind"]
@@ -157,16 +157,16 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
             row["operation_id"]
             for row in registry["operation_registry"]["operations"]
         }
-        result_kinds = {
-            row["result_kind"]
-            for row in registry["current_result_registry"]["result_kinds"]
+        state_kinds = {
+            row["state_kind"]
+            for row in registry["current_state_registry"]["state_kinds"]
         }
         core_link_kinds = link_schema["$defs"]["link_kind"]["anyOf"][0]["enum"]
 
         self.assertNotIn("ak.realm.inheritance_policy", event_kinds)
         self.assertNotIn("realm_inheritance_policy_payload", payloads)
         self.assertNotIn("realm_inheritance_policy_result", typed)
-        self.assertNotIn("realm_inheritance_policy", result_kinds)
+        self.assertNotIn("realm_inheritance_policy", state_kinds)
         self.assertNotIn(
             "ak.self.realm_link.read.effective_policy.v1", operation_ids
         )
@@ -216,7 +216,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
                 self.assertIn(required, prose)
 
     def test_authority_generation_is_reset_not_station_tenure(self) -> None:
-        typed = load(SCHEMAS / "typed-current-result.schema.json")
+        typed = load(SCHEMAS / "current-state.schema.json")
         description = typed["$defs"]["realm_authority_root_value"]["properties"][
             "authority_generation"
         ]["description"]
@@ -242,8 +242,8 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
 
     def test_the_two_closes_are_told_apart_by_which_pair_they_write(self) -> None:
         found = writes_by_kind()
-        revoke = found["ak.capability.revoke"][0]["result_projection"]
-        relinquish = found["ak.capability.relinquish"][0]["result_projection"]
+        revoke = found["ak.capability.revoke"][0]["state_projection"]
+        relinquish = found["ak.capability.relinquish"][0]["state_projection"]
         self.assertEqual(revoke["kind"], "merge")
         self.assertEqual(relinquish["kind"], "merge")
         revoke_members = {
@@ -262,7 +262,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         found = writes_by_kind()
         for kind in ("ak.capability.revoke", "ak.capability.relinquish"):
             with self.subTest(kind=kind):
-                members = found[kind][0]["result_projection"]["value_projection"][
+                members = found[kind][0]["state_projection"]["value_projection"][
                     "members"
                 ]
                 self.assertEqual(
@@ -276,7 +276,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         found = writes_by_kind()
         for kind in ("ak.capability.revoke", "ak.capability.relinquish"):
             with self.subTest(kind=kind):
-                self.assertEqual(found[kind][0]["result_projection"]["kind"], "merge")
+                self.assertEqual(found[kind][0]["state_projection"]["kind"], "merge")
 
     def test_only_genesis_retypes_its_own_event_id(self) -> None:
         """`ak.capability.grant` is the one kind whose Event id becomes the
@@ -284,7 +284,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         subject there would silently address the wrong object."""
         found = writes_by_kind()
         self.assertEqual(
-            found["ak.capability.grant"][0]["result_selector"], {"kind": "id:grant"}
+            found["ak.capability.grant"][0]["state_selector"], {"kind": "id:grant"}
         )
         for kind in (
             "ak.capability.revoke",
@@ -292,7 +292,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         ):
             with self.subTest(kind=kind):
                 self.assertEqual(
-                    found[kind][0]["result_selector"],
+                    found[kind][0]["state_selector"],
                     {"kind": "id:grant", "field": "payload.grant_id"},
                 )
 
@@ -303,10 +303,10 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         }
         lint = gate.Lint()
         for kind, writes in writes_by_kind().items():
-            gate._check_result_selector(
+            gate._check_state_selector(
                 lint,
-                f"{kind}.result_writes[0].result_selector",
-                writes[0]["result_selector"],
+                f"{kind}.state_writes[0].state_selector",
+                writes[0]["state_selector"],
                 rows[kind].get("id_source"),
             )
         self.assertEqual(lint.errors, [])

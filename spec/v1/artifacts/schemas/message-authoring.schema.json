@@ -13,7 +13,15 @@
       ],
       "properties": {
         "scheme": {
-          "const": "mls_rfc9420"
+          "const": "mls_rfc9420",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
+            "owner": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
+            "values": [
+              "mls_rfc9420"
+            ]
+          }
         },
         "effective_scope": {
           "$ref": "./event-envelope.schema.json#/properties/scope_ref"
@@ -35,7 +43,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "plaintext"
+              "const": "plaintext",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "message-authoring.schema.json#/$defs/message_authoring_content/oneOf/0/properties/kind",
+                "owner": "message-authoring.schema.json#/$defs/message_authoring_content/oneOf/0/properties/kind",
+                "values": [
+                  "plaintext"
+                ]
+              }
             },
             "content": {
               "$ref": "./event-payload.schema.json#/$defs/content_block"
@@ -55,7 +71,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "mls"
+              "const": "mls",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "message-authoring.schema.json#/$defs/message_authoring_content/oneOf/1/properties/kind",
+                "owner": "message-authoring.schema.json#/$defs/message_authoring_content/oneOf/1/properties/kind",
+                "values": [
+                  "mls"
+                ]
+              }
             },
             "encrypted_content": {
               "$ref": "./encrypted-envelope.schema.json"
@@ -83,7 +107,15 @@
           "$ref": "./event-payload.schema.json#/$defs/message_create_payload/properties/strand_id"
         },
         "track_name": {
-          "const": "discussion"
+          "const": "discussion",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "message-authoring.schema.json#/$defs/message_authoring_intent/properties/track_name",
+            "owner": "message-authoring.schema.json#/$defs/message_authoring_intent/properties/track_name",
+            "values": [
+              "discussion"
+            ]
+          }
         },
         "content": {
           "$ref": "#/$defs/message_authoring_content"

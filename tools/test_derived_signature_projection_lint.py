@@ -57,7 +57,7 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
 
     def test_signed_fields_reintroduction_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["properties"]["auth_data"]["properties"]["signed_fields"] = {
+            schema["properties"]["signature_proof"]["properties"]["signed_fields"] = {
                 "type": "array"
             }
 
@@ -90,7 +90,7 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
     def test_completion_event_id_omission_from_projection_fails(self) -> None:
         def mutate(schema) -> None:
             signature = schema["$defs"]["recovery_completion_attestation"]["properties"][
-                "auth_data"
+                "signature_proof"
             ]["properties"]["signature"]
             signature["description"] = "base64url signature over an incomplete projection"
 

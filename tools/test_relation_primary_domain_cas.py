@@ -28,7 +28,7 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.registry = _load(ARTIFACTS / "registry" / "contract-registry.json")
-        cls.typed = _load(ARTIFACTS / "schemas" / "typed-current-result.schema.json")
+        cls.typed = _load(ARTIFACTS / "schemas" / "current-state.schema.json")
         cls.payloads = _load(ARTIFACTS / "schemas" / "event-payload.schema.json")
         cls.relation = _load(ARTIFACTS / "schemas" / "relation.schema.json")
         cls.rows = {
@@ -41,8 +41,8 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
         self.assertNotIn(
             "relation_conflict_resolution",
             {
-                row["result_kind"]
-                for row in self.registry["current_result_registry"]["result_kinds"]
+                row["state_kind"]
+                for row in self.registry["current_state_registry"]["state_kinds"]
             },
         )
         self.assertNotIn("relation_resolve_payload", self.payloads["$defs"])
@@ -66,9 +66,9 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
             ],
         }
         for kind in CONTENT_KINDS:
-            writes = self.rows[kind]["result_writes"]
-            self.assertEqual([write["result_family"] for write in writes], ["relation"])
-            self.assertEqual(writes[0]["result_selector"], expected, kind)
+            writes = self.rows[kind]["state_writes"]
+            self.assertEqual([write["state_family"] for write in writes], ["relation"])
+            self.assertEqual(writes[0]["state_selector"], expected, kind)
 
         domain = self.relation["$defs"]["relation_primary_conflict_domain"]
         self.assertFalse(domain["additionalProperties"])
@@ -76,7 +76,7 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
             sorted(domain["properties"]),
             ["domain_kind", "from_ref", "relation_kind", "to_ref"],
         )
-        selector = self.typed["$defs"]["relation_result"]["properties"]["selector"]
+        selector = self.typed["$defs"]["current_relation"]["properties"]["selector"]
         self.assertEqual(
             sorted(selector["properties"]), ["kind", "primary_conflict_domain"]
         )
@@ -147,18 +147,18 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
 
         create_row = self.rows["ak.relation.create"]
         self.assertEqual(
-            create_row["result_writes"][0]["result_projection"]["value"],
+            create_row["state_writes"][0]["state_projection"]["value"],
             {"field": "payload.relation"},
         )
         self.assertNotIn(
             "payload.rank",
-            json.dumps(create_row["result_writes"], ensure_ascii=False),
+            json.dumps(create_row["state_writes"], ensure_ascii=False),
         )
 
     def test_update_cannot_move_primary_domain(self) -> None:
-        write = self.rows["ak.relation.update"]["result_writes"][0]
+        write = self.rows["ak.relation.update"]["state_writes"][0]
         self.assertEqual(
-            write["result_projection"]["allowed_paths"],
+            write["state_projection"]["allowed_paths"],
             ["scope_circle_id", "rank", "fields"],
         )
         self.assertTrue(
@@ -197,9 +197,9 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
             "max(Event.created_at, accepting_committed_at)", common
         )
 
-        create = self.rows["ak.relation.create"]["result_writes"][0]
-        update = self.rows["ak.relation.update"]["result_writes"][0]
-        tombstone = self.rows["ak.relation.tombstone"]["result_writes"][0]
+        create = self.rows["ak.relation.create"]["state_writes"][0]
+        update = self.rows["ak.relation.update"]["state_writes"][0]
+        tombstone = self.rows["ak.relation.tombstone"]["state_writes"][0]
         self.assertIn(
             {"name": "created_at", "derivation": "object_create_time"},
             create["derived_members"],

@@ -16,7 +16,7 @@
     "protocol_version",
     "supported_profiles",
     "supported_features",
-    "auth_metadata",
+    "authentication_metadata",
     "limits",
     "plaintext_visibility",
     "verified_profiles",
@@ -56,12 +56,41 @@
         "sfu_service",
         "turn_service"
       ],
-      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_kind=<registered-id>. The value space is registry/service-kind-registry.json filtered to active rows whose valid_in contains service_describe."
+      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_kind=<registered-id>. The value space is registry/service-kind-registry.json filtered to active rows whose valid_in contains service_describe.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-describe.schema.json#/properties/service_kind",
+        "owner": "service-describe.schema.json#/properties/service_kind",
+        "values": [
+          "agent_runtime",
+          "applet_service",
+          "archive_node",
+          "blob_node",
+          "directory_service",
+          "identity_registry",
+          "key_recovery_service",
+          "media_service",
+          "moderation_service",
+          "station",
+          "push_gateway",
+          "recovery_service",
+          "sfu_service",
+          "turn_service"
+        ]
+      }
     },
     "protocol_version": {
       "type": "string",
       "const": "1.0",
-      "description": "Arkret protocol-family bootstrap discriminator. A consumer first extracts this field before applying the version-specific ServiceDescribe schema: a well-formed value other than 1.0 yields unsupported_protocol_version, while missing or non-string values yield schema_violation. The const keeps an object admitted as ak.schema.service_describe.v1 closed to Arkret/1."
+      "description": "Arkret protocol-family bootstrap discriminator. A consumer first extracts this field before applying the version-specific ServiceDescribe schema: a well-formed value other than 1.0 yields unsupported_protocol_version, while missing or non-string values yield schema_violation. The const keeps an object admitted as ak.schema.service_describe.v1 closed to Arkret/1.",
+      "x-arkret-value-ownership": {
+        "class": "version_text",
+        "authority": "service-describe.schema.json#/properties/protocol_version",
+        "owner": "service-describe.schema.json#/properties/protocol_version",
+        "values": [
+          "1.0"
+        ]
+      }
     },
     "supported_profiles": {
       "type": "array",
@@ -111,7 +140,7 @@
       "minItems": 1,
       "uniqueItems": true
     },
-    "auth_metadata": {
+    "authentication_metadata": {
       "type": "object",
       "description": "Authentication and session metadata needed by clients before calling protected operations. Unregistered keys are limited to safely ignorable x_* metadata.",
       "patternProperties": {
@@ -125,7 +154,7 @@
           "type": "array",
           "description": "Authentication methods offered for this principal/account surface. Methods describe proof providers, standard discovery, and the proof kind accepted by the Account Authority. Arkret gate/account routing is always derived from account_authority.",
           "items": {
-            "$ref": "#/$defs/auth_method"
+            "$ref": "#/$defs/authentication_method"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -138,7 +167,17 @@
               "session_dpop",
               "session_http_signature",
               "did_http_signature"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/properties/authentication_metadata/properties/did_binding_methods/items",
+              "owner": "service-describe.schema.json#/properties/authentication_metadata/properties/did_binding_methods/items",
+              "values": [
+                "session_dpop",
+                "session_http_signature",
+                "did_http_signature"
+              ]
+            }
           },
           "uniqueItems": true,
           "description": "session_dpop is the mandatory default SessionGrant presentation; session_http_signature is only an additional high-security body/transcript binding layer. did_http_signature denotes separately registered DID proofs and is never a SessionGrant fallback."
@@ -175,7 +214,17 @@
             "derived_plaintext",
             "private_plaintext"
           ],
-          "description": "Maximum plaintext visibility class the service claims it can receive. Omitted is treated as none unless data_classes is non-empty."
+          "description": "Maximum plaintext visibility class the service claims it can receive. Omitted is treated as none unless data_classes is non-empty.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/properties/plaintext_visibility/properties/max_visibility",
+            "owner": "service-describe.schema.json#/properties/plaintext_visibility/properties/max_visibility",
+            "values": [
+              "none",
+              "derived_plaintext",
+              "private_plaintext"
+            ]
+          }
         },
         "event_kinds": {
           "type": "array",
@@ -276,9 +325,10 @@
                 "type": "integer",
                 "minimum": 1
               },
-              "max_requests": {
+              "max_request_count": {
                 "type": "integer",
-                "minimum": 1
+                "minimum": 1,
+                "x-arkret-member-role": "count"
               },
               "burst": {
                 "type": "integer",
@@ -288,9 +338,10 @@
                 "type": "integer",
                 "minimum": 1
               },
-              "max_events_per_batch": {
+              "max_event_count_per_batch": {
                 "type": "integer",
-                "minimum": 1
+                "minimum": 1,
+                "x-arkret-member-role": "count"
               },
               "max_body_bytes": {
                 "type": "integer",
@@ -344,7 +395,16 @@
           "enum": [
             "deny",
             "deny_unless_explicit_exception"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/properties/egress_network_policy/properties/private_network_default",
+            "owner": "service-describe.schema.json#/properties/egress_network_policy/properties/private_network_default",
+            "values": [
+              "deny",
+              "deny_unless_explicit_exception"
+            ]
+          }
         },
         "protected_purposes": {
           "type": "array",
@@ -360,7 +420,23 @@
               "agent",
               "directory",
               "push"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/properties/egress_network_policy/properties/protected_purposes/items",
+              "owner": "service-describe.schema.json#/properties/egress_network_policy/properties/protected_purposes/items",
+              "values": [
+                "did_resolution",
+                "federation",
+                "media_fetch",
+                "realm_state_snapshot_fetch",
+                "webhook",
+                "applet",
+                "agent",
+                "directory",
+                "push"
+              ]
+            }
           },
           "uniqueItems": true
         },
@@ -456,7 +532,7 @@
           "artifact_ref",
           "verifier_id",
           "signature",
-          "timestamp"
+          "verified_at"
         ],
         "additionalProperties": true,
         "properties": {
@@ -468,7 +544,15 @@
             "type": "string",
             "enum": [
               "conformance_verified"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/properties/verified_profiles/items/properties/claim_kind",
+              "owner": "service-describe.schema.json#/properties/verified_profiles/items/properties/claim_kind",
+              "values": [
+                "conformance_verified"
+              ]
+            }
           },
           "verification_run_id": {
             "type": "string",
@@ -493,8 +577,9 @@
             "minLength": 1,
             "description": "Signature over profile_id, verification_run_id, artifact_digest, artifact_ref, verifier and timestamp."
           },
-          "timestamp": {
-            "$ref": "./time.schema.json#/$defs/timestamp"
+          "verified_at": {
+            "$ref": "./time.schema.json#/$defs/timestamp",
+            "x-arkret-member-role": "instant"
           },
           "expires_at": {
             "$ref": "./time.schema.json#/$defs/timestamp"
@@ -526,7 +611,18 @@
               "delegated_resolver",
               "external_interop"
             ],
-            "description": "matrix_passthrough / mimi_passthrough: bridged foreign protocol surface. delegated_resolver: a DID document / key-log surface served on behalf of a canonical authority this service does not claim to be (conformance-profiles.md §9). external_interop: any other non-Arkret interop surface. This list is exhaustive; product-private APIs have no member here."
+            "description": "matrix_passthrough / mimi_passthrough: bridged foreign protocol surface. delegated_resolver: a DID document / key-log surface served on behalf of a canonical authority this service does not claim to be (conformance-profiles.md §9). external_interop: any other non-Arkret interop surface. This list is exhaustive; product-private APIs have no member here.",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/properties/interop_surfaces/items/properties/kind",
+              "owner": "service-describe.schema.json#/properties/interop_surfaces/items/properties/kind",
+              "values": [
+                "matrix_passthrough",
+                "mimi_passthrough",
+                "delegated_resolver",
+                "external_interop"
+              ]
+            }
           },
           "since": {
             "type": "string"
@@ -580,7 +676,20 @@
               "handle_claim",
               "same_station",
               "explicit_address"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/properties/invite_addressing/properties/supported_introduction_kinds/items",
+              "owner": "service-describe.schema.json#/properties/invite_addressing/properties/supported_introduction_kinds/items",
+              "values": [
+                "locator_ref",
+                "consent_grant",
+                "shared_realm",
+                "handle_claim",
+                "same_station",
+                "explicit_address"
+              ]
+            }
           },
           "minItems": 1,
           "uniqueItems": true
@@ -591,7 +700,17 @@
             "drop",
             "quarantine",
             "notify"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/properties/invite_addressing/properties/handle_claim_max_behavior",
+            "owner": "service-describe.schema.json#/properties/invite_addressing/properties/handle_claim_max_behavior",
+            "values": [
+              "drop",
+              "quarantine",
+              "notify"
+            ]
+          }
         },
         "explicit_address_max_behavior": {
           "type": "string",
@@ -599,7 +718,17 @@
             "drop",
             "quarantine",
             "notify"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/properties/invite_addressing/properties/explicit_address_max_behavior",
+            "owner": "service-describe.schema.json#/properties/invite_addressing/properties/explicit_address_max_behavior",
+            "values": [
+              "drop",
+              "quarantine",
+              "notify"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -611,7 +740,15 @@
         "properties": {
           "supported_features": {
             "contains": {
-              "const": "ak.feature.invite_addressing.v1"
+              "const": "ak.feature.invite_addressing.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "service-describe.schema.json#/allOf/0/if/properties/supported_features/contains",
+                "owner": "service-describe.schema.json#/allOf/0/if/properties/supported_features/contains",
+                "values": [
+                  "ak.feature.invite_addressing.v1"
+                ]
+              }
             }
           }
         },
@@ -635,7 +772,15 @@
         "properties": {
           "supported_features": {
             "contains": {
-              "const": "ak.feature.invite_addressing.v1"
+              "const": "ak.feature.invite_addressing.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "service-describe.schema.json#/allOf/1/then/properties/supported_features/contains",
+                "owner": "service-describe.schema.json#/allOf/1/then/properties/supported_features/contains",
+                "values": [
+                  "ak.feature.invite_addressing.v1"
+                ]
+              }
             }
           }
         }
@@ -645,7 +790,15 @@
       "if": {
         "properties": {
           "development_mode": {
-            "const": true
+            "const": true,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "service-describe.schema.json#/allOf/2/if/properties/development_mode",
+              "owner": "service-describe.schema.json#/allOf/2/if/properties/development_mode",
+              "values": [
+                true
+              ]
+            }
           }
         },
         "required": [
@@ -664,7 +817,15 @@
       "if": {
         "properties": {
           "service_kind": {
-            "const": "station"
+            "const": "station",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-describe.schema.json#/allOf/3/if/properties/service_kind",
+              "owner": "service-describe.schema.json#/allOf/3/if/properties/service_kind",
+              "values": [
+                "station"
+              ]
+            }
           }
         },
         "required": [
@@ -673,7 +834,7 @@
       },
       "then": {
         "properties": {
-          "auth_metadata": {
+          "authentication_metadata": {
             "required": [
               "account_authority",
               "methods"
@@ -696,7 +857,16 @@
                   "enum": [
                     "ak.profile.calendar_event.v1",
                     "ak.profile.calendar_notification_dispatch.v1"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "service-describe.schema.json#/allOf/4/if/anyOf/0/properties/supported_profiles/contains",
+                    "owner": "service-describe.schema.json#/allOf/4/if/anyOf/0/properties/supported_profiles/contains",
+                    "values": [
+                      "ak.profile.calendar_event.v1",
+                      "ak.profile.calendar_notification_dispatch.v1"
+                    ]
+                  }
                 }
               }
             }
@@ -717,7 +887,16 @@
                       "enum": [
                         "ak.profile.calendar_event.v1",
                         "ak.profile.calendar_notification_dispatch.v1"
-                      ]
+                      ],
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "service-describe.schema.json#/allOf/4/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id",
+                        "owner": "service-describe.schema.json#/allOf/4/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id",
+                        "values": [
+                          "ak.profile.calendar_event.v1",
+                          "ak.profile.calendar_notification_dispatch.v1"
+                        ]
+                      }
                     }
                   }
                 }
@@ -757,7 +936,19 @@
         "actor",
         "applet",
         "handle"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-describe.schema.json#/$defs/directory_resource_kind",
+        "owner": "service-describe.schema.json#/$defs/directory_resource_kind",
+        "values": [
+          "realm",
+          "organization",
+          "actor",
+          "applet",
+          "handle"
+        ]
+      }
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -795,7 +986,7 @@
         }
       }
     },
-    "auth_method": {
+    "authentication_method": {
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
@@ -814,7 +1005,19 @@
             "device_pairing",
             "recovery_challenge",
             "gnap"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/$defs/authentication_method/properties/method",
+            "owner": "service-describe.schema.json#/$defs/authentication_method/properties/method",
+            "values": [
+              "oidc",
+              "passkey",
+              "device_pairing",
+              "recovery_challenge",
+              "gnap"
+            ]
+          }
         },
         "issuer_uri": {
           "type": "string",
@@ -843,7 +1046,7 @@
           "uniqueItems": true
         },
         "grant_exchange": {
-          "$ref": "#/$defs/auth_grant_exchange"
+          "$ref": "#/$defs/account_handoff_exchange"
         }
       },
       "allOf": [
@@ -851,7 +1054,15 @@
           "if": {
             "properties": {
               "method": {
-                "const": "oidc"
+                "const": "oidc",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-describe.schema.json#/$defs/authentication_method/allOf/0/if/properties/method",
+                  "owner": "service-describe.schema.json#/$defs/authentication_method/allOf/0/if/properties/method",
+                  "values": [
+                    "oidc"
+                  ]
+                }
               }
             },
             "required": [
@@ -867,7 +1078,7 @@
         }
       ]
     },
-    "auth_grant_exchange": {
+    "account_handoff_exchange": {
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
@@ -880,7 +1091,15 @@
         "kind": {
           "type": "string",
           "const": "account_handoff",
-          "description": "Every advertised interactive authentication method terminates in the AccountHandoff exchange. For OIDC, authentication-handoffs is the unique authorization-code consumer; SessionGrant issue never consumes the code."
+          "description": "Every advertised interactive authentication method terminates in the AccountHandoff exchange. For OIDC, authentication-handoffs is the unique authorization-code consumer; SessionGrant issue never consumes the code.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/$defs/account_handoff_exchange/properties/kind",
+            "owner": "service-describe.schema.json#/$defs/account_handoff_exchange/properties/kind",
+            "values": [
+              "account_handoff"
+            ]
+          }
         }
       }
     },
@@ -902,7 +1121,29 @@
         "account_private_state",
         "profile_private_field",
         "rsvp_response"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-describe.schema.json#/$defs/plaintext_data_class",
+        "owner": "service-describe.schema.json#/$defs/plaintext_data_class",
+        "values": [
+          "message_content",
+          "strand_content",
+          "attachment_plaintext",
+          "attachment_preview",
+          "thumbnail",
+          "full_text_index",
+          "search_snippet",
+          "embedding",
+          "notification_summary",
+          "inbox_preview",
+          "media_plaintext",
+          "derived_plaintext",
+          "account_private_state",
+          "profile_private_field",
+          "rsvp_response"
+        ]
+      }
     },
     "transport_binding": {
       "oneOf": [
@@ -926,7 +1167,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "http_json"
+          "const": "http_json",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/$defs/transport_binding_http_json/properties/kind",
+            "owner": "service-describe.schema.json#/$defs/transport_binding_http_json/properties/kind",
+            "values": [
+              "http_json"
+            ]
+          }
         },
         "base_url": {
           "type": "string",
@@ -950,7 +1199,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "tus"
+          "const": "tus",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/$defs/transport_binding_tus/properties/kind",
+            "owner": "service-describe.schema.json#/$defs/transport_binding_tus/properties/kind",
+            "values": [
+              "tus"
+            ]
+          }
         },
         "base_url": {
           "type": "string",
@@ -965,7 +1222,15 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "const": "1.0.0"
+            "const": "1.0.0",
+            "x-arkret-value-ownership": {
+              "class": "version_text",
+              "authority": "service-describe.schema.json#/$defs/transport_binding_tus/properties/tus_version/items",
+              "owner": "service-describe.schema.json#/$defs/transport_binding_tus/properties/tus_version/items",
+              "values": [
+                "1.0.0"
+              ]
+            }
           }
         },
         "tus_extensions": {
@@ -979,7 +1244,19 @@
               "checksum",
               "expiration",
               "termination"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "external_literal",
+              "authority": "https://tus.io/protocols/resumable-upload#creation",
+              "owner": "service-describe.schema.json#/$defs/transport_binding_tus/properties/tus_extensions/items",
+              "values": [
+                "creation",
+                "creation-with-upload",
+                "checksum",
+                "expiration",
+                "termination"
+              ]
+            }
           }
         }
       },
@@ -992,11 +1269,19 @@
         "kind",
         "base_url",
         "max_frame_bytes",
-        "max_channels"
+        "max_channel_count"
       ],
       "properties": {
         "kind": {
-          "const": "websocket"
+          "const": "websocket",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-describe.schema.json#/$defs/transport_binding_websocket/properties/kind",
+            "owner": "service-describe.schema.json#/$defs/transport_binding_websocket/properties/kind",
+            "values": [
+              "websocket"
+            ]
+          }
         },
         "base_url": {
           "type": "string",
@@ -1026,10 +1311,11 @@
           "minimum": 1024,
           "maximum": 1048576
         },
-        "max_channels": {
+        "max_channel_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 256
+          "maximum": 256,
+          "x-arkret-member-role": "count"
         }
       },
       "additionalProperties": false

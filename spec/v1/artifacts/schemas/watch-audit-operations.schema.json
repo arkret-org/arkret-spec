@@ -5,13 +5,13 @@
   "description": "Closed side-effecting audited-read commands. Reuses producer Event, signer evidence, RealmCommit and Watch current types. Authority-commit-log section 5.3 is the normative transaction/replay boundary.",
   "oneOf": [
     {
-      "$ref": "#/$defs/watch_audit_read_request"
+      "$ref": "#/$defs/watch_audit_read_request_body"
     },
     {
-      "$ref": "#/$defs/peer_watch_audit_read_request"
+      "$ref": "#/$defs/peer_watch_audit_read_request_body"
     },
     {
-      "$ref": "#/$defs/watch_audit_read_outcome"
+      "$ref": "#/$defs/watch_audit_read_response_body"
     }
   ],
   "$defs": {
@@ -25,13 +25,29 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.audit.accessed"
+                  "const": "ak.audit.accessed",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/kind",
+                    "owner": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.audit.accessed"
+                    ]
+                  }
                 },
                 "actor_id": {
                   "$ref": "./common-ids.schema.json#/$defs/actor_id",
                   "properties": {
                     "kind": {
-                      "const": "account"
+                      "const": "account",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/actor_id/properties/kind",
+                        "owner": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/actor_id/properties/kind",
+                        "values": [
+                          "account"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -46,7 +62,15 @@
                     {
                       "properties": {
                         "access_kind": {
-                          "const": "watch_audit_read"
+                          "const": "watch_audit_read",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
+                            "owner": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
+                            "values": [
+                              "watch_audit_read"
+                            ]
+                          }
                         },
                         "target_ref": {
                           "$ref": "./event-payload.schema.json#/$defs/strand_id"
@@ -67,7 +91,15 @@
                   "$ref": "./common-ids.schema.json#/$defs/actor_id",
                   "properties": {
                     "kind": {
-                      "const": "account"
+                      "const": "account",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/executed_by/properties/kind",
+                        "owner": "watch-audit-operations.schema.json#/$defs/watch_audit_submission/allOf/1/properties/event/properties/executed_by/properties/kind",
+                        "values": [
+                          "account"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -83,7 +115,7 @@
         }
       ]
     },
-    "watch_audit_read_request": {
+    "watch_audit_read_request_body": {
       "type": "object",
       "required": [
         "audit_submission"
@@ -94,9 +126,10 @@
         }
       },
       "additionalProperties": false,
-      "description": "One caller-signed audit Event plus its required approval evidence. Realm, Strand and watcher derive only from the signed Event, not duplicated selector fields. Its actor is the authenticated complete effective Account. The Event ID is a single-use read fence and full canonical request bytes identify exact replay; purpose and accessed_at do not authorize access."
+      "description": "One caller-signed audit Event plus its required approval evidence. Realm, Strand and watcher derive only from the signed Event, not duplicated selector fields. Its actor is the authenticated complete effective Account. The Event ID is a single-use read fence and full canonical request bytes identify exact replay; purpose and accessed_at do not authorize access.",
+      "x-arkret-name-role": "request_body"
     },
-    "peer_watch_audit_read_request": {
+    "peer_watch_audit_read_request_body": {
       "type": "object",
       "required": [
         "audit_submission"
@@ -136,9 +169,10 @@
             "producer_agent_evidence"
           ]
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "watch_audit_read_outcome": {
+    "watch_audit_read_response_body": {
       "type": "object",
       "required": [
         "audit_commit",
@@ -149,11 +183,12 @@
           "$ref": "./realm-commit.schema.json"
         },
         "current": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody"
         }
       },
       "additionalProperties": false,
-      "description": "One original audit Commit and the frozen exact target Watch observation from the same governance transaction. current.stream_head equals the audit Commit coordinate, and generation, Realm and target derive from the request. No roster or extra head. Exact replay returns the original frozen value only under current disclosure/delivery checks; it never reads a newer value using the old audit. An audit records authorized governing read, not guaranteed client receipt."
+      "description": "One original audit Commit and the frozen exact target Watch observation from the same governance transaction. current.stream_head equals the audit Commit coordinate, and generation, Realm and target derive from the request. No roster or extra head. Exact replay returns the original frozen value only under current disclosure/delivery checks; it never reads a newer value using the old audit. An audit records authorized governing read, not guaranteed client receipt.",
+      "x-arkret-name-role": "response_body"
     }
   }
 }

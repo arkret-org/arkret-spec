@@ -43,15 +43,15 @@ def unb64(value):
 
 
 def verify_detached(value, member, key, domain):
-    sig = value[member]
+    signature = value[member]
     core = {k: v for k, v in value.items() if k != member}
-    if sig['context'] != domain or sig['signature_algorithm'] != 'Ed25519':
+    if signature['context'] != domain or signature['signature_algorithm'] != 'Ed25519':
         raise ValueError('signature purpose')
-    if sig['signed_digest'] != 'sha256:' + hashlib.sha256(jcs(core)).hexdigest():
+    if signature['signed_digest'] != 'sha256:' + hashlib.sha256(jcs(core)).hexdigest():
         raise ValueError('signed bytes')
-    envelope = {k: v for k, v in sig.items() if k != 'sig'}
+    envelope = {k: v for k, v in signature.items() if k != 'signature'}
     Ed25519PublicKey.from_public_bytes(unb64(key)).verify(
-        unb64(sig['sig']), domain.encode() + b'\n' + jcs(envelope))
+        unb64(signature['signature']), domain.encode() + b'\n' + jcs(envelope))
 
 
 def verify_producer(event, key):
@@ -65,11 +65,11 @@ def verify_producer(event, key):
     binding = {'context': 'ak.event_proof.v1', 'event_digest': digest,
                'actor_id': event['actor_id'], 'verification_method': proof['verification_method'],
                'created_at': proof['created_at']}
-    header, empty, sig = proof['jws'].split('.')
+    header, empty, signature = proof['jws'].split('.')
     if empty or json.loads(unb64(header)) != {'alg': 'Ed25519'}:
         raise ValueError('producer JWS')
     message = header.encode() + b'.' + base64.urlsafe_b64encode(jcs(binding)).rstrip(b'=')
-    Ed25519PublicKey.from_public_bytes(unb64(key)).verify(unb64(sig), message)
+    Ed25519PublicKey.from_public_bytes(unb64(key)).verify(unb64(signature), message)
 
 
 def verify_binding(entry, realm_id, call_id):
@@ -82,9 +82,9 @@ def verify_binding(entry, realm_id, call_id):
     fields = {k: participant[k] for k in ('actor_id', 'device_id', 'participant_id', 'focus_id', 'media')}
     fields.update(realm_id=realm_id, call_id=call_id,
                   expires_at=binding['expires_at'], issuer_kid=binding['issuer_kid'])
-    key = entry['participant_signing_key']['public_key_b64u']
+    key = entry['participant_signing_key']['public_key_base64url']
     Ed25519PublicKey.from_public_bytes(unb64(key)).verify(
-        unb64(binding['sig']), b'ak.media.participant_binding.v1\0' + jcs(fields))
+        unb64(binding['signature']), b'ak.media.participant_binding.v1\0' + jcs(fields))
 
 
 def axis_row(snapshot, axis):
@@ -107,11 +107,11 @@ def validate_snapshot(snapshot, request, response, keys, *, known_rows=(), histo
         raise ValueError('Snapshot ID')
     if snapshot['realm_id'] != request['realm_id']:
         raise ValueError('Realm')
-    generation = snapshot['governance_generation']
+    generation = int(snapshot['governance_generation'])
     if historical_ref is None:
-        if generation != request['current_generation']:
+        if generation != int(request['current_generation']):
             raise ValueError('current authority generation')
-    elif historical_ref != snapshot['snapshot_id'] or generation > request['current_generation']:
+    elif historical_ref != snapshot['snapshot_id'] or generation > int(request['current_generation']):
         raise ValueError('exact historical basis')
     heads = snapshot['visible_stream_heads']
     if len(heads) != 1 or heads[0]['stream_ref'] != request['stream_ref']:
@@ -171,7 +171,7 @@ def validate_snapshot(snapshot, request, response, keys, *, known_rows=(), histo
                 raise ValueError('source dot Event/index')
             if commit['stream_ref'] != row['source_stream_ref'] or commit['realm_id'] != request['realm_id']:
                 raise ValueError('source scope')
-            if commit['governance_generation'] > generation or commit['stream_position'] > row['revision']['stream_position']:
+            if int(commit['governance_generation']) > generation or commit['stream_position'] > row['revision']['stream_position']:
                 raise ValueError('source beyond accepted axis')
         if last['value']['op'] in ('join', 'remove_participant'):
             if not any(entry['tag_id'] == last['tag_id'] for entry in entries):
@@ -255,7 +255,7 @@ def run_case(fixture, name):
     elif name == 'missing_issuer_key':
         del entry['participant_signing_key']
     elif name == 'wrong_historical_issuer_key':
-        entry['participant_signing_key']['public_key_b64u'] = keys['governance_public_key_b64u']
+        entry['participant_signing_key']['public_key_base64url'] = keys['governance_public_key_b64u']
     elif name.startswith('wrong_binding_'):
         participant = entry['value']['participant']
         field = name[len('wrong_binding_'):]
@@ -296,9 +296,9 @@ def run_case(fixture, name):
         if name.endswith('different_value'):
             row['value']['entries'] = []
     elif name == 'old_tenure_as_current':
-        request['current_generation'] = 2
+        request['current_generation'] = '2'
     elif name in ('historical_exact_basis', 'wrong_historical_ref'):
-        request['current_generation'] = 2
+        request['current_generation'] = '2'
         kwargs['historical_ref'] = snapshot['snapshot_id'] if name == 'historical_exact_basis' else typed_id('realm_snapshot', {})
     elif name == 'wrong_authenticated_account':
         response['account_id'] = OTHER['account_id']
@@ -319,11 +319,11 @@ def run_case(fixture, name):
         verify_producer(ev, keys['producer_public_key_b64u'])
         return 'accept'
     elif name == 'commit_signature_tampered':
-        entry['source_commit']['signature']['sig'] = 'A' * 86
+        entry['source_commit']['signature']['signature'] = 'A' * 86
     elif name in ('snapshot_signature_tampered', 'omission_unsigned'):
         resign = False
         if name == 'snapshot_signature_tampered':
-            snapshot['signature']['sig'] = 'A' * 86
+            snapshot['signature']['signature'] = 'A' * 86
         else:
             row['value']['entries'] = [entry for entry in row['value']['entries'] if entry['tag_id'] == row['value']['last_source']['tag_id']]
     elif name.startswith('omission_resigned_') or name == 'wrong_member_complete_replica':
@@ -357,13 +357,13 @@ def check_call_current(lint: Lint) -> None:
         if fixture != build_fixture():
             raise ValueError('fixture differs from deterministic generator')
         contract = load_json(lint, ARTIFACTS / 'registry/contract-registry.json')
-        policy = contract['current_result_registry']['call_current_contract']
+        policy = contract['current_state_registry']['call_current_contract']
         if fixture['write_indices'] != call_write_indices():
             raise ValueError('canonical registry Call write indices')
         writer = next(row for row in contract['event_kind_registry']['event_kinds'] if row['event_kind'] == 'ak.call.state')
         for axis, index in fixture['write_indices'].items():
-            write = writer['result_writes'][index]
-            if write['condition'] != {'kind': 'field_present', 'field': 'payload.' + axis + '_delta'} or write['result_selector'] != {'kind': 'composite', 'components': ['payload.call_id']}:
+            write = writer['state_writes'][index]
+            if write['condition'] != {'kind': 'field_present', 'field': 'payload.' + axis + '_delta'} or write['state_selector'] != {'kind': 'composite', 'components': ['payload.call_id']}:
                 raise ValueError('Call axis conditional selector')
         if policy['value_members'] != ['entries', 'last_source'] or policy['partial_allowed'] is not False:
             raise ValueError('closed complete Call value contract')

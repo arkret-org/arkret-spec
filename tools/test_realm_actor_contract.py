@@ -13,7 +13,7 @@ class RealmActorContractTests(unittest.TestCase):
     def test_service_registration_keys_keep_independent_current_instances(self):
         catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
         event = next(r for r in catalog["event_kind_registry"]["event_kinds"] if r["event_kind"] == "ak.applet.registration")
-        selector = event["result_writes"][0]["result_selector"]
+        selector = event["state_writes"][0]["state_selector"]
         self.assertEqual("typed_pair", selector["kind"])
         self.assertEqual(["payload.applet_id", "payload.service_id"], [x["field"] for x in selector["components"]])
         self.assertEqual(["id:applet", "id:did_core"], [x["kind"] for x in selector["components"]])
@@ -50,7 +50,7 @@ class RealmActorContractTests(unittest.TestCase):
         validator = Draft202012Validator(guard)
         validator.validate({"kind": "ak.applet.registration", "scope_ref": {"kind": "realm", "realm_id": token("realm")}})
         self.assertFalse(validator.is_valid({"kind": "ak.applet.registration", "scope_ref": {"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}}))
-        stream = self.validator("typed-current-result", "#/$defs/applet_registration_result/properties/source_stream_ref")
+        stream = self.validator("current-state", "#/$defs/current_applet_registration/properties/source_stream_ref")
         stream.validate({"kind": "realm", "realm_id": token("realm")})
         self.assertFalse(stream.is_valid({"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}))
 
@@ -59,10 +59,10 @@ class RealmActorContractTests(unittest.TestCase):
         service = "ak:did_core:webvh:zRuntime"
         scope = {"kind": "realm", "realm_id": token("realm")}
         selector = {"kind": "applet_registration", "applet_id": applet, "service_id": service}
-        self.validator("typed-current-result", "#/$defs/applet_registration_result/properties/selector").validate(selector)
-        self.validator("exact-current-results-read", "#/$defs/exact_current_result_selector").validate(selector)
+        self.validator("current-state", "#/$defs/current_applet_registration/properties/selector").validate(selector)
+        self.validator("exact-current-state-read", "#/$defs/exact_current_state_selector").validate(selector)
         missing = {k: v for k, v in selector.items() if k != "service_id"}
-        self.assertFalse(self.validator("exact-current-results-read", "#/$defs/exact_current_result_selector").is_valid(missing))
+        self.assertFalse(self.validator("exact-current-state-read", "#/$defs/exact_current_state_selector").is_valid(missing))
         policy = self.validator("policy", "#/$defs/applet_target")
         policy.validate({"kind": "applet", "applet_id": applet})
         policy.validate({"kind": "installation", "applet_id": applet, "service_id": service, "effective_scope": scope})
@@ -177,7 +177,7 @@ class RealmActorContractTests(unittest.TestCase):
         }
         wrapper = {"requester_account_id": execution["originating_actor_id"]["account_id"],
                    "request": request}
-        validator = self.validator("applet-configuration-operations", "#/$defs/peer_request")
+        validator = self.validator("applet-configuration-operations", "#/$defs/peer_applet_configuration_request_body")
         validator.validate(wrapper)
         for bad in (
             {**wrapper, "login_token": "forbidden"},
@@ -190,7 +190,7 @@ class RealmActorContractTests(unittest.TestCase):
         operation = "ak.peer.applet.configuration.command.submit.v1"
         registered = next(row for row in catalog["operation_registry"]["operations"]
                           if row["operation_id"] == operation)
-        self.assertEqual("schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+        self.assertEqual("schemas/applet-configuration-operations.schema.json#/$defs/response_body",
                          registered["response_schema_ref"])
         self.assertFalse(registered["auth_requirements"]["service_signature"]["bearer_only_allowed"])
         bundle = next(row for row in catalog["operation_registry"]["operation_bundles"]
@@ -258,27 +258,27 @@ class RealmActorContractTests(unittest.TestCase):
             {"kind": "mention", "subject_actor_id": actor()})
 
     def test_device_revoke_terminal_material_is_closed(self):
-        validator = self.validator("realm-actor-material", "#/$defs/outcome_record")
+        validator = self.validator("realm-actor-material", "#/$defs/request_status_record")
         for state in ["pending", "accepted", "rejected"]:
             outcome = {"status": "device_revoke", "proposal_ref": committed(4, 2),
                        "device_id": "ak:device:00000000-0000-7000-8000-000000000001", "authorization_ref": committed(),
                        "authorized_generation_ref": 1, "state": state,
                        "decided_at": None if state == "pending" else "2026-10-20T00:00:00.000Z"}
-            value = {"target_request_digest": "sha256:" + "1" * 64, "outcome": outcome}
+            value = {"target_request_digest": "sha256:" + "1" * 64, "request_status": outcome}
             validator.validate(value)
             for field in outcome:
                 bad = copy.deepcopy(value)
-                del bad["outcome"][field]
+                del bad["request_status"][field]
                 self.assertFalse(validator.is_valid(bad), field)
             for field, invalid in [("decided_at", "2026-10-20T00:00:00.000Z" if state == "pending" else None),
                                    ("authorized_generation_ref", 0), ("state", "committed"),
                                    ("device_id", token("event")), ("extra", True)]:
                 bad = copy.deepcopy(value)
-                bad["outcome"][field] = invalid
+                bad["request_status"][field] = invalid
                 self.assertFalse(validator.is_valid(bad), field)
 
     def test_account_peer_material_closed_carrier_and_signed_audience(self):
-        schema = self.validator("realm-actor-material", "#/$defs/peer_request")
+        schema = self.validator("realm-actor-material", "#/$defs/peer_realm_actor_material_request_body")
         request = {"actor_id": actor(), "purpose": "current", "request_nonce": "N" * 22,
                    "selectors": [{"kind": "realm_actor_control", "actor_id": actor()}]}
         account = {"principal_id": "ak:did_core:webvh:zPerson", "station_id": "ak:did_core:webvh:zAccountStation"}
@@ -290,8 +290,8 @@ class RealmActorContractTests(unittest.TestCase):
         self.assertFalse(schema.is_valid({**peer, "requester_account_id": account["principal_id"]}))
         catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
         operation = next(row for row in catalog["operation_registry"]["operations"] if row["operation_id"] == "ak.peer.realm_actor.read.material.v1")
-        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/peer_request", operation["request_schema_ref"])
-        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/outcome", operation["response_schema_ref"])
+        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/peer_realm_actor_material_request_body", operation["request_schema_ref"])
+        self.assertEqual("schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body", operation["response_schema_ref"])
         self.assertEqual(4194304, operation["max_canonical_body_bytes"])
         self.assertEqual({"service_signature"}, set(operation["auth_requirements"]))
 
@@ -347,7 +347,7 @@ class RealmActorContractTests(unittest.TestCase):
         self.assertEqual(list(transcript["properties"]), expected)
         self.assertEqual(transcript["required"], expected)
         self.assertFalse(transcript["additionalProperties"])
-        self.assertEqual(transcript["properties"]["authorization_binding_kind"], {"const": "realm_managed_delegation"})
+        self.assertEqual(core.schema_assertions(transcript["properties"]["authorization_binding_kind"]), {"const": "realm_managed_delegation"})
         self.assertNotIn("device_authorize_applet_managed_possession_transcript", schema)
 
     def test_ra_current_crypto_kats_all_fields_domains_and_wrong_key(self):
@@ -357,7 +357,7 @@ class RealmActorContractTests(unittest.TestCase):
         for case in fixture["cases"]:
             context, signature = case["context"], case["signature"]
             unsigned = case.get("unsigned_projection") or {k:v for k,v in case["candidate"].items() if k != "control_signature"}
-            key = base64.urlsafe_b64decode(case["public_key_b64u"] + "=")
+            key = base64.urlsafe_b64decode(case["public_key_base64url"] + "=")
             self.assertTrue(verify(context, unsigned, signature, key))
             for field in unsigned:
                 changed = copy.deepcopy(unsigned); changed.pop(field)
@@ -406,14 +406,14 @@ class RealmActorContractTests(unittest.TestCase):
     def test_ra_privacy_minimal_fact_and_exact_current_selector(self):
         defs = json.loads((ART / "schemas/authority-commit-operations.schema.json").read_text(encoding="utf-8"))["$defs"]
         public = defs["realm_device_historical_signer_fact"]["properties"]
-        self.assertEqual(set(public), {"kind", "event_id", "actor_id", "verification_method", "public_key_b64u", "accepted_at", "device_id", "authorization_event_id", "authorized_generation_ref"})
+        self.assertEqual(set(public), {"kind", "event_id", "actor_id", "verification_method", "public_key_base64url", "accepted_at", "device_id", "authorization_event_id", "authorized_generation_ref"})
         for field in ["control_event_ref", "stream_position", "method_history_evidence", "commit_id"]: self.assertNotIn(field, public)
         request = {"actor_id": actor(), "purpose": "current", "request_nonce": "N" * 22, "selectors": [{"kind": "realm_actor_identity", "actor_id": actor()}]}
-        v = self.validator("realm-actor-material", "#/$defs/request"); v.validate(request)
+        v = self.validator("realm-actor-material", "#/$defs/realm_actor_material_request_body"); v.validate(request)
         request["selectors"].append(request["selectors"][0]); self.assertFalse(v.is_valid(request))
 
     def test_recovery_service_fact_is_closed_and_has_no_business_grant(self):
-        fields = "kind event_id actor_id target_actor_id verification_method public_key_b64u accepted_at applet_id registration_epoch registration_ref manager_ref recovery_ref".split()
+        fields = "kind event_id actor_id target_actor_id verification_method public_key_base64url accepted_at applet_id registration_epoch registration_ref manager_ref recovery_ref".split()
         path = ART / "schemas/authority-commit-operations.schema.json"
         definition = json.loads(path.read_text(encoding="utf-8"))["$defs"]["realm_recovery_service_historical_signer_fact"]
         self.assertEqual(list(definition["properties"]), fields)
@@ -421,7 +421,7 @@ class RealmActorContractTests(unittest.TestCase):
         fact = {"kind":"realm_recovery_service", "event_id":token("event"),
                 "actor_id":{"kind":"service","service_id":"ak:did_core:webvh:zApplet"},
                 "target_actor_id":actor(), "verification_method":"did:webvh:zApplet:applet.example#signer",
-                "public_key_b64u":base64.urlsafe_b64encode(bytes([1])*32).rstrip(b"=").decode(),
+                "public_key_base64url":base64.urlsafe_b64encode(bytes([1])*32).rstrip(b"=").decode(),
                 "accepted_at":"2026-10-20T00:00:00.000Z", "applet_id":"ak:applet:01904100-0000-7000-8000-bbbbbbbbbbbb",
                 "registration_epoch":"sha256:"+"1"*64, "registration_ref":committed(),
                 "manager_ref":committed(), "recovery_ref":committed(4,1)}
@@ -442,7 +442,7 @@ class RealmActorContractTests(unittest.TestCase):
         from cryptography.exceptions import InvalidSignature
         f = signature_fixture()["device_possession"]
         self.validator("event-payload", "#/$defs/device_authorize_realm_actor_possession_transcript").validate(f["transcript"])
-        key = Ed25519PublicKey.from_public_bytes(base64.urlsafe_b64decode(f["public_key_b64u"] + "="))
+        key = Ed25519PublicKey.from_public_bytes(base64.urlsafe_b64decode(f["public_key_base64url"] + "="))
         signature = base64.urlsafe_b64decode(f["signature_b64u"] + "==")
         message = (f["context"] + "\n").encode() + canonical(f["transcript"])
         self.assertEqual(message.hex(), f["signature_input_hex"])
@@ -463,7 +463,7 @@ class RealmActorContractTests(unittest.TestCase):
         ordinary = {"kind":"mention", "subject_account_id":account}; mention.validate(ordinary)
         value["subject_actor_id"]={"kind":"account","account_id":account}
         self.assertFalse(mention.is_valid(value))
-        record = {"schema":"ak.schema.device_revocation_state.v1", "actor_id":actor(), "device_id":"ak:device:0195be74-0000-7000-8000-000000000001", "target_device_authorize_event_id":token("event"), "target_device_generation_ref":1,"proposal_event_id":token("event",2),"accepted_at":"2026-10-19T00:00:00.000Z","acceptance_seq":1}
+        record = {"schema":"ak.schema.device_revocation_state.v1", "actor_id":actor(), "device_id":"ak:device:0195be74-0000-7000-8000-000000000001", "target_device_authorize_event_id":token("event"), "target_device_generation_ref":1,"proposal_event_id":token("event",2),"accepted_at":"2026-10-19T00:00:00.000Z","acceptance_sequence":1}
         validator = self.validator("device-revocation-state", "#/$defs/common_record")
         validator.validate(record)
         self.assertFalse(validator.is_valid({**record,"account_id":account}))
@@ -496,7 +496,7 @@ class RealmActorContractTests(unittest.TestCase):
         validator.validate(query)
         for field in query:
             missing = dict(query);missing.pop(field);self.assertFalse(validator.is_valid(missing))
-        response = self.validator("applet-edge-operations","#/$defs/applet_third_party_user_list")
+        response = self.validator("applet-edge-operations","#/$defs/applet_third_party_user_lookup_response_body")
         response.validate({"exists":False})
         self.assertFalse(response.is_valid({"exists":False,"actor_id":actor()}))
         self.assertFalse(response.is_valid({"exists":True}))
@@ -543,7 +543,7 @@ class RealmActorContractTests(unittest.TestCase):
 
     def test_kr_recovery_pop_every_nested_binding(self):
         case=signature_fixture()["cases"][4];unsigned=case["unsigned_projection"]
-        public=base64.urlsafe_b64decode(case["public_key_b64u"]+"=")
+        public=base64.urlsafe_b64decode(case["public_key_base64url"]+"=")
         for field in unsigned["payload_without_control_signature"]:
             bad=copy.deepcopy(unsigned);bad["payload_without_control_signature"].pop(field)
             self.assertFalse(verify(case["context"],bad,case["signature"],public))
@@ -612,14 +612,14 @@ class RealmActorContractTests(unittest.TestCase):
 
     def test_kr_private_recovery_current_and_terminal_carrier(self):
         value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":committed()["commit_id"],"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
-        self.validator("typed-current-result","#/$defs/realm_actor_recovery_result").validate(value)
+        self.validator("current-state","#/$defs/current_realm_actor_recovery").validate(value)
         self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","row":value,"source_ref":committed()})
         self.assertFalse(self.validator("realm-actor-material","#/$defs/current_entry").is_valid({"status":"never_written","selector":value["selector"]}))
 
     def test_private_current_source_is_required_closed_and_signed(self):
         fixture = signature_fixture()["cases"][3]
         material = fixture["unsigned_projection"]
-        entry = material["result"]["entries"][0]
+        entry = material["material"]["entries"][0]
         validator = self.validator("realm-actor-material", "#/$defs/current_entry")
         validator.validate(entry)
         missing = copy.deepcopy(entry)
@@ -630,10 +630,10 @@ class RealmActorContractTests(unittest.TestCase):
             del incomplete["source_ref"][field]
             self.assertFalse(validator.is_valid(incomplete))
         import base64
-        public = base64.urlsafe_b64decode(fixture["public_key_b64u"] + "==")
+        public = base64.urlsafe_b64decode(fixture["public_key_base64url"] + "==")
         for field, replacement in [("event_id", token("event", 91)), ("commit_id", token("realm_commit", 91)), ("stream_ref", {"kind":"realm_control","realm_id":token("realm",91)}), ("stream_position", 99)]:
             changed = copy.deepcopy(material)
-            changed["result"]["entries"][0]["source_ref"][field] = replacement
+            changed["material"]["entries"][0]["source_ref"][field] = replacement
             self.assertFalse(verify(fixture["context"], changed, fixture["signature"], public))
         never = {"status":"never_written","selector":{"kind":"realm_actor_profile","actor_id":actor()}}
         validator.validate(never)
@@ -653,11 +653,11 @@ class RealmActorContractTests(unittest.TestCase):
             verify_native_recovery(vector)
 
     def test_kr_lifecycle_terminal_reference_is_mandatory(self):
-        validator = self.validator("realm-actor-material", "#/$defs/outcome_record")
+        validator = self.validator("realm-actor-material", "#/$defs/request_status_record")
         for state in ["pending", "completed", "cancelled", "superseded"]:
             outcome = {"status": "recovery", "begin_ref": committed(), "state": state,
                        "terminal_ref": None if state == "pending" else committed(4, 2)}
-            value = {"target_request_digest": "sha256:" + "1" * 64, "outcome": outcome}
+            value = {"target_request_digest": "sha256:" + "1" * 64, "request_status": outcome}
             validator.validate(value)
             outcome["terminal_ref"] = committed(4, 2) if state == "pending" else None
             self.assertFalse(validator.is_valid(value))

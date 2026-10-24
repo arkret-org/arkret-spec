@@ -96,9 +96,9 @@ plan 中预留的 ID 或 digest 本身不证明效果已经执行。worker 只�
 
 | operation | HTTP | body/outcome |
 | --- | --- | --- |
-| `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | `security-transaction.schema.json#/$defs/create_request` → `SecurityTransaction` |
+| `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | `security-transaction.schema.json#/$defs/security_transaction_create_request_body` → `SecurityTransaction` |
 | `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
-| `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
+| `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/security_transaction_continue_request_body` → `SecurityTransaction` |
 
 SecurityRotation `create` 只接受完整 typed plan，并且必须携带与当前高风险认证 session 中设备完全一致的
 `authorizing_device_id`；Recovery `create` 只接受 closed typed `recovery_intent`，
@@ -137,7 +137,7 @@ attestation_digest})`，其中投影成员 `attestation_digest := SHA-256(JCS(ar
 各自从同载体 `artifact` 重算填入，不从 wire 读取；wire 上也不携字段名清单。coordinator 必须重算 artifact
 digest，验证 outer attestation；recovery 还必须验证 receipt 自己的
 device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。
-`client_attestation.auth_data.verification_method` MUST 是当前 Account DID 加 `#<device_id>` 构成的
+`client_attestation.signature_proof.verification_method` MUST 是当前 Account DID 加 `#<device_id>` 构成的
 canonical DID URL。verifier MUST 在同一 accepted PCR cut 解析该设备的当前授权签名 key、generation、
 revocation 与 pending 状态，核对 attestation 的签名设备与 typed artifact 中的设备逐字相同，
 并拒绝不属于该 Account 或当前未获授权的 key。仅有调用方自报的 DID URL 不构成授权。
@@ -156,7 +156,7 @@ RecoveryTransaction 保留为账号恢复的单一原子事务，但客户端输
 
 ### 2.1 create 同时完成专用 prepare，但不产生恢复效果
 
-create 请求固定 verified recovery session、replacement device、`previous_model_generation_ref` / `result_model_generation_ref`、预留 `terminal_receipt_id`、两条完整签名 Event，以及 `reanchor_commit_intent={realm_id,predecessor_ref,unit_event_digests}`。`predecessor_ref` MUST 等于当前 PCR stream head，digest 顺序 MUST 为 `[reanchor, authorize]`。
+create 请求固定 verified recovery session、replacement device、`previous_model_generation_ref` / `new_model_generation_ref`、预留 `terminal_receipt_id`、两条完整签名 Event，以及 `reanchor_commit_intent={realm_id,predecessor_ref,unit_event_digests}`。`predecessor_ref` MUST 等于当前 PCR stream head，digest 顺序 MUST 为 `[reanchor, authorize]`。
 
 Station 在一个 durable prepare transaction 中重验 session、policy/proof snapshot、device PoP、generation CAS、当前治理 authority、stream head 与两条 Event；随后冻结 canonical request 和 prepared plan。prepare 不插入 Event、不生成 RealmCommit、不推进 generation、不激活设备、不消费 session。
 
@@ -179,7 +179,7 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
 
 ### 2.4 operation 与 grant 边界
 
-`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`result_model_generation_ref` 与 `completed_at`。不再存在 `reanchor_commit_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
+`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`new_model_generation_ref` 与 `completed_at`。不再存在 `reanchor_commit_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
 
 ### 2.5 幂等、竞争与失败终局
 

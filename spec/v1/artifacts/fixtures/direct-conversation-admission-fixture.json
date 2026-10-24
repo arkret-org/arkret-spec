@@ -1,13 +1,13 @@
 {
   "fixture_id": "ak.fixture.direct_conversation.admission_producers.v1",
-  "version": 1,
+  "version": 2,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.admission_producers.v1"
   },
   "profile": "ak.profile.direct_conversation_realm.v1",
   "write_operation_id": "ak.self.events.command.submit.v1",
-  "write_outcome_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+  "write_outcome_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
   "read_operation_id": "ak.self.direct_conversation.read.resolve.v1",
   "rules": [
     {

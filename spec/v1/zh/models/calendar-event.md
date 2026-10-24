@@ -150,7 +150,7 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` �
 
 RSVP 通过 `ak.rsvp.set` 写入，payload 是 `{event_ref, occurrence, entry}`。
 
-- `occurrence`：JSON `null` 表示整个 series；实例级 RSVP 使用 canonical instance key——all-day 写成 `YYYY-MM-DD`，timed 写成 `YYYY-MM-DDTHH:mm:ss[Zone]`（Zone 为已签名的 canonical IANA Zone name）。两种分支的日期部分都 MUST 是真实的 proleptic-Gregorian date；只匹配数字正则但实际不存在的日期（如 `2026-02-30`）MUST 以 `rsvp_occurrence_not_canonical` 拒绝。该判定只需解析本 Event 的签名字符串，属于 shape admission，不依赖 Calendar 子树明文。producer MUST 在签名前生成 canonical key；receiver MUST 拒绝非 canonical key，MUST NOT "接受后修复"自己的缓存地址。非 recurring Calendar 只允许 `occurrence=null`，避免同一单次事件同时出现 series 与 base-instance 两个 typed current result。
+- `occurrence`：JSON `null` 表示整个 series；实例级 RSVP 使用 canonical instance key——all-day 写成 `YYYY-MM-DD`，timed 写成 `YYYY-MM-DDTHH:mm:ss[Zone]`（Zone 为已签名的 canonical IANA Zone name）。两种分支的日期部分都 MUST 是真实的 proleptic-Gregorian date；只匹配数字正则但实际不存在的日期（如 `2026-02-30`）MUST 以 `rsvp_occurrence_not_canonical` 拒绝。该判定只需解析本 Event 的签名字符串，属于 shape admission，不依赖 Calendar 子树明文。producer MUST 在签名前生成 canonical key；receiver MUST 拒绝非 canonical key，MUST NOT "接受后修复"自己的缓存地址。非 recurring Calendar 只允许 `occurrence=null`，避免同一单次事件同时出现 series 与 base-instance 两个 current state。
 - `entry` 是封闭对象 `{schedule_basis_refs, response | encrypted_response}`。
 
 ### 8.1 schedule_basis_refs
@@ -193,9 +193,9 @@ Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密�
 
 ### 8.3 收敛
 
-RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `current-value projection` 收敛；typed current result subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 typed current result value。
+RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `current-value projection` 收敛；current state subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 current state value。
 
-registry 为该 typed current result write 登记 `result_projection = set(payload.entry)`：**整个 entry** 是 projection set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
+registry 为该 current state write 登记 `state_projection = set(payload.entry)`：**整个 entry** 是 projection set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 
 同一 responder 的 RSVP 当前值是该 stream 上最后一个被接受的 `ak.rsvp.set`，次序只由 `stream_position` 决定；并发提交因此被 Station 串行化，不存在两个同时生效的回应。MUST NOT 由 HLC、`created_at`、深度或到达顺序选边，也不得因为解密后的 plaintext 相同而折叠不同 Event 身份。用户下一次回应正常取代当前值，不存在 RSVP 专用冲突修复流程。
 
@@ -228,7 +228,7 @@ registry 为该 typed current result write 登记 `result_projection = set(paylo
 
 授权实现 MUST 能从已授权事件集本地计算 `CalendarRsvpProjection`；profile 不要求新增远端 Calendar API。
 
-每个 typed current result 的唯一 winner 沿**两条正交轴**分类，二者都通过才可参加 effective response；任一轴不通过的 winner MUST 单列并保留审计。projection 只处理已被 accept 的 Event，因此错误 basis 与非 canonical occurrence 不会出现在这里——它们已在 §8.4 的 shape admission 被拒。
+每个 current state 的唯一 winner 沿**两条正交轴**分类，二者都通过才可参加 effective response；任一轴不通过的 winner MUST 单列并保留审计。projection 只处理已被 accept 的 Event，因此错误 basis 与非 canonical occurrence 不会出现在这里——它们已在 §8.4 的 shape admission 被拒。
 
 | 轴 | 取值 | 参加 effective response |
 | --- | --- | --- |
@@ -245,7 +245,7 @@ registry 为该 typed current result write 登记 `result_projection = set(paylo
 1. basis 轴 MUST 按上表判定，MUST NOT 猜测；无法判定即 `unresolved_basis`。
 2. 若存在可参加的 instance winner，则 effective response 只取 instance winner；否则回退到 `occurrence=null` 的可参加 series winner。
 3. instance 与 series winner MUST NOT 做 union，避免把 fallback 与 override 误显示成两个回应。
-4. canonical projection 暴露每个相关 typed current result 的 winner 及其 provenance。读取端先验证 envelope，再按分支取 response（`encrypted_response` 解密后、`response` 直接），均按同一 `rsvp_response` schema 校验，得到 response 轴取值。
+4. canonical projection 暴露每个相关 current state 的 winner 及其 provenance。读取端先验证 envelope，再按分支取 response（`encrypted_response` 解密后、`response` 直接），均按同一 `rsvp_response` schema 校验，得到 response 轴取值。
 5. 被排除的 winner MUST 连同其排除轴与原因一并暴露，供 UI 解释"为什么这条回应不算数"。
 6. archived / redacted / `calendar.status=cancelled` 目标的 projection 状态与历史 RSVP 显示规则 MUST 明确；redacted target MUST NOT 继续暴露 roster 或 response 内容。
 7. projection 输出 MUST 受与 Calendar Strand 相同的 effective scope / history visibility 约束，MUST NOT 用 RSVP 存在性泄露不可见事件或 attendee 身份。

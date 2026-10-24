@@ -8,25 +8,25 @@
       "$ref": "#/$defs/pcr_genesis_unit"
     },
     {
-      "$ref": "#/$defs/pcr_genesis_submit_request"
+      "$ref": "#/$defs/pcr_genesis_submit_request_body"
     },
     {
-      "$ref": "#/$defs/pcr_genesis_submit_outcome"
+      "$ref": "#/$defs/pcr_genesis_submit_response_body"
     },
     {
       "$ref": "#/$defs/session_grant_holder_binding"
     },
     {
-      "$ref": "#/$defs/participation_replace_request"
+      "$ref": "#/$defs/agent_participation_replace_request_body"
     },
     {
       "$ref": "#/$defs/history_share_contract"
     },
     {
-      "$ref": "#/$defs/sidecar_ensure_request"
+      "$ref": "#/$defs/agent_sidecar_ensure_request_body"
     },
     {
-      "$ref": "#/$defs/sidecar_ensure_outcome"
+      "$ref": "#/$defs/sidecar_ensure_response_body"
     }
   ],
   "$defs": {
@@ -155,13 +155,16 @@
       ],
       "properties": {
         "verified_display_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "controlled_cache_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "subsequent_share_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "current_policy_commit_event_id": {
           "$ref": "#/$defs/event_id"
@@ -184,32 +187,37 @@
     "participation_bits": {
       "type": "object",
       "required": [
-        "reply_message",
-        "reaction_add",
-        "reaction_remove",
-        "accept_third_party_mention",
-        "act_on_behalf"
+        "message_creation_allowed",
+        "reaction_addition_allowed",
+        "reaction_removal_allowed",
+        "third_party_mention_delivery_allowed",
+        "acting_on_behalf_allowed"
       ],
       "properties": {
-        "reply_message": {
-          "type": "boolean"
+        "message_creation_allowed": {
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
-        "reaction_add": {
-          "type": "boolean"
+        "reaction_addition_allowed": {
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
-        "reaction_remove": {
-          "type": "boolean"
+        "reaction_removal_allowed": {
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
-        "accept_third_party_mention": {
-          "type": "boolean"
+        "third_party_mention_delivery_allowed": {
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
-        "act_on_behalf": {
-          "type": "boolean"
+        "acting_on_behalf_allowed": {
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         }
       },
       "additionalProperties": false
     },
-    "participation_replace_request": {
+    "agent_participation_replace_request_body": {
       "type": "object",
       "description": "Controller-owned full replacement of one per-scope participation selection. The authenticated Account Authority is the sole selection authority; first write uses expected_version=0 and each accepted write increments by one.",
       "required": [
@@ -225,12 +233,22 @@
           "$ref": "#/$defs/participation_bits"
         },
         "expected_version": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9223372036854776000
+          "$ref": "./decimal-integers.schema.json#/$defs/nonnegative_int64_decimal",
+          "not": {
+            "const": "9223372036854775807",
+            "x-arkret-value-ownership": {
+              "class": "decimal_text",
+              "authority": "principal-operations.schema.json#/$defs/agent_participation_replace_request_body/properties/expected_version/not",
+              "owner": "principal-operations.schema.json#/$defs/agent_participation_replace_request_body/properties/expected_version/not",
+              "values": [
+                "9223372036854775807"
+              ]
+            }
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "participation_scope": {
       "oneOf": [
@@ -242,7 +260,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/participation_scope/oneOf/0/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/participation_scope/oneOf/0/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "#/$defs/realm_id"
@@ -259,7 +285,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle"
+              "const": "circle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/participation_scope/oneOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/participation_scope/oneOf/1/properties/kind",
+                "values": [
+                  "circle"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "#/$defs/realm_id"
@@ -279,7 +313,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "strand"
+              "const": "strand",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/participation_scope/oneOf/2/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/participation_scope/oneOf/2/properties/kind",
+                "values": [
+                  "strand"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "#/$defs/realm_id"
@@ -292,7 +334,7 @@
         }
       ]
     },
-    "pcr_genesis_submit_outcome": {
+    "pcr_genesis_submit_response_body": {
       "type": "object",
       "required": [
         "principal_id",
@@ -330,9 +372,10 @@
           "items": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "pcr_genesis_submit_request": {
+    "pcr_genesis_submit_request_body": {
       "type": "object",
       "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration anchor, the identity-root control proof and the two Event proofs. The designated method fact owner verifies the primary anchor and historical evidence; the Station admits the exact frozen unit. Within one authenticated TCB, exact verified method facts are carried through the registered channel without repeating the same method history; independent trust boundaries verify independently. Historical genesis verification never substitutes current DID resolution. Exactly one registration control proof is carried: identity_creation_control_proof with accepted_at evidence, or account_registration_control_proof with validated_at evidence. For the latter the authenticated exact owner must separately validate proof.request_canonical_digest recomputed by the fact owner from the original register body with only proof.request_canonical_digest and proof.signature omitted; the original body remains durable owner material. Both proof variants authorize the same complete ordered PCR unit and initial session, not a DID publication or a second lineage.",
       "required": [
@@ -436,7 +479,8 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "pcr_genesis_unit": {
       "type": "object",
@@ -457,7 +501,15 @@
                   "type": "object",
                   "properties": {
                     "kind": {
-                      "const": "ak.realm.create"
+                      "const": "ak.realm.create",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "principal-operations.schema.json#/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind",
+                        "owner": "principal-operations.schema.json#/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind",
+                        "values": [
+                          "ak.realm.create"
+                        ]
+                      }
                     },
                     "payload": {
                       "type": "object",
@@ -489,7 +541,15 @@
                   "type": "object",
                   "properties": {
                     "kind": {
-                      "const": "ak.device.authorize"
+                      "const": "ak.device.authorize",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "principal-operations.schema.json#/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/kind",
+                        "owner": "principal-operations.schema.json#/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/kind",
+                        "values": [
+                          "ak.device.authorize"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -519,7 +579,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "active_member"
+              "const": "active_member",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/0/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/0/properties/kind",
+                "values": [
+                  "active_member"
+                ]
+              }
             },
             "member_ref": {
               "$ref": "#/$defs/event_id"
@@ -535,7 +603,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "invited"
+              "const": "invited",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/1/properties/kind",
+                "values": [
+                  "invited"
+                ]
+              }
             },
             "invite_ref": {
               "$ref": "#/$defs/event_id"
@@ -551,7 +627,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "removed_t0_visible"
+              "const": "removed_t0_visible",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/2/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/2/properties/kind",
+                "values": [
+                  "removed_t0_visible"
+                ]
+              }
             },
             "remove_ref": {
               "$ref": "#/$defs/event_id"
@@ -567,7 +651,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "world_readable_requester"
+              "const": "world_readable_requester",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/3/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/3/properties/kind",
+                "values": [
+                  "world_readable_requester"
+                ]
+              }
             },
             "requester_id": {
               "$ref": "#/$defs/did_core_id"
@@ -583,7 +675,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "shared_authorized"
+              "const": "shared_authorized",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/4/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/4/properties/kind",
+                "values": [
+                  "shared_authorized"
+                ]
+              }
             },
             "share_authority_ref": {
               "$ref": "#/$defs/event_id"
@@ -599,7 +699,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "restricted_authorized"
+              "const": "restricted_authorized",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/5/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/receiver_eligibility_basis/oneOf/5/properties/kind",
+                "values": [
+                  "restricted_authorized"
+                ]
+              }
             },
             "policy_authority_ref": {
               "$ref": "#/$defs/event_id"
@@ -621,7 +729,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.sidecar.context.attach"
+              "const": "ak.sidecar.context.attach",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_context_attach_event/allOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_context_attach_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.sidecar.context.attach"
+                ]
+              }
             }
           }
         }
@@ -637,7 +753,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "relation"
+              "const": "relation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_context_ref/oneOf/0/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_context_ref/oneOf/0/properties/kind",
+                "values": [
+                  "relation"
+                ]
+              }
             },
             "relation_id": {
               "$ref": "./event-payload.schema.json#/$defs/relation_id"
@@ -653,7 +777,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "strand"
+              "const": "strand",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_context_ref/oneOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_context_ref/oneOf/1/properties/kind",
+                "values": [
+                  "strand"
+                ]
+              }
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
@@ -696,13 +828,21 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.sidecar.create"
+              "const": "ak.sidecar.create",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_create_event/allOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_create_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.sidecar.create"
+                ]
+              }
             }
           }
         }
       ]
     },
-    "sidecar_ensure_outcome": {
+    "sidecar_ensure_response_body": {
       "oneOf": [
         {
           "type": "object",
@@ -717,10 +857,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/0/properties/status",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/0/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
             "branch": {
-              "const": "new"
+              "const": "new",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/0/properties/branch",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/0/properties/branch",
+                "values": [
+                  "new"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -753,10 +909,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/1/properties/status",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/1/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
             "branch": {
-              "const": "existing"
+              "const": "existing",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/1/properties/branch",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/1/properties/branch",
+                "values": [
+                  "existing"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -789,7 +961,15 @@
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/2/properties/status",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/2/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -799,7 +979,16 @@
               "enum": [
                 "commit",
                 "attach"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/2/properties/accepted_phase",
+                "owner": "principal-operations.schema.json#/$defs/sidecar_ensure_response_body/oneOf/2/properties/accepted_phase",
+                "values": [
+                  "commit",
+                  "attach"
+                ]
+              }
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
@@ -820,9 +1009,10 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "sidecar_ensure_request": {
+    "agent_sidecar_ensure_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -836,7 +1026,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/0/properties/phase",
+                "owner": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -868,7 +1066,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/1/properties/phase",
+                "owner": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -899,7 +1105,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "attach"
+              "const": "attach",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/2/properties/phase",
+                "owner": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/2/properties/phase",
+                "values": [
+                  "attach"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "#/$defs/operation_id"
@@ -916,22 +1130,24 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "prepared_event_draft": {
       "type": "object",
       "description": "Service-built canonical producer Event digest-payload bytes with producer_proof and reducer-managed fields absent. The client MUST decode these exact bytes under the suite carried by event_digest, add only the required producer proof, and return the resulting signed Event. Event id and kind are derived views, never parallel wire inputs.",
       "required": [
-        "unsigned_event_bytes",
+        "unsigned_event_base64url",
         "event_digest"
       ],
       "properties": {
-        "unsigned_event_bytes": {
-          "$ref": "#/$defs/base64url"
+        "unsigned_event_base64url": {
+          "$ref": "#/$defs/base64url",
+          "x-arkret-member-role": "binary_encoding"
         },
         "event_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-          "description": "SHA-256 digest of unsigned_event_bytes under the fixed current-v1 Event identity suite. The value MUST use the sha256 prefix; no Realm state selects or changes it."
+          "description": "SHA-256 digest of unsigned_event_base64url under the fixed current-v1 Event identity suite. The value MUST use the sha256 prefix; no Realm state selects or changes it."
         }
       },
       "additionalProperties": false
@@ -970,7 +1186,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "human_device"
+              "const": "human_device",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/0/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/0/properties/kind",
+                "values": [
+                  "human_device"
+                ]
+              }
             },
             "device_binding": {
               "$ref": "#/$defs/opaque_id"
@@ -988,7 +1212,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_runtime"
+              "const": "agent_runtime",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/1/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/1/properties/kind",
+                "values": [
+                  "agent_runtime"
+                ]
+              }
             },
             "agent_id": {
               "$ref": "#/$defs/did_core_id"
@@ -1010,7 +1242,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "recovery_candidate_device"
+              "const": "recovery_candidate_device",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/2/properties/kind",
+                "owner": "principal-operations.schema.json#/$defs/session_grant_holder_binding/oneOf/2/properties/kind",
+                "values": [
+                  "recovery_candidate_device"
+                ]
+              }
             },
             "device_id": {
               "$ref": "#/$defs/device_id"

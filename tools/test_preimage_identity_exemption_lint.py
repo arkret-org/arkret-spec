@@ -174,7 +174,7 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         refs = event_payload["$defs"]["policy_set_state_payload"]["properties"]["value"]["oneOf"]
         self.assertIn({"$ref": "./recovery-policy.schema.json"}, refs)
         self.assertEqual(
-            recovery["$defs"]["recovery_policy_publish_request"]["allOf"][0]["$ref"],
+            recovery["$defs"]["recovery_policy_publish_request_body"]["allOf"][0]["$ref"],
             "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
         )
         self.assertEqual(

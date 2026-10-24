@@ -8,7 +8,7 @@
       "$ref": "#/$defs/realm_lifecycle_view"
     },
     {
-      "$ref": "#/$defs/realm_stream_list"
+      "$ref": "#/$defs/realm_stream_page"
     },
     {
       "$ref": "#/$defs/realm_export"
@@ -22,7 +22,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "cursor": {
-      "$ref": "./authz-operations.schema.json#/$defs/cursor"
+      "$ref": "./authorization-operations.schema.json#/$defs/cursor"
     },
     "realm_stream_row": {
       "type": "object",
@@ -52,7 +52,7 @@
       },
       "additionalProperties": false
     },
-    "realm_stream_list": {
+    "realm_stream_page": {
       "type": "object",
       "description": "ACL-filtered, paginated enumeration of one Realm's authority streams (ak.self.realm.read.streams.v1). It is the discovery surface that positional scan cannot be: scan requires a stream_ref the caller already knows, so without this list a stream outside the bounded subscribe window would be undiscoverable. Pagination is a fixed snapshot: the page sequence is taken against one server-side generation, so a stream that appears after the first page is NOT inserted into the earlier pages and is therefore never skipped; it is discovered by a later enumeration or by the visible discovery delta. Permissions are re-checked on every page, so a page MAY be narrower than its predecessor, and a stream the caller has stopped being permitted to know about MUST disappear rather than be served from the frozen generation.",
       "required": [
@@ -82,7 +82,8 @@
           "description": "The only field a client may use to decide whether to keep paging (zh/sync/api-conventions.md section 7.1)."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "page"
     },
     "realm_lifecycle_view": {
       "type": "object",
@@ -122,7 +123,16 @@
           "enum": [
             "tombstoned",
             "destroyed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-read-operations.schema.json#/$defs/realm_lifecycle_view/properties/terminal_state",
+            "owner": "realm-read-operations.schema.json#/$defs/realm_lifecycle_view/properties/terminal_state",
+            "values": [
+              "tombstoned",
+              "destroyed"
+            ]
+          }
         },
         "successor_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -141,7 +151,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.export.realm.v1"
+          "const": "ak.export.realm.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "realm-read-operations.schema.json#/$defs/realm_export/properties/schema",
+            "owner": "realm-read-operations.schema.json#/$defs/realm_export/properties/schema",
+            "values": [
+              "ak.export.realm.v1"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

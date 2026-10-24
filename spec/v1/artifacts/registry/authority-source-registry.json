@@ -1,14 +1,14 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
   "registry_rules": [
     "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event reference never creates authority.",
     "The current governance Station rederives activation, actor, resource and lifecycle predicates from its authority-committed current state and fails closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
-    "A successful preflight or cached current result is advisory to the caller and never replaces atomic authorization at RealmCommit issuance."
+    "A successful preflight or cached current state is advisory to the caller and never replaces atomic authorization at RealmCommit issuance."
   ],
   "sources": [
     {

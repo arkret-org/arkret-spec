@@ -30,12 +30,23 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "from_generation": {
-      "type": "integer",
-      "minimum": 0
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "to_generation": {
-      "type": "integer",
-      "minimum": 1
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+      "not": {
+        "enum": [
+          "0"
+        ],
+        "x-arkret-value-ownership": {
+          "class": "decimal_text",
+          "authority": "realm-authority-handoff.schema.json#/properties/to_generation/not",
+          "owner": "realm-authority-handoff.schema.json#/properties/to_generation/not",
+          "values": [
+            "0"
+          ]
+        }
+      }
     },
     "from_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

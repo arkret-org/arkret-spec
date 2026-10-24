@@ -187,7 +187,7 @@ class PcrExposureLintTest(unittest.TestCase):
         for row in registry["event_kinds"]:
             if row["event_kind"] == "ak.contact.requested":
                 row["exposures"][0]["schema_ref"] = (
-                    "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request"
+                    "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body"
                 )
         for row in registry["event_kinds"]:
             if row["event_kind"] == "ak.contact.scope.update":
@@ -232,7 +232,7 @@ class PcrPrivateContractTest(unittest.TestCase):
         return {
             "holder_account_id": {"principal_id": "ak:did_core:web:holder.example", "station_id": "ak:did_core:web:host.example"},
             "realm_id": "ak:realm:" + "A" * 44,
-            "governance_generation": 1,
+            "governance_generation": "1",
             "nonce": "A" * 22,
             "expires_at": "2026-10-15T00:00:30.000Z",
             "context": {
@@ -244,7 +244,7 @@ class PcrPrivateContractTest(unittest.TestCase):
         }
 
     def test_proxy_rejects_generic_commands_extra_fields_and_wrong_context(self) -> None:
-        validator = self.validator("proxy_request")
+        validator = self.validator("proxy_request_body")
         request = self.request()
         validator.validate(request)
         mutations = []
@@ -265,7 +265,7 @@ class PcrPrivateContractTest(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed), changed)
 
     def test_effects_requires_all_nullable_cells(self) -> None:
-        validator = self.validator("effects_outcome")
+        validator = self.validator("effects_response_body")
         outcome = {"kind": "effects", "body": {"holder_quarantine": None, "invite_delivery": None, "invite_receive_policy": None}}
         validator.validate(outcome)
         for field in outcome["body"]:
@@ -275,7 +275,7 @@ class PcrPrivateContractTest(unittest.TestCase):
         self.assertFalse(validator.is_valid({"kind": "effects", "body": {}}))
 
     def test_effect_publication_is_closed_and_cannot_become_generic_rpc(self) -> None:
-        validator = self.validator("effects_publish_request")
+        validator = self.validator("effects_publish_request_body")
         proxy = self.request()
         request = {key: proxy[key] for key in ("holder_account_id", "realm_id", "governance_generation", "nonce")}
         request.update({
@@ -297,7 +297,7 @@ class PcrPrivateContractTest(unittest.TestCase):
             changed = copy.deepcopy(request)
             changed[key] = {}
             self.assertFalse(validator.is_valid(changed), key)
-        ack = self.validator("effects_publish_outcome")
+        ack = self.validator("effects_publish_response_body")
         ack.validate({"request_digest": "sha256:" + "a" * 64, "status": "applied"})
         self.assertFalse(ack.is_valid({"request_digest": "sha256:" + "a" * 64, "status": "accepted"}))
 
@@ -316,7 +316,7 @@ class PcrPrivateContractTest(unittest.TestCase):
     def test_manifest_and_public_digest_are_required_exactly_for_pcr(self) -> None:
         # Isolate the contextual rule; complete cryptographic handoff acceptance
         # remains an SDK/server responsibility, never a schema-test assertion.
-        rules = [row for row in self.authority["$defs"]["handoff_request"]["allOf"]
+        rules = [row for row in self.authority["$defs"]["realm_authority_handoff_request_body"]["allOf"]
                  if "authority_bundle" in row.get("if", {}).get("properties", {})]
         self.assertEqual(len(rules), 1)
         rule = rules[0]

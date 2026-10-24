@@ -1,4 +1,4 @@
-"""A `result_writes[]` row must be checkable against the value schema it names.
+"""A `state_writes[]` row must be checkable against the value schema it names.
 
 `value_schema_ref` sat in every row and nothing read it past "does this pointer
 resolve to an object". A `value_projection` builds the stored value out of
@@ -7,10 +7,10 @@ unverified: that a projected member belongs to the value at all, and that a
 whole-value `set` writes everything that value requires.
 
 `ak.member.state` is what that costs. Its ref pointed at
-`member_state_result` -- the enclosing envelope, whose own members are
+`current_member_state` -- the enclosing envelope, whose own members are
 selector/revision/value -- while its projection wrote `membership`, a member of
 the value inside. Every other family names a value def; this one named the
-envelope, and the row's own notes reasoned about "member_state_result.value"
+envelope, and the row's own notes reasoned about "current_member_state.value"
 because the ref could not say it.
 
 The third proposition is one level up: `registry_rules` describes coverage as a
@@ -37,7 +37,7 @@ from tools.artifact_lint import proof_context_schemas as gate
 
 EVENT_KINDS = gate.EVENT_KIND_REGISTRY
 SCHEMAS = ROOT / "spec/v1/artifacts/schemas"
-TYPED_CURRENT_RESULT = "schemas/typed-current-result.schema.json"
+TYPED_CURRENT_RESULT = "schemas/current-state.schema.json"
 
 
 def row_of(document: dict, kind: str) -> dict:
@@ -47,7 +47,7 @@ def row_of(document: dict, kind: str) -> dict:
     raise AssertionError(f"{kind} is not a registered Event kind")
 
 
-class ResultWriteValueSchemaBindingTest(unittest.TestCase):
+class StateWriteValueSchemaBindingTest(unittest.TestCase):
     def _run(self, mutations=None) -> list[str]:
         mutations = mutations or {}
         original_load_json = gate.load_json
@@ -84,8 +84,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
         seen = 0
         for row in registry["event_kinds"]:
-            for index, write in enumerate(row.get("result_writes") or ()):
-                projection = write["result_projection"]
+            for index, write in enumerate(row.get("state_writes") or ()):
+                projection = write["state_projection"]
                 value_projection = projection.get("value_projection") or {}
                 if not value_projection.get("members"):
                     continue
@@ -97,17 +97,17 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
     def test_member_state_names_a_value_rather_than_its_envelope(self) -> None:
         """The one row that named the envelope, and the extraction that fixed it.
 
-        `member_state_result.properties.value` is now a `$ref` at the same def,
+        `current_member_state.properties.value` is now a `$ref` at the same def,
         so the envelope and the registry cannot drift apart again."""
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
-        write = row_of(registry, "ak.member.state")["result_writes"][0]
+        write = row_of(registry, "ak.member.state")["state_writes"][0]
         self.assertEqual(
             write["value_schema_ref"],
             f"{TYPED_CURRENT_RESULT}#/$defs/member_state_value",
         )
-        schema = gate.load_json(gate.Lint(), SCHEMAS / "typed-current-result.schema.json")
+        schema = gate.load_json(gate.Lint(), SCHEMAS / "current-state.schema.json")
         self.assertEqual(
-            schema["$defs"]["member_state_result"]["properties"]["value"],
+            schema["$defs"]["current_member_state"]["properties"]["value"],
             {"$ref": "#/$defs/member_state_value"},
         )
         self.assertIn("membership", schema["$defs"]["member_state_value"]["properties"])
@@ -152,8 +152,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         owe it a selector and a revision."""
 
         def mutate(document):
-            write = row_of(document, "ak.member.state")["result_writes"][0]
-            write["value_schema_ref"] = f"{TYPED_CURRENT_RESULT}#/$defs/member_state_result"
+            write = row_of(document, "ak.member.state")["state_writes"][0]
+            write["value_schema_ref"] = f"{TYPED_CURRENT_RESULT}#/$defs/current_member_state"
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 5, reported)
@@ -165,8 +165,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_a_member_the_value_schema_never_declares_is_reported(self) -> None:
         def mutate(document):
-            write = row_of(document, "ak.capability.revoke")["result_writes"][0]
-            write["result_projection"]["value_projection"]["members"][0]["name"] = "revoked_reason"
+            write = row_of(document, "ak.capability.revoke")["state_writes"][0]
+            write["state_projection"]["value_projection"]["members"][0]["name"] = "revoked_reason"
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 1, reported)
@@ -178,8 +178,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         registered schema on the first replay."""
 
         def mutate(document):
-            projection = row_of(document, "ak.mls.genesis")["result_writes"][0][
-                "result_projection"
+            projection = row_of(document, "ak.mls.genesis")["state_writes"][0][
+                "state_projection"
             ]
             members = projection["value_projection"]["members"]
             projection["value_projection"]["members"] = [
@@ -192,7 +192,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_genesis_must_write_the_immutable_cipher_suite(self) -> None:
         def mutate(document):
-            projection = row_of(document, "ak.mls.genesis")["result_writes"][0]["result_projection"]
+            projection = row_of(document, "ak.mls.genesis")["state_writes"][0]["state_projection"]
             projection["value_projection"]["members"] = [
                 member for member in projection["value_projection"]["members"]
                 if member["name"] != "cipher_suite"
@@ -207,11 +207,11 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         already-projected value, so demanding them here would forbid every
         partial write the registry has."""
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
-        write = row_of(registry, "ak.capability.revoke")["result_writes"][0]
-        self.assertEqual(write["result_projection"]["kind"], "merge")
+        write = row_of(registry, "ak.capability.revoke")["state_writes"][0]
+        self.assertEqual(write["state_projection"]["kind"], "merge")
         projected = {
             member["name"]
-            for member in write["result_projection"]["value_projection"]["members"]
+            for member in write["state_projection"]["value_projection"]["members"]
         }
         declared, required = self._alternatives(write["value_schema_ref"])[0]
         self.assertTrue(required - projected, "the fixture stopped exercising the exemption")
@@ -222,7 +222,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         answer to nothing."""
 
         def mutate(document):
-            del row_of(document, "ak.member.state")["result_writes"][0]["value_schema_ref"]
+            del row_of(document, "ak.member.state")["state_writes"][0]["value_schema_ref"]
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 1, reported)
@@ -234,8 +234,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         bare enum, so it is the shape that has no members to check against."""
 
         def mutate(document):
-            row_of(document, "ak.member.state")["result_writes"][0]["value_schema_ref"] = (
-                f"{TYPED_CURRENT_RESULT}#/$defs/agent_status_result/properties/value"
+            row_of(document, "ak.member.state")["state_writes"][0]["value_schema_ref"] = (
+                f"{TYPED_CURRENT_RESULT}#/$defs/current_agent_status/properties/value"
             )
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
@@ -253,7 +253,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
     def test_the_note_counts_the_rows_that_are_there(self) -> None:
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
         reducer_inputs = [row for row in registry["event_kinds"] if row.get("reducer_input")]
-        covered = [row for row in reducer_inputs if row.get("result_writes")]
+        covered = [row for row in reducer_inputs if row.get("state_writes")]
         note = registry["registry_rules"][self._note_index(registry)]
         self.assertIn(
             f"{len(covered)} of the {len(reducer_inputs)} reducer_input kinds declare it; "
@@ -299,7 +299,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("exactly one result_writes[] coverage note, found 0", reported[0])
+        self.assertIn("exactly one state_writes[] coverage note, found 0", reported[0])
 
     def test_an_unparseable_note_is_reported(self) -> None:
         """A note the gate cannot read is a note nobody is checking."""
@@ -316,7 +316,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     # ---- the whole-value source closure ----------------------------------
     #
-    # `result_projection.value` had no validator outside the keyed-set branch:
+    # `state_projection.value` had no validator outside the keyed-set branch:
     # the gate checked that `value` or `value_projection` was present and then
     # read neither, so all 31 registered `set` values went unread. The grammar
     # that did validate it, `foundation.lint_effect_source`, was written for
@@ -326,8 +326,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
     @staticmethod
     def _a_set_write(document: dict) -> dict:
         for row in document["event_kinds"]:
-            for write in row.get("result_writes") or ():
-                projection = write.get("result_projection") or {}
+            for write in row.get("state_writes") or ():
+                projection = write.get("state_projection") or {}
                 if projection.get("kind") == "set" and "value" in projection:
                     return write
         raise AssertionError("no set projection with a value in the registry")
@@ -341,8 +341,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
         seen = 0
         for row in registry["event_kinds"]:
-            for index, write in enumerate(row.get("result_writes") or ()):
-                value = (write["result_projection"] or {}).get("value")
+            for index, write in enumerate(row.get("state_writes") or ()):
+                value = (write["state_projection"] or {}).get("value")
                 if value is None:
                     continue
                 seen += 1
@@ -353,11 +353,11 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
                     )
                     if "const" in value:
                         if row["event_kind"] == "ak.realm.actor.create":
-                            self.assertEqual(write["result_family"],"realm_actor_status")
+                            self.assertEqual(write["state_family"],"realm_actor_status")
                             self.assertEqual(value["const"],"active")
                         elif row["event_kind"] == "ak.realm.actor.recovery.begin":
-                            self.assertEqual(write["result_family"], "realm_actor_status")
-                            self.assertEqual(write["result_selector"]["components"][-1], {"kind": "literal", "value": "owner"})
+                            self.assertEqual(write["state_family"], "realm_actor_status")
+                            self.assertEqual(write["state_selector"]["components"][-1], {"kind": "literal", "value": "owner"})
                             self.assertEqual(value["const"], "paused")
                         else:
                             self.assertIsNone(value["const"])
@@ -365,7 +365,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_a_value_naming_two_sources_is_reported(self) -> None:
         def mutate(document: dict) -> None:
-            self._a_set_write(document)["result_projection"]["value"] = {
+            self._a_set_write(document)["state_projection"]["value"] = {
                 "field": "payload.value",
                 "envelope_field": "event_id",
             }
@@ -380,7 +380,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         is how removed vocabulary comes back."""
 
         def mutate(document: dict) -> None:
-            self._a_set_write(document)["result_projection"]["value"] = {
+            self._a_set_write(document)["state_projection"]["value"] = {
                 "projected_value": "active"
             }
 
@@ -395,7 +395,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         protocol state no payload and no envelope supplies."""
 
         def mutate(document: dict) -> None:
-            self._a_set_write(document)["result_projection"]["value"] = {
+            self._a_set_write(document)["state_projection"]["value"] = {
                 "const": "active"
             }
 
@@ -409,7 +409,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         wildcard, no empty segment."""
 
         def mutate(document: dict) -> None:
-            self._a_set_write(document)["result_projection"]["value"] = {
+            self._a_set_write(document)["state_projection"]["value"] = {
                 "field": "payload.items[0]"
             }
 
@@ -419,7 +419,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_an_unregistered_envelope_field_is_reported(self) -> None:
         def mutate(document: dict) -> None:
-            self._a_set_write(document)["result_projection"]["value"] = {
+            self._a_set_write(document)["state_projection"]["value"] = {
                 "envelope_field": "signature"
             }
 
@@ -433,8 +433,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
         def mutate(document: dict) -> None:
             for row in document["event_kinds"]:
-                for write in row.get("result_writes") or ():
-                    projection = write.get("result_projection") or {}
+                for write in row.get("state_writes") or ():
+                    projection = write.get("state_projection") or {}
                     if projection.get("kind") == "keyed_set_add":
                         projection["value"] = {"projected_value": "x"}
                         return
@@ -446,16 +446,16 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_complete_call_cannot_drop_its_last_source_projection(self) -> None:
         def mutate(document: dict) -> None:
-            writes = row_of(document, "ak.call.state")["result_writes"]
-            projection = next(w for w in writes if w["result_family"] == "call_roster")["result_projection"]
+            writes = row_of(document, "ak.call.state")["state_writes"]
+            projection = next(w for w in writes if w["state_family"] == "call_roster")["state_projection"]
             projection["value_projection"]["members"].pop()
         errors = self._newly_reported({EVENT_KINDS: mutate})
         self.assertTrue(any("requires exact complete Call projection" in error for error in errors), errors)
 
     def test_source_commit_cannot_be_read_from_a_producer_field(self) -> None:
         def mutate(document: dict) -> None:
-            writes = row_of(document, "ak.call.state")["result_writes"]
-            next(w for w in writes if w["result_family"] == "call_roster")["result_projection"]["source_commit"] = {"field": "payload.source_commit"}
+            writes = row_of(document, "ak.call.state")["state_writes"]
+            next(w for w in writes if w["state_family"] == "call_roster")["state_projection"]["source_commit"] = {"field": "payload.source_commit"}
         errors = self._newly_reported({EVENT_KINDS: mutate})
         self.assertTrue(any("producer-supplied source_commit is forbidden" in error for error in errors), errors)
 

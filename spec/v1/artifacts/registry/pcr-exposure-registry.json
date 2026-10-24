@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-21.2",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -15,7 +15,7 @@
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
-    "derived_field": "A value projected from the Event or from the typed current result it writes; not the Event itself.",
+    "derived_field": "A value projected from the Event or from the current state it writes; not the Event itself.",
     "receipt": "Signed acceptance evidence naming the Event.",
     "did_service_entry": "A service entry in a publicly resolvable DID Document.",
     "realm_commit": "The authority-signed RealmCommit that accepted the disclosed Event."
@@ -107,9 +107,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -119,9 +119,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -136,9 +136,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -148,9 +148,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -172,9 +172,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -184,9 +184,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -201,9 +201,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -213,9 +213,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -225,9 +225,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.consent.read.current.v1",
           "direction": "response",
-          "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+          "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
           "json_pointers": [
-            "/$defs/consent_current_read_outcome/properties/current"
+            "/$defs/consent_current_read_response_body/properties/current"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -239,7 +239,7 @@
           "direction": "response",
           "schema_ref": "schemas/consent-private-operations.schema.json",
           "json_pointers": [
-            "/$defs/list_outcome/properties/body"
+            "/$defs/list_response_body/properties/body"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -251,7 +251,7 @@
           "direction": "response",
           "schema_ref": "schemas/consent-private-operations.schema.json",
           "json_pointers": [
-            "/$defs/version_outcome/properties/body"
+            "/$defs/version_response_body/properties/body"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -263,7 +263,7 @@
           "direction": "response",
           "schema_ref": "schemas/consent-private-operations.schema.json",
           "json_pointers": [
-            "/$defs/effects_outcome/properties/body"
+            "/$defs/effects_response_body/properties/body"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -275,7 +275,7 @@
           "direction": "request",
           "schema_ref": "schemas/consent-private-operations.schema.json",
           "json_pointers": [
-            "/$defs/effects_publish_request/properties/effects"
+            "/$defs/effects_publish_request_body/properties/effects"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -290,9 +290,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_contact_submit_request/oneOf/1/properties/signed_event"
+            "/$defs/peer_contact_submit_request_body/oneOf/1/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
@@ -301,9 +301,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -318,9 +318,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_contact_submit_request/oneOf/2/properties/signed_event"
+            "/$defs/peer_contact_submit_request_body/oneOf/2/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
@@ -329,9 +329,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -346,9 +346,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_contact_submit_request/oneOf/0/properties/signed_event"
+            "/$defs/peer_contact_submit_request_body/oneOf/0/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
@@ -357,7 +357,7 @@
           "surface": "operation",
           "operation_id": "ak.self.contact.read.list.v1",
           "direction": "response",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_page",
           "json_pointers": [
             "/$defs/contact_list_row/properties/request_event_ref",
             "/$defs/contact_list_row/properties/request_message"
@@ -369,9 +369,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -386,9 +386,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_contact_submit_request/oneOf/3/properties/signed_event"
+            "/$defs/peer_contact_submit_request_body/oneOf/3/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
@@ -397,9 +397,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -414,9 +414,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+          "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_contact_submit_request/oneOf/4/properties/signed_event"
+            "/$defs/peer_contact_submit_request_body/oneOf/4/properties/signed_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.federation_peer_service_auth.v1"
         },
@@ -425,9 +425,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -442,7 +442,7 @@
           "surface": "operation",
           "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
-          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_response_body",
           "json_pointers": [
             "/$defs/verified_device_projection/properties/device_authorize_event_id",
             "/$defs/verified_device_projection/properties/device_signing_key_did"
@@ -455,9 +455,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -467,9 +467,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -484,7 +484,7 @@
           "surface": "operation",
           "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
-          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_response_body",
           "json_pointers": [
             "/$defs/verified_device_projection/properties/authorized_generation_ref"
           ],
@@ -496,9 +496,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -508,9 +508,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -525,7 +525,7 @@
           "surface": "operation",
           "operation_id": "ak.self.keys.read.lookup.v1",
           "direction": "response",
-          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_response_body",
           "json_pointers": [
             "/$defs/verified_device_projection/properties/device_status"
           ],
@@ -537,9 +537,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -549,9 +549,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -566,9 +566,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -578,9 +578,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -595,9 +595,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -607,9 +607,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -637,9 +637,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -649,9 +649,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -666,9 +666,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -678,9 +678,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -695,9 +695,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -707,9 +707,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -724,9 +724,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -736,9 +736,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -753,9 +753,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -765,9 +765,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -782,7 +782,7 @@
           "surface": "operation",
           "operation_id": "ak.self.actor_profile.read.resolve.v1",
           "direction": "response",
-          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body",
           "json_pointers": [
             "/$defs/resolved_actor_profile/properties/profile_event"
           ],
@@ -794,9 +794,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -806,9 +806,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -823,7 +823,7 @@
           "surface": "operation",
           "operation_id": "ak.self.actor_profile.read.resolve.v1",
           "direction": "response",
-          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+          "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body",
           "json_pointers": [
             "/$defs/resolved_actor_profile/properties/profile_event"
           ],
@@ -835,9 +835,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -847,9 +847,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -922,9 +922,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -961,9 +961,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -978,9 +978,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -990,9 +990,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1007,9 +1007,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1019,9 +1019,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1036,9 +1036,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.events.command.submit.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
           "json_pointers": [
-            "/$defs/peer_submit_request/properties/event_submission"
+            "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1048,9 +1048,9 @@
           "surface": "operation",
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
           "direction": "request",
-          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
           "json_pointers": [
-            "/$defs/handoff_request/properties/snapshot"
+            "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
@@ -1058,5 +1058,5 @@
       ]
     }
   ],
-  "generated_at": "2026-10-21T21:29:59+08:00"
+  "generated_at": "2026-10-24T14:14:05+08:00"
 }

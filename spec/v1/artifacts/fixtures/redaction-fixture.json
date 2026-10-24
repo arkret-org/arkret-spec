@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-11",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.events.redaction.v1"
@@ -51,7 +51,7 @@
           "version": "1.0",
           "content_type": "application/vnd.arkret.strand+json",
           "encryption_context": {
-            "epoch": 7,
+            "epoch": "7",
             "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
           "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
@@ -121,7 +121,7 @@
               "version": "1.0",
               "content_type": "application/vnd.arkret.strand+json",
               "encryption_context": {
-                "epoch": 7,
+                "epoch": "7",
                 "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
               },
               "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
@@ -256,7 +256,7 @@
           "version": "1.0",
           "content_type": "application/vnd.arkret.morph+json",
           "encryption_context": {
-            "epoch": 7,
+            "epoch": "7",
             "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
           },
           "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0"

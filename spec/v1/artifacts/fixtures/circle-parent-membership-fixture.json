@@ -5,15 +5,15 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.circle.parent_membership.v1"
   },
-  "version": "2026-09-29",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.circle.parent_membership_revision.v1"
   ],
   "spec_anchor": "spec/v1/zh/models/circle.md#91-membership-拓扑",
   "machine_contracts": [
     "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
-    "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
-    "schemas/typed-current-result.schema.json#/$defs/member_state_result"
+    "schemas/current-state.schema.json#/$defs/circle_member_state_value",
+    "schemas/current-state.schema.json#/$defs/current_member_state"
   ],
   "schema_validation_cases": [
     {
@@ -102,7 +102,7 @@
     },
     {
       "name": "circle_member_state_join_current_carries_parent_membership_revision",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
       "expect_valid": true,
       "instance": {
         "selector": {
@@ -137,7 +137,7 @@
     },
     {
       "name": "circle_member_state_join_current_without_parent_membership_revision_rejected",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
       "expect_valid": false,
       "instance_from": "circle_member_state_join_current_carries_parent_membership_revision",
       "mutations": [
@@ -150,7 +150,7 @@
     },
     {
       "name": "circle_member_state_leave_current_carrying_parent_membership_revision_rejected",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
       "expect_valid": false,
       "instance_from": "circle_member_state_join_current_carries_parent_membership_revision",
       "mutations": [
@@ -164,7 +164,7 @@
     },
     {
       "name": "parent_member_state_current_join_row",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_member_state",
       "expect_valid": true,
       "instance": {
         "selector": {

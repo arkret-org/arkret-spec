@@ -87,7 +87,7 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 `RealmCommit.stream_position` 执行；Realm、不同 Circle、不同 Sidecar 之间没有总序。
 
 需要 compare-and-set 的领域在自身 payload 中定义 `expected_revision`，该值引用该 typed current row 最后
-一次接受它的 Commit。协议不提供 typed current result key、通用 patch DSL、CRDT/deterministic projection rank 或 caller 指定的 state root。
+一次接受它的 Commit。协议不提供 current state key、通用 patch DSL、CRDT/deterministic projection rank 或 caller 指定的 state root。
 
 跨 stream 工作流必须使用已提交引用、幂等 saga 和明确补偿 Event，不得因为同一部署共用数据库就暴露
 跨 stream 原子性。
@@ -168,14 +168,14 @@ MUST 同批更新，reducer、SDK 与 conformance MUST 从 registry 取值，MUS
 - 对象进入 `state=redacted` 只能由 `ak:<对象种类>:` 形态的 `target_ref` 驱动。Message 仍然只走专属
   `ak.message.redact`，cross-object `ak.redaction` 的 schema 已机械排除 `ak:message:` 目标。
 
-两种拼写落进 `object_redaction` 家族的**两个**独立 typed current result：它们互不影响、永不合并，reducer
+两种拼写落进 `object_redaction` 家族的**两个**独立 current state：它们互不影响、永不合并，reducer
 MUST NOT 把 `ak:event:` 拼写 canonicalize 成派生对象的 typed id。因此回答"这条内容还在不在"必须同时读两处
 投影：对象拼写决定对象 `state`，event 拼写决定该 Event 的字段级裁剪；UI 与审计视图 MUST 合并两者，不得只
 查其一。判据由 `ak.vector.redaction.event_target_does_not_drive_object_state.v1` 固化。
 
 #### 4.2.5 Typed-reducer managed paths (normative)
 
-Generic patch path MUST NOT 操作 reducer-managed 字段: `id`、`schema`、`realm_id`、`created_by`、`created_at`、`updated_by`、`updated_at`、`state`、`state_changed_at` (完整的按对象封闭集由 `registry/reducer-managed-path-registry.json` 给出)。这些字段是 typed reducer 的固定输出，不是 typed current result 投影。
+Generic patch path MUST NOT 操作 reducer-managed 字段: `id`、`schema`、`realm_id`、`created_by`、`created_at`、`updated_by`、`updated_at`、`state`、`state_changed_at` (完整的按对象封闭集由 `registry/reducer-managed-path-registry.json` 给出)。这些字段是 typed reducer 的固定输出，不是 current state 投影。
 
 #### 4.3.1 Patch 冲突
 

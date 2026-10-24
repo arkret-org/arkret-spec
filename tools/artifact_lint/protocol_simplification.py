@@ -3,7 +3,7 @@
 import copy
 import json
 
-from .core import ARTIFACTS, load_json
+from .core import ARTIFACTS, load_contract_json as load_json, schema_assertions
 
 SCOPES = ["invite", "voice_call", "video_call", "presence"]
 
@@ -72,9 +72,9 @@ def contract_errors(contract, operations, typed):
     kinds = {row["event_kind"] for row in events}
     if {"ak.consent.grant", "ak.consent.revoke"} & kinds or "ak.consent.replace" not in kinds:
         errors.append("Consent must have one replace writer")
-    writers = [write for row in events for write in row.get("result_writes", [])
-               if write["result_family"] == "consent"]
-    if len(writers) != 1 or writers[0]["result_selector"] != {
+    writers = [write for row in events for write in row.get("state_writes", [])
+               if write["state_family"] == "consent"]
+    if len(writers) != 1 or writers[0]["state_selector"] != {
             "kind": "composite", "components": [{"kind": "canonical_json", "field": "payload.peer.actor_id"}]}:
         errors.append("Consent selector must be one canonical exact ActorId in holder PCR")
     if set(typed["$defs"]["consent_value"]["properties"]) != {"permissions"}:
@@ -85,15 +85,15 @@ def contract_errors(contract, operations, typed):
     request = operations["$defs"]["consent_current_read_request_body"]
     if "consent_scope" in request["properties"]:
         errors.append("Consent editing read cannot filter scope")
-    branches = operations["$defs"]["consent_current_read_outcome"]["properties"].get("current", {}).get("oneOf", [])
+    branches = operations["$defs"]["consent_current_read_response_body"]["properties"].get("current", {}).get("oneOf", [])
     if [x.get("properties", {}).get("state", {}).get("const") for x in branches] != ["present", "never_written"]:
         errors.append("Consent read must distinguish complete present from never_written")
-    elif branches[0]["properties"].get("result", {}).get("$ref") != "./typed-current-result.schema.json#/$defs/consent_result":
+    elif branches[0]["properties"].get("current_state", {}).get("$ref") != "./current-state.schema.json#/$defs/current_consent":
         errors.append("Present read must supply the full typed current")
     bound = next(row for row in events if row["event_kind"] == "ak.direct_conversation.bound")
     projection = {"kind": "set", "value_projection": {"kind": "object", "members": [
         {"name": "binding_event_ref", "envelope_field": "event_id"}, {"name": "binding", "field": "payload"}]}}
-    if len(bound["result_writes"]) != 1 or bound["result_writes"][0]["result_projection"] != projection:
+    if len(bound["state_writes"]) != 1 or bound["state_writes"][0]["state_projection"] != projection:
         errors.append("Binding must store one original Event ref and exact payload")
     if set(typed["$defs"]["direct_conversation_binding_value"]["required"]) != {"binding_event_ref", "binding"}:
         errors.append("Binding cannot retain endorsement collections")
@@ -146,7 +146,7 @@ def contract_errors(contract, operations, typed):
 def check_protocol_simplification(lint):
     path = ARTIFACTS / "registry/contract-registry.json"
     for error in contract_errors(load_json(lint, path), load_json(lint, ARTIFACTS / "schemas/consent-operations.schema.json"),
-                                 load_json(lint, ARTIFACTS / "schemas/typed-current-result.schema.json")):
+                                 load_json(lint, ARTIFACTS / "schemas/current-state.schema.json")):
         lint.fail(path, error)
     bundle = load_json(lint, ARTIFACTS / "schemas/realm-authority-bundle.schema.json")
     handoff = load_json(lint, ARTIFACTS / "schemas/authority-commit-operations.schema.json")
@@ -156,6 +156,7 @@ def check_protocol_simplification(lint):
 
 
 def direct_governance_errors(bundle, handoff, profiles):
+    bundle, handoff = schema_assertions(bundle), schema_assertions(handoff)
     errors = []
     condition = {"required": ["genesis_event"], "properties": {"genesis_event": {
         "type": "object", "required": ["payload"], "properties": {"payload": {
@@ -163,13 +164,13 @@ def direct_governance_errors(bundle, handoff, profiles):
                 "type": "object", "required": ["purpose"], "properties": {
                     "purpose": {"const": "direct_conversation"}}}}}}}}}
     rules = [rule for rule in bundle.get("allOf", []) if rule.get("if") == condition]
-    expected = {"authority_transitions": {"maxItems": 0}, "current_generation": {"const": 0},
-                "genesis_commit": {"properties": {"governance_generation": {"const": 0}}},
-                "current_assertion": {"properties": {"current_generation": {"const": 0},
+    expected = {"authority_transitions": {"maxItems": 0}, "current_generation": {"const": "0"},
+                "genesis_commit": {"properties": {"governance_generation": {"const": "0"}}},
+                "current_assertion": {"properties": {"current_generation": {"const": "0"},
                                                      "last_handoff_ref": {"type": "null"}}}}
     if len(rules) != 1 or rules[0].get("then", {}).get("properties") != expected:
         errors.append("Direct authority bundles must close generation zero and empty transitions")
-    request = handoff["$defs"]["handoff_request"]
+    request = handoff["$defs"]["realm_authority_handoff_request_body"]
     if {"not": {"required": ["authority_bundle"], "properties": {
             "authority_bundle": condition}}} not in request.get("allOf", []):
         errors.append("Direct handoff requests must be forbidden from the original genesis")

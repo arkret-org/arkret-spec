@@ -249,7 +249,7 @@ class SessionGrantKatTests(unittest.TestCase):
     def test_introspection_grant_requires_cnf_jkt_but_inactive_may_omit_grant(self) -> None:
         validator = artifact_lint_core.schema_validator(
             check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),
-            "#/$defs/SessionGrantIntrospectOutcome",
+            "#/$defs/SessionGrantIntrospectResponseBody",
         )
         claims = self._claims_by_vector()["issuer_a_closed_preimage"]
         active_outcome = {

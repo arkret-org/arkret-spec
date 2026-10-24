@@ -13,7 +13,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.agent_sidecar_exchange_control.v1"
+      "const": "ak.schema.agent_sidecar_exchange_control.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-sidecar-exchange-control.schema.json#/properties/schema",
+        "owner": "agent-sidecar-exchange-control.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_sidecar_exchange_control.v1"
+        ]
+      }
     },
     "exchange_id": {
       "type": "string",
@@ -38,7 +46,18 @@
         "cancel",
         "fail",
         "reassign_coordinator"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-sidecar-exchange-control.schema.json#/properties/action",
+        "owner": "agent-sidecar-exchange-control.schema.json#/properties/action",
+        "values": [
+          "close",
+          "cancel",
+          "fail",
+          "reassign_coordinator"
+        ]
+      }
     },
     "response_event_ids": {
       "type": "array",
@@ -70,7 +89,17 @@
               "close",
               "cancel",
               "fail"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-control.schema.json#/allOf/0/if/properties/action",
+              "owner": "agent-sidecar-exchange-control.schema.json#/allOf/0/if/properties/action",
+              "values": [
+                "close",
+                "cancel",
+                "fail"
+              ]
+            }
           }
         },
         "required": [
@@ -101,7 +130,15 @@
       "if": {
         "properties": {
           "action": {
-            "const": "fail"
+            "const": "fail",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-control.schema.json#/allOf/1/if/properties/action",
+              "owner": "agent-sidecar-exchange-control.schema.json#/allOf/1/if/properties/action",
+              "values": [
+                "fail"
+              ]
+            }
           }
         },
         "required": [
@@ -125,7 +162,15 @@
       "if": {
         "properties": {
           "action": {
-            "const": "reassign_coordinator"
+            "const": "reassign_coordinator",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-control.schema.json#/allOf/2/if/properties/action",
+              "owner": "agent-sidecar-exchange-control.schema.json#/allOf/2/if/properties/action",
+              "values": [
+                "reassign_coordinator"
+              ]
+            }
           }
         },
         "required": [

@@ -9,18 +9,24 @@
     "payload_sequence",
     "call_id",
     "signal_kind",
-    "seq",
+    "sequence",
     "data"
   ],
   "properties": {
     "kind": {
-      "const": "ak.call.signal"
+      "const": "ak.call.signal",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "call-signal-plaintext.schema.json#/properties/kind",
+        "owner": "call-signal-plaintext.schema.json#/properties/kind",
+        "values": [
+          "ak.call.signal"
+        ]
+      }
     },
     "payload_sequence": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref); arbitrary forward gaps are accepted. The complete ActorId is part of the sequence domain. It is independent of seq, the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id)."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref); arbitrary forward gaps are accepted. The complete ActorId is part of the sequence domain. It is independent of seq, the per-call anti-rollback sequence monotonic over (realm_id, call_id, actor_id, device_id).",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "call_id": {
       "type": "string",
@@ -43,11 +49,31 @@
         "moderation",
         "error",
         "ack"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "call-signal-plaintext.schema.json#/properties/signal_kind",
+        "owner": "call-signal-plaintext.schema.json#/properties/signal_kind",
+        "values": [
+          "invite",
+          "answer",
+          "candidate",
+          "reject",
+          "hangup",
+          "renegotiate",
+          "mute_state",
+          "media_state",
+          "speaking",
+          "focus_join",
+          "focus_leave",
+          "moderation",
+          "error",
+          "ack"
+        ]
+      }
     },
-    "seq": {
-      "type": "integer",
-      "minimum": 0
+    "sequence": {
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "data": {
       "type": "object",
@@ -60,7 +86,15 @@
       "if": {
         "properties": {
           "signal_kind": {
-            "const": "moderation"
+            "const": "moderation",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "call-signal-plaintext.schema.json#/allOf/0/if/properties/signal_kind",
+              "owner": "call-signal-plaintext.schema.json#/allOf/0/if/properties/signal_kind",
+              "values": [
+                "moderation"
+              ]
+            }
           }
         },
         "required": [
@@ -80,7 +114,17 @@
                   "kick",
                   "ban",
                   "end_for_all"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/properties/action",
+                  "owner": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/properties/action",
+                  "values": [
+                    "kick",
+                    "ban",
+                    "end_for_all"
+                  ]
+                }
               },
               "target_actor_id": {
                 "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -98,7 +142,15 @@
                 "if": {
                   "properties": {
                     "action": {
-                      "const": "kick"
+                      "const": "kick",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/0/if/properties/action",
+                        "owner": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/0/if/properties/action",
+                        "values": [
+                          "kick"
+                        ]
+                      }
                     }
                   }
                 },
@@ -113,7 +165,15 @@
                 "if": {
                   "properties": {
                     "action": {
-                      "const": "ban"
+                      "const": "ban",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/1/if/properties/action",
+                        "owner": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/1/if/properties/action",
+                        "values": [
+                          "ban"
+                        ]
+                      }
                     }
                   }
                 },
@@ -132,7 +192,15 @@
                 "if": {
                   "properties": {
                     "action": {
-                      "const": "end_for_all"
+                      "const": "end_for_all",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/2/if/properties/action",
+                        "owner": "call-signal-plaintext.schema.json#/allOf/0/then/properties/data/allOf/2/if/properties/action",
+                        "values": [
+                          "end_for_all"
+                        ]
+                      }
                     }
                   }
                 },

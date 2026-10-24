@@ -5,7 +5,7 @@
   "covers_vectors": [
     "ak.vector.identity.organization_registration.v1"
   ],
-  "version": "2026-07-27",
+  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/identity/identity-did.md#84-外部-organization-did-的本地-registrationnormative",
   "source_refs": [
     "spec/v1/zh/identity/identity-did.md",
@@ -468,7 +468,7 @@
     },
     {
       "name": "replay_of_current_generation_is_idempotent",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "notes": "Byte-identical retry of the request that successfully consumed this challenge: the challenge-consumption ledger digest matches, generation stays 1 and created is false. This is the only ensure replay that is idempotent; merely repeating organization/admin/scopes under a different challenge or request digest does not qualify.",
@@ -508,7 +508,7 @@
     },
     {
       "name": "re_registration_after_revoke_opens_new_generation",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "notes": "revoke ended generation 1; a later ensure opens generation 2 with created=true. Without the generation, 'revoked is terminal' and 'ensure is idempotent on organization_id' would contradict each other and an implementation would have to pick between returning the old terminal receipt, raising duplicate_conflict, and illegally reviving the terminal state.",
@@ -543,7 +543,7 @@
     },
     {
       "name": "scope_change_atomically_opens_new_generation",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "notes": "Changing local_admin_subject_id or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Returning created=false here would let a widened delegation hide behind an idempotent replay. Publishing generation 2, terminating generation 1 with organization_registration_superseded and advancing the current pointer are one atomic transition.",

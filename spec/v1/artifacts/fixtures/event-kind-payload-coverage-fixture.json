@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-10-04.1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -29,7 +29,7 @@
           "anti_enumeration": {
             "member_count_mode": "bucketed",
             "member_count_hysteresis": {
-              "ratio": 0.15
+              "ratio_basis_points": 1500
             },
             "member_count_min_residence_ms": 300000
           }

@@ -10,7 +10,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.applet.v1"
+      "const": "ak.schema.applet.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "applet.schema.json#/properties/schema",
+        "owner": "applet.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.applet.v1"
+        ]
+      }
     },
     "applet_id": {
       "description": "Stable canonical Applet identifier. Service identity is carried separately in service_id.",

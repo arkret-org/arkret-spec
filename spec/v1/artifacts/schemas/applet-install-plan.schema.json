@@ -15,8 +15,7 @@
     "requested_scopes",
     "approved_scopes",
     "denied_scopes",
-    "event_submissions",
-    "capability_constraints",
+    "planned_events",
     "namespace_conflicts",
     "e2ee_effect",
     "widget_effect",
@@ -25,7 +24,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.applet_install_plan.v1"
+      "const": "ak.schema.applet_install_plan.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "applet-install-plan.schema.json#/properties/schema",
+        "owner": "applet-install-plan.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.applet_install_plan.v1"
+        ]
+      }
     },
     "plan_id": {
       "type": "string",
@@ -66,16 +73,10 @@
         "$ref": "#/$defs/denied_scope"
       }
     },
-    "event_submissions": {
+    "planned_events": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/event_submission"
-      }
-    },
-    "capability_constraints": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/capability_constraint"
+        "$ref": "#/$defs/planned_event"
       }
     },
     "namespace_conflicts": {
@@ -124,7 +125,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-install-plan.schema.json#/$defs/effective_scope/oneOf/0/properties/kind",
+                "owner": "applet-install-plan.schema.json#/$defs/effective_scope/oneOf/0/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -141,7 +150,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle"
+              "const": "circle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-install-plan.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
+                "owner": "applet-install-plan.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
+                "values": [
+                  "circle"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -188,8 +205,7 @@
         "constraints": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "./grant-constraint.schema.json"
           }
         }
       },
@@ -212,7 +228,7 @@
       },
       "additionalProperties": false
     },
-    "event_submission": {
+    "planned_event": {
       "type": "object",
       "required": [
         "event_kind",
@@ -220,12 +236,286 @@
       ],
       "properties": {
         "event_kind": {
-          "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"
+          "enum": [
+            "ak.agent.action_approve",
+            "ak.agent.interaction.set",
+            "ak.agent.key.authorize",
+            "ak.agent.key.revoke",
+            "ak.agent.provision",
+            "ak.agent.sidecar.exchange.control",
+            "ak.applet.bridge_error",
+            "ak.applet.discovery",
+            "ak.applet.registration",
+            "ak.audit.accessed",
+            "ak.audit.erasure_receipt",
+            "ak.call.create",
+            "ak.call.recording.start",
+            "ak.call.state",
+            "ak.capability.grant",
+            "ak.capability.relinquish",
+            "ak.capability.revoke",
+            "ak.circle.archive",
+            "ak.circle.create",
+            "ak.circle.history_access",
+            "ak.circle.member.state",
+            "ak.circle.restore",
+            "ak.circle.tombstone",
+            "ak.circle.update",
+            "ak.consent.replace",
+            "ak.contact.accepted",
+            "ak.contact.rejected",
+            "ak.contact.requested",
+            "ak.contact.scope.update",
+            "ak.contact.tombstone",
+            "ak.device.authorize",
+            "ak.device.reanchor",
+            "ak.device.revoke",
+            "ak.direct_conversation.bound",
+            "ak.identity.accountability_grant",
+            "ak.identity.resolution.update",
+            "ak.invite.accept",
+            "ak.invite.cancel",
+            "ak.invite.claim",
+            "ak.invite.create",
+            "ak.invite.revoke",
+            "ak.invite.third_party",
+            "ak.key_backup.active_series",
+            "ak.member.identity.update",
+            "ak.member.state",
+            "ak.message.create",
+            "ak.message.redact",
+            "ak.message.revise",
+            "ak.mimi.room_binding",
+            "ak.mls.commit",
+            "ak.mls.genesis",
+            "ak.moderation.decision",
+            "ak.moderation.decision.lift",
+            "ak.moderation.franking_proof",
+            "ak.morph.archive",
+            "ak.morph.create",
+            "ak.morph.restore",
+            "ak.morph.stage.set",
+            "ak.morph.update",
+            "ak.organization.moderation_policy",
+            "ak.pin.add",
+            "ak.pin.remove",
+            "ak.pin.reorder",
+            "ak.policy.action",
+            "ak.policy.set",
+            "ak.profile.create",
+            "ak.profile.realm_override",
+            "ak.profile.update",
+            "ak.reaction.add",
+            "ak.reaction.remove",
+            "ak.realm.actor.control.reset",
+            "ak.realm.actor.control.update",
+            "ak.realm.actor.create",
+            "ak.realm.actor.devices.reset",
+            "ak.realm.actor.manager.change",
+            "ak.realm.actor.recovery.begin",
+            "ak.realm.actor.recovery.set",
+            "ak.realm.actor.status.set",
+            "ak.realm.alias",
+            "ak.realm.archive",
+            "ak.realm.asset_privacy_policy",
+            "ak.realm.authority.reset",
+            "ak.realm.create",
+            "ak.realm.destroy",
+            "ak.realm.discovery",
+            "ak.realm.freeze",
+            "ak.realm.governance_station.change",
+            "ak.realm.history_access",
+            "ak.realm.join_rule",
+            "ak.realm.link",
+            "ak.realm.media_service",
+            "ak.realm.organization",
+            "ak.realm.owner.transfer",
+            "ak.realm.plaintext_visible_services",
+            "ak.realm.policy_bundle",
+            "ak.realm.preview_policy",
+            "ak.realm.profile",
+            "ak.realm.restore",
+            "ak.realm.schema",
+            "ak.realm.search_policy",
+            "ak.realm.set_default_strand",
+            "ak.realm.tombstone",
+            "ak.realm.unfreeze",
+            "ak.redaction",
+            "ak.relation.create",
+            "ak.relation.tombstone",
+            "ak.relation.update",
+            "ak.rsvp.set",
+            "ak.schema.define",
+            "ak.scope.read_receipt_policy",
+            "ak.self.agent.deactivate",
+            "ak.self.agent.pause",
+            "ak.self.agent.resume",
+            "ak.self.moderation.report",
+            "ak.sidecar.context.attach",
+            "ak.sidecar.create",
+            "ak.space.archive",
+            "ak.space.create",
+            "ak.space.parent",
+            "ak.space.restore",
+            "ak.space.tombstone",
+            "ak.space.update",
+            "ak.strand.archive",
+            "ak.strand.create",
+            "ak.strand.move",
+            "ak.strand.reorder",
+            "ak.strand.restore",
+            "ak.strand.stage.set",
+            "ak.strand.tracks.update",
+            "ak.strand.update",
+            "ak.strand.watch.set",
+            "ak.view.create",
+            "ak.view.reconcile",
+            "ak.view.update"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-plan.schema.json#/$defs/planned_event/properties/event_kind",
+            "owner": "applet-install-plan.schema.json#/$defs/planned_event/properties/event_kind",
+            "values": [
+              "ak.agent.action_approve",
+              "ak.agent.interaction.set",
+              "ak.agent.key.authorize",
+              "ak.agent.key.revoke",
+              "ak.agent.provision",
+              "ak.agent.sidecar.exchange.control",
+              "ak.applet.bridge_error",
+              "ak.applet.discovery",
+              "ak.applet.registration",
+              "ak.audit.accessed",
+              "ak.audit.erasure_receipt",
+              "ak.call.create",
+              "ak.call.recording.start",
+              "ak.call.state",
+              "ak.capability.grant",
+              "ak.capability.relinquish",
+              "ak.capability.revoke",
+              "ak.circle.archive",
+              "ak.circle.create",
+              "ak.circle.history_access",
+              "ak.circle.member.state",
+              "ak.circle.restore",
+              "ak.circle.tombstone",
+              "ak.circle.update",
+              "ak.consent.replace",
+              "ak.contact.accepted",
+              "ak.contact.rejected",
+              "ak.contact.requested",
+              "ak.contact.scope.update",
+              "ak.contact.tombstone",
+              "ak.device.authorize",
+              "ak.device.reanchor",
+              "ak.device.revoke",
+              "ak.direct_conversation.bound",
+              "ak.identity.accountability_grant",
+              "ak.identity.resolution.update",
+              "ak.invite.accept",
+              "ak.invite.cancel",
+              "ak.invite.claim",
+              "ak.invite.create",
+              "ak.invite.revoke",
+              "ak.invite.third_party",
+              "ak.key_backup.active_series",
+              "ak.member.identity.update",
+              "ak.member.state",
+              "ak.message.create",
+              "ak.message.redact",
+              "ak.message.revise",
+              "ak.mimi.room_binding",
+              "ak.mls.commit",
+              "ak.mls.genesis",
+              "ak.moderation.decision",
+              "ak.moderation.decision.lift",
+              "ak.moderation.franking_proof",
+              "ak.morph.archive",
+              "ak.morph.create",
+              "ak.morph.restore",
+              "ak.morph.stage.set",
+              "ak.morph.update",
+              "ak.organization.moderation_policy",
+              "ak.pin.add",
+              "ak.pin.remove",
+              "ak.pin.reorder",
+              "ak.policy.action",
+              "ak.policy.set",
+              "ak.profile.create",
+              "ak.profile.realm_override",
+              "ak.profile.update",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.realm.actor.control.reset",
+              "ak.realm.actor.control.update",
+              "ak.realm.actor.create",
+              "ak.realm.actor.devices.reset",
+              "ak.realm.actor.manager.change",
+              "ak.realm.actor.recovery.begin",
+              "ak.realm.actor.recovery.set",
+              "ak.realm.actor.status.set",
+              "ak.realm.alias",
+              "ak.realm.archive",
+              "ak.realm.asset_privacy_policy",
+              "ak.realm.authority.reset",
+              "ak.realm.create",
+              "ak.realm.destroy",
+              "ak.realm.discovery",
+              "ak.realm.freeze",
+              "ak.realm.governance_station.change",
+              "ak.realm.history_access",
+              "ak.realm.join_rule",
+              "ak.realm.link",
+              "ak.realm.media_service",
+              "ak.realm.organization",
+              "ak.realm.owner.transfer",
+              "ak.realm.plaintext_visible_services",
+              "ak.realm.policy_bundle",
+              "ak.realm.preview_policy",
+              "ak.realm.profile",
+              "ak.realm.restore",
+              "ak.realm.schema",
+              "ak.realm.search_policy",
+              "ak.realm.set_default_strand",
+              "ak.realm.tombstone",
+              "ak.realm.unfreeze",
+              "ak.redaction",
+              "ak.relation.create",
+              "ak.relation.tombstone",
+              "ak.relation.update",
+              "ak.rsvp.set",
+              "ak.schema.define",
+              "ak.scope.read_receipt_policy",
+              "ak.self.agent.deactivate",
+              "ak.self.agent.pause",
+              "ak.self.agent.resume",
+              "ak.self.moderation.report",
+              "ak.sidecar.context.attach",
+              "ak.sidecar.create",
+              "ak.space.archive",
+              "ak.space.create",
+              "ak.space.parent",
+              "ak.space.restore",
+              "ak.space.tombstone",
+              "ak.space.update",
+              "ak.strand.archive",
+              "ak.strand.create",
+              "ak.strand.move",
+              "ak.strand.reorder",
+              "ak.strand.restore",
+              "ak.strand.stage.set",
+              "ak.strand.tracks.update",
+              "ak.strand.update",
+              "ak.strand.watch.set",
+              "ak.view.create",
+              "ak.view.reconcile",
+              "ak.view.update"
+            ]
+          }
         },
         "payload": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         },
         "semantic_refs": {
           "type": "array",
@@ -237,23 +527,3629 @@
           }
         }
       },
-      "additionalProperties": false
-    },
-    "capability_constraint": {
-      "type": "object",
-      "required": [
-        "constraint_kind"
-      ],
-      "properties": {
-        "constraint_kind": {
-          "$ref": "#/$defs/non_empty_string"
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.action_approve",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/0/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/0/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.action_approve"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload"
+              }
+            }
+          }
         },
-        "params": {
-          "type": "object",
-          "additionalProperties": true
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.interaction.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/1/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/1/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.interaction.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_interaction_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.key.authorize",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/2/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/2/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.key.authorize"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.key.revoke",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/3/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/3/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.key.revoke"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.provision",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/4/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/4/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.provision"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./agent-provision.schema.json"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.agent.sidecar.exchange.control",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/5/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/5/if/properties/event_kind",
+                  "values": [
+                    "ak.agent.sidecar.exchange.control"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.applet.bridge_error",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/6/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/6/if/properties/event_kind",
+                  "values": [
+                    "ak.applet.bridge_error"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/applet_bridge_error_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.applet.discovery",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/7/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/7/if/properties/event_kind",
+                  "values": [
+                    "ak.applet.discovery"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/applet_discovery_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.applet.registration",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/8/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/8/if/properties/event_kind",
+                  "values": [
+                    "ak.applet.registration"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.audit.accessed",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/9/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/9/if/properties/event_kind",
+                  "values": [
+                    "ak.audit.accessed"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.audit.erasure_receipt",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/10/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/10/if/properties/event_kind",
+                  "values": [
+                    "ak.audit.erasure_receipt"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/erasure_receipt_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.call.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/11/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/11/if/properties/event_kind",
+                  "values": [
+                    "ak.call.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/call_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.call.recording.start",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/12/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/12/if/properties/event_kind",
+                  "values": [
+                    "ak.call.recording.start"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.call.state",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/13/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/13/if/properties/event_kind",
+                  "values": [
+                    "ak.call.state"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/call_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.capability.grant",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/14/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/14/if/properties/event_kind",
+                  "values": [
+                    "ak.capability.grant"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.capability.relinquish",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/15/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/15/if/properties/event_kind",
+                  "values": [
+                    "ak.capability.relinquish"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/capability_relinquish_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.capability.revoke",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/16/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/16/if/properties/event_kind",
+                  "values": [
+                    "ak.capability.revoke"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.archive",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/17/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/17/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.archive"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/18/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/18/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/circle_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.history_access",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/19/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/19/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.history_access"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/circle_history_access_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.member.state",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/20/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/20/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.member.state"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.restore",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/21/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/21/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.restore"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.tombstone",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/22/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/22/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.tombstone"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.circle.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/23/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/23/if/properties/event_kind",
+                  "values": [
+                    "ak.circle.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/circle_patch_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.consent.replace",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/24/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/24/if/properties/event_kind",
+                  "values": [
+                    "ak.consent.replace"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/consent_replace_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.contact.accepted",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/25/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/25/if/properties/event_kind",
+                  "values": [
+                    "ak.contact.accepted"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/contact_accepted_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.contact.rejected",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/26/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/26/if/properties/event_kind",
+                  "values": [
+                    "ak.contact.rejected"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/contact_rejected_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.contact.requested",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/27/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/27/if/properties/event_kind",
+                  "values": [
+                    "ak.contact.requested"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/contact_requested_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.contact.scope.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/28/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/28/if/properties/event_kind",
+                  "values": [
+                    "ak.contact.scope.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/contact_scope_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.contact.tombstone",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/29/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/29/if/properties/event_kind",
+                  "values": [
+                    "ak.contact.tombstone"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/contact_tombstoned_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.device.authorize",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/30/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/30/if/properties/event_kind",
+                  "values": [
+                    "ak.device.authorize"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.device.reanchor",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/31/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/31/if/properties/event_kind",
+                  "values": [
+                    "ak.device.reanchor"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.device.revoke",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/32/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/32/if/properties/event_kind",
+                  "values": [
+                    "ak.device.revoke"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/device_revoke_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.direct_conversation.bound",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/33/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/33/if/properties/event_kind",
+                  "values": [
+                    "ak.direct_conversation.bound"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.identity.accountability_grant",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/34/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/34/if/properties/event_kind",
+                  "values": [
+                    "ak.identity.accountability_grant"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./accountability-grant.schema.json"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.identity.resolution.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/35/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/35/if/properties/event_kind",
+                  "values": [
+                    "ak.identity.resolution.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/identity_resolution_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.accept",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/36/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/36/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.accept"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_accept_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.cancel",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/37/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/37/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.cancel"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_cancel_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.claim",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/38/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/38/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.claim"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_claim_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.revoke",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.revoke"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_revoke_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.invite.third_party",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
+                  "values": [
+                    "ak.invite.third_party"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/invite_third_party_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.key_backup.active_series",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
+                  "values": [
+                    "ak.key_backup.active_series"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/key_backup_active_series_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.member.identity.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
+                  "values": [
+                    "ak.member.identity.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.member.state",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
+                  "values": [
+                    "ak.member.state"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.message.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
+                  "values": [
+                    "ak.message.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.message.redact",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
+                  "values": [
+                    "ak.message.redact"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.message.revise",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
+                  "values": [
+                    "ak.message.revise"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.mimi.room_binding",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
+                  "values": [
+                    "ak.mimi.room_binding"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.mls.commit",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
+                  "values": [
+                    "ak.mls.commit"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.mls.genesis",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
+                  "values": [
+                    "ak.mls.genesis"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.moderation.decision",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
+                  "values": [
+                    "ak.moderation.decision"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/moderation_decision_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.moderation.decision.lift",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
+                  "values": [
+                    "ak.moderation.decision.lift"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/moderation_decision_lift_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.moderation.franking_proof",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
+                  "values": [
+                    "ak.moderation.franking_proof"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.morph.archive",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
+                  "values": [
+                    "ak.morph.archive"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.morph.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
+                  "values": [
+                    "ak.morph.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/morph_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.morph.restore",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
+                  "values": [
+                    "ak.morph.restore"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.morph.stage.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
+                  "values": [
+                    "ak.morph.stage.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.morph.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
+                  "values": [
+                    "ak.morph.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/morph_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.organization.moderation_policy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
+                  "values": [
+                    "ak.organization.moderation_policy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/organization_moderation_policy_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.pin.add",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
+                  "values": [
+                    "ak.pin.add"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/pin_add_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.pin.remove",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
+                  "values": [
+                    "ak.pin.remove"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/pin_remove_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.pin.reorder",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
+                  "values": [
+                    "ak.pin.reorder"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/pin_reorder_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.policy.action",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
+                  "values": [
+                    "ak.policy.action"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.policy.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
+                  "values": [
+                    "ak.policy.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/policy_set_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.profile.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
+                  "values": [
+                    "ak.profile.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.profile.realm_override",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
+                  "values": [
+                    "ak.profile.realm_override"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.profile.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
+                  "values": [
+                    "ak.profile.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/actor_profile_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.reaction.add",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
+                  "values": [
+                    "ak.reaction.add"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.reaction.remove",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
+                  "values": [
+                    "ak.reaction.remove"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.control.reset",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.control.reset"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_control_reset_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.control.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.control.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_control_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.devices.reset",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.devices.reset"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_devices_reset_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.manager.change",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.manager.change"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_manager_change_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.recovery.begin",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.recovery.begin"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_recovery_begin_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.recovery.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.recovery.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_recovery_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.actor.status.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.actor.status.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_actor_status_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.alias",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.alias"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_alias_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.archive",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.archive"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.asset_privacy_policy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.asset_privacy_policy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.authority.reset",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.authority.reset"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_authority_reset_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.destroy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.destroy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.discovery",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.discovery"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_discovery_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.freeze",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.freeze"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.governance_station.change",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.governance_station.change"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_governance_station_change_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.history_access",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.history_access"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/history_access_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.join_rule",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.join_rule"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_join_rule_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.link",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.link"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_link_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.media_service",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.media_service"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_media_service_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.organization",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.organization"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_organization_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.owner.transfer",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.owner.transfer"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_owner_transfer_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.plaintext_visible_services",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.plaintext_visible_services"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.policy_bundle",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.policy_bundle"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_policy_bundle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.preview_policy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.preview_policy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.profile",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.profile"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.restore",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.restore"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.schema",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.schema"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_schema_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.search_policy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.search_policy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.set_default_strand",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.set_default_strand"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.tombstone",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.tombstone"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm.unfreeze",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
+                  "values": [
+                    "ak.realm.unfreeze"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.redaction",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
+                  "values": [
+                    "ak.redaction"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/cross_object_redaction_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.relation.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
+                  "values": [
+                    "ak.relation.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/relation_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.relation.tombstone",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
+                  "values": [
+                    "ak.relation.tombstone"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/relation_tombstone_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.relation.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
+                  "values": [
+                    "ak.relation.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/relation_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.rsvp.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
+                  "values": [
+                    "ak.rsvp.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/rsvp_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.schema.define",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
+                  "values": [
+                    "ak.schema.define"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/schema_define_state_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.scope.read_receipt_policy",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
+                  "values": [
+                    "ak.scope.read_receipt_policy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.self.agent.deactivate",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
+                  "values": [
+                    "ak.self.agent.deactivate"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_deactivate_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.self.agent.pause",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
+                  "values": [
+                    "ak.self.agent.pause"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_pause_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.self.agent.resume",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
+                  "values": [
+                    "ak.self.agent.resume"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/agent_resume_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.self.moderation.report",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
+                  "values": [
+                    "ak.self.moderation.report"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.sidecar.context.attach",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
+                  "values": [
+                    "ak.sidecar.context.attach"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.sidecar.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
+                  "values": [
+                    "ak.sidecar.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/sidecar_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.archive",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
+                  "values": [
+                    "ak.space.archive"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_state_transition_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                  "values": [
+                    "ak.space.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.parent",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                  "values": [
+                    "ak.space.parent"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_parent_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.restore",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                  "values": [
+                    "ak.space.restore"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_state_transition_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.tombstone",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                  "values": [
+                    "ak.space.tombstone"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_object_tombstone_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.space.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                  "values": [
+                    "ak.space.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/space_patch_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.archive",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.archive"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.move",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.move"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_move_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.reorder",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.reorder"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.restore",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.restore"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.stage.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.stage.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_stage_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.tracks.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.tracks.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_tracks_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_patch_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.strand.watch.set",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                  "values": [
+                    "ak.strand.watch.set"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.view.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                  "values": [
+                    "ak.view.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/view_create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.view.reconcile",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                  "values": [
+                    "ak.view.reconcile"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/view_reconcile_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.view.update",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                  "values": [
+                    "ak.view.update"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/view_update_payload"
+              }
+            }
+          }
         }
-      },
-      "additionalProperties": false
+      ],
+      "$comment": "Generated kind-to-payload projection of contract-registry.json event_kind_registry; an unsigned plan is not a signed or admitted Event.",
+      "x-arkret-name-role": "planned_event"
     },
     "namespace_conflict": {
       "type": "object",
@@ -274,7 +4170,17 @@
             "deny",
             "require_admin_approval",
             "override"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-plan.schema.json#/$defs/namespace_conflict/properties/resolution",
+            "owner": "applet-install-plan.schema.json#/$defs/namespace_conflict/properties/resolution",
+            "values": [
+              "deny",
+              "require_admin_approval",
+              "override"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -287,7 +4193,8 @@
       ],
       "properties": {
         "mls_join_required": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "obligation"
         },
         "plaintext_access": {
           "type": "string",
@@ -295,7 +4202,17 @@
             "none",
             "metadata_only",
             "policy_declared"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-plan.schema.json#/$defs/e2ee_effect/properties/plaintext_access",
+            "owner": "applet-install-plan.schema.json#/$defs/e2ee_effect/properties/plaintext_access",
+            "values": [
+              "none",
+              "metadata_only",
+              "policy_declared"
+            ]
+          }
         },
         "authorization_refs": {
           "type": "array",
@@ -314,7 +4231,8 @@
       ],
       "properties": {
         "widget_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "policy_event_ref": {
           "oneOf": [

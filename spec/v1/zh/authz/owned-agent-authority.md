@@ -8,7 +8,7 @@ updated: 2026-10-15
 
 ## 0. 规范语言
 
-本文中的 **MUST** / **MUST NOT** 按 [normative-language.md](../conformance/normative-language.md) 解释。本文的机器裁决源为 [owned-agent-authority-registry.json](../../artifacts/registry/owned-agent-authority-registry.json)，承载仍使用 v1 的 Capability Grant、Policy、普通 Event admission 与 typed current result；不新增身份、profile、session 或私有数据库授权路径。
+本文中的 **MUST** / **MUST NOT** 按 [normative-language.md](../conformance/normative-language.md) 解释。本文的机器裁决源为 [owned-agent-authority-registry.json](../../artifacts/registry/owned-agent-authority-registry.json)，承载仍使用 v1 的 Capability Grant、Policy、普通 Event admission 与 current state；不新增身份、profile、session 或私有数据库授权路径。
 
 ## 1. 显式自有授权来源
 
@@ -30,7 +30,7 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 ## 2. 动作与持续上界
 
-专用来源只能签发 registry 的 `supported_actions`。v1 登记消息创建、reaction add/remove、作者自己的 revise/redact、event/Strand/object 的已登记读取；其它 action、admin/moderation、授权管理、聚合 action、服务面 action 与 `act_on_behalf` **MUST NOT** 通过此来源取得。它们若有独立正式授权，仍受本节对自有 Agent 的动态硬上界和其它审批门约束。不能把 owner/admin 聚合或 UI preset 静默复制给 Agent。
+专用来源只能签发 registry 的 `supported_actions`。v1 登记消息创建、reaction add/remove、作者自己的 revise/redact、event/Strand/object 的已登记读取；其它 action、admin/moderation、授权管理、聚合 action、服务面 action 与 `acting_on_behalf_allowed` **MUST NOT** 通过此来源取得。它们若有独立正式授权，仍受本节对自有 Agent 的动态硬上界和其它审批门约束。不能把 owner/admin 聚合或 UI preset 静默复制给 Agent。
 
 每个普通 Collaboration Realm 内自有 Agent 的实际操作 **MUST** 同时满足：主人当前有效行动权、原签明确 scope/action/constraint、Agent requested/key/session ceiling、当前管理限制、participation/governance ceiling，以及动作自身的 membership/history/E2EE/approval 门。该动态上界 **MUST** 对管理员直接给 Agent 的普通 grant、membership-derived reading 与所有替代授权路径同样生效。独立 Direct 的 participant authority 按其原合同求值，**MUST NOT** 引入不相关群的权限；Sidecar 的 roster/读取来源仍是其专用来源，但同 Realm 管理限制、主人当前内容读取边界与群动作禁令不能被 Sidecar 绕过。
 
@@ -44,7 +44,7 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 **Agent 内容会话交集（normative）**：机器合同为 registry 的 `session_content_authority_contract`，具名裁决见 `ak.vector.agent.session_content_authority.v1`。Agent Auth 的 capability-grant 交集 **MUST** 解释为目标 action/resource 上已经成立的完整合法授权路径，不限于 literal `ak.capability.grant`。来源按实际资源 profile 求值：普通 Realm/Circle 的读取使用 exact active membership 与 history visibility；独立 Direct 使用其 accepted participant authority；Sidecar 使用 exact `(realm_id, controller_account_id, sidecar_id)` 的专用 desired/effective authority；其它动作仅能使用该动作已登记的 grant 或 profile authority。读取来源 **MUST NOT** 派生 write/reply/publish 权限，也不得由 provisioning、accountability、私有 requested scope 或 participation selection 单独制造任何内容权限。
 
-机器向量中的 verified gate predicate **MUST** 对应实际 action/resource 的适用门，不能由默认 action 推出未登记的读取选择位。`participation_current_denied` 显式使用已有完整 capability grant 的 `ak.message.create`，在执行时撤回 `reply_message` selection；原合法会话和 grant 不替代当前 selection。membership/profile 的独立读取仍按其原合同求值，selection 本身不授予或撤回读取资格。
+机器向量中的 verified gate predicate **MUST** 对应实际 action/resource 的适用门，不能由默认 action 推出未登记的读取选择位。`participation_current_denied` 显式使用已有完整 capability grant 的 `ak.message.create`，在执行时撤回 `message_creation_allowed` selection；原合法会话和 grant 不替代当前 selection。membership/profile 的独立读取仍按其原合同求值，selection 本身不授予或撤回读取资格。
 
 `approval_missing` 的 payload 验收实例同样显式使用已有完整 capability grant 的 `ak.message.create`，采用现行 act-on-behalf 逐次行动确认合同：current selection 与正常 private ActionRequest 保留，缺少 controller 对 exact target 的 accepted ActionApprove 时失败关闭，正常接纳确认后仅允许其绑定的原目标。不得为默认读取来源新增批准载体；本实例不改变其它动作已登记的批准门。此逐次确认与下文内容会话带外批准相互独立，accepted capability／delegation Event、已签发会话及 `approval_evidence_refs` **MUST NOT** 替代 exact 行动确认。
 
@@ -84,7 +84,7 @@ Controller 通过既有带外 UI，明确确认 exact Agent／scope／actions／
 
 `ak.capability.revoke` 增加专用收权分支：target 为 owned_agent grant 时，original issuer/controller 的完整 account 签名可以撤回该 grant，无需通用 revoke action、管理员批准或 Agent runtime 在线。该分支 **MUST** 检查 target、original issuer/ref、账号当前签名资格、exact grant current revision/CAS，禁止 executed_by。它不要求被授动作仍有效、join generation 仍 active 或通过管理 join/authorize gate；即使已离群或 binding 已终止，只要原账号仍有合法签名资格也可以关闭自己签出的记录，不能恢复身份／权限。terminal account 的新写屏障仍适用。其它 grant 的普通 revoke target guard 不变。
 
-原 issuer 可通过现有 `ak.self.current_results.read.exact.v1` 的 exact `{kind:"capability_grant",grant_id:<grant_id>}` selector 读取自己签出的 owned_agent grant（包含 ineffective/terminal）及 revision；仍只读、有签名会话资格、非枚举，未知／无权返回同一通用 not_found，不返回 never_written。授权不能借猜测 ID 披露其它 grant。管理员独立 grant 仍按其原 revoke 资格关闭；主人可用 participation 自己的更严 gate 阻止使用，不能冒充管理员 issuer。
+原 issuer 可通过现有 `ak.self.current_state.read.exact.v1` 的 exact `{kind:"capability_grant",grant_id:<grant_id>}` selector 读取自己签出的 owned_agent grant（包含 ineffective/terminal）及 revision；仍只读、有签名会话资格、非枚举，未知／无权返回同一通用 not_found，不返回 never_written。授权不能借猜测 ID 披露其它 grant。管理员独立 grant 仍按其原 revoke 资格关闭；主人可用 participation 自己的更严 gate 阻止使用，不能冒充管理员 issuer。
 
 明确 revoke/relinquish 是旧 grant ID 的 terminal，**MUST NOT** 因主人获权、禁令解除、resume、缓存恢复或旧签名重放重新 active；主人可以重新确认、签发新的 Event-derived GrantId，并通过全部当前门。暂时父权限归零、pause 或管理 gate 关闭只使 active grant ineffective，不把它投影成 revoked；条件恢复后仅在原选择/有效期/ownership/exact join 仍有效时重算，不增加动作或 scope。离组重入、错 Station/Realm、Agent incarnation 变化 **MUST** 新的明确授权。
 

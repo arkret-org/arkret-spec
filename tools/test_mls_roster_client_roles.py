@@ -52,14 +52,14 @@ class RosterClientRoleTests(unittest.TestCase):
         def mutate(name, data):
             if name == "contract-registry.json":
                 row = next(x for x in data["operation_registry"]["operations"] if x["operation_id"] == "ak.self.mls.read.roster_authority.v1")
-                row["response_schema_ref"] = "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome"
+                row["response_schema_ref"] = "schemas/mls-roster-authority.schema.json#/$defs/roster_read_response_body"
         self.assertTrue(self.run_gate(mutate))
 
     def test_member_selector_cannot_require_prejoin_genesis_or_open_shape(self):
         for field in ("genesis_event_ref", "additionalProperties"):
             def mutate(name, data):
                 if name == "mls-roster-authority.schema.json":
-                    row = data["$defs"]["member_roster_read_request"]
+                    row = data["$defs"]["mls_member_roster_authority_read_request_body"]
                     if field == "genesis_event_ref":
                         row["required"].append(field)
                         row["properties"][field] = {"type": "string"}
@@ -71,7 +71,7 @@ class RosterClientRoleTests(unittest.TestCase):
         def mutate(name, data):
             if name == "contract-registry.json":
                 row = next(x for x in data["operation_registry"]["operations"] if x["operation_id"] == "ak.self.mls.read.roster_authority.v1")
-                row["request_schema_ref"] = "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request"
+                row["request_schema_ref"] = "schemas/mls-roster-authority.schema.json#/$defs/mls_roster_authority_read_request_body"
         self.assertTrue(self.run_gate(mutate))
 
     def test_signature_tampering_and_wrong_historical_key_rejected(self):
@@ -79,11 +79,11 @@ class RosterClientRoleTests(unittest.TestCase):
             with self.subTest(field=field):
                 def mutate(name, data):
                     if name == "mls-roster-client-roles-fixture.json":
-                        data["signature_binding_kat"][field]["signature"]["sig"] = "A" * 86
+                        data["signature_binding_kat"][field]["signature"]["signature"] = "A" * 86
                 self.assertTrue(self.run_gate(mutate))
 
     def test_key_binding_cannot_be_open_or_optional(self):
-        for definition in ("self_roster_read_outcome", "roster_add_signing_keys", "roster_signing_key"):
+        for definition in ("self_roster_read_response_body", "roster_add_signing_keys", "roster_signing_key"):
             with self.subTest(definition=definition):
                 def mutate(name, data):
                     if name == "mls-roster-authority.schema.json":

@@ -17,7 +17,24 @@
         "notifiable",
         "documentable",
         "renderable"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "query.schema.json#/$defs/facet_name",
+        "owner": "query.schema.json#/$defs/facet_name",
+        "values": [
+          "container",
+          "replyable",
+          "schedulable",
+          "assignable",
+          "stateful",
+          "rankable",
+          "reviewable",
+          "notifiable",
+          "documentable",
+          "renderable"
+        ]
+      }
     },
     "view_renderer": {
       "type": "string",
@@ -36,7 +53,28 @@
         "document",
         "dashboard",
         "custom"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "query.schema.json#/$defs/view_renderer",
+        "owner": "query.schema.json#/$defs/view_renderer",
+        "values": [
+          "board",
+          "list",
+          "table",
+          "calendar",
+          "gantt",
+          "timeline",
+          "thread",
+          "chat",
+          "forum",
+          "graph",
+          "tree",
+          "document",
+          "dashboard",
+          "custom"
+        ]
+      }
     },
     "field_filter": {
       "type": "object",
@@ -64,7 +102,26 @@
             "exists",
             "prefix",
             "full_text"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "query.schema.json#/$defs/field_filter/properties/op",
+            "owner": "query.schema.json#/$defs/field_filter/properties/op",
+            "values": [
+              "eq",
+              "neq",
+              "in",
+              "not_in",
+              "lt",
+              "lte",
+              "gt",
+              "gte",
+              "contains",
+              "exists",
+              "prefix",
+              "full_text"
+            ]
+          }
         },
         "value": {}
       },
@@ -105,7 +162,7 @@
         }
       ]
     },
-    "sort_spec": {
+    "sort_specification": {
       "type": "object",
       "required": [
         "field",
@@ -121,14 +178,32 @@
           "enum": [
             "asc",
             "desc"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "query.schema.json#/$defs/sort_specification/properties/direction",
+            "owner": "query.schema.json#/$defs/sort_specification/properties/direction",
+            "values": [
+              "asc",
+              "desc"
+            ]
+          }
         },
         "nulls": {
           "type": "string",
           "enum": [
             "first",
             "last"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "query.schema.json#/$defs/sort_specification/properties/nulls",
+            "owner": "query.schema.json#/$defs/sort_specification/properties/nulls",
+            "values": [
+              "first",
+              "last"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -150,7 +225,17 @@
             "out",
             "in",
             "both"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "query.schema.json#/$defs/relation_query/properties/direction",
+            "owner": "query.schema.json#/$defs/relation_query/properties/direction",
+            "values": [
+              "out",
+              "in",
+              "both"
+            ]
+          }
         },
         "source_ref": {
           "$ref": "./relation.schema.json#/$defs/relation_endpoint"
@@ -194,7 +279,20 @@
             "graph",
             "document",
             "composite"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "query.schema.json#/$defs/query_request_body/properties/projection",
+            "owner": "query.schema.json#/$defs/query_request_body/properties/projection",
+            "values": [
+              "raw",
+              "collection",
+              "timeline",
+              "graph",
+              "document",
+              "composite"
+            ]
+          }
         },
         "renderer": {
           "$ref": "#/$defs/view_renderer"
@@ -242,7 +340,7 @@
         "order_by": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/sort_spec"
+            "$ref": "#/$defs/sort_specification"
           }
         },
         "cursor": {
@@ -273,7 +371,15 @@
           "if": {
             "properties": {
               "projection": {
-                "const": "raw"
+                "const": "raw",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "query.schema.json#/$defs/query_request_body/allOf/0/if/properties/projection",
+                  "owner": "query.schema.json#/$defs/query_request_body/allOf/0/if/properties/projection",
+                  "values": [
+                    "raw"
+                  ]
+                }
               }
             },
             "required": [
@@ -298,7 +404,19 @@
                   "timeline",
                   "document",
                   "composite"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "query.schema.json#/$defs/query_request_body/allOf/1/if/properties/projection",
+                  "owner": "query.schema.json#/$defs/query_request_body/allOf/1/if/properties/projection",
+                  "values": [
+                    "collection",
+                    "graph",
+                    "timeline",
+                    "document",
+                    "composite"
+                  ]
+                }
               }
             },
             "required": [

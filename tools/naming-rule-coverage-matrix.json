@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 1,
+  "version": 2,
   "kind": "naming_rule_coverage_matrix",
   "source_of_truth": false,
   "generated_from": [
@@ -127,7 +127,7 @@
     },
     {
       "rule_id": "NC-TYPE-001",
-      "title": "Type names fold acronyms and use the closed structural wrapper table",
+      "title": "Type names fold acronyms and reflect positively declared semantic roles",
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.0.1",
@@ -144,20 +144,25 @@
           "NC-TYPE-001"
         ],
         "functions": [
-          "prose.py:check_naming_predicates"
+          "prose.py:check_naming_predicates",
+          "semantic_naming.py:check_semantic_naming",
+          "semantic_naming.py:check_protocol_member_contract"
         ],
         "registries": [
           "tools/naming-convention-rules.json"
         ]
       },
       "entry_points": [
-        "naming_predicates"
+        "naming_predicates",
+        "semantic_naming",
+        "protocol_member_contract"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_semantic_naming.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "Acronym folding, stacked wrapper words and rejected wrapper roles are decided mechanically; telling a domain subject apart from a structural wrapper role stays registry-driven through rejected_wrapper_words."
+      "residual_gap": "Acronym folding, forbidden Result names, declared body/current/outcome roles, collection shapes and exact enum authority are decided mechanically. Selecting the domain meaning and body boundary of every ordinary type still requires semantic review; annotations are not a proof of that choice."
     },
     {
       "rule_id": "NC-CODE-001",
@@ -1149,5 +1154,6 @@
       "coverage_level": "partial",
       "residual_gap": "The slug field registry pins every bare `slug` occurrence to a declared owning context and the check closes the wire surface in both directions: a bare slug outside a registered context fails, a registered context whose pointer stops resolving fails, and a reference name must be `<entity>_slug` (with an optional role/time qualifier) for an entity that has a registered owning context. Whether a context genuinely is the owning object of its entity is the human judgement recorded per registry row, the same epistemic status as the identifier classification registry."
     }
-  ]
+  ],
+  "generated_at": "2026-10-24T14:31:01+08:00"
 }

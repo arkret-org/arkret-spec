@@ -11,7 +11,15 @@
   ],
   "properties": {
     "morph_kind": {
-      "const": "customer_risk"
+      "const": "customer_risk",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "morph-customer-risk.schema.json#/properties/morph_kind",
+        "owner": "morph-customer-risk.schema.json#/properties/morph_kind",
+        "values": [
+          "customer_risk"
+        ]
+      }
     },
     "fields": {
       "type": "object",
@@ -27,7 +35,18 @@
             "investigating",
             "mitigated",
             "closed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "morph-customer-risk.schema.json#/properties/fields/properties/status",
+            "owner": "morph-customer-risk.schema.json#/properties/fields/properties/status",
+            "values": [
+              "open",
+              "investigating",
+              "mitigated",
+              "closed"
+            ]
+          }
         },
         "severity": {
           "type": "string",
@@ -36,7 +55,18 @@
             "medium",
             "high",
             "critical"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "morph-customer-risk.schema.json#/properties/fields/properties/severity",
+            "owner": "morph-customer-risk.schema.json#/properties/fields/properties/severity",
+            "values": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          }
         }
       },
       "additionalProperties": true

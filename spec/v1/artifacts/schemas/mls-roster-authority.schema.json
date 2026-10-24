@@ -12,7 +12,7 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{43}$"
     },
-    "member_group_state_material_read_request": {
+    "mls_member_group_state_material_read_request_body": {
       "type": "object",
       "description": "Authenticated member read of accepted Genesis public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
       "required": [
@@ -62,7 +62,8 @@
           "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/max_response_bytes"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "mls_add_authority_attestation": {
       "type": "object",
@@ -81,7 +82,7 @@
         "actor_id",
         "endpoint",
         "authorization_event_ref",
-        "leaf_signature_key_b64u",
+        "leaf_signature_key_base64url",
         "claim_record_digest",
         "claim_receipt",
         "attested_at",
@@ -111,8 +112,20 @@
           "minimum": 1
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 1
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+          "not": {
+            "enum": [
+              "0"
+            ],
+            "x-arkret-value-ownership": {
+              "class": "decimal_text",
+              "authority": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/properties/epoch/not",
+              "owner": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/properties/epoch/not",
+              "values": [
+                "0"
+              ]
+            }
+          }
         },
         "welcome_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id"
@@ -129,8 +142,9 @@
         "authorization_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "leaf_signature_key_b64u": {
-          "$ref": "#/$defs/signature_key"
+        "leaf_signature_key_base64url": {
+          "$ref": "#/$defs/signature_key",
+          "x-arkret-member-role": "binary_encoding"
         },
         "claim_record_digest": {
           "$ref": "#/$defs/digest"
@@ -169,7 +183,15 @@
               "endpoint": {
                 "properties": {
                   "kind": {
-                    "const": "device"
+                    "const": "device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint/properties/kind",
+                      "owner": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint/properties/kind",
+                      "values": [
+                        "device"
+                      ]
+                    }
                   }
                 }
               },
@@ -214,7 +236,7 @@
         }
       ]
     },
-    "attest_add_request": {
+    "mls_add_authority_attest_request_body": {
       "type": "object",
       "description": "Transport-only full claim outcome lets governance verify the destination receipt's claims_digest before retaining only the signed minimal attestation. It is never returned by roster read.",
       "required": [
@@ -226,12 +248,13 @@
           "$ref": "#/$defs/mls_add_authority_attestation"
         },
         "claim_outcome": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_outcome"
+          "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_response_body"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
-    "attest_add_outcome": {
+    "attest_add_response_body": {
       "type": "object",
       "required": [
         "status",
@@ -242,15 +265,25 @@
           "enum": [
             "installed",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mls-roster-authority.schema.json#/$defs/attest_add_response_body/properties/status",
+            "owner": "mls-roster-authority.schema.json#/$defs/attest_add_response_body/properties/status",
+            "values": [
+              "installed",
+              "duplicate"
+            ]
+          }
         },
         "attestation_digest": {
           "$ref": "#/$defs/digest"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "member_roster_read_request": {
+    "mls_member_roster_authority_read_request_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -274,8 +307,7 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "target_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "caller_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -287,9 +319,10 @@
         }
       },
       "additionalProperties": false,
-      "description": "Authenticated own-Station member selector. The Station authorizes the exact accepted target and derives Genesis from immutable accepted provenance in the same read cut; the member need not read a prejoin Genesis or a complete current baseline."
+      "description": "Authenticated own-Station member selector. The Station authorizes the exact accepted target and derives Genesis from immutable accepted provenance in the same read cut; the member need not read a prejoin Genesis or a complete current baseline.",
+      "x-arkret-name-role": "request_body"
     },
-    "roster_read_request": {
+    "mls_roster_authority_read_request_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -317,8 +350,7 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "target_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "caller_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -329,7 +361,8 @@
           "maxLength": 1024
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "roster_genesis_record": {
       "type": "object",
@@ -337,13 +370,21 @@
         "kind",
         "genesis_event_ref",
         "actor_id",
-        "leaf_signature_key_b64u",
+        "leaf_signature_key_base64url",
         "endpoint",
         "authorization_event_ref"
       ],
       "properties": {
         "kind": {
-          "const": "genesis"
+          "const": "genesis",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mls-roster-authority.schema.json#/$defs/roster_genesis_record/properties/kind",
+            "owner": "mls-roster-authority.schema.json#/$defs/roster_genesis_record/properties/kind",
+            "values": [
+              "genesis"
+            ]
+          }
         },
         "genesis_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -351,8 +392,9 @@
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "leaf_signature_key_b64u": {
-          "$ref": "#/$defs/signature_key"
+        "leaf_signature_key_base64url": {
+          "$ref": "#/$defs/signature_key",
+          "x-arkret-member-role": "binary_encoding"
         },
         "endpoint": {
           "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
@@ -370,13 +412,21 @@
         "commit_event_ref",
         "consumed_proposal_ordinal",
         "sender_actor_id",
-        "proposal_wire_b64u",
+        "proposal_wire_base64url",
         "attestation",
         "attestor_resolution"
       ],
       "properties": {
         "kind": {
-          "const": "add"
+          "const": "add",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mls-roster-authority.schema.json#/$defs/roster_add_record/properties/kind",
+            "owner": "mls-roster-authority.schema.json#/$defs/roster_add_record/properties/kind",
+            "values": [
+              "add"
+            ]
+          }
         },
         "commit_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -389,11 +439,12 @@
         "sender_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "proposal_wire_b64u": {
+        "proposal_wire_base64url": {
           "type": "string",
           "minLength": 1,
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef."
+          "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "attestation": {
           "$ref": "#/$defs/mls_add_authority_attestation"
@@ -471,7 +522,7 @@
         "target_epoch",
         "authority_head_commit_event_ref",
         "caller_actor_id",
-        "total_records",
+        "total_record_count",
         "page_count",
         "records_digest",
         "issued_at",
@@ -503,8 +554,7 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "target_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "authority_head_commit_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -512,13 +562,15 @@
         "caller_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "total_records": {
+        "total_record_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "page_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "records_digest": {
           "$ref": "#/$defs/digest"
@@ -532,7 +584,7 @@
       },
       "additionalProperties": false
     },
-    "roster_read_outcome": {
+    "roster_read_response_body": {
       "type": "object",
       "description": "One governance-signed page containing the longest continuous prefix of 1..8 complete records that fits the 2 MiB canonical JSON response limit. Pages are cut-bound, and next_cursor identifies the next record offset; no caller-selected page size or partial record is permitted. Page boundaries also include the exact self-only signing-key projection budget; either envelope exceeding 2 MiB makes the complete roster unavailable.",
       "required": [
@@ -562,21 +614,23 @@
           "maxLength": 1024
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "roster_signing_key": {
       "type": "object",
       "description": "Public key selected by the authenticated own Account Station for the enclosing exact signed object and its original timestamp. A DID URL is only a key selector; this result is not portable authority or a resolver source.",
       "required": [
         "verification_method",
-        "public_key_b64u"
+        "public_key_base64url"
       ],
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
-          "$ref": "#/$defs/signature_key"
+        "public_key_base64url": {
+          "$ref": "#/$defs/signature_key",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false
@@ -602,7 +656,7 @@
       },
       "additionalProperties": false
     },
-    "self_roster_read_outcome": {
+    "self_roster_read_response_body": {
       "type": "object",
       "description": "Non-portable authenticated own-Station result. roster is the unchanged signed governance page. Exactly one key entry per Add record on that page, in the same order; no entry for Genesis. Keys bind exact signature kid, purpose, timestamp and record digest; current or remote self-asserted keys cannot substitute. Entire canonical response is at most 2 MiB.",
       "required": [
@@ -612,7 +666,7 @@
       ],
       "properties": {
         "roster": {
-          "$ref": "#/$defs/roster_read_outcome"
+          "$ref": "#/$defs/roster_read_response_body"
         },
         "manifest_signing_key": {
           "$ref": "#/$defs/roster_signing_key"
@@ -625,7 +679,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

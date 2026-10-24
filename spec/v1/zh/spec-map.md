@@ -72,7 +72,7 @@ see_also:
 | 群聊 / 频道类场景 | Realm 负责成员和历史边界；Strand + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/strand-and-message.md`、`governance/history-visibility.md` |
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ak.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Strand；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/strand-and-message.md`、`models/relation.md`、`models/common-fields.md` |
-| Watchers / 通知规则 / 勿扰 | Watch typed current result 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
+| Watchers / 通知规则 / 勿扰 | Watch current state 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
 | 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。外部 runtime 的私有协议 session 不进入 Arkret 共享 history。 | `extensions/applet-integration.md`、`models/extension-objects.md` |
 
 ## 3. 核心概念边界
@@ -151,7 +151,7 @@ see_also:
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / server_revision_cas / cascade。 |
-| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas typed current result + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas current state + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision checkpoint、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle 独立 MLS 激活与历史策略、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
@@ -196,7 +196,7 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
-| `sync/current-results.md` | 服务器 typed current selector、完整 因果 heads、版本化替代/删除与有界基线。 |
+| `sync/current-state.md` | 服务器 typed current selector、完整 因果 heads、版本化替代/删除与有界基线。 |
 | `sync/authority-commit-log.md` | Realm、每个 Circle、每个 Sidecar 各自独立的权威 Commit stream、join bootstrap 与治理 Station handoff。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、服务器当前结果、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |

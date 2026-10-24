@@ -48,19 +48,59 @@
       "description": "Closed canonical action-class list blocked by revocation_pending on every deployment.",
       "prefixItems": [
         {
-          "const": "session_grant_issue_or_refresh"
+          "const": "session_grant_issue_or_refresh",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/0",
+            "owner": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/0",
+            "values": [
+              "session_grant_issue_or_refresh"
+            ]
+          }
         },
         {
-          "const": "device_pairing_code_claim"
+          "const": "device_pairing_code_claim",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/1",
+            "owner": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/1",
+            "values": [
+              "device_pairing_code_claim"
+            ]
+          }
         },
         {
-          "const": "keypackage_claim"
+          "const": "keypackage_claim",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/2",
+            "owner": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/2",
+            "values": [
+              "keypackage_claim"
+            ]
+          }
         },
         {
-          "const": "to_device_write"
+          "const": "to_device_write",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/3",
+            "owner": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/3",
+            "values": [
+              "to_device_write"
+            ]
+          }
         },
         {
-          "const": "event_write"
+          "const": "event_write",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/4",
+            "owner": "device-revocation-state.schema.json#/$defs/denied_actions/prefixItems/4",
+            "values": [
+              "event_write"
+            ]
+          }
         }
       ],
       "minItems": 5,
@@ -76,11 +116,19 @@
         "target_device_generation_ref",
         "proposal_event_id",
         "accepted_at",
-        "acceptance_seq"
+        "acceptance_sequence"
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.device_revocation_state.v1"
+          "const": "ak.schema.device_revocation_state.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
+            "owner": "device-revocation-state.schema.json#/$defs/common_record/properties/schema",
+            "values": [
+              "ak.schema.device_revocation_state.v1"
+            ]
+          }
         },
         "account_id": {
           "$ref": "#/$defs/account_id"
@@ -103,7 +151,7 @@
           "$ref": "#/$defs/timestamp",
           "description": "Actual durable atomic-commit time assigned when the Event, derived selectors and pending index commit. It is assigned by the authority transaction and MUST NOT be producer supplied."
         },
-        "acceptance_seq": {
+        "acceptance_sequence": {
           "type": "integer",
           "minimum": 1,
           "description": "Monotonic sequence assigned by the origin Station in the same atomic commit as accepted_at and the pending index."
@@ -148,7 +196,15 @@
           ],
           "properties": {
             "status": {
-              "const": "revocation_pending"
+              "const": "revocation_pending",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "device-revocation-state.schema.json#/$defs/device_revocation_pending_state/allOf/1/properties/status",
+                "owner": "device-revocation-state.schema.json#/$defs/device_revocation_pending_state/allOf/1/properties/status",
+                "values": [
+                  "revocation_pending"
+                ]
+              }
             },
             "denied_actions": {
               "$ref": "#/$defs/denied_actions"
@@ -170,7 +226,15 @@
           ],
           "properties": {
             "status": {
-              "const": "revocation_rejected"
+              "const": "revocation_rejected",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "device-revocation-state.schema.json#/$defs/device_revocation_rejected_state/allOf/1/properties/status",
+                "owner": "device-revocation-state.schema.json#/$defs/device_revocation_rejected_state/allOf/1/properties/status",
+                "values": [
+                  "revocation_rejected"
+                ]
+              }
             }
           }
         }
@@ -190,7 +254,15 @@
           ],
           "properties": {
             "status": {
-              "const": "revoked"
+              "const": "revoked",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "device-revocation-state.schema.json#/$defs/device_revoked_state/allOf/1/properties/status",
+                "owner": "device-revocation-state.schema.json#/$defs/device_revoked_state/allOf/1/properties/status",
+                "values": [
+                  "revoked"
+                ]
+              }
             },
             "committed_at": {
               "$ref": "#/$defs/timestamp"

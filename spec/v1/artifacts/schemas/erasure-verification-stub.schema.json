@@ -14,7 +14,15 @@
   ],
   "properties": {
     "stub_schema": {
-      "const": "ak.schema.erasure_verification_stub.v1"
+      "const": "ak.schema.erasure_verification_stub.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "erasure-verification-stub.schema.json#/properties/stub_schema",
+        "owner": "erasure-verification-stub.schema.json#/properties/stub_schema",
+        "values": [
+          "ak.schema.erasure_verification_stub.v1"
+        ]
+      }
     },
     "subject": {
       "$ref": "#/$defs/subject"
@@ -82,7 +90,15 @@
             "subject": {
               "properties": {
                 "kind": {
-                  "const": "event"
+                  "const": "event",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "erasure-verification-stub.schema.json#/allOf/0/if/not/properties/subject/properties/kind",
+                    "owner": "erasure-verification-stub.schema.json#/allOf/0/if/not/properties/subject/properties/kind",
+                    "values": [
+                      "event"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -115,7 +131,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "event"
+              "const": "event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "erasure-verification-stub.schema.json#/$defs/trigger/oneOf/0/properties/kind",
+                "owner": "erasure-verification-stub.schema.json#/$defs/trigger/oneOf/0/properties/kind",
+                "values": [
+                  "event"
+                ]
+              }
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -132,7 +156,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "account_status_record"
+              "const": "account_status_record",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "erasure-verification-stub.schema.json#/$defs/trigger/oneOf/1/properties/kind",
+                "owner": "erasure-verification-stub.schema.json#/$defs/trigger/oneOf/1/properties/kind",
+                "values": [
+                  "account_status_record"
+                ]
+              }
             },
             "account_status_record_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
@@ -172,7 +204,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "principal"
+          "const": "principal",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/principal_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/principal_subject/properties/kind",
+            "values": [
+              "principal"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "#/$defs/did_core_id"
@@ -188,7 +228,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm"
+          "const": "realm",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/realm_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/realm_subject/properties/kind",
+            "values": [
+              "realm"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -204,7 +252,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "event"
+          "const": "event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/event_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/event_subject/properties/kind",
+            "values": [
+              "event"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -220,7 +276,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "blob"
+          "const": "blob",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/blob_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/blob_subject/properties/kind",
+            "values": [
+              "blob"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "./common-ids.schema.json#/$defs/blob_ref"
@@ -236,7 +300,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "device"
+          "const": "device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/device_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/device_subject/properties/kind",
+            "values": [
+              "device"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -252,7 +324,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "account_private_state"
+          "const": "account_private_state",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/account_private_state_subject/properties/kind",
+            "owner": "erasure-verification-stub.schema.json#/$defs/account_private_state_subject/properties/kind",
+            "values": [
+              "account_private_state"
+            ]
+          }
         },
         "subject_ref": {
           "$ref": "#/$defs/digest"
@@ -278,7 +358,23 @@
             "device_secret_store",
             "media_derivatives",
             "service_defined"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-verification-stub.schema.json#/$defs/scope/properties/storage_boundary",
+            "owner": "erasure-verification-stub.schema.json#/$defs/scope/properties/storage_boundary",
+            "values": [
+              "canonical_log_minimization",
+              "blob_store",
+              "projection_store",
+              "account_private_store",
+              "search_index",
+              "push_routes",
+              "device_secret_store",
+              "media_derivatives",
+              "service_defined"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

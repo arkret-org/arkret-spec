@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-10-19.1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -14,10 +14,10 @@
     "ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1"
   ],
   "required_schema_refs": [
-    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
-    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
-    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
-    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
+    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
+    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body",
     "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_evidence",
     "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
   ],

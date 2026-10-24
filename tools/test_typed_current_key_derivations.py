@@ -54,7 +54,7 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
             row = next(
                 row
                 for row in doc["typed_current_key_derivations"]["families"]
-                if row["result_family"] == "agent_key"
+                if row["state_family"] == "agent_key"
             )
             row["parameters"].reverse()
 
@@ -66,7 +66,7 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
             row = next(
                 row
                 for row in doc["typed_current_key_derivations"]["families"]
-                if row["result_family"] == "agent_key"
+                if row["state_family"] == "agent_key"
             )
             row["kat"]["expected_output"] = "A" * 43
 
@@ -78,7 +78,7 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
             row = next(
                 row
                 for row in doc["typed_current_key_derivations"]["families"]
-                if row["result_family"] == "key_backup_active_series"
+                if row["state_family"] == "key_backup_active_series"
             )
             row["kat"]["negative_cases"]["reordered_components"]["expected_output"] = (
                 row["kat"]["expected_output"]
@@ -105,9 +105,9 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
         def mutate(doc: dict) -> None:
             event = next(row for row in doc["event_kinds"] if row["event_kind"] == "ak.member.state")
             write = next(
-                row for row in event["result_writes"] if row["result_family"] == "member_state"
+                row for row in event["state_writes"] if row["state_family"] == "member_state"
             )
-            write["result_selector"]["components"][0]["field"] = "payload.actor_id"
+            write["state_selector"]["components"][0]["field"] = "payload.actor_id"
 
         reported = errors_for(mutate)
         self.assertTrue(any("component 0 is not registered" in error for error in reported), reported)
@@ -115,7 +115,7 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
     def test_legacy_per_leg_mute_cannot_gain_a_compatibility_api(self) -> None:
         def mutate(doc: dict) -> None:
             template = copy.deepcopy(doc["typed_current_key_derivations"]["families"][2])
-            template["result_family"] = "call_mute_override"
+            template["state_family"] = "call_mute_override"
             doc["typed_current_key_derivations"]["families"].append(template)
 
         reported = errors_for(mutate)

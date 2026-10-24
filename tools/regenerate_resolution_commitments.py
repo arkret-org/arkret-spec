@@ -217,7 +217,7 @@ def main() -> None:
     runtime["expected_pairing_request_binding_digest"] = "sha256:" + hashlib.sha256(
         runtime["canonical_pairing_request_binding_json"].encode("utf-8")
     ).hexdigest()
-    agent["version"] = "2026-09-19.1"
+    agent["version"] = "2026-10-24.1"
     documents["agent-vectors-fixture.json"] = agent
 
     content = documents["content-bound-event-id-fixture.json"]
@@ -237,7 +237,7 @@ def main() -> None:
     )
     second["declared_principal_control_realm_id"] = first["derived_realm_id"]
     recalc_event_case(second)
-    content["version"] = "2026-09-19.1"
+    content["version"] = "2026-10-24.1"
 
     for filename, vector_id, container in (
         ("calendar-notification-fixture.json", "calendar_service", documents["calendar-notification-fixture.json"]["schema_validation_cases"][0]["instance"]),
@@ -245,12 +245,12 @@ def main() -> None:
         ("websocket-binding-fixture.json", "websocket_service", documents["websocket-binding-fixture.json"]["bundle_closure_cases"][0]["instance"]),
     ):
         container["service_id"] = vectors[vector_id]["projected_core_id"]
-        documents[filename]["version"] = "2026-09-19.1"
+        documents[filename]["version"] = "2026-10-24.1"
 
     for name, document in documents.items():
         (FIXTURES / name).write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     output = {
-        "version": "2026-09-19.1",
+        "version": "2026-10-24.1",
         "generated_by": "tools/regenerate_resolution_commitments.py",
         "description": "Adapter evidence for every fixture resolution commitment covered by tools/resolution-commitment-pointer-registry.json.",
         "runner": {"kind": "known_answer_tests", "entrypoint": "ak.suite.identity.resolution_commitment.v1"},

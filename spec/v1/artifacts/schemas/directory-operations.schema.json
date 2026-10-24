@@ -8,13 +8,13 @@
       "$ref": "#/$defs/directory_search_realms_request_body"
     },
     {
-      "$ref": "#/$defs/directory_realm_search_outcome"
+      "$ref": "#/$defs/directory_realm_search_response_body"
     },
     {
       "$ref": "#/$defs/directory_resolve_realm_request_body"
     },
     {
-      "$ref": "#/$defs/directory_realm_resolution_outcome"
+      "$ref": "#/$defs/directory_realm_resolution_response_body"
     }
   ],
   "$defs": {
@@ -64,7 +64,7 @@
       },
       "additionalProperties": false
     },
-    "directory_realm_search_outcome": {
+    "directory_realm_search_response_body": {
       "type": "object",
       "required": [
         "realms",
@@ -87,7 +87,8 @@
           "maxLength": 2048
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "directory_resolve_realm_request_body": {
       "type": "object",
@@ -101,8 +102,9 @@
       },
       "additionalProperties": false
     },
-    "directory_realm_resolution_outcome": {
-      "$ref": "#/$defs/public_realm_directory_entry"
+    "directory_realm_resolution_response_body": {
+      "$ref": "#/$defs/public_realm_directory_entry",
+      "x-arkret-name-role": "response_body"
     }
   }
 }

@@ -12,14 +12,33 @@
         "invite",
         "preview"
       ],
-      "description": "Closed URL-resolution classification. Signed authorization tokens use only invite or preview."
+      "description": "Closed URL-resolution classification. Signed authorization tokens use only invite or preview.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "object-addressing.schema.json#/$defs/address_link_kind",
+        "owner": "object-addressing.schema.json#/$defs/address_link_kind",
+        "values": [
+          "reference",
+          "invite",
+          "preview"
+        ]
+      }
     },
     "token_address_link_kind": {
       "type": "string",
       "enum": [
         "invite",
         "preview"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "object-addressing.schema.json#/$defs/token_address_link_kind",
+        "owner": "object-addressing.schema.json#/$defs/token_address_link_kind",
+        "values": [
+          "invite",
+          "preview"
+        ]
+      }
     },
     "address_link_target_descriptor": {
       "type": "object",
@@ -94,7 +113,15 @@
           "if": {
             "properties": {
               "address_link_kind": {
-                "const": "preview"
+                "const": "preview",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "object-addressing.schema.json#/$defs/signed_address_link_token_claims/allOf/0/if/properties/address_link_kind",
+                  "owner": "object-addressing.schema.json#/$defs/signed_address_link_token_claims/allOf/0/if/properties/address_link_kind",
+                  "values": [
+                    "preview"
+                  ]
+                }
               }
             },
             "required": [

@@ -33,7 +33,7 @@
         "required": [
           "plaintext_visible_services"
         ],
-        "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet typed current result. See zh/sync/service-surface.md."
+        "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet current state. See zh/sync/service-surface.md."
       }
     ]
   },
@@ -43,7 +43,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.realm.v1"
+      "const": "ak.schema.realm.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "realm.schema.json#/properties/schema",
+        "owner": "realm.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.realm.v1"
+        ]
+      }
     },
     "title": {
       "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -58,7 +66,16 @@
         "standard",
         "high_assurance"
       ],
-      "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
+      "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm.schema.json#/properties/security_class",
+        "owner": "realm.schema.json#/properties/security_class",
+        "values": [
+          "standard",
+          "high_assurance"
+        ]
+      }
     },
     "trust_domain": {
       "$ref": "#/$defs/trust_domain",
@@ -80,7 +97,15 @@
       "minItems": 1,
       "uniqueItems": true,
       "contains": {
-        "const": "ak.schema.realm.v1"
+        "const": "ak.schema.realm.v1",
+        "x-arkret-value-ownership": {
+          "class": "namespaced_symbol",
+          "authority": "realm.schema.json#/properties/schema_refs/contains",
+          "owner": "realm.schema.json#/properties/schema_refs/contains",
+          "values": [
+            "ak.schema.realm.v1"
+          ]
+        }
       },
       "description": "Currently activated registered schema id set. It carries no Realm structural role: the signed ak.schema.realm_genesis.v1 purpose is the only authority for Realm class (zh/models/realm-and-space.md section 2.3), so a profile id here would be a second, editable class discriminator. The core member ak.schema.realm.v1 is initialised by the genesis reducer, is always present and can never be removed. Every other member MUST be a registered ak.schema.*.vN id; third-party namespaces are not accepted and no registered Event mints a non-ak. schema id. ak.realm.schema replaces this whole set (realm_schema_payload); policy, deployment conformance and operation-local profiles have their own carriers and are forbidden here."
     },
@@ -94,14 +119,31 @@
             "principal_control",
             "agent_control"
           ],
-          "description": "Projection of genesis purpose for the three identity-control classes. genesis purpose=collaboration and purpose=direct_conversation project no value here. Authorization MUST verify the genesis, never this field."
+          "description": "Projection of genesis purpose for the three identity-control classes. genesis purpose=collaboration and purpose=direct_conversation project no value here. Authorization MUST verify the genesis, never this field.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm.schema.json#/properties/fields/properties/purpose",
+            "owner": "realm.schema.json#/properties/fields/properties/purpose",
+            "values": [
+              "principal_control",
+              "agent_control"
+            ]
+          }
         },
         "collaboration_role": {
           "type": "string",
           "enum": [
             "direct_conversation"
           ],
-          "description": "Projection of genesis purpose=direct_conversation. No other genesis purpose projects this field, and authorization MUST verify the genesis rather than this projection."
+          "description": "Projection of genesis purpose=direct_conversation. No other genesis purpose projects this field, and authorization MUST verify the genesis rather than this projection.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm.schema.json#/properties/fields/properties/collaboration_role",
+            "owner": "realm.schema.json#/properties/fields/properties/collaboration_role",
+            "values": [
+              "direct_conversation"
+            ]
+          }
         }
       },
       "additionalProperties": true
@@ -132,7 +174,20 @@
         "unlisted",
         "invite_only",
         "secret"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm.schema.json#/properties/default_discoverability",
+        "owner": "realm.schema.json#/properties/default_discoverability",
+        "values": [
+          "public",
+          "listed",
+          "restricted",
+          "unlisted",
+          "invite_only",
+          "secret"
+        ]
+      }
     },
     "default_join_rule": {
       "type": "string",
@@ -143,7 +198,20 @@
         "restricted",
         "knock_restricted",
         "closed"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm.schema.json#/properties/default_join_rule",
+        "owner": "realm.schema.json#/properties/default_join_rule",
+        "values": [
+          "public",
+          "invite",
+          "knock",
+          "restricted",
+          "knock_restricted",
+          "closed"
+        ]
+      }
     },
     "history_access": {
       "type": "string",
@@ -151,7 +219,16 @@
         "since_join",
         "all_history_for_current_members"
       ],
-      "description": "Scope-local history range ratchet initialized by Realm create. Only all_history_for_current_members to since_join may change state; widening back to all_history is permanently forbidden. Standard MLS requires since_join."
+      "description": "Scope-local history range ratchet initialized by Realm create. Only all_history_for_current_members to since_join may change state; widening back to all_history is permanently forbidden. Standard MLS requires since_join.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm.schema.json#/properties/history_access",
+        "owner": "realm.schema.json#/properties/history_access",
+        "values": [
+          "since_join",
+          "all_history_for_current_members"
+        ]
+      }
     },
     "governance_station_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -177,7 +254,18 @@
         "restricted",
         "closed",
         "quarantine"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm.schema.json#/properties/federation_policy",
+        "owner": "realm.schema.json#/properties/federation_policy",
+        "values": [
+          "open",
+          "restricted",
+          "closed",
+          "quarantine"
+        ]
+      }
     },
     "max_authority_lifetime_ms": {
       "type": "integer",

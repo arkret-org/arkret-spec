@@ -84,7 +84,7 @@ def sign_mldsa65(vector: dict[str, Any], binding: bytes) -> tuple[bytes, bytes]:
     seed_hex = unb64u(vector["keygen_seed_b64u"]).hex()
     with tempfile.TemporaryDirectory(prefix="arkret-mldsa-") as directory:
         temp = Path(directory)
-        key, public, message, signature = (temp / name for name in ("key.pem", "pub.der", "msg", "sig"))
+        key, public, message, signature = (temp / name for name in ("key.pem", "pub.der", "msg", "signature"))
         subprocess.run(
             ["openssl", "genpkey", "-algorithm", "ML-DSA-65", "-pkeyopt", f"hexseed:{seed_hex}", "-out", str(key)],
             check=True,
@@ -105,7 +105,7 @@ def sign_mldsa65(vector: dict[str, Any], binding: bytes) -> tuple[bytes, bytes]:
         signature_raw = signature.read_bytes()
     if len(public_raw) != 1952 or len(signature_raw) != 3309:
         raise ValueError("unexpected ML-DSA-65 public key or signature length")
-    vector["public_key_b64u"] = b64u(public_raw)
+    vector["public_key_base64url"] = b64u(public_raw)
     vector["signature_b64u"] = b64u(signature_raw)
     return public_raw, signature_raw
 
@@ -142,9 +142,9 @@ def regenerate(data: dict[str, Any]) -> None:
     cases["reject_es256_truncated_signature"]["proof_jws"] = f"{es_header}..{b64u(es_signature[:-1])}"
     cases["reject_es256_truncated_public_key"]["proof_jws"] = es["proof"]["jws"]
     cases["reject_mldsa65_truncated_signature"]["signature_b64u"] = b64u(ml_signature[:-1])
-    cases["reject_mldsa65_truncated_signature"]["public_key_b64u"] = b64u(ml_public)
+    cases["reject_mldsa65_truncated_signature"]["public_key_base64url"] = b64u(ml_public)
     cases["reject_mldsa65_truncated_public_key"]["signature_b64u"] = b64u(ml_signature)
-    cases["reject_mldsa65_truncated_public_key"]["public_key_b64u"] = b64u(ml_public[:-1])
+    cases["reject_mldsa65_truncated_public_key"]["public_key_base64url"] = b64u(ml_public[:-1])
 
 
 def main(argv: list[str] | None = None) -> int:

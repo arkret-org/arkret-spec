@@ -15,7 +15,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.accountability_grant.v1"
+      "const": "ak.schema.accountability_grant.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "accountability-grant.schema.json#/properties/schema",
+        "owner": "accountability-grant.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.accountability_grant.v1"
+        ]
+      }
     },
     "issuer_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -39,7 +47,7 @@
           }
         }
       ],
-      "description": "Non-empty duplicate-free closed set used only for display and accountability governance; never grants authorization. A string is the singleton-set wire form. Array order has no semantic meaning. Canonical authors emit singleton sets as strings and multi-value sets in ascending raw UTF-8 byte order; receivers accept every schema-valid ordering and normalize only for typed current result-subject derivation, domain equality, and projection union."
+      "description": "Non-empty duplicate-free closed set used only for display and accountability governance; never grants authorization. A string is the singleton-set wire form. Array order has no semantic meaning. Canonical authors emit singleton sets as strings and multi-value sets in ascending raw UTF-8 byte order; receivers accept every schema-valid ordering and normalize only for current state-subject derivation, domain equality, and projection union."
     },
     "not_before": {
       "$ref": "#/$defs/timestamp"
@@ -53,7 +61,16 @@
       "enum": [
         "active",
         "revoked"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "accountability-grant.schema.json#/properties/grant_status",
+        "owner": "accountability-grant.schema.json#/properties/grant_status",
+        "values": [
+          "active",
+          "revoked"
+        ]
+      }
     },
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
@@ -68,11 +85,21 @@
         "employment",
         "contracted_service",
         "agent_operator"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "accountability-grant.schema.json#/$defs/scope",
+        "owner": "accountability-grant.schema.json#/$defs/scope",
+        "values": [
+          "employment",
+          "contracted_service",
+          "agent_operator"
+        ]
+      }
     },
     "accountability_projection": {
       "type": "object",
-      "description": "Canonical business value of the identity_accountability typed current result. zh/models/actor.md section 3.3.1 fixes these six members and keeps two things out on purpose: the inner proof, and any source event reference. The head Event and its accepted proof already carry where this endorsement came from, so copying an event id into the value would make two endorsements that say the same thing compare unequal. Both registered writers -- the independent ak.identity.accountability_grant and ak.agent.provision's atomic accountability projection -- MUST reach this shape through a declared value_projection rather than a renaming result_projection.value.field path.",
+      "description": "Canonical business value of the identity_accountability current state. zh/models/actor.md section 3.3.1 fixes these six members and keeps two things out on purpose: the inner proof, and any source event reference. The head Event and its accepted proof already carry where this endorsement came from, so copying an event id into the value would make two endorsements that say the same thing compare unequal. Both registered writers -- the independent ak.identity.accountability_grant and ak.agent.provision's atomic accountability projection -- MUST reach this shape through a declared value_projection rather than a renaming state_projection.value.field path.",
       "required": [
         "issuer_id",
         "subject_id",
@@ -96,7 +123,7 @@
           "items": {
             "$ref": "#/$defs/scope"
           },
-          "description": "The normalized set, always an array even when the wire form was the singleton string, deduplicated and sorted by ascending raw UTF-8 bytes. This is the same normalization the composite subject digests under ak.accountability_scope_set.v1, which is what makes a provision projection and a later independent grant address one typed current result rather than two."
+          "description": "The normalized set, always an array even when the wire form was the singleton string, deduplicated and sorted by ascending raw UTF-8 bytes. This is the same normalization the composite subject digests under ak.accountability_scope_set.v1, which is what makes a provision projection and a later independent grant address one current state rather than two."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",
@@ -111,7 +138,16 @@
           "enum": [
             "active",
             "revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "accountability-grant.schema.json#/$defs/accountability_projection/properties/grant_status",
+            "owner": "accountability-grant.schema.json#/$defs/accountability_projection/properties/grant_status",
+            "values": [
+              "active",
+              "revoked"
+            ]
+          }
         }
       },
       "additionalProperties": false

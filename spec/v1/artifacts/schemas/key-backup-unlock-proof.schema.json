@@ -14,7 +14,7 @@
     "ciphertext_digest",
     "challenge",
     "issued_at",
-    "auth_data",
+    "signature_proof",
     "kind",
     "expires_at",
     "audience",
@@ -22,7 +22,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.key_backup_unlock_proof.v1"
+      "const": "ak.schema.key_backup_unlock_proof.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "key-backup-unlock-proof.schema.json#/properties/schema",
+        "owner": "key-backup-unlock-proof.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.key_backup_unlock_proof.v1"
+        ]
+      }
     },
     "recovery_session_id": {
       "$ref": "#/$defs/recovery_session_id"
@@ -54,7 +62,7 @@
     "issued_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "auth_data": {
+    "signature_proof": {
       "type": "object",
       "required": [
         "verification_method",
@@ -70,12 +78,20 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "key-backup-unlock-proof.schema.json#/properties/signature_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over RFC 8785 JCS(unlock proof without auth_data.signature), including every present closed-branch field."
+          "description": "base64url signature over RFC 8785 JCS(unlock proof without signature_proof.signature), including every present closed-branch field."
         }
       },
       "additionalProperties": false
@@ -84,7 +100,16 @@
       "enum": [
         "current_device",
         "recovery_session"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "key-backup-unlock-proof.schema.json#/properties/kind",
+        "owner": "key-backup-unlock-proof.schema.json#/properties/kind",
+        "values": [
+          "current_device",
+          "recovery_session"
+        ]
+      }
     },
     "expires_at": {
       "$ref": "#/$defs/timestamp"
@@ -135,7 +160,15 @@
     {
       "properties": {
         "kind": {
-          "const": "current_device"
+          "const": "current_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "key-backup-unlock-proof.schema.json#/oneOf/0/properties/kind",
+            "owner": "key-backup-unlock-proof.schema.json#/oneOf/0/properties/kind",
+            "values": [
+              "current_device"
+            ]
+          }
         }
       },
       "required": [
@@ -151,7 +184,15 @@
     {
       "properties": {
         "kind": {
-          "const": "recovery_session"
+          "const": "recovery_session",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "key-backup-unlock-proof.schema.json#/oneOf/1/properties/kind",
+            "owner": "key-backup-unlock-proof.schema.json#/oneOf/1/properties/kind",
+            "values": [
+              "recovery_session"
+            ]
+          }
         }
       },
       "required": [

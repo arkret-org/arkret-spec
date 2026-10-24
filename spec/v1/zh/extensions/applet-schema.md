@@ -38,7 +38,7 @@ updated: 2026-07-02
   "rate_limited": true,
   "requested_scopes": [],
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
-  "webhook_auth": {
+  "webhook_signature_policy": {
     "kind": "http_message_signature",
     "key_ref": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1",
     "accepted_signature_algorithms": [
@@ -72,12 +72,12 @@ updated: 2026-07-02
 
 ### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
 
-唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_auth`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
+唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_signature_policy`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
 
 - registration 的 `expected_revision` 是安装管理员签入 Event 的 Service 级 CAS 前态，不属于 package，也不进入 epoch transcript 或安全绑定等价比较；null 仅允许该 Service 从未登记。相同 Applet 的其它 Service 不提供此 revision。
-- `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
+- `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_signature_policy` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
 - `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh|did:key`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` 使用其合成稳定 version id。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
-- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、两个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
+- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_signature_policy.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、两个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
 - 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
 - transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
 
@@ -113,7 +113,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `namespaces` | yes | `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `did` 下的 DID URL，该 `did` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
+| `webhook_signature_policy` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是某个 Applet service `did` 下的 DID URL，该 `did` 经已登记 adapter 投影后 MUST 等于 `service_id`（`did_core_id`），并作为 app/bridge→arkret inbound transaction push 的投递验签 key。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_signals` | yes | 派生 registration 的 encrypted Signal Extension 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -143,7 +143,7 @@ Package -> registration 派生映射:
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
-| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `did` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
+| `webhook_signature_policy` | `webhook_signature_policy` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `did` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
 | `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration + install evidence | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；安装 authoring 时加入唯一 `registration_epoch_evidence`，并由管理员 Event proof 覆盖；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
 | `proof` | `proof` | accepted package 的 controller detached proof 逐字副本；`payload_digest` 只覆盖 canonical package，formal registration Event 使用独立 `producer_proof`。 |
 | `created_at` | `created_at` | 原样复制。 |

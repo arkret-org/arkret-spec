@@ -8,13 +8,13 @@
       "$ref": "#/$defs/keypackages_upload_request_body"
     },
     {
-      "$ref": "#/$defs/keypackages_upload_outcome"
+      "$ref": "#/$defs/keypackages_upload_response_body"
     },
     {
       "$ref": "#/$defs/keypackages_claim_request_body"
     },
     {
-      "$ref": "#/$defs/keypackages_claim_outcome"
+      "$ref": "#/$defs/keypackages_claim_response_body"
     },
     {
       "$ref": "#/$defs/keypackages_claim_query_request_body"
@@ -23,19 +23,19 @@
       "$ref": "#/$defs/peer_keypackages_claim_query_request_body"
     },
     {
-      "$ref": "#/$defs/peer_keypackages_claim_query_outcome"
+      "$ref": "#/$defs/peer_keypackages_claim_query_response_body"
     },
     {
       "$ref": "#/$defs/keypackages_consume_request_body"
     },
     {
-      "$ref": "#/$defs/keypackages_consume_outcome"
+      "$ref": "#/$defs/keypackages_consume_response_body"
     },
     {
       "$ref": "#/$defs/keypackages_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/keypackages_revoke_outcome"
+      "$ref": "#/$defs/keypackages_revoke_response_body"
     }
   ],
   "$defs": {
@@ -71,7 +71,7 @@
       "maxLength": 128,
       "description": "Open registered identifier from keypackage-capability-registry.json. Unknown well-formed values are preserved but treated as unsupported."
     },
-    "keypackage_capability_list": {
+    "keypackage_capability_set": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/keypackage_capability_id"
@@ -79,13 +79,15 @@
       "minItems": 1,
       "maxItems": 64,
       "uniqueItems": true,
-      "description": "UTF-8 byte-lexicographically sorted unique KeyPackage capability identifiers. Semantic registry membership and ordering are enforced after structural schema validation."
+      "description": "UTF-8 byte-lexicographically sorted unique KeyPackage capability identifiers. Semantic registry membership and ordering are enforced after structural schema validation.",
+      "x-arkret-name-role": "set",
+      "x-arkret-canonical-order": "Sort by canonical encoded element bytes; elements MUST be unique."
     },
     "signature": {
       "type": "object",
       "required": [
         "kid",
-        "sig"
+        "signature"
       ],
       "properties": {
         "kid": {
@@ -95,9 +97,17 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "keypackage-operations.schema.json#/$defs/signature/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
-        "sig": {
+        "signature": {
           "$ref": "#/$defs/base64url"
         }
       },
@@ -166,12 +176,20 @@
             "type": "string",
             "enum": [
               "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "external_literal",
+              "authority": "https://www.rfc-editor.org/rfc/rfc9420.html#section-17.1",
+              "owner": "keypackage-operations.schema.json#/$defs/keypackage_upload_entry/properties/cipher_suites/items",
+              "values": [
+                "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+              ]
+            }
           },
           "description": "Generated from active canonical_id rows in mls-ciphersuite-registry.json."
         },
         "capabilities": {
-          "$ref": "#/$defs/keypackage_capability_list"
+          "$ref": "#/$defs/keypackage_capability_set"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -273,7 +291,7 @@
           "$ref": "#/$defs/base64url"
         },
         "capabilities": {
-          "$ref": "#/$defs/keypackage_capability_list"
+          "$ref": "#/$defs/keypackage_capability_set"
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -293,7 +311,19 @@
             "revoked",
             "principal_deactivated",
             "device_revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/keypackage_claim_record/properties/revocation_status",
+            "owner": "keypackage-operations.schema.json#/$defs/keypackage_claim_record/properties/revocation_status",
+            "values": [
+              "active",
+              "expired",
+              "revoked",
+              "principal_deactivated",
+              "device_revoked"
+            ]
+          }
         },
         "last_resort": {
           "type": "boolean",
@@ -495,7 +525,7 @@
         }
       ]
     },
-    "keypackages_upload_outcome": {
+    "keypackages_upload_response_body": {
       "type": "object",
       "required": [
         "accepted"
@@ -516,7 +546,8 @@
           "description": "Accepted KeyPackage refs in request order; batch upload may accept more than one entry."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "requester_authorization": {
       "description": "Closed Account Device, Realm actor Device or Agent authorization. Full Realm requester identity is signed in requester_actor_id on the unsigned request, never a parallel principal mirror.",
@@ -533,7 +564,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device"
+              "const": "device",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/0/properties/kind",
+                "owner": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/0/properties/kind",
+                "values": [
+                  "device"
+                ]
+              }
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -565,7 +604,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent"
+              "const": "agent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/1/properties/kind",
+                "owner": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/1/properties/kind",
+                "values": [
+                  "agent"
+                ]
+              }
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -597,7 +644,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_device"
+              "const": "realm_device",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/2/properties/kind",
+                "owner": "keypackage-operations.schema.json#/$defs/requester_authorization/oneOf/2/properties/kind",
+                "values": [
+                  "realm_device"
+                ]
+              }
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -619,7 +674,7 @@
         }
       ]
     },
-    "peer_keypackages_claim_unsigned_request": {
+    "peer_keypackages_claim_fields": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -660,10 +715,19 @@
           "enum": [
             "realm_membership",
             "direct_conversation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/properties/claim_purpose",
+            "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/properties/claim_purpose",
+            "values": [
+              "realm_membership",
+              "direct_conversation"
+            ]
+          }
         },
         "required_capabilities": {
-          "$ref": "#/$defs/keypackage_capability_list"
+          "$ref": "#/$defs/keypackage_capability_set"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -704,7 +768,8 @@
         },
         "last_resort_allowed": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "x-arkret-member-role": "permission"
         }
       },
       "allOf": [
@@ -712,7 +777,15 @@
           "if": {
             "properties": {
               "claim_purpose": {
-                "const": "direct_conversation"
+                "const": "direct_conversation",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/if/properties/claim_purpose",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/if/properties/claim_purpose",
+                  "values": [
+                    "direct_conversation"
+                  ]
+                }
               }
             },
             "required": [
@@ -726,7 +799,15 @@
             ],
             "properties": {
               "last_resort_allowed": {
-                "const": false
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/last_resort_allowed",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/last_resort_allowed",
+                  "values": [
+                    false
+                  ]
+                }
               }
             }
           }
@@ -849,7 +930,15 @@
                 "maxItems": 1
               },
               "last_resort_allowed": {
-                "const": false
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/2/then/properties/last_resort_allowed",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/2/then/properties/last_resort_allowed",
+                  "values": [
+                    false
+                  ]
+                }
               }
             }
           }
@@ -880,7 +969,15 @@
           "then": {
             "properties": {
               "claim_purpose": {
-                "const": "realm_membership"
+                "const": "realm_membership",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/4/then/properties/claim_purpose",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/4/then/properties/claim_purpose",
+                  "values": [
+                    "realm_membership"
+                  ]
+                }
               }
             },
             "not": {
@@ -901,7 +998,8 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Server-prepared immutable peer claim request fields before requester_authorization is attached. claim_request_id carries at least 128 bits of entropy and equals the Idempotency-Key value on the peer command."
+      "description": "Server-prepared immutable peer claim request fields before requester_authorization is attached. claim_request_id carries at least 128 bits of entropy and equals the Idempotency-Key value on the peer command.",
+      "x-arkret-name-role": "shared_fields"
     },
     "keypackages_claim_service_binding": {
       "type": "object",
@@ -962,10 +1060,19 @@
           "enum": [
             "realm_membership",
             "direct_conversation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/properties/claim_purpose",
+            "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/properties/claim_purpose",
+            "values": [
+              "realm_membership",
+              "direct_conversation"
+            ]
+          }
         },
         "required_capabilities": {
-          "$ref": "#/$defs/keypackage_capability_list"
+          "$ref": "#/$defs/keypackage_capability_set"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -1006,7 +1113,8 @@
         },
         "last_resort_allowed": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "x-arkret-member-role": "permission"
         },
         "service_binding": {
           "$ref": "#/$defs/keypackages_claim_service_binding"
@@ -1020,7 +1128,15 @@
           "if": {
             "properties": {
               "claim_purpose": {
-                "const": "direct_conversation"
+                "const": "direct_conversation",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/if/properties/claim_purpose",
+                  "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/if/properties/claim_purpose",
+                  "values": [
+                    "direct_conversation"
+                  ]
+                }
               }
             },
             "required": [
@@ -1034,7 +1150,15 @@
             ],
             "properties": {
               "last_resort_allowed": {
-                "const": false
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/last_resort_allowed",
+                  "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/last_resort_allowed",
+                  "values": [
+                    false
+                  ]
+                }
               }
             }
           }
@@ -1157,7 +1281,15 @@
                 "maxItems": 1
               },
               "last_resort_allowed": {
-                "const": false
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/2/then/properties/last_resort_allowed",
+                  "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/2/then/properties/last_resort_allowed",
+                  "values": [
+                    false
+                  ]
+                }
               }
             }
           }
@@ -1188,7 +1320,15 @@
           "then": {
             "properties": {
               "claim_purpose": {
-                "const": "realm_membership"
+                "const": "realm_membership",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/4/then/properties/claim_purpose",
+                  "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/4/then/properties/claim_purpose",
+                  "values": [
+                    "realm_membership"
+                  ]
+                }
               }
             },
             "not": {
@@ -1216,7 +1356,15 @@
                 "requester_authorization": {
                   "properties": {
                     "kind": {
-                      "const": "device"
+                      "const": "device",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/0/properties/requester_authorization/properties/kind",
+                        "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/0/properties/requester_authorization/properties/kind",
+                        "values": [
+                          "device"
+                        ]
+                      }
                     }
                   }
                 }
@@ -1239,7 +1387,15 @@
                 "requester_authorization": {
                   "properties": {
                     "kind": {
-                      "const": "realm_device"
+                      "const": "realm_device",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/1/properties/requester_authorization/properties/kind",
+                        "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/1/properties/requester_authorization/properties/kind",
+                        "values": [
+                          "realm_device"
+                        ]
+                      }
                     }
                   }
                 }
@@ -1262,7 +1418,15 @@
                 "requester_authorization": {
                   "properties": {
                     "kind": {
-                      "const": "agent"
+                      "const": "agent",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/2/properties/requester_authorization/properties/kind",
+                        "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/dependentSchemas/requester_authorization/oneOf/2/properties/requester_authorization/properties/kind",
+                        "values": [
+                          "agent"
+                        ]
+                      }
                     }
                   }
                 }
@@ -1322,7 +1486,7 @@
           "$ref": "./realm-commit.schema.json#/properties/authority_ref"
         },
         "request": {
-          "$ref": "#/$defs/peer_keypackages_claim_unsigned_request",
+          "$ref": "#/$defs/peer_keypackages_claim_fields",
           "description": "The exact participant-authorized unsigned request fields. Together with request_digest, this lets the destination bind a later Welcome and Direct Conversation binding to the durable claim without trusting source-service assertions."
         },
         "claimed_at": {
@@ -1389,7 +1553,15 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.keypackage.claim_terminal_receipt.v1"
+          "const": "ak.keypackage.claim_terminal_receipt.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/properties/domain",
+            "owner": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/properties/domain",
+            "values": [
+              "ak.keypackage.claim_terminal_receipt.v1"
+            ]
+          }
         },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",
@@ -1405,7 +1577,17 @@
             "never_claimed",
             "expired",
             "revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/properties/terminal_state",
+            "owner": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/properties/terminal_state",
+            "values": [
+              "never_claimed",
+              "expired",
+              "revoked"
+            ]
+          }
         },
         "keypackage_refs": {
           "$ref": "#/$defs/keypackage_ref_array"
@@ -1428,7 +1610,15 @@
           "if": {
             "properties": {
               "terminal_state": {
-                "const": "never_claimed"
+                "const": "never_claimed",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/allOf/0/if/properties/terminal_state",
+                  "owner": "keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt/allOf/0/if/properties/terminal_state",
+                  "values": [
+                    "never_claimed"
+                  ]
+                }
               }
             },
             "required": [
@@ -1453,7 +1643,7 @@
       "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt.",
       "x-arkret-signature-domain": "ak.keypackage.claim_terminal_receipt.v1"
     },
-    "keypackages_claim_outcome": {
+    "keypackages_claim_response_body": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -1478,7 +1668,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Privacy-preserving peer success response. It intentionally omits inventory counts and per-device failure information."
+      "description": "Privacy-preserving peer success response. It intentionally omits inventory counts and per-device failure information.",
+      "x-arkret-name-role": "response_body"
     },
     "keypackages_claim_query_request_body": {
       "type": "object",
@@ -1492,7 +1683,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Self read of one claim of the caller's own KeyPackage (ak.self.keys.keypackages.read.claim.v1). The response is the byte-identical keypackages_claim_outcome first serialized for the claim request that allocated claim_id."
+      "description": "Self read of one claim of the caller's own KeyPackage (ak.self.keys.keypackages.read.claim.v1). The response is the byte-identical keypackages_claim_response_body first serialized for the claim request that allocated claim_id."
     },
     "peer_keypackages_claim_query_request_body": {
       "type": "object",
@@ -1512,7 +1703,7 @@
       },
       "additionalProperties": false
     },
-    "peer_keypackages_claim_query_outcome": {
+    "peer_keypackages_claim_query_response_body": {
       "type": "object",
       "required": [
         "claim_request_id",
@@ -1534,10 +1725,24 @@
             "claim_failed",
             "expired",
             "revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/properties/state",
+            "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/properties/state",
+            "values": [
+              "unknown",
+              "pending",
+              "claimed",
+              "consumed",
+              "claim_failed",
+              "expired",
+              "revoked"
+            ]
+          }
         },
         "claim_outcome": {
-          "$ref": "#/$defs/keypackages_claim_outcome"
+          "$ref": "#/$defs/keypackages_claim_response_body"
         },
         "consume_receipt": {
           "$ref": "#/$defs/keypackage_consume_receipt"
@@ -1550,7 +1755,15 @@
           "minimum": 1
         },
         "error_code": {
-          "const": "claim_failed"
+          "const": "claim_failed",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/properties/error_code",
+            "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/properties/error_code",
+            "values": [
+              "claim_failed"
+            ]
+          }
         }
       },
       "allOf": [
@@ -1563,7 +1776,18 @@
                   "consumed",
                   "expired",
                   "revoked"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/0/if/properties/state",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/0/if/properties/state",
+                  "values": [
+                    "claimed",
+                    "consumed",
+                    "expired",
+                    "revoked"
+                  ]
+                }
               }
             },
             "required": [
@@ -1587,7 +1811,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "consumed"
+                "const": "consumed",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/1/if/properties/state",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/1/if/properties/state",
+                  "values": [
+                    "consumed"
+                  ]
+                }
               }
             },
             "required": [
@@ -1615,7 +1847,17 @@
                   "claim_failed",
                   "expired",
                   "revoked"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/2/if/properties/state",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/2/if/properties/state",
+                  "values": [
+                    "claim_failed",
+                    "expired",
+                    "revoked"
+                  ]
+                }
               }
             },
             "required": [
@@ -1639,7 +1881,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "claim_failed"
+                "const": "claim_failed",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/3/if/properties/state",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/3/if/properties/state",
+                  "values": [
+                    "claim_failed"
+                  ]
+                }
               }
             },
             "required": [
@@ -1663,7 +1913,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "pending"
+                "const": "pending",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/4/if/properties/state",
+                  "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body/allOf/4/if/properties/state",
+                  "values": [
+                    "pending"
+                  ]
+                }
               }
             },
             "required": [
@@ -1684,7 +1942,8 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "recipient_mls_durable_receipt": {
       "type": "object",
@@ -1806,7 +2065,15 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.mls.recipient_durable_receipt.v1"
+          "const": "ak.mls.recipient_durable_receipt.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/recipient_mls_durable_receipt/properties/domain",
+            "owner": "keypackage-operations.schema.json#/$defs/recipient_mls_durable_receipt/properties/domain",
+            "values": [
+              "ak.mls.recipient_durable_receipt.v1"
+            ]
+          }
         },
         "claim_request_id": {
           "$ref": "#/$defs/base64url",
@@ -1846,8 +2113,7 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "mls_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "welcome_ref": {
           "$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id",
@@ -1883,7 +2149,15 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.keypackage.consume_receipt.v1"
+          "const": "ak.keypackage.consume_receipt.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keypackage-operations.schema.json#/$defs/keypackage_consume_receipt/properties/domain",
+            "owner": "keypackage-operations.schema.json#/$defs/keypackage_consume_receipt/properties/domain",
+            "values": [
+              "ak.keypackage.consume_receipt.v1"
+            ]
+          }
         },
         "request_digest": {
           "$ref": "#/$defs/digest"
@@ -1927,7 +2201,7 @@
       },
       "additionalProperties": false
     },
-    "keypackages_consume_outcome": {
+    "keypackages_consume_response_body": {
       "type": "object",
       "required": [
         "consume_receipt"
@@ -1937,7 +2211,8 @@
           "$ref": "#/$defs/keypackage_consume_receipt"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "keypackages_revoke_request_body": {
       "type": "object",
@@ -1963,7 +2238,7 @@
       },
       "additionalProperties": false
     },
-    "keypackages_revoke_outcome": {
+    "keypackages_revoke_response_body": {
       "type": "object",
       "required": [
         "revoked"
@@ -1979,13 +2254,14 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "peer_keypackages_claim_command_outcome": {
+    "peer_keypackages_claim_command_response_body": {
       "description": "Closed peer claim command result. First success and direct exact replay use the same durable state view as the read-only ledger query; unknown is impossible after a command has been admitted. Existing outcome bytes never cause a second claim.",
       "allOf": [
         {
-          "$ref": "#/$defs/peer_keypackages_claim_query_outcome"
+          "$ref": "#/$defs/peer_keypackages_claim_query_response_body"
         },
         {
           "properties": {
@@ -1997,11 +2273,25 @@
                 "claim_failed",
                 "expired",
                 "revoked"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body/allOf/1/properties/state",
+                "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body/allOf/1/properties/state",
+                "values": [
+                  "pending",
+                  "claimed",
+                  "consumed",
+                  "claim_failed",
+                  "expired",
+                  "revoked"
+                ]
+              }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     }
   }
 }

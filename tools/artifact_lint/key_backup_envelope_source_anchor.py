@@ -37,7 +37,7 @@ def _predecessor_rules_closed(schema: dict[str, Any]) -> bool:
     if not isinstance(rules, list):
         return False
     genesis = any(
-        rule.get("if", {}).get("properties", {}).get("series_seq", {}).get("const") == 0
+        rule.get("if", {}).get("properties", {}).get("series_sequence", {}).get("const") == 0
         and {
             tuple(branch.get("not", {}).get("required", []))
             for branch in rule.get("then", {}).get("allOf", [])
@@ -48,7 +48,7 @@ def _predecessor_rules_closed(schema: dict[str, Any]) -> bool:
         if isinstance(rule, dict)
     )
     successor = any(
-        rule.get("if", {}).get("properties", {}).get("series_seq", {}).get("minimum") == 1
+        rule.get("if", {}).get("properties", {}).get("series_sequence", {}).get("minimum") == 1
         and set(rule.get("then", {}).get("required", []))
         == {"supersedes_id", "supersedes_digest"}
         for rule in rules
@@ -176,7 +176,7 @@ def check_key_backup_envelope_source_anchor(lint: Lint) -> None:
         ),
         DEVICE_LIFECYCLE_PROSE: (
             "envelope builder 只接受等价于 `KeyBackupSourceCommitRef",
-            "它与 `series_seq + supersedes_id + supersedes_digest` predecessor/CAS 链彼此独立",
+            "它与 `series_sequence + supersedes_id + supersedes_digest` predecessor/CAS 链彼此独立",
         ),
     }
     for path, markers in prose_markers.items():

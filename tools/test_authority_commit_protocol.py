@@ -5,6 +5,7 @@ import json
 import re
 import unittest
 from pathlib import Path
+from tools.artifact_lint.core import schema_assertions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -122,19 +123,19 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         self.assertEqual(commit["$ref"], "./common-ids.schema.json#/$defs/realm_commit_id")
         self.assertIn("ak.circle.member.state{join}", commit["description"])
         self.assertIn("cannot replace", commit["description"])
-        self.assertIn("own history floors", definitions["peer_bootstrap_outcome"]["description"])
+        self.assertIn("own history floors", definitions["peer_bootstrap_response_body"]["description"])
         prose = (ROOT / "spec/v1/zh/sync/federation.md").read_text(encoding="utf-8")
         self.assertIn("Circle stream 的 `ak.circle.member.state{join}`", prose)
         self.assertIn("不能以父 Realm join 替代", prose)
 
     def test_registered_circle_current_families_are_reachable(self):
-        schema = read("schemas/typed-current-result.schema.json")
+        schema = read("schemas/current-state.schema.json")
         reachable = {branch.get("$ref") for branch in schema["oneOf"]}
-        for name in ("circle_result", "circle_member_state_result"):
+        for name in ("current_circle", "current_circle_member_state"):
             self.assertIn(f"#/$defs/{name}", reachable)
 
-    def test_every_typed_current_result_binds_exact_source_stream(self):
-        schema = read("schemas/typed-current-result.schema.json")
+    def test_every_current_state_binds_exact_source_stream(self):
+        schema = read("schemas/current-state.schema.json")
         branches = {
             name: definition
             for name, definition in schema["$defs"].items()
@@ -147,13 +148,13 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                 self.assertIn("source_stream_ref", branch["required"])
                 expected_stream = (
                     {"$ref": "./realm-actor.schema.json#/$defs/control_scope"}
-                    if name.startswith("realm_actor_")
+                    if name.startswith("current_realm_actor_")
                     else {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"}
                 )
-                if name == "applet_registration_result":
+                if name == "current_applet_registration":
                     expected_stream["properties"] = {"kind": {"const": "realm"}}
                 self.assertEqual(
-                    branch["properties"]["source_stream_ref"],
+                    schema_assertions(branch["properties"]["source_stream_ref"]),
                     expected_stream,
                 )
                 self.assertFalse(branch.get("additionalProperties", True))
@@ -215,16 +216,16 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                     for row in registry.get("event_kinds", []):
                         if row.get("event_kind") != "ak.realm.actor.status.set":
                             continue
-                        for write in row.get("result_writes", []):
+                        for write in row.get("state_writes", []):
                             condition = write.get("condition")
-                            if write.get("result_family") == "realm_actor_recovery" and condition == {
+                            if write.get("state_family") == "realm_actor_recovery" and condition == {
                                 "kind": "field_equals", "field": "payload.state", "const": "retired"
                             }:
                                 # Actor lifecycle, not a removed protocol registry status.
                                 condition["const"] = "actor_lifecycle_terminal"
                     text = json.dumps(document, ensure_ascii=False)
                 for term in forbidden:
-                    if term in {"retired", "退役"} and (path.name in {"realm-actors.md", "realm-actor.schema.json", "typed-current-result.schema.json", "managed-governance.md", "realm-actor-signature-kat-fixture.json"}):
+                    if term in {"retired", "退役"} and (path.name in {"realm-actors.md", "realm-actor.schema.json", "current-state.schema.json", "managed-governance.md", "realm-actor-signature-kat-fixture.json"}):
                         continue
                     if term in text:
                         findings.append(f"{path.relative_to(ROOT)}: {term}")
@@ -363,13 +364,13 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         handoff = row["handoff"]
         self.assertTrue(handoff["acceptance_signed"])
         self.assertTrue(handoff["final_stream_heads_imported"])
-        self.assertEqual(handoff["to_generation"], handoff["from_generation"] + 1)
+        self.assertEqual(int(handoff["to_generation"]), int(handoff["from_generation"]) + 1)
         candidate = row["candidate"]
-        self.assertEqual(candidate["signed_by_generation"], handoff["from_generation"])
+        self.assertEqual(candidate["signed_by_generation"], int(handoff["from_generation"]))
         self.assertEqual(row["expected"], "rejected")
         self.assertTrue(row["writes_nothing"])
         successor = row["new_generation_first_commit"]
-        self.assertEqual(successor["signed_by_generation"], handoff["to_generation"])
+        self.assertEqual(successor["signed_by_generation"], int(handoff["to_generation"]))
         self.assertEqual(successor["expected"], "accepted")
         # The new generation continues the imported final head at the same position
         # the old generation was refused, so no position is skipped or duplicated.
@@ -450,7 +451,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         handoff = read("schemas/realm-authority-handoff.schema.json")
         self.assertIn("final_stream_heads_digest", handoff["required"])
         self.assertNotIn("final_stream_heads", handoff["properties"])
-        request = read("schemas/authority-commit-operations.schema.json")["$defs"]["handoff_request"]
+        request = read("schemas/authority-commit-operations.schema.json")["$defs"]["realm_authority_handoff_request_body"]
         self.assertIn("final_stream_heads", request["required"])
         self.assertEqual(
             request["properties"]["final_stream_heads"]["items"]["$ref"],

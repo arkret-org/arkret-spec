@@ -24,7 +24,21 @@
             "mirror_of",
             "split_from",
             "replaces"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-link-operations.schema.json#/$defs/link_kind/anyOf/0",
+            "owner": "realm-link-operations.schema.json#/$defs/link_kind/anyOf/0",
+            "values": [
+              "governed_by",
+              "discoverable_from",
+              "join_gate_from",
+              "confidential_extension_of",
+              "mirror_of",
+              "split_from",
+              "replaces"
+            ]
+          }
         },
         {
           "pattern": "^x\\.[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?\\.[a-z][a-z0-9_]{0,63}$"
@@ -91,7 +105,17 @@
             "outbound",
             "inbound",
             "both"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-link-operations.schema.json#/$defs/realm_link_list/properties/direction",
+            "owner": "realm-link-operations.schema.json#/$defs/realm_link_list/properties/direction",
+            "values": [
+              "outbound",
+              "inbound",
+              "both"
+            ]
+          }
         },
         "links": {
           "type": "array",

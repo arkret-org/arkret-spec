@@ -2,19 +2,19 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/device-pairing.schema.json",
   "title": "Arkret Device Pairing Short-Link DTOs",
-  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md sections 2.1.1 and 2.1.2). Staging is unauthenticated and account-less. Finalize is the one authenticated call that binds a staged record to an exact AccountId by attaching the signed target proof, and it is the only legal one-way step from staged to ready_for_claim. Resolve, the authenticated code claim and status then hand the same byte-equivalent proof and transcript to the approving device; none of them authorizes anything until an accepted device signs ak.device.authorize. The Account Authority also owns the service-private ten-failure ledger keyed only by device_pairing_request_id; that ledger has no wire member, and its tenth counted failure atomically expires an otherwise pending record without creating an Event, authorization, typed current result or success outcome.",
+  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md sections 2.1.1 and 2.1.2). Staging is unauthenticated and account-less. Finalize is the one authenticated call that binds a staged record to an exact AccountId by attaching the signed target proof, and it is the only legal one-way step from staged to ready_for_claim. Resolve, the authenticated code claim and status then hand the same byte-equivalent proof and transcript to the approving device; none of them authorizes anything until an accepted device signs ak.device.authorize. The Account Authority also owns the service-private ten-failure ledger keyed only by device_pairing_request_id; that ledger has no wire member, and its tenth counted failure atomically expires an otherwise pending record without creating an Event, authorization, current state or success outcome.",
   "oneOf": [
     {
       "$ref": "#/$defs/device_pairing_stage_request_body"
     },
     {
-      "$ref": "#/$defs/device_pairing_stage_outcome"
+      "$ref": "#/$defs/device_pairing_stage_response_body"
     },
     {
       "$ref": "#/$defs/device_pairing_finalize_request_body"
     },
     {
-      "$ref": "#/$defs/device_pairing_finalize_outcome"
+      "$ref": "#/$defs/device_pairing_finalize_response_body"
     },
     {
       "$ref": "#/$defs/device_pairing_resolve_request_body"
@@ -26,7 +26,7 @@
       "$ref": "#/$defs/device_pairing_code_claim_request_body"
     },
     {
-      "$ref": "#/$defs/device_pairing_code_claim_outcome"
+      "$ref": "#/$defs/device_pairing_code_claim_response_body"
     },
     {
       "$ref": "#/$defs/device_pairing_state"
@@ -35,21 +35,23 @@
       "$ref": "#/$defs/device_pairing_status_request_body"
     },
     {
-      "$ref": "#/$defs/device_pairing_status_outcome"
+      "$ref": "#/$defs/device_pairing_status_response_body"
     }
   ],
   "$defs": {
     "non_empty_string": {
       "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
-    "algorithm_list": {
+    "algorithm_set": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/non_empty_string"
       },
-      "description": "Algorithm ids supported by the target device, sorted by UTF-8 bytewise order and deduplicated before they enter any transcript."
+      "description": "Algorithm ids supported by the target device, sorted by UTF-8 bytewise order and deduplicated before they enter any transcript.",
+      "x-arkret-name-role": "set",
+      "x-arkret-canonical-order": "Sort by canonical encoded element bytes; elements MUST be unique."
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -100,17 +102,28 @@
         "ready_for_claim",
         "authorized",
         "expired"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "device-pairing.schema.json#/$defs/device_pairing_state",
+        "owner": "device-pairing.schema.json#/$defs/device_pairing_state",
+        "values": [
+          "staged",
+          "ready_for_claim",
+          "authorized",
+          "expired"
+        ]
+      }
     },
     "device_pairing_stage_request_body": {
       "type": "object",
       "description": "Unauthenticated public stage request that mints a fresh account-less pending pairing record and carries only the canonical public key and a client nonce: the target proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. It deliberately omits hpke_key and algorithms. Each public invocation is new and non-retry-safe; an implementation-internal retry of the same ingress must not mint a second record. The record binds no principal and grants nothing until an authenticated device authorizes it.",
       "required": [
-        "new_device_pubkey",
+        "new_device_public_key",
         "client_nonce"
       ],
       "properties": {
-        "new_device_pubkey": {
+        "new_device_public_key": {
           "$ref": "#/$defs/public_key"
         },
         "client_nonce": {
@@ -125,7 +138,7 @@
       },
       "additionalProperties": false
     },
-    "device_pairing_stage_outcome": {
+    "device_pairing_stage_response_body": {
       "type": "object",
       "description": "Server-minted challenge inputs for the sole target proof. request id and pairing code are body-only anonymous lookup credentials; they MUST NOT enter URL path/query.",
       "required": [
@@ -152,11 +165,12 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "device_pairing_finalize_request_body": {
       "type": "object",
-      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome, performs no second supersession, and the same request id with different content conflicts. A successful call also moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so that account never holds two approvable records at once. The supersession key is the AccountId alone and no request member selects or suppresses it. Once the request id locates a retained record, a wrong pairing_code, AccountId/handoff mismatch, invalid transcript or signature, proof/stage mismatch, or unusable state consumes one unit of that request's ten-failure budget. Unknown ids and byte-identical replay of a recorded successful finalize do not consume the budget.",
+      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_public_key, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome, performs no second supersession, and the same request id with different content conflicts. A successful call also moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so that account never holds two approvable records at once. The supersession key is the AccountId alone and no request member selects or suppresses it. Once the request id locates a retained record, a wrong pairing_code, AccountId/handoff mismatch, invalid transcript or signature, proof/stage mismatch, or unusable state consumes one unit of that request's ten-failure budget. Unknown ids and byte-identical replay of a recorded successful finalize do not consume the budget.",
       "required": [
         "device_pairing_request_id",
         "pairing_code",
@@ -176,7 +190,7 @@
       },
       "additionalProperties": false
     },
-    "device_pairing_finalize_outcome": {
+    "device_pairing_finalize_response_body": {
       "type": "object",
       "description": "Result of attaching the target proof to a pending record. state is always ready_for_claim: the transition is one-way and the operation never reports a state it did not reach. Records of the same AccountId that this call superseded are not enumerated here; supersession is a server-side invariant, not an outcome member.",
       "required": [
@@ -189,13 +203,22 @@
           "$ref": "#/$defs/device_pairing_request_id"
         },
         "state": {
-          "const": "ready_for_claim"
+          "const": "ready_for_claim",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-pairing.schema.json#/$defs/device_pairing_finalize_response_body/properties/state",
+            "owner": "device-pairing.schema.json#/$defs/device_pairing_finalize_response_body/properties/state",
+            "values": [
+              "ready_for_claim"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "device_pairing_resolve_request_body": {
       "type": "object",
@@ -217,7 +240,7 @@
         "arkret_base_url",
         "device_pairing_request_id",
         "pairing_code",
-        "new_device_pubkey",
+        "new_device_public_key",
         "client_nonce",
         "gate_audience_uri",
         "server_nonce",
@@ -235,7 +258,7 @@
         "pairing_code": {
           "$ref": "#/$defs/device_pairing_code"
         },
-        "new_device_pubkey": {
+        "new_device_public_key": {
           "$ref": "#/$defs/public_key"
         },
         "client_nonce": {
@@ -272,7 +295,7 @@
       },
       "additionalProperties": false
     },
-    "device_pairing_code_claim_outcome": {
+    "device_pairing_code_claim_response_body": {
       "type": "object",
       "description": "Everything the approving device needs to verify the claimed request locally: the same bootstrap the short-link resolve returns and the byte-equivalent signed target proof. It carries no private key, no session credential, no recovery material and nothing about any other device of the account. Claiming retrieves a request and grants nothing; an accepted device still has to sign ak.device.authorize.",
       "required": [
@@ -292,7 +315,8 @@
           "description": "The exact proof attached at finalize. It MUST be byte-equivalent to the proof a QR or link carries for the same request; the code entry point MUST NOT produce a weaker code-only authorization branch."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "device_pairing_status_request_body": {
       "type": "object",
@@ -311,7 +335,7 @@
       },
       "additionalProperties": false
     },
-    "device_pairing_status_outcome": {
+    "device_pairing_status_response_body": {
       "type": "object",
       "description": "Authorization status for a staged device-pairing record read from the sole ledger. While the record is account-less the state is staged; after finalize it is ready_for_claim. Incomplete admission returns not_found and is never exposed as in_progress or ready_for_claim. Once pair_device durably completes, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, as does a record a later finalize superseded or whose exact-request failure budget reached ten; all causes are indistinguishable for the bounded tombstone retention period.",
       "required": [
@@ -334,7 +358,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "authorized"
+                "const": "authorized",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "device-pairing.schema.json#/$defs/device_pairing_status_response_body/allOf/0/if/properties/state",
+                  "owner": "device-pairing.schema.json#/$defs/device_pairing_status_response_body/allOf/0/if/properties/state",
+                  "values": [
+                    "authorized"
+                  ]
+                }
               }
             },
             "required": [
@@ -365,7 +397,8 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "device_pairing_target_proof": {
       "type": "object",
@@ -388,26 +421,42 @@
         },
         "device_id": {
           "$ref": "#/$defs/device_id",
-          "description": "MUST equal new_device_pubkey.kid."
+          "description": "MUST equal new_device_public_key.kid."
         },
         "device_public_key_did": {
           "type": "string",
           "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-          "description": "Self-describing did:key form of the same Ed25519 key as new_device_pubkey.key. A verifier MUST reject an proof whose device_public_key_did decodes to different key bytes than the staged or forwarded new_device_pubkey."
+          "description": "Self-describing did:key form of the same Ed25519 key as new_device_public_key.key. A verifier MUST reject an proof whose device_public_key_did decodes to different key bytes than the staged or forwarded new_device_public_key."
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
           "description": "Target device X25519 HPKE public key. This proof is its authority; a service MUST NOT supply or substitute it."
         },
         "algorithms": {
-          "$ref": "#/$defs/algorithm_list"
+          "$ref": "#/$defs/algorithm_set"
         },
         "device_key_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/device_key_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "authorization_binding_kind": {
           "const": "accepted_device",
-          "description": "This transcript exists only for accepted_device pairing. registration_anchor and pcr_recovery use their separate full possession objects, and a transcript from one binding kind MUST NOT be accepted for another."
+          "description": "This transcript exists only for accepted_device pairing. registration_anchor and pcr_recovery use their separate full possession objects, and a transcript from one binding kind MUST NOT be accepted for another.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/authorization_binding_kind",
+            "owner": "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/authorization_binding_kind",
+            "values": [
+              "accepted_device"
+            ]
+          }
         },
         "pairing_challenge_transcript_digest": {
           "$ref": "#/$defs/digest",

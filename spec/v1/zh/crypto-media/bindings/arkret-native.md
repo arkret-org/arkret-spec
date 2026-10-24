@@ -43,11 +43,11 @@ sidebar:
       "screen": false
     }
   },
-  "sig": "base64url...",
+  "signature": "base64url...",
   "signature_algorithm": "Ed25519"
 }
 ```
-`sig` 是 base64url（无 padding）编码的 Ed25519 签名，由 token issuer 用 `kid` 指向的 service DID
+`signature` 是 base64url（无 padding）编码的 Ed25519 签名，由 token issuer 用 `kid` 指向的 service DID
 `assertionMethod` key 生成。**signing_input（normative）**：
 
 ```text
@@ -55,7 +55,7 @@ sidebar:
 ```
 
 `canonical_json` 按 [`../../conformance/encoding.md` §2](../../conformance/encoding.md) 的 JCS 规则序列化
-上面的 `payload` 对象本身（不含 `kid` / `sig` / `signature_algorithm`）。domain label 与
+上面的 `payload` 对象本身（不含 `kid` / `signature` / `signature_algorithm`）。domain label 与
 [`../media-service-binding.md` §3.1](../media-service-binding.md) 表中其它媒体签名点互不相同，防止一把
 issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 协商前 MUST 用该 signing_input 校验签名，
 并继续校验：
@@ -100,7 +100,7 @@ SFU response：
   },
   "sfu_signature": {
     "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
-    "sig": "base64url..."
+    "signature": "base64url..."
   }
 }
 ```
@@ -126,16 +126,16 @@ SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `parti
 
 Arkret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 codec / extension 集合，但：
 
-- SFrame ([RFC 9605](https://www.rfc-editor.org/rfc/rfc9605.html)) MUST 在 SDP 中协商；客户端 MUST 拒绝缺 SFrame extension 的 answer，除非 `media_service_decrypts=true` 经 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验通过。
+- SFrame ([RFC 9605](https://www.rfc-editor.org/rfc/rfc9605.html)) MUST 在 SDP 中协商；客户端 MUST 拒绝缺 SFrame extension 的 answer，除非 `media_service_decryption_allowed=true` 经 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验通过。
 - SDP `a=fingerprint` MUST 与 token exchange 中绑定的 device cert 一致。
 
 ## 5. E2EE Key Injection
 
 按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约。Arkret-native SFU 的 reference adapter 直接调 WebRTC Insertable Streams API，把 `key_bytes` 装载到 RTP frame encryptor。
 
-`media_service_decrypts=false`（默认）：`key_bytes` 不离开客户端，SFU 只看到密文 RTP payload。
+`media_service_decryption_allowed=false`（默认）：`key_bytes` 不离开客户端，SFU 只看到密文 RTP payload。
 
-`media_service_decrypts=true`（需 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验）：客户端把 `key_bytes` 通过 Arkret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
+`media_service_decryption_allowed=true`（需 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验）：客户端把 `key_bytes` 通过 Arkret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
 
 ## 6. Capability Mapping
 

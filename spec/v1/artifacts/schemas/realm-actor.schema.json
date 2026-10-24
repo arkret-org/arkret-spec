@@ -46,7 +46,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_control"
+          "const": "realm_control",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/control_scope/properties/kind",
+            "owner": "realm-actor.schema.json#/$defs/control_scope/properties/kind",
+            "values": [
+              "realm_control"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -75,7 +83,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.realm_actor_create.v1"
+          "const": "ak.schema.realm_actor_create.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "realm-actor.schema.json#/$defs/create_payload/properties/schema",
+            "owner": "realm-actor.schema.json#/$defs/create_payload/properties/schema",
+            "values": [
+              "ak.schema.realm_actor_create.v1"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -90,7 +106,16 @@
           "enum": [
             "bot",
             "ghost"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/create_payload/properties/actor_role",
+            "owner": "realm-actor.schema.json#/$defs/create_payload/properties/actor_role",
+            "values": [
+              "bot",
+              "ghost"
+            ]
+          }
         },
         "request_id": {
           "type": "string",
@@ -131,10 +156,26 @@
           ],
           "properties": {
             "kind": {
-              "const": "manager_native"
+              "const": "manager_native",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor.schema.json#/$defs/create_payload/properties/recovery/properties/kind",
+                "owner": "realm-actor.schema.json#/$defs/create_payload/properties/recovery/properties/kind",
+                "values": [
+                  "manager_native"
+                ]
+              }
             },
             "enabled": {
-              "const": true
+              "const": true,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "realm-actor.schema.json#/$defs/create_payload/properties/recovery/properties/enabled",
+                "owner": "realm-actor.schema.json#/$defs/create_payload/properties/recovery/properties/enabled",
+                "values": [
+                  true
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -146,7 +187,15 @@
           "if": {
             "properties": {
               "actor_role": {
-                "const": "ghost"
+                "const": "ghost",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor.schema.json#/$defs/create_payload/allOf/0/if/properties/actor_role",
+                  "owner": "realm-actor.schema.json#/$defs/create_payload/allOf/0/if/properties/actor_role",
+                  "values": [
+                    "ghost"
+                  ]
+                }
               }
             },
             "required": [
@@ -189,7 +238,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.realm_actor_create.v1"
+          "const": "ak.schema.realm_actor_create.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "realm-actor.schema.json#/$defs/creation_transcript/properties/schema",
+            "owner": "realm-actor.schema.json#/$defs/creation_transcript/properties/schema",
+            "values": [
+              "ak.schema.realm_actor_create.v1"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -204,7 +261,16 @@
           "enum": [
             "bot",
             "ghost"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/creation_transcript/properties/actor_role",
+            "owner": "realm-actor.schema.json#/$defs/creation_transcript/properties/actor_role",
+            "values": [
+              "bot",
+              "ghost"
+            ]
+          }
         },
         "request_id": {
           "type": "string",
@@ -242,10 +308,26 @@
           ],
           "properties": {
             "kind": {
-              "const": "manager_native"
+              "const": "manager_native",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor.schema.json#/$defs/creation_transcript/properties/recovery/properties/kind",
+                "owner": "realm-actor.schema.json#/$defs/creation_transcript/properties/recovery/properties/kind",
+                "values": [
+                  "manager_native"
+                ]
+              }
             },
             "enabled": {
-              "const": true
+              "const": true,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "realm-actor.schema.json#/$defs/creation_transcript/properties/recovery/properties/enabled",
+                "owner": "realm-actor.schema.json#/$defs/creation_transcript/properties/recovery/properties/enabled",
+                "values": [
+                  true
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -257,7 +339,15 @@
           "if": {
             "properties": {
               "actor_role": {
-                "const": "ghost"
+                "const": "ghost",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor.schema.json#/$defs/creation_transcript/allOf/0/if/properties/actor_role",
+                  "owner": "realm-actor.schema.json#/$defs/creation_transcript/allOf/0/if/properties/actor_role",
+                  "values": [
+                    "ghost"
+                  ]
+                }
               }
             },
             "required": [
@@ -290,7 +380,7 @@
       ],
       "properties": {
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "next_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
@@ -321,7 +411,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "next_resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
@@ -352,17 +442,36 @@
           "enum": [
             "governance",
             "owner"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/status_set_payload/properties/gate",
+            "owner": "realm-actor.schema.json#/$defs/status_set_payload/properties/gate",
+            "values": [
+              "governance",
+              "owner"
+            ]
+          }
         },
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "state": {
           "enum": [
             "active",
             "paused",
             "retired"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/status_set_payload/properties/state",
+            "owner": "realm-actor.schema.json#/$defs/status_set_payload/properties/state",
+            "values": [
+              "active",
+              "paused",
+              "retired"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -376,7 +485,7 @@
       ],
       "properties": {
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_generation": {
           "type": "integer",
@@ -406,13 +515,13 @@
       ],
       "properties": {
         "expected_manager_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_control_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_device_generation_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_generation": {
           "type": "integer",
@@ -467,13 +576,13 @@
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "expected_manager_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_control_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_device_generation_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_generation": {
           "type": "integer",
@@ -531,7 +640,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor"
+          "const": "realm_actor",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor.schema.json#/$defs/resource/properties/kind",
+            "owner": "realm-actor.schema.json#/$defs/resource/properties/kind",
+            "values": [
+              "realm_actor"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -574,16 +691,16 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "expected_control_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_owner_status_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_governance_status_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_device_generation_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_generation": {
           "type": "integer",
@@ -669,16 +786,16 @@
               "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
             },
             "expected_control_revision": {
-              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+              "$ref": "./current-state.schema.json#/$defs/revision"
             },
             "expected_owner_status_revision": {
-              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+              "$ref": "./current-state.schema.json#/$defs/revision"
             },
             "expected_governance_status_revision": {
-              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+              "$ref": "./current-state.schema.json#/$defs/revision"
             },
             "expected_device_generation_revision": {
-              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+              "$ref": "./current-state.schema.json#/$defs/revision"
             },
             "expected_generation": {
               "type": "integer",
@@ -736,16 +853,16 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "expected_recovery_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_manager_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_control_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_device_generation_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "published_method_history_evidence": {
           "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
@@ -766,10 +883,10 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         },
         "expected_recovery_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "expected_manager_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "enabled": {
           "type": "boolean"
@@ -794,10 +911,10 @@
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
         },
         "manager_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "control_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "device_generation_ref": {
           "type": "integer",

@@ -29,7 +29,33 @@
         "blob",
         "*",
         "realm_actor"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "selector_grammar",
+        "authority": "resource-selector.schema.json#/properties/kind",
+        "owner": "resource-selector.schema.json#/properties/kind",
+        "values": [
+          "realm",
+          "space",
+          "circle",
+          "strand",
+          "message",
+          "morph",
+          "object",
+          "relation",
+          "view",
+          "event",
+          "actor",
+          "schema",
+          "policy",
+          "invite",
+          "notification",
+          "read_cursor",
+          "blob",
+          "*",
+          "realm_actor"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -105,7 +131,16 @@
         "exact",
         "realm_wide"
       ],
-      "description": "Authorization selector breadth. exact matches only the named resource; realm_wide is valid only for the registered resource kinds with an explicit realm_id. Neither current navigation ancestry nor creation ancestry expands authorization. Hierarchy traversal belongs to queries, not grant matching. The normative algorithm is zh/authz/resource-selector-grammar.md section 6."
+      "description": "Authorization selector breadth. exact matches only the named resource; realm_wide is valid only for the registered resource kinds with an explicit realm_id. Neither current navigation ancestry nor creation ancestry expands authorization. Hierarchy traversal belongs to queries, not grant matching. The normative algorithm is zh/authz/resource-selector-grammar.md section 6.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "resource-selector.schema.json#/properties/match_scope",
+        "owner": "resource-selector.schema.json#/properties/match_scope",
+        "values": [
+          "exact",
+          "realm_wide"
+        ]
+      }
     }
   },
   "allOf": [
@@ -117,7 +152,16 @@
             "enum": [
               "notification",
               "read_cursor"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "resource-selector.schema.json#/allOf/0/if/properties/kind",
+              "owner": "resource-selector.schema.json#/allOf/0/if/properties/kind",
+              "values": [
+                "notification",
+                "read_cursor"
+              ]
+            }
           }
         },
         "required": [
@@ -138,7 +182,16 @@
             "enum": [
               "space",
               "circle"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "resource-selector.schema.json#/allOf/1/if/properties/kind",
+              "owner": "resource-selector.schema.json#/allOf/1/if/properties/kind",
+              "values": [
+                "space",
+                "circle"
+              ]
+            }
           }
         },
         "required": [
@@ -166,7 +219,23 @@
               "event",
               "policy",
               "invite"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "resource-selector.schema.json#/allOf/2/if/properties/kind",
+              "owner": "resource-selector.schema.json#/allOf/2/if/properties/kind",
+              "values": [
+                "strand",
+                "message",
+                "morph",
+                "object",
+                "relation",
+                "view",
+                "event",
+                "policy",
+                "invite"
+              ]
+            }
           }
         },
         "required": [
@@ -184,7 +253,15 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "actor"
+            "const": "actor",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "resource-selector.schema.json#/allOf/3/if/properties/kind",
+              "owner": "resource-selector.schema.json#/allOf/3/if/properties/kind",
+              "values": [
+                "actor"
+              ]
+            }
           }
         },
         "required": [
@@ -201,7 +278,15 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "realm_actor"
+            "const": "realm_actor",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "resource-selector.schema.json#/allOf/4/if/properties/kind",
+              "owner": "resource-selector.schema.json#/allOf/4/if/properties/kind",
+              "values": [
+                "realm_actor"
+              ]
+            }
           }
         },
         "required": [

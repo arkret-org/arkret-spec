@@ -30,7 +30,7 @@ class PeerWatchCurrentTest(unittest.TestCase):
         self.assertTrue(contract_errors(self.catalog, self.fixture))
 
     def test_shared_dto_and_budget_mutations_rejected(self):
-        for field, value in [("request_schema_ref", "schemas/exact-current-results-read.schema.json"), ("response_schema_ref", "schemas/realm-state-snapshot.schema.json"), ("max_canonical_body_bytes", 32768)]:
+        for field, value in [("request_schema_ref", "schemas/exact-current-state-read.schema.json"), ("response_schema_ref", "schemas/realm-state-snapshot.schema.json"), ("max_canonical_body_bytes", 32768)]:
             catalog = copy.deepcopy(self.catalog)
             peer = next(row for row in catalog["operation_registry"]["operations"] if row["operation_id"] == PEER)
             peer[field] = value

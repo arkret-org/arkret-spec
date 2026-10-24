@@ -122,7 +122,7 @@ RealmCommit。接收者按 `welcome_id` 幂等 ACK；ACK 不改变已接纳 Comm
 
 单 authority 模型不证明治理 Station 没有审查、扣留或错误接纳一个真实 producer Event。它只提供统一顺序、
 即时 current authorization 判断和获准 stream 的连续性。需要 Byzantine transparency 的部署必须使用未来的独立 witness
-profile，不得恢复 authority-commit/RealmCommit/typed current result 双平面。
+profile，不得恢复 authority-commit/RealmCommit/current state 双平面。
 
 ## 6. 信任边界细则
 
@@ -144,8 +144,8 @@ Realm finality 的信任锚是 genesis + handoff chain 确定的 current governa
    凭据、MUST 不跟随自动 redirect，并执行
    [`service-http-binding.md` §2.3](./service-http-binding.md) 的大小、压缩与超时限制。客户端 MUST 检查
    `protocol_version`、`service_kind="station"`、唯一 canonical HTTP JSON base 与实际选择一致，以及合法的
-   `service_id`、`trust_domain` 与 `auth_metadata`。describe 自洽不证明该 origin 是某个人或组织的真实服务。
-3. **认证绑定**：全部 account 操作 MUST 从 `auth_metadata.account_authority.gate_account_base_url` 派生，并
+   `service_id`、`trust_domain` 与 `authentication_metadata`。describe 自洽不证明该 origin 是某个人或组织的真实服务。
+3. **认证绑定**：全部 account 操作 MUST 从 `authentication_metadata.account_authority.gate_account_base_url` 派生，并
    校验其 origin 与 `account_authority.origin` 一致；MUST NOT 按 operation 猜地址，也 MUST NOT 在 base 缺失时
    回退。Station、Authority 与 IdP 可以分处不同 origin。
 4. **持久接纳**：客户端 MUST 在开始认证或重用凭据**之前**，耐久保存并逐项比较所选 base URL、`service_id`、
@@ -178,7 +178,7 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 [`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)。
 
 **结果不镜像身份（normative）**：ordinary human 的 `current_admission/account_device` resolved key
-使用封闭 `current_device_signing_key`，恰含 `public_key_b64u`。自己的 Station MUST 在本次查询中复用
+使用封闭 `current_device_signing_key`，恰含 `public_key_base64url`。自己的 Station MUST 在本次查询中复用
 §8.2 的设备目录验证：本地从同一耐久 PCR current cut 取材，跨站只经既有
 `ak.peer.keys.read.lookup.v1` 按完整 AccountId 与 exact device selector 取材，独立验证 origin Service
 签名、issuer/method、device、当前 generation、active 状态及授权/attestation 时窗，并逐字核对 selector
@@ -186,7 +186,7 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 换代、过期、错 Station/method/device 或缺材料均返回同形 `unavailable`。MUST NOT 返回 PCR Commit/history、
 伪造坐标、把 Contact 历史 producer 或缓存 key 当 current authority。结果只用于本次冻结操作，下一次操作必须重查。
 
-current Agent 与两个 historical 分支继续使用封闭 `query_signing_key`，只含 `public_key_b64u`、完整
+current Agent 与两个 historical 分支继续使用封闭 `query_signing_key`，只含 `public_key_base64url`、完整
 `authorization_ref: committed_event_ref`、`revision{commit_id,stream_position}` 与 `governance_generation`。
 `actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复携带这两个字段。
 `revision` 是该 authorization stream 在解析时已验证的 current revision，MUST 与
@@ -204,7 +204,7 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 `realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
 或因 key bytes 相同而合并授权代次。构造来源封闭为以下既有输入：已验证
-`realm_sync_entry.committed_events[]` 或 `stream_scan_outcome.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
+`realm_sync_entry.committed_events[]` 或 `stream_scan_response_body.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
 该 row 所属认证 self 结果的原 RealmCommit generation／stream／position／predecessor，消费 Station 先验治理签名；
 普通客户端按 §2.1 消费该原件并核对 `commit.event_ref == event.event_id`，
 再逐字复制四坐标；或者 §2.1 本次 self 提交的冻结完整自签请求 Event 与 bound accepted outcome
@@ -260,7 +260,7 @@ accepted 授权 Event 完整坐标、current revision 与 governance generation�
 也 MUST NOT 用细分 reason 泄漏隐藏状态。
 
 **不改动的两条边界（normative）**：Signal frame 没有 enclosing selector，继续使用完整
-`station_signing_key {actor, verification_method, public_key_b64u, authorization_ref}` 的独立身份形态；
+`station_signing_key {actor, verification_method, public_key_base64url, authorization_ref}` 的独立身份形态；
 peer portable evidence 保持自己的独立来源合同，MUST 绑定本地接收方，其独立接纳时间 MUST NOT 混同原
 producer 的 admission 时间。本节的收窄只作用于 self 查询结果，MUST NOT 被读作对这两者的放宽。
 
@@ -270,7 +270,7 @@ DID 解析证据可以作为 producer/service proof 验证输入，但不代表 
 
 ### 5.9 Media result
 
-Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current result 证明。
+Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current state 证明。
 
 `ak.self.media_service_binding.read.resolve.v1` 的请求只携 request_id／realm_id，Account 取自认证 session。Station MUST 在同一已确认 accepted basis 核当前 joined membership 与当前 realm_media_service；无可见性或无 assignment 返回 not_found，材料缺失／无法确认当前 basis 返回 temporarily_unavailable，不得以历史上曾写入代替 current。取得外部身份材料期间若 membership、authority generation 或该 Realm head 改变，MUST 拒绝本次结果或重取完整 cut。
 
@@ -289,7 +289,7 @@ Agent runtime key、Service key 与注册／恢复专用分支保持独立。
 
 本节固定服务 origin→governor→member 的原历史供材；普通客户端 §2.1/§5.6 的两个 exact target 来源、独立 Account Device Ed 验证、Account／当前本地认证 fence 与可读 floor 不变：Human 继续使用实际 Session epoch，Realm Device 使用其 realm_device fact、实际原授权实例与当前 Device epoch，不虚构 Session。self submission target 仍必须来自同一认证请求的原签 Event 与对应 accepted outcome。客户端 MUST NOT 由裸fact/event_id造target，也不得执行foreign PCR NativeAudit。
 
-现 authority-commit-operations 的 closed `account_device_historical_signer_fact` 顺序 MUST 为 event_id、actor、device_id、verification_method、key、accepted_at；actor 是实际 Account Device signer 的完整 Account ActorId（executed_by优先，否则actor_id），key复用既有 query_signing_key 的 public_key_b64u/authorization_ref/revision/governance_generation。授权四坐标独立于业务target四坐标；revision/PCR治理generation是原授权cut，accepted_at是原授权Commit.committed_at。actor/device_id/verification_method/event_id仅为原Event的逐字对应检查，MUST NOT 成为第二身份权威。事实 MUST 在原接纳事务准备，原producer proof、完整Account/device/method/key和授权实例都吻合。不得用业务Commit时间或current key/revision补齐。
+现 authority-commit-operations 的 closed `account_device_historical_signer_fact` 顺序 MUST 为 event_id、actor、device_id、verification_method、key、accepted_at；actor 是实际 Account Device signer 的完整 Account ActorId（executed_by优先，否则actor_id），key复用既有 query_signing_key 的 public_key_base64url/authorization_ref/revision/governance_generation。授权四坐标独立于业务target四坐标；revision/PCR治理generation是原授权cut，accepted_at是原授权Commit.committed_at。actor/device_id/verification_method/event_id仅为原Event的逐字对应检查，MUST NOT 成为第二身份权威。事实 MUST 在原接纳事务准备，原producer proof、完整Account/device/method/key和授权实例都吻合。不得用业务Commit时间或current key/revision补齐。
 
 governor对所有新普通Realm Human Device business Event MUST 同事务冻此fact并让原RealmCommit承诺其摘要，包含local-governor Human给foreign-member的Direct四项、ordinary/registered aggregate 与实际 Human Account Device MLS Commit，不以当前foreign member/outbox非空才条件生成。Agent runtime key、Service signing key、PCR 注册／恢复等专用 native branch MUST NOT 借用本 Account Device 来源。缺source时新接纳零效果failclosed；accepted exact retry先返回原durable outcome，不重取current、重签Commit或换fact。
 

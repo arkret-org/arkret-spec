@@ -149,7 +149,7 @@ class KeyBackupEnvelopeSourceAnchorGateTest(unittest.TestCase):
             schema["allOf"] = [
                 rule
                 for rule in schema["allOf"]
-                if rule.get("if", {}).get("properties", {}).get("series_seq", {}).get("minimum") != 1
+                if rule.get("if", {}).get("properties", {}).get("series_sequence", {}).get("minimum") != 1
             ]
 
         self.assert_red(mutate, "predecessor rules must remain independent")

@@ -101,7 +101,7 @@ class ResidualSimplificationTests(unittest.TestCase):
                 value['supported_profiles']=[profile]
                 value['verified_profiles']=[]
                 if verified:
-                    value['verified_profiles']=[{'profile_id':profile,'claim_kind':'conformance_verified','verification_run_id':'test-run','artifact_digest':'sha256:'+'a'*64,'artifact_ref':'https://verifier.example/run','verifier_id':'ak:did_core:web:verifier.example','signature':'AA','timestamp':'2026-09-12T00:00:00.000Z'}]
+                    value['verified_profiles']=[{'profile_id':profile,'claim_kind':'conformance_verified','verification_run_id':'test-run','artifact_digest':'sha256:'+'a'*64,'artifact_ref':'https://verifier.example/run','verifier_id':'ak:did_core:web:verifier.example','signature':'AA','verified_at':'2026-09-12T00:00:00.000Z'}]
                 value['calendar_tzdb_versions']=['2025a']
                 self.describe.validate(value)
                 validate_advertisement(value)
@@ -138,7 +138,7 @@ class ResidualSimplificationTests(unittest.TestCase):
     def test_query_keys_reject_mirrors_and_signal_retains_identity(self):
         s=load('schemas/signer-key-operations.schema.json')
         key={
-            'public_key_b64u':'A'*43,
+            'public_key_base64url':'A'*43,
             'authorization_ref':{
                 'event_id':'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g',
                 'commit_id':'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4',
@@ -149,14 +149,14 @@ class ResidualSimplificationTests(unittest.TestCase):
                 'commit_id':'ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5',
                 'stream_position':15,
             },
-            'governance_generation':4,
+            'governance_generation':"4",
         }
         validator=Draft202012Validator({'$ref':s['$id']+'#/$defs/query_signing_key'},registry=self.registry)
         validator.validate(key)
         for field,value in [('actor',signer_tests.SelfSignerResultTests().request()['queries'][0]['actor']),('verification_method','did:web:alice.example#key')]:
             self.assertFalse(validator.is_valid({**key,field:value}))
-        self.assertFalse(validator.is_valid({'public_key_b64u':'A'*43}))
-        self.assertEqual(set(s['$defs']['station_signing_key']['required']),{'actor','verification_method','public_key_b64u','authorization_ref'})
+        self.assertFalse(validator.is_valid({'public_key_base64url':'A'*43}))
+        self.assertEqual(set(s['$defs']['station_signing_key']['required']),{'actor','verification_method','public_key_base64url','authorization_ref'})
         signal=load('schemas/signal-stream-frame.schema.json')
         self.assertIn('signer-key-operations.schema.json#/$defs/station_signing_key',json.dumps(signal))
 

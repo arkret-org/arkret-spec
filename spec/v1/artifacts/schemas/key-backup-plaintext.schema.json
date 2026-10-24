@@ -8,25 +8,41 @@
     "backup_id",
     "backup_kind",
     "series_id",
-    "series_seq",
+    "series_sequence",
     "items"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.key_backup_plaintext.v1"
+      "const": "ak.schema.key_backup_plaintext.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "key-backup-plaintext.schema.json#/properties/schema",
+        "owner": "key-backup-plaintext.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.key_backup_plaintext.v1"
+        ]
+      }
     },
     "backup_id": {
       "type": "string",
       "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_kind": {
-      "const": "secret_storage"
+      "const": "secret_storage",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "key-backup-plaintext.schema.json#/properties/backup_kind",
+        "owner": "key-backup-plaintext.schema.json#/properties/backup_kind",
+        "values": [
+          "secret_storage"
+        ]
+      }
     },
     "series_id": {
       "type": "string",
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "series_seq": {
+    "series_sequence": {
       "type": "integer",
       "minimum": 0
     },
@@ -44,7 +60,7 @@
       "required": [
         "item_kind",
         "secret_id",
-        "secret_b64u"
+        "secret_base64url"
       ],
       "properties": {
         "item_kind": {
@@ -55,15 +71,29 @@
             "mls_private_plaintext",
             "mls_group_secrets_backup_key",
             "private_account_state"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/item_kind",
+            "owner": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/item_kind",
+            "values": [
+              "recovery_key_share",
+              "account_data_namespace_key",
+              "mls_account_secret",
+              "mls_private_plaintext",
+              "mls_group_secrets_backup_key",
+              "private_account_state"
+            ]
+          }
         },
         "secret_id": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_.-]+$"
         },
-        "secret_b64u": {
+        "secret_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         },
         "secret_generation": {
           "type": "integer",

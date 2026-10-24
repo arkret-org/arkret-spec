@@ -84,9 +84,9 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `realm_link` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`domain reducer=current-value projection`、`execution=data`；当前 status 是该 stream 上最后一个被接受的写入，次序只由 `stream_position` 给出；导航只从该当前值投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `realm_link` current state。current state subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`domain reducer=current-value projection`、`execution=data`；当前 status 是该 stream 上最后一个被接受的写入，次序只由 `stream_position` 给出；导航只从该当前值投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
-允许的状态迁移如下；`absent` 只表示尚无 typed current result，不是 wire 状态：
+允许的状态迁移如下；`absent` 只表示尚无 current state，不是 wire 状态：
 
 | from | to | 说明 |
 | --- | --- | --- |

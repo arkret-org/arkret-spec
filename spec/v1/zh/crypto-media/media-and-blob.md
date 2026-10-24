@@ -48,7 +48,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 命名说明：`blob_id=ak:blob:<uuidv7>` 只标识 Blob metadata 资源，`blob_ref=ak:blob:<suite>:<hex>` 只标识并承诺 exact content bytes；两者的 schema 形态互斥，consumer 不得按值猜测一种字段的含义。Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob metadata 以 `content_digest` 承诺其 metadata id 对应的内容；任何携带 content-addressed `blob_ref` 的 carrier 不得再携同原像 `content_digest` / `ciphertext_digest` 镜像。
 
-上传请求 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_request_body`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_outcome`](../../artifacts/schemas/blob-operations.schema.json)。
+上传请求 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_request_body`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_response_body`](../../artifacts/schemas/blob-operations.schema.json)。
 
 上传规则：
 
@@ -699,12 +699,12 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对声明 `routing_unlinkability_required=true` 的 Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过该 bearer URL 禁令。
-- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `realm_asset_privacy_policy` 安全 typed current result 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
+- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `realm_asset_privacy_policy` 安全 current state 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign.v1` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `realm_asset_privacy_policy` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/authority-commit/RealmCommit admission 保护；它本身不改变 MLS key 持有人，必须排除在 `key_access_revision` 外。
+- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `realm_asset_privacy_policy` current state，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/authority-commit/RealmCommit admission 保护；它本身不改变 MLS key 持有人，必须排除在 `key_access_revision` 外。
 
 ## 7. Safety
 

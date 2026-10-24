@@ -123,12 +123,12 @@ class MutatingLintCase(unittest.TestCase):
         )
 
     def test_the_wrapper_cannot_carry_prev_event_digest(self) -> None:
-        self.anchor["registration_did_operation"]["prev_event_digest"] = "sha256:" + "00" * 32
+        self.anchor["registration_did_operation"]["previous_event_digest"] = "sha256:" + "00" * 32
         self.assert_rejected(self.overrides, "the anchor mirrors its predecessor as a digest")
 
     def test_seq_must_be_the_terminal_version_number(self) -> None:
-        self.anchor["registration_did_operation"]["seq"] = 2
-        self.assert_rejected(self.overrides, "seq does not number the terminal entry")
+        self.anchor["registration_did_operation"]["sequence"] = 2
+        self.assert_rejected(self.overrides, "sequence does not number the terminal entry")
 
     def test_the_anchor_digest_must_be_over_the_whole_anchor(self) -> None:
         self.evidence["anchor_canonical_json_sha256"] = self.entry["versionId"]
@@ -344,7 +344,7 @@ class MutatingLintCase(unittest.TestCase):
 
     def test_a_genesis_event_carries_no_predecessor_digest(self) -> None:
         create = self.cases[CREATE_CASE]
-        create["complete_wire_event"]["prev_event_digest"] = "sha256:" + "ff" * 32
+        create["complete_wire_event"]["previous_event_digest"] = "sha256:" + "ff" * 32
         self.assert_rejected(self.overrides, "a genesis Event claims a predecessor")
 
     def test_the_initial_resolution_must_be_the_anchor_s_version(self) -> None:

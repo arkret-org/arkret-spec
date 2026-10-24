@@ -1,6 +1,6 @@
 """`ak.agent.provision` declares four writes, and each one has a reason.
 
-`result_writes[]` is a kind's complete shared-face contract, so the interesting
+`state_writes[]` is a kind's complete shared-face contract, so the interesting
 failure for this kind is not a malformed row -- the ordinary contract lint
 catches those -- it is a row set that quietly shrinks, or one member that
 quietly becomes a plain field copy. Neither has a gate anywhere else: the lint
@@ -54,19 +54,19 @@ def load_writes() -> list[dict]:
     registry = json.loads(CONTRACT_REGISTRY.read_text(encoding="utf-8"))
     for row in registry["event_kind_registry"]["event_kinds"]:
         if row["event_kind"] == PROVISION:
-            return row["result_writes"]
+            return row["state_writes"]
     raise AssertionError(f"{PROVISION} is not a registered Event kind")
 
 
 def write_of(family: str) -> dict:
     for write in load_writes():
-        if write["result_family"] == family:
+        if write["state_family"] == family:
             return write
     raise AssertionError(f"{PROVISION} no longer writes {family}")
 
 
 def members(write: dict) -> dict[str, dict]:
-    projection = write["result_projection"]["value_projection"]
+    projection = write["state_projection"]["value_projection"]
     return {member["name"]: member for member in projection["members"]}
 
 
@@ -74,11 +74,11 @@ class AgentProvisionFourWritesTest(unittest.TestCase):
     # ---- the row set is complete -----------------------------------------
 
     def test_exactly_the_four_registered_families_in_prose_order(self) -> None:
-        self.assertEqual([write["result_family"] for write in load_writes()], EXPECTED_FAMILIES)
+        self.assertEqual([write["state_family"] for write in load_writes()], EXPECTED_FAMILIES)
 
     def test_every_row_declares_a_value_schema(self) -> None:
         for write in load_writes():
-            with self.subTest(family=write["result_family"]):
+            with self.subTest(family=write["state_family"]):
                 self.assertTrue(write.get("value_schema_ref"))
 
     def test_no_row_is_conditional(self) -> None:
@@ -86,7 +86,7 @@ class AgentProvisionFourWritesTest(unittest.TestCase):
         completed state MUST NOT be observable, so none of them may be gated on
         a payload member being present."""
         for write in load_writes():
-            with self.subTest(family=write["result_family"]):
+            with self.subTest(family=write["state_family"]):
                 self.assertNotIn("condition", write)
 
     # ---- the selector target is derived, never copied ---------------------
@@ -132,11 +132,11 @@ class AgentProvisionFourWritesTest(unittest.TestCase):
     # ---- the subjects stay principal-scoped -------------------------------
 
     def test_the_provisioning_subject_is_the_agent_did_alone(self) -> None:
-        selector = write_of("agent_provisioning")["result_selector"]
+        selector = write_of("agent_provisioning")["state_selector"]
         self.assertEqual(selector, {"kind": "composite", "components": ["payload.agent_id"]})
 
     def test_the_selector_subject_carries_no_station(self) -> None:
-        selector = write_of("agent_selector_claim")["result_selector"]
+        selector = write_of("agent_selector_claim")["state_selector"]
         self.assertEqual(
             selector,
             {
@@ -146,7 +146,7 @@ class AgentProvisionFourWritesTest(unittest.TestCase):
         )
 
     def test_the_declaration_subject_is_the_forward_declared_realm_id(self) -> None:
-        selector = write_of("agent_pcr_genesis_declaration")["result_selector"]
+        selector = write_of("agent_pcr_genesis_declaration")["state_selector"]
         self.assertEqual(
             selector,
             {"kind": "composite", "components": ["payload.principal_control_realm_id"]},

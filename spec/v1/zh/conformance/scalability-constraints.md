@@ -183,7 +183,7 @@ Invite/Directory只返回有界 authority locator。Push payload不携成员表�
 
 Snapshot SHOULD 至少保留当前和一个前代有效 manifest。Planned handoff snapshot必须覆盖全部 stream heads、current typed state、Event/Commit/stub幂等索引、replication outbox和MLS public/Welcome queue；不得包含 member private keys。
 
-### 7.1 Current result 的边界
+### 7.1 current state 的边界
 
 实现内部数据库表与索引不是 wire contract。Event、snapshot、query 与 proof 只暴露各领域 schema 明确定义的 typed result，不暴露通用 state model、dot、root 或 projection operation。
 

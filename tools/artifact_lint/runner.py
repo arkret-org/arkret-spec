@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from .semantic_naming import check_semantic_naming, check_protocol_member_contract
+from .primitive_fixtures import check_named_primitive_fixtures
+
 from .direct_conversation_structure import check_direct_conversation_structure
 from .mls_roster_client_roles import check_mls_roster_client_roles
 from .governance_result_consumption_roles import check_governance_result_consumption_roles
@@ -157,7 +160,7 @@ from .naming_contracts import (
     check_identifier_value_categories,
     check_naming_rule_coverage_matrix,
     check_slug_field_closure,
-    check_typed_current_result_naming,
+    check_current_state_naming,
 )
 
 from .http_signature import check_http_signature_contract_closure
@@ -261,7 +264,7 @@ from .prose_field_tables import check_prose_field_tables
 from .ref_overlay_closure import check_schema_ref_overlay_closure
 
 from .reason_code_producers import check_reason_code_producer_paths
-from .result_effect_ownership import check_result_effect_ownership
+from .effect_ownership import check_effect_ownership
 from .agent_draft_pending_intent import check_agent_draft_pending_intent
 from .event_submit_idempotency import check_event_submit_idempotency
 from .peer_event_submit import (
@@ -274,7 +277,7 @@ from .key_backup_envelope_source_anchor import check_key_backup_envelope_source_
 from .signer_key_historical_coordinate import check_signer_key_historical_coordinate
 from .direct_conversation_admission import check_direct_conversation_admission_producers, check_direct_conversation_signal_admission
 from .proof_context_schemas import (
-    check_asserted_result_families_are_registered,
+    check_asserted_state_families_are_registered,
     check_author_writable_state_axis_contract,
     check_digest_construction_registration,
     check_detached_object_signature_registration,
@@ -282,13 +285,13 @@ from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
     check_domain_separation_binding_fields_are_carriable,
-    check_every_result_family_has_a_writer,
+    check_every_state_family_has_a_writer,
     check_partial_update_base_producers,
     check_pre_state_requirement_closure,
     check_realm_join_candidate_locator_contract,
     check_realm_join_locator_carriers_and_bounds,
     check_registered_families_are_listed_in_prose,
-    check_result_family_write_agreement,
+    check_state_family_write_agreement,
     check_result_value_member_closure,
     check_result_write_contracts,
     check_result_write_target_uniqueness,
@@ -400,7 +403,7 @@ def main(argv: list[str] | None = None) -> int:
                 "typed_current_key_derivations",
                 lambda: check_typed_current_key_derivations(lint),
             ),
-            ("result_effect_ownership", lambda: check_result_effect_ownership(lint)),
+            ("effect_ownership", lambda: check_effect_ownership(lint)),
             ("agent_draft_pending_intent", lambda: check_agent_draft_pending_intent(lint)),
             ("event_submit_idempotency", lambda: check_event_submit_idempotency(lint)),
             (
@@ -425,12 +428,12 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_result_write_coverage_note(lint),
             ),
             (
-                "every_result_family_has_a_writer",
-                lambda: check_every_result_family_has_a_writer(lint),
+                "every_state_family_has_a_writer",
+                lambda: check_every_state_family_has_a_writer(lint),
             ),
             (
-                "result_family_write_agreement",
-                lambda: check_result_family_write_agreement(lint),
+                "state_family_write_agreement",
+                lambda: check_state_family_write_agreement(lint),
             ),
             (
                 "partial_update_base_producers",
@@ -445,8 +448,8 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_registered_families_are_listed_in_prose(lint),
             ),
             (
-                "asserted_result_families_are_registered",
-                lambda: check_asserted_result_families_are_registered(lint),
+                "asserted_state_families_are_registered",
+                lambda: check_asserted_state_families_are_registered(lint),
             ),
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),
@@ -568,6 +571,8 @@ def main(argv: list[str] | None = None) -> int:
             ("blob_identifier_form_closure", lambda: check_blob_identifier_form_closure(lint)),
             ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
             ("closed_object_required", lambda: check_closed_object_required_declared(lint)),
+            ("semantic_naming", lambda: check_semantic_naming(lint)),
+            ("protocol_member_contract", lambda: check_protocol_member_contract(lint)),
             ("fsm_reachability", lambda: check_fsm_state_reachability(lint)),
             ("read_scope", lambda: check_read_scope_schema_closure(lint)),
             ("signed_objects", lambda: check_signed_object_closure(lint)),
@@ -654,6 +659,7 @@ def main(argv: list[str] | None = None) -> int:
             ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
             ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            ("named_primitive_kats", lambda: check_named_primitive_fixtures(lint)),
             ("vector_registry", lambda: check_vector_registry(lint)),
             (
                 "vector_reference_closure",
@@ -872,7 +878,7 @@ def main(argv: list[str] | None = None) -> int:
             ("collection_field_contracts", lambda: check_collection_field_contracts(lint)),
             ("duration_field_units", lambda: check_duration_field_units(lint)),
             ("slug_field_closure", lambda: check_slug_field_closure(lint)),
-            ("typed_current_result_naming", lambda: check_typed_current_result_naming(lint)),
+            ("current_state_naming", lambda: check_current_state_naming(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
             ("prose_field_tables", lambda: check_prose_field_tables(lint)),

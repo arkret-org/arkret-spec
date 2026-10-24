@@ -24,7 +24,7 @@ class FrankingCurrentInstallationGateTest(unittest.TestCase):
     def errors_after(self, mutate=None, prose=None) -> list[str]:
         current = copy.deepcopy(self.current)
         if mutate:
-            mutate(current["$defs"]["moderation_franking_proof_result"])
+            mutate(current["$defs"]["current_moderation_franking_proof"])
         lint = Lint()
         with (
             mock.patch.object(gate, "load_json", return_value=current),

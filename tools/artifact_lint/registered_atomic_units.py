@@ -108,11 +108,11 @@ def evaluate_response(value: dict) -> str:
     commit = outcome['audit_commit']; current = outcome['current']
     expected_head = {key: commit[key] for key in ['stream_ref', 'stream_position', 'commit_id']}
     expected_selector = {'kind': 'strand_watch', 'strand_id': event['payload']['target_ref'], 'watcher_actor_id': event['payload']['target_actor_id']}
-    selector = current.get('selector', current.get('result', {}).get('selector'))
+    selector = current.get('selector', current.get('current_state', {}).get('selector'))
     if commit['event_ref'] != event['event_id'] or commit['realm_id'] != event['realm_id'] or commit['stream_ref'] != event['scope_ref'] or current['realm_id'] != commit['realm_id'] or current['governance_generation'] != commit['governance_generation'] or current['stream_head'] != expected_head or selector != expected_selector:
         return 'revision_unavailable'
     if current['status'] == 'current':
-        result = current['result']
+        result = current['current_state']
         if result['source_stream_ref'] != commit['stream_ref'] or result['revision']['stream_position'] > commit['stream_position']:
             return 'revision_unavailable'
     if value['replay'] and outcome != value['frozen_outcome']:
@@ -143,19 +143,19 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     if unit.get('additionalProperties') is not False or unit.get('required') != ['unit_kind', 'events'] or slots.get('minItems') != 2 or slots.get('maxItems') != 2 or slots.get('items') is not False or slots.get('prefixItems') != [{'$ref':'#/$defs/audit_paired_business_submission'}, {'$ref':'#/$defs/audit_paired_access_submission'}]:
         errors.append('Audit pair must be exactly two closed typed ordered slots')
     operations = {r['operation_id']:r for r in catalog['operation_registry']['operations']}
-    for op_id,request in [(SELF,'watch_audit_read_request'),(PEER,'peer_watch_audit_read_request')]:
+    for op_id,request in [(SELF,'watch_audit_read_request_body'),(PEER,'peer_watch_audit_read_request_body')]:
         op = operations.get(op_id, {})
-        if op.get('request_schema_ref') != 'schemas/watch-audit-operations.schema.json#/$defs/' + request or op.get('response_schema_ref') != 'schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome' or op.get('durable_effect',{}).get('kind') != 'event_log' or op.get('canonical_hash_input') != 'full_body' or op.get('max_canonical_body_bytes') != 1048576:
+        if op.get('request_schema_ref') != 'schemas/watch-audit-operations.schema.json#/$defs/' + request or op.get('response_schema_ref') != 'schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body' or op.get('durable_effect',{}).get('kind') != 'event_log' or op.get('canonical_hash_input') != 'full_body' or op.get('max_canonical_body_bytes') != 1048576:
             errors.append('Side-effecting audited read operation/schema/replay/budget contract drift: ' + op_id)
     if operations.get(PEER,{}).get('auth_requirements',{}).get('service_signature',{}).get('bearer_only_allowed') is not False:
         errors.append('Peer audited read must require S2S signature')
-    req = audit_schema['$defs']['watch_audit_read_request']
+    req = audit_schema['$defs']['watch_audit_read_request_body']
     if req.get('required') != ['audit_submission'] or set(req.get('properties',{})) != {'audit_submission'} or req.get('additionalProperties') is not False:
         errors.append('Audited read selector must derive only from the signed audit Event')
     manageable = next(r for r in catalog['capability_action_registry']['actions'] if r['action']=='ak.circle.member.manage')
     if 'audit_pair_required' not in manageable.get('required_evaluator_checks',[]):
         errors.append('Circle member.manage must not bypass audit pairing')
-    peer = defs['peer_submit_request']
+    peer = defs['peer_submit_request_body']
     branches = peer.get('oneOf', [])
     forwarding = [b for b in branches if b.get('properties', {}).get('branch', {}).get('const') == 'authority_forward']
     if len(branches) != 5 or len(forwarding) != 3 or not any(b.get('required') == ['branch', 'atomic_submission', 'atomic_producer_evidence'] for b in forwarding):
@@ -163,7 +163,7 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     slot_proofs = defs.get('audit_pair_producer_evidence', {})
     if slot_proofs.get('minItems') != 2 or slot_proofs.get('maxItems') != 2 or slot_proofs.get('items') is not False:
         errors.append('Atomic first admission must retain exactly two slot-bound producer closures')
-    peer_read = audit_schema['$defs']['peer_watch_audit_read_request']
+    peer_read = audit_schema['$defs']['peer_watch_audit_read_request_body']
     if peer_read.get('oneOf') != [{'required':['producer_device_evidence']},{'required':['producer_agent_evidence']}]:
         errors.append('Peer audited read must carry exactly one actual producer proof')
     audit_contract = registry.get('audit_read', {})

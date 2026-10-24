@@ -23,7 +23,7 @@ class SpaceAuthorizationBoundaryTests(unittest.TestCase):
             {"$ref": BASE + "capability-grant.schema.json#/properties/resources"},
             registry=cls.registry)
         cls.current = Draft202012Validator(
-            {"$ref": BASE + "typed-current-result.schema.json"}, registry=cls.registry)
+            {"$ref": BASE + "current-state.schema.json"}, registry=cls.registry)
 
     def target(self):
         return {"kind": "space", "realm_id": "ak:realm:" + "A" * 44,
@@ -69,7 +69,7 @@ class SpaceAuthorizationBoundaryTests(unittest.TestCase):
             },
         }
 
-    def test_materialized_space_is_readable_through_the_current_result_root(self):
+    def test_materialized_space_is_readable_through_the_current_state_root(self):
         self.current.validate(self.current_space())
 
     def test_space_current_read_keeps_selector_and_value_closed(self):

@@ -1,4 +1,4 @@
-"""Grammar tests for the `typed_pair` typed current result subject.
+"""Grammar tests for the `typed_pair` current state subject.
 
 `zh/models/realm-and-space.md` section 3.6 first pins a
 family to this subject kind, and it pins two properties that a free-form
@@ -35,7 +35,7 @@ LIVE = {
 
 def errors_for(selector) -> list[str]:
     lint = gate.Lint()
-    gate._check_result_selector(lint, "probe.result_selector", selector)
+    gate._check_state_selector(lint, "probe.state_selector", selector)
     return lint.errors
 
 
@@ -51,11 +51,11 @@ class TypedPairSubjectTest(unittest.TestCase):
         """
         registry = gate.load_json(gate.Lint(), gate.EVENT_KIND_REGISTRY)
         observed = [
-            (row["event_kind"], write["result_family"], write["result_selector"])
+            (row["event_kind"], write["state_family"], write["state_selector"])
             for row in registry["event_kinds"]
-            for write in row.get("result_writes") or ()
-            if isinstance(write.get("result_selector"), dict)
-            and write["result_selector"].get("kind") == "typed_pair"
+            for write in row.get("state_writes") or ()
+            if isinstance(write.get("state_selector"), dict)
+            and write["state_selector"].get("kind") == "typed_pair"
         ]
         self.assertEqual(
             sorted(kind for kind, _, _ in observed),

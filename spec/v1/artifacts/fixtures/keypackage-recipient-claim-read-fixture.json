@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.keypackage.recipient_claim_read.v1"
   },
-  "version": "2026-09-26.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.keypackage.recipient_claim_read.v1"
@@ -14,7 +14,7 @@
     "registry/contract-registry.json",
     "registry/operations-error-mapping.json",
     "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
-    "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+    "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
     "schemas/mls-welcome-delivery.schema.json"
   ],
   "description": "Executable evidence for ak.vector.keypackage.recipient_claim_read.v1 (zh/crypto-media/device-lifecycle.md section 9 claims/query and section 9.2.4, zh/crypto-media/encryption-and-audit.md section 2.6.1, decision 0119). The Station is the claim destination; alice, on the same Station, claimed bob_claim for bob_device and agent_claim for the Agent's current runtime key, and the Station stored each claim request's outcome, with a claim_receipt signed by its own service key, before answering alice. A read variant has reader call ak.self.keys.keypackages.read.claim.v1 for claim at clock (inside retention unless after_retention) and compares the answer with the stored bytes; state_writes counts writes the read made and claim_state and keypackage_state are read afterwards. A receive variant has bob_device read bob_claim and run the recipient checks in order: the read itself, the claims_digest recomputation, the receipt signature under the Station's service key, then the binding of claim, Welcome, winning Add Commit and current endpoint authorization; refused_by names the first check that refuses, and only an accepted variant may join the group from the Welcome.",
@@ -73,7 +73,7 @@
   "decision_points": [
     {
       "id": "exact_endpoint_original_bytes",
-      "requirement": "The claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, reads the byte-identical keypackages_claim_outcome first serialized for the claim request.",
+      "requirement": "The claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, reads the byte-identical keypackages_claim_response_body first serialized for the claim request.",
       "accept": [
         "/cases/0/variants/0",
         "/cases/0/variants/1",

@@ -19,7 +19,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.relation.v1"
+      "const": "ak.schema.relation.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "relation.schema.json#/properties/schema",
+        "owner": "relation.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.relation.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -61,7 +69,16 @@
         "active",
         "tombstoned"
       ],
-      "description": "Relation state. 'tombstoned' covers both deletion and redaction; the originating reason is preserved on the ak.relation.tombstone / ak.redaction event, not on the materialized object."
+      "description": "Relation state. 'tombstoned' covers both deletion and redaction; the originating reason is preserved on the ak.relation.tombstone / ak.redaction event, not on the materialized object.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "relation.schema.json#/properties/state",
+        "owner": "relation.schema.json#/properties/state",
+        "values": [
+          "active",
+          "tombstoned"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -85,7 +102,15 @@
       "if": {
         "properties": {
           "relation_kind": {
-            "const": "assigned_to"
+            "const": "assigned_to",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "relation.schema.json#/allOf/0/if/properties/relation_kind",
+              "owner": "relation.schema.json#/allOf/0/if/properties/relation_kind",
+              "values": [
+                "assigned_to"
+              ]
+            }
           }
         },
         "required": [
@@ -108,7 +133,15 @@
       "if": {
         "properties": {
           "relation_kind": {
-            "const": "watches"
+            "const": "watches",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "relation.schema.json#/allOf/1/if/properties/relation_kind",
+              "owner": "relation.schema.json#/allOf/1/if/properties/relation_kind",
+              "values": [
+                "watches"
+              ]
+            }
           }
         },
         "required": [
@@ -127,7 +160,15 @@
       "if": {
         "properties": {
           "state": {
-            "const": "tombstoned"
+            "const": "tombstoned",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "relation.schema.json#/allOf/2/if/properties/state",
+              "owner": "relation.schema.json#/allOf/2/if/properties/state",
+              "values": [
+                "tombstoned"
+              ]
+            }
           }
         },
         "required": [
@@ -169,7 +210,7 @@
     },
     "relation_primary_conflict_domain": {
       "type": "object",
-      "description": "The unique typed-current-result subject for one directly writable Relation domain. Realm comes from the Event envelope and Circle is not a key component. domain_kind MUST equal the matching relation-kind-registry.json shape's registered primary_conflict_domain: tuple keys on (relation_kind, from_ref, to_ref), while from keys on (relation_kind, from_ref). truth_source shapes have no directly writable Relation domain.",
+      "description": "The unique current-state subject for one directly writable Relation domain. Realm comes from the Event envelope and Circle is not a key component. domain_kind MUST equal the matching relation-kind-registry.json shape's registered primary_conflict_domain: tuple keys on (relation_kind, from_ref, to_ref), while from keys on (relation_kind, from_ref). truth_source shapes have no directly writable Relation domain.",
       "required": [
         "domain_kind",
         "relation_kind",
@@ -181,7 +222,16 @@
           "enum": [
             "tuple",
             "from"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "relation.schema.json#/$defs/relation_primary_conflict_domain/properties/domain_kind",
+            "owner": "relation.schema.json#/$defs/relation_primary_conflict_domain/properties/domain_kind",
+            "values": [
+              "tuple",
+              "from"
+            ]
+          }
         },
         "relation_kind": {
           "type": "string",
@@ -201,7 +251,15 @@
           "if": {
             "properties": {
               "domain_kind": {
-                "const": "tuple"
+                "const": "tuple",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "relation.schema.json#/$defs/relation_primary_conflict_domain/allOf/0/if/properties/domain_kind",
+                  "owner": "relation.schema.json#/$defs/relation_primary_conflict_domain/allOf/0/if/properties/domain_kind",
+                  "values": [
+                    "tuple"
+                  ]
+                }
               }
             },
             "required": [

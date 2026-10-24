@@ -1,5 +1,5 @@
 {
-  "version": 49,
+  "version": 50,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
@@ -144,7 +144,7 @@
         "proof",
         "attestation"
       ],
-      "reason": "Single hoisted shape of the activation-time Agent signer root, referenced by both key_state.current_signer_evidence and agent_runtime_approval_status_outcome.current_signer_evidence so the two carriers cannot drift."
+      "reason": "Single hoisted shape of the activation-time Agent signer root, referenced by both key_state.current_signer_evidence and agent_runtime_approval_status_response_body.current_signer_evidence so the two carriers cannot drift."
     },
     {
       "file": "agent-operations.schema.json",

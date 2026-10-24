@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.current.cas_failure_read_boundary.v1"
   },
-  "version": "2026-09-28.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.core_event_store.v1",
   "covers_vectors": [
     "ak.vector.current.cas_failure_read_boundary.v1"
@@ -26,7 +26,7 @@
       "observed": "Problem response and durable Event, Commit and typed current state",
       "assertions": [
         "there are zero durable writes",
-        "the response does not invent current, current_result or a generic details bag as machine-readable current"
+        "the response does not invent current, current_state or a generic details bag as machine-readable current"
       ]
     },
     {

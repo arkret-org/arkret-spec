@@ -152,7 +152,7 @@ Schema id: `ak.schema.realm.v1`
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | Station admission policy | 直接约束 member AccountId 中的 `station_id`；不复制成员级 route evidence。 |
 | verified organization relationship | `ak.realm.organization`。 |
-| lifecycle、其它已有专用 facet | 对应 registered event/typed current result。 |
+| lifecycle、其它已有专用 facet | 对应 registered event/current state。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
 **结构角色只由签名 genesis `purpose` 决定（normative）**：Realm 类别的唯一 authority 是已验证的 closed `ak.schema.realm_genesis.v1` 的 `purpose`（见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)）。`schema_refs` **MUST NOT** 承载结构角色 profile；两条写入路径（genesis 与 `ak.realm.schema`）的接受面因此完全对称，都只接受已注册 `ak.schema.*.vN`。receiver MUST NOT 从 `schema_refs`、`fields`、私有 active-profile 集合、`ServiceDescribe` 或任何可编辑投影反推 Realm 类别；判定前 MUST 先验证 genesis 及其接受记录。
@@ -188,7 +188,7 @@ v1 不定义 monolithic `ak.realm.update` 或 `realm_metadata`。实现 MUST 拒
 1. **Realm-side acceptance**：事件必须作为目标 Realm 的 durable reducer-input event 被接受；写入者必须满足 `ak.realm.admin`，或处于 §2.5 允许的 create bootstrap 同批初始配置路径。这表示 Realm 当前治理面接受该组织关系声明。
 2. **Organization-side consent**：`payload.authorization` 必须验证到 `payload.organization_id` 的 DID control state、threshold governance proof，或该组织 DID Document / governance profile 显式委派的 Account Authority / `ArkretGovernanceService`。委派 purpose MUST 覆盖 `ak.realm.organization`、`payload.relationship` 和 `payload.control_scopes`；事件时间必须落在 delegation 有效期内，且未被撤销。
 
-`ak.realm.organization` 的 reducer typed current result subject 是 `(payload.organization_id, payload.relationship)`；`payload.status="active"` 表示该组织关系当前生效，`payload.status="revoked"` 表示同一组织关系已撤销。`statement_id` 只用于审计和替换 / 撤销链路，不是 typed current result subject。Directory 或客户端显示"官方 / 组织治理 / sponsor / directory certified"状态时，MUST 同时检查该 typed current result 的 latest accepted value 为 `active`、已到 `not_before`（若存在）、未超过 `expires_at`（若存在）、`control_scopes` 覆盖所展示的语义，并按时点解析组织 DID / delegation。
+`ak.realm.organization` 的 reducer current state subject 是 `(payload.organization_id, payload.relationship)`；`payload.status="active"` 表示该组织关系当前生效，`payload.status="revoked"` 表示同一组织关系已撤销。`statement_id` 只用于审计和替换 / 撤销链路，不是 current state subject。Directory 或客户端显示"官方 / 组织治理 / sponsor / directory certified"状态时，MUST 同时检查该 current state 的 latest accepted value 为 `active`、已到 `not_before`（若存在）、未超过 `expires_at`（若存在）、`control_scopes` 覆盖所展示的语义，并按时点解析组织 DID / delegation。
 
 不同控制语义不能由组织归属自动推导：
 
@@ -318,10 +318,10 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 以下两项是所有 purpose 共有的无条件 registered writes；另有六条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle、三个互斥 purpose 的 history-access 初始化与受管 PCR 的 device-generation 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 
-`ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.result_writes[]` 中登记；wire 不重复携带：
+`ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.state_writes[]` 中登记；wire 不重复携带：
 
-1. **写入 `realm_genesis` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 typed current result 是 create-locked identity/security core 的唯一权威。accepted create 本身由 genesis RealmCommit 记录，不再另投影一份 create 日志；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 projection 选择 winner。
-2. **写入 `realm_authority_root` typed current result**（`result_selector=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
+1. **写入 `realm_genesis` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 current state 是 create-locked identity/security core 的唯一权威。accepted create 本身由 genesis RealmCommit 记录，不再另投影一份 create 日志；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 projection 选择 winner。
+2. **写入 `realm_authority_root` current state**（`state_selector=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
 
    ```text
    {
@@ -332,15 +332,15 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
    }
    ```
 
-   该值是 [`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的封闭 `realm_authority_root_value`，由三个写入方的 `value_schema_ref` 以 JSON Pointer 指向；它**没有**自己的 `ak.schema.*` id，理由见 [`../sync/current-results.md` §1](../sync/current-results.md)。`(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 只随 `ak.realm.owner.transfer` 递增，`authority_generation` 只随 `ak.realm.authority.reset` 递增；二者都由 registered reducer contract 从 `expected_state_digest` 锁定的冻结前态 `checked_add` 得出，author 无可选值。该 `authority_generation` 是**授权委派代次**，与 `RealmCommit` 的治理 Station 任期代次 `governance_generation` 是两个不同的计数器，MUST NOT 互相替代（见 [`authz/capabilities.md` §10](../authz/capabilities.md#10-issuer-authority)）。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
+   该值是 [`current-state.schema.json`](../../artifacts/schemas/current-state.schema.json) 的封闭 `realm_authority_root_value`，由三个写入方的 `value_schema_ref` 以 JSON Pointer 指向；它**没有**自己的 `ak.schema.*` id，理由见 [`../sync/current-state.md` §1](../sync/current-state.md)。`(realm_id, state_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 只随 `ak.realm.owner.transfer` 递增，`authority_generation` 只随 `ak.realm.authority.reset` 递增；二者都由 registered reducer contract 从 `expected_state_digest` 锁定的冻结前态 `checked_add` 得出，author 无可选值。该 `authority_generation` 是**授权委派代次**，与 `RealmCommit` 的治理 Station 任期代次 `governance_generation` 是两个不同的计数器，MUST NOT 互相替代（见 [`authz/capabilities.md` §10](../authz/capabilities.md#10-issuer-authority)）。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 current state。author 不得自行提供这些派生字段。
 
-   `authority_event_ref` MUST 是创建当前委派代次的 exact EventId：genesis 为本 create Event，authority reset 在同一接纳事务递增 generation 并设置为本 reset Event；owner transfer 与 Station handoff MUST 保留该引用。它与 current result 的 revision 正交。`expected_state_digest` MUST 覆盖完整四成员 current value。普通客户端经已认证 own Station 的既有 exact root current 取得该引用，MUST 绑定请求账号／会话、Realm、selector 与 cut；该引用不授予隐藏 reset 原件读取权。无法从已验证耐久事实确定引用时 MUST 保持不可用，不得猜测或以 Station generation 替代。
+   `authority_event_ref` MUST 是创建当前委派代次的 exact EventId：genesis 为本 create Event，authority reset 在同一接纳事务递增 generation 并设置为本 reset Event；owner transfer 与 Station handoff MUST 保留该引用。它与 current state 的 revision 正交。`expected_state_digest` MUST 覆盖完整四成员 current value。普通客户端经已认证 own Station 的既有 exact root current 取得该引用，MUST 绑定请求账号／会话、Realm、selector 与 cut；该引用不授予隐藏 reset 原件读取权。无法从已验证耐久事实确定引用时 MUST 保持不可用，不得猜测或以 Station generation 替代。
 
 3. **条件写入 `identity_resolution` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
-4. **条件写入 `agent_status` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
-5. **条件写入 `realm_history_access` FSM typed current result**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
-6. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
-7. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
+4. **条件写入 `agent_status` current state**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
+5. **条件写入 `realm_history_access` FSM current state**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
+6. **条件写入同一 history-access FSM current state**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
+7. **条件写入同一 history-access FSM current state**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
 
 以上两条无条件写入加六条条件 row 构成 create 的完整 projection；第 5 至 8 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
@@ -355,21 +355,21 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 Sidecar stream 的共同 position／事务。旧 `EventsSubmitBatchRequestBody` 不属于
 此 self operation 的请求合同。
 
-**result_writes[] 的覆盖度（normative）**：`result_writes[]` 是「某个 Event kind 写哪些 typed current result、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `result_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
+**state_writes[] 的覆盖度（normative）**：`state_writes[]` 是「某个 Event kind 写哪些 current state、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `state_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
 
-反方向的义务同样是规范性的，且强度相同：**已登记的 kind，它的 `result_writes[]` MUST 穷举该 kind 被接纳时在共享面上写的每一个 typed current result**。部分登记算违规——一个原子写四个家族的 kind 只登记其中一个，就是在「唯一机读合同」这份工件里把自己描述错了，而读者正是被告知要以它为准。因此这类 kind 的登记是**整体的**：四个家族要么在同一批一起落，要么一个都不落，`ak.agent.provision` 就是这条规则的判例（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）。
+反方向的义务同样是规范性的，且强度相同：**已登记的 kind，它的 `state_writes[]` MUST 穷举该 kind 被接纳时在共享面上写的每一个 current state**。部分登记算违规——一个原子写四个家族的 kind 只登记其中一个，就是在「唯一机读合同」这份工件里把自己描述错了，而读者正是被告知要以它为准。因此这类 kind 的登记是**整体的**：四个家族要么在同一批一起落，要么一个都不落，`ak.agent.provision` 就是这条规则的判例（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）。
 
-这条义务**按其本性无法门禁化**，必须由裁决与评审承担：lint 手上没有第二份「该 kind 到底写哪些家族」的清单可以与 `result_writes[]` 比对——`result_writes[]` 自己就是那份清单。`tools/artifact_lint:result_write_contracts` 只能校验已声明的行**自身**自洽（成员被 `value_schema_ref` 声明、whole-value set 写齐 required 成员），它对「少了一行」结构性无感。所以「pipeline 全绿」MUST NOT 被当作某个 kind 覆盖完整的证据。
+这条义务**按其本性无法门禁化**，必须由裁决与评审承担：lint 手上没有第二份「该 kind 到底写哪些家族」的清单可以与 `state_writes[]` 比对——`state_writes[]` 自己就是那份清单。`tools/artifact_lint:result_write_contracts` 只能校验已声明的行**自身**自洽（成员被 `value_schema_ref` 声明、whole-value set 写齐 required 成员），它对「少了一行」结构性无感。所以「pipeline 全绿」MUST NOT 被当作某个 kind 覆盖完整的证据。
 
-**root authority 的语义边界（normative）**：authority-root typed current result 的 current controller 在给定 RealmCommit basis 下凭该 typed current result 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、committed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
+**root authority 的语义边界（normative）**：authority-root current state 的 current controller 在给定 RealmCommit basis 下凭该 current state 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、committed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
-- 授权判定 MUST 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof，并逐项校验 `controller_actor_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 fixed reducer semantics compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
-- 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 typed current result 的可丢弃 projection mirror，MUST NOT 参与授权判定。
+- 授权判定 MUST 使用该 current state 在同一 RealmCommit basis 下的 registered inclusion proof，并逐项校验 `controller_actor_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 fixed reducer semantics compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
+- 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 current state 的可丢弃 projection mirror，MUST NOT 参与授权判定。
 - 该 authority 的 resource 固定为本 Realm 的 `realm_wide`，MUST NOT 为其它 Realm 提供普通 issuer upper bound。跨 Realm 不自动派生 authority；另一 Realm 必须由其 current controller／获授权 issuer 独立签发本地 grant（[`realm-links.md` §6](./realm-links.md)）。
-- 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root typed current result，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
-- current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control typed results 表达；未知 typed current result、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 fixed reducer semantics compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
+- 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root current state，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
+- current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control typed results 表达；未知 current state、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 fixed reducer semantics compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
 
-**genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_actor_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted RealmCommit 下的 root-typed current result inclusion proof。
+**genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_actor_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted RealmCommit 下的 root-current state inclusion proof。
 
 Realm bootstrap event set 以 create 开始。创建时没有 accepted RealmCommit，因此下列两个**互斥封闭分支**内的 Event MAY 免 `expected_revision`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 使用同一句，两处 MUST 保持逐条一致）：
 
@@ -390,7 +390,7 @@ Server 端实现合规要点：
 
 - server 必须先在隔离 staged state 上按 wire order 验证完整 unit，再以一个 storage transaction 提交 canonical Events、全部 registered typed results、receipt/ack 与 federation outbox；任何失败后上述可观察状态均为零。
 - `ordinary_realm_bootstrap` 的成功 outcome 按输入顺序返回同一 Realm stream 上连续的完整 source RealmCommits；`committed` 与 exact `duplicate` 重试均返回原 Commit bytes，不重签或重置 `committed_at`。同一 `idempotency_key` 携不同 canonical 请求 MUST `duplicate_conflict` 且零写入。不存在批次级超级 Commit 或另一个可被引用的 receipt；失败只返回整组拒绝，不得返回部分 committed 结果。source outbox 在事务提交后才可见；peer 即使逐条收到已确认 Event，也必须在完整 bootstrap closure 与 genesis state commitment 验证前保持 unresolved。
-- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle typed results；不得把 create payload 原样复制为完整 Realm，也不得读取 `realm_metadata` typed current result。
+- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle typed results；不得把 create payload 原样复制为完整 Realm，也不得读取 `realm_metadata` current state。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
 **Backfill / federation peer 一致性（normative）**：peer 可先取得 create bytes，但在完整 bootstrap closure 与 genesis state commitment 验证前必须保持 unresolved，不得接受后续 Realm Event、RealmCommit 或发布 effective projection。creator membership 来自 unit 最后独立 `ak.member.state{join}` slot；缺失不得本地补造。
@@ -412,14 +412,14 @@ Realm 有两个终态 event，语义不同：
 
 Realm 的 lifecycle 由 archive、tombstone、destroy 等已登记事实组合；freeze 是独立普通写入 gate。四个可逆操作都沿用原 commit-ordered projection：
 
-| Event | typed current result family | effect | capability action |
+| Event | current state family | effect | capability action |
 | --- | --- | --- | --- |
 | `ak.realm.archive` | `realm_archive` | 常量 true | `ak.realm.archive` |
 | `ak.realm.restore` | `realm_archive` | 常量 false | `ak.realm.archive` |
 | `ak.realm.freeze` | `realm_freeze` | 常量 true | `ak.realm.freeze` |
 | `ak.realm.unfreeze` | `realm_freeze` | 常量 false | `ak.realm.freeze` |
 
-payload 只接受已登记的可选 reason，不接受 archived/frozen boolean、effective_at 或 freeze_expires_at。Event kind 唯一决定 effect，重放和并发继续按同一 CAS contract。restore 只解除 archive，unfreeze 只解除 freeze；二者均不能解除 terminal/redaction、其它 gate 或 capability 限制。无论交付顺序如何，任一适用 gate 仍关闭就不得普通写入，缺安全确认材料 fail closed；不另存与这些 typed current result 竞争的 Realm 总状态。
+payload 只接受已登记的可选 reason，不接受 archived/frozen boolean、effective_at 或 freeze_expires_at。Event kind 唯一决定 effect，重放和并发继续按同一 CAS contract。restore 只解除 archive，unfreeze 只解除 freeze；二者均不能解除 terminal/redaction、其它 gate 或 capability 限制。无论交付顺序如何，任一适用 gate 仍关闭就不得普通写入，缺安全确认材料 fail closed；不另存与这些 current state 竞争的 Realm 总状态。
 
 被 archived 或 frozen 关闭的非豁免普通写入返回 `realm_frozen`（HTTP 403）。封闭豁免集合为：(a) archive/restore/freeze/unfreeze；(b) tombstone/destroy 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) `ak.member.state{membership="leave"}`、capability/delegation/device/key revoke 及其必需审计。所有豁免仍验证普通 capability、CAS basis、签名与 schema。policy_bundle、新增成员和授权扩张不豁免；子对象直接复用此集合。终态按 §2.6.1 的更严格规则处理，不能凭恢复豁免绕过。
 
@@ -449,7 +449,7 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 按 federation §4.1.1 的 accepted view 目标集、持久 intent 与发送前重验规则，推送到仍具该 Event 完整 canonical bytes 复制资格的 peer Station。历史持有、旧 route 或 endpoint 可达不构成终态专属复制权；最后一名 effective joined 托管成员退出后的站不再接收后继终态 Commit。仍具资格的 peer 必须按既有连续链／授权 snapshot 修复缺口，验证 exact Event、RealmCommit 与治理绑定后，在安装终态的同一耐久事务内持久化 live fence，标记 `realm_terminal_state` 和相同 `terminal_kind`；不得为终态跳过 predecessor 或导入未获授权历史。离站副本按 federation §4.1.1 在终止 membership Commit（含）关闭 live 资格，保留的是最后已验证的历史状态，MUST NOT 宣称获知后续 Realm lifecycle，也不得伪造 `realm_terminal_state`。历史读取继续按已有授权关闭规则处理，任何历史导入都不得触发新 live 效果。跨站 hard erasure 的独立通知义务仍按 §2.6.2 执行。
 6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm parent 禁止；普通外部引用不得进入 canonical placement 或 Space 删除依赖集合。
-7. **Circle scope cascade**：父 Realm tombstone 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle typed current result 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`，不输出 reserved `realm_terminal_state` reason）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
+7. **Circle scope cascade**：父 Realm tombstone 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle current state 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`，不输出 reserved `realm_terminal_state` reason）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Station Erasure Receipt Fanout（normative）
 
@@ -473,20 +473,20 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `member_state`，状态模型为 `commit-ordered projection`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member typed current result 的 genesis write，MUST 携带 `expected_revision null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
+`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `member_state`，状态模型为 `commit-ordered projection`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member current state 的 genesis write，MUST 携带 `expected_revision null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
 
-Invite 过期只推进 `invite_lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
+Invite 过期只推进 `invite_lifecycle`，不写共享 member current state。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member current state；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
 共享表未列出的 transition MUST `failed_precondition`，reason_code=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
 `parent_membership` 只是在目标 join 接纳时读取同一 current governing Station 所持有的 source Realm authoritative
-`member_state`，不是持续继承关系。接受后的目标 `member_state` 是独立的 Realm-local current result；后续 source
+`member_state`，不是持续继承关系。接受后的目标 `member_state` 是独立的 Realm-local current state；后续 source
 leave／ban、link tombstone 或 Realm handoff不会级联改写或撤销它。接纳时的 active link、co-governance、事务锁与并发规则
 由 [`../governance/join-policy.md` §4](../governance/join-policy.md) 定义。
 
 上表 `leave -> join` 另有一个封闭的 Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
 
-controller terminal transition 不再隐式改写 Agent canonical member typed current result。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
+controller terminal transition 不再隐式改写 Agent canonical member current state。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
 
 ### 2.8 Realm 角色分类（normative）
 
@@ -649,24 +649,24 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 - `ak.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
-- `ak.space.tombstone`：不可逆；在它自己签名的 accepted RealmCommit basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent typed current result 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical typed results。
-- 上述准入检查 MUST 使用指定 accepted RealmCommit basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved typed current result 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
-- v1 不为 Space lifecycle 与所有可能指向它的 parent/position typed current result 新建跨 typed current result 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/typed current result 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position typed current result 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
+- `ak.space.tombstone`：不可逆；在它自己签名的 accepted RealmCommit basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent current state 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical typed results。
+- 上述准入检查 MUST 使用指定 accepted RealmCommit basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved current state 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
+- v1 不为 Space lifecycle 与所有可能指向它的 parent/position current state 新建跨 current state 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/current state 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position current state 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
 ### 3.5 `ak.space.parent` 因果父边
 
-`space_parent` 是已登记的 typed current result family（[`current-result-registry.json`](../../artifacts/registry/current-result-registry.json) 行，result schema 见 [`typed-current-result.schema.json#/$defs/space_parent_result`](../../artifacts/schemas/typed-current-result.schema.json)）。它以 SpaceId 为 subject，special form 渲染为 `space_parent:<space_id>`，使用普通 `current-value projection`。
+`space_parent` 是已登记的 current state family（[`current-state-registry.json`](../../artifacts/registry/current-state-registry.json) 行，result schema 见 [`current-state.schema.json#/$defs/current_space_parent`](../../artifacts/schemas/current-state.schema.json)）。它以 SpaceId 为 subject，special form 渲染为 `space_parent:<space_id>`，使用普通 `current-value projection`。
 
 值是**单成员对象** `{"parent_space_id": <SpaceId> | null}`，成员可空，**值本身永不是裸 null**。这一点是规范性的，有两条独立理由：一是「只有成员才能缺失」（与 `realm_set_default_strand` 同一论证）；二是本 family 自己的 compare-and-set 是**对已存字段的谓词**，裸 null 没有字段可比，`expected_parent_space_id` 就无法表达。成员取 null 表示 root，即没有结构父。
 
-写入方由 `result_writes[]` 唯一给定，共两条 Event kind：
+写入方由 `state_writes[]` 唯一给定，共两条 Event kind：
 
-- `ak.space.create.result_writes[]` 用两条互斥条件写覆盖 genesis：签名 `object.parent_space_id` **存在**时取该字段，**缺席**时把成员显式写成 null。因此每个 Space 从它的第一条 Event 起就有该寄存器，后续写入不可能把「寄存器缺失」误读成 root。Space 对象用**字段缺席**表达无父，本 family 的 payload 用**显式 null** 表达，归一化只发生在这一处。
-- `ak.space.parent.result_writes[]` 是唯一的后续写入路径，且**无条件**：`space_parent_payload.parent_space_id` 是必填且可空的，脱离到 root 是显式 null 而不是省略成员，所以一条写就覆盖全部情形。
+- `ak.space.create.state_writes[]` 用两条互斥条件写覆盖 genesis：签名 `object.parent_space_id` **存在**时取该字段，**缺席**时把成员显式写成 null。因此每个 Space 从它的第一条 Event 起就有该寄存器，后续写入不可能把「寄存器缺失」误读成 root。Space 对象用**字段缺席**表达无父，本 family 的 payload 用**显式 null** 表达，归一化只发生在这一处。
+- `ak.space.parent.state_writes[]` 是唯一的后续写入路径，且**无条件**：`space_parent_payload.parent_space_id` 是必填且可空的，脱离到 root 是显式 null 而不是省略成员，所以一条写就覆盖全部情形。
 
-metadata 投影排除 `parent_space_id`，所以真源是本 family 而不是 Space 对象；通用 metadata patch 禁止触及该路径，这条禁令在 [`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 里以 `owner_kind: result_family` / `owner: space_parent` 登记，指向的正是上面两条写。普通父边变更不需要新 RealmCommit。
+metadata 投影排除 `parent_space_id`，所以真源是本 family 而不是 Space 对象；通用 metadata patch 禁止触及该路径，这条禁令在 [`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 里以 `owner_kind: state_family` / `owner: space_parent` 登记，指向的正是上面两条写。普通父边变更不需要新 RealmCommit。
 
 `expected_parent_space_id` 是**必填的前态声明**，不是可选 CAS。它在 `space_parent_payload.required` 里，并登记为 `ak.space.parent.pre_state_requirements[]` 的一条 `stored_field_equals_payload` 谓词：reducer 在提交位置读该 Space 冻结前态的 `parent_space_id` 成员，与该字段逐字节比较，不等即 `failed_precondition / space_parent_mismatch` 且**零写入**。这与 `agent_deactivate_payload.previous_status`、`invite_*` 的 `previous_state` 是同一个惯用法：**每一条 state-changing Event 都在 payload 里声明它读到的前态**。因此本 kind 没有「不做并发保护」的分支，实现 MUST NOT 提供一个省略该字段的旁路——省略在 wire 上就是 `schema_violation`。
 
@@ -689,13 +689,13 @@ execution   := data
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-该 family 的 registry `result_selector.kind` 固定为 `typed_pair`，两个有序分量依次为
+该 family 的 registry `state_selector.kind` 固定为 `typed_pair`，两个有序分量依次为
 `id:space(payload.board_space_id)` 与 `id:strand(payload.strand_id)`。因此上式是可逆的
 canonical wire 编码，不适用 `tuple/composite` 的 SHA-256 subject；producer、reducer、Current
-publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 typed current result id。解析时必须同时
+publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 current state id。解析时必须同时
 验证 Board 与 Strand 两个 typed-ID 分量，不能只截取末尾 Strand，也不能接受 hash subject。
 
-`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据。`expected_position` 是**可选的显式 compare-and-set 前置**：存在时 MUST 将完整 `{list_space_id, rank}` 前像与该 position typed current result 的当前已定位值按 canonical JSON 字节比较；字段缺失、`space_id`／`relation_id` 或其它额外成员均为 `schema_violation`。reorder 使用同一完整前像，不能只比较 rank。当前值为 null 时不存在可匹配的 object 前像，首次放置省略该成员。不等即 `failed_precondition` 且零写入；缺席时该次移动不做并发保护，MUST NOT 被实现补成隐式 CAS。该 position typed current result 的当前值就是**该 stream 上最后一个被接受的位置写入**，次序只由治理 Station 给出的 `stream_position` 决定；实现 MUST NOT 依据任何客户端可见的深度、HLC、`created_at` 或到达顺序另选 winner。多个并发位置写因此被 Station 串行化为该 stream 上的一串位置，不产生需要人工合并的第二个 UI “冲突列”；被 CAS 拒绝的写没有任何业务效果，客户端重读当前值后重新签发再试。WIP 容量在同一当前值上计算，不得按到达顺序撤销某一已接受的合法写来伪装硬容量保证。
+`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据。`expected_position` 是**可选的显式 compare-and-set 前置**：存在时 MUST 将完整 `{list_space_id, rank}` 前像与该 position current state 的当前已定位值按 canonical JSON 字节比较；字段缺失、`space_id`／`relation_id` 或其它额外成员均为 `schema_violation`。reorder 使用同一完整前像，不能只比较 rank。当前值为 null 时不存在可匹配的 object 前像，首次放置省略该成员。不等即 `failed_precondition` 且零写入；缺席时该次移动不做并发保护，MUST NOT 被实现补成隐式 CAS。该 position current state 的当前值就是**该 stream 上最后一个被接受的位置写入**，次序只由治理 Station 给出的 `stream_position` 决定；实现 MUST NOT 依据任何客户端可见的深度、HLC、`created_at` 或到达顺序另选 winner。多个并发位置写因此被 Station 串行化为该 stream 上的一串位置，不产生需要人工合并的第二个 UI “冲突列”；被 CAS 拒绝的写没有任何业务效果，客户端重读当前值后重新签发再试。WIP 容量在同一当前值上计算，不得按到达顺序撤销某一已接受的合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
@@ -703,16 +703,16 @@ publisher 与 selector validator MUST 从同一 registry row 得到完全相同�
 | --- | --- | --- | --- |
 | `board_space_id` | yes | `id:space`（Board） | position edge 的所属 Board；与 `strand_id` 共同构成去重 key。 |
 | `strand_id` | yes | `id:strand` | 被移动的 Strand。 |
-| `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从该 position typed current result 的当前值推导。 |
+| `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从该 position current state 的当前值推导。 |
 | `target_space_id` | yes | `id:space`（List） | 移动后的目标 List；payload 不得另带 `list_space_id`。 |
 | `rank` | yes | `string` | 目标 List 内 canonical rank。 |
 | `expected_position` | no | `object{list_space_id: id:space, rank: string}` | 可选 CAS 完整前像；两个成员均必填，与当前已定位值形状相同，字段集封闭。 |
 
-Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Event 的 position typed current result 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Event 使用相同的独立授权、可选 CAS 前置与 WIP 后像判定。create 成功而 Event 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Event，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position typed current result 投影，不得合成 canonical Relation Event。
+Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Event 的 position current state 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Event 使用相同的独立授权、可选 CAS 前置与 WIP 后像判定。create 成功而 Event 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Event，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position current state 投影，不得合成 canonical Relation Event。
 
 Board、List 与 Strand 的实际 `realm_id` MUST 相同；创建、首次 move、后续 move 和 reorder 均无 profile 例外。已可验证的跨 Realm placement MUST `failed_precondition / space_realm_mismatch`；普通 move / reparent MUST NOT 修改 Realm。 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 
-Board 或目标 List 的 lifecycle 在写入签名 basis 下已是 `tombstoned` 时，首次 move、后续 move 与 reorder MUST 以既有 `failed_precondition / space_not_active` 拒绝。合流后得知目标已 tombstoned 时，按 §3.4 的 joined-view gate 保留 position typed current result 但不派生有效 placement/contains 边，直到显式 move；不得静默改到 root、清除 typed current result 或用到达顺序选择 tombstone 与 placement 的赢家。
+Board 或目标 List 的 lifecycle 在写入签名 basis 下已是 `tombstoned` 时，首次 move、后续 move 与 reorder MUST 以既有 `failed_precondition / space_not_active` 拒绝。合流后得知目标已 tombstoned 时，按 §3.4 的 joined-view gate 保留 position current state 但不派生有效 placement/contains 边，直到显式 move；不得静默改到 root、清除 current state 或用到达顺序选择 tombstone 与 placement 的赢家。
 
 ### 3.7 示例
 
@@ -778,7 +778,7 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 
 ### Space lifecycle 合同入口
 
-`space` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `result_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`space` 的 lifecycle 以 contract registry 中对应 current state family 的 `transition_contracts` 与 Event `state_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
 
 
 Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。

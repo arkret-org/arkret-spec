@@ -28,7 +28,7 @@ RUNNER = ROOT / "tools" / "artifact_lint" / "runner.py"
 
 OPERATION_ID = "ak.self.events.command.submit.v1"
 RESOLVE_OPERATION_ID = "ak.self.direct_conversation.read.resolve.v1"
-REJECTION_SCHEMA_REF = "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome"
+REJECTION_SCHEMA_REF = "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body"
 REASONS = (
     "direct_conversation_binding_invalid",
     "direct_conversation_terminal_forbidden",
@@ -163,7 +163,7 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
     if mapping.get("write_operation_id") != OPERATION_ID or mapping.get("write_request_event_path") != "/event":
         lint.fail(CONTRACT, "Direct Conversation rejection producer must be the ordinary single-Event submit path")
     if mapping.get("write_rejection_schema_ref") != REJECTION_SCHEMA_REF:
-        lint.fail(CONTRACT, "Direct Conversation rejection mapping must use the existing submit_outcome carrier")
+        lint.fail(CONTRACT, "Direct Conversation rejection mapping must use the existing submit_response_body carrier")
     expected_owner = {
         "semantic_owner": "current_governance_station",
         "self_ingress_role": "authenticate_producer_and_forward_exact_bytes_without_profile_admission",
@@ -184,10 +184,10 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
             lint.fail(CONTRACT, f"Direct Conversation retry rule is missing {marker!r}")
 
     operation = _find(operation_registry.get("operations"), "operation_id", OPERATION_ID)
-    if not isinstance(operation, dict) or operation.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome":
+    if not isinstance(operation, dict) or operation.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body":
         lint.fail(CONTRACT, "ordinary self Event submit operation must retain its canonical response carrier")
     resolve_operation = _find(operation_registry.get("operations"), "operation_id", RESOLVE_OPERATION_ID)
-    if not isinstance(resolve_operation, dict) or resolve_operation.get("response_schema_ref") != "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome":
+    if not isinstance(resolve_operation, dict) or resolve_operation.get("response_schema_ref") != "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body":
         lint.fail(CONTRACT, "member-count read-side suspension must use the existing resolver")
 
     rules = mapping.get("rules")
@@ -246,11 +246,11 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
             lint.fail(ERRORS, f"{reason} must be active only after its producer closure lands")
 
     schema = load_json(lint, SCHEMA)
-    submit_outcome = _defs(schema).get("submit_outcome")
-    variants = submit_outcome.get("oneOf") if isinstance(submit_outcome, dict) else None
+    submit_response_body = _defs(schema).get("submit_response_body")
+    variants = submit_response_body.get("oneOf") if isinstance(submit_response_body, dict) else None
     rejection = next((row for row in variants or [] if row.get("properties", {}).get("status", {}).get("enum") == ["rejected", "retryable_unavailable"]), None)
     if not isinstance(rejection, dict) or rejection.get("required") != ["status", "reason_code"] or rejection.get("additionalProperties") is not False:
-        lint.fail(SCHEMA, "submit_outcome must retain the closed rejection carrier")
+        lint.fail(SCHEMA, "submit_response_body must retain the closed rejection carrier")
     resolver = load_json(lint, RESOLVER_SCHEMA)
     blockers = _defs(resolver).get("direct_conversation_send_blocker", {}).get("enum", [])
     if "member_count_invalid" not in blockers:

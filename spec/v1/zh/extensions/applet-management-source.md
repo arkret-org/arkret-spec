@@ -40,7 +40,7 @@ Applet 自行提供现有公开 Service 解析接口时，MUST 声明
 existing 选择必须包含同 Realm 的完整 ActorId.realm，匹配当前 Applet／manager，不能用显示名或裸 core 认领。
 governor 检查真实 Account 操作者权限、current registration、安装与 Policy，持久化意图后再调用 runtime。
 execution_intent 绑定 Applet／Service、原始治理任期、scope、registration／epoch、操作者和选择；
-execution_request 外层绑定当前治理方、时窗与签名。recover 可由新任治理方处理原意图，但不得改写意图。
+applet_configuration_execution_request_body 外层绑定当前治理方、时窗与签名。recover 可由新任治理方处理原意图，但不得改写意图。
 
 runtime MUST 验当前治理链、请求签名、准确 Applet／Service／scope 与有效期，按原 request_id／完整 intent
 去重。它准备独立 DID／控制 key，返回控制 PoP 与 Service 原签创建 Event，不在本地宣称已被治理接纳。

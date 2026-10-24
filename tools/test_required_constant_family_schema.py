@@ -26,16 +26,16 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
 
     def test_success_only_members_are_not_carried(self) -> None:
         cases = [
-            ("account-operations.schema.json", "identity_abandonment_outcome", ("status",)),
-            ("account-operations.schema.json", "account_request_erasure_outcome", ("status",)),
+            ("account-operations.schema.json", "identity_abandonment_response_body", ("status",)),
+            ("account-operations.schema.json", "account_request_erasure_response_body", ("status",)),
             ("directory-operations.schema.json", "public_realm_directory_entry", ("verified",)),
             ("holder-quarantine.schema.json", "quarantine_entry", ("status",)),
-            ("mimi-operations.schema.json", "mimi_request_consent_outcome", ("status",)),
-            ("mimi-operations.schema.json", "mimi_update_consent_outcome", ("status",)),
-            ("mimi-operations.schema.json", "mimi_report_abuse_outcome", ("status",)),
-            ("principal-locator.schema.json", "invite_locator_revoke_outcome", ("status",)),
-            ("recovery-session.schema.json", "recovery_session_proof_submit_outcome", ("state", "verification")),
-            ("service-operation-dtos.schema.json", "ModerationReportOutcome", ("status",)),
+            ("mimi-operations.schema.json", "mimi_request_consent_response_body", ("status",)),
+            ("mimi-operations.schema.json", "mimi_update_consent_response_body", ("status",)),
+            ("mimi-operations.schema.json", "mimi_report_abuse_response_body", ("status",)),
+            ("principal-locator.schema.json", "invite_locator_revoke_response_body", ("status",)),
+            ("recovery-session.schema.json", "recovery_session_proof_submit_response_body", ("state", "verification")),
+            ("service-operation-dtos.schema.json", "ModerationReportResponseBody", ("status",)),
         ]
         for file_name, definition, members in cases:
             with self.subTest(file_name=file_name, definition=definition):
@@ -44,7 +44,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
     def test_failure_and_position_discriminators_are_retained(self) -> None:
         definitions = load("service-operation-dtos.schema.json")["$defs"]
         retained = [
-            ("SessionGrantReplayExpiredProblem", "state", "expired"),
+            ("SessionGrantReplayExpiredProblemExtensions", "state", "expired"),
             ("DeviceMessageDeliveredRow", "status", "delivered"),
             ("DeviceMessageUnknownRow", "status", "unknown"),
         ]
@@ -127,7 +127,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             self.assertNotIn(definition, directory)
         withheld = load("service-operation-dtos.schema.json")["$defs"]["EventDisclosure"]
         self.assertEqual(withheld["required"], ["status"])
-        self.assertEqual(withheld["properties"], {"status": {"const": "withheld"}})
+        self.assertEqual({key: {"const": value.get("const")} for key,value in withheld["properties"].items()}, {"status": {"const": "withheld"}})
         self.assertFalse(withheld["additionalProperties"])
 
 

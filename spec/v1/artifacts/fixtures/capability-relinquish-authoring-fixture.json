@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-09-21.4",
+  "version": "2026-10-24.1",
   "suite": "capability_relinquish_authoring",
   "runner": {
     "kind": "named_suite",
@@ -16,7 +16,7 @@
       "decision_points": [
         {
           "id": "exact_atomic_authoring_basis",
-          "requirement": "One active effective grant and its exact revision come from the same capability_grant current result; list digests and historical evaluation results cannot authorize signing.",
+          "requirement": "One active effective grant and its exact revision come from the same capability_grant current state; list digests and historical evaluation results cannot authorize signing.",
           "evidence": [
             "/cases/0",
             "/cases/1",
@@ -46,12 +46,12 @@
     {
       "name": "active_row_supplies_exact_atomic_revision",
       "assertions": [
-        "grant and revision are read from one durable capability_grant current result",
+        "grant and revision are read from one durable capability_grant current state",
         "the row revision is copied verbatim only after explicit user confirmation"
       ],
       "list_result": {
         "row_state": "active_effective",
-        "grant_and_revision_same_current_result": true,
+        "grant_and_revision_same_current_state": true,
         "revision": {
           "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
           "stream_position": 41

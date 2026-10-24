@@ -13,7 +13,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "account"
+          "const": "account",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/signing_account_actor_id/properties/kind",
+            "owner": "signer-key-operations.schema.json#/$defs/signing_account_actor_id/properties/kind",
+            "values": [
+              "account"
+            ]
+          }
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -26,7 +34,7 @@
       "required": [
         "actor",
         "verification_method",
-        "public_key_b64u",
+        "public_key_base64url",
         "authorization_ref"
       ],
       "properties": {
@@ -38,10 +46,11 @@
           "format": "uri",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "authorization_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -52,16 +61,17 @@
     "query_signing_key": {
       "type": "object",
       "required": [
-        "public_key_b64u",
+        "public_key_base64url",
         "authorization_ref",
         "revision",
         "governance_generation"
       ],
       "properties": {
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "authorization_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
@@ -86,9 +96,8 @@
           "description": "Verified current revision of the authorization stream at resolution. The revision belongs to authorization_ref.stream_ref, is not older than authorization_ref.stream_position, and is never inferred from arrival order, a cursor or a current projection."
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Verified governance generation of revision.commit_id."
+          "description": "Verified governance generation of revision.commit_id.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         }
       },
       "additionalProperties": false,
@@ -105,10 +114,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "current_admission"
+          "const": "current_admission",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_account_device_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/current_account_device_selector/properties/verification_mode",
+            "values": [
+              "current_admission"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "account_device"
+          "const": "account_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_account_device_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/current_account_device_selector/properties/sender_kind",
+            "values": [
+              "account_device"
+            ]
+          }
         },
         "actor": {
           "$ref": "#/$defs/signing_account_actor_id"
@@ -134,10 +159,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "current_admission"
+          "const": "current_admission",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_agent_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/current_agent_selector/properties/verification_mode",
+            "values": [
+              "current_admission"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "agent"
+          "const": "agent",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_agent_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/current_agent_selector/properties/sender_kind",
+            "values": [
+              "agent"
+            ]
+          }
         },
         "actor": {
           "$ref": "#/$defs/signing_account_actor_id"
@@ -162,10 +203,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "historical_event"
+          "const": "historical_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_account_device_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_account_device_selector/properties/verification_mode",
+            "values": [
+              "historical_event"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "account_device"
+          "const": "account_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_account_device_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_account_device_selector/properties/sender_kind",
+            "values": [
+              "account_device"
+            ]
+          }
         },
         "actor": {
           "$ref": "#/$defs/signing_account_actor_id"
@@ -196,10 +253,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "historical_event"
+          "const": "historical_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_agent_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_agent_selector/properties/verification_mode",
+            "values": [
+              "historical_event"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "agent"
+          "const": "agent",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_agent_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_agent_selector/properties/sender_kind",
+            "values": [
+              "agent"
+            ]
+          }
         },
         "actor": {
           "$ref": "#/$defs/signing_account_actor_id"
@@ -310,7 +383,7 @@
         }
       ]
     },
-    "current_outcome": {
+    "current_signer_key_resolution": {
       "oneOf": [
         {
           "type": "object",
@@ -324,7 +397,15 @@
               "$ref": "#/$defs/current_agent_selector"
             },
             "status": {
-              "const": "resolved"
+              "const": "resolved",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/0/properties/status",
+                "owner": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/0/properties/status",
+                "values": [
+                  "resolved"
+                ]
+              }
             },
             "key": {
               "$ref": "#/$defs/query_signing_key"
@@ -345,7 +426,15 @@
               "$ref": "#/$defs/current_account_device_selector"
             },
             "status": {
-              "const": "resolved"
+              "const": "resolved",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/1/properties/status",
+                "owner": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/1/properties/status",
+                "values": [
+                  "resolved"
+                ]
+              }
             },
             "key": {
               "$ref": "#/$defs/current_device_signing_key"
@@ -366,7 +455,15 @@
               "$ref": "#/$defs/current_realm_device_selector"
             },
             "status": {
-              "const": "resolved"
+              "const": "resolved",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/2/properties/status",
+                "owner": "signer-key-operations.schema.json#/$defs/current_signer_key_resolution/oneOf/2/properties/status",
+                "values": [
+                  "resolved"
+                ]
+              }
             },
             "key": {
               "$ref": "#/$defs/current_device_signing_key"
@@ -374,9 +471,10 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "key_resolution"
     },
-    "historical_account_device_outcome": {
+    "historical_account_device_signer_key_resolution": {
       "type": "object",
       "required": [
         "selector",
@@ -389,7 +487,15 @@
           "$ref": "#/$defs/historical_account_device_selector"
         },
         "status": {
-          "const": "resolved"
+          "const": "resolved",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_account_device_signer_key_resolution/properties/status",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_account_device_signer_key_resolution/properties/status",
+            "values": [
+              "resolved"
+            ]
+          }
         },
         "key": {
           "$ref": "#/$defs/query_signing_key"
@@ -400,9 +506,10 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "key_resolution"
     },
-    "historical_agent_outcome": {
+    "historical_agent_signer_key_resolution": {
       "type": "object",
       "required": [
         "selector",
@@ -415,7 +522,15 @@
           "$ref": "#/$defs/historical_agent_selector"
         },
         "status": {
-          "const": "resolved"
+          "const": "resolved",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_agent_signer_key_resolution/properties/status",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_agent_signer_key_resolution/properties/status",
+            "values": [
+              "resolved"
+            ]
+          }
         },
         "key": {
           "$ref": "#/$defs/query_signing_key"
@@ -426,9 +541,10 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "key_resolution"
     },
-    "unavailable_outcome": {
+    "unavailable_signer_key_resolution": {
       "type": "object",
       "required": [
         "selector",
@@ -439,18 +555,27 @@
           "$ref": "#/$defs/query_selector"
         },
         "status": {
-          "const": "unavailable"
+          "const": "unavailable",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/unavailable_signer_key_resolution/properties/status",
+            "owner": "signer-key-operations.schema.json#/$defs/unavailable_signer_key_resolution/properties/status",
+            "values": [
+              "unavailable"
+            ]
+          }
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "key_resolution"
     },
-    "query_outcome": {
+    "query_response_body": {
       "type": "object",
       "required": [
         "request_id",
         "realm_id",
-        "results"
+        "resolutions"
       ],
       "properties": {
         "request_id": {
@@ -462,7 +587,7 @@
         "recipient_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
-        "results": {
+        "resolutions": {
           "type": "array",
           "minItems": 1,
           "maxItems": 64,
@@ -470,22 +595,22 @@
           "items": {
             "oneOf": [
               {
-                "$ref": "#/$defs/current_outcome"
+                "$ref": "#/$defs/current_signer_key_resolution"
               },
               {
-                "$ref": "#/$defs/historical_account_device_outcome"
+                "$ref": "#/$defs/historical_account_device_signer_key_resolution"
               },
               {
-                "$ref": "#/$defs/historical_agent_outcome"
+                "$ref": "#/$defs/historical_agent_signer_key_resolution"
               },
               {
-                "$ref": "#/$defs/unavailable_outcome"
+                "$ref": "#/$defs/unavailable_signer_key_resolution"
               },
               {
-                "$ref": "#/$defs/historical_service_outcome"
+                "$ref": "#/$defs/historical_service_signer_key_resolution"
               },
               {
-                "$ref": "#/$defs/historical_realm_device_outcome"
+                "$ref": "#/$defs/historical_realm_device_signer_key_resolution"
               }
             ]
           }
@@ -517,18 +642,20 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "current_device_signing_key": {
       "type": "object",
       "required": [
-        "public_key_b64u"
+        "public_key_base64url"
       ],
       "properties": {
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization.",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false,
@@ -542,7 +669,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "service"
+          "const": "service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/signing_service_actor_id/properties/kind",
+            "owner": "signer-key-operations.schema.json#/$defs/signing_service_actor_id/properties/kind",
+            "values": [
+              "service"
+            ]
+          }
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -561,10 +696,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "historical_event"
+          "const": "historical_event",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_service_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_service_selector/properties/verification_mode",
+            "values": [
+              "historical_event"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "service"
+          "const": "service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_service_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_service_selector/properties/sender_kind",
+            "values": [
+              "service"
+            ]
+          }
         },
         "actor": {
           "$ref": "#/$defs/signing_service_actor_id"
@@ -584,7 +735,7 @@
     "service_historical_signing_key": {
       "type": "object",
       "required": [
-        "public_key_b64u",
+        "public_key_base64url",
         "applet_id",
         "registration_epoch",
         "registration_ref",
@@ -592,10 +743,11 @@
         "effective_scope"
       ],
       "properties": {
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -615,7 +767,7 @@
       },
       "additionalProperties": false
     },
-    "historical_service_outcome": {
+    "historical_service_signer_key_resolution": {
       "type": "object",
       "required": [
         "selector",
@@ -628,7 +780,15 @@
           "$ref": "#/$defs/historical_service_selector"
         },
         "status": {
-          "const": "resolved"
+          "const": "resolved",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_service_signer_key_resolution/properties/status",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_service_signer_key_resolution/properties/status",
+            "values": [
+              "resolved"
+            ]
+          }
         },
         "key": {
           "$ref": "#/$defs/service_historical_signing_key"
@@ -639,7 +799,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "key_resolution"
     },
     "current_realm_device_selector": {
       "type": "object",
@@ -652,10 +813,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "current"
+          "const": "current",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_realm_device_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/current_realm_device_selector/properties/verification_mode",
+            "values": [
+              "current"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "realm_device"
+          "const": "realm_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/current_realm_device_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/current_realm_device_selector/properties/sender_kind",
+            "values": [
+              "realm_device"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -681,10 +858,26 @@
       ],
       "properties": {
         "verification_mode": {
-          "const": "historical"
+          "const": "historical",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_realm_device_selector/properties/verification_mode",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_realm_device_selector/properties/verification_mode",
+            "values": [
+              "historical"
+            ]
+          }
         },
         "sender_kind": {
-          "const": "realm_device"
+          "const": "realm_device",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_realm_device_selector/properties/sender_kind",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_realm_device_selector/properties/sender_kind",
+            "values": [
+              "realm_device"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -701,7 +894,7 @@
       },
       "additionalProperties": false
     },
-    "historical_realm_device_outcome": {
+    "historical_realm_device_signer_key_resolution": {
       "type": "object",
       "required": [
         "selector",
@@ -714,7 +907,15 @@
           "$ref": "#/$defs/historical_realm_device_selector"
         },
         "status": {
-          "const": "resolved"
+          "const": "resolved",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signer-key-operations.schema.json#/$defs/historical_realm_device_signer_key_resolution/properties/status",
+            "owner": "signer-key-operations.schema.json#/$defs/historical_realm_device_signer_key_resolution/properties/status",
+            "values": [
+              "resolved"
+            ]
+          }
         },
         "key": {
           "$ref": "#/$defs/current_device_signing_key"
@@ -724,7 +925,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "key_resolution"
     }
   }
 }

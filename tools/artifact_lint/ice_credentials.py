@@ -41,10 +41,10 @@ def check_ice_credentials(lint: Lint) -> None:
     if not isinstance(data, dict) or not isinstance(schema, dict):
         return
     try:
-        body = schema["$defs"]["media_ice_config_request_body"]
+        body = schema["$defs"]["media_ice_configuration_request_body"]
         if set(body["properties"]) != FIELDS or set(body["required"]) != FIELDS or body["additionalProperties"] is not False:
             raise ValueError("ICE request must remain the closed five-field body")
-        validator = schema_validator(SCHEMA, "#/$defs/media_ice_config_request_body")
+        validator = schema_validator(SCHEMA, "#/$defs/media_ice_configuration_request_body")
         cases = data["issuances"]
         if {case["name"] for case in cases} != PHASES or len(cases) != len(PHASES):
             raise ValueError("issuance phases are incomplete or duplicated")

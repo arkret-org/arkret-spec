@@ -14,7 +14,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.authority_set_policy.v1"
+      "const": "ak.schema.authority_set_policy.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "authority-set-policy.schema.json#/properties/schema",
+        "owner": "authority-set-policy.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.authority_set_policy.v1"
+        ]
+      }
     },
     "authority_set_id": {
       "type": "string",
@@ -24,7 +32,16 @@
       "enum": [
         "principal_control",
         "realm_admission"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "authority-set-policy.schema.json#/properties/policy_kind",
+        "owner": "authority-set-policy.schema.json#/properties/policy_kind",
+        "values": [
+          "principal_control",
+          "realm_admission"
+        ]
+      }
     },
     "scope_ref": {
       "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
@@ -56,7 +73,17 @@
               "identity_recovery",
               "accepted_device",
               "realm_admission"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "authority-set-policy.schema.json#/properties/authorization_rules/items/properties/issuer_role",
+              "owner": "authority-set-policy.schema.json#/properties/authorization_rules/items/properties/issuer_role",
+              "values": [
+                "identity_recovery",
+                "accepted_device",
+                "realm_admission"
+              ]
+            }
           },
           "allowed_actions": {
             "type": "array",

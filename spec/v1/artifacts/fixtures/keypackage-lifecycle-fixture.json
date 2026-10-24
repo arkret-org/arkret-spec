@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-10-20.1",
+  "version": "2026-10-24.1",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -43,7 +43,7 @@
           "signed_at": "2026-07-31T00:00:00.000Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "AA"
+            "signature": "AA"
           }
         }
       }
@@ -81,7 +81,7 @@
           "signed_at": "2026-07-31T00:00:00.000Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "AA"
+            "signature": "AA"
           }
         }
       }
@@ -111,7 +111,7 @@
         "expires_at": "2026-08-24T00:05:00.000Z",
         "endpoint_signature": {
           "kid": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
-          "sig": "AA"
+          "signature": "AA"
         }
       }
     },
@@ -149,14 +149,14 @@
           "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
         },
         "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-        "ciphertext_b64": "AQIDBA",
+        "ciphertext_base64url": "AQIDBA",
         "producer_proof": {
           "context": "ak.mls_welcome_delivery_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
           "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+          "signature": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
         }
       }
     },
@@ -183,14 +183,14 @@
             "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
           },
           "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-          "ciphertext_b64": "AQIDBA",
+          "ciphertext_base64url": "AQIDBA",
           "producer_proof": {
             "context": "ak.mls_welcome_delivery_signature.v1",
             "signature_algorithm": "Ed25519",
             "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
             "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
             "created_at": "2026-09-20T00:00:00.000Z",
-            "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+            "signature": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
           }
         }
       }
@@ -504,7 +504,7 @@
     },
     {
       "name": "realm_peer_lookup_outcome",
-      "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
       "expect_valid": true,
       "instance": {
         "request_id": "ak:request:01970000-0000-7000-8000-000000000061",
@@ -520,7 +520,7 @@
     },
     {
       "name": "realm_peer_lookup_outcome_mixed",
-      "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
       "expect_valid": false,
       "instance": {
         "request_id": "ak:request:01970000-0000-7000-8000-000000000061",
@@ -861,7 +861,7 @@
       "local_usable_count": 1,
       "claim_rate_limit": {
         "window_seconds": 60,
-        "max_claims": 5,
+        "max_claim_count": 5,
         "attempt": 6
       },
       "expired_claim": {
@@ -1179,14 +1179,14 @@
           "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
         },
         "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-        "ciphertext_b64": "AQIDBA",
+        "ciphertext_base64url": "AQIDBA",
         "producer_proof": {
           "context": "ak.mls_welcome_delivery_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
           "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+          "signature": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
         }
       },
       "expected": {

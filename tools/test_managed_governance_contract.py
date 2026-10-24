@@ -128,7 +128,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertEqual(defs["authoring_request"]["properties"]["purpose"]["enum"], ["provision_bot", "provision_ghost"])
         self.assertIn("effective_scope", defs["ghost_preview_request_body"]["required"])
         self.assertNotIn("realm_id", defs["ghost_preview_request_body"]["properties"])
-        self.assertEqual(defs["author_outcome"]["required"], ["create_event"])
+        self.assertEqual(defs["author_response_body"]["required"], ["create_event"])
 
     def test_real_parent_terminal_child_and_all_bypass_negatives(self):
         original = self.fixture["lineage"]
@@ -209,7 +209,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertEqual(json.loads(decode(case["components"]["arkret-managed-device"])), case["metadata"])
         signing = "\n".join('"' + k + '": ' + v for k, v in case["components"].items()) + '\n"@signature-params": ' + case["signature_params"]
         self.assertEqual(signing, case["signature_base_utf8"])
-        key = Ed25519PublicKey.from_public_bytes(decode(case["public_key_b64u"]))
+        key = Ed25519PublicKey.from_public_bytes(decode(case["public_key_base64url"]))
         signature = decode(case["signature_b64u"])
         key.verify(signature, signing.encode())
         for field in ["@method", "@target-uri", "arkret-operation", "arkret-managed-device", "destination-service-id"]:
@@ -223,7 +223,7 @@ class ManagedGovernanceTests(unittest.TestCase):
             del bad[field]
             self.assertFalse(validator.is_valid(bad))
         bad = copy.deepcopy(case["metadata"])
-        bad["service_key"] = case["public_key_b64u"]
+        bad["service_key"] = case["public_key_base64url"]
         self.assertFalse(validator.is_valid(bad))
         self.assertFalse(validator.is_valid({**case["metadata"], "nonce": "short"}))
 
@@ -244,9 +244,9 @@ class ManagedGovernanceTests(unittest.TestCase):
 
     def test_policy_exact_read_supply_and_scope_only_never_written(self):
         request = {"realm_id": self.fixture["identities"]["realm_id"], "selector": {"kind": "policy", "policy_id": self.fixture["policy"]["id"]}}
-        self.validator("exact-current-results-read.schema.json", "#/$defs/exact_current_results_read_request").validate(request)
+        self.validator("exact-current-state-read.schema.json", "#/$defs/exact_current_state_read_request_body").validate(request)
         request["selector"]["kind"] = "policies"
-        self.assertFalse(self.validator("exact-current-results-read.schema.json", "#/$defs/exact_current_results_read_request").is_valid(request))
+        self.assertFalse(self.validator("exact-current-state-read.schema.json", "#/$defs/exact_current_state_read_request_body").is_valid(request))
 
     def test_management_approval_context_is_closed(self):
         context = {"context_kind": "management", "request_id": "ak:request:01904100-0000-7000-8000-000000000019", "management_operation": "join", "effective_scope": self.fixture["device_request"]["metadata"]["effective_scope"]}
@@ -298,7 +298,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertEqual(actions["ak.applet.join"]["required_evaluator_checks"], ["applet_managed_self_join"])
         self.assertEqual(actions["ak.circle.member.add"]["target_event_kinds"], ["ak.circle.member.state"])
         schema = json.loads((ART / "schemas/management-review-operations.schema.json").read_text())
-        join = next(row for row in schema["$defs"]["request"]["allOf"]
+        join = next(row for row in schema["$defs"]["management_review_request_body"]["allOf"]
                     if row.get("if", {}).get("properties", {}).get("management_operation", {}).get("const") == "join")
         gate = join["then"]["properties"]["target"]["properties"]["event"]
         validator = Draft202012Validator({"$id": schema["$id"], **gate}, registry=self.registry)

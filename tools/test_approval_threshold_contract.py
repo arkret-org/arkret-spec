@@ -60,8 +60,8 @@ class ApprovalThresholdContractTest(unittest.TestCase):
         self.assertEqual(context['required'], ['material'])
         self.assertFalse(context['additionalProperties'])
         self.assertNotIn('managed_actor_resolution_update_evidence', definitions)
-        material = json.loads((root / 'realm-actor-material.schema.json').read_text(encoding='utf-8'))['$defs']['outcome']
-        self.assertTrue({'request_digest','request_nonce','requester_actor_id','governance_generation','authority_ref','control_stream_head','result','signature'} <= set(material['required']))
+        material = json.loads((root / 'realm-actor-material.schema.json').read_text(encoding='utf-8'))['$defs']['realm_actor_material_response_body']
+        self.assertTrue({'request_digest','request_nonce','requester_actor_id','governance_generation','authority_ref','control_stream_head','material','signature'} <= set(material['required']))
 
 
 if __name__ == '__main__':

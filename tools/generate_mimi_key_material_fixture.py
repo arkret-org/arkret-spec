@@ -19,7 +19,7 @@ ART = ROOT / 'spec/v1/artifacts'
 OUT = ART / 'fixtures/mimi-key-material-claim-fixture.json'
 OP = 'ak.open.mimi.exchange.request_key_material.v1'
 REQUEST = 'schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body'
-OUTCOME = 'schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome'
+OUTCOME = 'schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body'
 
 
 def jcs(value):
@@ -53,7 +53,7 @@ def build():
     authorization = {k: v for k, v in request['requester_authorization'].items() if k not in ('kind', 'signature')}
     participant_input = b'ak.peer-keypackage-claim-authorization-v1\n' + jcs({
         'authorization': authorization, 'request': unsigned, 'service_binding': request['service_binding']})
-    request['requester_authorization']['signature']['sig'] = b64(participant.sign(participant_input))
+    request['requester_authorization']['signature']['signature'] = b64(participant.sign(participant_input))
     claim = {
         'claim_id': 'ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee',
         'keypackage_ref': kat['keypackage_ref'],
@@ -73,7 +73,7 @@ def build():
     receipt['signature'] = {
         'kid': 'did:webvh:z6mkfixturestationa:station.example#service-1',
         'signature_algorithm': 'Ed25519',
-        'sig': b64(destination.sign(b'ak.peer-keypackage-claim-receipt-v1\n' + jcs(receipt))),
+        'signature': b64(destination.sign(b'ak.peer-keypackage-claim-receipt-v1\n' + jcs(receipt))),
     }
     outcome = {'claim_request_id': request['claim_request_id'], 'state': 'claimed', 'claim_outcome': {
         'claim_request_id': request['claim_request_id'], 'claims': [claim], 'claim_receipt': receipt}}
@@ -111,7 +111,7 @@ def build():
     changed = deepcopy(outcome)
     del changed['claim_outcome']['claim_receipt']
     case('missing_native_signed_receipt', OUTCOME, changed, False)
-    for field, value in (('signature', {'kid': 'provider', 'sig': 'AA'}), ('available_count', 1), ('failures', [])):
+    for field, value in (('signature', {'kid': 'provider', 'signature': 'AA'}), ('available_count', 1), ('failures', [])):
         changed = deepcopy(outcome)
         changed[field] = value
         case('no_mimi_' + field + '_mirror', OUTCOME, changed, False)
@@ -137,7 +137,7 @@ def build():
     ):
         decisions.append({'name': 'reject_' + field, 'overrides': {field: value}, 'expect_valid': False})
     return {
-        'version': '2026-10-23.3', 'profile': 'ak.profile.mimi_interop.v1',
+        'version': '2026-10-24.1', 'profile': 'ak.profile.mimi_interop.v1',
         'suite': 'mimi_key_material_claim', 'operation_id': OP,
         'runner': {'kind': 'json_schema_and_semantic_cases', 'command': 'python -B -m unittest tools.test_mimi_key_material_claim_contract'},
         'generated_by': 'tools/generate_mimi_key_material_fixture.py',

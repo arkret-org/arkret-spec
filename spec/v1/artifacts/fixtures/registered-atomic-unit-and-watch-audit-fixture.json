@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.state.v1",
-  "version": "2026-10-14.2",
+  "version": "2026-10-24.1",
   "suite": "registered_atomic_units_and_watch_audit",
   "runner": {
     "kind": "named_suite",
@@ -2510,7 +2510,7 @@
     },
     {
       "name": "closed_audited_read",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
       "instance": {
         "audit_submission": {
           "event": {
@@ -2563,7 +2563,7 @@
     },
     {
       "name": "caller_head_forbidden",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
       "instance": {
         "audit_submission": {
           "event": {
@@ -2618,7 +2618,7 @@
     },
     {
       "name": "caller_selector_forbidden",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
       "instance": {
         "audit_submission": {
           "event": {
@@ -2679,7 +2679,7 @@
     },
     {
       "name": "preaccepted_ref_forbidden",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
       "instance": {
         "audit_submission": {
           "event": {
@@ -2828,7 +2828,7 @@
     },
     {
       "name": "forward_closed_pair",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "authority_forward",
         "atomic_submission": {
@@ -2936,7 +2936,7 @@
     },
     {
       "name": "forward_pair_mixed_single_event",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "authority_forward",
         "atomic_submission": {
@@ -3082,7 +3082,7 @@
     },
     {
       "name": "first_admission_as_replica_unit_forbidden",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "registered_atomic_unit",
         "unit": {
@@ -3187,7 +3187,7 @@
     },
     {
       "name": "closed_audit_response_never_written",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
       "instance": {
         "audit_commit": {
           "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
@@ -3199,7 +3199,7 @@
           "stream_position": 0,
           "previous_commit_ref": null,
           "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
           "committed_at": "2026-10-14T00:00:00.000Z",
           "signature": {
@@ -3208,13 +3208,13 @@
             "verification_method": "did:web:station.example#authority",
             "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-10-14T00:00:00.000Z",
-            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         },
         "current": {
           "status": "never_written",
           "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -3240,7 +3240,7 @@
     },
     {
       "name": "closed_audit_response_written_null",
-      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
       "instance": {
         "audit_commit": {
           "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
@@ -3252,7 +3252,7 @@
           "stream_position": 3,
           "previous_commit_ref": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
           "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
           "committed_at": "2026-10-14T00:00:00.000Z",
           "signature": {
@@ -3261,13 +3261,13 @@
             "verification_method": "did:web:station.example#authority",
             "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-10-14T00:00:00.000Z",
-            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         },
         "current": {
           "status": "current",
           "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -3276,7 +3276,7 @@
             "stream_position": 3,
             "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:ARUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUV",
@@ -3304,7 +3304,7 @@
     },
     {
       "name": "forward_pair_missing_slot_evidence",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "authority_forward",
         "atomic_submission": {
@@ -3409,7 +3409,7 @@
     },
     {
       "name": "forward_pair_one_slot_evidence",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "authority_forward",
         "atomic_submission": {
@@ -3517,7 +3517,7 @@
     },
     {
       "name": "forward_pair_top_level_evidence_forbidden",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
       "instance": {
         "branch": "authority_forward",
         "atomic_submission": {
@@ -3682,7 +3682,7 @@
         "stream_position": 0,
         "previous_commit_ref": null,
         "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-        "governance_generation": 0,
+        "governance_generation": "0",
         "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
         "committed_at": "2026-10-14T00:00:00.000Z",
         "signature": {
@@ -3691,13 +3691,13 @@
           "verification_method": "did:web:station.example#authority",
           "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-10-14T00:00:00.000Z",
-          "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       },
       "current": {
         "status": "never_written",
         "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-        "governance_generation": 0,
+        "governance_generation": "0",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -3730,7 +3730,7 @@
         "stream_position": 0,
         "previous_commit_ref": null,
         "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-        "governance_generation": 0,
+        "governance_generation": "0",
         "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
         "committed_at": "2026-10-14T00:00:00.000Z",
         "signature": {
@@ -3739,13 +3739,13 @@
           "verification_method": "did:web:station.example#authority",
           "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "created_at": "2026-10-14T00:00:00.000Z",
-          "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       },
       "current": {
         "status": "never_written",
         "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-        "governance_generation": 0,
+        "governance_generation": "0",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -3828,7 +3828,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -3837,13 +3837,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -3876,7 +3876,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -3885,13 +3885,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -3975,7 +3975,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -3984,13 +3984,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4023,7 +4023,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4032,13 +4032,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4122,7 +4122,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4131,13 +4131,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4170,7 +4170,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4179,13 +4179,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4269,7 +4269,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4278,13 +4278,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4317,7 +4317,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4326,13 +4326,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4416,7 +4416,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4425,13 +4425,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4464,7 +4464,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4473,13 +4473,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4563,7 +4563,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4572,13 +4572,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 1,
+            "governance_generation": "1",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4611,7 +4611,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4620,13 +4620,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4710,7 +4710,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4719,13 +4719,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4758,7 +4758,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4767,13 +4767,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4857,7 +4857,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4866,13 +4866,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:AWNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Nj",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -4905,7 +4905,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -4914,13 +4914,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5004,7 +5004,7 @@
             "stream_position": 3,
             "previous_commit_ref": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5013,13 +5013,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "current",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5028,7 +5028,7 @@
               "stream_position": 3,
               "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB"
             },
-            "result": {
+            "current_state": {
               "selector": {
                 "kind": "strand_watch",
                 "strand_id": "ak:strand:ARUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUV",
@@ -5065,7 +5065,7 @@
             "stream_position": 3,
             "previous_commit_ref": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5074,13 +5074,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "current",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5089,7 +5089,7 @@
               "stream_position": 3,
               "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB"
             },
-            "result": {
+            "current_state": {
               "selector": {
                 "kind": "strand_watch",
                 "strand_id": "ak:strand:ARUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUV",
@@ -5175,7 +5175,7 @@
             "stream_position": 3,
             "previous_commit_ref": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5184,13 +5184,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "current",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5199,7 +5199,7 @@
               "stream_position": 3,
               "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB"
             },
-            "result": {
+            "current_state": {
               "selector": {
                 "kind": "strand_watch",
                 "strand_id": "ak:strand:ARUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUV",
@@ -5234,7 +5234,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5243,13 +5243,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5333,7 +5333,7 @@
             "stream_position": 3,
             "previous_commit_ref": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5342,13 +5342,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "current",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",
@@ -5357,7 +5357,7 @@
               "stream_position": 3,
               "commit_id": "ak:realm_commit:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB"
             },
-            "result": {
+            "current_state": {
               "selector": {
                 "kind": "strand_watch",
                 "strand_id": "ak:strand:ARUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUV",
@@ -5392,7 +5392,7 @@
             "stream_position": 0,
             "previous_commit_ref": null,
             "event_ref": "ak:event:AUFpEieGinWMKiy8ydtqESZfkRTKjmBnKRaNxbs2rU7s",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "authority_ref": "ak:event:Adf14zDHbbPYgbesX6ndVS_Zy2h9e9_Lto-_3GhQquIB",
             "committed_at": "2026-10-14T00:00:00.000Z",
             "signature": {
@@ -5401,13 +5401,13 @@
               "verification_method": "did:web:station.example#authority",
               "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
               "created_at": "2026-10-14T00:00:00.000Z",
-              "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             }
           },
           "current": {
             "status": "never_written",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "governance_generation": 0,
+            "governance_generation": "0",
             "stream_head": {
               "stream_ref": {
                 "kind": "realm",

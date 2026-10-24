@@ -35,7 +35,7 @@ class AppletDeviceDeliveryContractTest(unittest.TestCase):
         self.assertEqual(fact['$ref'], './authority-commit-operations.schema.json#/$defs/realm_device_historical_signer_fact')
         context = schema['$defs']['applet_managed_actor_authoring_context']
         self.assertEqual(context['required'], ['material'])
-        self.assertEqual(context['properties']['material']['$ref'], './realm-actor-material.schema.json#/$defs/outcome')
+        self.assertEqual(context['properties']['material']['$ref'], './realm-actor-material.schema.json#/$defs/realm_actor_material_response_body')
         self.assertNotIn('managed_actor_resolution_update_evidence', schema['$defs'])
 
 

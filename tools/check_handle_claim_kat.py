@@ -57,8 +57,8 @@ def main() -> int:
     if digest(status["domain"], status_projection) != status["expected_digest"]:
         raise SystemExit("HandleClaim status digest drifted")
     if set(status["preimage"]) != {
-        "schema", "claim", "status", "as_of", "verifier_id", "verified_at",
-        "revocation", "fresh_until", "status_proof",
+        "schema", "claim", "status", "evaluated_at", "verifier_id", "verified_at",
+        "revocation", "cache_expires_at", "status_proof",
     }:
         raise SystemExit("HandleClaim status preimage is not closed")
     status_proof = status["preimage"]["status_proof"]

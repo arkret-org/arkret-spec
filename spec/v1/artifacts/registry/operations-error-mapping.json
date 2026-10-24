@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-10-23.1",
+  "version": "2026-10-24.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-10-23T00:00:00+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -131,7 +131,7 @@
         "push_token_unknown",
         "push_token_invalid"
       ],
-      "description": "These codes reach the caller in two places that MUST agree: as a top-level failure envelope, and as the per-device reason_code inside push_notify_outcome.outcomes[]. rate_limited also appears in that enum but stays out of this list because it is universal (see rules.universal_codes). schema_violation is likewise universal at the request/response validation layer, but intentionally is not a per-device outcome reason: malformed input or a non-conserving response invalidates the whole exchange rather than one device route.",
+      "description": "These codes reach the caller in two places that MUST agree: as a top-level failure envelope, and as the per-device reason_code inside push_notify_response_body.outcomes[]. rate_limited also appears in that enum but stays out of this list because it is universal (see rules.universal_codes). schema_violation is likewise universal at the request/response validation layer, but intentionally is not a per-device outcome reason: malformed input or a non-conserving response invalidates the whole exchange rather than one device route.",
       "codes": []
     },
     {
@@ -287,7 +287,7 @@
         "agent_provision_scope_migration_required",
         "agent_key_scope_reauthorization_required"
       ],
-      "description": "Agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted authority-committed current results; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events.",
+      "description": "Agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted authority-committed current state; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events.",
       "codes": []
     },
     {
@@ -1431,7 +1431,7 @@
         "media_plaintext_service_not_authorised",
         "media_service_foci_required"
       ],
-      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media key-access-revision freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[].",
+      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media key-access-revision freshness, and media_service_decryption_allowed pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[].",
       "codes": []
     },
     {
@@ -1628,8 +1628,8 @@
       "codes": []
     },
     {
-      "operation_id": "ak.self.current_results.read.exact.v1",
-      "http_alias": "POST /_arkret/self/current-results/exact",
+      "operation_id": "ak.self.current_state.read.exact.v1",
+      "http_alias": "POST /_arkret/self/current-state/exact",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unauthorized, invisible, foreign and unknown selectors collapse to not_found and never return never_written; an unresolved current governing basis uses revision_unavailable. Invalid closed selectors use schema_violation, request overflow uses payload_too_large and response overflow uses limit_exceeded.",
       "codes": []

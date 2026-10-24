@@ -301,7 +301,7 @@ Realm Device revoke 以原 self 请求摘要定位 closed `device_revoke` 结果
 `state`、`decided_at`。两个 ref 都是同一 Realm 私有控制流的 CommittedEventRef；authorization 必须对应
 该主体、设备在 proposal 接纳时解析的原授权实例及正整数代次，不能由调用者自报。
 `state=pending|accepted|rejected`；pending 的 decided_at 必为 null，terminal 必为首次真实决定时间。
-proposal Commit 只证明登记，原 submit_outcome 的 committed／duplicate 不代表永久撤销。
+proposal Commit 只证明登记，原 submit_response_body 的 committed／duplicate 不代表永久撤销。
 无已接纳申请才返回 unknown；已接纳但 ledger 缺失、来源不完整或相互冲突 MUST unavailable。
 既有外层签名继续绑定完整主体、Realm、治理任期、请求摘要、nonce、请求者及时间窗口；权限和受限 Device
 披露边界不扩大。治理交接 MUST 完整移交 ledger、第一次 terminal、原授权来源及待执行收尾任务；
@@ -309,7 +309,7 @@ proposal Commit 只证明登记，原 submit_outcome 的 committed／duplicate �
 请求／响应各最多 4 MiB，超限整体拒绝，不能截断后签部分数据。
 
 历史 producer fact 新增 realm_device／realm_control，共有 kind、event_id、actor_id、verification_method、
-public_key_b64u、accepted_at。realm_device 另有 device_id、authorization_event_id、authorized_generation_ref；
+public_key_base64url、accepted_at。realm_device 另有 device_id、authorization_event_id、authorized_generation_ref；
 不携控制流 position 或授权 Commit 坐标。realm_control 另有 control_event_ref，只向获准私有审计披露。
 完整 DID／授权依据留在治理私态。SHA256(JCS(fact)) 在目标 Commit 计算 ID／签名前冻结，accepted_at 与 committed_at
 相同；外层 target 坐标随后建立，不能放回 fact 形成自引用。
@@ -324,7 +324,7 @@ scope confirmation 不再作为主体入口。Realm actor 材料使用本节唯�
 Account 调用自己的账号 Station 的 self material 入口。目标 Realm 在外站治理时，账号 Station **MUST** 使用
 `ak.peer.realm_actor.read.material.v1`（`POST /_arkret/peer/realm-actors/material`）。closed 请求按顺序为
 requester_account_id（完整 AccountId）、request（原 self material 请求），定义见
-[peer_request](../../artifacts/schemas/realm-actor-material.schema.json#/$defs/peer_request)。不能向外站转发 bearer、
+[peer_request](../../artifacts/schemas/realm-actor-material.schema.json#/$defs/peer_realm_actor_material_request_body)。不能向外站转发 bearer、
 SessionGrant 或 DPoP，不能把服务器身份当作 Account，不能补造读 Event 或改用普通 scan。
 
 账号 Station 先认证实际 Account 与当前 session／Device，从认证结果构造 requester_account_id，验证目标 Realm
@@ -530,9 +530,9 @@ recovery.set 将 enabled 设为相同值的新 Event 以 failed_precondition 拒
 
 ### 10.8 恢复 Service 的私有历史验签事实
 
-`realm_recovery_service` 仅用于 `realm.actor.recovery.begin` 与 `realm.actor.control.reset` 的原生产者事实。字段顺序为 kind、event_id、actor_id、target_actor_id、verification_method、public_key_b64u、accepted_at、applet_id、registration_epoch、registration_ref、manager_ref、recovery_ref；全部必填，禁止额外字段。actor_id MUST 为实际签名 Service，target_actor_id MUST 为完整 Realm ActorId；Event 的 Realm、Applet、目标主体和记录 MUST 一致。该事实不含业务 authorization_ref，不改变原恢复资格。
+`realm_recovery_service` 仅用于 `realm.actor.recovery.begin` 与 `realm.actor.control.reset` 的原生产者事实。字段顺序为 kind、event_id、actor_id、target_actor_id、verification_method、public_key_base64url、accepted_at、applet_id、registration_epoch、registration_ref、manager_ref、recovery_ref；全部必填，禁止额外字段。actor_id MUST 为实际签名 Service，target_actor_id MUST 为完整 Realm ActorId；Event 的 Realm、Applet、目标主体和记录 MUST 一致。该事实不含业务 authorization_ref，不改变原恢复资格。
 
-registration_ref MUST 是接纳截点有效且经方法原生验证的 Applet Service 登记原件的完整 CommittedEventRef；registration_epoch MUST 绑定该登记，不能用业务安装有效性代替。verification_method 与 public_key_b64u MUST 来自该登记在 accepted_at 的真实 DID 历史，并验证原 Event producer proof。
+registration_ref MUST 是接纳截点有效且经方法原生验证的 Applet Service 登记原件的完整 CommittedEventRef；registration_epoch MUST 绑定该登记，不能用业务安装有效性代替。verification_method 与 public_key_base64url MUST 来自该登记在 accepted_at 的真实 DID 历史，并验证原 Event producer proof。
 
 manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_revision；reset 的 manager_ref MUST 满足 expected_manager_revision。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。登记、管理关系、恢复 enabled／pending、双 gate、原生恢复材料及 CAS 仍依本节原接纳规则检查，缺失或不一致 MUST 拒绝且零副作用。
 
@@ -548,7 +548,7 @@ manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 rec
 
 ### 11.1 完整领取身份与原生授权
 
-`keypackages_claim_request_body` 与 `peer_keypackages_claim_unsigned_request` 的 Realm target
+`keypackages_claim_request_body` 与 `peer_keypackages_claim_fields` 的 Realm target
 使用 `target_actor_id`（完整 realm ActorId）与非空 `target_device_ids`；与 Account／Agent target
 严格互斥。Realm requester 使用 `requester_actor_id`，其 `requester_authorization.kind=realm_device`，
 仍携真实 requester_device_id、device_authorize_event_id、verification_method、signed_at 与 signature。

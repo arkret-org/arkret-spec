@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "arkret.collection-naming-registry.v1",
-  "version": "2026-10-12.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
   "normative_rule": "NC-COLLECTION-001",
   "description": "Reviewed exact exceptions to the default object-collection plural grammar, plus named pagination object contracts. Entry, Row, View, Preview, Projection and Descriptor are semantic words, not representation suffixes; referenced item type names never determine property names.",
@@ -63,14 +63,14 @@
     },
     {
       "file": "view.schema.json",
-      "pointer": "/$defs/collection_config/properties/item_order_by",
+      "pointer": "/$defs/collection_configuration/properties/item_order_by",
       "reason": "registered ordered collection clause grammar; item_order_by names the whole ordered clause"
     }
   ],
   "pagination_objects": [
     {
       "file": "mls-roster-authority.schema.json",
-      "pointer": "/$defs/roster_read_outcome",
+      "pointer": "/$defs/roster_read_response_body",
       "collection_field": "records",
       "companion_fields": [
         "next_cursor"
@@ -79,7 +79,7 @@
     },
     {
       "file": "account-operations.schema.json",
-      "pointer": "/$defs/account_status_resolve_outcome",
+      "pointer": "/$defs/account_status_resolve_response_body",
       "collection_field": "records",
       "companion_fields": [
         "has_more"
@@ -126,46 +126,46 @@
     },
     {
       "file": "agent-operations.schema.json",
-      "pointer": "/$defs/agent_list",
+      "pointer": "/$defs/agent_page",
       "collection_field": "agents",
       "companion_fields": [
         "has_more",
         "next_cursor"
       ],
-      "reason": "agent_list paginates agents"
+      "reason": "agent_page paginates agents"
     },
     {
       "file": "agent-operations.schema.json",
-      "pointer": "/$defs/agent_sidecar_list",
+      "pointer": "/$defs/agent_sidecar_page",
       "collection_field": "sidecars",
       "companion_fields": [
         "next_cursor"
       ],
-      "reason": "agent_sidecar_list paginates sidecars"
+      "reason": "agent_sidecar_page paginates sidecars"
     },
     {
-      "file": "authz-operations.schema.json",
-      "pointer": "/$defs/authz_invite_list",
+      "file": "authorization-operations.schema.json",
+      "pointer": "/$defs/authorization_invite_page",
       "collection_field": "invites",
       "companion_fields": [
         "has_more",
         "next_cursor"
       ],
-      "reason": "authz_invite_list paginates invites"
+      "reason": "authorization_invite_page paginates invites"
     },
     {
       "file": "contact-operations.schema.json",
-      "pointer": "/$defs/contact_list",
+      "pointer": "/$defs/contact_page",
       "collection_field": "contacts",
       "companion_fields": [
         "has_more",
         "next_cursor"
       ],
-      "reason": "contact_list paginates contacts"
+      "reason": "contact_page paginates contacts"
     },
     {
       "file": "directory-operations.schema.json",
-      "pointer": "/$defs/directory_realm_search_outcome",
+      "pointer": "/$defs/directory_realm_search_response_body",
       "collection_field": "realms",
       "companion_fields": [
         "has_more",
@@ -175,7 +175,7 @@
     },
     {
       "file": "keys-operations.schema.json",
-      "pointer": "/$defs/keys_backups_list",
+      "pointer": "/$defs/keys_backups_page",
       "collection_field": "backups",
       "companion_fields": [
         "has_more",
@@ -185,7 +185,7 @@
     },
     {
       "file": "mimi-operations.schema.json",
-      "pointer": "/$defs/mimi_identifier_query_outcome",
+      "pointer": "/$defs/mimi_identifier_query_response_body",
       "collection_field": "matches",
       "companion_fields": [
         "has_more"
@@ -194,7 +194,7 @@
     },
     {
       "file": "realm-read-operations.schema.json",
-      "pointer": "/$defs/realm_stream_list",
+      "pointer": "/$defs/realm_stream_page",
       "collection_field": "streams",
       "companion_fields": [
         "has_more",
@@ -204,7 +204,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/DeviceMessagesGetOutcome",
+      "pointer": "/$defs/DeviceMessagesGetResponseBody",
       "collection_field": "deliveries",
       "companion_fields": [
         "has_more",
@@ -215,7 +215,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/IdentityLogListOutcome",
+      "pointer": "/$defs/IdentityLogListResponseBody",
       "collection_field": "entries",
       "companion_fields": [
         "has_more",
@@ -225,7 +225,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/ProjectionMorphList",
+      "pointer": "/$defs/MorphPage",
       "collection_field": "morphs",
       "companion_fields": [
         "has_more",
@@ -235,7 +235,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/ProjectionSpaceList",
+      "pointer": "/$defs/SpacePage",
       "collection_field": "spaces",
       "companion_fields": [
         "has_more",
@@ -245,7 +245,7 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/ProjectionStrandList",
+      "pointer": "/$defs/StrandPage",
       "collection_field": "strands",
       "companion_fields": [
         "has_more",

@@ -2208,22 +2208,22 @@ DURATION_FIELD_EXCEPTIONS = (
     },
     {
         "file": "invite-receive-policy.schema.json",
-        "pointer": "/properties/new_source_quota/properties/new_sources_per_window",
-        "name": "new_sources_per_window",
+        "pointer": "/properties/new_source_quota/properties/source_count_per_window",
+        "name": "source_count_per_window",
         "reason": "A new-source admission count per window, not the window's "
         "length; the integer counts sources, so no unit suffix applies.",
     },
     {
         "file": "invite-receive-policy.schema.json",
-        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/default_new_sources_per_window",
-        "name": "default_new_sources_per_window",
+        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/default_source_count_per_window",
+        "name": "default_source_count_per_window",
         "reason": "A default new-source admission count per window, not the "
         "window's length; the integer counts sources, so no unit suffix applies.",
     },
     {
         "file": "invite-receive-policy.schema.json",
-        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/max_new_sources_per_window",
-        "name": "max_new_sources_per_window",
+        "pointer": "/$defs/receive_policy_constraints/properties/new_source_quota/properties/max_source_count_per_window",
+        "name": "max_source_count_per_window",
         "reason": "A maximum new-source admission count per window, not the "
         "window's length; the integer counts sources, so no unit suffix applies.",
     },
@@ -2439,22 +2439,12 @@ def check_slug_field_closure(lint: Lint) -> None:
         )
 
 
-def check_typed_current_result_naming(lint: Lint) -> None:
-    """Earn the one `_result` exemption R4 grants, instead of assuming it.
+def check_current_state_naming(lint: Lint) -> None:
+    """Close Current<Family> names, selector families and public union in both directions."""
 
-    NC-TYPE-001 closes the structural wrapper table and `Result` is not in it.
-    `typed-current-result.schema.json` keeps the tail anyway, on one condition:
-    none of those names is chosen at the call site. Every one is pinned to a
-    `result_kind` registered in `current-result-registry.json`, so the tail is
-    a registry projection rather than an invented wrapper role. This proves
-    that bijection in both directions, and proves the exemption stays confined
-    to that one schema -- without it the comment in ``naming.py`` would be an
-    assertion no gate ever checks.
-    """
-
-    schema_name = "typed-current-result.schema.json"
+    schema_name = "current-state.schema.json"
     schema_path = ARTIFACTS / "schemas" / schema_name
-    registry_path = ARTIFACTS / "registry" / "current-result-registry.json"
+    registry_path = ARTIFACTS / "registry" / "current-state-registry.json"
 
     schema = load_json(lint, schema_path)
     registry = load_json(lint, registry_path)
@@ -2463,59 +2453,59 @@ def check_typed_current_result_naming(lint: Lint) -> None:
 
     defs = schema.get("$defs")
     if not isinstance(defs, dict):
-        lint.fail(schema_path, "typed current result schema has no $defs object")
+        lint.fail(schema_path, "current state schema has no $defs object")
         return
 
-    entries = registry.get("result_kinds")
+    entries = registry.get("state_kinds")
     if not isinstance(entries, list):
-        lint.fail(registry_path, "current-result-registry needs a result_kinds array")
+        lint.fail(registry_path, "current-state-registry needs a state_kinds array")
         return
 
     registered: set[str] = set()
     for entry in entries:
         if not isinstance(entry, dict):
-            lint.fail(registry_path, "result_kinds entries must be objects")
+            lint.fail(registry_path, "state_kinds entries must be objects")
             continue
-        kind = entry.get("result_kind")
+        kind = entry.get("state_kind")
         schema_ref = entry.get("schema_ref")
         if not isinstance(kind, str) or not isinstance(schema_ref, str):
-            lint.fail(registry_path, "result_kinds entry needs string result_kind/schema_ref")
+            lint.fail(registry_path, "state_kinds entry needs string state_kind/schema_ref")
             continue
-        expected_ref = f"schemas/{schema_name}#/$defs/{kind}_result"
+        expected_ref = f"schemas/{schema_name}#/$defs/current_{kind}"
         if schema_ref != expected_ref:
             lint.fail(
                 registry_path,
-                f"result_kind `{kind}` must resolve to `{expected_ref}`, got `{schema_ref}`; "
-                "the `_result` tail is only legal here because it is derived from the "
+                f"state_kind `{kind}` must resolve to `{expected_ref}`, got `{schema_ref}`; "
+                "the Current prefix must be derived from the "
                 "registered kind rather than chosen",
             )
             continue
-        if f"{kind}_result" not in defs:
+        if f"current_{kind}" not in defs:
             lint.fail(
                 schema_path,
-                f"registered result_kind `{kind}` has no `$defs/{kind}_result` envelope",
+                f"registered state_kind `{kind}` has no `$defs/current_{kind}` envelope",
             )
             continue
-        registered.add(f"{kind}_result")
+        registered.add(f"current_{kind}")
 
-    declared = {name for name in defs if name.endswith("_result")}
+    declared = {name for name in defs if name.startswith("current_")}
     unregistered = sorted(declared - registered)
     if unregistered:
         lint.fail(
             schema_path,
-            f"`_result` $defs keys with no registered result_kind: {unregistered}; "
+            f"Current $defs keys with no registered state_kind: {unregistered}; "
             "register the kind or rename the type to a wrapper word R4 allows",
         )
 
     # A registered envelope must also be reachable from the public root.
     branches = schema.get("oneOf")
     if not isinstance(branches, list):
-        lint.fail(schema_path, "typed current result root needs a oneOf array")
+        lint.fail(schema_path, "current state root needs a oneOf array")
     else:
         root_refs = [branch.get("$ref") for branch in branches if isinstance(branch, dict)]
         expected_refs = {f"#/$defs/{name}" for name in registered}
         if len(root_refs) != len(branches) or any(not isinstance(ref, str) for ref in root_refs):
-            lint.fail(schema_path, "typed current result root branches need registered $refs")
+            lint.fail(schema_path, "current state root branches need registered $refs")
         else:
             missing = sorted(expected_refs - set(root_refs))
             unexpected = sorted(set(root_refs) - expected_refs)
@@ -2524,12 +2514,10 @@ def check_typed_current_result_naming(lint: Lint) -> None:
             if unexpected:
                 lint.fail(schema_path, f"unregistered current envelopes in root oneOf: {unexpected}")
             if len(root_refs) != len(set(root_refs)):
-                lint.fail(schema_path, "typed current result root repeats an envelope")
+                lint.fail(schema_path, "current state root repeats an envelope")
 
-    # The exemption is per-schema, so prove no other schema quietly reuses the tail.
+    # Result is forbidden in all schemas, including the current-state schema.
     for other_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
-        if other_path.name == schema_name:
-            continue
         other = load_json(lint, other_path)
         if other is None:
             continue
@@ -2538,13 +2526,12 @@ def check_typed_current_result_naming(lint: Lint) -> None:
             if isinstance(node, dict):
                 for key, value in node.items():
                     if key == "$defs" and isinstance(value, dict):
-                        strays = sorted(n for n in value if n.endswith("_result"))
+                        strays = sorted(n for n in value if n == "result" or n.endswith("_result"))
                         if strays:
                             lint.fail(
                                 other_path,
-                                f"`_result` is reserved for typed current result envelopes; "
-                                f"rename {strays} (a synchronous answer is `_outcome`, a row "
-                                "inside one is `_record`)",
+                                f"`_result` is not a protocol type role; "
+                                f"rename {strays} according to its actual message or domain role",
                             )
                     walk(value)
             elif isinstance(node, list):

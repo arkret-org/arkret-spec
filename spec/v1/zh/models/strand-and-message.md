@@ -46,10 +46,10 @@ Strand 顶层字段不承载额外模式或业务分类；默认入口由 track 
 
 一个 Realm MAY 指定**一个**默认讨论 Strand（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
 
-- **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（typed current result `realm_set_default_strand`、`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：typed current result 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。
-- **Strand 侧只暴露派生标记。** Strand 投影（[`ProjectionStrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
+- **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（current state `realm_set_default_strand`、`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：current state 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。
+- **Strand 侧只暴露派生标记。** Strand 投影（[`StrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
 - **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ak.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`，见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ak.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ak.realm.set_default_strand`（risk medium，见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
-- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 typed current result 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `expected_revision null`；typed current result 为非初始态时该字段 MUST 提供并编译为 `expected_revision`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 current state 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `expected_revision null`；current state 为非初始态时该字段 MUST 提供并编译为 `expected_revision`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
 - **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`；或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm token""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
 
 ## 3. Strand Schema 与字段
@@ -63,7 +63,7 @@ Schema id: `ak.schema.strand.v1`
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | scope 派生、authority-commit 基线校验、`Event.scope_ref` 对照、只读 projection 与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
 | `schema_refs` | no | `array<string>` | 出现时至少 1 项且唯一，每项形如 `ak.schema.<name>.v1`。容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在此（同 [`morph.md` §4](./morph.md)）。**该 pattern 比 Realm / Morph 的同名字段更严格是有意的**：Realm genesis 的 `schema_refs` 仅额外允许封闭 allowlist 内、create-locked 的结构角色判别式（见 [`realm-and-space.md` §2.3.A](./realm-and-space.md#23a-字段-carrier-inventorynormative)），并不是通用 conformance / policy profile 激活面；Strand 的激活轴则 MUST 只接受 schema id——否则 profile id 会再次变成对象激活 token，正是本字段要消除的歧义。与 Morph 不同，本字段可选：没有 profile 子树的普通讨论 Strand MUST 整体省略，而不是填占位 schema id。**双向共现（normative）**：每个被列出的 profile schema 与其在 `metadata.fields` 下的命名空间子树 MUST 在 post-patch 对象上同时出现或同时不出现，任一方向缺失均 `schema_violation`（Calendar 用 `reason=calendar_activation_mismatch`）。因此 ref 与子树可增可减，但只能整体成对增减。该规则对每一对已登记的 `(schema id, metadata.fields 命名空间)` 生效，并 MUST 在 `strand.schema.json` 中逐对以 `if/then` 机器强制；v1 只登记一对：`ak.schema.calendar_event.v1` ↔ `metadata.fields.calendar`。新增 Strand profile 子树时 MUST 在同一处补齐该对的双向分支，MUST NOT 只写正文。 | `metadata.fields` 下 profile 子树的权威 schema 集合，也是唯一的 profile 激活轴。`metadata.fields.profile` / `profile_refs` 等替代形态 MUST 被拒绝。 |
-| `agent_participation` | no | `object{agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
+| `agent_participation` | no | `object{agent:{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；scope 激活 MLS 后必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `topic` | no | `object{space_id:SpaceId,rank:string}` | 仅稳定 DM Realm 的 Chat，引用同 Realm active root Topic Space(kind=topic)；create 必须省略，update 仅显式整体 set/unset 且 required expected_state_digest。详见 Contact／Direct Conversation §8.3.1。 | Realm 内唯一共享分类；不是 Board position，省略表示未分类。 |
@@ -152,7 +152,7 @@ Schema id: `ak.schema.strand.v1`
 ```
 - `strand_id`：必填。
 - `stage`：必填，必须是上面 8 值之一。
-- `expected_stage`：目标 stage typed current result 为初始态时 MAY 省略（等价 `expected_revision null`）；非初始态时 MUST 提供并编译为 typed current result `expected_revision` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
+- `expected_stage`：目标 stage current state 为初始态时 MAY 省略（等价 `expected_revision null`）；非初始态时 MUST 提供并编译为 current state `expected_revision` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
 
 **Payload 不携带 reason / note / explanation 字段**。stage 变更的"为什么"由人类讨论承担：
 
@@ -308,7 +308,7 @@ Track **配置**写入只有 `ak.strand.tracks.update`：开关、primary、prof
   }
 }
 ```
-整个变更由单个 Event 的 reducer projection 原子写入同一 `current-value projection` typed current result；并发更新由 Station 在该 stream 上串行化，当前值是最后一个被接受的写入，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用确切 current source，不得依赖接收顺序静默覆盖。
+整个变更由单个 Event 的 reducer projection 原子写入同一 `current-value projection` current state；并发更新由 Station 在该 stream 上串行化，当前值是最后一个被接受的写入，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用确切 current source，不得依赖接收顺序静默覆盖。
 
 Strand authoring 复用 current 的 `{value,source:{event_id,depth}}`，不定义第二份来源镜像。
 标题、描述、字段、track、日历都按 [typed reducer 规则](./event-and-patch.md#3-typed-reducer)
@@ -415,7 +415,7 @@ UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示�
 
 写入 assignment MUST 使用 `ak.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。更换负责人由应用显式解除旧分配并创建新分配记录；协议不将不同 Actor 的分配视为互斥。`ak.strand.update` 不得修改 assignment。
 
-Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` / `board_space_id` / `list_space_id` / `rank` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。assignment 名会与 `assigned_to` Relation 及 projection 字段形成双源；三个定位名会与 `strand_position` typed current result 形成双源。字段式 assignment / placement 都不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中。
+Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` / `board_space_id` / `list_space_id` / `rank` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。assignment 名会与 `assigned_to` Relation 及 projection 字段形成双源；三个定位名会与 `strand_position` current state 形成双源。字段式 assignment / placement 都不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中。
 
 Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: ActorId[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
 
@@ -425,9 +425,9 @@ Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor
 
 Watch 是个人通知订阅模型：actor 声明自己对某个 Strand（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（Realm-default 或 Circle）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
 
-Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 current-value projection typed current result（typed current result 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> strand`，见 [relation.md §3](./relation.md)）供查询，但 **`ak.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Strand position 派生 `contains` Relation 的双源约束同模式。
+Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 current-value projection current state（current state 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> strand`，见 [relation.md §3](./relation.md)）供查询，但 **`ak.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Strand position 派生 `contains` Relation 的双源约束同模式。
 
-在 Strand 顶层或 `metadata.fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch typed current result 双源并存。
+在 Strand 顶层或 `metadata.fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch current state 双源并存。
 
 ### 8.2 Watch 级别枚举
 
@@ -440,15 +440,15 @@ Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 c
 | `all` | 全量订阅 | 该 Strand 任何 `ak.message.create` / `ak.reaction.add` / `ak.reaction.remove` / Strand synthesis 字段变更 |
 | `muted` | 显式静音 | 一律不通知，**覆盖** `mentions_only` 的定向通知；显式声明"即使被 @ 也不要打扰" |
 
-未声明 `level` 或 typed current result value 为 `null` 时等价于 `mentions_only`。
+未声明 `level` 或 current state value 为 `null` 时等价于 `mentions_only`。
 
-### 8.3 typed current result basis 与写入事件
+### 8.3 current state basis 与写入事件
 
-`watches` 由 current-value projection typed current result 维护：
+`watches` 由 current-value projection current state 维护：
 
 ```text
 event_kind  := ak.strand.watch.set
-result_family := strand_watch
+state_family := strand_watch
 result_id     := strand_watch:<strand_id>:<watcher_actor_id>
 projection     := current-value projection
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
@@ -460,26 +460,26 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `strand_id` | yes | `id:strand` | 被订阅的 Strand（typed current result key 之一）。 |
-| `watcher_actor_id` | yes | `did` | 订阅者 DID（typed current result key 之一）。默认 MUST 等于 envelope `actor_id`，admin 写他人需要 `ak.strand.watch.set.others`（见 §8.4）。 |
-| `level` | **yes** | `enum / null` | 期望写入的级别；`null` 等价于"清空 typed current result"（= `mentions_only` 默认行为）。`level=null` 时 `level_public` MUST 省略。 |
+| `strand_id` | yes | `id:strand` | 被订阅的 Strand（current state key 之一）。 |
+| `watcher_actor_id` | yes | `did` | 订阅者 DID（current state key 之一）。默认 MUST 等于 envelope `actor_id`，admin 写他人需要 `ak.strand.watch.set.others`（见 §8.4）。 |
+| `level` | **yes** | `enum / null` | 期望写入的级别；`null` 等价于"清空 current state"（= `mentions_only` 默认行为）。`level=null` 时 `level_public` MUST 省略。 |
 | `level_public` | conditional | `boolean` | Opt-in publication；默认 `false`。仅在 `level` 为非 null 字符串值时允许出现；详见 §8.5。 |
-| `expected_value` | no | `null \| { level, level_public? }` | 编译为 typed current result `expected_revision` precondition（**whole-value compare**）；省略时等价 `expected_revision null`，仅允许首次写入，不允许绕过 CAS。 |
+| `expected_value` | no | `null \| { level, level_public? }` | 编译为 current state `expected_revision` precondition（**whole-value compare**）；省略时等价 `expected_revision null`，仅允许首次写入，不允许绕过 CAS。 |
 
 约束：
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
-- 同一 `(strand_id, watcher_actor_id)` typed current result 内的并发写入按标准 current-value projection 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §6](../authz/event-auth-state-resolution.md) 描述的 `expected_revision` precondition，**比较整个 typed current result value**（不是单字段）。例如 typed current result 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `expected_revision null`：只有 typed current result 尚未存在时通过；typed current result 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
-- **typed current result 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ak.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
+- 同一 `(strand_id, watcher_actor_id)` current state 内的并发写入按标准 current-value projection 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §6](../authz/event-auth-state-resolution.md) 描述的 `expected_revision` precondition，**比较整个 current state value**（不是单字段）。例如 current state 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `expected_revision null`：只有 current state 尚未存在时通过；current state 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
+- **current state 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ak.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
 - **精确前态读取**：`ak.self.strand.watch.read.current.v1`（`POST /_arkret/self/strands/watch/current`）只接受 closed `{realm_id,strand_id,watcher_actor_id}`，不列举 watcher。Account Station MUST 从经验证的 current governing Station 在同一次一致观察中核对 current tenure、Strand 的 Realm／effective scope、调用者在该 scope 的当前可读权、该 selector 的 durable typed current row 与对应 stream head。该操作仅供 `watcher_actor_id` 与当前认证的 effective ActorId 完整相等的本人使用；`.others` 写入能力不授予本读取。不可见／不存在／他人 selector 一律 `not_found` 且不得泄露其区别；current authority、membership、head 或 reducer row 未决时 MUST `revision_unavailable`，不能退回本地 Event、snapshot 缺项或旧缓存。
-- 成功响应只在两支中择一：`status=never_written` 表示在所报 `governance_generation` 与 exact `stream_head` 下，该 selector **从未有过 accepted watch 写入**，不携 revision/value；`status=current` 携完整 `strand_watch_result{selector,revision,value}`。已写入又以 `level:null` 清空时仍是 `current`，`value:null` 且 revision 必须存在；绝不能归为 `never_written`。请求和响应的 Realm、selector、effective stream 必须逐字对应。客户端只在经过 current governance 验证、且没有更高 generation 的结果覆盖时使用前态：`never_written` 才可省略 `expected_value`，`current` 必须按完整 value 发送（包括显式 `null` 与 `level_public`）。读后并发变更仍由提交时 whole-value CAS 拒绝；`failed_precondition` 后必须重读并请用户重新确认，不能改用默认值或自动重试覆盖。handoff 后旧 generation 的结果全部废止并重读。
-- typed current result 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；typed current result 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → typed current result 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → typed current result 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
+- 成功响应只在两支中择一：`status=never_written` 表示在所报 `governance_generation` 与 exact `stream_head` 下，该 selector **从未有过 accepted watch 写入**，不携 revision/value；`status=current` 携完整 `current_strand_watch{selector,revision,value}`。已写入又以 `level:null` 清空时仍是 `current`，`value:null` 且 revision 必须存在；绝不能归为 `never_written`。请求和响应的 Realm、selector、effective stream 必须逐字对应。客户端只在经过 current governance 验证、且没有更高 generation 的结果覆盖时使用前态：`never_written` 才可省略 `expected_value`，`current` 必须按完整 value 发送（包括显式 `null` 与 `level_public`）。读后并发变更仍由提交时 whole-value CAS 拒绝；`failed_precondition` 后必须重读并请用户重新确认，不能改用默认值或自动重试覆盖。handoff 后旧 generation 的结果全部废止并重读。
+- current state 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；current state 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → current state 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → current state 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
 
 ### 8.3.1 跨站本人精确 Watch 读取（normative）
 
 **唯一承载与身份**：当 Account Station 不是 Realm 的 current governing Station 时，MUST 调用
 `ak.peer.strand.watch.read.current.v1`（`POST /_arkret/peer/strands/watch/current`）。请求和成功响应分别复用
-`StrandWatchCurrentRequestBody` 与 `StrandWatchCurrentOutcome`，字段、顺序、16 KiB canonical 请求／响应预算及
+`StrandWatchCurrentRequestBody` 与 `StrandWatchCurrentResponseBody`，字段、顺序、16 KiB canonical 请求／响应预算及
 两支 presence 语义与 self 面相同；不扩张 bootstrap 或 generic exact-current selector union。self 面仅接受
 账号认证的 effective `ActorId`，包括托管的 human／Agent／integration Account；`kind=service` 没有本操作的本人读权。
 发起站先验证当前 session／device 与完整本人 selector，不向外站传递 bearer、DPoP 或 session grant。
@@ -531,21 +531,21 @@ signature／audience／请求字节错误保持既有通用认证及预算错误
 ### 8.4 写入授权
 
 - 默认：`ak.strand.watch.set` MUST 满足 `payload.watcher_actor_id == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `ak.strand.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
-- 帮他人订阅：actor 持有 `ak.strand.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch typed current result，典型用法是 Strand creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
+- 帮他人订阅：actor 持有 `ak.strand.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch current state，典型用法是 Strand creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
   - `.others` 不是读取他人私有 watch 前态的权限。若需精确前态，只能走 §8.5 已有 `ak.realm.notification.audit` + `ak.audit.accessed(access_kind="watch_audit_read")` accepted 审计读闭环；缺该权限或审计证据时不得借本人的 exact current 操作、公开 watcher 列表或 `level_public` 猜测前态。首次写可尝试省略 `expected_value`，但仅从未写入时由 Station CAS 接纳；冲突后没有合法读面就 fail closed。
   - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST 以 active `failed_precondition` 拒绝且零写入。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST 以 active `failed_precondition` 拒绝且零写入。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` Event 形成可验证配对。**配对边由 audit Event 指向业务 Event，方向单向**：audit Event 的 `semantic_refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，`writer_actor_id` 等于业务 Event 的 actor，`target_actor_id` 等于 `watcher_actor_id`，`target_ref` 等于业务 payload 的 `strand_id`，`paired_event_id` 等于业务 Event id；业务 Event 自身 **MUST NOT** 引用 audit Event 的 id 或 digest。二者 MUST 位于唯一已登记的 `audit_paired_event` ordered unit（见 [authority-commit-log §5.2](../sync/authority-commit-log.md#52-业务与审计配对单元normative)）；unit 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条满足全部绑定的 audit Event，并从业务 Event id 解码 digest 后与业务 Event canonical digest 交叉验证。Station 在同批提交时依据当前 typed watch result 验证 CAS 并原子写入两条 Event 与结果；audit payload 不承载签署时尚不可知的前后 result head。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 unit 时 reducer MUST 以 active `failed_precondition` 整批拒绝且零写入；三个未激活的 `.others` 专用 reason 不得发射。
   - 方向不可反转（normative rationale）：`semantic_refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
-  - 被加为 watcher 的 actor MAY 随时通过自写 typed current result 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
-- 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 typed current result、不进入任何 RealmCommit。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` state-changing Event。
+  - 被加为 watcher 的 actor MAY 随时通过自写 current state 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
+- 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 current state、不进入任何 RealmCommit。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` state-changing Event。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`ak.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
 
 ### 8.5 投影脱敏（normative）
 
 Watch 级别暴露程度按下表派发。projection executor MUST 在响应包含 watch 的 view（例如"Strand watchers 列表"、"我的订阅 Strand"）时严格执行：
 
-| typed current result value | 自己（`requester == typed current result.watcher_actor_id`） | Realm 其他成员 | `ak.realm.notification.audit` 持有方 | Station sync surface / 通知 dispatcher |
+| current state value | 自己（`requester == current state.watcher_actor_id`） | Realm 其他成员 | `ak.realm.notification.audit` 持有方 | Station sync surface / 通知 dispatcher |
 | --- | --- | --- | --- | --- |
 | 无记录 / `level=mentions_only` | "未订阅" | **不出现**在 watcher 列表 | 完整可见 | 走 `mentions_only` 路径 |
 | `level=participating` | 完整 `{actor, level}` | 默认**不出现**；`level_public=true` 时见下方 opt-in 规则 | 完整可见 | 完整 level |
@@ -560,13 +560,13 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 普通预先 accepted audit ref 不是可重复使用的读票；普通 projection／本人 current read 不接纳 audit 字段或释放他人 cell。
 每次新的观察需新的 audit Event，exact retry 只回放原冻结结果且仍重验当前交付许可。audit payload 不携独立 result id 或自报 head。
 
-当 Strand 设置了 `scope_circle_id` 指向 Circle 时，watch typed current result 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ak.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Strand。
+当 Strand 设置了 `scope_circle_id` 指向 Circle 时，watch current state 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ak.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Strand。
 
 - 仅持有 `ak.realm.notification.audit` 而无 `ak.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
 - 被读取的当事人通过 `ak.audit.accessed` event 链获得事后审计权；缺失对应 audit event 的 watch 读取 MUST 在投影 / sync 层 fail closed。
 
-**Opt-in 暴露**：actor 在自写 watch typed current result 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时返回 `{actor, level}`（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`，此时 human actor 的 watch 不出现在其他成员可见的 watcher 列表中。
+**Opt-in 暴露**：actor 在自写 watch current state 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时返回 `{actor, level}`（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`，此时 human actor 的 watch 不出现在其他成员可见的 watcher 列表中。
 
 > v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认语义是 watch 不公开：`ak.strand.watch.set` 是通知路由 truth source，projection executor 只向本人、通知 dispatcher、完成审计配对的 audit reader 暴露完整值。`level_public=true` 是显式展示关注状态的 opt-in；不设置该 flag 不得被他人从 watcher 列表、`@here` 投递结果或 delivery response 中反推出来。
 
@@ -578,18 +578,18 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 ### 8.7 隐含订阅
 
-下列业务关系对**通知派发**等价于 `level=participating`，但**不**写入 watch typed current result，也**不**出现在显式 watcher 列表：
+下列业务关系对**通知派发**等价于 `level=participating`，但**不**写入 watch current state，也**不**出现在显式 watcher 列表：
 
 - `strand --assigned_to--> self`（active edge）
 - 我在该 Strand `discussion` track 中发过至少一条 active Message
 
 Station sync surface 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
-1. X 的 active watch typed current result `level ∈ {participating, all}`
+1. X 的 active watch current state `level ∈ {participating, all}`
 2. X 的隐含订阅来源（assigned_to / 自己发过消息）
 
 并应用 X 的 `muted` 覆盖：若 X 显式 `level=muted`，则**所有**隐含订阅与定向 mention 一律抑制。
 
-显式 `watches` typed current result 优先于隐含订阅；用户可通过显式写 `muted` 屏蔽被 assigned 后的通知。
+显式 `watches` current state 优先于隐含订阅；用户可通过显式写 `muted` 屏蔽被 assigned 后的通知。
 
 #### 8.7.1 Watch 与 audience mention
 
@@ -597,7 +597,7 @@ Audience mention 可以把 watch state 用作 receiver-side fanout 条件，但�
 
 - `strand_watchers` audience 只包含在 source Event 的 committed stream position 处对该 Strand 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
 - `strand_engaged` audience 是 `strand_participants ∪ strand_watchers`。其中 `strand_participants` 由该 Strand discussion track 中至少一条 active Message 的 `created_by` 派生；被 redacted 后不再可见的消息不得单独使作者进入参与者集合。
-- Dispatcher MAY 使用完整 watch typed current result、actor-private watch state 或受托通知服务状态计算 receiver 是否命中 audience mention；但它 MUST NOT 把命中原因、watch level、watcher 列表或 recipient count 暴露给 sender、普通 Realm 成员、push gateway 或公开日志。
+- Dispatcher MAY 使用完整 watch current state、actor-private watch state 或受托通知服务状态计算 receiver 是否命中 audience mention；但它 MUST NOT 把命中原因、watch level、watcher 列表或 recipient count 暴露给 sender、普通 Realm 成员、push gateway 或公开日志。
 - `level_public=true` 只影响普通 projection 是否展示该 actor 正在 watch；不影响该 actor 是否被 `strand_watchers` / `strand_engaged` audience 命中。通知命中仍由完整 effective watch level 计算。
 
 ### 8.8 与 push-notification rule 引擎的关系
@@ -620,7 +620,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 当 Strand 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
 
-- Watch typed current result 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
+- Watch current state 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
 - Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Station sync surface 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 在 source Event 的 committed Circle-stream position 处不属于 `Circle.members` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
 - Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
@@ -896,7 +896,7 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 包含 `audience_mention` 节点的 `ak.message.create` 或会新增 audience mention 的 `ak.message.revise`，MUST 同时满足：
 
 - 普通消息写入授权：actor 持有 `ak.message.create` / `ak.message.revise` 对目标 Strand discussion scope 的有效授权。
-- 广播 mention 授权：actor 额外持有 `ak.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operations` + `period` + `constraint_scope`）；持有该 action 本身不授权发送消息。
+- 广播 mention 授权：actor 额外持有 `ak.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operation_count` + `period` + `constraint_scope`）；持有该 action 本身不授权发送消息。
 - Realm / Circle policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
 - Dispatcher MUST 在 fanout 前计算 `recipient_count`，并在超过 effective `max_recipients`、rate limit 或 review gate 时拒绝通知派发；不得先推送再异步撤回。
 - 自动化 actor / agent 使用 audience mention 时，Realm policy SHOULD 要求 `accountability_required` 或等价负责主体约束，并 SHOULD 采用更低 quota。
@@ -911,11 +911,11 @@ private／unknown 的第三方 direct／audience mention 不产生 Agent 定向�
 Circle 私人请求不跨到 Realm Sidecar。mode 不影响普通 history 可读权；public 转 private 不撤销旧 fanout，
 但实际共享回复／动作接纳仍须重新通过 current public 门。密文内容门由持钥端承担，服务端强制可验证部分。
 
-当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
+当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`third_party_mention_delivery_allowed` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
-- mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.committed_event.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
-- effective `accept_third_party_mention=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
+- mention 作者 != controller 且 effective `third_party_mention_delivery_allowed=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.committed_event.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
+- effective `third_party_mention_delivery_allowed=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
 
 该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 只能从已认证、绑定自身 exact session 的 `scope_details.participation` overlay 取得 selection/version 用于主动遵守。`ak.self.agent.participation.resource.get.v1` 与 replace 始终 controller-only，runtime MUST NOT 调用或冒充 controller。overlay 是签发/refresh 时的观察，不能证明动作时 current；target MUST 独立取得当前 controller selection 与当前完整治理 cut 后重新求交，不得信任客户端复制的 effective 值。任一 required policy source 未知或 stale 时 MUST fail closed 为不投递。取材角色及跨站边界见 [conformance-profiles §18](../conformance/conformance-profiles.md)。
 
@@ -1016,7 +1016,7 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 `ak.vector.reaction.authority_order_join.v1` 与 `reaction-authority-order-fixture.json` 固化本节 add/remove、同位置冲突、redaction、epoch 与 capability-revoke 行为。
 
-**本节与 typed current result projection 的分层（normative）**：`message_reactions` 的
+**本节与 current state projection 的分层（normative）**：`message_reactions` 的
 `domain reducer` 是 `keyed-set projection`——该取值属于
 [`common-fields.md` §2](./common-fields.md) 的封闭枚举，元素的稳定 tag 是
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
@@ -1029,7 +1029,7 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 禁止在 projection 内拼装、改名或裁剪字段，
 而这两个事实已由签名 envelope 承载，无需复制进元素值。
 
-typed current result 的 join 仍是 keyed-set projection 的 dot 集合并，满足交换律、结合律与幂等律；领域默认视图从完整 dot 集按已验证的 covering Commit position 折叠，不能把这个视图误作新的 typed current state model。
+current state 的 join 仍是 keyed-set projection 的 dot 集合并，满足交换律、结合律与幂等律；领域默认视图从完整 dot 集按已验证的 covering Commit position 折叠，不能把这个视图误作新的 typed current state model。
 
 默认视图的成员判定式：对 `(完整 actor_id, target_ref, key, effective scope)` 只取已接受断言中覆盖 Commit `stream_position` 最大的一条；其 kind 为 `ak.reaction.add` 时该 actor 属于 `members[]`，为 `ak.reaction.remove` 时不属于。该键内所有断言 MUST 在同一 authority stream；相同 position 若对应不同 Event 或不同断言，属于 Commit 冲突，MUST fail closed，不能按 Event ID、到达顺序或墙钟破平。消费方缺失 stream 前缀时结果为 provisional，不得宣布收敛。producer 是否观察过先前断言不是当前 wire 可验证事实，不参与判定。
 
@@ -1077,4 +1077,4 @@ Reaction 不是 mention。`ak.reaction.add` / `ak.reaction.remove` 仅对 effect
 
 ### Strand lifecycle 合同入口
 
-`strand` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `result_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `strand_not_active` / `strand_not_archived`；终态操作对已终态对象返回 `strand_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`strand` 的 lifecycle 以 contract registry 中对应 current state family 的 `transition_contracts` 与 Event `state_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `strand_not_active` / `strand_not_archived`；终态操作对已终态对象返回 `strand_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

@@ -44,6 +44,20 @@ FORBIDDEN_SYMBOLIC_LITERALS = frozenset(
 # artifact, not a domain noun.
 STRUCTURAL_WRAPPER_WORDS = (
     "RequestBody",
+    "ResponseBody",
+    "ProblemExtensions",
+    "Decision",
+    "Verdict",
+    "Resolution",
+    "Page",
+    "Set",
+    "Snapshot",
+    "Record",
+    "Entry",
+    "Metadata",
+    "Artifact",
+    "Parameters",
+    "Fields",
     "Outcome",
     "View",
     "Row",
@@ -315,24 +329,10 @@ def nc_enum_001(candidate: str) -> bool:
 
 
 DEFAULT_REJECTED_WRAPPER_WORDS = (
-    "Candidate",
-    "Item",
-    "ResponseBody",
-    "Response",
-    "Wrapper",
-    "Info",
-    "Details",
-    # `Result` reads as a structural answer role, and the closed table already
-    # registers `Outcome` for exactly that. The typed current result envelopes
-    # are the single exemption: their names are not invented at the call site
-    # but derived from `current-result-registry.json`, and
-    # `check_typed_current_result_naming` proves that bijection separately.
-    "Result",
+    "Candidate", "Item", "Response", "Wrapper", "Info", "Details", "Result",
 )
 
-# `_result` survives only inside the schema whose every `$defs` key is pinned to
-# a registered `result_kind`.
-TYPED_CURRENT_RESULT_SCHEMA = "typed-current-result.schema.json"
+CURRENT_STATE_SCHEMA = "current-state.schema.json"
 
 
 def nc_type_001(candidate: str) -> bool:
@@ -788,7 +788,7 @@ def stacked_wrapper_words(name: str) -> str | None:
     ``InviteDeliveryRequestBodyBody`` is ``RequestBody`` with a second ``Body``
     welded on by a mechanical rename. Two *different* wrapper words in sequence
     are legitimate, because the inner one is usually an operation verb rather
-    than a wrapper: ``IdentityLogListOutcome`` is the outcome of a list
+    than a wrapper: ``IdentityLogListResponseBody`` is the outcome of a list
     operation, not a list of outcomes.
     """
 

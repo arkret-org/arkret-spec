@@ -17,7 +17,7 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
     def setUp(self):
         self.c = load("registry/contract-registry.json")
         self.o = load("schemas/consent-operations.schema.json")
-        self.t = load("schemas/typed-current-result.schema.json")
+        self.t = load("schemas/current-state.schema.json")
         self.bound = next(row for row in self.c["event_kind_registry"]["event_kinds"]
                           if row["event_kind"] == "ak.direct_conversation.bound")
 
@@ -28,12 +28,12 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
         self.assertEqual(self.errors(), [])
 
     def test_tagged_set_rejected(self):
-        self.bound["result_writes"][0]["result_projection"] = {
+        self.bound["state_writes"][0]["state_projection"] = {
             "kind": "keyed_set_add", "tag": {"dot": True}, "value": {"field": "payload"}}
         self.assertTrue(self.errors())
 
     def test_changing_source_ref_rejected(self):
-        self.bound["result_writes"][0]["result_projection"]["value_projection"]["members"][0] = {
+        self.bound["state_writes"][0]["state_projection"]["value_projection"]["members"][0] = {
             "name": "binding_event_ref", "field": "payload.initial_exact_pair_group_state_ref"}
         self.assertTrue(self.errors())
 
@@ -46,7 +46,7 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
         self.assertTrue(self.errors())
 
     def test_pair_selector_and_closed_payload(self):
-        self.assertEqual(self.bound["result_writes"][0]["result_selector"],
+        self.assertEqual(self.bound["state_writes"][0]["state_selector"],
                          {"kind": "composite", "components": ["payload.pair_key"]})
         self.assertNotIn("direct_conversation_binding_endorsement_entry", self.t["$defs"])
         props = load("schemas/event-payload.schema.json")["$defs"]["direct_conversation_bound_payload"]["properties"]
@@ -88,10 +88,10 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
         bundle["allOf"] = []
         self.assertTrue(check())
         bundle["allOf"] = original
-        original = handoff["$defs"]["handoff_request"]["allOf"]
-        handoff["$defs"]["handoff_request"]["allOf"] = original[:-1]
+        original = handoff["$defs"]["realm_authority_handoff_request_body"]["allOf"]
+        handoff["$defs"]["realm_authority_handoff_request_body"]["allOf"] = original[:-1]
         self.assertTrue(check())
-        handoff["$defs"]["handoff_request"]["allOf"] = original
+        handoff["$defs"]["realm_authority_handoff_request_body"]["allOf"] = original
         profile = profiles["profile_requirements"]["ak.profile.direct_conversation_realm.v1"]
         profile["rejected_event_kinds"].remove("ak.realm.governance_station.change")
         self.assertTrue(check())
@@ -112,7 +112,7 @@ class DirectConversationBindingFamilyTest(unittest.TestCase):
         for row in rows:
             allowed = row["genesis_purpose"] != "direct_conversation" or (
                 row["current_station"] == row["genesis_station"]
-                and row["current_generation"] == 0 and row["transitions"] == 0
+                and int(row["current_generation"]) == 0 and row["transitions"] == 0
                 and row["operation"] in {"current", "deployment_update", "historical_read"})
             self.assertEqual(allowed, row["expected"], row["name"])
 

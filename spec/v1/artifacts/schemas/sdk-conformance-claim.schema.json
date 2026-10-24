@@ -10,7 +10,7 @@
     "sdk_name",
     "sdk_version",
     "sdk_artifact",
-    "spec_revision",
+    "specification_revision",
     "contract_digest",
     "issued_at",
     "issuer",
@@ -31,7 +31,7 @@
     "sdk_artifact": {
       "$ref": "#/$defs/artifact_subject"
     },
-    "spec_revision": {
+    "specification_revision": {
       "type": "string",
       "pattern": "^[0-9a-f]{40}$",
       "not": {
@@ -186,7 +186,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "sdk-conformance-claim.schema.json#/$defs/proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -213,7 +221,20 @@
             "code_audit",
             "config_audit",
             "data_flow_audit"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "sdk-conformance-claim.schema.json#/$defs/evidence/properties/kind",
+            "owner": "sdk-conformance-claim.schema.json#/$defs/evidence/properties/kind",
+            "values": [
+              "vector_result",
+              "public_api_inventory",
+              "build_variant_inventory",
+              "code_audit",
+              "config_audit",
+              "data_flow_audit"
+            ]
+          }
         },
         "evidence_ref": {
           "type": "string",
@@ -239,7 +260,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "vector_result"
+                "const": "vector_result",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "sdk-conformance-claim.schema.json#/$defs/evidence/allOf/0/if/properties/kind",
+                  "owner": "sdk-conformance-claim.schema.json#/$defs/evidence/allOf/0/if/properties/kind",
+                  "values": [
+                    "vector_result"
+                  ]
+                }
               }
             },
             "required": [
@@ -267,7 +296,7 @@
       "additionalProperties": false,
       "required": [
         "clause_id",
-        "result",
+        "verdict",
         "evidence"
       ],
       "properties": {
@@ -275,12 +304,22 @@
           "type": "string",
           "pattern": "^AK-SDK-[0-9]{3}$"
         },
-        "result": {
+        "verdict": {
           "enum": [
             "pass",
             "fail",
             "not_applicable"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "sdk-conformance-claim.schema.json#/$defs/clause_claim/properties/verdict",
+            "owner": "sdk-conformance-claim.schema.json#/$defs/clause_claim/properties/verdict",
+            "values": [
+              "pass",
+              "fail",
+              "not_applicable"
+            ]
+          }
         },
         "evidence": {
           "type": "array",
@@ -299,12 +338,20 @@
         {
           "if": {
             "properties": {
-              "result": {
-                "const": "not_applicable"
+              "verdict": {
+                "const": "not_applicable",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "sdk-conformance-claim.schema.json#/$defs/clause_claim/allOf/0/if/properties/verdict",
+                  "owner": "sdk-conformance-claim.schema.json#/$defs/clause_claim/allOf/0/if/properties/verdict",
+                  "values": [
+                    "not_applicable"
+                  ]
+                }
               }
             },
             "required": [
-              "result"
+              "verdict"
             ]
           },
           "then": {

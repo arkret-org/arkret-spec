@@ -6,7 +6,7 @@ import base64
 import hashlib
 from typing import Any
 
-from .core import ARTIFACTS, SPEC_ROOT, Lint, load_json
+from .core import ARTIFACTS, SPEC_ROOT, Lint, load_contract_json as load_json, schema_assertions
 
 
 CONTRACT = ARTIFACTS / "registry" / "contract-registry.json"
@@ -56,6 +56,7 @@ def check_agent_draft_pending_intent(lint: Lint) -> None:
     vectors = load_json(lint, VECTOR_REGISTRY)
     proof_context = load_json(lint, PROOF_CONTEXT)
     fixture = load_json(lint, FIXTURE)
+    account_data, payload, private_schema, account_subscribe = map(schema_assertions, (account_data, payload, private_schema, account_subscribe))
     if not all(isinstance(value, dict) for value in (contract, account_data, payload, private_schema, account_subscribe, vectors, proof_context, fixture)):
         return
 
@@ -67,7 +68,7 @@ def check_agent_draft_pending_intent(lint: Lint) -> None:
     if not isinstance(effect, dict):
         _fail(lint, CONTRACT, "structured propose effect is missing")
         return
-    if effect.get("result_family") != "ak.private.agent.draft_pending_intent.v1":
+    if effect.get("state_family") != "ak.private.agent.draft_pending_intent.v1":
         _fail(lint, CONTRACT, "propose must own the pending-intent family, not the account-data value")
     owner = effect.get("storage_owner")
     if not isinstance(owner, dict) or owner.get("account_id_source") != "payload.controller_account_id" or owner.get("station_id_source") != "selected_account_id.station_id":

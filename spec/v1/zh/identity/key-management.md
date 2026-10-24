@@ -166,7 +166,7 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 v1 不定义独立的 agent key rotate 事件。Controller-signed `ak.agent.key.authorize.payload.supersedes[]` MUST 精确列出首次接受前完整 active authorization 集合的 `{key_id, authorized_event_ref}`，最多 256 项，按该二元组 UTF-8 字节序排序。每项以原 accepted authorize Event 标识不可变 add dot；接受端 MUST 独立验证其 covering RealmCommit、相关 typed current revision 与当前 active 集合，在同一确认事务比较完整已签 basis 并原子移除 observed dots、add 新 authorize dot。`expected_revision` 不是本 family 的另一个 wire 成员，MUST NOT 添加到 producer Event 信封 root；相关 revision 从已验证的接受来源确定，不由 caller 自报或由本地 map 推测。active 集合为空时 MUST 省略，包括先 revoke 后走正式 fresh pairing 重新 attach；same-key re-authorization 必须已有当前 active key 并列出旧 dot。stale、遗漏或多余条目 MUST conflict / fail closed，不得按 key_id 或本地 map overwrite 替换。初次／更换 runtime 的批准快照另外由既有一次性 pairing request 与 activation fence 钉住，不能把集合相等误当成可检测空→非空→空 ABA，也不能以旧 pairing receipt 或历史 key row 恢复已撤销 key。服务端不得伪造 controller-authored revoke Event。
 
-**同 key re-authorization（normative）**：controller MAY 为同一 `(agent_id,key_id)` 签发新的 `ak.agent.key.authorize`。该 typed current result 是 `commit-ordered projection` 安全集合；首次授权写入一个 authorize dot，续期命令按已签 basis 枚举全部活跃 authorize dots，在同一确认事务移除它们并加入一个 replacement dot。执行位置必须校验确切相关 revision；两个基于同一旧 revision 的替换最多一个成功，另一个拒绝后重新取得状态并签署，不合并成并发权限 heads。不得按 HLC、到达时间或最小 digest 选授权。该路径不换 key material、不需要 pairing 仪式，但必须由 controller 或其授权设备签署，runtime 不能用旧 key 自行续期。renew-pairing（§3.6.1）用于 key 丢失、疑似泄露或更换 runtime。
+**同 key re-authorization（normative）**：controller MAY 为同一 `(agent_id,key_id)` 签发新的 `ak.agent.key.authorize`。该 current state 是 `commit-ordered projection` 安全集合；首次授权写入一个 authorize dot，续期命令按已签 basis 枚举全部活跃 authorize dots，在同一确认事务移除它们并加入一个 replacement dot。执行位置必须校验确切相关 revision；两个基于同一旧 revision 的替换最多一个成功，另一个拒绝后重新取得状态并签署，不合并成并发权限 heads。不得按 HLC、到达时间或最小 digest 选授权。该路径不换 key material、不需要 pairing 仪式，但必须由 controller 或其授权设备签署，runtime 不能用旧 key 自行续期。renew-pairing（§3.6.1）用于 key 丢失、疑似泄露或更换 runtime。
 
 **当前授权来源供给（normative）**：既有 authenticated controller／owning Account Authority 的 `ak.self.agent.resource.get.v1` 在 `key_state.current_key_authorization` 交付当前 accepted `ak.agent.key.authorize` 的完整 `CommittedEventView`（Event 与 covering RealmCommit）；存在 active authorization 时 MUST 交付且 MUST NOT 使用 withheld branch，无 active authorization 时 MUST 省略。接收端 MUST 核对 Event id／内容、完整 Agent Account、controller execution／delegation、PCR、key id／method／raw public key digest／expiry、active dot 与 `current_signer_evidence.authority_commit_id` 的覆盖关系。此来源不授予能力、不替代 current lifecycle／accountability 或 immutable provision ceiling，也不放宽普通 committed-event GET 的 Service 权限。issuer 为同 key replacement 签发 session 时，必须消费此 exact current source 的 scope／audience／expiry，而不是把原 pairing ledger 改写成新 pairing 授权；原 qualified pairing custody 与 private scope disclosure 保持不可变，不能生成新 receipt 或 verifier presentation。
 
@@ -180,7 +180,7 @@ agent key 行使的 capability grant 无论 action 风险级别都与其它主�
 
 PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定的 exact `initial_resolution`，再与 genesis 携带值逐字段比较；只校验请求自带值格式正确或 `project(did)==agent_id` 不足以建立 create-locked 绑定。普通 Event policy admission 与 delegated Agent envelope admission 两条路径都必须使用同一份保存值。
 
-- **Provisioning** (`POST /_arkret/self/agents`, operation `ak.self.agent.command.provision.v1`) 是闭合的 prepare/commit operation，其外围由 controller 先发布 PCR-independent DID entry 0、后发布 PCR binding entry 1。controller MUST 先按 §3.6.3 可恢复地持久化 WebVH 更新密钥，并发布不含 PCR binding 的 Agent inception。`phase=prepare` 只校验 controller recovery、caller-supplied `did` 的 accepted entry 0 与 controller delegation等先决条件，并返回 exact `initial_resolution`、controller PCR 与 delegation ref；它 MUST NOT 生成 Agent DID 或私钥，也 MUST NOT 分配 `principal_control_realm_id`（该值只能由 controller 从本地冻结的 genesis create 派生），也 MUST NOT 发布 durable Agent/PCR、accountability、selector、pairing、grant 或其它可观察副作用。controller 必须逐字核对 `initial_resolution`，并以 prepare 返回的 `agent_id`、authenticated `controller_principal_id` 与自己冻结的完整 private `requested_scope`，使用 SDK 计算域分离 `requested_scope_digest`。该 digest 必须固定到随后原签的 provision Event，并与其 accepted fact 及 DID entry 1 的公开 commitment 逐字核对；不匹配时停止。四阶段 `agent_provision_outcome` 均不另携该 digest，不能把不存在的 outcome 字段或 service-local scope row 当作另一权威来源。随后 controller MUST 调用 `arkret-rust-sdk` 的统一 authoring API 生成恰好一个 controller-owned `ak.agent.provision` `EventAdmissionSubmission`；其闭合 payload 同时绑定 allocation、controller delegation、`accountability_scope=agent_operator`、selector、`requested_scope_digest` 与前向声明的 `principal_control_realm_id`（§3.6.3），不含内层 proof。Event `actor_id` MUST 是 authenticated controller、`realm_id` MUST 是返回的 controller PCR；Event proof 是唯一签名。`phase=commit` 原样携带服务端 allocation、完整 private `requested_scope` 与该 submission；Station 必须通过普通 Event schema/proof/authz/checkpoint/reducer admission 接受它，不得用 service key 代签、接受 `dev-proof`，或绕过 admission 直接写 canonical store。一次 accepted reducer transaction MUST 原子写入 provision、accountability、selector 与 realm-id claim 四个 typed current result；不得暴露部分完成状态。该 Event durable accepted 只把 outcome 推进到 `status=awaiting_pcr_genesis`；genesis accepted 后推进到 `status=awaiting_did_binding`；只有 controller 使用 inception 预承诺 key 发布的连续 entry 1 也 accepted、且其唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 精确匹配 create-locked 四元组，才创建 pairing handle 并返回 `status=complete`。完整 `requested_scope` 始终保持 controller-private，不得进入公开 DID history 或 durable Event。精确 commit 重试以 allocation 与 submission 的 Event id/canonical bytes/publication evidence bytes 为身份，MUST 返回该身份**当前**的 durable outcome（依次为 `awaiting_pcr_genesis`、`awaiting_did_binding` 或同一 complete outcome）；同 Event id 不同 bytes 或不同 evidence MUST conflict。恢复 MUST 重放同一 submission 与已持久化的 exact DID operation，并依靠各自 admission 幂等完成，MUST NOT 另造 Event id、proof、lease、receipt 或重复 fact。
+- **Provisioning** (`POST /_arkret/self/agents`, operation `ak.self.agent.command.provision.v1`) 是闭合的 prepare/commit operation，其外围由 controller 先发布 PCR-independent DID entry 0、后发布 PCR binding entry 1。controller MUST 先按 §3.6.3 可恢复地持久化 WebVH 更新密钥，并发布不含 PCR binding 的 Agent inception。`phase=prepare` 只校验 controller recovery、caller-supplied `did` 的 accepted entry 0 与 controller delegation等先决条件，并返回 exact `initial_resolution`、controller PCR 与 delegation ref；它 MUST NOT 生成 Agent DID 或私钥，也 MUST NOT 分配 `principal_control_realm_id`（该值只能由 controller 从本地冻结的 genesis create 派生），也 MUST NOT 发布 durable Agent/PCR、accountability、selector、pairing、grant 或其它可观察副作用。controller 必须逐字核对 `initial_resolution`，并以 prepare 返回的 `agent_id`、authenticated `controller_principal_id` 与自己冻结的完整 private `requested_scope`，使用 SDK 计算域分离 `requested_scope_digest`。该 digest 必须固定到随后原签的 provision Event，并与其 accepted fact 及 DID entry 1 的公开 commitment 逐字核对；不匹配时停止。四阶段 `agent_provision_response_body` 均不另携该 digest，不能把不存在的 outcome 字段或 service-local scope row 当作另一权威来源。随后 controller MUST 调用 `arkret-rust-sdk` 的统一 authoring API 生成恰好一个 controller-owned `ak.agent.provision` `EventAdmissionSubmission`；其闭合 payload 同时绑定 allocation、controller delegation、`accountability_scope=agent_operator`、selector、`requested_scope_digest` 与前向声明的 `principal_control_realm_id`（§3.6.3），不含内层 proof。Event `actor_id` MUST 是 authenticated controller、`realm_id` MUST 是返回的 controller PCR；Event proof 是唯一签名。`phase=commit` 原样携带服务端 allocation、完整 private `requested_scope` 与该 submission；Station 必须通过普通 Event schema/proof/authz/checkpoint/reducer admission 接受它，不得用 service key 代签、接受 `dev-proof`，或绕过 admission 直接写 canonical store。一次 accepted reducer transaction MUST 原子写入 provision、accountability、selector 与 realm-id claim 四个 current state；不得暴露部分完成状态。该 Event durable accepted 只把 outcome 推进到 `status=awaiting_pcr_genesis`；genesis accepted 后推进到 `status=awaiting_did_binding`；只有 controller 使用 inception 预承诺 key 发布的连续 entry 1 也 accepted、且其唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 精确匹配 create-locked 四元组，才创建 pairing handle 并返回 `status=complete`。完整 `requested_scope` 始终保持 controller-private，不得进入公开 DID history 或 durable Event。精确 commit 重试以 allocation 与 submission 的 Event id/canonical bytes/publication evidence bytes 为身份，MUST 返回该身份**当前**的 durable outcome（依次为 `awaiting_pcr_genesis`、`awaiting_did_binding` 或同一 complete outcome）；同 Event id 不同 bytes 或不同 evidence MUST conflict。恢复 MUST 重放同一 submission 与已持久化的 exact DID operation，并依靠各自 admission 幂等完成，MUST NOT 另造 Event id、proof、lease、receipt 或重复 fact。
   `requested_scope` 是该 Agent key/session 的**全局硬上限而不是授权**：`actions[]` 中的内容 action 只表示以后可按 [owned-agent-authority §2](../authz/owned-agent-authority.md) 的已登记来源合法行使的最大 action 集，读取可来自 membership／Direct participant／Sidecar 专用资格，需要 grant 的动作仍须独立 grant；省略的内容 action 不能由 Realm / Circle / Strand grant、membership、session 或 participation gate 补回。operation/service resource 约束服务面；显式内容 resource selector 只进一步收窄以后允许附加的 Realm 内容资源。Provisioning MUST NOT 从 `requested_scope` 物化 `ak.capability.grant`；后续 grant 必须满足 `grant.actions ⊆ requested_scope.actions` 并继续按 AND 收窄。Participation selection 是独立的动作时 deny gate，不属于 provision commitment。complete 返回 Agent PCR binding 与一次性 `pairing_request_id` + `pairing_code`；controller 对 `requested_scope_digest` 的核对仍取自原 accepted provision Event 与 DID service entry 的闭合四元组，而非 complete outcome 的附加字段；`pairing_code` MUST 是 CSPRNG 在 00000000 至 99999999 上均匀生成的恰好 8 位 ASCII 十进制数字（保留前导零）。配对始终同时绑定 opaque `pairing_request_id`；不得以短码单独查找请求或签发授权。短码用于人工核对，完整配对链接保持私密，handle expiry、candidate PoP、controller 明确批准与单次消费规则不变。controller E2EE client 在提交 §3.6.3 的 genesis 时按 §4.1 本地生成 Agent PCR MLS state 并提交 Agent profile Event，但不得把该 active state 上传为 backup。Fresh endpoint 随后只能通过标准 KeyPackage/Add/Welcome 进入 group。服务端、Account Authority 与 Station MUST NOT 生成或短暂持有 Agent PCR MLS private state。流程不写入独立 `ak.self.agent.command.provision.v1` Event，也不得在首次 runtime pairing 前伪造或预写 `ak.agent.key.authorize`。
 - `requested_scope` 在 v1 provision request 中 MUST 存在，且 Agent principal 创建后 immutable；实现不得把省略解释为 unconstrained 或 deny-all，也不得通过 renew-pairing、同 key re-authorization、Realm 加入或 policy 更新修改它。需要改变（包括扩大）该全局 ceiling 时必须 provision 新 Agent principal。后续 `ak.agent.key.authorize.payload.agent_key_scope` MAY 比它更窄，但 MUST 满足 actions/resources/constraints 的 selector-narrowing 子集规则；不得要求两者完全相等。Receiver 不得信任 service-local row 声称的 ceiling：必须按 authorizing object 的 accepted-at 解析 Agent DID history，验证 §4.1 的公开 digest commitment，并取得有效的 `ak.schema.agent_requested_scope_disclosure.v1` 私有披露，重算 digest 后再求子集。具体 digest、资源覆盖和 mandatory constraint 规则以 [`../authz/capabilities.md` §9.1](../authz/capabilities.md) 为准。
 - **Runtime key pairing** (`POST /_arkret/gate/account/agent-key-pair`, operation `ak.gate.account.command.pair_agent_key.v1`):runtime 先经 open submit 登记一份已验 PoP 的 frozen candidate。controller 只提交 `{pairing_request_id, approval_request_id, requested_scope_disclosure, authorize_event}`；raw key、method、scope、audience、expiry 与 exact supersedes 由唯一 controller-signed authorize Event 绑定。Station 从持久 candidate 取 PoP/attestation 原材料并验证 current handle、controller/Agent parent authority、DID binding、private scope ceiling 与 Event proof。首次接纳耐久保存 exact 命令和激活 fence，返回 `awaiting_source_commit`；覆盖该 Event 的 successor RealmCommit accepted 后，后台 reconciler MUST 自动推进，无需第二次 pair command。Event 始终由实际 controller 签名；RealmCommit 由 PCR 的 current governance Station 签发。首次激活事务重新检查 handle/candidate identity、expiry、fence、exact旧授权集合和当前 parent authority，再消费 handle并记录 active outcome；renew、expiry、cancel、deactivate 或授权基准变化使待激活命令 cancelled，迟到 RealmCommit 不得复活它。paused Agent 可保留有效 key但不得签发session；active outcome也不替代 runtime 的fresh agent_key_proof。精确重试只读取/恢复同一 durable command，同 Event id 不同 bytes 必须 conflict。
@@ -204,12 +204,12 @@ PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定�
 - **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟；若 deployment profile 显式声明更长，不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后，其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。单次 `agent_key_proof` / refresh proof 的接收窗口 MUST 与已签发 session TTL 分离：proof 的 `expires_at-issued_at` MUST `<=300s`，用于限制一次性证明的重放窗口；Account Authority 不得因此把成功签发的 Agent session TTL 静默收窄到该 proof 剩余窗口。runtime SHOULD 在 grant 到期前自动轮换；正常轮换不得要求 controller 在线或人工批准。
 - **Key authorization lifetime 与 session TTL 分离(longevity-safe)**:`ak.agent.key.authorize` 是可供多次 session 签发复用的 durable key authorization。其 `expires_at` 可选:缺省表示不设时间过期，有效性完全由撤销链治理(`ak.agent.key.revoke`、pause / deactivate、controller lifecycle 级联);声明 `expires_at` 是部署或 controller 的附加策略选择。Account Authority MUST NOT 把上述单次 Agent session grant 的 15 分钟默认 TTL 或 60 分钟上限复用为 `ak.agent.key.authorize` 的有效期上限；每次 session 签发仍 MUST 独立检查 authorization 未撤销、未过期(若声明了 `expires_at`)且 scope / audience 匹配，并把签发出的 session TTL 限制在上一条的边界内。
 - **授权链无静默悬崖(normative)**:配对完成后,agent 的持续在线不得依赖任何需要人工续期的定时器。默认配置下，使 agent 失去授权的路径只有:显式 kill switch(pause / deactivate / `ak.agent.key.revoke` / `ak.capability.revoke`)、controller lifecycle 或 Realm membership 级联、以及部署 / controller 显式声明的可选 `expires_at`。Session 由 runtime 持 authorized key 自动重签，不构成失效面。session 签发因授权链异常被拒时,Auth Server MUST 使用统一错误信封返回机器可读 reason,使 runtime 能提示 controller 介入；其中 key authorization 已过期导致的拒签 MUST 使用 reason=`agent_key_authorization_expired`,MUST NOT 混入 `proof_invalid`——runtime 必须能区分"proof 构造错误"与"需要 controller 续期"。对任何非 terminal 的 agent,controller 始终可通过 renew-pairing + grant 重授权恢复，恢复路径本身 MUST NOT 过期。**异步续期与提前提醒**:声明了 `expires_at` 的 key authorization,runtime SHOULD 在到期临近时主动发起续期请求（见 §3.6 同 key re-authorization）;controller 无需保持在线——到期前任意时刻、任一已授权设备签发一次新 authorize 即可完成续期。不接受此运维依赖的部署 SHOULD 不声明 `expires_at`(缺省即无此依赖);协议不定义无人批准的自动续期。
-- **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回统一错误信封 `error.code=claim_required`，并令 `error.details` 严格匹配 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`：`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。该分支由 `ak.vector.agent_auth.human_approval_required.v1` 固化。 本分支的可批准条件与 accepted 授权引用严格按 [owned-agent-authority §2](../authz/owned-agent-authority.md) 的内容会话带外批准合同执行；不能从 runtime 自报的 risk 标签、participation 请求或 opaque handle 推导授权。
+- **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回统一错误信封 `error.code=claim_required`，并令 `error.details` 严格匹配 `agent-operations.schema.json#/$defs/agent_human_approval_problem_extensions`：`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。该分支由 `ak.vector.agent_auth.human_approval_required.v1` 固化。 本分支的可批准条件与 accepted 授权引用严格按 [owned-agent-authority §2](../authz/owned-agent-authority.md) 的内容会话带外批准合同执行；不能从 runtime 自报的 risk 标签、participation 请求或 opaque handle 推导授权。
 - **E2EE access**（conformance vector `ak.vector.agent.mls_keypackage_authorization.v1`）:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device。Agent MLS KeyPackage MUST 由其当前 active accepted `ak.agent.key.authorize.verification_method` 对应的同一 Ed25519 key 生成 MLS LeafNode signature key并签署发布 transcript；claim / Welcome 的 claimed-endpoint trust binding MUST 使用 `agent_key_authorize_event_id` 引用该 authorize Event，并携 exact Agent method，且与普通设备使用的 `device_id + device_authorize_event_id` 精确互斥。Agent 分支禁止 `device_id`。authorize 被 revoke、supersede、过期或 key 不匹配时必须使未消费 claim fail closed，从而使 key authorization、session proof 与 MLS membership 落在同一审计链。
 
 ##### Agent 初次 session proof、holder 出示与重试（normative）
 
-`AgentSessionGrantRequest.proof` 是闭合对象，字段按顺序为
+`AgentSessionGrantRequestBody.proof` 是闭合对象，字段按顺序为
 `proof_kind`、`challenge`、`request_canonical_digest`、`audience_id`、`issued_at`、
 `expires_at`、`verification_method`、`signature`，全部 required。`proof_kind` 固定为
 `agent_key_proof`；不携额外 `nonce`。runtime 为每次新申请生成至少 128 bit 密码学随机
@@ -257,7 +257,7 @@ Agent 初次签发的 request identity 由完整
 
 raw-key索引与显示只允许 SDK唯一 `agent_signing_public_key_digest` 对decoded 32-byte Ed25519 bytes计算SHA-256，不hash PublicKey DTO/JWK/multibase/hex文本。稳定candidate binding也使用该raw-key helper；固定profile与完整method/kid约束在schema/admission独立校验，不保留第二套DTO digest。普通自己Station的self key结果继续遵循server-trusted-results；它们不要求客户端携完整portable evidence。
 
-`agent_key` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。typed current row locator MUST 使用 `event-kind-registry.json#typed_current_key_derivations` 登记的 family-specific typed API `derive_agent_key_current_key(agent_id, key_id)`；不得使用任何通用复合键 helper、字符串拼接、diagnostic subject 或调用方自选 component。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key typed current result 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key typed current result 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `expected_revision` 观察到的对应 key typed current result 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。**「全部 active authorize dot」这个过滤器的登记写法是唯一的（normative）**：`ak.agent.key.revoke.result_writes[0]` 的 `result_projection` 是 `keyed_set_remove_observed`，其 `match` 取**存在性谓词** `{"element_field": "verification_method", "present": true}`。`match` 只有两种登记形态——`{element_field, source}` 是等值谓词，`{element_field, present: true}` 是存在性谓词；`present: false` **不予登记**，因为它取的是「缺该成员」的补集，正好会删掉本节要求保留的撤销边界 marker。选存在性谓词的理由是机械的：`agent_key_authorization_entry.value` 是 `agent_key_authorize_payload` 与 `agent_key_revoke_payload` 的 `oneOf`，两分支都 `additionalProperties: false` 且 required 集合不相交，所以 `verification_method` 在每个 authorize 元素上必存、在每个 marker 上必无——判别是确定的；而 revoke payload 里没有任何成员等于 authorize 独有的元素成员，等值谓词表达不出这个过滤器。**省略 `match` 的形态 MUST NOT 用在本 family 上**：它会取走 scope 下全部 observed 元素（见 [`../models/pins.md` §4.1](../models/pins.md)），而本节上文与本节的 active 集合规则（先 revoke 后重新 attach 时 active 集为空、旧 marker 仍在 observed 集里）要求旧 marker 存活。marker 的极性不是元素字段：按 [`../models/common-fields.md` §2](../models/common-fields.md)，keyed-set family 的极性与断言者一律从签名 envelope 读出。Station MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、typed current result/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 RealmCommit 的 resolved typed current result 独立证明，不依赖服务端私有投影。
+`agent_key` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。typed current row locator MUST 使用 `event-kind-registry.json#typed_current_key_derivations` 登记的 family-specific typed API `derive_agent_key_current_key(agent_id, key_id)`；不得使用任何通用复合键 helper、字符串拼接、diagnostic subject 或调用方自选 component。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key current state 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key current state 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `expected_revision` 观察到的对应 key current state 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。**「全部 active authorize dot」这个过滤器的登记写法是唯一的（normative）**：`ak.agent.key.revoke.state_writes[0]` 的 `state_projection` 是 `keyed_set_remove_observed`，其 `match` 取**存在性谓词** `{"element_field": "verification_method", "present": true}`。`match` 只有两种登记形态——`{element_field, source}` 是等值谓词，`{element_field, present: true}` 是存在性谓词；`present: false` **不予登记**，因为它取的是「缺该成员」的补集，正好会删掉本节要求保留的撤销边界 marker。选存在性谓词的理由是机械的：`agent_key_authorization_entry.value` 是 `agent_key_authorize_payload` 与 `agent_key_revoke_payload` 的 `oneOf`，两分支都 `additionalProperties: false` 且 required 集合不相交，所以 `verification_method` 在每个 authorize 元素上必存、在每个 marker 上必无——判别是确定的；而 revoke payload 里没有任何成员等于 authorize 独有的元素成员，等值谓词表达不出这个过滤器。**省略 `match` 的形态 MUST NOT 用在本 family 上**：它会取走 scope 下全部 observed 元素（见 [`../models/pins.md` §4.1](../models/pins.md)），而本节上文与本节的 active 集合规则（先 revoke 后重新 attach 时 active 集为空、旧 marker 仍在 observed 集里）要求旧 marker 存活。marker 的极性不是元素字段：按 [`../models/common-fields.md` §2](../models/common-fields.md)，keyed-set family 的极性与断言者一律从签名 envelope 读出。Station MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、current state/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 RealmCommit 的 resolved current state 独立证明，不依赖服务端私有投影。
 
 signer-key 查询面（[`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)）
 的 selector 是 structural XOR：每个 selector 只能是 `verification_mode=current_admission` 或
@@ -267,7 +267,7 @@ exact `event_id`——因此不能通过改 tag 或增删一个字段互换。
 Agent 的 portable evidence 由两个各自独立签名的对象承载：Agent Authority 对某一条 exact confirmed RealmCommit
 状态的 state evidence，以及 Account Authority 的隐私最小化 controller gate attestation。两者各自在自己登记的
 domain separation 下做本地 detached signature，都不复用共享的 Event proof leaf。raw public key 不是秘密；
-Agent / controller private key、MLS private state、服务本地 `account_id` 与 raw account typed current result
+Agent / controller private key、MLS private state、服务本地 `account_id` 与 raw account current state
 永不进入 portable evidence。
 
 `agent_authority_state_evidence` 的机读合同是 `ak.schema.agent_authority_state_evidence.v1`（[`agent-authority-evidence.schema.json`](../../artifacts/schemas/agent-authority-evidence.schema.json) 的 `agent_authority_state_evidence`）。它的 `state` 在 Agent Principal Control Realm 的一个 exact confirmed RealmCommit state 中同时承载完整
@@ -279,11 +279,11 @@ predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无�
 
 authorization.accepted_at 是 key authorization 经 accepted_commit_id 生效的时点，MUST 等于 key_state_witness.authority commit.committed_at；accepted_commit_id、key_state_witness.commit_id 与 RealmCommit.id 必须相等。原 Event 的 producer proof 独立验证其 signer evidence；接收服务的存储时间不创造 runtime key 权限，covering RealmCommit 前不得把 key 当作已生效。
 
-key `result_selector` MUST 精确等于 family-specific typed API
+key `state_selector` MUST 精确等于 family-specific typed API
 `derive_agent_key_current_key(agent_id, agent_key_id)` 派生的 `agent_key` current-row locator（registry 族
-`agent_key`，见 [current-results.md §2](../sync/current-results.md)）；该 locator 只定位 row，不承载 authority。
+`agent_key`，见 [current-state.md §2](../sync/current-state.md)）；该 locator 只定位 row，不承载 authority。
 `result_value` 是 closed、canonical sorted active tagged-set entry array，每项 tag 必须解析为 accepted Event 的 canonical
-`<event_id>:<write_index>` dot，value 必须是 schema-valid authorize/revoke payload。Agent lifecycle `result_selector` MUST
+`<event_id>:<write_index>` dot，value 必须是 schema-valid authorize/revoke payload。Agent lifecycle `state_selector` MUST
 由 `agent_id` 派生，`result_value` 是 closed lifecycle 值；`accepted_status_event`、provenance、registered reducer write、
 RealmCommit delta/lineage 和 state leaf 必须互相重算一致。首次 active 的唯一 provenance 是 Agent delegated PCR
 genesis `ak.realm.create` 在 `payload.object.purpose == "agent_control"` 上的条件写（subject 取
@@ -296,19 +296,19 @@ Portable lifecycle provenance 的每个 closed 分支只携对应的 accepted �
 历史引用；Event 也不携带任何指向上一条 lifecycle Event 的信封字段，lifecycle 次序由该 PCR stream 的 `RealmCommit.stream_position` 唯一给出。§3.6.3 的唯一 accepted
 provision 反查仍是 genesis admission 的强制条件。Receiver MUST 验证状态 Event 的 原始 producer proof 与可携带授权
 绑定与签名，并使用其中冻结的 `producer_signing_key_did` 验 controller producer proof；不得重新用当前
-controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle typed current result 与 transition，
-绑定完整 ActorId、typed current result head/value，以及包含该 Event 的 signed RealmCommit 到目标 checkpoint 的 ancestry。
+controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle current state 与 transition，
+绑定完整 ActorId、current state head/value，以及包含该 Event 的 signed RealmCommit 到目标 checkpoint 的 ancestry。
 
 
 每个 state witness 都必须携带完整 signed RealmCommit 与 closed `result_value`。receiver 验证 RealmCommit id、
-governance-Station signature、Realm 与 lineage，并把 `result_value` 与该 Commit 覆盖的 typed current result 逐字比较。
-signed RealmCommit 绑定 accepted Event 与 stream 坐标，并不直接携带或承诺 typed current result value。
+governance-Station signature、Realm 与 lineage，并把 `result_value` 与该 Commit 覆盖的 current state 逐字比较。
+signed RealmCommit 绑定 accepted Event 与 stream 坐标，并不直接携带或承诺 current state value。
 receiver MUST 重算 Commit ID、验证治理 Station signature 与 stream 链接，从原始已签 Event 的 registered
 reducer write 重算对应状态，并验证独立 state attestation 对完整 witness/result 和 source cut 的绑定。
 不能仅凭 Commit 签名接受任意 caller 提供的 value；source cut 处的状态有效性由该 PCR 权威签署的
 完整 state assertion 确认，历史链本身不证明未来未发生撤销。
 witness **MUST NOT** 携带或要求任何附加的聚合摘要、leaf digest/index/count 或 Merkle inclusion proof；
-携带这类成员的 witness MUST 被拒绝，缺 signed RealmCommit/value 或 typed current result/subject/actor/controller
+携带这类成员的 witness MUST 被拒绝，缺 signed RealmCommit/value 或 current state/subject/actor/controller
 错配同样 fail closed。
 
 `controller_account_gate_attestation` 的机读合同是 `ak.schema.controller_account_gate_attestation.v1`（同一 schema 文件的 `controller_account_gate_attestation`），`schema` 成员 MUST 逐字携带该 id。它由 Account Authority 在 domain `ak.controller_account_gate.v1` 下签名，只公开
@@ -317,12 +317,12 @@ binding/status digest 与时窗。`account_binding_default` 表示权威私有 b
 `account_status_record` 绑定真实 issuer-ledger current head 的 `account_status_record_id` 与
 `status_record_digest = SHA-256(JCS(完整原签 AccountStatusRecord))`；摘要包含 record id 与 proof。
 AccountStatusRecord 不是 Event，不引用 RealmCommit、Station checkpoint 或新聚合 checkpoint。`status=active` 当且仅当 `eligibility=active`；其它状态
-全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account typed current result 或
+全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account current state 或
 caller 自报 active 布尔值都是 schema violation。
 
 签发新的 gate MUST 在同一个稳定的私有 ledger head、完整 binding 与 account 状态 cut 下判断 basis。
 `account_binding_default` 只允许已确认尚无 ledger head，或与当前完整 AccountId/PCR、Account Authority、binding version
-完全匹配的初始 `status_seq=1,status=active`、无 predecessor record；同时当前 account 必须 active。
+完全匹配的初始 `status_sequence=1,status=active`、无 predecessor record；同时当前 account 必须 active。
 任何后继 head，包括 Pause 后恢复为 active 的 record，MUST 使用 `account_status_record`，不得退回 binding default。
 AA MUST 使用此前已经接纳、不可变的原 signed record，验证其 record id、原历史 AA proof、完整私有 subject/binding
 以及 current head 关系，且 gate.status MUST 等于该 record.status；缺失原件或不能证明上述关系时拒绝新签发。
@@ -523,7 +523,7 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
    方向严格单向，每个对象都可构造。
 5. **另一次提交 genesis create**。该 create MUST 在一次**独立的提交**中送出，MUST NOT 与 provision 同属
    一个原子 unit 或同一 ordered submit batch。v1 没有 Agent provision/genesis 的通用同批提交载体；
-   `ak.self.events.command.submit.v1` 的 closed `self_submit_request` 不接受 `events[]`，封闭的
+   `ak.self.events.command.submit.v1` 的 closed `self_submit_request_body` 不接受 `events[]`，封闭的
    `ordinary_realm_bootstrap` 也不得承载 Agent PCR。把安全事务内部的 `EventsSubmitBatchRequestBody`
    误送 self submit MUST 按未知/错误载体返回 `schema_violation` 且零写入，不能报成已执行的批内授权
    或 `event_id_digest_mismatch`。两条正常独立冻结的 Event 仍为上文单向可构造；是否存在未登记载体
@@ -542,12 +542,12 @@ provision"，反查证明"某条 accepted provision 恰好声明了我"）。`de
 `payload.object.purpose` 判别。
 
 **声明唯一性（normative）**：同一 controller PCR 内，`ak.agent.provision` 以 `payload.principal_control_realm_id`
-为 subject 写一个 `commit-ordered projection` 的 typed current result；两条 provision 声明同一 realm id 时第二条 MUST 被
-拒绝且零写入。该 typed current result 只覆盖同一 controller PCR。跨 controller 的重复声明由 Station 的**本地唯一
+为 subject 写一个 `commit-ordered projection` 的 current state；两条 provision 声明同一 realm id 时第二条 MUST 被
+拒绝且零写入。该 current state 只覆盖同一 controller PCR。跨 controller 的重复声明由 Station 的**本地唯一
 索引**兜底：同一部署内任意两条 accepted provision MUST NOT 声明同一 `principal_control_realm_id`，冲突
 MUST 零写入拒绝。两层合起来使"一个 realm id 至多一条 provision 声明"成立。
 
-**四个投影的家族名、subject 与 value（normative）**：一次 accepted reducer transaction 原子写入的四个 typed current result 各自封闭且最小，家族名与 subject 逐条固定如下。它们是**一个整体**：`ak.agent.provision.result_writes[]` MUST 同时登记这四行，按 [`../models/realm-and-space.md` §2.5.1](../models/realm-and-space.md) 的完整性规则，只登记其中一部分就是把这个 kind 描述错。
+**四个投影的家族名、subject 与 value（normative）**：一次 accepted reducer transaction 原子写入的四个 current state 各自封闭且最小，家族名与 subject 逐条固定如下。它们是**一个整体**：`ak.agent.provision.state_writes[]` MUST 同时登记这四行，按 [`../models/realm-and-space.md` §2.5.1](../models/realm-and-space.md) 的完整性规则，只登记其中一部分就是把这个 kind 描述错。
 
 | # | 投影 | family | subject | value |
 | --- | --- | --- | --- | --- |
@@ -556,7 +556,7 @@ MUST 零写入拒绝。两层合起来使"一个 realm id 至多一条 provision
 | 3 | selector 绑定 | `agent_selector_claim` | `(controller principal, agent_slug)`，不含 Station | [`../models/actor.md` §3.3](../models/actor.md) |
 | 4 | realm-id 声明 | `agent_pcr_genesis_declaration` | `composite(payload.principal_control_realm_id)` | `{agent_id}` |
 
-第 1 项的 subject 是 **Agent DID 本身**，不是 Agent 的完整 account ActorId。这不是对 §3.6 末段「禁止退化为裸 DidCoreId 或 `composite(DidCoreId)`」的违反，而是那条禁令的适用范围问题：它约束的是 **lifecycle** subject，理由是同一 `principal_id` 在不同 `station_id` 下是不同 Account ActorId；这里该理由已被消解——本 typed current result 活在 **controller PCR** 里，而本节的「同 Station 承载」规则把 Agent PCR 钉在同一个 Station 上，于是 `(Realm, agent_id)` 唯一确定 Station。反过来，ActorId subject 在这个写入点**不可构造**：按 [`../models/actor.md` §3.3](../models/actor.md)，Agent 的完整 AccountId 是从 `payload.agent_id` 加本 Event 的 exact controller account / Station 派生、并在 genesis 完成后才与 `genesis.actor_id.account_id` 核对出来的，而本 Event 的 `actor_id` 是 **controller** 而不是 Agent。
+第 1 项的 subject 是 **Agent DID 本身**，不是 Agent 的完整 account ActorId。这不是对 §3.6 末段「禁止退化为裸 DidCoreId 或 `composite(DidCoreId)`」的违反，而是那条禁令的适用范围问题：它约束的是 **lifecycle** subject，理由是同一 `principal_id` 在不同 `station_id` 下是不同 Account ActorId；这里该理由已被消解——本 current state 活在 **controller PCR** 里，而本节的「同 Station 承载」规则把 Agent PCR 钉在同一个 Station 上，于是 `(Realm, agent_id)` 唯一确定 Station。反过来，ActorId subject 在这个写入点**不可构造**：按 [`../models/actor.md` §3.3](../models/actor.md)，Agent 的完整 AccountId 是从 `payload.agent_id` 加本 Event 的 exact controller account / Station 派生、并在 genesis 完成后才与 `genesis.actor_id.account_id` 核对出来的，而本 Event 的 `actor_id` 是 **controller** 而不是 Agent。
 
 第 1 项与第 4 项承载的是**同一个事实的两个已登记查找方向**，因此没有任何成员住在两处：genesis admission 手上只有 `retype(create.event_id)`，entry 1 admission 手上只有 `serviceEndpoint.realm_id`，两者都**以 realm id 起手**，所以第 4 项只需要是索引——单成员对象 `{agent_id}`；拿到 `agent_id` 后再按第 1 项读 create-locked 的其余成员。第 4 项的值是对象而不是裸 id，理由与 `realm_set_default_strand` / `space_parent` 同：只有成员才能缺失，值为裸 id 的寄存器无法在不改变「值是什么」的前提下长出第二个成员。
 
@@ -585,7 +585,7 @@ lifecycle Event／RealmCommit；完整 bootstrap 门与 lifecycle current 门是
 **genesis 是唯一的首次 active 写入（normative）**：`agent_status` 的 FSM 只有
 `uninitialized -> active` 一条离开初始态的边，而 `ak.self.agent.pause` / `resume` / `deactivate` 都要求非
 `uninitialized` 的前驱。因此 Agent PCR genesis `ak.realm.create` 在
-`payload.object.purpose == "agent_control"` 时 MUST 条件写入该 typed current result，subject 取 `envelope.actor_id`
+`payload.object.purpose == "agent_control"` 时 MUST 条件写入该 current state，subject 取 `envelope.actor_id`
 的完整 Agent account ActorId：先把 RFC 8785 JCS 文本作为唯一 composite 分量，再按 §9.5 的 canonical
 composite 规则派生 subject；transition 为 `uninitialized -> active`。`ak.self.agent.pause` / `resume` /
 `deactivate` MUST 使用完全相同的 subject。Agent principal 只由 `envelope.actor_id` 派生，controller 只由
@@ -598,8 +598,8 @@ Portable lifecycle provenance 的每个 closed 分支只携对应的 accepted �
 历史引用；Event 也不携带任何指向上一条 lifecycle Event 的信封字段，lifecycle 次序由该 PCR stream 的 `RealmCommit.stream_position` 唯一给出。§3.6.3 的唯一 accepted
 provision 反查仍是 genesis admission 的强制条件。Receiver MUST 验证状态 Event 的 原始 producer proof 与可携带授权
 绑定与签名，并使用其中冻结的 `producer_signing_key_did` 验 controller producer proof；不得重新用当前
-controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle typed current result 与 transition，
-绑定完整 ActorId、typed current result head/value，以及包含该 Event 的 signed RealmCommit 到目标 checkpoint 的 ancestry。
+controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle current state 与 transition，
+绑定完整 ActorId、current state head/value，以及包含该 Event 的 signed RealmCommit 到目标 checkpoint 的 ancestry。
 
 
 **未完成 provision 不可撤销（normative）**：`ak.agent.provision` 一旦 accepted 就是 controller PCR 中不可删除、
@@ -672,7 +672,7 @@ DID 更新或治理 Station handoff。其它 Agent signer-evidence 与 scope dis
 
 该边界的 conformance vector 为 `ak.vector.agent.pcr_separation.v1`。
 
-Agent PCR genesis MUST 使用 `purpose="agent_control"`，MUST NOT 携带 human-only `founding_device_descriptor`（`genesis_salt` 与其它 Realm 一样必填），并遵守共享 PCR profile 与 `history_access=since_join`；PCR scope 由自己的 accepted `ak.mls.genesis` 不可逆激活为 standard RFC 9420；`created_by` 绑定完整 Agent account ActorId，`governance_station_id` 绑定 generation-0 治理 Station。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是控制事实所属 Agent 的完整 account ActorId，`executed_by` 是 controller 的完整 account ActorId，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent actor 使用 `service` variant、`executed_by` 或配对 `authorization_ref` 缺失，或缺少 exact Station binding 时，receiver MUST fail closed；对 agent-control genesis 与 `ak.self.agent.pause/resume/deactivate`，该 executor pair 的存在由 event-kind admission 规则（`event-kind-registry.json` 的 admission_variants 及其 Event Envelope schema 锁）强制，不依赖通用 envelope 的可选 `executed_by`。Agent 与 controller 的 principal 分量只从 `actor_id` / `executed_by` 取得，payload 不再携 `agent_id` / `controller_principal_id` 镜像。同一 `principal_id` 在不同 `station_id` 下是不同 Account ActorId，MUST 派生不同 lifecycle typed current result subject，禁止退化为裸 DidCoreId 或 `composite(DidCoreId)`。Agent PCR 的 MLS group state MUST 由 controller E2EE client 本地生成；服务端只能保存 ciphertext、公开 envelope metadata 与 reducer 所需的承诺/证明，不得生成、托管或解密该 private state。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.agent.provision` 保持在 controller PCR，并原子投影 Agent provisioning、accountability、selector 与 `principal_control_realm_id` claim 事实；后续独立变更仍可使用通用 accountability/selector Event。该 provision MUST 先于 Agent PCR genesis 成型并在另一次提交中被接受，genesis 的准入由 §3.6.3 的反查绑定，二者 MUST 由同一 Station 承载。Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification 永远不写入任一 PCR。
+Agent PCR genesis MUST 使用 `purpose="agent_control"`，MUST NOT 携带 human-only `founding_device_descriptor`（`genesis_salt` 与其它 Realm 一样必填），并遵守共享 PCR profile 与 `history_access=since_join`；PCR scope 由自己的 accepted `ak.mls.genesis` 不可逆激活为 standard RFC 9420；`created_by` 绑定完整 Agent account ActorId，`governance_station_id` 绑定 generation-0 治理 Station。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是控制事实所属 Agent 的完整 account ActorId，`executed_by` 是 controller 的完整 account ActorId，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent actor 使用 `service` variant、`executed_by` 或配对 `authorization_ref` 缺失，或缺少 exact Station binding 时，receiver MUST fail closed；对 agent-control genesis 与 `ak.self.agent.pause/resume/deactivate`，该 executor pair 的存在由 event-kind admission 规则（`event-kind-registry.json` 的 admission_variants 及其 Event Envelope schema 锁）强制，不依赖通用 envelope 的可选 `executed_by`。Agent 与 controller 的 principal 分量只从 `actor_id` / `executed_by` 取得，payload 不再携 `agent_id` / `controller_principal_id` 镜像。同一 `principal_id` 在不同 `station_id` 下是不同 Account ActorId，MUST 派生不同 lifecycle current state subject，禁止退化为裸 DidCoreId 或 `composite(DidCoreId)`。Agent PCR 的 MLS group state MUST 由 controller E2EE client 本地生成；服务端只能保存 ciphertext、公开 envelope metadata 与 reducer 所需的承诺/证明，不得生成、托管或解密该 private state。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.agent.provision` 保持在 controller PCR，并原子投影 Agent provisioning、accountability、selector 与 `principal_control_realm_id` claim 事实；后续独立变更仍可使用通用 accountability/selector Event。该 provision MUST 先于 Agent PCR genesis 成型并在另一次提交中被接受，genesis 的准入由 §3.6.3 的反查绑定，二者 MUST 由同一 Station 承载。Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification 永远不写入任一 PCR。
 
 Agent PCR 的共享写入和其它 Realm 一样，使用 `POST /_arkret/self/events`提交 exact producer-signed Event。
 Controller device 必须按 accepted delegation 签署 Agent PCR create/control Event；治理 Station 验证 exact
@@ -732,7 +732,7 @@ threshold proof；验证通过后原子提交：
 这两个预授权槽位的签名方在该 unit 被接纳前没有 accepted device projection，因此不适用 [`device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 的普通 producer 解析，也不携带任何设备证据；否则实现会要求 replacement device 在被该 unit 授权前已经拥有 accepted device 授权，形成循环。专用 recovery unit verifier 只能使用 session 冻结的 candidate identity key、create-time possession proof、accepted recovery policy/session 与 unit-local overlay 验两条签名，并在完整验证后原子建立新 generation。任一 Event 脱离完整 recovery unit/receipt closure 都不可进入普通 submit、federation、backfill 或 shared read。
 
 `new_device_generation` 是 PCR-local monotonic generation ref，MUST NOT 等于或派生自 DID `versionId`。
-generation revision/CAS 在唯一合法 PCR RealmCommit 序列的 unit 执行位置校验，只有完整 unit 的 committed 结果才 fence 全部旧 generation device；pending/rejected 候选不推进或冲突化 generation，resolution typed current result 不变。RecoveryTransaction create 的专用 prepare 只冻结两条 replacement-device-signed producer Event、当前 PCR stream `predecessor_ref` 与按 `[reanchor_digest, authorize_digest]` 排列的两个摘要，不生成或冻结 RealmCommit body。replacement device 另行签署 terminal recovery receipt；当前治理 Station 独占 RealmCommit 签发权，并在 `commit_recovery_unit` 的唯一原子提交内按 Event 顺序签发连续两笔 RealmCommit（[`security-transactions.md` §2](./security-transactions.md)）。两条 Event 共享 session 冻结的
+generation revision/CAS 在唯一合法 PCR RealmCommit 序列的 unit 执行位置校验，只有完整 unit 的 committed 结果才 fence 全部旧 generation device；pending/rejected 候选不推进或冲突化 generation，resolution current state 不变。RecoveryTransaction create 的专用 prepare 只冻结两条 replacement-device-signed producer Event、当前 PCR stream `predecessor_ref` 与按 `[reanchor_digest, authorize_digest]` 排列的两个摘要，不生成或冻结 RealmCommit body。replacement device 另行签署 terminal recovery receipt；当前治理 Station 独占 RealmCommit 签发权，并在 `commit_recovery_unit` 的唯一原子提交内按 Event 顺序签发连续两笔 RealmCommit（[`security-transactions.md` §2](./security-transactions.md)）。两条 Event 共享 session 冻结的
 `requesting_device_public_key_did` 与 unit-local candidate overlay；create-time PoP、factor transcript、
 设备 method 和原子消费规则全部按 `crypto-media/device-lifecycle.md` §14，不能以 root Event proof 替代。唯一确认与 rival 无执行效力由 `ak.vector.identity.device_reanchor.v1` 验证。
 
@@ -758,7 +758,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 2. 新设备没有 accepted-device signer 时不得调用 `issue_session_grant`，也不会得到任何 restricted SessionGrant；它通过匿名 `ak.open.device_pairing.command.stage.v1` 取得请求 id、8 位手动码与其余 server 生成字段，再以自己持有的 Bound `account_handoff_grant` 调用 `ak.gate.account.command.finalize_device_pairing.v1`，把签有 exact `AccountId` 的唯一 `device_pairing_target_proof` 附着到该请求，然后把二维码 / 链接 / 短码通过带外通道交给一台由用户选择的旧设备。匿名 stage/resolve/status **始终** account-less，不得绑定或返回 principal、sibling device 集合；账号绑定只发生在认证的 finalize 上，且它不授予新设备任何 `/_arkret/self/*` 能力。只有 step 5 的 authorize Event 已 durable accepted、新设备出现在 current durable device list，且重新认证取得 AccountHandoff 后，才能用 accepted-device proof 换取 Standard grant。在此之前 MUST NOT 读取 E2EE history、解锁 key backup、发送或接收 `ak.secret.request/send`。带外 pairing 确认只允许进入授权确认，不构成 secret-transfer 例外。
 3. 已授权设备扫描或打开带外 pairing payload 调用匿名 body-only resolve，或只输入 8 位短码调用认证的 `ak.gate.account.read.claim_device_pairing_code.v1`，两条入口按 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 解析到同一份请求与 byte-equivalent 的唯一 `device_pairing_target_proof`，独立重算并验签后显示 requesting-device metadata、完整 pairing code 与所属账号；key fingerprint、`device_id` 与 `gate_audience` 继续参与机器校验但 MAY 收进高级信息。用户必须确认这是自己正在添加的设备；经输入短码进入时，输入动作本身已完成短码比对。新设备在本步骤不得发送任何 to-device 消息；已授权设备的选择由带外交付动作完成，不存在 fresh-device sibling target discovery。
 4. push 或 to-device 通知不是本 bootstrap 的一部分，也不得承载 token、pairing code、target proof 或 sibling device 列表。部署若在已认证账号边界内提供额外的脱敏唤醒，只能作为可选 UI 提示，不能替代步骤 3 的带外交付、验签和人工确认，也不能给予新设备任何账号能力。
-5. 用户在已授权设备上逐位核对 pairing code 并批准后，该设备先验签 `device_pairing_target_proof`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；challenge digest 的重建规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+5. 用户在已授权设备上逐位核对 pairing code 并批准后，该设备先验签 `device_pairing_target_proof`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_public_key`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；challenge digest 的重建规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 6. Events API / identity registry durable 接受并传播 `ak.device.authorize`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 的匿名 status、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可开始同步 Event history、Realm membership，发布自己的 KeyPackage 并接收必要的 MLS Welcome；账户级 material 按 §12 加密备份恢复，不发送 `ak.secret.request`。
 
 如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 MLS private state 或既有密文的解密材料。
@@ -797,7 +797,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 Session grant 用于 OIDC / SSO、浏览器短会话与远程执行环境。Arkret v1 的
 `kind="ak.session.grant"` 是 Account Authority / Auth Server 对自身授权决定签发的短期 credential
 kind，**不是** Event kind。它的唯一 durable lifecycle 权威是 issuer 自己维护的 ledger；Principal
-Control Realm 不保存 grant genesis、grant state typed current result 或其任何投影。
+Control Realm 不保存 grant genesis、grant state current state 或其任何投影。
 
 `SignedSessionGrantClaims` 示例（`session_public_key` 的值是 canonical public-JWK JCS 字符串）：
 
@@ -965,7 +965,7 @@ SessionGrant 签发而扩张为日常 Event signer。
 - session grant MUST 绑定 `audience_id`；
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储；
 - canonical 撤销真相只能来自 issuer ledger、immutable `expires_at` 或触发 ledger cascade 的 current
-  account/device/Agent lifecycle；不得另建 Event typed current result、未注册 revocation-list ID 或第二套状态源。
+  account/device/Agent lifecycle；不得另建 Event current state、未注册 revocation-list ID 或第二套状态源。
 
 ## 7. 密钥备份
 
@@ -979,7 +979,7 @@ MLS authoring state 只能由本机已验证 state 延续，或由当前成员�
 
 `ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。上传设备必须用当前 accepted device key 签署完整 metadata 与 ciphertext digest，并携带 `device_authorize_event_id`。`source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
 
-envelope genesis／successor 的唯一公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 auth_data.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_seq + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
+envelope genesis／successor 的唯一公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 signature_proof.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_sequence + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
 
 `domain_separation` 只携带 producer 选择的 `subdomain` 与可选 `aead_aad_extensions`；不得携带 `hkdf_info` 或固定 AAD 成员的 wire 镜像。`hkdf_info` 的唯一派生式是 `arkret-key-backup/<backup_kind>/<subdomain>/v1`。AEAD/HPKE AAD 的唯一构造过程如下，sealer 与 opener MUST 使用同一过程，任一输入缺失、扩展名非法或扩展与固定字段冲突时 MUST 在解密前 fail closed：
 
@@ -990,7 +990,7 @@ envelope `contents` 是必填、非空、闭合的明文 item 索引；每项只
 3. 将 `domain_separation.aead_aad_extensions` 的每个 `x_*` 成员逐字合并进 base；extension map 不得包含非 `x_*` 名称，也不得覆盖任何固定成员。
 4. `aead_aad_bytes = RFC8785_JCS(merged_base)`。该字节串同时用于对称 AEAD AAD 与 §7.5.2 HPKE `aad`；无扩展时对空 map 不增加任何成员。
 
-Envelope 的签名输入固定为 `RFC8785_JCS(envelope 删除 auth_data.signature)`。因此顶层所有实际存在的 required、optional 与 `x_*` 成员，以及 `auth_data` 中除 `signature` 外的成员，都自动进入同一转录；缺席的 optional 成员不进入对象，producer 不得改写为 `null`。wire 上不携字段名清单，receiver 也不得按调用方提供的清单选择投影。
+Envelope 的签名输入固定为 `RFC8785_JCS(envelope 删除 signature_proof.signature)`。因此顶层所有实际存在的 required、optional 与 `x_*` 成员，以及 `signature_proof` 中除 `signature` 外的成员，都自动进入同一转录；缺席的 optional 成员不进入对象，producer 不得改写为 `null`。wire 上不携字段名清单，receiver 也不得按调用方提供的清单选择投影。
 
 server 只存 ciphertext、索引和 signed metadata，不能解密、重签或选择 primary recovery series。closed plaintext keybag 的 item kind 由 schema allowlist 决定，不包含 identity-root 或 device private key。
 
@@ -1055,7 +1055,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 #### 7.4.1 备份签名的设备信任根锚定（normative）
 
-`auth_data.verification_method` 必须是 DID URL：其 bare `did` 经已登记 method adapter 投影必须等于
+`signature_proof.verification_method` 必须是 DID URL：其 bare `did` 经已登记 method adapter 投影必须等于
 `actor_id.signing_principal_id()`，fragment 必须等于 `device_id`；不得把完整 `actor_id` 或其 principal
 分量直接拼接 fragment。完整 Account/Station 身份 MUST 独立取自已接受 authorization 并与 envelope
 `actor_id` 逐字绑定；仅凭 DidUrl 不得定位账号。`device_authorize_event_id` 必须解析为该 device 在 envelope
@@ -1092,7 +1092,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 
 - `recipient_key_ref` MUST 是 envelope 的 `recovery_policy_ref` 所指 accepted recovery policy（§8）中 `methods[kind=recovery_unlock].keys[].backup_hpke.key_agreement_ref`。DID Document-only `recoveryKeyAgreement` 不是授权源，MUST reject。该 ref MUST NOT 指向 method signing entry 的 `verification_method`：后者只标识 recovery-proof 签名 key。receiver 必须从同一 policy entry 取得 X25519 `public_key_multibase`，并确认 `encryption.hpke_suite` 在该 entry 的 `hpke_suites` 中。
 - HPKE suite MUST 是 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active 行，由 `encryption.hpke_suite` 选定；该字段缺省时 MUST 解释为 default-MUST 行 `ak.hpke_x25519_aead_chacha20poly1305.v1`。`aead.name` MUST 等于所选 suite 的 AEAD。遇到未登记、非 active 或 reserved-未激活的 suite id，receiver MUST fail closed（`unsupported_hpke_suite`），MUST NOT 自由组合未登记的 KEM/KDF/AEAD，也 MUST NOT 仅凭 `aead.name` 推断 suite 参数。P-256 KEM 互操作经 profile-gated 行 `ak.hpke_p256_aead_aes256gcm.v1`（`ak.profile.hpke.p256.v1`）提供。HPKE 单发 base-mode 由 key schedule 内部派生 AEAD nonce，故 `recovery_public_key` envelope 不携带 wire `nonce`。
-- HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_kind, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
+- HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_sequence, actor_id, backup_kind, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 普通 DID root generation 轮换不改变 backup-HPKE key。只有 recovery secret handoff 才改变 recipient key；handoff 后所有 active backup class MUST 按 §3.3 建新 series/重封装并推进 signed active-series pointer。
 - 任何 `recipient_method="recovery_public_key"` envelope 都 MUST 携带 `recovery_policy_ref{policy_id, policy_version}`；它作为实际存在的顶层成员自动进入 §7.2 的完整 envelope 签名转录。`recipient_key_ref` 只在该 accepted policy 的 method 内联 `backup_hpke` 中解析。各 backup class 在读取/恢复时 MUST 验证 referenced policy 仍属于该 principal 的 accepted policy history，并按 active-series 与轮换规则拒绝回滚。不匹配 MUST `recovery_policy_mismatch`。这项 policy 绑定不替代 MLS 历史或 secret-storage 的独立授权判断。
 - **备份接收 key 的角色隔离（normative）**：wire 名称 `recovery_public_key` 指 §3.3 派生的 X25519 backup-HPKE public key。它与 Ed25519 recovery-proof key、任一代 identity root 是不同 key，但三者来自同一用户 recovery secret。实现 MUST NOT 在 `secret_storage` 中再制造第四把长期 backup keypair，也不得把 Ed25519 key 转换成 X25519 key。
@@ -1125,7 +1125,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 
 ### 7.6 Backup Series & Freshness
 
-每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
+每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_sequence` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 signature_proof.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
 
 Active-series signed payload 的来源锚只有一个 canonical wire 形状：顶层成员必须逐字为
 `source_commit_ref`，其闭合值必须逐字为 `{realm_commit_id, device_generation_ref}`。
@@ -1136,7 +1136,7 @@ fail closed。
 
 #### 7.6.1 自己 Station 的 active series 与有界列表
 
-`ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
+`ak.self.keys.backups.read.list.v1` 的 `KeysBackupsPage` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
 排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。当前 schema 唯一登记的 `secret_storage` backup class 始终返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
@@ -1150,7 +1150,7 @@ provenance；它不是 signed active-series payload 内的 `source_commit_ref`�
 
 每个 class 的 `BackupActiveSeriesPointer` 为 closed 分支：`{state:"absent"}` 或
 `{state:"active", active_series_id, series_pointer_version}`。active 来自该 basis 已接受的
-exact `ak.key_backup.active_series` typed current result，pointer version >=1；basis 和 class 足以定位结果，不额外携带历史证明或 Event 清单。absent 只表示服务器已完成该 basis 的求值且没有指针；
+exact `ak.key_backup.active_series` current state，pointer version >=1；basis 和 class 足以定位结果，不额外携带历史证明或 Event 清单。absent 只表示服务器已完成该 basis 的求值且没有指针；
 未验证、缺依赖、安全确认故障、PCR 不可用必须使请求返回 revision_unavailable，不得以 absent、空列表、字段省略或 null 掩盖。
 
 普通客户端 MUST 信任本次自己 Station 的结果，检查账号、PCR 与结果形状；不得下载 PCR 闭包、历史 DID、签名清单或独立
@@ -1159,7 +1159,7 @@ witness 来重建 active 指针。不得把唯一可见 series 猜成 active，�
 active series 不在当前页不表示它不存在。旧设备上传的“验证标记”不是本结果的来源。
 
 list 默认 limit=50，允许 1..200；完整响应 canonical bytes 上限 1 MiB。服务端按 backup_kind、series_id 的 canonical
-UTF-8 字节序，随后 series_seq 数值、backup_id canonical 字节序升序分页。范围、排序和 limit 必须下推到有界存储读取，
+UTF-8 字节序，随后 series_sequence 数值、backup_id canonical 字节序升序分页。范围、排序和 limit 必须下推到有界存储读取，
 不能先读取全部 envelope 再截断。has_more=true 必须给 next_cursor，false 禁止给 next_cursor；超过单项字节上限返回
 limit_exceeded，不返回不完整 metadata。客户端只在分页完成后声明目标范围完整，不以部分页缺项删除本地状态。
 
@@ -1176,7 +1176,7 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
 - 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope；硬件只能作为 §7.5.5 的本地保护层。恢复 UI MUST NOT 要求用户设置独立 vault passphrase 作为标准凭证；仅当目标 envelope 是 `passphrase_kdf`（§7.5.1）时，MAY 提示输入对应口令完成解密，并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope（§7.5.2，按 §7.6 series 规则开新链或追加）。
-- 在尝试解密任何备份 envelope 之前，向用户展示：`backup_kind`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）与 `source_commit_ref.device_generation_ref`。
+- 在尝试解密任何备份 envelope 之前，向用户展示：`backup_kind`、`series_id`、`series_sequence`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）与 `source_commit_ref.device_generation_ref`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
 - envelope 携带 `recovery_policy_ref` 时 MUST 展示当前 envelope 的 `policy_id` / `policy_version` 与当前 accepted recovery policy 的一致性并验证。不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
@@ -1188,10 +1188,10 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 
 每次读取并尝试解密 key backup 都 MUST 产出一条 unlock proof，明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
 
-- unlock proof MUST validate as `ak.schema.key_backup_unlock_proof.v1`；签名输入为 `RFC8785_JCS(proof 删除 auth_data.signature)`，闭合分支全部实际存在字段均被认证。公共字段为 `kind/account_id/requesting_device_id/backup_id/backup_kind/series_id/ciphertext_digest/challenge/audience/service_id/issued_at/expires_at/auth_data`。`kind="current_device"` 另携 `challenge_id/nonce`，MUST NOT 携 session id，由 exact AccountId 当前 accepted、active、未撤销且 generation 匹配的设备 identity key 签署。`kind="recovery_session"` 仅另携 `recovery_session_id`，由 session 创建时冻结的 `requesting_device_public_key_did` 对应 replacement identity key 签署，MUST NOT 使用恢复因子 key。恢复分支的 challenge、audience/service、有效期与完整 AccountId/device 必须精确匹配该 verified、未过期、未完成、未撤销 session；实际恢复方法只读取其 durable proof_summary，不由 object proof 重报。grant/JKT 必须与冻结 session 相同，不能降级为 bearer 或任意 DID resolver fallback。Completed 后的新设备读取必须走 current_device。
+- unlock proof MUST validate as `ak.schema.key_backup_unlock_proof.v1`；签名输入为 `RFC8785_JCS(proof 删除 signature_proof.signature)`，闭合分支全部实际存在字段均被认证。公共字段为 `kind/account_id/requesting_device_id/backup_id/backup_kind/series_id/ciphertext_digest/challenge/audience/service_id/issued_at/expires_at/signature_proof`。`kind="current_device"` 另携 `challenge_id/nonce`，MUST NOT 携 session id，由 exact AccountId 当前 accepted、active、未撤销且 generation 匹配的设备 identity key 签署。`kind="recovery_session"` 仅另携 `recovery_session_id`，由 session 创建时冻结的 `requesting_device_public_key_did` 对应 replacement identity key 签署，MUST NOT 使用恢复因子 key。恢复分支的 challenge、audience/service、有效期与完整 AccountId/device 必须精确匹配该 verified、未过期、未完成、未撤销 session；实际恢复方法只读取其 durable proof_summary，不由 object proof 重报。grant/JKT 必须与冻结 session 相同，不能降级为 bearer 或任意 DID resolver fallback。Completed 后的新设备读取必须走 current_device。
 - 取回完整 ciphertext 的协议操作是 `ak.self.keys.backups.command.unlock.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_revision_stale` / `series_chain_broken` / `signature_invalid`）。
-- AEAD/HPKE open 后得到的明文 MUST validate as `ak.schema.key_backup_plaintext.v1`，且其中 `backup_id`、`backup_kind`、`series_id`、`series_seq` MUST byte-for-byte 等于外层 envelope。`items[].secret_id` / `item_kind` 是 keybag 内部路由字段，不得替代外层 envelope 的授权判断。
-- 实现 MUST 把 plaintext keybag 限定为本地瞬时处理材料；除非它被重新加密进本地 secret storage，否则不得持久化明文。日志、crash dump、telemetry MUST NOT 记录 `secret_b64u`。
+- AEAD/HPKE open 后得到的明文 MUST validate as `ak.schema.key_backup_plaintext.v1`，且其中 `backup_id`、`backup_kind`、`series_id`、`series_sequence` MUST byte-for-byte 等于外层 envelope。`items[].secret_id` / `item_kind` 是 keybag 内部路由字段，不得替代外层 envelope 的授权判断。
+- 实现 MUST 把 plaintext keybag 限定为本地瞬时处理材料；除非它被重新加密进本地 secret storage，否则不得持久化明文。日志、crash dump、telemetry MUST NOT 记录 `secret_base64url`。
 
 ### 7.8 Server-Side Hardening for Backup Access
 
@@ -1316,9 +1316,9 @@ AccountId，MUST 遵守 [`common-fields.md` §4.2](../models/common-fields.md#42
 MUST NOT 将其解释为另一账号的权限继承或跨 Station 迁移。原 Station 永久停止服务不提供跨 Station
 re-anchor 出口。
 
-Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `authorized_generation_ref == current_device_generation_ref` 与未撤销状态；`auth_data` 只承载该设备的单一签名。
+Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `authorized_generation_ref == current_device_generation_ref` 与未撤销状态；`signature_proof` 只承载该设备的单一签名。
 
-Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 auth_data)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。
+Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 signature_proof)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。
 
 - **publish**：首次发布或后续无中断更新。新 envelope 的 `version` MUST 严格大于当前 accepted policy 的 `version`，`supersedes` MUST 引用前一份 `policy_id`（首版为 `null`）。
 - **rotate**：用于更换 `methods[]` 中的 key、成员设备或恢复授权方；出现的成员自动进入上述完整 policy 投影。轮换期内的 in-flight recovery session（参见 `crypto-media/device-lifecycle.md` §14）MUST 使用其 `issued_at` 时点的 policy；服务端 MUST 拒绝跨 policy 版本拼接材料。
@@ -1390,7 +1390,7 @@ recovery secret 疑似泄露时 MUST 按 §3.3 分流：有独立权威才允许
 
 **不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
 
-**Active series 指针**：当一个 `(actor_id, backup_kind)` 存在多个 `series_id`（轮换后新旧并存的过渡期）时，恢复方 MUST 通过 §7.6 的 signed active-series record 确定当前 canonical series。`source_commit_ref` 是 envelope / record 的 control-stream 锚，不是 series 选择器；服务端返回顺序、最大 `series_seq`、最新 `created_at` 或单个 envelope 的 `source_commit_ref` 都不能单独决定 active series。旧 series 仅在 retention 删除前用于读取既有内容，MUST NOT 作为 primary recovery source。
+**Active series 指针**：当一个 `(actor_id, backup_kind)` 存在多个 `series_id`（轮换后新旧并存的过渡期）时，恢复方 MUST 通过 §7.6 的 signed active-series record 确定当前 canonical series。`source_commit_ref` 是 envelope / record 的 control-stream 锚，不是 series 选择器；服务端返回顺序、最大 `series_sequence`、最新 `created_at` 或单个 envelope 的 `source_commit_ref` 都不能单独决定 active series。旧 series 仅在 retention 删除前用于读取既有内容，MUST NOT 作为 primary recovery source。
 
 ## 10. 实现要求
 
@@ -1417,11 +1417,11 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal `did_core_id`、device id、verification method、算法、创建时间、撤销状态和签名链；verification method 的 base `did` 必须经 adapter 投影回该 `did_core_id`。
 - `ak.device.authorize` 与 `ak.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ak.device.revoke` 的控制面位置由其 state-changing Event 信封 `expected_revision`（授权基准，签名覆盖）、首次原子持久化的 Ack + `ak.schema.device_revocation_state.v1` pending record，以及覆盖它的 accepted RealmCommit（永久生效切点）表达，payload 不携带 checkpoint / generation 字段；已知 pending 起接收方不得为该设备提供新的 session grant、KeyPackage claim、to-device / Event write 或 可携带 producer signer evidence，只有 exact 已确认 rejected command result 可清该 proposal 的 pending；committed command result 才永久撤销。
 - Session grant MUST 绑定 principal `did_core_id`、device id、service `did_core_id` / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
-- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes_id` / `supersedes_digest` 链完整、可选 canonical `source_commit_ref{realm_commit_id,device_generation_ref}` 的完整 envelope 正例，以及 `source_ref`、完整 `CommittedEventRef`、字符串 generation、缺成员与用来源锚替代 predecessor chain 的负例、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、MLS private material 作为 plaintext 被拒绝、§7.8 服务端限速与跨 actor 拒绝。
+- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_sequence` 严格单调、`supersedes_id` / `supersedes_digest` 链完整、可选 canonical `source_commit_ref{realm_commit_id,device_generation_ref}` 的完整 envelope 正例，以及 `source_ref`、完整 `CommittedEventRef`、字符串 generation、缺成员与用来源锚替代 predecessor chain 的负例、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、MLS private material 作为 plaintext 被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal `did_core_id`、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝无法由当前 `did` / resolution evidence 验证到该 `did_core_id` 与 device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate 与 `recovery_unlock` key revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达封闭的 `methods`（`did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service` 四项）、每个 `recovery_unlock` key 的 `not_before` / `expires_at` / `revoked_at`、顶层 `cooldown_seconds` 与恢复 receipt。v1 不存在 threshold、share holder、`n` 镜像或 signed approval requirement，grammar MUST NOT 恢复它们。恢复只改变控制链，不自动授予内容读取、历史内容解密或业务 capability。
 - Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventAdmissionSubmission`、PCR allowlist/reducer/RealmCommit admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 RealmCommit retry 与特殊写路径绕过拒绝。
-- Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；签名输入固定为 `UTF8("ak.identity.recovery_receipt.signature.v1\n") || RFC8785_JCS(receipt 的全部实际存在顶层成员，排除 auth_data)`，不携字段名清单。`crypto-media/device-lifecycle.md` §14 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `result_model_generation_ref` / authorization path refs / `proof_summary` / `unlocked_backups` / `welcome_count` / `outcome`。
+- Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；签名输入固定为 `UTF8("ak.identity.recovery_receipt.signature.v1\n") || RFC8785_JCS(receipt 的全部实际存在顶层成员，排除 signature_proof)`，不携字段名清单。`crypto-media/device-lifecycle.md` §14 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `new_model_generation_ref` / authorization path refs / `proof_summary` / `unlocked_backups` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。本次自签提交及原 bound accepted outcome 可按
   [server-trusted-results §2.1](../sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative) 构造 exact target，
   独立历史验签公钥按该文 §5.6 的原 self-admission/fullAccount/immutable fact 规则取得；不得因此开放 PCR 历史、

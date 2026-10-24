@@ -56,7 +56,17 @@
         "tentative",
         "cancelled"
       ],
-      "description": "Whole-event schedule status. Required with no implicit default; distinct from the generic Strand stage and state axes. cancelled rejects new RSVPs and is schedule-relevant for notification."
+      "description": "Whole-event schedule status. Required with no implicit default; distinct from the generic Strand stage and state axes. cancelled rejects new RSVPs and is schedule-relevant for notification.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "calendar-event.schema.json#/properties/status",
+        "owner": "calendar-event.schema.json#/properties/status",
+        "values": [
+          "confirmed",
+          "tentative",
+          "cancelled"
+        ]
+      }
     },
     "recurrence": {
       "$ref": "#/$defs/recurrence"
@@ -92,7 +102,15 @@
         ],
         "properties": {
           "role": {
-            "const": "organizer"
+            "const": "organizer",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "calendar-event.schema.json#/properties/attendees/contains/properties/role",
+              "owner": "calendar-event.schema.json#/properties/attendees/contains/properties/role",
+              "values": [
+                "organizer"
+              ]
+            }
           }
         }
       },
@@ -109,7 +127,15 @@
         ],
         "properties": {
           "all_day": {
-            "const": true
+            "const": true,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "calendar-event.schema.json#/allOf/0/if/properties/all_day",
+              "owner": "calendar-event.schema.json#/allOf/0/if/properties/all_day",
+              "values": [
+                true
+              ]
+            }
           }
         }
       },
@@ -139,7 +165,15 @@
         ],
         "properties": {
           "all_day": {
-            "const": false
+            "const": false,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "calendar-event.schema.json#/allOf/1/if/properties/all_day",
+              "owner": "calendar-event.schema.json#/allOf/1/if/properties/all_day",
+              "values": [
+                false
+              ]
+            }
           }
         }
       },
@@ -177,7 +211,18 @@
             "weekly",
             "monthly",
             "yearly"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "calendar-event.schema.json#/$defs/recurrence/properties/frequency",
+            "owner": "calendar-event.schema.json#/$defs/recurrence/properties/frequency",
+            "values": [
+              "daily",
+              "weekly",
+              "monthly",
+              "yearly"
+            ]
+          }
         },
         "interval": {
           "type": "integer",
@@ -208,7 +253,15 @@
             "minimum": -31,
             "maximum": 31,
             "not": {
-              "const": 0
+              "const": 0,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "calendar-event.schema.json#/$defs/recurrence/properties/by_month_day/items/not",
+                "owner": "calendar-event.schema.json#/$defs/recurrence/properties/by_month_day/items/not",
+                "values": [
+                  0
+                ]
+              }
             }
           },
           "uniqueItems": true
@@ -221,7 +274,15 @@
             "minimum": -366,
             "maximum": 366,
             "not": {
-              "const": 0
+              "const": 0,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "calendar-event.schema.json#/$defs/recurrence/properties/by_set_position/items/not",
+                "owner": "calendar-event.schema.json#/$defs/recurrence/properties/by_set_position/items/not",
+                "values": [
+                  0
+                ]
+              }
             }
           },
           "uniqueItems": true
@@ -267,7 +328,16 @@
                 "enum": [
                   "daily",
                   "weekly"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "calendar-event.schema.json#/$defs/recurrence/allOf/1/if/properties/frequency",
+                  "owner": "calendar-event.schema.json#/$defs/recurrence/allOf/1/if/properties/frequency",
+                  "values": [
+                    "daily",
+                    "weekly"
+                  ]
+                }
               }
             }
           },
@@ -293,7 +363,15 @@
             ],
             "properties": {
               "frequency": {
-                "const": "weekly"
+                "const": "weekly",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "calendar-event.schema.json#/$defs/recurrence/allOf/2/if/properties/frequency",
+                  "owner": "calendar-event.schema.json#/$defs/recurrence/allOf/2/if/properties/frequency",
+                  "values": [
+                    "weekly"
+                  ]
+                }
               }
             }
           },
@@ -344,7 +422,21 @@
         "fr",
         "sa",
         "su"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "calendar-event.schema.json#/$defs/week_day",
+        "owner": "calendar-event.schema.json#/$defs/week_day",
+        "values": [
+          "mo",
+          "tu",
+          "we",
+          "th",
+          "fr",
+          "sa",
+          "su"
+        ]
+      }
     },
     "n_day": {
       "type": "object",
@@ -360,7 +452,15 @@
           "minimum": -366,
           "maximum": 366,
           "not": {
-            "const": 0
+            "const": 0,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "calendar-event.schema.json#/$defs/n_day/properties/nth_of_period/not",
+              "owner": "calendar-event.schema.json#/$defs/n_day/properties/nth_of_period/not",
+              "values": [
+                0
+              ]
+            }
           }
         }
       },
@@ -404,7 +504,17 @@
             "optional",
             "organizer"
           ],
-          "description": "Attendance role. Omitted means required. organizer is display and scheduling semantics only and grants no capability."
+          "description": "Attendance role. Omitted means required. organizer is display and scheduling semantics only and grants no capability.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "calendar-event.schema.json#/$defs/attendee/properties/role",
+            "owner": "calendar-event.schema.json#/$defs/attendee/properties/role",
+            "values": [
+              "required",
+              "optional",
+              "organizer"
+            ]
+          }
         },
         "display_name_snapshot": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256",

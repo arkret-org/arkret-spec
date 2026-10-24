@@ -31,7 +31,7 @@ construction: they bind bytes assembled from an enclosing carrier, not an object
 family of their own.
 
 ``check_result_write_contracts`` is in the same module for the same reason: a
-``result_writes[]`` contract that no gate reads is the same failure mode one
+``state_writes[]`` contract that no gate reads is the same failure mode one
 level down.
 """
 
@@ -1086,7 +1086,7 @@ def _detached_schema_node(lint: Lint, schema_ref: str) -> dict[str, Any] | None:
 def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
     context = case.get("context")
     host = case.get("host_object")
-    public_key = case.get("public_key_b64u")
+    public_key = case.get("public_key_base64url")
     verification_method = (
         case.get("signature_envelope_without_sig", {}).get("verification_method")
         if isinstance(case.get("signature_envelope_without_sig"), dict)
@@ -1104,7 +1104,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     if context == "ak.realm_authority_handoff_old_signature.v1":
@@ -1116,7 +1116,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     if context == "ak.realm_authority_handoff_new_acceptance_signature.v1":
@@ -1128,7 +1128,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     if context == "ak.realm_authority_current_assertion_signature.v1":
@@ -1140,7 +1140,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     if context == "ak.realm_snapshot_signature.v1":
@@ -1152,7 +1152,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     if context == "ak.mls_welcome_delivery_signature.v1":
@@ -1167,7 +1167,7 @@ def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
             },
             "resolved_controller_did": "did:webvh:z6mkfixturealice:alice.example",
             "authorized_verification_method": verification_method,
-            "public_key_b64u": public_key,
+            "public_key_base64url": public_key,
             "test_key_ref": test_key_ref,
         }
     return None
@@ -1343,7 +1343,7 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
         carrier = host.get(config["signature_member"])
         if not isinstance(carrier, dict):
             continue
-        envelope = {key: copy.deepcopy(value) for key, value in carrier.items() if key != "sig"}
+        envelope = {key: copy.deepcopy(value) for key, value in carrier.items() if key != "signature"}
         if set(envelope) != set(DETACHED_SIGNATURE_BINDING_FIELDS):
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature envelope must contain exactly the five bound members")
         if envelope.get("context") != context or envelope.get("signed_digest") != digest:
@@ -1358,11 +1358,11 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} prefix_bytes_hex must be recomputed from context plus one LF")
         if case.get("signature_input_hex") != signature_input.hex():
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature_input_hex differs from the reconstructed transcript")
-        if case.get("expected_sig") != carrier.get("sig"):
+        if case.get("expected_sig") != carrier.get("signature"):
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} expected_sig differs from the host carrier")
 
-        public_text = case.get("public_key_b64u")
-        signature = _decode_detached_b64u(carrier.get("sig"))
+        public_text = case.get("public_key_base64url")
+        signature = _decode_detached_b64u(carrier.get("signature"))
         try:
             public_raw = base64.urlsafe_b64decode(str(public_text) + "==")
             canonical_public = base64.urlsafe_b64encode(public_raw).rstrip(b"=").decode("ascii")
@@ -1372,7 +1372,7 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
         if len(public_raw) != 32 or public_text != canonical_public:
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} public key must be canonical base64url of 32 bytes")
         elif signature is None:
-            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} sig must be canonical unpadded base64url of exactly 64 bytes")
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature must be canonical unpadded base64url of exactly 64 bytes")
         else:
             try:
                 Ed25519PublicKey.from_public_bytes(public_raw).verify(signature, signature_input)
@@ -1388,7 +1388,7 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
     if isinstance(old_case, dict) and isinstance(new_case, dict):
         if old_case.get("unsigned_projection") != new_case.get("unsigned_projection") or old_case.get("expected_signed_digest") != new_case.get("expected_signed_digest"):
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "handoff old and new cases must share the identical unsigned projection and digest")
-        if old_case.get("public_key_b64u") == new_case.get("public_key_b64u") or old_case.get("test_key_ref") == new_case.get("test_key_ref"):
+        if old_case.get("public_key_base64url") == new_case.get("public_key_base64url") or old_case.get("test_key_ref") == new_case.get("test_key_ref"):
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "handoff old and new cases must use two distinct registered test keys")
 
 
@@ -1717,7 +1717,7 @@ def check_digest_construction_registration(lint: Lint) -> None:
 # not register-shaped: zh/identity/key-management.md section 3.6.1 fixes its
 # registered reducer projection as a tagged set whose element tag is the
 # canonical `<event_id>:<write_index>` Event dot of event-and-patch.md section
-# 2.4.2, and typed-current-result.schema.json backs that with a closed
+# 2.4.2, and current-state.schema.json backs that with a closed
 # `agent_key_authorization_entry` of exactly `{tag_id, value}`. A register kind
 # cannot express it, and spelling it as `set` would silently collapse a
 # tagged-set family into whole-value overwrite -- the shell this file exists to
@@ -1928,7 +1928,7 @@ def _patch_target(lint: Lint, where: str, write: dict) -> dict | None:
     several.
 
     The target is resolved from `value_schema_ref`, cross-checked against
-    `result_family`, and -- for an object row -- against the object schema the
+    `state_family`, and -- for an object row -- against the object schema the
     value is built on. Guessing from a family name or a field spelling is
     refused, and so is falling back to a flat set or an empty one.
     """
@@ -1937,7 +1937,7 @@ def _patch_target(lint: Lint, where: str, write: dict) -> dict | None:
         lint.fail(REDUCER_MANAGED_PATH_REGISTRY, "registry must be an object")
         return None
     value_schema_ref = write.get("value_schema_ref")
-    family = write.get("result_family")
+    family = write.get("state_family")
     if not isinstance(value_schema_ref, str) or not value_schema_ref:
         lint.fail(
             EVENT_KIND_REGISTRY,
@@ -1961,12 +1961,12 @@ def _patch_target(lint: Lint, where: str, write: dict) -> dict | None:
         )
         return None
     array_name, row = matches[0]
-    if row.get("result_family") != family:
+    if row.get("state_family") != family:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_family {family!r} disagrees with the "
+            f"{where}.state_family {family!r} disagrees with the "
             f"reducer-managed-path-registry {array_name}[] row for {value_schema_ref!r}, which owns "
-            f"family {row.get('result_family')!r}",
+            f"family {row.get('state_family')!r}",
         )
         return None
     if array_name == "objects":
@@ -2032,7 +2032,7 @@ def _names_a_forbidden_path(candidate: str, forbidden: set[str]) -> bool:
 def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
     """A projection's whole-value source MUST name exactly one registered origin.
 
-    ``result_projection.value`` had no validator at all outside the keyed-set
+    ``state_projection.value`` had no validator at all outside the keyed-set
     branch: ``check_result_write_contracts`` checked that ``value`` or
     ``value_projection`` was present and then read neither. The grammar that did
     validate it, ``foundation.lint_effect_source``, was written for
@@ -2073,8 +2073,8 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
         # one. Only the literal null is admitted -- a general whole-value const
         # would let a row carry protocol state no payload and no envelope
         # supplies, which is exactly the vocabulary this closure keeps out.
-        realm_actor_initializer = value["const"] == "active" and ref.startswith("ak.realm.actor.create.result_writes[")
-        realm_actor_recovery_pause = value["const"] == "paused" and ref.startswith("ak.realm.actor.recovery.begin.result_writes[")
+        realm_actor_initializer = value["const"] == "active" and ref.startswith("ak.realm.actor.create.state_writes[")
+        realm_actor_recovery_pause = value["const"] == "paused" and ref.startswith("ak.realm.actor.recovery.begin.state_writes[")
         if value["const"] is not None and not (realm_actor_initializer or realm_actor_recovery_pause):
             lint.fail(
                 EVENT_KIND_REGISTRY,
@@ -2100,7 +2100,7 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
 def _check_result_apply_patch_projection(
     lint: Lint, where: str, write: dict, projection: dict, kind: str
 ) -> None:
-    """Validate one `apply_patch` `result_projection` and its closed path set.
+    """Validate one `apply_patch` `state_projection` and its closed path set.
 
     `views.md` section 3.2 has always required a patch projection and the kind
     was never in the v1 closed set, so `check_partial_update_base_producers`
@@ -2127,7 +2127,7 @@ def _check_result_apply_patch_projection(
     if unknown:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection has unknown member(s) {sorted(unknown)}",
+            f"{where}.state_projection has unknown member(s) {sorted(unknown)}",
         )
     allowed = projection.get("allowed_paths")
     if (
@@ -2137,7 +2137,7 @@ def _check_result_apply_patch_projection(
     ):
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection.allowed_paths must be a unique array of top-level "
+            f"{where}.state_projection.allowed_paths must be a unique array of top-level "
             "value member names",
         )
         return
@@ -2145,25 +2145,25 @@ def _check_result_apply_patch_projection(
     if allowed and not isinstance(patch, dict):
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection.patch is required when allowed_paths is non-empty",
+            f"{where}.state_projection.patch is required when allowed_paths is non-empty",
         )
     elif not allowed and patch is not None:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection declares no allowed_paths, so it MUST NOT carry a "
+            f"{where}.state_projection declares no allowed_paths, so it MUST NOT carry a "
             "patch field; only derived_members[] may change the value",
         )
     elif isinstance(patch, dict):
         if set(patch) != {"field"}:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.patch must be exactly {{field}}",
+                f"{where}.state_projection.patch must be exactly {{field}}",
             )
         else:
             from .foundation import lint_field_path
 
             lint_field_path(
-                lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.patch.field", patch["field"]
+                lint, EVENT_KIND_REGISTRY, f"{where}.state_projection.patch.field", patch["field"]
             )
     derived = {
         member.get("name")
@@ -2173,14 +2173,14 @@ def _check_result_apply_patch_projection(
     if not allowed and not derived:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection is an apply_patch with neither an allowed path nor a "
+            f"{where}.state_projection is an apply_patch with neither an allowed path nor a "
             "derived member, so it writes nothing",
         )
     both = sorted(set(allowed) & derived)
     if both:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection.allowed_paths and derived_members[] share {both}; a "
+            f"{where}.state_projection.allowed_paths and derived_members[] share {both}; a "
             "member is either author-writable or reducer-derived, never both",
         )
     forbidden = _effective_forbidden_paths(lint, where, write, kind)
@@ -2190,7 +2190,7 @@ def _check_result_apply_patch_projection(
     if reserved:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection.allowed_paths names reducer-managed path(s) {reserved} "
+            f"{where}.state_projection.allowed_paths names reducer-managed path(s) {reserved} "
             "registered in reducer-managed-path-registry.json for this write's own target",
         )
 
@@ -2294,13 +2294,13 @@ def check_result_value_member_closure(lint: Lint) -> None:
             maintenance = row.get("value_member_maintenance")
             if not isinstance(maintenance, dict):
                 continue
-            family = row.get("result_family")
+            family = row.get("state_family")
             value_schema_ref = row.get("value_schema_ref")
             if not isinstance(family, str) or not isinstance(value_schema_ref, str):
                 lint.fail(
                     REDUCER_MANAGED_PATH_REGISTRY,
                     f"{array_name}[] row declaring value_member_maintenance MUST carry "
-                    "result_family and value_schema_ref",
+                    "state_family and value_schema_ref",
                 )
                 continue
             if not isinstance(maintenance.get("owner"), str) or not maintenance["owner"]:
@@ -2330,14 +2330,14 @@ def check_result_value_member_closure(lint: Lint) -> None:
         if not isinstance(row, dict):
             continue
         kind = row.get("event_kind")
-        for index, write in enumerate(row.get("result_writes") or []):
+        for index, write in enumerate(row.get("state_writes") or []):
             if not isinstance(write, dict):
                 continue
-            family = write.get("result_family")
+            family = write.get("state_family")
             entry = covered.get(family) if isinstance(family, str) else None
             if entry is None:
                 continue
-            where = f"{kind}.result_writes[{index}]"
+            where = f"{kind}.state_writes[{index}]"
             seen_writes[family].append(where)
             value_schema_ref = write.get("value_schema_ref")
             if value_schema_ref != entry["value"]:
@@ -2352,7 +2352,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where}.value_schema_ref does not resolve")
                 continue
             required = _required_schema_members(lint, value_schema_ref)
-            projection = write.get("result_projection")
+            projection = write.get("state_projection")
             projection = projection if isinstance(projection, dict) else {}
             projection_kind = projection.get("kind")
             projected: set[str] = set()
@@ -2369,7 +2369,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
                     if authored is None:
                         lint.fail(
                             EVENT_KIND_REGISTRY,
-                            f"{where}.result_projection.value.field does not resolve to a closed author "
+                            f"{where}.state_projection.value.field does not resolve to a closed author "
                             "payload region, so its authored members cannot be checked against "
                             f"{value_schema_ref!r}",
                         )
@@ -2412,7 +2412,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
             else:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_projection.kind {projection_kind!r} has no registered member-source "
+                    f"{where}.state_projection.kind {projection_kind!r} has no registered member-source "
                     f"reading for covered family {family!r}",
                 )
                 continue
@@ -2560,7 +2560,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
                     "author input",
                 )
             creators = {
-                where for where in writes if where.split(".result_writes[")[0] in producer_kinds
+                where for where in writes if where.split(".state_writes[")[0] in producer_kinds
             }
             if not creators:
                 lint.fail(
@@ -2608,7 +2608,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
             if not isinstance(path, str) or not isinstance(allowed_kinds, list):
                 continue
             conditional_expected.setdefault(path, set()).update(
-                where for where in writes if where.split(".result_writes[")[0] in allowed_kinds
+                where for where in writes if where.split(".state_writes[")[0] in allowed_kinds
             )
         for item in maintenance.get("conditional_producers") or []:
             if not isinstance(item, dict):
@@ -2636,7 +2636,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
                 )
             actual = produced[family].get(path, set())
             expected = {
-                where for where in writes if where.split(".result_writes[")[0] in allowed_kinds
+                where for where in writes if where.split(".state_writes[")[0] in allowed_kinds
             }
             if not expected:
                 lint.fail(
@@ -2662,7 +2662,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
 
 
 def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
-    """Validate one keyed-set `result_projection` and its `for_each` closure.
+    """Validate one keyed-set `state_projection` and its `for_each` closure.
 
     The add tag MUST be the write's own canonical dot. `key-management.md`
     section 3.6.1 says so in as many words ("绝不是裸 `event_id`"), and the reason
@@ -2702,46 +2702,46 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
     if kind == "keyed_set_add":
         unknown = set(projection) - {"kind", "tag", "value"}
         if unknown:
-            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection has unknown member(s) {sorted(unknown)}")
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.state_projection has unknown member(s) {sorted(unknown)}")
         if projection.get("tag") != {"dot": True}:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f'{where}.result_projection.tag must be exactly {{"dot": true}}; the stable element '
+                f'{where}.state_projection.tag must be exactly {{"dot": true}}; the stable element '
                 "tag is the canonical <event_id>:<write_index> dot, never a bare event_id",
             )
         _check_projection_value_source(
-            lint, f"{where}.result_projection.value", projection.get("value")
+            lint, f"{where}.state_projection.value", projection.get("value")
         )
     elif kind == "keyed_set_remove_observed":
         unknown = set(projection) - {"kind", "match"}
         if unknown:
-            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection has unknown member(s) {sorted(unknown)}")
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.state_projection has unknown member(s) {sorted(unknown)}")
         match = projection.get("match")
         if match is None:
             return
         if not isinstance(match, dict) or set(match) - {"element_field", "source", "present"}:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.match must be {{element_field, source}} or "
+                f"{where}.state_projection.match must be {{element_field, source}} or "
                 "{element_field, present}",
             )
             return
         from .foundation import lint_field_path
 
         lint_field_path(
-            lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.match.element_field", match.get("element_field")
+            lint, EVENT_KIND_REGISTRY, f"{where}.state_projection.match.element_field", match.get("element_field")
         )
         named = [member for member in ("source", "present") if member in match]
         if len(named) != 1:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.match must declare exactly one of source/present",
+                f"{where}.state_projection.match must declare exactly one of source/present",
             )
             return
         if "present" in match and match["present"] is not True:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.match.present may only be true; an absence predicate "
+                f"{where}.state_projection.match.present may only be true; an absence predicate "
                 "would remove the elements that LACK the field, which is the strictly wider set and "
                 "in the one registered use would delete the revocation boundary markers it must keep",
             )
@@ -2749,7 +2749,7 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
         if "for_each" not in write:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection keyed_set_remove_dots is legal only inside the registered "
+                f"{where}.state_projection keyed_set_remove_dots is legal only inside the registered "
                 "for_each supersedes remove; a payload-enumerated dot array with no per-item bound is "
                 "an open removal loop",
             )
@@ -2759,31 +2759,31 @@ RESULT_FAMILY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _COVERAGE_NOTE_RE = re.compile(
     r"(\d+) of the (\d+) reducer_input kinds declare it; the remaining (\d+)"
 )
-CURRENT_RESULT_REGISTRY = ARTIFACTS / "registry" / "current-result-registry.json"
+CURRENT_RESULT_REGISTRY = ARTIFACTS / "registry" / "current-state-registry.json"
 
 
-def _registered_result_families(lint: Lint) -> set[str] | None:
-    """The closed typed current result families, with each row's schema resolved."""
+def _registered_state_families(lint: Lint) -> set[str] | None:
+    """The closed current state families, with each row's schema resolved."""
     data = load_json(lint, CURRENT_RESULT_REGISTRY)
-    kinds = data.get("result_kinds") if isinstance(data, dict) else None
+    kinds = data.get("state_kinds") if isinstance(data, dict) else None
     if not isinstance(kinds, list) or not kinds:
-        lint.fail(CURRENT_RESULT_REGISTRY, "result_kinds[] must be a non-empty array")
+        lint.fail(CURRENT_RESULT_REGISTRY, "state_kinds[] must be a non-empty array")
         return None
     families: set[str] = set()
     documents: dict[str, Any] = {}
     for index, row in enumerate(kinds):
-        where = f"result_kinds[{index}]"
+        where = f"state_kinds[{index}]"
         if not isinstance(row, dict):
             lint.fail(CURRENT_RESULT_REGISTRY, f"{where} must be an object")
             continue
-        kind = row.get("result_kind")
+        kind = row.get("state_kind")
         if not isinstance(kind, str) or not RESULT_FAMILY_RE.fullmatch(kind):
             lint.fail(
                 CURRENT_RESULT_REGISTRY,
-                f"{where}.result_kind must be a snake_case typed current result family name",
+                f"{where}.state_kind must be a snake_case current state family name",
             )
         elif kind in families:
-            lint.fail(CURRENT_RESULT_REGISTRY, f"{where}.result_kind duplicates {kind!r}")
+            lint.fail(CURRENT_RESULT_REGISTRY, f"{where}.state_kind duplicates {kind!r}")
         else:
             families.add(kind)
         schema_ref = row.get("schema_ref")
@@ -2879,7 +2879,7 @@ def _check_subject_component(
     lint_subject_field_path(lint, EVENT_KIND_REGISTRY, f"{ref}.field", component["field"])
 
 
-def _check_result_selector(
+def _check_state_selector(
     lint: Lint, ref: str, selector: Any, id_source: Any = None, event_kind: Any = None
 ) -> None:
     """A singleton is JSON null; anything else is a closed subject descriptor.
@@ -2978,7 +2978,7 @@ def _check_typed_pair_components(lint: Lint, ref: str, selector: Any) -> None:
     """A `typed_pair` subject is a reversible two-component typed-ID encoding.
 
     `zh/models/realm-and-space.md` section 3.6 pins strand position;
-    `zh/sync/current-results.md` section 2 pins Applet/Service registration.
+    `zh/sync/current-state.md` section 2 pins Applet/Service registration.
     Each family fixes two typed components. The strand form
     `strand_position:<board_space_id>:<strand_id>` MUST stay invertible, so the
     SHA-256 subject of `tuple`/`composite` is explicitly not applicable and a
@@ -3051,7 +3051,7 @@ def _value_schema_alternatives(
     family stores, and does a whole-value `set` write all of it? -- is answered
     by the write's own `value_schema_ref`. Nothing read it, so a member name
     could be anything: `ak.member.state` pointed its ref at the enclosing
-    `member_state_result` envelope, whose own members are selector/revision/value,
+    `current_member_state` envelope, whose own members are selector/revision/value,
     and wrote `membership` into it.
 
     Each entry is one alternative the value may take, as (declared, required).
@@ -3106,20 +3106,20 @@ def _value_schema_alternatives(
 
 
 def check_result_write_contracts(lint: Lint) -> None:
-    """Validate the registered shared-state ``result_writes[]`` of each Event kind.
+    """Validate the registered shared-state ``state_writes[]`` of each Event kind.
 
     ``zh/models/realm-and-space.md`` section 2.5.1 makes ``contract-registry.json``
     the machine source for which typed current results an Event kind writes. A
     registry array nobody validates is how the previous ``cell_writes[]`` promise
     stayed a promise, so the grammar is closed here from the start.
 
-    Every declared ``result_family`` MUST also be a registered ``result_kinds[]``
-    row of ``current-result-registry.json`` whose ``schema_ref`` resolves: a write
+    Every declared ``state_family`` MUST also be a registered ``state_kinds[]``
+    row of ``current-state-registry.json`` whose ``schema_ref`` resolves: a write
     into an unregistered family is the same failure mode one level down -- prose
     and reducers would share a family name that no closed selector/value schema
     defines.
     """
-    registered_families = _registered_result_families(lint)
+    registered_families = _registered_state_families(lint)
     if registered_families is None:
         return
     registry = load_json(lint, EVENT_KIND_REGISTRY)
@@ -3130,29 +3130,29 @@ def check_result_write_contracts(lint: Lint) -> None:
     for row in rows:
         if not isinstance(row, dict):
             continue
-        writes = row.get("result_writes")
+        writes = row.get("state_writes")
         if writes is None:
             continue
         kind = row.get("event_kind")
         if not isinstance(writes, list) or not writes:
-            lint.fail(EVENT_KIND_REGISTRY, f"{kind}.result_writes must be a non-empty array")
+            lint.fail(EVENT_KIND_REGISTRY, f"{kind}.state_writes must be a non-empty array")
             continue
         if row.get("reducer_input") is not True:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{kind} declares result_writes but is not a reducer_input Event kind",
+                f"{kind} declares state_writes but is not a reducer_input Event kind",
             )
         for index, write in enumerate(writes):
-            where = f"{kind}.result_writes[{index}]"
+            where = f"{kind}.state_writes[{index}]"
             if not isinstance(write, dict):
                 lint.fail(EVENT_KIND_REGISTRY, f"{where} must be an object")
                 continue
             unknown = set(write) - {
-                "result_family",
-                "result_selector",
+                "state_family",
+                "state_selector",
                 "for_each",
                 "condition",
-                "result_projection",
+                "state_projection",
                 "derived_members",
                 "retained_members",
                 "value_schema_ref",
@@ -3165,8 +3165,8 @@ def check_result_write_contracts(lint: Lint) -> None:
                     kind != "ak.agent.key.authorize"
                     or index != 0
                     or write["for_each"] != _AGENT_SUPERSEDES_FOR_EACH
-                    or write.get("result_selector") != _AGENT_SUPERSEDES_SELECTOR
-                    or write.get("result_projection") != _AGENT_SUPERSEDES_PROJECTION
+                    or write.get("state_selector") != _AGENT_SUPERSEDES_SELECTOR
+                    or write.get("state_projection") != _AGENT_SUPERSEDES_PROJECTION
                 ) is False
                 if not agent_supersedes:
                     lint.fail(
@@ -3179,25 +3179,25 @@ def check_result_write_contracts(lint: Lint) -> None:
                     EVENT_KIND_REGISTRY,
                     f"{where} must enumerate the bounded exact supersedes set before the add",
                 )
-            family = write.get("result_family")
+            family = write.get("state_family")
             if not isinstance(family, str) or not RESULT_FAMILY_RE.fullmatch(family):
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_family must be a snake_case typed current result family name",
+                    f"{where}.state_family must be a snake_case current state family name",
                 )
             elif family not in registered_families:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_family {family!r} is not a registered result_kinds[] row of "
-                    "registry/current-result-registry.json",
+                    f"{where}.state_family {family!r} is not a registered state_kinds[] row of "
+                    "registry/current-state-registry.json",
                 )
-            if "result_selector" not in write:
-                lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_selector is required (JSON null for a singleton)")
+            if "state_selector" not in write:
+                lint.fail(EVENT_KIND_REGISTRY, f"{where}.state_selector is required (JSON null for a singleton)")
             else:
-                _check_result_selector(
+                _check_state_selector(
                     lint,
-                    f"{where}.result_selector",
-                    write["result_selector"],
+                    f"{where}.state_selector",
+                    write["state_selector"],
                     row.get("id_source"),
                     kind,
                 )
@@ -3208,22 +3208,22 @@ def check_result_write_contracts(lint: Lint) -> None:
                 lint_derived_members(
                     lint, EVENT_KIND_REGISTRY, f"{where}.derived_members", derived_members
                 )
-            projection = write.get("result_projection")
-            if write.get("result_family") in {"call_roster", "call_moderation"}:
-                family = write["result_family"]
+            projection = write.get("state_projection")
+            if write.get("state_family") in {"call_roster", "call_moderation"}:
+                family = write["state_family"]
                 expected = {"kind": "set", "value_projection": {"kind": "object", "members": [
                     {"name": "entries", "derivation": family + "_effective_entries"},
                     {"name": "last_source", "derivation": "call_axis_last_source"},
                 ]}}
                 if kind != "ak.call.state" or projection != expected:
                     lint.fail(EVENT_KIND_REGISTRY, f"{where} requires exact complete Call projection with original last_source; producer-supplied source_commit is forbidden")
-                expected_ref = "schemas/typed-current-result.schema.json#/$defs/" + family + "_value"
+                expected_ref = "schemas/current-state.schema.json#/$defs/" + family + "_value"
                 if write.get("value_schema_ref") != expected_ref:
                     lint.fail(EVENT_KIND_REGISTRY, f"{where} must name its closed effective Call value schema")
             if not isinstance(projection, dict) or projection.get("kind") not in _RESULT_PROJECTION_KINDS:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_projection.kind must be one of {sorted(_RESULT_PROJECTION_KINDS)}",
+                    f"{where}.state_projection.kind must be one of {sorted(_RESULT_PROJECTION_KINDS)}",
                 )
                 continue
             if projection["kind"] == "transition":
@@ -3231,7 +3231,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                 if unknown:
                     lint.fail(
                         EVENT_KIND_REGISTRY,
-                        f"{where}.result_projection has unknown member(s) {sorted(unknown)}",
+                        f"{where}.state_projection has unknown member(s) {sorted(unknown)}",
                     )
                 # A const endpoint is the sharper declaration and stays the norm.
                 # A field endpoint exists because one row can carry several edges
@@ -3251,7 +3251,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                     ) != 1:
                         lint.fail(
                             EVENT_KIND_REGISTRY,
-                            f"{where}.result_projection.{member} must declare exactly one of "
+                            f"{where}.state_projection.{member} must declare exactly one of "
                             "const/field",
                         )
                     elif "field" in source:
@@ -3260,7 +3260,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                         lint_field_path(
                             lint,
                             EVENT_KIND_REGISTRY,
-                            f"{where}.result_projection.{member}.field",
+                            f"{where}.state_projection.{member}.field",
                             source["field"],
                         )
             elif projection["kind"] == "apply_patch":
@@ -3270,11 +3270,11 @@ def check_result_write_contracts(lint: Lint) -> None:
             elif "value" not in projection and "value_projection" not in projection:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_projection must declare value or value_projection",
+                    f"{where}.state_projection must declare value or value_projection",
                 )
             elif "value" in projection:
                 _check_projection_value_source(
-                    lint, f"{where}.result_projection.value", projection["value"]
+                    lint, f"{where}.state_projection.value", projection["value"]
                 )
             condition = write.get("condition")
             if condition is not None:
@@ -3288,7 +3288,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                 lint_value_projection(
                     lint,
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_projection.value_projection",
+                    f"{where}.state_projection.value_projection",
                     value_projection,
                 )
             value_schema_ref = write.get("value_schema_ref")
@@ -3362,7 +3362,7 @@ def _check_projected_members(
         if name not in declared:
             lint.fail(
                 EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.value_projection member {name!r} is not declared by "
+                f"{where}.state_projection.value_projection member {name!r} is not declared by "
                 f"value_schema_ref {value_schema_ref}",
             )
     if projection["kind"] != "set" or write.get("derived_members"):
@@ -3382,7 +3382,7 @@ def _check_projected_members(
     for name in sorted((floor or set()) - projected):
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{where}.result_projection is a whole-value set but does not write {name!r}, which "
+            f"{where}.state_projection is a whole-value set but does not write {name!r}, which "
             f"value_schema_ref {value_schema_ref} requires",
         )
 
@@ -3390,7 +3390,7 @@ def _check_projected_members(
 def check_result_write_coverage_note(lint: Lint) -> None:
     """The coverage note MUST count the rows that are actually there.
 
-    ``registry_rules`` calls partial ``result_writes[]`` coverage a known gap and
+    ``registry_rules`` calls partial ``state_writes[]`` coverage a known gap and
     tells the next editor to shrink the note as coverage grows. Nothing read it,
     so it stayed at the numbers it was written with while four commits raised
     coverage -- a source-of-truth registry describing itself wrongly, which is
@@ -3404,11 +3404,11 @@ def check_result_write_coverage_note(lint: Lint) -> None:
     if not isinstance(rows, list):
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "event_kinds[] is missing, so result_writes[] coverage cannot be counted",
+            "event_kinds[] is missing, so state_writes[] coverage cannot be counted",
         )
         return
     reducer_inputs = [row for row in rows if isinstance(row, dict) and row.get("reducer_input")]
-    covered = [row for row in reducer_inputs if row.get("result_writes")]
+    covered = [row for row in reducer_inputs if row.get("state_writes")]
     notes = [
         rule
         for rule in (block.get("registry_rules") or ())
@@ -3417,7 +3417,7 @@ def check_result_write_coverage_note(lint: Lint) -> None:
     if len(notes) != 1:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "event_kind_registry.registry_rules must carry exactly one result_writes[] coverage "
+            "event_kind_registry.registry_rules must carry exactly one state_writes[] coverage "
             f"note, found {len(notes)}",
         )
         return
@@ -3425,7 +3425,7 @@ def check_result_write_coverage_note(lint: Lint) -> None:
     if match is None:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "the result_writes[] coverage note must state coverage as "
+            "the state_writes[] coverage note must state coverage as "
             "'<n> of the <total> reducer_input kinds declare it; the remaining <rest>'",
         )
         return
@@ -3437,7 +3437,7 @@ def check_result_write_coverage_note(lint: Lint) -> None:
     ):
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "the result_writes[] coverage note says "
+            "the state_writes[] coverage note says "
             f"{declared} of {total} with {remaining} remaining, but event_kinds[] has "
             f"{len(covered)} of {len(reducer_inputs)} with "
             f"{len(reducer_inputs) - len(covered)} remaining",
@@ -3445,31 +3445,31 @@ def check_result_write_coverage_note(lint: Lint) -> None:
     if "ak." in notes[0]:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "the result_writes[] coverage note must not enumerate the declaring kinds: "
+            "the state_writes[] coverage note must not enumerate the declaring kinds: "
             "event_kinds[] is that list and the copy went stale",
         )
 
 
-def check_every_result_family_has_a_writer(lint: Lint) -> None:
-    """Every registered typed current result family MUST have at least one writer.
+def check_every_state_family_has_a_writer(lint: Lint) -> None:
+    """Every registered current state family MUST have at least one writer.
 
     ``check_result_write_contracts`` closes the write -> family direction: a
-    ``result_writes[]`` row may only name a registered family. This closes the
+    ``state_writes[]`` row may only name a registered family. This closes the
     other direction, which is where the ``cell_writes[]`` promise actually
-    decayed. A family can sit in ``current-result-registry.json`` with a closed
+    decayed. A family can sit in ``current-state-registry.json`` with a closed
     selector/value schema and a resolvable ``$defs`` entry and still have no
     Event kind that produces it. Prose then reads as if that state exists,
     reducers have nothing to replay, and no gate says a word -- a registered
     shell.
 
-    Partial ``result_writes[]`` coverage is a known and recorded gap (see the
+    Partial ``state_writes[]`` coverage is a known and recorded gap (see the
     ``event_kind_registry`` rule), so this check deliberately does NOT require
     every ``reducer_input`` kind to declare a contract. It requires only the one
     invariant that holds regardless of how far coverage has been extended: a
     family nobody writes MUST NOT stay registered. Either register its writer or
     withdraw the family.
     """
-    registered = _registered_result_families(lint)
+    registered = _registered_state_families(lint)
     if registered is None:
         return
     registry = load_json(lint, EVENT_KIND_REGISTRY)
@@ -3481,17 +3481,17 @@ def check_every_result_family_has_a_writer(lint: Lint) -> None:
     for row in rows:
         if not isinstance(row, dict):
             continue
-        writes = row.get("result_writes")
+        writes = row.get("state_writes")
         if not isinstance(writes, list):
             continue
         for write in writes:
-            if isinstance(write, dict) and isinstance(write.get("result_family"), str):
-                written.add(write["result_family"])
+            if isinstance(write, dict) and isinstance(write.get("state_family"), str):
+                written.add(write["state_family"])
     for family in sorted(registered - written):
         lint.fail(
             CURRENT_RESULT_REGISTRY,
             f"result family {family!r} is registered but no Event kind declares a "
-            "result_writes[] row that produces it; register its writer or withdraw "
+            "state_writes[] row that produces it; register its writer or withdraw "
             "the family",
         )
 
@@ -3500,11 +3500,11 @@ def check_every_result_family_has_a_writer(lint: Lint) -> None:
 ASSERTED_FAMILY_EXEMPTIONS = TOOLS_ROOT / "asserted-result-family-exemptions.json"
 EVENT_PAYLOAD_SCHEMA = ARTIFACTS / "schemas" / "event-payload.schema.json"
 _ASSERTED_FAMILY_RE = re.compile(
-    r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+) typed current result\b"
+    r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+) current state\b"
 )
 _ASSERTED_SINGLE_WORD_FAMILY_RE = re.compile(
     r"\b(?:stable|registered|canonical|sole(?: registered)?|one registered) "
-    r"([a-z][a-z0-9]*) typed current result (?:family|subject|target|write)\b",
+    r"([a-z][a-z0-9]*) current state (?:family|subject|target|write)\b",
     re.IGNORECASE,
 )
 _NEGATED_RESULT_ASSERTION_RE = re.compile(
@@ -3514,13 +3514,13 @@ _NEGATED_RESULT_ASSERTION_RE = re.compile(
 )
 
 
-def _asserted_result_families(text: str) -> set[str]:
+def _asserted_state_families(text: str) -> set[str]:
     """Return family names from the deliberately closed assertion grammar.
 
-    A token immediately before ``typed current result`` remains the broad
+    A token immediately before ``current state`` remains the broad
     snake_case form used by the original gate.  Single-word names are accepted
     only when an assignment word and a role noun make the sentence a claim
-    (for example, ``stable policy typed current result subject``).  This avoids
+    (for example, ``stable policy current state subject``).  This avoids
     treating titles and ordinary phrases as family declarations while closing
     the old ``policy`` / ``consent`` blind spot.
 
@@ -3536,7 +3536,7 @@ def _asserted_result_families(text: str) -> set[str]:
             if _NEGATED_RESULT_ASSERTION_RE.search(clause_prefix):
                 continue
             family = match.group(1).lower()
-            # ``the sole registered typed current result subject`` asserts
+            # ``the sole registered current state subject`` asserts
             # uniqueness but names no family.  Backtracking in the assignment
             # pattern can otherwise misread ``registered`` as the name.
             if family in {"registered", "typed", "current"}:
@@ -3545,7 +3545,7 @@ def _asserted_result_families(text: str) -> set[str]:
     return asserted
 
 
-def _asserted_result_family_sources() -> list[Path]:
+def _asserted_state_family_sources() -> list[Path]:
     """All JSON artifact surfaces, including profiles, fixtures and reports.
 
     Generated views are intentionally included.  They are not independent
@@ -3558,25 +3558,25 @@ def _asserted_result_family_sources() -> list[Path]:
     return sorted(ARTIFACTS.rglob("*.json"))
 
 
-def check_asserted_result_families_are_registered(lint: Lint) -> None:
-    """A description that names a typed current result family must name a registered one.
+def check_asserted_state_families_are_registered(lint: Lint) -> None:
+    """A description that names a current state family must name a registered one.
 
     ``artifacts/**`` descriptions are a normative surface, not commentary: they
     are the text ``zh`` prose defers to for closed field sets, subjects and write
     contracts, and implementers read them as binding. So a payload description
-    saying "rule_id is the stable policy_rule typed current result subject" is a
+    saying "rule_id is the stable policy_rule current state subject" is a
     registration claim. Nothing checked it. ``check_result_write_contracts`` and
-    ``check_every_result_family_has_a_writer`` both start from the registry, so
+    ``check_every_state_family_has_a_writer`` both start from the registry, so
     neither can see a family that was only ever asserted in prose -- and seven of
     them accumulated exactly that way, including one
     (``mimi_room_binding_payload``) whose description told the reader to consult a
-    ``result_selector`` in ``event-kind-registry.json`` that the registry does not
+    ``state_selector`` in ``event-kind-registry.json`` that the registry does not
     contain.
 
     The scanner covers every JSON file under ``artifacts/**`` rather than two
     hand-picked files.  Snake-case assertions retain their broad historical
     grammar.  A single-word family is recognized only in the stronger assignment
-    grammar ``<stable/registered/canonical/...> NAME typed current result
+    grammar ``<stable/registered/canonical/...> NAME current state
     <family/subject/target/write>``; a syntactically negated clause is not an
     assertion.  This is still an auxiliary prose audit, not a general natural
     language parser.  Correctness continues to come from the registered writer,
@@ -3586,7 +3586,7 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
     shape as the proof-context anchor ledger: entries may only be removed, and an
     exempted name that becomes registered is itself an error.
     """
-    registered = _registered_result_families(lint)
+    registered = _registered_state_families(lint)
     if registered is None:
         return
 
@@ -3608,11 +3608,11 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
                     "unregistered_families[] entries must be objects",
                 )
                 continue
-            family = entry.get("result_family")
+            family = entry.get("state_family")
             reason = entry.get("reason")
             if not isinstance(family, str) or not family:
                 lint.fail(
-                    ASSERTED_FAMILY_EXEMPTIONS, "every entry must name a result_family"
+                    ASSERTED_FAMILY_EXEMPTIONS, "every entry must name a state_family"
                 )
                 continue
             if not isinstance(reason, str) or not reason:
@@ -3621,10 +3621,10 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
             exemptions[family] = reason
 
     asserted: dict[str, Path] = {}
-    for path in _asserted_result_family_sources():
+    for path in _asserted_state_family_sources():
         if not path.is_file():
             continue
-        for family in _asserted_result_families(path.read_text(encoding="utf-8")):
+        for family in _asserted_state_families(path.read_text(encoding="utf-8")):
             asserted.setdefault(family, path)
 
     for family, path in sorted(asserted.items()):
@@ -3639,12 +3639,12 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
             continue
         lint.fail(
             path,
-            f"a description asserts the {family!r} typed current result, but "
-            "current-result-registry.json registers no such family. An artifact "
+            f"a description asserts the {family!r} current state, but "
+            "current-state-registry.json registers no such family. An artifact "
             "description is normative, so this either registers the family (a "
-            "result_kinds[] row, a typed-current-result.schema.json $defs entry, a "
-            "result_writes[] row on its writer and a line in the "
-            "zh/sync/current-results.md section 2 list) or rewrites the sentence to "
+            "state_kinds[] row, a current-state.schema.json $defs entry, a "
+            "state_writes[] row on its writer and a line in the "
+            "zh/sync/current-state.md section 2 list) or rewrites the sentence to "
             "stop asserting one. Record a deliberate lag in "
             "tools/asserted-result-family-exemptions.json with a reason",
         )
@@ -3657,7 +3657,7 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
         )
 
 
-CURRENT_RESULTS_PROSE = ARTIFACTS.parent / "zh" / "sync" / "current-results.md"
+CURRENT_RESULTS_PROSE = ARTIFACTS.parent / "zh" / "sync" / "current-state.md"
 CURRENT_RESULTS_PROSE_HEADING = "## 2. 领域 selector 与 revision"
 _PROSE_FAMILY_TOKEN_RE = re.compile(r"`([a-z][a-z0-9_]*)`")
 
@@ -3665,7 +3665,7 @@ _PROSE_FAMILY_TOKEN_RE = re.compile(r"`([a-z][a-z0-9_]*)`")
 def check_registered_families_are_listed_in_prose(lint: Lint) -> None:
     """Every registered family MUST appear in the normative selector list.
 
-    ``sync/current-results.md`` section 2 opens with "v1 登记的 selector kind 为"
+    ``sync/current-state.md`` section 2 opens with "v1 登记的 selector kind 为"
     and then enumerates the families. That sentence is a closure claim: it tells
     an implementer that an unlisted selector is one it MUST reject. The registry
     is what reducers and schemas are generated from, so when a batch adds
@@ -3685,12 +3685,12 @@ def check_registered_families_are_listed_in_prose(lint: Lint) -> None:
     false. Both of those gates start from the registry, so neither can see a name
     that was never registered. The wording asserted a safety property nothing
     implemented, and under it seven families were asserted as registered inside
-    ``artifacts/**`` descriptions while no ``result_kinds[]`` row existed for any
-    of them. ``check_asserted_result_families_are_registered`` below closes that
+    ``artifacts/**`` descriptions while no ``state_kinds[]`` row existed for any
+    of them. ``check_asserted_state_families_are_registered`` below closes that
     hole for the machine-artifact surface, which is where the assertions actually
     live; this file stays one-directional on purpose and says so.
     """
-    registered = _registered_result_families(lint)
+    registered = _registered_state_families(lint)
     if registered is None:
         return
     if not CURRENT_RESULTS_PROSE.is_file():
@@ -3719,7 +3719,7 @@ def check_registered_families_are_listed_in_prose(lint: Lint) -> None:
         )
 
 
-_PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)\.result_writes")
+_PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)\.state_writes")
 
 
 def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
@@ -3727,16 +3727,16 @@ def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
 
     Coverage is partial on purpose (see the event_kind_registry rule), so the
     dangerous direction is prose promising a machine contract that the registry
-    does not carry. That is exactly how `ak.realm.create.result_writes[]` and
-    `ak.capability.grant.result_writes[].derived_members[]` sat dangling.
+    does not carry. That is exactly how `ak.realm.create.state_writes[]` and
+    `ak.capability.grant.state_writes[].derived_members[]` sat dangling.
     """
     declared = {
         row.get("event_kind")
         for row in rows
-        if isinstance(row, dict) and "result_writes" in row
+        if isinstance(row, dict) and "state_writes" in row
     }
     prose_root = ARTIFACTS.parent / "zh"
-    sources = list(_asserted_result_family_sources())
+    sources = list(_asserted_state_family_sources())
     if prose_root.is_dir():
         sources.extend(sorted(prose_root.rglob("*.md")))
     for path in sources:
@@ -3746,7 +3746,7 @@ def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
             if kind not in declared:
                 lint.fail(
                     path,
-                    f"cites {kind}.result_writes[] but that Event kind declares no result_writes "
+                    f"cites {kind}.state_writes[] but that Event kind declares no state_writes "
                     "in contract-registry.json; register the contract or stop citing it",
                 )
 
@@ -3774,7 +3774,7 @@ def _is_base_producer(projection: Any) -> bool:
 
 
 def _selector_shape(write: dict) -> str:
-    selector = write.get("result_selector")
+    selector = write.get("state_selector")
     if selector is None:
         return "null"
     if isinstance(selector, dict):
@@ -3796,7 +3796,7 @@ def check_pre_state_requirement_closure(lint: Lint) -> None:
     It comes back in its original shape, with one adaptation. The retired
     version required the requirement's family to be an FSM family, because the
     only rows that carried one were FSM rows. An ordinary slot has no state
-    machine, so the family only has to be a registered typed current result
+    machine, so the family only has to be a registered current state
     family here; the rest of the closure (closed member set, the conditional
     payload grammar a conditional write already uses, a registered failure code
     and reason code) is unchanged.
@@ -3817,7 +3817,7 @@ def check_pre_state_requirement_closure(lint: Lint) -> None:
     value the producer read; a stored-value precondition is this. Two mechanisms,
     two spellings, no overlap.
     """
-    registered_families = _registered_result_families(lint)
+    registered_families = _registered_state_families(lint)
     if registered_families is None:
         return
     registry = load_json(lint, EVENT_KIND_REGISTRY)
@@ -3850,7 +3850,7 @@ def check_pre_state_requirement_closure(lint: Lint) -> None:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where} must be an object")
                 continue
             unknown = set(requirement) - {
-                "result_family",
+                "state_family",
                 "subject",
                 "condition",
                 "predicate",
@@ -3858,15 +3858,15 @@ def check_pre_state_requirement_closure(lint: Lint) -> None:
             }
             if unknown:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where} has unknown member(s) {sorted(unknown)}")
-            family = requirement.get("result_family")
+            family = requirement.get("state_family")
             if family not in registered_families:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.result_family {family!r} is not a registered typed current "
+                    f"{where}.state_family {family!r} is not a registered typed current "
                     "result family",
                 )
             if "subject" in requirement:
-                _check_result_selector(
+                _check_state_selector(
                     lint,
                     f"{where}.subject",
                     requirement["subject"],
@@ -3938,7 +3938,7 @@ def check_partial_update_base_producers(lint: Lint) -> None:
     """A partial update needs a base value, and only a registered write supplies it.
 
     `zh/models/views.md` section 3.2 argues it in full and the argument is not
-    about views: an update that lands on a typed current result nobody has
+    about views: an update that lands on a current state nobody has
     written has no pre-state, the current-value contract forbids closing the gap
     with a registered `initial_value`, and `null` or an empty object MUST NOT be
     treated as implicit initialization. So the base has to come from a
@@ -3947,8 +3947,8 @@ def check_partial_update_base_producers(lint: Lint) -> None:
 
     The gate was written for `apply_patch` and has been dead since the
     authority-commit clean break renamed `cell_writes[].cell_family` /
-    `effect_projection` to `result_writes[].result_family` /
-    `result_projection`. `apply_patch` is not in the v1 `result_projection`
+    `effect_projection` to `state_writes[].state_family` /
+    `state_projection`. `apply_patch` is not in the v1 `state_projection`
     closed set at all -- views.md section 3.2 still requires it and the three
     patch kinds are still uncovered, which is its own open question -- but
     `merge` is the live partial update and the same sentence covers it verbatim.
@@ -3977,14 +3977,14 @@ def check_partial_update_base_producers(lint: Lint) -> None:
         if not isinstance(row, dict):
             continue
         kind = row.get("event_kind")
-        for write in row.get("result_writes") or []:
+        for write in row.get("state_writes") or []:
             if not isinstance(write, dict):
                 continue
             writes_seen += 1
-            family = write.get("result_family")
+            family = write.get("state_family")
             if not isinstance(family, str):
                 continue
-            projection = write.get("result_projection")
+            projection = write.get("state_projection")
             projection_kind = (
                 projection.get("kind") if isinstance(projection, dict) else None
             )
@@ -4000,7 +4000,7 @@ def check_partial_update_base_producers(lint: Lint) -> None:
     if not writes_seen:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "check_partial_update_base_producers inspected no result_writes[] entry at all; "
+            "check_partial_update_base_producers inspected no state_writes[] entry at all; "
             "the registry either lost its writes or spells the array under another key, and "
             "either way this gate's silence means nothing",
         )
@@ -4030,7 +4030,7 @@ def check_partial_update_base_producers(lint: Lint) -> None:
 
     baseline = load_json(lint, PATCH_BASE_PRODUCER_BASELINE) or {}
     known = {
-        entry.get("result_family")
+        entry.get("state_family")
         for entry in baseline.get("families_without_base_producer") or []
         if isinstance(entry, dict)
     }
@@ -4054,7 +4054,7 @@ def check_partial_update_base_producers(lint: Lint) -> None:
         )
 
 
-def check_result_family_write_agreement(lint: Lint) -> None:
+def check_state_family_write_agreement(lint: Lint) -> None:
     """All writers of one family must agree on the value schema they write.
 
     This is what survives of `check_concurrency_class_closure`, which required
@@ -4080,10 +4080,10 @@ def check_result_family_write_agreement(lint: Lint) -> None:
         if not isinstance(row, dict):
             continue
         kind = row.get("event_kind")
-        for write in row.get("result_writes") or []:
+        for write in row.get("state_writes") or []:
             if not isinstance(write, dict):
                 continue
-            family = write.get("result_family")
+            family = write.get("state_family")
             ref = write.get("value_schema_ref")
             if isinstance(family, str) and isinstance(ref, str):
                 declared.setdefault(family, {}).setdefault(ref, set()).add(kind)
@@ -4111,14 +4111,14 @@ _RESULT_SET_REMOVE_PROJECTIONS = frozenset(
 
 def _result_target_key(write: dict) -> str:
     return json.dumps(
-        [write.get("result_family"), write.get("result_selector")],
+        [write.get("state_family"), write.get("state_selector")],
         sort_keys=True,
         ensure_ascii=False,
     )
 
 
 def check_result_write_target_uniqueness(lint: Lint) -> None:
-    """Two writes of one Event MUST NOT address the same typed current result.
+    """Two writes of one Event MUST NOT address the same current state.
 
     ``zh/models/event-and-patch.md`` section 2.4.2 lets one Event carry several
     ops of the same family only where the kind's closed contract registers them
@@ -4154,12 +4154,12 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
             continue
         kind = row.get("event_kind")
         seen: dict[str, tuple[Any, Any]] = {}
-        for index, write in enumerate(row.get("result_writes") or []):
+        for index, write in enumerate(row.get("state_writes") or []):
             if not isinstance(write, dict):
                 continue
             writes_seen += 1
-            where = f"{kind}.result_writes[{index}]"
-            projection = write.get("result_projection")
+            where = f"{kind}.state_writes[{index}]"
+            projection = write.get("state_projection")
             projection_kind = (
                 projection.get("kind") if isinstance(projection, dict) else None
             )
@@ -4173,7 +4173,7 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
             # written. The other legitimate use of `any_field_present` -- one
             # result carrying several distinct fields, addressed by an
             # unconditional selector -- is not constrained here.
-            selector = write.get("result_selector")
+            selector = write.get("state_selector")
             if (
                 isinstance(condition, dict)
                 and condition.get("kind") == "any_field_present"
@@ -4184,7 +4184,7 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
             ):
                 lint.fail(
                     EVENT_KIND_REGISTRY,
-                    f"{where}.condition.fields must equal the result_selector coalesce fields "
+                    f"{where}.condition.fields must equal the state_selector coalesce fields "
                     "item-for-item and in order, or the result can be required on a payload "
                     "shape whose key cannot be derived",
                 )
@@ -4202,7 +4202,7 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
                 ):
                     lint.fail(
                         EVENT_KIND_REGISTRY,
-                        f"{where} addresses the same (result_family, result_selector) as an "
+                        f"{where} addresses the same (state_family, state_selector) as an "
                         "earlier write of this Event without being a keyed-set "
                         "remove-then-add pair or carrying a provably disjoint condition; two "
                         "ops on one result are indistinguishable to a receiver",
@@ -4212,7 +4212,7 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
     if not writes_seen:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            "check_result_write_target_uniqueness inspected no result_writes[] entry at all; "
+            "check_result_write_target_uniqueness inspected no state_writes[] entry at all; "
             "the registry either lost its writes or spells the array under another key, and "
             "either way this gate's silence means nothing",
         )
@@ -4319,7 +4319,7 @@ def _member_subschema(lint: Lint, reference: Any, member: str) -> dict | None:
 def check_author_writable_state_axis_contract(lint: Lint) -> None:
     """The third lifecycle carrier has to pay for itself.
 
-    ``sync/current-results.md`` section 2.1 used to say a stored lifecycle axis
+    ``sync/current-state.md`` section 2.1 used to say a stored lifecycle axis
     had exactly two registered carriers, and that the choice between them
     followed from one field name: *every family whose payload carries
     ``expected_revision`` MUST take form 2, the rest take form 1*. Both halves
@@ -4365,10 +4365,10 @@ def check_author_writable_state_axis_contract(lint: Lint) -> None:
             continue
         kind = row.get("event_kind")
         category = row.get("category")
-        for index, write in enumerate(row.get("result_writes") or []):
+        for index, write in enumerate(row.get("state_writes") or []):
             if not isinstance(write, dict):
                 continue
-            projection = write.get("result_projection")
+            projection = write.get("state_projection")
             if not isinstance(projection, dict) or projection.get("kind") != "apply_patch":
                 continue
             allowed_paths = projection.get("allowed_paths")
@@ -4378,15 +4378,15 @@ def check_author_writable_state_axis_contract(lint: Lint) -> None:
                 continue
 
             carriers += 1
-            where = f"{kind}.result_writes[{index}]"
-            family = write.get("result_family")
+            where = f"{kind}.state_writes[{index}]"
+            family = write.get("state_family")
 
             if family in transition_contracts:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{where} lets the author patch {AUTHOR_STATE_AXIS_MEMBER!r} while "
                     f"transition_contracts.{family} also declares a machine for it; a family has "
-                    "exactly one state source (sync/current-results.md section 2.1)",
+                    "exactly one state source (sync/current-state.md section 2.1)",
                 )
 
             state_schema = _member_subschema(
@@ -4443,6 +4443,6 @@ def check_author_writable_state_axis_contract(lint: Lint) -> None:
         lint.fail(
             EVENT_KIND_REGISTRY,
             "no registered write lets an author patch a lifecycle state, so this gate reported "
-            "success over nothing; sync/current-results.md section 2.1 registers the carrier and "
+            "success over nothing; sync/current-state.md section 2.1 registers the carrier and "
             "ak.view.update is its one v1 use -- if that write is gone, the section goes with it",
         )

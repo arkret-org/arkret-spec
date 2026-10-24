@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.3",
+  "version": "2026-10-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T21:34:15+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -21,8 +21,8 @@
     },
     {
       "page": "authz/capabilities.md",
-      "heading": "12.1 Grant typed current result 的确定性收敛（normative）",
-      "fragment": "121-grant-typed-current-result-的确定性收敛normative"
+      "heading": "12.1 Grant current state 的确定性收敛（normative）",
+      "fragment": "121-grant-current-state-的确定性收敛normative"
     },
     {
       "page": "authz/capabilities.md",
@@ -366,8 +366,8 @@
     },
     {
       "page": "crypto-media/device-lifecycle.md",
-      "heading": "5.5.1 Device authorization typed current result 的封闭 value（normative）",
-      "fragment": "551-device-authorization-typed-current-result-的封闭-valuenormative"
+      "heading": "5.5.1 Device authorization current state 的封闭 value（normative）",
+      "fragment": "551-device-authorization-current-state-的封闭-valuenormative"
     },
     {
       "page": "crypto-media/device-lifecycle.md",
@@ -1240,7 +1240,7 @@
       "fragment": "50-current-与-timeline-的载体边界normative"
     },
     {
-      "page": "sync/current-results.md",
+      "page": "sync/current-state.md",
       "heading": "2.2 消费清单（normative）",
       "fragment": "22-消费清单normative"
     },

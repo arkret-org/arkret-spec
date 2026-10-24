@@ -34,7 +34,7 @@ class ThirdPartyInviteModesTests(unittest.TestCase):
             "token_commitment": "sha256:" + "ab" * 32,
             "verification_id": "ak:did_core:web:ivs.example",
             "verification_public_key": "z6MkVK",
-            "max_claims": 1,
+            "max_claim_count": 1,
         }
         for mode, specific, forbidden in [
             ("offline_token", {"token_salt_id": "salt", "token_entropy_bits": 128},

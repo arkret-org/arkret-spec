@@ -1,31 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/media-service-binding-result.schema.json",
+  "$id": "https://arkret.org/v1/schemas/media-service-binding-operations.schema.json",
   "title": "Arkret Media Service Binding Result",
-  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted realm_media_service typed current result. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
+  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted realm_media_service current state. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
   "$defs": {
     "service_signing_key": {
       "type": "object",
       "description": "One accepted assertion-capable Ed25519 signing key of the anchored media service, taken from the same verified current DID Document as the route. The controller DID of verification_method equals the route did; the key verifies participant_binding and ICE config signatures without a per-token DID resolution.",
       "required": [
         "verification_method",
-        "public_key_b64u"
+        "public_key_base64url"
       ],
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes. Public verification material only; it grants no media key release."
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes. Public verification material only; it grants no media key release.",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false
     },
     "media_service_binding_request_body": {
       "type": "object",
-      "description": "Authenticated member request for one joined Realm. The media service identity is taken from that Realm current accepted typed current result; caller-supplied service ids, DIDs, base URLs, candidate origins and method evidence are not accepted.",
+      "description": "Authenticated member request for one joined Realm. The media service identity is taken from that Realm current accepted current state; caller-supplied service ids, DIDs, base URLs, candidate origins and method evidence are not accepted.",
       "required": [
         "request_id",
         "realm_id"
@@ -41,7 +42,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 65536
     },
-    "media_service_binding_outcome": {
+    "media_service_binding_response_body": {
       "type": "object",
       "description": "Complete bounded own-Station result: the accepted anchor, its verified route projection and the signing keys that verify issued media signatures. No method history evidence, witness record, normalized DID Document, describe body or third-party attestation closure is returned. expires_at bounds route and key reuse only and is never an authorization lease.",
       "required": [
@@ -61,10 +62,22 @@
         },
         "route": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_route_projection",
-          "description": "Verified route projection of the anchored issuer; service_id equals the accepted typed current result service_id. A Station fulfilling the media issuer role retains service_kind station and must independently satisfy the media binding profile, selected backend sub-profile and registered token HTTP operation bundle. Never relabel its DID endpoint as media_service. An independent media_service role requires its separately registered method-native identity; this result does not grant service-registration eligibility.",
+          "description": "Verified route projection of the anchored issuer; service_id equals the accepted current state service_id. A Station fulfilling the media issuer role retains service_kind station and must independently satisfy the media binding profile, selected backend sub-profile and registered token HTTP operation bundle. Never relabel its DID endpoint as media_service. An independent media_service role requires its separately registered method-native identity; this result does not grant service-registration eligibility.",
           "properties": {
             "service_kind": {
-              "enum": ["station", "media_service"]
+              "enum": [
+                "station",
+                "media_service"
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body/properties/route/properties/service_kind",
+                "owner": "media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body/properties/route/properties/service_kind",
+                "values": [
+                  "station",
+                  "media_service"
+                ]
+              }
             }
           }
         },
@@ -85,7 +98,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 65536
+      "x-arkret-max-canonical-bytes": 65536,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

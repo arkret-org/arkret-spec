@@ -4,19 +4,19 @@
   "title": "Arkret Applet Bounded Configuration Operations",
   "oneOf": [
     {
-      "$ref": "#/$defs/request"
+      "$ref": "#/$defs/applet_configuration_request_body"
     },
     {
-      "$ref": "#/$defs/outcome"
+      "$ref": "#/$defs/response_body"
     },
     {
-      "$ref": "#/$defs/execution_request"
+      "$ref": "#/$defs/applet_configuration_execution_request_body"
     },
     {
-      "$ref": "#/$defs/execution_outcome"
+      "$ref": "#/$defs/execution_response_body"
     },
     {
-      "$ref": "#/$defs/peer_request"
+      "$ref": "#/$defs/peer_applet_configuration_request_body"
     }
   ],
   "$defs": {
@@ -29,7 +29,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "new_bot"
+              "const": "new_bot",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-configuration-operations.schema.json#/$defs/selection/oneOf/0/properties/kind",
+                "owner": "applet-configuration-operations.schema.json#/$defs/selection/oneOf/0/properties/kind",
+                "values": [
+                  "new_bot"
+                ]
+              }
             },
             "display_name": {
               "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
@@ -45,7 +53,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "existing_realm_actor"
+              "const": "existing_realm_actor",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-configuration-operations.schema.json#/$defs/selection/oneOf/1/properties/kind",
+                "owner": "applet-configuration-operations.schema.json#/$defs/selection/oneOf/1/properties/kind",
+                "values": [
+                  "existing_realm_actor"
+                ]
+              }
             },
             "actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -79,7 +95,7 @@
       },
       "additionalProperties": false
     },
-    "request": {
+    "applet_configuration_request_body": {
       "type": "object",
       "required": [
         "command",
@@ -91,7 +107,17 @@
             "configure",
             "cancel",
             "recover"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body/properties/command",
+            "owner": "applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body/properties/command",
+            "values": [
+              "configure",
+              "cancel",
+              "recover"
+            ]
+          }
         },
         "intent": {
           "$ref": "#/$defs/intent"
@@ -106,7 +132,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 262144,
+      "x-arkret-name-role": "request_body"
     },
     "execution_intent": {
       "type": "object",
@@ -136,9 +163,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "effective_scope": {
           "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
@@ -153,7 +178,15 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id",
           "properties": {
             "kind": {
-              "const": "account"
+              "const": "account",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-configuration-operations.schema.json#/$defs/execution_intent/properties/originating_actor_id/properties/kind",
+                "owner": "applet-configuration-operations.schema.json#/$defs/execution_intent/properties/originating_actor_id/properties/kind",
+                "values": [
+                  "account"
+                ]
+              }
             }
           }
         },
@@ -163,7 +196,7 @@
       },
       "additionalProperties": false
     },
-    "execution_request": {
+    "applet_configuration_execution_request_body": {
       "type": "object",
       "required": [
         "command",
@@ -180,7 +213,17 @@
             "configure",
             "cancel",
             "recover"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body/properties/command",
+            "owner": "applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body/properties/command",
+            "values": [
+              "configure",
+              "cancel",
+              "recover"
+            ]
+          }
         },
         "intent": {
           "$ref": "#/$defs/execution_intent"
@@ -189,9 +232,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -205,9 +246,10 @@
       },
       "additionalProperties": false,
       "x-arkret-signature-domain": "ak.applet.configuration_command.v1",
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 262144,
+      "x-arkret-name-role": "request_body"
     },
-    "execution_outcome": {
+    "execution_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -235,7 +277,20 @@
             "reused",
             "denied",
             "cancelled"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-configuration-operations.schema.json#/$defs/execution_response_body/properties/status",
+            "owner": "applet-configuration-operations.schema.json#/$defs/execution_response_body/properties/status",
+            "values": [
+              "pending",
+              "candidate",
+              "created",
+              "reused",
+              "denied",
+              "cancelled"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -263,7 +318,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.actor.create"
+                  "const": "ak.realm.actor.create",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "applet-configuration-operations.schema.json#/$defs/execution_response_body/properties/create_event/allOf/1/properties/kind",
+                    "owner": "applet-configuration-operations.schema.json#/$defs/execution_response_body/properties/create_event/allOf/1/properties/kind",
+                    "values": [
+                      "ak.realm.actor.create"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -282,7 +345,16 @@
                 "enum": [
                   "created",
                   "reused"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "applet-configuration-operations.schema.json#/$defs/execution_response_body/allOf/0/if/properties/status",
+                  "owner": "applet-configuration-operations.schema.json#/$defs/execution_response_body/allOf/0/if/properties/status",
+                  "values": [
+                    "created",
+                    "reused"
+                  ]
+                }
               }
             }
           },
@@ -313,7 +385,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "candidate"
+                "const": "candidate",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "applet-configuration-operations.schema.json#/$defs/execution_response_body/allOf/1/if/properties/status",
+                  "owner": "applet-configuration-operations.schema.json#/$defs/execution_response_body/allOf/1/if/properties/status",
+                  "values": [
+                    "candidate"
+                  ]
+                }
               }
             },
             "required": [
@@ -336,9 +416,10 @@
       ],
       "x-arkret-signature-domain": "ak.applet.configuration_outcome.v1",
       "x-arkret-max-canonical-bytes": 262144,
-      "description": "Runtime may return a signed creation candidate Event; created/reused is permitted only with the original governance acceptance Commit. Candidate generation is not identity acceptance. Administrator intent is bound to the exact candidate before approval and Event submission."
+      "description": "Runtime may return a signed creation candidate Event; created/reused is permitted only with the original governance acceptance Commit. Candidate generation is not identity acceptance. Administrator intent is bound to the exact candidate before approval and Event submission.",
+      "x-arkret-name-role": "response_body"
     },
-    "outcome": {
+    "response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -352,8 +433,8 @@
         "intent_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
         },
-        "source_outcome": {
-          "$ref": "#/$defs/execution_outcome"
+        "source_response_body": {
+          "$ref": "#/$defs/execution_response_body"
         },
         "admission_status": {
           "enum": [
@@ -362,14 +443,27 @@
             "accepted",
             "denied",
             "cancelled"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-configuration-operations.schema.json#/$defs/response_body/properties/admission_status",
+            "owner": "applet-configuration-operations.schema.json#/$defs/response_body/properties/admission_status",
+            "values": [
+              "not_started",
+              "pending",
+              "accepted",
+              "denied",
+              "cancelled"
+            ]
+          }
         },
         "review_request_id": {
           "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 262144,
+      "x-arkret-name-role": "response_body"
     },
     "signature": {
       "type": "object",
@@ -388,7 +482,7 @@
       },
       "additionalProperties": false
     },
-    "peer_request": {
+    "peer_applet_configuration_request_body": {
       "type": "object",
       "required": [
         "requester_account_id",
@@ -399,11 +493,12 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "request": {
-          "$ref": "#/$defs/request"
+          "$ref": "#/$defs/applet_configuration_request_body"
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 262144,
+      "x-arkret-name-role": "request_body"
     }
   }
 }

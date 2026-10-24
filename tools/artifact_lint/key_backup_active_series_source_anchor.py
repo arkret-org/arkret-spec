@@ -77,7 +77,7 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
     else:
         if event_row.get("payload_schema_ref") != "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload":
             _fail(lint, CONTRACT_REGISTRY, "event-kind payload schema ref is missing or wrong")
-        contract_text = f"{event_row.get('payload', '')} {event_row.get('result_writes', '')}"
+        contract_text = f"{event_row.get('payload', '')} {event_row.get('state_writes', '')}"
         for marker in ("source_commit_ref", "realm_commit_id", "device_generation_ref"):
             if marker not in contract_text:
                 _fail(lint, CONTRACT_REGISTRY, f"event contract does not pin {marker}")

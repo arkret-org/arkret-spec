@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-16.3",
+  "version": "2026-10-24.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -16,7 +16,7 @@
     "ak.vector.agent.repairing_supersede.v1",
     "ak.vector.agent.longevity_no_expiry.v1",
     "ak.vector.agent.controller_lifecycle.v1",
-    "ak.vector.agent.act_on_behalf.v1",
+    "ak.vector.agent.acting_on_behalf_allowed.v1",
     "ak.vector.agent.session_grant.replay.v1",
     "ak.vector.agent_auth.human_approval_required.v1",
     "ak.vector.agent.session_content_authority.v1"
@@ -102,7 +102,7 @@
     },
     {
       "name": "agent_provision_prepare_outcome_omits_unavailable_pcr_id",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
       "expect_valid": true,
       "instance": {
         "status": "awaiting_controller_event",
@@ -120,7 +120,7 @@
     },
     {
       "name": "agent_provision_prepare_outcome_rejects_future_pcr_id",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
       "expect_valid": false,
       "first_expected_error": "contains:principal_control_realm_id",
       "instance": {
@@ -140,7 +140,7 @@
     },
     {
       "name": "agent_provision_commit_outcome_requires_declared_pcr_id",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
       "expect_valid": true,
       "instance": {
         "status": "awaiting_pcr_genesis",
@@ -158,7 +158,7 @@
     },
     {
       "name": "agent_provision_pcr_acceptance_waits_for_did_binding",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
       "expect_valid": true,
       "instance": {
         "status": "awaiting_did_binding",
@@ -248,7 +248,7 @@
         "presence": {
           "state": "offline",
           "expires_at": "2026-08-02T00:01:00.000Z",
-          "refresh_after": "2026-08-02T00:00:20.000Z"
+          "refresh_at": "2026-08-02T00:00:20.000Z"
         },
         "runtime_state": "pairing_expired"
       }
@@ -283,7 +283,7 @@
     },
     {
       "name": "pairing_poll_keeps_operation_local_runtime_state",
-      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_response_body",
       "expect_valid": true,
       "instance": {
         "lifecycle": "active",
@@ -298,7 +298,7 @@
         "presence": {
           "state": "offline",
           "expires_at": "2026-08-02T00:01:00.000Z",
-          "refresh_after": "2026-08-02T00:00:20.000Z"
+          "refresh_at": "2026-08-02T00:00:20.000Z"
         }
       }
     }
@@ -393,7 +393,7 @@
       "operation_id": "ak.self.events.command.submit.v1",
       "carrier_source": "service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
       "assertions": [
-        "v1 self_submit_request has no generic Agent provision/genesis batch branch; the nested security-transaction array cannot authorize a self submit",
+        "v1 self_submit_request_body has no generic Agent provision/genesis batch branch; the nested security-transaction array cannot authorize a self submit",
         "a canonical typed batch with valid frozen Event bytes is rejected as schema_violation with complete accepted and Agent state unchanged",
         "this is an unsupported-carrier negative, not a claimed business batch execution or digest mismatch; ordinary independent genesis/provision Event identities and the accepted-prior declaration gate remain mandatory"
       ]
@@ -414,7 +414,7 @@
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
       "submission": "second ak.agent.provision declaring an already claimed principal_control_realm_id",
       "claim_result": {
-        "result_family": "agent_principal_control_realm_claim"
+        "state_family": "agent_principal_control_realm_claim"
       },
       "expected": {
         "outcome": "rejected",
@@ -612,7 +612,7 @@
     },
     {
       "name": "agent_act_on_behalf",
-      "vector_id": "ak.vector.agent.act_on_behalf.v1",
+      "vector_id": "ak.vector.agent.acting_on_behalf_allowed.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_act_on_behalf_vector",
       "assertions": [
         "controller approvals are single-use",
@@ -659,7 +659,7 @@
         "password_prompt"
       ],
       "assertions": [
-        "RFC 9457 extension members validate against agent_human_approval_error_details",
+        "RFC 9457 extension members validate against agent_human_approval_problem_extensions",
         "approval_request_id is opaque and is the only runtime-visible correlation handle",
         "controller approval completes out of band",
         "agent retry references accepted approval evidence",

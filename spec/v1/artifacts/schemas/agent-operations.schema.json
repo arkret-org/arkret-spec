@@ -8,34 +8,34 @@
       "$ref": "#/$defs/account_device_pair_request_body"
     },
     {
-      "$ref": "#/$defs/account_device_pair_outcome"
+      "$ref": "#/$defs/account_device_pair_response_body"
     },
     {
       "$ref": "#/$defs/agent_key_pair_request_body"
     },
     {
-      "$ref": "#/$defs/agent_key_pair_outcome"
+      "$ref": "#/$defs/agent_key_pair_response_body"
     },
     {
       "$ref": "#/$defs/agent_runtime_approval_request_body"
     },
     {
-      "$ref": "#/$defs/agent_runtime_approval_outcome"
+      "$ref": "#/$defs/agent_runtime_approval_response_body"
     },
     {
       "$ref": "#/$defs/agent_runtime_approval_status_request_body"
     },
     {
-      "$ref": "#/$defs/agent_runtime_approval_status_outcome"
+      "$ref": "#/$defs/agent_runtime_approval_status_response_body"
     },
     {
       "$ref": "#/$defs/agent_provision_request_body"
     },
     {
-      "$ref": "#/$defs/agent_provision_outcome"
+      "$ref": "#/$defs/agent_provision_response_body"
     },
     {
-      "$ref": "#/$defs/agent_renew_pairing_outcome"
+      "$ref": "#/$defs/agent_renew_pairing_response_body"
     },
     {
       "$ref": "#/$defs/agent_pairing_bootstrap"
@@ -44,7 +44,7 @@
       "$ref": "#/$defs/agent_pairing_resolve_request_body"
     },
     {
-      "$ref": "#/$defs/agent_list"
+      "$ref": "#/$defs/agent_page"
     },
     {
       "$ref": "#/$defs/agent_view"
@@ -53,7 +53,7 @@
       "$ref": "#/$defs/agent_pause_request_body"
     },
     {
-      "$ref": "#/$defs/agent_lifecycle_state"
+      "$ref": "#/$defs/operation_status_view"
     },
     {
       "$ref": "#/$defs/agent_resume_request_body"
@@ -62,16 +62,16 @@
       "$ref": "#/$defs/agent_deactivate_request_body"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_ensure_request_body"
+      "$ref": "./principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_ensure_outcome"
+      "$ref": "#/$defs/agent_sidecar_ensure_response_body"
     },
     {
       "$ref": "#/$defs/agent_sidecar_view"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_list"
+      "$ref": "#/$defs/agent_sidecar_page"
     }
   ],
   "$defs": {
@@ -124,7 +124,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Required controller-scoped Agent label slug. Used only to verify or display an already-known authorized full Agent AccountId; not a free-text mention address, global handle, or authorization subject. The accepted ak.agent.provision is the only writer of the agent_selector_claim typed current result that binds this label."
+      "description": "Required controller-scoped Agent label slug. Used only to verify or display an already-known authorized full Agent AccountId; not a free-text mention address, global handle, or authorization subject. The accepted ak.agent.provision is the only writer of the agent_selector_claim current state that binds this label."
     },
     "base64url": {
       "type": "string",
@@ -168,14 +168,30 @@
       "properties": {
         "kind": {
           "type": "string",
-          "const": "agent_runtime_key_possession"
+          "const": "agent_runtime_key_possession",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof/properties/kind",
+            "owner": "agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof/properties/kind",
+            "values": [
+              "agent_runtime_key_possession"
+            ]
+          }
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
         },
         "signature_algorithm": {
           "type": "string",
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/opaque_local_id"
@@ -220,13 +236,29 @@
       ],
       "properties": {
         "kty": {
-          "const": "OKP"
+          "const": "OKP",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8037.html#section-2",
+            "owner": "agent-operations.schema.json#/$defs/agent_runtime_public_key/properties/kty",
+            "values": [
+              "OKP"
+            ]
+          }
         },
         "kid": {
           "$ref": "#/$defs/non_empty_string"
         },
         "algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "agent-operations.schema.json#/$defs/agent_runtime_public_key/properties/algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "key": {
           "type": "string",
@@ -267,17 +299,38 @@
         "active",
         "paused",
         "deactivated"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-operations.schema.json#/$defs/agent_status",
+        "owner": "agent-operations.schema.json#/$defs/agent_status",
+        "values": [
+          "active",
+          "paused",
+          "deactivated"
+        ]
+      }
     },
     "agent_runtime_state": {
       "type": "string",
-      "description": "Operation-local diagnostic enum used only by agent_runtime_approval_status_outcome on the unauthenticated pairing poll. It is mechanically derived from the polled handle and key facts, is never writable, and MUST NOT appear in generic Agent list/get/key_state projections: no active accepted key authorization with an unexpired bootstrap handle is pending_runtime_key; no active key with the bootstrap handle expired is pairing_expired; an active key with no unconsumed replacement handle is ready; an active key with an unexpired replacement handle is replacing.",
+      "description": "Operation-local diagnostic enum used only by agent_runtime_approval_status_response_body on the unauthenticated pairing poll. It is mechanically derived from the polled handle and key facts, is never writable, and MUST NOT appear in generic Agent list/get/key_state projections: no active accepted key authorization with an unexpired bootstrap handle is pending_runtime_key; no active key with the bootstrap handle expired is pairing_expired; an active key with no unconsumed replacement handle is ready; an active key with an unexpired replacement handle is replacing.",
       "enum": [
         "pending_runtime_key",
         "ready",
         "replacing",
         "pairing_expired"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-operations.schema.json#/$defs/agent_runtime_state",
+        "owner": "agent-operations.schema.json#/$defs/agent_runtime_state",
+        "values": [
+          "pending_runtime_key",
+          "ready",
+          "replacing",
+          "pairing_expired"
+        ]
+      }
     },
     "agent_readiness": {
       "type": "object",
@@ -291,7 +344,16 @@
           "enum": [
             "ready",
             "not_ready"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_readiness/properties/state",
+            "owner": "agent-operations.schema.json#/$defs/agent_readiness/properties/state",
+            "values": [
+              "ready",
+              "not_ready"
+            ]
+          }
         },
         "blockers": {
           "type": "array",
@@ -301,7 +363,16 @@
             "enum": [
               "runtime_key_missing",
               "pairing_open"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-operations.schema.json#/$defs/agent_readiness/properties/blockers/items",
+              "owner": "agent-operations.schema.json#/$defs/agent_readiness/properties/blockers/items",
+              "values": [
+                "runtime_key_missing",
+                "pairing_open"
+              ]
+            }
           }
         }
       },
@@ -310,7 +381,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "ready"
+                "const": "ready",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-operations.schema.json#/$defs/agent_readiness/allOf/0/if/properties/state",
+                  "owner": "agent-operations.schema.json#/$defs/agent_readiness/allOf/0/if/properties/state",
+                  "values": [
+                    "ready"
+                  ]
+                }
               }
             },
             "required": [
@@ -329,7 +408,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "not_ready"
+                "const": "not_ready",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-operations.schema.json#/$defs/agent_readiness/allOf/1/if/properties/state",
+                  "owner": "agent-operations.schema.json#/$defs/agent_readiness/allOf/1/if/properties/state",
+                  "values": [
+                    "not_ready"
+                  ]
+                }
               }
             },
             "required": [
@@ -352,7 +439,7 @@
       "required": [
         "state",
         "expires_at",
-        "refresh_after"
+        "refresh_at"
       ],
       "properties": {
         "state": {
@@ -361,13 +448,24 @@
             "online",
             "offline",
             "unknown"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_presence/properties/state",
+            "owner": "agent-operations.schema.json#/$defs/agent_presence/properties/state",
+            "values": [
+              "online",
+              "offline",
+              "unknown"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "refresh_after": {
-          "$ref": "#/$defs/timestamp"
+        "refresh_at": {
+          "$ref": "#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         }
       },
       "additionalProperties": false,
@@ -425,7 +523,7 @@
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Realm that owns the capability grant typed current result and therefore the required ak.capability.revoke write surface."
+          "description": "Realm that owns the capability grant current state and therefore the required ak.capability.revoke write surface."
         },
         "grant_digest": {
           "$ref": "#/$defs/digest"
@@ -591,7 +689,7 @@
     "agent_key_scope": {
       "$ref": "./event-payload.schema.json#/$defs/agent_key_scope"
     },
-    "operation_status_outcome": {
+    "operation_status_view": {
       "type": "object",
       "required": [
         "status"
@@ -601,14 +699,15 @@
           "$ref": "#/$defs/agent_status"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "status_view"
     },
     "account_device_pair_request_body": {
       "type": "object",
       "description": "Account Authority terminal pairing command. The Station TCB validates the sole pending ledger and current-device authority, admits the exact authorize_event once, stores its unique RealmCommit, consumes pending/code once, and stores a byte-identical terminal outcome. Exact retry returns the same Event, Commit and outcome; changed intent conflicts with zero writes. The request does not carry a client-selected Station, receipt, internal recovery state or private coordination member.",
       "required": [
         "pairing_code",
-        "new_device_pubkey",
+        "new_device_public_key",
         "authorize_event",
         "device_pairing_request_id"
       ],
@@ -616,12 +715,12 @@
         "pairing_code": {
           "$ref": "#/$defs/device_pairing_code"
         },
-        "new_device_pubkey": {
+        "new_device_public_key": {
           "$ref": "#/$defs/public_key"
         },
         "authorize_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
-          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_pubkey by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to Event.actor_id.account_id.principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds the exact account actor, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
+          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_public_key by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to Event.actor_id.account_id.principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds the exact account actor, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -636,7 +735,7 @@
       },
       "additionalProperties": false
     },
-    "account_device_pair_outcome": {
+    "account_device_pair_response_body": {
       "type": "object",
       "description": "Byte-identical terminal outcome stored by the Account Authority only after the owning Station RealmCommit has been verified and the local fence reaches completed. Exact replay returns these bytes without another Event submission or pending read.",
       "required": [
@@ -658,7 +757,8 @@
           "additionalProperties": true
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "agent_key_pair_request_body": {
       "type": "object",
@@ -671,7 +771,7 @@
       "properties": {
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
-          "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+          "description": "Single-use pairing artifact id returned by agent_provision_response_body. Profile-local, short-lived and not a durable protocol object ref."
         },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -688,7 +788,7 @@
       "additionalProperties": false,
       "description": "One controller approval command bound to the frozen candidate and handle. The signed authorization Event supplies Agent, key, method, scope, expiry and exact supersedes. Verifiers load possession proof and candidate from the authoritative confidential record, never caller echoes. Accepted RealmCommit processing automatically advances the durable command; exact retries only observe or recover it."
     },
-    "agent_key_pair_outcome": {
+    "agent_key_pair_response_body": {
       "type": "object",
       "required": [
         "activation_state",
@@ -702,13 +802,24 @@
             "active",
             "cancelled"
           ],
-          "description": "Durable command state. awaiting_source_commit waits for the exact authorization Event covering RealmCommit; accepted RealmCommit processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
+          "description": "Durable command state. awaiting_source_commit waits for the exact authorization Event covering RealmCommit; accepted RealmCommit processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_key_pair_response_body/properties/activation_state",
+            "owner": "agent-operations.schema.json#/$defs/agent_key_pair_response_body/properties/activation_state",
+            "values": [
+              "awaiting_source_commit",
+              "active",
+              "cancelled"
+            ]
+          }
         },
         "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "agent_runtime_approval_request_body": {
       "type": "object",
@@ -727,7 +838,7 @@
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
-          "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+          "description": "Single-use pairing artifact id returned by agent_provision_response_body. Profile-local, short-lived and not a durable protocol object ref."
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -783,7 +894,7 @@
       },
       "additionalProperties": false
     },
-    "agent_human_approval_error_details": {
+    "agent_human_approval_problem_extensions": {
       "type": "object",
       "description": "Closed RFC 9457 extension set returned by ak.gate.account.command.issue_session_grant.v1 when an agent_key_proof request needs out-of-band controller approval. The enclosing Problem type MUST be https://arkret.org/problems/claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
       "required": [
@@ -792,15 +903,24 @@
       ],
       "properties": {
         "reason_code": {
-          "const": "human_approval_required"
+          "const": "human_approval_required",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_human_approval_problem_extensions/properties/reason_code",
+            "owner": "agent-operations.schema.json#/$defs/agent_human_approval_problem_extensions/properties/reason_code",
+            "values": [
+              "human_approval_required"
+            ]
+          }
         },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "problem_extensions"
     },
-    "agent_runtime_approval_outcome": {
+    "agent_runtime_approval_response_body": {
       "type": "object",
       "required": [
         "approval_request_id",
@@ -814,7 +934,8 @@
           "$ref": "#/$defs/agent_status"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "agent_runtime_approval_status_request_body": {
       "type": "object",
@@ -827,7 +948,7 @@
       "properties": {
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
-          "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+          "description": "Single-use pairing artifact id returned by agent_provision_response_body. Profile-local, short-lived and not a durable protocol object ref."
         },
         "pairing_code": {
           "$ref": "#/$defs/pairing_secret"
@@ -838,7 +959,7 @@
       },
       "additionalProperties": false
     },
-    "agent_runtime_approval_status_outcome": {
+    "agent_runtime_approval_status_response_body": {
       "type": "object",
       "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable RealmCommit activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
       "required": [
@@ -913,7 +1034,8 @@
           "authorized_public_key_digest",
           "signer_resolution_evidence_ref"
         ]
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "agent_provision_request_body": {
       "type": "object",
@@ -931,7 +1053,16 @@
           "enum": [
             "prepare",
             "commit"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_provision_request_body/properties/phase",
+            "owner": "agent-operations.schema.json#/$defs/agent_provision_request_body/properties/phase",
+            "values": [
+              "prepare",
+              "commit"
+            ]
+          }
         },
         "operation_id": {
           "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -981,7 +1112,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_request_body/oneOf/0/properties/phase",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             }
           },
           "not": {
@@ -1019,7 +1158,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_request_body/oneOf/1/properties/phase",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             }
           },
           "not": {
@@ -1031,7 +1178,7 @@
       ],
       "additionalProperties": false
     },
-    "agent_provision_outcome": {
+    "agent_provision_response_body": {
       "type": "object",
       "description": "Four-stage outcome. prepare returns awaiting_controller_event with an accepted inception commitment. An accepted ak.agent.provision moves it to awaiting_pcr_genesis. PCR acceptance moves it to awaiting_did_binding until the controller-authored continuous WebVH update publishes the exact Realm service entry. The Agent, pairing handle and list/get projection become visible only at complete.",
       "required": [
@@ -1048,7 +1195,18 @@
             "awaiting_pcr_genesis",
             "awaiting_did_binding",
             "complete"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/agent_provision_response_body/properties/status",
+            "owner": "agent-operations.schema.json#/$defs/agent_provision_response_body/properties/status",
+            "values": [
+              "awaiting_controller_event",
+              "awaiting_pcr_genesis",
+              "awaiting_did_binding",
+              "complete"
+            ]
+          }
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1090,7 +1248,15 @@
         {
           "properties": {
             "status": {
-              "const": "awaiting_controller_event"
+              "const": "awaiting_controller_event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/0/properties/status",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/0/properties/status",
+                "values": [
+                  "awaiting_controller_event"
+                ]
+              }
             }
           },
           "required": [
@@ -1125,7 +1291,15 @@
         {
           "properties": {
             "status": {
-              "const": "awaiting_pcr_genesis"
+              "const": "awaiting_pcr_genesis",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/1/properties/status",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/1/properties/status",
+                "values": [
+                  "awaiting_pcr_genesis"
+                ]
+              }
             }
           },
           "required": [
@@ -1160,7 +1334,15 @@
         {
           "properties": {
             "status": {
-              "const": "awaiting_did_binding"
+              "const": "awaiting_did_binding",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/2/properties/status",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/2/properties/status",
+                "values": [
+                  "awaiting_did_binding"
+                ]
+              }
             }
           },
           "required": [
@@ -1200,7 +1382,15 @@
           ],
           "properties": {
             "status": {
-              "const": "complete"
+              "const": "complete",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/3/properties/status",
+                "owner": "agent-operations.schema.json#/$defs/agent_provision_response_body/oneOf/3/properties/status",
+                "values": [
+                  "complete"
+                ]
+              }
             }
           },
           "not": {
@@ -1219,7 +1409,8 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
@@ -1233,7 +1424,7 @@
       },
       "additionalProperties": false
     },
-    "agent_renew_pairing_outcome": {
+    "agent_renew_pairing_response_body": {
       "type": "object",
       "description": "Fresh single-use opaque pairing handle and uniformly generated eight-digit decimal CSPRNG code. Attach or replacement is derived at approval from the complete current authorization set. Renew does not change principal, slug, lifecycle, keys, grants or history and never gates on sibling slug availability.",
       "required": [
@@ -1269,7 +1460,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "agent_pairing_bootstrap": {
       "type": "object",
@@ -1342,7 +1534,7 @@
       },
       "additionalProperties": false
     },
-    "agent_list": {
+    "agent_page": {
       "type": "object",
       "required": [
         "agents",
@@ -1363,7 +1555,8 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "page"
     },
     "agent_view": {
       "type": "object",
@@ -1405,7 +1598,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.self.agent.pause"
+                      "const": "ak.self.agent.pause",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "agent-operations.schema.json#/$defs/agent_pause_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "owner": "agent-operations.schema.json#/$defs/agent_pause_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.self.agent.pause"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1439,7 +1640,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.self.agent.resume"
+                      "const": "ak.self.agent.resume",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "agent-operations.schema.json#/$defs/agent_resume_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "owner": "agent-operations.schema.json#/$defs/agent_resume_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.self.agent.resume"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1476,7 +1685,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.self.agent.deactivate"
+                      "const": "ak.self.agent.deactivate",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "agent-operations.schema.json#/$defs/agent_deactivate_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "owner": "agent-operations.schema.json#/$defs/agent_deactivate_request_body/properties/lifecycle_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.self.agent.deactivate"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1493,12 +1710,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "agent_lifecycle_state": {
-      "$ref": "#/$defs/operation_status_outcome"
-    },
-    "agent_sidecar_ensure_request_body": {
-      "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_request"
     },
     "pending_sidecar_access_reconciliation_row": {
       "type": "object",
@@ -1518,7 +1729,18 @@
             "epoch_rotation",
             "device_key_material"
           ],
-          "description": "Closed reconciliation phase. Clients derive localized explanatory text from this phase; no parallel reason string is carried."
+          "description": "Closed reconciliation phase. Clients derive localized explanatory text from this phase; no parallel reason string is carried.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
+            "owner": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/provisioning_phase",
+            "values": [
+              "mls_welcome",
+              "mls_remove",
+              "epoch_rotation",
+              "device_key_material"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -1531,10 +1753,23 @@
         "epoch_update_required",
         "ready",
         "failed"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-operations.schema.json#/$defs/agent_sidecar_access_readiness",
+        "owner": "agent-operations.schema.json#/$defs/agent_sidecar_access_readiness",
+        "values": [
+          "opening",
+          "key_material_pending",
+          "epoch_update_required",
+          "ready",
+          "failed"
+        ]
+      }
     },
-    "agent_sidecar_ensure_outcome": {
-      "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_outcome"
+    "agent_sidecar_ensure_response_body": {
+      "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
+      "x-arkret-name-role": "response_body"
     },
     "agent_sidecar_mls_context": {
       "type": "object",
@@ -1561,8 +1796,7 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "genesis_event_ref": {
           "$ref": "#/$defs/non_empty_string"
@@ -1633,7 +1867,7 @@
       },
       "additionalProperties": false
     },
-    "agent_sidecar_list": {
+    "agent_sidecar_page": {
       "type": "object",
       "required": [
         "sidecars"
@@ -1649,7 +1883,8 @@
           "$ref": "#/$defs/non_empty_string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "page"
     },
     "agent_participation": {
       "$ref": "./principal-operations.schema.json#/$defs/participation_bits"
@@ -1662,8 +1897,7 @@
       "required": [
         "target_scope",
         "selection",
-        "version",
-        "next_replace_input"
+        "version"
       ],
       "properties": {
         "target_scope": {
@@ -1673,9 +1907,21 @@
           "$ref": "#/$defs/agent_participation"
         },
         "version": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Account Authority CAS version for this exact agent/scope selection."
+          "description": "Account Authority CAS version for this exact agent/scope selection.",
+          "$ref": "./decimal-integers.schema.json#/$defs/nonnegative_int64_decimal",
+          "not": {
+            "enum": [
+              "0"
+            ],
+            "x-arkret-value-ownership": {
+              "class": "decimal_text",
+              "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
+              "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/version/not",
+              "values": [
+                "0"
+              ]
+            }
+          }
         },
         "next_replace_input": {
           "type": "object",
@@ -1684,19 +1930,65 @@
           ],
           "properties": {
             "expected_version": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 9223372036854775806,
-              "description": "Value to echo verbatim into the next participation replace for this exact agent/scope selection."
+              "description": "Value to echo verbatim into the next participation replace for this exact agent/scope selection.",
+              "$ref": "./decimal-integers.schema.json#/$defs/nonnegative_int64_decimal",
+              "pattern": "^(?:0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-5]|9223372036854775806)$",
+              "not": {
+                "enum": [
+                  "0"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
+                  "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/properties/next_replace_input/properties/expected_version/not",
+                  "values": [
+                    "0"
+                  ]
+                }
+              }
             }
           },
           "additionalProperties": false,
-          "description": "Verbatim prepare input for the next ak.self.agent.participation.resource.replace.v1 of this entry; member names match the replace request byte-for-byte per the service-http-binding.md 2.2.2 echo-container discipline. A first-ever selection has no entry row and uses expected_version 0."
+          "description": "Verbatim prepare input for the next ak.self.agent.participation.resource.replace.v1 of this entry; member names match the replace request byte-for-byte per the service-http-binding.md 2.2.2 echo-container discipline. A first-ever selection has no entry row and uses expected_version 0. At the maximum signed-64 version it MUST be absent: the selection is exhausted and no next replace can be prepared."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version": {
+                "const": "9223372036854775807",
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
+                  "owner": "agent-operations.schema.json#/$defs/agent_participation_entry/allOf/0/if/properties/version",
+                  "values": [
+                    "9223372036854775807"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "version"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "next_replace_input"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "next_replace_input"
+            ]
+          }
+        }
+      ]
     },
-    "agent_participation_outcome": {
+    "agent_participation_response_body": {
       "type": "object",
       "required": [
         "agent_id",
@@ -1713,7 +2005,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

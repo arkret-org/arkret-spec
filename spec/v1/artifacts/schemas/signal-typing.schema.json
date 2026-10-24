@@ -12,13 +12,19 @@
   ],
   "properties": {
     "kind": {
-      "const": "ak.typing"
+      "const": "ak.typing",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "signal-typing.schema.json#/properties/kind",
+        "owner": "signal-typing.schema.json#/properties/kind",
+        "values": [
+          "ak.typing"
+        ]
+      }
     },
     "payload_sequence": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Receivers apply the high-water rule only after proof, scope, RealmCommit/MLS basis, AAD and plaintext validation; arbitrary forward gaps are accepted and repeats or rollback are stale."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Receivers apply the high-water rule only after proof, scope, RealmCommit/MLS basis, AAD and plaintext validation; arbitrary forward gaps are accepted and repeats or rollback are stale.",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "strand_id": {
       "type": "string",

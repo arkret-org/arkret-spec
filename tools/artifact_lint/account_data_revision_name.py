@@ -183,7 +183,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
     account_text = ACCOUNT_DATA_PROSE.read_text(encoding="utf-8") if ACCOUNT_DATA_PROSE.is_file() else ""
     for marker in (
         "`expected_server_revision`",
-        "shared Realm typed current result",
+        "shared Realm current state",
         "不得互换、别名、双写或在验签后改名",
     ):
         if marker not in account_text:

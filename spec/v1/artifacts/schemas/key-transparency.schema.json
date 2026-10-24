@@ -18,7 +18,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.key_transparency.v1"
+      "const": "ak.schema.key_transparency.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "key-transparency.schema.json#/properties/schema",
+        "owner": "key-transparency.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.key_transparency.v1"
+        ]
+      }
     },
     "log_id": {
       "$ref": "#/$defs/did_core_id"
@@ -70,7 +78,8 @@
       "properties": {
         "leaf_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "tree_root": {
           "$ref": "#/$defs/digest"
@@ -95,7 +104,8 @@
         },
         "leaf_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "audit_path": {
           "type": "array",
@@ -117,11 +127,13 @@
       "properties": {
         "from_leaf_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "to_leaf_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "audit_path": {
           "type": "array",

@@ -5,14 +5,14 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-10-04.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
   ],
   "machine_contracts": [
     "schemas/event-payload.schema.json#/$defs/mls_genesis_creator_leaf_authority",
-    "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+    "schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body",
     "schemas/mls-roster-authority.schema.json",
     "registry/contract-registry.json"
   ],
@@ -24,7 +24,7 @@
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
-        "leaf_signature_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "leaf_signature_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "endpoint": {
           "kind": "device",
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
@@ -38,7 +38,7 @@
       "expect_valid": false,
       "semantic_outcome": "reject",
       "instance": {
-        "leaf_signature_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "leaf_signature_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "endpoint": {
           "kind": "device",
           "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
@@ -50,7 +50,7 @@
     },
     {
       "name": "member_public_material_read_closed_positive",
-      "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+      "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "instance": {
@@ -60,7 +60,7 @@
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
         },
         "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
-        "epoch": 0,
+        "epoch": "0",
         "group_state_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "caller_actor_id": {
           "kind": "account",
@@ -70,7 +70,7 @@
           }
         },
         "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-        "target_epoch": 0,
+        "target_epoch": "0",
         "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222"
       }
@@ -240,7 +240,7 @@
     {
       "given": "An accepted signed Commit PublicMessage contains inline PSK then two inline Adds; governance freezes each TLS Proposal body and its Member sender at wire ordinals 0, 1 and 2 in the same Event/RealmCommit transaction",
       "expected": {
-        "decision": "roster Add records use consumed_proposal_ordinal 1 and 2, not renumbered Add-only positions; proposal_wire_b64u decodes to each exact inline TLS Proposal body, sender_actor_id equals the verified Commit sender ActorId, and each Add KeyPackage ActorId/leaf key matches the recipient attestation and verified post-Commit tree"
+        "decision": "roster Add records use consumed_proposal_ordinal 1 and 2, not renumbered Add-only positions; proposal_wire_base64url decodes to each exact inline TLS Proposal body, sender_actor_id equals the verified Commit sender ActorId, and each Add KeyPackage ActorId/leaf key matches the recipient attestation and verified post-Commit tree"
       },
       "name": "inline_proposal_source_and_full_wire_order",
       "covers_decision_points": [

@@ -94,7 +94,15 @@
                 ],
                 "properties": {
                   "target_kind": {
-                    "const": "operation"
+                    "const": "operation",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "approval-signature.schema.json#/$defs/approval_signature_input/allOf/0/if/properties/approval_target/properties/target_kind",
+                      "owner": "approval-signature.schema.json#/$defs/approval_signature_input/allOf/0/if/properties/approval_target/properties/target_kind",
+                      "values": [
+                        "operation"
+                      ]
+                    }
                   }
                 }
               }
@@ -106,7 +114,16 @@
                 "enum": [
                   "ak.self.events.command.submit.v1",
                   "ak.self.applet.configuration.command.submit.v1"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "approval-signature.schema.json#/$defs/approval_signature_input/allOf/0/then/properties/operation",
+                  "owner": "approval-signature.schema.json#/$defs/approval_signature_input/allOf/0/then/properties/operation",
+                  "values": [
+                    "ak.self.events.command.submit.v1",
+                    "ak.self.applet.configuration.command.submit.v1"
+                  ]
+                }
               }
             }
           }
@@ -125,7 +142,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "const": "detached_jws",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "approval-signature.schema.json#/$defs/approval_signature_proof/properties/kind",
+            "owner": "approval-signature.schema.json#/$defs/approval_signature_proof/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
@@ -150,7 +175,15 @@
           ],
           "properties": {
             "context_kind": {
-              "const": "grant"
+              "const": "grant",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_context/oneOf/0/properties/context_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_context/oneOf/0/properties/context_kind",
+                "values": [
+                  "grant"
+                ]
+              }
             },
             "grant_id": {
               "$ref": "./common-ids.schema.json#/$defs/grant_id",
@@ -166,7 +199,15 @@
           ],
           "properties": {
             "context_kind": {
-              "const": "realm_governance"
+              "const": "realm_governance",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_context/oneOf/1/properties/context_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_context/oneOf/1/properties/context_kind",
+                "values": [
+                  "realm_governance"
+                ]
+              }
             }
           },
           "additionalProperties": false,
@@ -181,13 +222,21 @@
           ],
           "properties": {
             "context_kind": {
-              "const": "list_wip"
+              "const": "list_wip",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_context/oneOf/2/properties/context_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_context/oneOf/2/properties/context_kind",
+                "values": [
+                  "list_wip"
+                ]
+              }
             },
             "list_space_id": {
               "$ref": "./event-payload.schema.json#/$defs/space_id"
             },
             "list_policy_revision": {
-              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+              "$ref": "./current-state.schema.json#/$defs/revision"
             }
           },
           "additionalProperties": false,
@@ -203,7 +252,15 @@
           ],
           "properties": {
             "context_kind": {
-              "const": "management"
+              "const": "management",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_context/oneOf/3/properties/context_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_context/oneOf/3/properties/context_kind",
+                "values": [
+                  "management"
+                ]
+              }
             },
             "management_operation": {
               "enum": [
@@ -211,7 +268,18 @@
                 "publish",
                 "create_bot",
                 "map_ghost"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_context/oneOf/3/properties/management_operation",
+                "owner": "approval-signature.schema.json#/$defs/approval_context/oneOf/3/properties/management_operation",
+                "values": [
+                  "join",
+                  "publish",
+                  "create_bot",
+                  "map_ghost"
+                ]
+              }
             },
             "effective_scope": {
               "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
@@ -235,7 +303,15 @@
           ],
           "properties": {
             "target_kind": {
-              "const": "event"
+              "const": "event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_target/oneOf/0/properties/target_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_target/oneOf/0/properties/target_kind",
+                "values": [
+                  "event"
+                ]
+              }
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -251,7 +327,15 @@
           ],
           "properties": {
             "target_kind": {
-              "const": "operation"
+              "const": "operation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "approval-signature.schema.json#/$defs/approval_target/oneOf/1/properties/target_kind",
+                "owner": "approval-signature.schema.json#/$defs/approval_target/oneOf/1/properties/target_kind",
+                "values": [
+                  "operation"
+                ]
+              }
             }
           },
           "additionalProperties": false,

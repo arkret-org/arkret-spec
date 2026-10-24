@@ -102,7 +102,7 @@ class DetachedObjectSignatureRegistrationGateTest(unittest.TestCase):
     def test_p10_signature_encoding_is_exact_64_byte_unpadded_base64url(self) -> None:
         def mutate(d: dict) -> None:
             case = self.case(d, "ak.realm_commit_signature.v1")
-            case["host_object"]["signature"]["sig"] += "="
+            case["host_object"]["signature"]["signature"] += "="
             case["expected_sig"] += "="
         self.assert_red(mutate, "exactly 64 bytes")
 

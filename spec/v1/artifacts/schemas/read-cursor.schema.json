@@ -17,7 +17,19 @@
             "strand",
             "thread"
           ],
-          "description": "Read-scope object kind per zh/models/private-objects.md §2.2. Track-scoped read cursors use kind='strand' plus track_name. Thread cursors use kind='thread' with container_ref = the thread root message id (zh/discovery/read-receipts.md §5); thread is a projection selector over the reply sub-timeline, not a first-class protocol object. Shares the read-scope discriminator family with read-receipt.schema.json; each schema declares its own supported subset."
+          "description": "Read-scope object kind per zh/models/private-objects.md §2.2. Track-scoped read cursors use kind='strand' plus track_name. Thread cursors use kind='thread' with container_ref = the thread root message id (zh/discovery/read-receipts.md §5); thread is a projection selector over the reply sub-timeline, not a first-class protocol object. Shares the read-scope discriminator family with read-receipt.schema.json; each schema declares its own supported subset.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "read-cursor.schema.json#/$defs/read_scope/properties/kind",
+            "owner": "read-cursor.schema.json#/$defs/read_scope/properties/kind",
+            "values": [
+              "realm",
+              "circle",
+              "space",
+              "strand",
+              "thread"
+            ]
+          }
         },
         "container_ref": {
           "type": "string",
@@ -35,7 +47,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "realm"
+                "const": "realm",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-cursor.schema.json#/$defs/read_scope/allOf/0/if/properties/kind",
+                  "owner": "read-cursor.schema.json#/$defs/read_scope/allOf/0/if/properties/kind",
+                  "values": [
+                    "realm"
+                  ]
+                }
               }
             },
             "required": [
@@ -68,7 +88,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "circle"
+                "const": "circle",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-cursor.schema.json#/$defs/read_scope/allOf/1/if/properties/kind",
+                  "owner": "read-cursor.schema.json#/$defs/read_scope/allOf/1/if/properties/kind",
+                  "values": [
+                    "circle"
+                  ]
+                }
               }
             },
             "required": [
@@ -92,7 +120,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "space"
+                "const": "space",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-cursor.schema.json#/$defs/read_scope/allOf/2/if/properties/kind",
+                  "owner": "read-cursor.schema.json#/$defs/read_scope/allOf/2/if/properties/kind",
+                  "values": [
+                    "space"
+                  ]
+                }
               }
             },
             "required": [
@@ -116,7 +152,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "strand"
+                "const": "strand",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-cursor.schema.json#/$defs/read_scope/allOf/3/if/properties/kind",
+                  "owner": "read-cursor.schema.json#/$defs/read_scope/allOf/3/if/properties/kind",
+                  "values": [
+                    "strand"
+                  ]
+                }
               }
             },
             "required": [
@@ -135,7 +179,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "thread"
+                "const": "thread",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-cursor.schema.json#/$defs/read_scope/allOf/4/if/properties/kind",
+                  "owner": "read-cursor.schema.json#/$defs/read_scope/allOf/4/if/properties/kind",
+                  "values": [
+                    "thread"
+                  ]
+                }
               }
             },
             "required": [
@@ -179,7 +231,7 @@
     }
   },
   "title": "Arkret Read Cursor",
-  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, read_scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6. Multi-device merge is causal-first per §6.5: the position that causally dominates wins regardless of HLC; HLC max decides only causally concurrent positions, and device_id only breaks equal HLCs. The object carries NO typed id and NO update timestamp. A cursor is never updated in place: its identity is the (actor_id, realm_id, read_scope) tuple, each advance is a freshly authored ak.read_cursor.advance Event (event-kind-registry id_source=not_an_object_id), and the time of that update is that Event envelope created_at. There is no read_cursor typed ID kind, no id-addressed read surface, and capability selectors address read cursors only as read_cursor:<realm>:*. Derived views that need a time (read-cursor-operations.schema.json#/$defs/read_marker_outcome, the ak.read_cursor.update device-message content ak.schema.read_cursor_update.v1) take updated_at from the winning advance envelope.",
+  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, read_scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6. Multi-device merge is causal-first per §6.5: the position that causally dominates wins regardless of HLC; HLC max decides only causally concurrent positions, and device_id only breaks equal HLCs. The object carries NO typed id and NO update timestamp. A cursor is never updated in place: its identity is the (actor_id, realm_id, read_scope) tuple, each advance is a freshly authored ak.read_cursor.advance Event (event-kind-registry id_source=not_an_object_id), and the time of that update is that Event envelope created_at. There is no read_cursor typed ID kind, no id-addressed read surface, and capability selectors address read cursors only as read_cursor:<realm>:*. Derived views that need a time (read-cursor-operations.schema.json#/$defs/read_marker_response_body, the ak.read_cursor.update device-message content ak.schema.read_cursor_update.v1) take updated_at from the winning advance envelope.",
   "type": "object",
   "required": [
     "schema",
@@ -191,7 +243,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.read_cursor.v1"
+      "const": "ak.schema.read_cursor.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "read-cursor.schema.json#/properties/schema",
+        "owner": "read-cursor.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.read_cursor.v1"
+        ]
+      }
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"

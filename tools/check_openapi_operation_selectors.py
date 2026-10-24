@@ -14,6 +14,12 @@ import argparse
 import json
 import re
 from pathlib import Path
+import yaml
+
+try:
+    from .naming_metadata import owned_projection
+except ImportError:
+    from naming_metadata import owned_projection
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -109,7 +115,9 @@ def expected_text() -> str:
             lines[operation_index + 1 : operation_index + 1] = insertion
         else:
             lines[parameters_index + 1 : parameters_index + 1] = selector_lines(candidates)
-    return "\n".join(lines) + "\n"
+    document = yaml.safe_load("\n".join(lines) + "\n")
+    return yaml.safe_dump(owned_projection(document, OPENAPI.name, ""),
+                          allow_unicode=True, sort_keys=False, width=110)
 
 
 def validate(text: str) -> list[str]:
@@ -130,7 +138,9 @@ def validate(text: str) -> list[str]:
             errors.append(f"{endpoint_id}: Arkret-Operation must be required in static OpenAPI")
         candidates = candidates_by_endpoint.get(endpoint_id, [])
         expected = selector_lines(candidates)
-        if header != expected:
+        actual_parameter = yaml.safe_load("\n".join(header))[0]
+        actual_parameter.get("schema", {}).pop("x-arkret-value-ownership", None)
+        if actual_parameter != yaml.safe_load("\n".join(expected))[0]:
             errors.append(f"{endpoint_id}: Arkret-Operation schema must enumerate its exact operation_id versions")
     return errors
 

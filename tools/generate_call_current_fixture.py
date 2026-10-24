@@ -37,8 +37,8 @@ OTHER['account_id']['station_id'] = 'ak:did_core:web:other-station.example'
 def call_write_indices():
     registry = json.loads((ROOT / 'spec/v1/artifacts/registry/contract-registry.json').read_text(encoding='utf-8'))
     event_row = next(row for row in registry['event_kind_registry']['event_kinds'] if row['event_kind'] == 'ak.call.state')
-    return {row['result_family'][5:]: index for index, row in enumerate(event_row['result_writes'])
-            if row['result_family'] in ('call_roster', 'call_moderation')}
+    return {row['state_family'][5:]: index for index, row in enumerate(event_row['state_writes'])
+            if row['state_family'] in ('call_roster', 'call_moderation')}
 
 
 def typed_id(kind, unsigned):
@@ -79,7 +79,7 @@ def project(prior, row, axis, index, issuer_key):
     if delta['op'] in ('join', 'remove_participant'):
         entry = copy.deepcopy(current)
         if axis == 'roster' and 'participant_binding' in delta['participant']:
-            entry['participant_signing_key'] = {'public_key_b64u': issuer_key}
+            entry['participant_signing_key'] = {'public_key_base64url': issuer_key}
         entries.append(entry)
     return {'entries': sorted(entries, key=lambda e: e['tag_id']), 'last_source': current}
 
@@ -91,7 +91,7 @@ def participant(call_id, actor, serial):
     binding = {'expires_at': '2026-09-20T00:10:00.000Z', 'issuer_kid': ISSUER_VM}
     fields = {k: value[k] for k in ('actor_id', 'device_id', 'participant_id', 'focus_id', 'media')}
     fields.update(realm_id=REALM, call_id=call_id, **binding)
-    binding['sig'] = b64u(Ed25519PrivateKey.from_private_bytes(KEY_B_SEED).sign(
+    binding['signature'] = b64u(Ed25519PrivateKey.from_private_bytes(KEY_B_SEED).sign(
         b'ak.media.participant_binding.v1\0' + jcs(fields)))
     value['participant_binding'] = binding
     return value
@@ -120,8 +120,8 @@ def sign_snapshot(snapshot):
     snapshot = dict(snapshot, purpose='full_recovery')
     unsigned = {k: v for k, v in snapshot.items() if k not in ('snapshot_id', 'signature')}
     value = {'snapshot_id': typed_id('realm_snapshot', unsigned), **unsigned}
-    sig, _ = make_signature('ak.realm_snapshot_signature.v1', value, OLD_VM, KEY_A_SEED)
-    return {**value, 'signature': sig}
+    signature, _ = make_signature('ak.realm_snapshot_signature.v1', value, OLD_VM, KEY_A_SEED)
+    return {**value, 'signature': signature}
 
 
 def build_fixture():
@@ -136,10 +136,10 @@ def build_fixture():
         ev = create if kind == 'ak.call.create' else event({'call_id': call_id, **payload}, pos)
         core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': pos,
                 'previous_commit_ref': previous, 'event_ref': ev['event_id'],
-                'governance_generation': 1, 'authority_ref': create['event_id'], 'committed_at': ev['created_at']}
+                'governance_generation': "1", 'authority_ref': create['event_id'], 'committed_at': ev['created_at']}
         commit = {'commit_id': typed_id('realm_commit', core), **core}
-        sig, _ = make_signature('ak.realm_commit_signature.v1', commit, OLD_VM, KEY_A_SEED)
-        commit['signature'] = sig
+        signature, _ = make_signature('ak.realm_commit_signature.v1', commit, OLD_VM, KEY_A_SEED)
+        commit['signature'] = signature
         previous = commit['commit_id']
         row = {'commit': commit, 'event': ev}
         rows.append(row)
@@ -162,7 +162,7 @@ def build_fixture():
                                 'revision': revision(axes[axis]['last_source']['source_commit']),
                                 'value': copy.deepcopy(axes[axis])})
         snapshot = sign_snapshot({
-            'realm_id': REALM, 'governance_generation': 1,
+            'realm_id': REALM, 'governance_generation': "1",
             'visible_stream_heads': [{'stream_ref': STREAM, **revision(commit)}],
             'current_state_entries': entries,
             'retention_and_history_floor': {'history_access': 'since_join', 'stream_floors': [
@@ -197,7 +197,7 @@ def build_fixture():
     }}, 12)
     restore_core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': 12,
                     'previous_commit_ref': rows[-1]['commit']['commit_id'],
-                    'event_ref': restore_event['event_id'], 'governance_generation': 1,
+                    'event_ref': restore_event['event_id'], 'governance_generation': "1",
                     'authority_ref': create['event_id'], 'committed_at': restore_event['created_at']}
     restore_commit = {'commit_id': typed_id('realm_commit', restore_core), **restore_core}
     restore_commit['signature'], _ = make_signature('ak.realm_commit_signature.v1', restore_commit, OLD_VM, KEY_A_SEED)
@@ -206,7 +206,7 @@ def build_fixture():
                'session_epoch': 1, 'realm_id': REALM, 'stream_ref': STREAM, 'call_id': call_id,
                'current_generation': 1, 'known_head': revision(rows[2]['commit'])}
     return {
-        'version': '2026-10-22.1', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
+        'version': '2026-10-24.1', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
         'runner': {'kind': 'named_suite', 'entrypoint': 'ak.suite.call_state.compact_current.v1'},
         'generated_by': 'python -m tools.generate_call_current_fixture', 'covers_vectors': [VECTOR],
         'description': 'Synthetic full ActorId conformance transcripts. Actual Ed25519 Event, Commit, Snapshot and participant signatures; no live native DID authority, admission transaction, production performance or joint acceptance is claimed. The known genesis anchor and issuer authority keys are explicit fixture inputs. A below-floor current source does not authorize historical Event disclosure.',
@@ -214,7 +214,7 @@ def build_fixture():
                       'producer_public_key_b64u': public_key(KEY_B_SEED),
                       'issuer_public_key_b64u': public_key(KEY_B_SEED)},
         'issuer_authority_input': {'verification_method': ISSUER_VM, 'accepted_at': T,
-                                   'public_key_b64u': public_key(KEY_B_SEED)},
+                                   'public_key_base64url': public_key(KEY_B_SEED)},
         'request_context': context, 'response_context': copy.deepcopy(context), 'write_indices': indices,
         'original_rows': rows, 'checkpoints': checkpoints, 'followup_rows': followup_rows,
         'cases': [

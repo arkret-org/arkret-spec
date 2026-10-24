@@ -24,7 +24,7 @@ def build() -> dict:
         'initial_contact_round_id':round_id,'contact_round_id':round_id,
         'issuer_id':source['core']['issuer_id'],'head_event_ref':ref,'version':12,
         'scope_instances':[{'contact_scope':'direct_message','grant_event_ref':ref}],
-        'issued_at':at,'fresh_until':'2026-10-21T23:59:59.000Z'},source['signature']['verification_method'],at)
+        'issued_at':at,'cache_expires_at':'2026-10-21T23:59:59.000Z'},source['signature']['verification_method'],at)
     request={'kind':'current_refresh','idempotency_key':'contact-current-refresh-0001','requester':peer,
         'trust_domain_id':'ak:trust_domain:fixture','known_version':0,'grant_event_refs':[],
         'contact_address':{'recipient':holder,'service_resolution':{
@@ -37,7 +37,7 @@ def build() -> dict:
     for field in ['holder','trust_domain_id','version','scope_instances','issued_at','signature']:
         x=deepcopy(proof);del x[field]
         cases.append({'name':'missing_'+field,'schema_ref':cases[0]['schema_ref'],'expect_valid':False,'first_expected_error':'$: '+repr(field)+' is a required property','instance':x})
-    cases.append({'name':'refresh_without_old_mirror_valid','schema_ref':'schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request','expect_valid':True,'instance':request})
+    cases.append({'name':'refresh_without_old_mirror_valid','schema_ref':'schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body','expect_valid':True,'instance':request})
     rows=[]
     for n in [1,2,65,1000]:
         rows.append({'name':f'bounded_slot_after_{n}_rounds','rule':'bounded_slot','input':{'round_count':n,'current_request_refs':[ref],'operation_version':n*3},'expected':{'current_request_count':1,'history_scan_required':False}})
@@ -57,7 +57,7 @@ def build() -> dict:
         rows.append({'name':'opaque_'+reason,'rule':'disclosure','input':{'reason':reason,'disclosable_fact':False},'expected':{'status':'deferred','material':None}})
     for name,choice,next_choice,expected in [('glare_to_normal','glare','normal',False),('glare_to_reject','glare','reject',False),('glare_exact_retry','glare','glare',True),('normal_to_glare','normal','glare',False)]:
         rows.append({'name':name,'rule':'consume','input':{'choice':choice,'next_choice':next_choice},'expected':expected})
-    return {'suite':'contact_current_state','fixture_kind':'schema_signed_and_reference','version':'2026-10-21.3',
+    return {'suite':'contact_current_state','fixture_kind':'schema_signed_and_reference','version':'2026-10-24.1',
         'generated_by':'tools/generate_contact_current_fixture.py','spec_anchor':'spec/v1/zh/identity/contact-and-direct-conversation.md',
         'covers_vectors':['ak.vector.contact.current_state.v1'],
         'source_refs':['spec/v1/artifacts/schemas/contact-operations.schema.json','spec/v1/zh/identity/contact-and-direct-conversation.md'],

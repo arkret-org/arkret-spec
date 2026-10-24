@@ -19,7 +19,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.view.v1"
+      "const": "ak.schema.view.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "view.schema.json#/properties/schema",
+        "owner": "view.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.view.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -32,7 +40,19 @@
         "graph",
         "document",
         "composite"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "view.schema.json#/properties/kind",
+        "owner": "view.schema.json#/properties/kind",
+        "values": [
+          "collection",
+          "timeline",
+          "graph",
+          "document",
+          "composite"
+        ]
+      }
     },
     "renderer": {
       "$ref": "#/$defs/view_renderer"
@@ -46,7 +66,16 @@
         "private",
         "shared"
       ],
-      "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Realm objects."
+      "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Realm objects.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "view.schema.json#/properties/visibility",
+        "owner": "view.schema.json#/properties/visibility",
+        "values": [
+          "private",
+          "shared"
+        ]
+      }
     },
     "state": {
       "type": "string",
@@ -54,7 +83,16 @@
         "active",
         "tombstoned"
       ],
-      "description": "Required View lifecycle state. Shared View removal is an ak.view.update patch to tombstoned; tombstoned is terminal."
+      "description": "Required View lifecycle state. Shared View removal is an ak.view.update patch to tombstoned; tombstoned is terminal.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "view.schema.json#/properties/state",
+        "owner": "view.schema.json#/properties/state",
+        "values": [
+          "active",
+          "tombstoned"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -73,19 +111,19 @@
       "type": "object"
     },
     "collection": {
-      "$ref": "#/$defs/collection_config"
+      "$ref": "#/$defs/collection_configuration"
     },
     "timeline": {
-      "$ref": "#/$defs/timeline_config"
+      "$ref": "#/$defs/timeline_configuration"
     },
     "graph": {
-      "$ref": "#/$defs/graph_config"
+      "$ref": "#/$defs/graph_configuration"
     },
     "document": {
-      "$ref": "#/$defs/document_config"
+      "$ref": "#/$defs/document_configuration"
     },
     "dashboard": {
-      "$ref": "#/$defs/dashboard_config"
+      "$ref": "#/$defs/dashboard_configuration"
     },
     "created_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -102,13 +140,21 @@
   },
   "allOf": [
     {
-      "$ref": "#/$defs/kind_config_exclusivity"
+      "$ref": "#/$defs/kind_configuration_exclusivity"
     },
     {
       "if": {
         "properties": {
           "state": {
-            "const": "tombstoned"
+            "const": "tombstoned",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "view.schema.json#/allOf/1/if/properties/state",
+              "owner": "view.schema.json#/allOf/1/if/properties/state",
+              "values": [
+                "tombstoned"
+              ]
+            }
           }
         },
         "required": [
@@ -161,7 +207,7 @@
       },
       "additionalProperties": false
     },
-    "document_morph_projection_outcome": {
+    "document_morph_view": {
       "type": "object",
       "required": [
         "document",
@@ -255,7 +301,8 @@
           "$ref": "#/$defs/state_revision"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "view"
     },
     "query": {
       "type": "object",
@@ -302,13 +349,13 @@
         "order_by": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/sort_spec"
+            "$ref": "#/$defs/sort_specification"
           }
         }
       },
       "additionalProperties": true
     },
-    "sort_spec": {
+    "sort_specification": {
       "type": "object",
       "required": [
         "field",
@@ -323,14 +370,32 @@
           "enum": [
             "asc",
             "desc"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/sort_specification/properties/direction",
+            "owner": "view.schema.json#/$defs/sort_specification/properties/direction",
+            "values": [
+              "asc",
+              "desc"
+            ]
+          }
         },
         "nulls": {
           "type": "string",
           "enum": [
             "first",
             "last"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/sort_specification/properties/nulls",
+            "owner": "view.schema.json#/$defs/sort_specification/properties/nulls",
+            "values": [
+              "first",
+              "last"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -344,7 +409,17 @@
             "selection_policy",
             "page_size",
             "wip_limit_enforcement"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_grouping/propertyNames/not",
+            "owner": "view.schema.json#/$defs/collection_grouping/propertyNames/not",
+            "values": [
+              "selection_policy",
+              "page_size",
+              "wip_limit_enforcement"
+            ]
+          }
         }
       },
       "required": [
@@ -359,7 +434,19 @@
             "relation_container",
             "time_bucket",
             "matrix"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_grouping/properties/mode",
+            "owner": "view.schema.json#/$defs/collection_grouping/properties/mode",
+            "values": [
+              "none",
+              "field",
+              "relation_container",
+              "time_bucket",
+              "matrix"
+            ]
+          }
         },
         "field": {
           "type": "string"
@@ -400,7 +487,17 @@
             "authorized_estimate",
             "authorized_exact"
           ],
-          "default": "omit"
+          "default": "omit",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_grouping/properties/hidden_count_policy",
+            "owner": "view.schema.json#/$defs/collection_grouping/properties/hidden_count_policy",
+            "values": [
+              "omit",
+              "authorized_estimate",
+              "authorized_exact"
+            ]
+          }
         }
       },
       "allOf": [
@@ -408,7 +505,15 @@
           "if": {
             "properties": {
               "mode": {
-                "const": "field"
+                "const": "field",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/collection_grouping/allOf/0/if/properties/mode",
+                  "owner": "view.schema.json#/$defs/collection_grouping/allOf/0/if/properties/mode",
+                  "values": [
+                    "field"
+                  ]
+                }
               }
             },
             "required": [
@@ -426,7 +531,15 @@
           "if": {
             "properties": {
               "mode": {
-                "const": "relation_container"
+                "const": "relation_container",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/collection_grouping/allOf/1/if/properties/mode",
+                  "owner": "view.schema.json#/$defs/collection_grouping/allOf/1/if/properties/mode",
+                  "values": [
+                    "relation_container"
+                  ]
+                }
               }
             },
             "required": [
@@ -444,7 +557,15 @@
           "if": {
             "properties": {
               "mode": {
-                "const": "time_bucket"
+                "const": "time_bucket",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/collection_grouping/allOf/2/if/properties/mode",
+                  "owner": "view.schema.json#/$defs/collection_grouping/allOf/2/if/properties/mode",
+                  "values": [
+                    "time_bucket"
+                  ]
+                }
               }
             },
             "required": [
@@ -461,7 +582,15 @@
           "if": {
             "properties": {
               "mode": {
-                "const": "matrix"
+                "const": "matrix",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/collection_grouping/allOf/3/if/properties/mode",
+                  "owner": "view.schema.json#/$defs/collection_grouping/allOf/3/if/properties/mode",
+                  "values": [
+                    "matrix"
+                  ]
+                }
               }
             },
             "required": [
@@ -478,7 +607,7 @@
       ],
       "additionalProperties": true
     },
-    "collection_config": {
+    "collection_configuration": {
       "type": "object",
       "propertyNames": {
         "not": {
@@ -486,7 +615,17 @@
             "selection_policy",
             "page_size",
             "wip_limit_enforcement"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_configuration/propertyNames/not",
+            "owner": "view.schema.json#/$defs/collection_configuration/propertyNames/not",
+            "values": [
+              "selection_policy",
+              "page_size",
+              "wip_limit_enforcement"
+            ]
+          }
         }
       },
       "required": [
@@ -517,13 +656,26 @@
             "compact",
             "badge",
             "message"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_configuration/properties/item_render",
+            "owner": "view.schema.json#/$defs/collection_configuration/properties/item_render",
+            "values": [
+              "card",
+              "row",
+              "tile",
+              "compact",
+              "badge",
+              "message"
+            ]
+          }
         },
         "item_order_by": {
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/sort_spec"
+            "$ref": "#/$defs/sort_specification"
           },
           "description": "Stable item ordering; mirrors models/views.md §3.2. Drag-ordered collections SHOULD sort by rank."
         },
@@ -542,7 +694,17 @@
             "authorized_exact"
           ],
           "default": "omit",
-          "description": "Collection-level count policy; see models/views.md §3.2."
+          "description": "Collection-level count policy; see models/views.md §3.2.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "view.schema.json#/$defs/collection_configuration/properties/count_policy",
+            "owner": "view.schema.json#/$defs/collection_configuration/properties/count_policy",
+            "values": [
+              "omit",
+              "authorized_estimate",
+              "authorized_exact"
+            ]
+          }
         },
         "grouping": {
           "$ref": "#/$defs/collection_grouping"
@@ -562,16 +724,16 @@
       ],
       "additionalProperties": true
     },
-    "timeline_config": {
-      "$ref": "./morph.schema.json#/$defs/facet_config"
+    "timeline_configuration": {
+      "$ref": "./morph.schema.json#/$defs/facet_configuration"
     },
-    "graph_config": {
-      "$ref": "./morph.schema.json#/$defs/facet_config"
+    "graph_configuration": {
+      "$ref": "./morph.schema.json#/$defs/facet_configuration"
     },
-    "document_config": {
-      "$ref": "./morph.schema.json#/$defs/facet_config"
+    "document_configuration": {
+      "$ref": "./morph.schema.json#/$defs/facet_configuration"
     },
-    "dashboard_config": {
+    "dashboard_configuration": {
       "type": "object",
       "required": [
         "widgets"
@@ -601,7 +763,21 @@
                   "metric",
                   "text",
                   "custom"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/dashboard_configuration/properties/widgets/items/properties/kind",
+                  "owner": "view.schema.json#/$defs/dashboard_configuration/properties/widgets/items/properties/kind",
+                  "values": [
+                    "collection",
+                    "timeline",
+                    "graph",
+                    "document",
+                    "metric",
+                    "text",
+                    "custom"
+                  ]
+                }
               },
               "source_view_ref": {
                 "$ref": "#/$defs/object_ref"
@@ -635,7 +811,16 @@
                     "enum": [
                       "text",
                       "custom"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "view.schema.json#/$defs/dashboard_configuration/properties/widgets/items/anyOf/2/properties/kind",
+                      "owner": "view.schema.json#/$defs/dashboard_configuration/properties/widgets/items/anyOf/2/properties/kind",
+                      "values": [
+                        "text",
+                        "custom"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -652,14 +837,22 @@
       "type": "string",
       "pattern": "^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$"
     },
-    "kind_config_exclusivity": {
+    "kind_configuration_exclusivity": {
       "$comment": "zh/models/views.md section 3.1: kind and its typed config are mutually exclusive. The block is a $def because the materialized object and the author-supplied definition of zh/models/views.md section 3.2 MUST apply the same content constraint; restating it twice is how the two drift apart.",
       "allOf": [
         {
           "if": {
             "properties": {
               "kind": {
-                "const": "collection"
+                "const": "collection",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/0/if/properties/kind",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/0/if/properties/kind",
+                  "values": [
+                    "collection"
+                  ]
+                }
               }
             },
             "required": [
@@ -700,7 +893,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "timeline"
+                "const": "timeline",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/1/if/properties/kind",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/1/if/properties/kind",
+                  "values": [
+                    "timeline"
+                  ]
+                }
               }
             },
             "required": [
@@ -741,7 +942,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "graph"
+                "const": "graph",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/2/if/properties/kind",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/2/if/properties/kind",
+                  "values": [
+                    "graph"
+                  ]
+                }
               }
             },
             "required": [
@@ -782,7 +991,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "document"
+                "const": "document",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/3/if/properties/kind",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/3/if/properties/kind",
+                  "values": [
+                    "document"
+                  ]
+                }
               }
             },
             "required": [
@@ -823,7 +1040,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "composite"
+                "const": "composite",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/4/if/properties/kind",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/4/if/properties/kind",
+                  "values": [
+                    "composite"
+                  ]
+                }
               }
             },
             "required": [
@@ -839,7 +1064,16 @@
                 "enum": [
                   "dashboard",
                   "custom"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/4/then/properties/renderer",
+                  "owner": "view.schema.json#/$defs/kind_configuration_exclusivity/allOf/4/then/properties/renderer",
+                  "values": [
+                    "dashboard",
+                    "custom"
+                  ]
+                }
               }
             },
             "not": {
@@ -917,7 +1151,7 @@
       },
       "allOf": [
         {
-          "$ref": "#/$defs/kind_config_exclusivity"
+          "$ref": "#/$defs/kind_configuration_exclusivity"
         }
       ],
       "patternProperties": {

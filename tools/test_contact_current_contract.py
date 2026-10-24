@@ -56,7 +56,7 @@ class ContactCurrentContract(unittest.TestCase):
     def test_retired_members_and_operations_are_absent(self):
         defs=self.schema['$defs']
         self.assertFalse(any(k.startswith(('contact_continuity','bilateral_continuity')) for k in defs))
-        kinds=[x.get('properties',{}).get('kind',{}).get('const') for x in defs['peer_contact_submit_request']['oneOf']]
+        kinds=[x.get('properties',{}).get('kind',{}).get('const') for x in defs['peer_contact_submit_request_body']['oneOf']]
         self.assertIn('current_refresh',kinds)
         self.assertNotIn('proof_refresh',kinds);self.assertNotIn('continuity_checkpoint',kinds)
         ops=[x['operation_id'] for x in self.catalog['operation_registry']['operations']]
@@ -69,7 +69,7 @@ class ContactCurrentContract(unittest.TestCase):
         self.assertTrue(c['glare_choice_durable_at_attestation'])
         self.assertEqual(c['same_version_conflict_comparison'],'immutable_operation_bytes')
     def test_current_refresh_has_no_prior_mirror_dependency(self):
-        branch=next(x for x in self.schema['$defs']['peer_contact_submit_request']['oneOf'] if x.get('properties',{}).get('kind',{}).get('const')=='current_refresh')
+        branch=next(x for x in self.schema['$defs']['peer_contact_submit_request_body']['oneOf'] if x.get('properties',{}).get('kind',{}).get('const')=='current_refresh')
         self.assertNotIn('prior_mirror_receipt',branch['properties'])
         for field in ['requester','trust_domain_id','known_version','grant_event_refs']:self.assertIn(field,branch['required'])
     def test_five_holder_payloads_carry_lifetime_version_and_domain(self):

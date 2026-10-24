@@ -244,7 +244,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 ```
 字段层级约束以 [`../models/private-objects.md` §2](../models/private-objects.md) 为准。
 
-Read Cursor 对象 MUST NOT 携带 `id`，也 MUST NOT 携带 `updated_at`。没有 read cursor typed ID（id-kind-registry 中不存在 `read_cursor` kind）：对象身份是 `(actor_id, realm_id, read_scope)` 三元组，`ak.read_cursor.advance` 的 `id_source` 是 `not_an_object_id`。它不是可原地更新的对象（没有 revision / CAS），一次「更新」就是 author 一条新的 `ak.read_cursor.advance`，因此该次更新的时间就是那条 Event 信封的 `created_at`。`ak.self.read_cursor.command.advance.v1` 的响应 `read_marker_outcome.updated_at` 与跨设备下发的 actor-private read cursor 更新都是**派生视图**，其 `updated_at` MUST 取当前按 §6.5 胜出的那条 advance 的信封 `created_at`；服务端 MUST NOT 由此反推或要求 payload 携带任何时间字段。
+Read Cursor 对象 MUST NOT 携带 `id`，也 MUST NOT 携带 `updated_at`。没有 read cursor typed ID（id-kind-registry 中不存在 `read_cursor` kind）：对象身份是 `(actor_id, realm_id, read_scope)` 三元组，`ak.read_cursor.advance` 的 `id_source` 是 `not_an_object_id`。它不是可原地更新的对象（没有 revision / CAS），一次「更新」就是 author 一条新的 `ak.read_cursor.advance`，因此该次更新的时间就是那条 Event 信封的 `created_at`。`ak.self.read_cursor.command.advance.v1` 的响应 `read_marker_response_body.updated_at` 与跨设备下发的 actor-private read cursor 更新都是**派生视图**，其 `updated_at` MUST 取当前按 §6.5 胜出的那条 advance 的信封 `created_at`；服务端 MUST NOT 由此反推或要求 payload 携带任何时间字段。
 
 ### 6.2 Receipt 公开形态
 

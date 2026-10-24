@@ -23,8 +23,8 @@ def verify_signature(value: dict, key: dict, domain: str) -> bool:
     if value["signature"]["kid"] != key["verification_method"]:
         return False
     try:
-        public = base64.urlsafe_b64decode(key["public_key_b64u"] + "=")
-        signature = base64.urlsafe_b64decode(value["signature"]["sig"] + "==")
+        public = base64.urlsafe_b64decode(key["public_key_base64url"] + "=")
+        signature = base64.urlsafe_b64decode(value["signature"]["signature"] + "==")
         Ed25519PublicKey.from_public_bytes(public).verify(signature, signing_bytes(value, domain))
         return True
     except (InvalidSignature, ValueError):
@@ -53,14 +53,14 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
     if retained.get("route_evidence") != "authorized inline frozen closure only; no network request":
         lint.fail(path, "retained roster closure must not authorize network discovery")
     operations = {row["operation_id"]: row for row in contract["operation_registry"]["operations"]}
-    for surface, definition in (("self", "self_roster_read_outcome"), ("peer", "roster_read_outcome")):
+    for surface, definition in (("self", "self_roster_read_response_body"), ("peer", "roster_read_response_body")):
         operation = operations[f"ak.{surface}.mls.read.roster_authority.v1"]
         if operation["response_schema_ref"] != f"schemas/mls-roster-authority.schema.json#/$defs/{definition}":
             lint.fail(path, f"{surface} roster carrier must retain its role boundary")
     selector = rules.get("member_selector", {})
     if selector.get("genesis_source") != "own_station_same_authorized_cut_immutable_accepted_provenance" or selector.get("requires_client_prejoin_genesis_or_complete_current_baseline") is not False:
         lint.fail(path, "member roster must authorize before deriving immutable Genesis without a client baseline")
-    for surface, definition in (("self", "member_roster_read_request"), ("peer", "roster_read_request")):
+    for surface, definition in (("self", "mls_member_roster_authority_read_request_body"), ("peer", "mls_roster_authority_read_request_body")):
         if operations[f"ak.{surface}.mls.read.roster_authority.v1"]["request_schema_ref"] != f"schemas/mls-roster-authority.schema.json#/$defs/{definition}":
             lint.fail(path, f"{surface} roster selector must retain its role boundary")
     profile_path = ARTIFACTS / "profiles/conformance-profiles.json"
@@ -74,10 +74,10 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
     schema_path = ARTIFACTS / "schemas/mls-roster-authority.schema.json"
     definitions = load_json(lint, schema_path)["$defs"]
     for name, fields in (
-        ("member_roster_read_request", ["realm_id", "effective_scope", "mls_group_id", "target_commit_event_ref", "target_epoch", "caller_actor_id", "cursor"]),
-        ("self_roster_read_outcome", ["roster", "manifest_signing_key", "add_signing_keys"]),
+        ("mls_member_roster_authority_read_request_body", ["realm_id", "effective_scope", "mls_group_id", "target_commit_event_ref", "target_epoch", "caller_actor_id", "cursor"]),
+        ("self_roster_read_response_body", ["roster", "manifest_signing_key", "add_signing_keys"]),
         ("roster_add_signing_keys", ["record_digest", "claim_receipt_signing_key", "attestation_signing_key"]),
-        ("roster_signing_key", ["verification_method", "public_key_b64u"]),
+        ("roster_signing_key", ["verification_method", "public_key_base64url"]),
     ):
         row = definitions.get(name, {})
         if row.get("required") != [field for field in fields if field != "cursor"] or list(row.get("properties", {})) != fields or row.get("additionalProperties") is not False:
@@ -106,7 +106,7 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
             lint.fail(fixture_path, f"{object_name} original signature KAT failed")
         wrong = copy.deepcopy(key)
         other = "attestation_signing_key" if key_name == "claim_receipt_signing_key" else "claim_receipt_signing_key"
-        wrong["public_key_b64u"] = kat[other]["public_key_b64u"]
+        wrong["public_key_base64url"] = kat[other]["public_key_base64url"]
         if verify_signature(value, wrong, domain):
             lint.fail(fixture_path, f"{object_name} wrongly accepts the other historical key")
         tampered = copy.deepcopy(value)

@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-23.3",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.mimi_interop.v1",
   "suite": "mimi_key_material_claim",
   "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
@@ -11,7 +11,7 @@
   "description": "Native closed carriers, real participant/receipt Ed25519 signatures and adapter boundary mutations. Authority facts are synthetic inputs; this fixture is not live provider, MLS processing, database atomicity or product acceptance evidence.",
   "machine_contracts": [
     "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-    "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome"
+    "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body"
   ],
   "participant_public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
   "destination_public_key": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
@@ -48,7 +48,7 @@
       "signed_at": "2026-08-25T17:33:02.920Z",
       "signature": {
         "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-        "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+        "signature": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
       }
     },
     "last_resort_allowed": false
@@ -82,7 +82,7 @@
       ],
       "claim_receipt": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-        "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+        "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
         "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
         "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
         "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -114,7 +114,7 @@
         "signature": {
           "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
           "signature_algorithm": "Ed25519",
-          "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+          "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
         }
       }
     }
@@ -168,7 +168,7 @@
           "signed_at": "2026-08-25T17:33:02.920Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+            "signature": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
           }
         },
         "last_resort_allowed": false
@@ -177,7 +177,7 @@
     },
     {
       "name": "complete_original_claim_outcome",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -207,7 +207,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -239,7 +239,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -248,7 +248,7 @@
     },
     {
       "name": "pending_uses_native_state",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "pending",
@@ -269,7 +269,7 @@
     },
     {
       "name": "old_narrow_keypackages_outcome_rejected",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "keypackages": [
           {
@@ -347,7 +347,7 @@
           "signed_at": "2026-08-25T17:33:02.920Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+            "signature": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
           }
         },
         "last_resort_allowed": false
@@ -390,7 +390,7 @@
           "signed_at": "2026-08-25T17:33:02.920Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+            "signature": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
           }
         },
         "last_resort_allowed": false
@@ -430,17 +430,17 @@
           "signed_at": "2026-08-25T17:33:02.920Z",
           "signature": {
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-            "sig": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
+            "signature": "ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA"
           }
         },
         "last_resort_allowed": false
       },
       "expect_valid": false,
-      "first_expected_error": "contains:{'claim_request_id': 'AAAAAAAAAAAAAAAAAAAAAQ', 'target_device_ids': ['ak:device:01904100-0000-7000-8000-00000000aa11'], 'requester_account_id': {'principal_id': 'ak:did_core:webvh:z6mkfixture', 'station_id': 'ak:did_core:webvh:z6mkfixturepsexample'}, 'intended_realm_id': 'ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5', 'mls_group_id': 'QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4', 'claim_purpose': 'realm_membership', 'required_capabilities': ['ak.content.v1', 'mimi.content.v1'], 'expires_at': '2026-08-25T17:38:02.920Z', 'service_binding': {'source_id': 'ak:did_core:webvh:z6mkfixturepsexample', 'destination_id': 'ak:did_core:webvh:z6mkfixturestationa'}, 'requester_authorization': {'kind': 'device', 'verification_method': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'requester_device_id': 'ak:device:0196419b-0000-7000-8000-000000000001', 'device_authorize_event_id': 'ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape', 'signed_at': '2026-08-25T17:33:02.920Z', 'signature': {'kid': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'sig': 'ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA'}}, 'last_resort_allowed': False} is not valid under any of the given schemas"
+      "first_expected_error": "contains:{'claim_request_id': 'AAAAAAAAAAAAAAAAAAAAAQ', 'target_device_ids': ['ak:device:01904100-0000-7000-8000-00000000aa11'], 'requester_account_id': {'principal_id': 'ak:did_core:webvh:z6mkfixture', 'station_id': 'ak:did_core:webvh:z6mkfixturepsexample'}, 'intended_realm_id': 'ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5', 'mls_group_id': 'QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4', 'claim_purpose': 'realm_membership', 'required_capabilities': ['ak.content.v1', 'mimi.content.v1'], 'expires_at': '2026-08-25T17:38:02.920Z', 'service_binding': {'source_id': 'ak:did_core:webvh:z6mkfixturepsexample', 'destination_id': 'ak:did_core:webvh:z6mkfixturestationa'}, 'requester_authorization': {'kind': 'device', 'verification_method': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'requester_device_id': 'ak:device:0196419b-0000-7000-8000-000000000001', 'device_authorize_event_id': 'ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape', 'signed_at': '2026-08-25T17:33:02.920Z', 'signature': {'kid': 'did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001', 'signature': 'ANfryCfg9UCgbEkPufWhrbbtbtqSoUkeOTYimBLfMG78w2H1ymqR8l8d_YLDivkNfkXhz5Gn92WjRK88SyTgAA'}}, 'last_resort_allowed': False} is not valid under any of the given schemas"
     },
     {
       "name": "claim_missing_claim_id",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -469,7 +469,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -501,7 +501,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -511,7 +511,7 @@
     },
     {
       "name": "claim_missing_keypackage_ref",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -540,7 +540,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -572,7 +572,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -582,7 +582,7 @@
     },
     {
       "name": "claim_missing_device_id",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -611,7 +611,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -643,7 +643,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -653,7 +653,7 @@
     },
     {
       "name": "claim_missing_expires_at",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -682,7 +682,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -714,7 +714,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -724,7 +724,7 @@
     },
     {
       "name": "claim_missing_capabilities",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -750,7 +750,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -782,7 +782,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         }
@@ -792,7 +792,7 @@
     },
     {
       "name": "missing_native_signed_receipt",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -827,7 +827,7 @@
     },
     {
       "name": "no_mimi_signature_mirror",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -857,7 +857,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -889,13 +889,13 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         },
         "signature": {
           "kid": "provider",
-          "sig": "AA"
+          "signature": "AA"
         }
       },
       "expect_valid": false,
@@ -903,7 +903,7 @@
     },
     {
       "name": "no_mimi_available_count_mirror",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -933,7 +933,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -965,7 +965,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         },
@@ -976,7 +976,7 @@
     },
     {
       "name": "no_mimi_failures_mirror",
-      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "instance": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
         "state": "claimed",
@@ -1006,7 +1006,7 @@
           ],
           "claim_receipt": {
             "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
-            "request_digest": "sha256:7d7eeaef613891e3266f54d50f0d9cd293ca13b3584b0ff8eaa02947c1adc6a7",
+            "request_digest": "sha256:eb8af441679bdcf76e2904cb283a24f56d842bdc718545104d0f359de5761b8d",
             "claims_digest": "sha256:fee52b1fc253792fd68d66c53b8297880ed3b1550583f196b009f5f9a800e69b",
             "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
             "destination_id": "ak:did_core:webvh:z6mkfixturestationa",
@@ -1038,7 +1038,7 @@
             "signature": {
               "kid": "did:webvh:z6mkfixturestationa:station.example#service-1",
               "signature_algorithm": "Ed25519",
-              "sig": "s-kdFTaemFC98Dw616g39sXk-X7RPyQo6y9aiv4NKMqkJEPAE-9W96M2ROzt-FJguipvE7f-7na0k8b1jfuQAQ"
+              "signature": "YSkIkU7-FvKd8j3QtZEqMnylmtPu9YkV9Le8FzuJkL0wpt2_gBRmcWHVNzslT5kYD2y5bb1HvwFI9iBPxiQSBg"
             }
           }
         },

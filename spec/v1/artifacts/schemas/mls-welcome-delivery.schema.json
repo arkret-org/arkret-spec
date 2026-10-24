@@ -13,7 +13,7 @@
     "recipient_actor_id",
     "recipient_endpoint",
     "keypackage_claim_ref",
-    "ciphertext_b64",
+    "ciphertext_base64url",
     "producer_proof"
   ],
   "properties": {
@@ -42,7 +42,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device"
+              "const": "device",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mls-welcome-delivery.schema.json#/properties/recipient_endpoint/oneOf/0/properties/kind",
+                "owner": "mls-welcome-delivery.schema.json#/properties/recipient_endpoint/oneOf/0/properties/kind",
+                "values": [
+                  "device"
+                ]
+              }
             },
             "device_id": {
               "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -58,7 +66,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_runtime"
+              "const": "agent_runtime",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mls-welcome-delivery.schema.json#/properties/recipient_endpoint/oneOf/1/properties/kind",
+                "owner": "mls-welcome-delivery.schema.json#/properties/recipient_endpoint/oneOf/1/properties/kind",
+                "values": [
+                  "agent_runtime"
+                ]
+              }
             },
             "verification_method": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -72,10 +88,11 @@
       "type": "string",
       "pattern": "^ak:keypackage_claim:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "ciphertext_b64": {
+    "ciphertext_base64url": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^[A-Za-z0-9_-]+$"
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "x-arkret-member-role": "binary_encoding"
     },
     "producer_proof": {
       "$ref": "./detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature"

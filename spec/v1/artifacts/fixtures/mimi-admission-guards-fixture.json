@@ -1,6 +1,6 @@
 {
   "fixture_id": "ak.fixture.mimi.admission_guards.v1",
-  "version": 2,
+  "version": 3,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mimi.admission_guards.v1"
@@ -20,7 +20,7 @@
         "constructed_events": 0,
         "accepted_events": 0,
         "realm_commits": 0,
-        "typed_current_results": 0,
+        "current_states": 0,
         "outbox_rows": 0,
         "receipts": 0,
         "fanout_deliveries": 0

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-10.1",
-  "generated_at": "2026-10-10T18:25:55+08:00",
+  "version": "2026-10-24.2",
+  "generated_at": "2026-10-24T14:31:01+08:00",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -39,7 +39,7 @@
     },
     {
       "schema_ref": "schemas/blob-operations.schema.json",
-      "json_pointer": "/$defs/blob_upload_outcome/properties/media_type",
+      "json_pointer": "/$defs/blob_upload_response_body/properties/media_type",
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",
       "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
@@ -120,7 +120,7 @@
     },
     {
       "schema_ref": "schemas/event-payload.schema.json",
-      "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/result/properties/media_type",
+      "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata/properties/media_type",
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",
       "round_trip_requirement": "Preserve the backend recording media type without Arkret taxonomy remapping.",
@@ -129,7 +129,7 @@
     },
     {
       "schema_ref": "schemas/event-payload.schema.json",
-      "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/result/properties/media_type",
+      "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/capture_metadata/properties/media_type",
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",
       "round_trip_requirement": "Preserve the transcript media type without Arkret taxonomy remapping.",
@@ -146,7 +146,7 @@
       "arkret_extensions_allowed": false
     },
     {
-      "schema_ref": "schemas/ice-config-response.schema.json",
+      "schema_ref": "schemas/media-ice-configuration-response-body.schema.json",
       "json_pointer": "/$defs/ice_server/properties/credential_type",
       "external_standard": "WebRTC RTCIceServer",
       "external_field_path": "RTCIceServer.credentialType",

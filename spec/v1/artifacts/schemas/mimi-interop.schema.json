@@ -28,7 +28,7 @@
     },
     "mimi_room_uri": {
       "type": "string",
-      "description": "Canonical MIMI room URI. It is the mimi_room_binding typed current result subject source, so it is a closed canonical form rather than a free URI: lowercase mimi:// scheme, host[:port] authority with no userinfo, lowercase A-label host, no leading-zero port, at least one non-empty path segment, no dot or dot-dot segment, no trailing slash, no query, no fragment, uppercase percent escapes, and no percent-encoding of unreserved octets (RFC 3986 section 6.2.2.2). A receiver MUST reject a non-canonical value with schema_violation and MUST NOT normalize it first, because two spellings of one room would otherwise each own a first accepted binding and the revoked terminal state could be bypassed by respelling. typed current result subject encoding is the uri subject kind of zh/conformance/encoding.md section 4. The pattern below expresses the structural half of the canonical form; two rules it cannot express portably -- the default port 443 MUST NOT be written explicitly, and a percent escape MUST NOT encode an unreserved octet -- are normative all the same and are closed by ak.vector.encoding.result_selector_uri.v1 plus the SDK typed validator, which every producer and receiver MUST apply in addition to this pattern. See zh/extensions/mimi-interop.md section 4.",
+      "description": "Canonical MIMI room URI. It is the mimi_room_binding current state subject source, so it is a closed canonical form rather than a free URI: lowercase mimi:// scheme, host[:port] authority with no userinfo, lowercase A-label host, no leading-zero port, at least one non-empty path segment, no dot or dot-dot segment, no trailing slash, no query, no fragment, uppercase percent escapes, and no percent-encoding of unreserved octets (RFC 3986 section 6.2.2.2). A receiver MUST reject a non-canonical value with schema_violation and MUST NOT normalize it first, because two spellings of one room would otherwise each own a first accepted binding and the revoked terminal state could be bypassed by respelling. current state subject encoding is the uri subject kind of zh/conformance/encoding.md section 4. The pattern below expresses the structural half of the canonical form; two rules it cannot express portably -- the default port 443 MUST NOT be written explicitly, and a percent escape MUST NOT encode an unreserved octet -- are normative all the same and are closed by ak.vector.encoding.state_selector_uri.v1 plus the SDK typed validator, which every producer and receiver MUST apply in addition to this pattern. See zh/extensions/mimi-interop.md section 4.",
       "pattern": "^mimi://[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+)+$",
       "maxLength": 512
     },
@@ -50,13 +50,29 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/provider_directory/properties/schema",
+            "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/schema",
+            "values": [
+              "ak.schema.mimi_interop.v1"
+            ]
+          }
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "service_kind": {
-          "const": "mimi_provider_facade"
+          "const": "mimi_provider_facade",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/provider_directory/properties/service_kind",
+            "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/service_kind",
+            "values": [
+              "mimi_provider_facade"
+            ]
+          }
         },
         "supported_profiles": {
           "type": "array",
@@ -66,7 +82,15 @@
           "minItems": 1,
           "uniqueItems": true,
           "contains": {
-            "const": "ak.profile.mimi_interop.v1"
+            "const": "ak.profile.mimi_interop.v1",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "mimi-interop.schema.json#/$defs/provider_directory/properties/supported_profiles/contains",
+              "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/supported_profiles/contains",
+              "values": [
+                "ak.profile.mimi_interop.v1"
+              ]
+            }
           },
           "description": "Sorted unique by UTF-8 byte order; the sorted array is what enters the signed projection."
         },
@@ -87,16 +111,48 @@
           ],
           "properties": {
             "protocol_draft": {
-              "const": "draft-ietf-mimi-protocol-06"
+              "const": "draft-ietf-mimi-protocol-06",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.ietf.org/archive/id/draft-ietf-mimi-protocol-06.html#name-introduction",
+                "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/protocol_draft",
+                "values": [
+                  "draft-ietf-mimi-protocol-06"
+                ]
+              }
             },
             "content_draft": {
-              "const": "draft-ietf-mimi-content-08"
+              "const": "draft-ietf-mimi-content-08",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.ietf.org/archive/id/draft-ietf-mimi-content-08.html#name-introduction",
+                "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/content_draft",
+                "values": [
+                  "draft-ietf-mimi-content-08"
+                ]
+              }
             },
             "room_policy_draft": {
-              "const": "draft-ietf-mimi-room-policy-03"
+              "const": "draft-ietf-mimi-room-policy-03",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.ietf.org/archive/id/draft-ietf-mimi-room-policy-03.html#name-introduction",
+                "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/room_policy_draft",
+                "values": [
+                  "draft-ietf-mimi-room-policy-03"
+                ]
+              }
             },
             "identifier_draft": {
-              "const": "draft-kohbrok-mimi-identifiers-01"
+              "const": "draft-kohbrok-mimi-identifiers-01",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.ietf.org/archive/id/draft-kohbrok-mimi-identifiers-01.html#name-introduction",
+                "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/identifier_draft",
+                "values": [
+                  "draft-kohbrok-mimi-identifiers-01"
+                ]
+              }
             },
             "base_url": {
               "type": "string",
@@ -129,7 +185,22 @@
                   "identifier_query",
                   "report_abuse",
                   "proxy_download"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/features/items",
+                  "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/features/items",
+                  "values": [
+                    "key_material",
+                    "room_update",
+                    "notify",
+                    "submit_message",
+                    "consent",
+                    "identifier_query",
+                    "report_abuse",
+                    "proxy_download"
+                  ]
+                }
               },
               "uniqueItems": true
             },
@@ -140,7 +211,15 @@
                 "type": "string",
                 "enum": [
                   "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "external_literal",
+                  "authority": "https://www.rfc-editor.org/rfc/rfc9420.html#section-17.1",
+                  "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/mls_cipher_suites/items",
+                  "values": [
+                    "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+                  ]
+                }
               },
               "uniqueItems": true,
               "description": "Generated from active canonical_id rows in mls-ciphersuite-registry.json."
@@ -155,7 +234,18 @@
                   "text/plain;charset=utf-8",
                   "text/markdown;variant=GFM-MIMI",
                   "application/vnd.arkret.content+json"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "media_type",
+                  "authority": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/content_profiles/items",
+                  "owner": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/content_profiles/items",
+                  "values": [
+                    "application/mimi-content",
+                    "text/plain;charset=utf-8",
+                    "text/markdown;variant=GFM-MIMI",
+                    "application/vnd.arkret.content+json"
+                  ]
+                }
               },
               "uniqueItems": true
             },
@@ -196,7 +286,22 @@
             "report_abuse",
             "proxy_download"
           ],
-          "description": "The feature this endpoint serves; the id set is the same closed feature enum, and each endpoint_id appears at most once."
+          "description": "The feature this endpoint serves; the id set is the same closed feature enum, and each endpoint_id appears at most once.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/provider_directory_endpoint/properties/endpoint_id",
+            "owner": "mimi-interop.schema.json#/$defs/provider_directory_endpoint/properties/endpoint_id",
+            "values": [
+              "key_material",
+              "room_update",
+              "notify",
+              "submit_message",
+              "consent",
+              "identifier_query",
+              "report_abuse",
+              "proxy_download"
+            ]
+          }
         },
         "relative_path": {
           "type": "string",
@@ -208,17 +313,33 @@
     },
     "room_binding": {
       "type": "object",
-      "description": "MIMI room binding effect payload. In authority-commit/authority-ordered projection state, the typed current result subject is payload.mimi_room_uri for mimi_room_binding.",
+      "description": "MIMI room binding effect payload. In authority-commit/authority-ordered projection state, the current state subject is payload.mimi_room_uri for mimi_room_binding.",
       "required": [
         "kind",
         "payload"
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/schema",
+            "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/schema",
+            "values": [
+              "ak.schema.mimi_interop.v1"
+            ]
+          }
         },
         "kind": {
-          "const": "ak.mimi.room_binding"
+          "const": "ak.mimi.room_binding",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/kind",
+            "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/kind",
+            "values": [
+              "ak.mimi.room_binding"
+            ]
+          }
         },
         "payload": {
           "type": "object",
@@ -232,7 +353,15 @@
           ],
           "properties": {
             "profile": {
-              "const": "ak.profile.mimi_interop.v1"
+              "const": "ak.profile.mimi_interop.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/profile",
+                "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/profile",
+                "values": [
+                  "ak.profile.mimi_interop.v1"
+                ]
+              }
             },
             "mimi_room_uri": {
               "$ref": "#/$defs/mimi_room_uri"
@@ -270,7 +399,17 @@
                 "hub",
                 "follower",
                 "observer"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/local_provider_role",
+                "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/local_provider_role",
+                "values": [
+                  "hub",
+                  "follower",
+                  "observer"
+                ]
+              }
             },
             "mls_group_id": {
               "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
@@ -283,7 +422,18 @@
                 "text/plain;charset=utf-8",
                 "text/markdown;variant=GFM-MIMI",
                 "application/vnd.arkret.content+json"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "media_type",
+                "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/content_profile",
+                "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/content_profile",
+                "values": [
+                  "application/mimi-content",
+                  "text/plain;charset=utf-8",
+                  "text/markdown;variant=GFM-MIMI",
+                  "application/vnd.arkret.content+json"
+                ]
+              }
             },
             "policy_revision": {
               "type": "integer",
@@ -297,7 +447,18 @@
                 "revoked",
                 "migrating"
               ],
-              "description": "Room binding lifecycle status. Initial status MUST be proposed or accepted; legal transitions are proposed->accepted, proposed->revoked, accepted->migrating, accepted->revoked, migrating->accepted (verified migration proof), migrating->revoked. revoked is the only terminal state; illegal transitions are rejected with mimi_room_binding_status_transition_invalid. Normative state machine: zh/extensions/mimi-interop.md §4.2."
+              "description": "Room binding lifecycle status. Initial status MUST be proposed or accepted; legal transitions are proposed->accepted, proposed->revoked, accepted->migrating, accepted->revoked, migrating->accepted (verified migration proof), migrating->revoked. revoked is the only terminal state; illegal transitions are rejected with mimi_room_binding_status_transition_invalid. Normative state machine: zh/extensions/mimi-interop.md §4.2.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/status",
+                "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/status",
+                "values": [
+                  "proposed",
+                  "accepted",
+                  "revoked",
+                  "migrating"
+                ]
+              }
             },
             "migration_outcome": {
               "type": "string",
@@ -305,7 +466,16 @@
                 "completed",
                 "rolled_back"
               ],
-              "description": "Outcome of a migrating->accepted transition: completed (candidate topology in effect) or rolled_back (previous accepted topology restored). MUST be paired with migration_proof and absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
+              "description": "Outcome of a migrating->accepted transition: completed (candidate topology in effect) or rolled_back (previous accepted topology restored). MUST be paired with migration_proof and absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/migration_outcome",
+                "owner": "mimi-interop.schema.json#/$defs/room_binding/properties/payload/properties/migration_outcome",
+                "values": [
+                  "completed",
+                  "rolled_back"
+                ]
+              }
             },
             "migration_proof": {
               "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_migration_proof"
@@ -337,14 +507,38 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/schema",
+            "owner": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/schema",
+            "values": [
+              "ak.schema.mimi_interop.v1"
+            ]
+          }
         },
         "receipt_kind": {
           "const": "content_mapping_receipt",
-          "description": "Interop-audit object discriminator. This object is not an Event Envelope and this value is not an event kind."
+          "description": "Interop-audit object discriminator. This object is not an Event Envelope and this value is not an event kind.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/receipt_kind",
+            "owner": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/receipt_kind",
+            "values": [
+              "content_mapping_receipt"
+            ]
+          }
         },
         "profile": {
-          "const": "ak.profile.mimi_interop.v1"
+          "const": "ak.profile.mimi_interop.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/profile",
+            "owner": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/profile",
+            "values": [
+              "ak.profile.mimi_interop.v1"
+            ]
+          }
         },
         "mimi_room_uri": {
           "$ref": "#/$defs/mimi_room_uri"
@@ -356,7 +550,18 @@
             "text/plain;charset=utf-8",
             "text/markdown;variant=GFM-MIMI",
             "application/vnd.arkret.content+json"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "media_type",
+            "authority": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/source_format",
+            "owner": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/source_format",
+            "values": [
+              "application/mimi-content",
+              "text/plain;charset=utf-8",
+              "text/markdown;variant=GFM-MIMI",
+              "application/vnd.arkret.content+json"
+            ]
+          }
         },
         "target_format": {
           "type": "string",
@@ -369,7 +574,22 @@
             "ak.relation.create",
             "application/mimi-content",
             "application/vnd.arkret.content+json"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "symbol_or_media_type",
+            "authority": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/target_format",
+            "owner": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/target_format",
+            "values": [
+              "ak.message.create",
+              "ak.message.revise",
+              "ak.message.redact",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.relation.create",
+              "application/mimi-content",
+              "application/vnd.arkret.content+json"
+            ]
+          }
         },
         "original_envelope_digest": {
           "$ref": "#/$defs/digest"

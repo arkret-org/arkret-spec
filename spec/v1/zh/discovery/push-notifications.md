@@ -283,7 +283,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 
 #### 4.3.2 `watch_state` 与订阅偏好
 
-`watch_state` condition 由客户端用 receiver 的 watch level（[`../models/strand-and-message.md` §8](../models/strand-and-message.md)）匹配。Station sync surface 可直接读取 receiver 的 canonical watch typed current result，并把 `muted` 作为独立于用户规则链的强制 dispatch gate；它不得因此读取或执行 encrypted `ak.push_rules`。
+`watch_state` condition 由客户端用 receiver 的 watch level（[`../models/strand-and-message.md` §8](../models/strand-and-message.md)）匹配。Station sync surface 可直接读取 receiver 的 canonical watch current state，并把 `muted` 作为独立于用户规则链的强制 dispatch gate；它不得因此读取或执行 encrypted `ak.push_rules`。
 
 **两层职责**：
 
@@ -300,7 +300,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 补充约束：
 
 - 用户希望"被 @ 仍然提醒但不要其他通知"应使用 `mentions_only`（默认即此），不要用 `muted`。
-- 隐含订阅（如 assigned_to=self）在 `watch_state` 评估时折算为 `participating`；用户可通过显式写 `muted` watch typed current result 屏蔽。
+- 隐含订阅（如 assigned_to=self）在 `watch_state` 评估时折算为 `participating`；用户可通过显式写 `muted` watch current state 屏蔽。
 
 示例（user-declared override 路径 + 显式 `all` underride）：
 
@@ -464,7 +464,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 响应对 `notification.devices[]` **逐项守恒**：每个输入 `device_id` 在 `outcomes[]` 中恰好出现一次。
 
-```json schema=schemas/push-operations.schema.json#/$defs/push_notify_outcome
+```json schema=schemas/push-operations.schema.json#/$defs/push_notify_response_body
 {
   "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
   "outcomes": [

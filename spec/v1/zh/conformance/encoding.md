@@ -22,7 +22,14 @@ Canonical encoding 用于 Event ID、RealmCommit ID、authority handoff、snapsh
 
 Canonical JSON MUST 使用 UTF-8、无 BOM、无无意义空白、拒绝重复 key，并按 RFC 8785 等价规则排序
 object key。Arkret v1 wire 只允许 JSON integer；小数用整数与显式 scale 表达。整数必须位于 JSON safe
-integer 范围。绝对时刻固定为 UTC 毫秒形式 `YYYY-MM-DDTHH:MM:SS.sssZ`，验证方不得先宽松解析再正规化。
+integer 范围（-9007199254740991..9007199254740991）。逻辑 uint64 与非负完整 int64 MUST
+使用 `decimal-integers.schema.json` 的 `uint64_decimal`／`nonnegative_int64_decimal`，在 JSON 中为
+规范十进制字符串：分别为 0..18446744073709551615 与 0..9223372036854775807，禁止正号、前导零、
+指数、空白、舍入或 number/string 双表示。字段的正下界／较小上界继续叠加；同一逻辑值在 CBOR
+中按其原 uint64 合同保持原生整数，不把 JSON 表示误套入 CBOR。签名、JCS、摘要与 KAT MUST
+使用实际 JSON 字符串原值，禁止先转浮点数。递增必须 checked_add，耗尽拒绝写入，不回绕、饱和或
+重置。Agent participation 处于最大 int64 version 时 MUST 省略 next_replace_input，不能发布不可能
+执行的下一次写入；替换请求的 expected_version 最大为 9223372036854775806。绝对时刻固定为 UTC 毫秒形式 `YYYY-MM-DDTHH:MM:SS.sssZ`，验证方不得先宽松解析再正规化。
 
 Schema 中的 `additionalProperties: false`、closed union discriminator 和 required 字段均在 canonicalize
 之前验证。未知 critical 字段必须拒绝；`x_` extension 只在所属 schema 明确允许时存在。
@@ -297,7 +304,7 @@ stream 没有可明文表达的标量位置；明文位置向量会让调用方�
 
 ### 8.6 Resource selector 投影
 
-Selector 先经闭合 grammar 解析，再由 typed reducer 映射到领域主键；不对外暴露 typed current result key。
+Selector 先经闭合 grammar 解析，再由 typed reducer 映射到领域主键；不对外暴露 current state key。
 
 ## 9. Rank 与复合键
 
@@ -372,7 +379,7 @@ rank_between(left, right):
 
 ### 9.5 Collection 与复合键
 
-Typed current 的业务主键只由对应 reducer schema 明确定义。wire 与 reducer 上不存在通用 typed current result
+Typed current 的业务主键只由对应 reducer schema 明确定义。wire 与 reducer 上不存在通用 current state
 subject、通用复合键 hash 或 caller 选择的组件名；出现这三者中的任意一个 MUST `schema_violation`。
 
 #### 9.5.1 通用规则
@@ -389,8 +396,8 @@ v1 的 envelope 来源白名单包含 `envelope.actor_id`、`envelope.actor_id.k
 
 ##### 9.5.2 复合键编码
 
-复合业务键的成员、顺序和正规化由具体 schema 封闭定义，不使用通用 typed current result subject hash。
-registry 中的 `result_selector.kind="composite"` 只是对应 `result_family` 的 **family-specific closed ordered
+复合业务键的成员、顺序和正规化由具体 schema 封闭定义，不使用通用 current state subject hash。
+registry 中的 `state_selector.kind="composite"` 只是对应 `state_family` 的 **family-specific closed ordered
 descriptor**：它声明 reducer 从哪些 schema-validated 字段、按什么顺序和正规化取得数据库 row locator 的输入，
 不把任意 component 数组开放给 caller。
 

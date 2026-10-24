@@ -29,7 +29,7 @@ from tools.artifact_lint.core import (
 )
 from tools.artifact_lint.naming import (
     DEFAULT_REJECTED_WRAPPER_WORDS,
-    TYPED_CURRENT_RESULT_SCHEMA,
+    CURRENT_STATE_SCHEMA,
     PREDICATES,
     enumerate_schema_properties,
     naive_property_occurrences,
@@ -395,7 +395,7 @@ class WrapperWordTest(unittest.TestCase):
         self.assertEqual(stacked_wrapper_words("InviteDeliveryRequestBodyBody"), "BodyBody")
         self.assertEqual(stacked_wrapper_words("EventsSubmitOutcomeOutcome"), "OutcomeOutcome")
         # An operation verb followed by a wrapper word is legitimate.
-        self.assertIsNone(stacked_wrapper_words("IdentityLogListOutcome"))
+        self.assertIsNone(stacked_wrapper_words("IdentityLogListResponseBody"))
         self.assertIsNone(stacked_wrapper_words("InviteDeliveryRequestBody"))
 
     def test_operation_request_roles_reject_bare_wrapper_but_keep_signed_domain(self) -> None:
@@ -424,9 +424,9 @@ class WrapperWordTest(unittest.TestCase):
         for name, expected in (
             ("relation_primary_domain_candidate", "candidate"),
             ("realm_list_item", "item"),
-            ("poll_response_body", "response_body"),
-            ("member_state_result", "result"),
-            ("agent_human_approval_error_details", "details"),
+            ("poll_answer", None),
+            ("current_member_state", None),
+            ("agent_human_approval_problem_extensions", None),
         ):
             self.assertEqual(
                 unregistered_snake_wrapper_word(name, DEFAULT_REJECTED_WRAPPER_WORDS),
@@ -438,11 +438,11 @@ class WrapperWordTest(unittest.TestCase):
                 unregistered_snake_wrapper_word(name, DEFAULT_REJECTED_WRAPPER_WORDS), name
             )
 
-    def test_result_is_a_rejected_role_outside_the_typed_current_result_schema(self) -> None:
+    def test_result_is_a_rejected_role_outside_the_current_state_schema(self) -> None:
         """The `_result` tail is legal only where the registry pins every name."""
 
         self.assertIn("Result", DEFAULT_REJECTED_WRAPPER_WORDS)
-        self.assertEqual(TYPED_CURRENT_RESULT_SCHEMA, "typed-current-result.schema.json")
+        self.assertEqual(CURRENT_STATE_SCHEMA, "current-state.schema.json")
 
 
 class HashWordBoundaryTest(MutationHarness):
@@ -950,7 +950,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_identifier_array_cannot_use_bare_plural_role(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["resolve_request"]
+            shape = document["$defs"]["resolve_request_body"]
             shape["required"] = [
                 "actors" if item == "actor_ids" else item for item in shape["required"]
             ]
@@ -966,7 +966,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_object_array_cannot_claim_ids_representation(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["directory_realm_search_outcome"]
+            shape = document["$defs"]["directory_realm_search_response_body"]
             shape["required"] = [
                 "realm_ids" if item == "realms" else item
                 for item in shape["required"]

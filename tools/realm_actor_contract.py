@@ -49,19 +49,19 @@ def sign(context, unsigned, seed, method, created_at):
     envelope = {"context": context, "signature_algorithm": "Ed25519", "verification_method": method, "signed_digest": digest(unsigned), "created_at": created_at}
     message = (context + "\n").encode() + canonical(envelope)
     key = Ed25519PrivateKey.from_private_bytes(seed)
-    return {**envelope, "sig": b64(key.sign(message))}, message, key.public_key().public_bytes_raw()
+    return {**envelope, "signature": b64(key.sign(message))}, message, key.public_key().public_bytes_raw()
 
 
 def verify(context, unsigned, signature, public_key):
-    if set(signature) != {"context", "signature_algorithm", "verification_method", "signed_digest", "created_at", "sig"}:
+    if set(signature) != {"context", "signature_algorithm", "verification_method", "signed_digest", "created_at", "signature"}:
         return False
     if signature["context"] != context or signature["signature_algorithm"] != "Ed25519" or signature["signed_digest"] != digest(unsigned):
         return False
     try:
-        raw = base64.urlsafe_b64decode(signature["sig"] + "==")
-        if len(raw) != 64 or b64(raw) != signature["sig"]:
+        raw = base64.urlsafe_b64decode(signature["signature"] + "==")
+        if len(raw) != 64 or b64(raw) != signature["signature"]:
             return False
-        envelope = {k: v for k, v in signature.items() if k != "sig"}
+        envelope = {k: v for k, v in signature.items() if k != "signature"}
         Ed25519PublicKey.from_public_bytes(public_key).verify(raw, (context + "\n").encode() + canonical(envelope))
         return True
     except (InvalidSignature, ValueError, TypeError):
@@ -84,7 +84,7 @@ def signature_fixture():
     request = {"actor_id": actor(), "purpose": "current", "request_nonce": "B" * 22, "selectors": [selector]}
     source = committed()
     row = {"selector": selector, "source_stream_ref": source["stream_ref"], "revision": {"commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "value": {"kind": "manager_native", "enabled": True, "pending": None}}
-    material = {"realm_id": token("realm"), "actor_id": actor(), "purpose": "current", "request_digest": digest(request), "request_nonce": request["request_nonce"], "requester_actor_id": {"kind": "service", "service_id": service}, "governance_generation": 0, "authority_ref": token("event"), "control_stream_head": {"stream_ref": source["stream_ref"], "commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "issued_at": time, "expires_at": "2026-10-19T00:01:00.000Z", "result": {"entries": [{"status": "present", "row": row, "source_ref": source}]}}
+    material = {"realm_id": token("realm"), "actor_id": actor(), "purpose": "current", "request_digest": digest(request), "request_nonce": request["request_nonce"], "requester_actor_id": {"kind": "service", "service_id": service}, "governance_generation": "0", "authority_ref": token("event"), "control_stream_head": {"stream_ref": source["stream_ref"], "commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "issued_at": time, "expires_at": "2026-10-19T00:01:00.000Z", "material": {"entries": [{"status": "present", "row": row, "source_ref": source}]}}
     def bind_actor(value):
         if isinstance(value, dict):
             if value.get("kind") == "realm" and "realm_actor_id" in value:
@@ -102,17 +102,17 @@ def signature_fixture():
         "expected_device_generation_revision": revision(), "expected_generation": 1, "new_generation": 2, "replaces_recovery_ref": None,
         "next_resolution": resolution, "method_history_evidence": {k: evidence[k] for k in ["log_entries", "witness_records"]}, "next_control_method_kid": method, "expires_at": create["expires_at"]}}
     hosts = [create, control, manager, material, recovery]
-    refs = ["realm-actor.schema.json#/$defs/creation_transcript", "realm-actor.schema.json#/$defs/control_acceptance_transcript", "realm-actor.schema.json#/$defs/manager_acceptance_transcript", "realm-actor-material.schema.json#/$defs/unsigned_outcome"]
+    refs = ["realm-actor.schema.json#/$defs/creation_transcript", "realm-actor.schema.json#/$defs/control_acceptance_transcript", "realm-actor.schema.json#/$defs/manager_acceptance_transcript", "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input"]
     refs.append("realm-actor.schema.json#/$defs/recovery_acceptance_transcript")
     cases = []
     for i, (context, host, schema_ref) in enumerate(zip(CONTEXTS, hosts, refs, strict=True)):
         seed = bytes([i + 1]) * 32
         signature, message, pub = sign(context, host, seed, method if i < 2 else "did:webvh:z6mkfixturegovernor:governor.example#fixture", time)
-        cases.append({"context": context, "unsigned_schema_ref": "schemas/" + schema_ref, "test_seed_hex": seed.hex(), "public_key_b64u": b64(pub), "unsigned_projection": host, "canonical_hex": canonical(host).hex(), "signature_input_hex": message.hex(), "signature": signature})
+        cases.append({"context": context, "unsigned_schema_ref": "schemas/" + schema_ref, "test_seed_hex": seed.hex(), "public_key_base64url": b64(pub), "unsigned_projection": host, "canonical_hex": canonical(host).hex(), "signature_input_hex": message.hex(), "signature": signature})
     original = cases[0].pop("unsigned_projection")
     cases[0]["candidate"] = {**original, "control_signature": cases[0]["signature"]}
     from tools.realm_actor_mls_contract import handoff_fixture
-    return {"version": "2026-10-22.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material. MLS claim handoff hosts verify distinct real signers with synthetic ledger digests, not an actual authority import.", "cases": cases, "device_possession": device_possession_fixture(), "native_recovery": native_recovery_fixture(), "mls_claim_handoff": handoff_fixture()}
+    return {"version": "2026-10-24.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material. MLS claim handoff hosts verify distinct real signers with synthetic ledger digests, not an actual authority import.", "cases": cases, "device_possession": device_possession_fixture(), "native_recovery": native_recovery_fixture(), "mls_claim_handoff": handoff_fixture()}
 
 
 def device_possession_fixture():
@@ -123,7 +123,7 @@ def device_possession_fixture():
     context = "ak.device_authorize_realm_actor_possession_proof.v1"
     message = (context + "\n").encode() + canonical(value)
     key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
-    return {"context":context, "transcript":value, "signature_input_hex":message.hex(), "public_key_b64u":b64(key.public_key().public_bytes_raw()), "signature_b64u":b64(key.sign(message))}
+    return {"context":context, "transcript":value, "signature_input_hex":message.hex(), "public_key_base64url":b64(key.public_key().public_bytes_raw()), "signature_b64u":b64(key.sign(message))}
 
 
 class ControlModel:
@@ -325,25 +325,25 @@ def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
         preimage = {**unsigned, "versionId": previous}
         if entry["versionId"] != f"{i+1}-" + multihash(canonical(preimage)):
             raise ValueError("invalid entry hash")
-        params = entry["parameters"]
-        if len(params["updateKeys"]) != 1 or len(params["nextKeyHashes"]) != 1:
+        parameters = entry["parameters"]
+        if len(parameters["updateKeys"]) != 1 or len(parameters["nextKeyHashes"]) != 1:
             raise ValueError("invalid recovery key profile")
-        key = params["updateKeys"][0]
+        key = parameters["updateKeys"][0]
         if key in spent or (next_hashes is not None and multihash(key.encode()) not in next_hashes):
             raise ValueError("invalid pre-rotation")
-        if any(multihash(k.encode()) == params["nextKeyHashes"][0] for k in spent | {key}):
+        if any(multihash(k.encode()) == parameters["nextKeyHashes"][0] for k in spent | {key}):
             raise ValueError("spent next key")
         state = entry["state"]
         if not state["id"].startswith(f"did:webvh:{scid}:") or (i == 0 and state["id"] != vector["did"]):
             raise ValueError("DID/core/locator mismatch")
         if state["id"] != previous_did and not portable:
             raise ValueError("relocation lacks predecessor portability")
-        portable = params.get("portable", portable)
+        portable = parameters.get("portable", portable)
         if portable is not True:
             raise ValueError("managed DID must retain portability")
         previous_did = state["id"]
         control = state["verificationMethod"][0]
-        if control["controller"] != state["id"] or control["id"] not in state["authentication"] or control["publicKeyMultibase"] == key or multihash(control["publicKeyMultibase"].encode()) in params["nextKeyHashes"]:
+        if control["controller"] != state["id"] or control["id"] not in state["authentication"] or control["publicKeyMultibase"] == key or multihash(control["publicKeyMultibase"].encode()) in parameters["nextKeyHashes"]:
             raise ValueError("control/update key confusion")
         native_verify(unsigned, entry["proof"][0], key)
         if require_witness:
@@ -352,5 +352,5 @@ def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
                 raise ValueError("missing/duplicate witness")
             native_verify({"versionId": entry["versionId"]}, records[0]["proof"][0], witness_id.removeprefix("did:key:"))
         spent.add(key)
-        previous, next_hashes = entry["versionId"], params["nextKeyHashes"]
+        previous, next_hashes = entry["versionId"], parameters["nextKeyHashes"]
     return {"did": previous_did, "method_history_head": digest(entries[-1]), "version_id": previous}

@@ -876,7 +876,7 @@ grant subject = alice@google.com
 
 Agent 的 immutable global ceiling（`requested_scope`）只以域分离 digest 的形式出现在公开 DID Document 与其历史中。当 authorizing verifier 需要判定该 ceiling 时，controller MUST 通过本章的 verifier-bound 私有披露出示完整 scope。
 
-v1 不定义通用 credential presentation Event：本章是 Arkret wire 上唯一的私有披露路径。其载体是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象，只经认证机密通道一次性出示，不产生 durable Event、typed current result 或 account data；它是授权证据，不授予任何 action 或 resource，也不是把 scope 发布为 credential registry 或 Realm fact。
+v1 不定义通用 credential presentation Event：本章是 Arkret wire 上唯一的私有披露路径。其载体是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象，只经认证机密通道一次性出示，不产生 durable Event、current state 或 account data；它是授权证据，不授予任何 action 或 resource，也不是把 scope 发布为 credential registry 或 Realm fact。
 
 ### 16.1 请求面
 

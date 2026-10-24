@@ -14,7 +14,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -41,7 +41,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -69,7 +69,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -97,7 +97,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -127,7 +127,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -155,7 +155,7 @@
           "version": "1.0",
           "content_type": "application/json",
           "encryption_context": {
-            "epoch": 0,
+            "epoch": "0",
             "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
           "ciphertext": "QQ"
@@ -429,7 +429,7 @@
       "expect_valid": false
     }
   ],
-  "version": "2026-10-04.4",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.chat_topic_structure.v1"

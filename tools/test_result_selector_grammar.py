@@ -1,4 +1,4 @@
-"""Mutation tests for the closed `result_selector` subject grammar.
+"""Mutation tests for the closed `state_selector` subject grammar.
 
 `zh/conformance/encoding.md` section 9.5.1 states the whole rule: a subject's
 registry field source MUST be named explicitly, a bare field name or a
@@ -34,13 +34,13 @@ REGISTRY = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
 
 def errors_for(selector, id_source=None, event_kind=None) -> list[str]:
     lint = gate.Lint()
-    gate._check_result_selector(
-        lint, "probe.result_selector", selector, id_source, event_kind
+    gate._check_state_selector(
+        lint, "probe.state_selector", selector, id_source, event_kind
     )
     return lint.errors
 
 
-class ResultSelectorGrammarTest(unittest.TestCase):
+class StateSelectorGrammarTest(unittest.TestCase):
     def test_every_live_selector_is_accepted(self) -> None:
         """The live registry is the first assertion: the closure must describe
         what is already registered, not a grammar nobody uses."""
@@ -48,12 +48,12 @@ class ResultSelectorGrammarTest(unittest.TestCase):
         lint = gate.Lint()
         seen = 0
         for row in registry["event_kind_registry"]["event_kinds"]:
-            for index, write in enumerate(row.get("result_writes") or ()):
+            for index, write in enumerate(row.get("state_writes") or ()):
                 seen += 1
-                gate._check_result_selector(
+                gate._check_state_selector(
                     lint,
-                    f"{row['event_kind']}.result_writes[{index}].result_selector",
-                    write["result_selector"],
+                    f"{row['event_kind']}.state_writes[{index}].state_selector",
+                    write["state_selector"],
                     row.get("id_source"),
                     row["event_kind"],
                 )

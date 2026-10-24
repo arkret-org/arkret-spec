@@ -24,7 +24,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | 房间式协作场景 | 通常拆为 `Realm`（状态、成员与历史边界）+ `Strand/Message`（协作主题与消息）+ `View`（时间线 / 话题投影） | v1 core 不使用通用 `Room` 对象根。 |
 | Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Strand`，位置由 `ak.strand.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
 | Jira issue / workflow status / issue links | `Strand` / 顶层 `stage`（8 值）+ 本地 `metadata.fields.<domain>_status` / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
-| Watchers、订阅、勿扰 | `ak.strand.watch.set` typed current result + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
+| Watchers、订阅、勿扰 | `ak.strand.watch.set` current state + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
 | 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象与 native Sidecar scope；desired roster 由 controller 与其 active owned Agents 中当前 Realm active members 派生，独立 MLS 直接绑定 Sidecar | Sidecar 不是普通 Circle、Circle profile、Direct Conversation 或第四个 Track。 |
 

@@ -17,7 +17,7 @@ from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from tools.event_admission_contract import predicate_schema, schema_definitions, selected_branches, synchronize
+from tools.event_admission_contract import planned_event_schema, predicate_schema, schema_definitions, selected_branches, synchronize
 
 ARTIFACTS = ROOT / "spec/v1/artifacts"
 
@@ -41,6 +41,34 @@ class EventAdmissionContractTest(unittest.TestCase):
     def test_projection_matches_canonical_and_is_reachable(self):
         synchronize(ROOT, check=True)
         Draft202012Validator.check_schema(self.envelope)
+
+    def test_unsigned_plan_and_signed_submission_are_distinct(self):
+        plan = read("schemas/applet-install-plan.schema.json")
+        planned = planned_event_schema(self.canonical)
+        self.assertEqual(plan["$defs"]["planned_event"], planned)
+        self.assertEqual(planned["required"], ["event_kind", "payload"])
+        self.assertIs(planned["additionalProperties"], False)
+        self.assertNotIn("proof", planned["properties"])
+        self.assertNotIn("event", planned["properties"])
+        expected = {
+            row["event_kind"]: row["payload_schema_ref"].replace("schemas/", "./", 1)
+            for row in self.canonical["event_kinds"]
+            if row.get("status") == "active" and row.get("wire_scope") == "durable_event"
+        }
+        actual = {
+            branch["if"]["properties"]["event_kind"]["const"]:
+            branch["then"]["properties"]["payload"]["$ref"]
+            for branch in planned["allOf"]
+        }
+        self.assertEqual(actual, expected)
+        validator = Draft202012Validator(planned, registry=self.resources)
+        self.assertFalse(validator.is_valid({"event_kind": "ak.unknown", "payload": {}}))
+        self.assertFalse(validator.is_valid({"event": {}, "proof": {}}))
+        for name in ("authority-commit-operations.schema.json",):
+            document = read("schemas/" + name)
+            text = json.dumps(document)
+            self.assertNotIn('"planned_event"', text)
+            self.assertIn('"event_submission"', text)
 
     def test_retired_applet_provision_semantic_ref_is_rejected(self):
         validator = Draft202012Validator({

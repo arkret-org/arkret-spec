@@ -4,48 +4,48 @@
   "title": "Arkret Exact Realm Actor Material",
   "oneOf": [
     {
-      "$ref": "#/$defs/request"
+      "$ref": "#/$defs/realm_actor_material_request_body"
     },
     {
-      "$ref": "#/$defs/outcome"
+      "$ref": "#/$defs/realm_actor_material_response_body"
     },
     {
-      "$ref": "#/$defs/peer_request"
+      "$ref": "#/$defs/peer_realm_actor_material_request_body"
     }
   ],
   "$defs": {
     "selector": {
       "oneOf": [
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_identity_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_identity_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_control_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_control_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_manager_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_manager_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_status_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_status_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_generation_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_device_generation_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_device_authorization_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_profile_selector"
         },
         {
-          "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_recovery_selector"
+          "$ref": "./current-state.schema.json#/$defs/realm_actor_recovery_selector"
         }
       ]
     },
-    "request": {
+    "realm_actor_material_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -60,7 +60,15 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_actor"
             },
             "purpose": {
-              "const": "current"
+              "const": "current",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/0/properties/purpose",
+                "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/0/properties/purpose",
+                "values": [
+                  "current"
+                ]
+              }
             },
             "request_nonce": {
               "type": "string",
@@ -91,7 +99,15 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_actor"
             },
             "purpose": {
-              "const": "event"
+              "const": "event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/1/properties/purpose",
+                "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/1/properties/purpose",
+                "values": [
+                  "event"
+                ]
+              }
             },
             "request_nonce": {
               "type": "string",
@@ -116,7 +132,15 @@
               "$ref": "./common-ids.schema.json#/$defs/realm_actor"
             },
             "purpose": {
-              "const": "outcome"
+              "const": "request_status",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/2/properties/purpose",
+                "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_request_body/oneOf/2/properties/purpose",
+                "values": [
+                  "request_status"
+                ]
+              }
             },
             "request_nonce": {
               "type": "string",
@@ -129,7 +153,8 @@
           "additionalProperties": false
         }
       ],
-      "x-arkret-max-canonical-bytes": 4194304
+      "x-arkret-max-canonical-bytes": 4194304,
+      "x-arkret-name-role": "request_body"
     },
     "current_entry": {
       "oneOf": [
@@ -142,36 +167,44 @@
           ],
           "properties": {
             "status": {
-              "const": "present"
+              "const": "present",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor-material.schema.json#/$defs/current_entry/oneOf/0/properties/status",
+                "owner": "realm-actor-material.schema.json#/$defs/current_entry/oneOf/0/properties/status",
+                "values": [
+                  "present"
+                ]
+              }
             },
             "row": {
               "oneOf": [
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_identity_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_identity"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_control_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_control"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_manager_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_manager"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_status_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_status"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_generation_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_device_generation"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_device_authorization"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_device_revocation_proposals"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_profile"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_recovery_result"
+                  "$ref": "./current-state.schema.json#/$defs/current_realm_actor_recovery"
                 }
               ]
             },
@@ -190,18 +223,26 @@
           ],
           "properties": {
             "status": {
-              "const": "never_written"
+              "const": "never_written",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-actor-material.schema.json#/$defs/current_entry/oneOf/1/properties/status",
+                "owner": "realm-actor-material.schema.json#/$defs/current_entry/oneOf/1/properties/status",
+                "values": [
+                  "never_written"
+                ]
+              }
             },
             "selector": {
               "oneOf": [
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_authorization_selector"
+                  "$ref": "./current-state.schema.json#/$defs/realm_actor_device_authorization_selector"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
+                  "$ref": "./current-state.schema.json#/$defs/realm_actor_device_revocation_proposals_selector"
                 },
                 {
-                  "$ref": "./typed-current-result.schema.json#/$defs/realm_actor_profile_selector"
+                  "$ref": "./current-state.schema.json#/$defs/realm_actor_profile_selector"
                 }
               ]
             }
@@ -248,47 +289,126 @@
       },
       "additionalProperties": false
     },
-    "device_revoke_outcome": {
+    "device_revocation_status_view": {
       "type": "object",
-      "required": ["status", "proposal_ref", "device_id", "authorization_ref", "authorized_generation_ref", "state", "decided_at"],
+      "required": [
+        "status",
+        "proposal_ref",
+        "device_id",
+        "authorization_ref",
+        "authorized_generation_ref",
+        "state",
+        "decided_at"
+      ],
       "properties": {
-        "status": { "const": "device_revoke" },
-        "proposal_ref": { "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref" },
-        "device_id": { "$ref": "./common-ids.schema.json#/$defs/device_id" },
-        "authorization_ref": { "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref" },
-        "authorized_generation_ref": { "type": "integer", "minimum": 1 },
-        "state": { "enum": ["pending", "accepted", "rejected"] },
+        "status": {
+          "const": "device_revoke",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/properties/status",
+            "owner": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/properties/status",
+            "values": [
+              "device_revoke"
+            ]
+          }
+        },
+        "proposal_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "authorization_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "authorized_generation_ref": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "accepted",
+            "rejected"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/properties/state",
+            "owner": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/properties/state",
+            "values": [
+              "pending",
+              "accepted",
+              "rejected"
+            ]
+          }
+        },
         "decided_at": {
           "oneOf": [
-            { "$ref": "./time.schema.json#/$defs/timestamp" },
-            { "type": "null" }
+            {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
       "additionalProperties": false,
-      "allOf": [{
-        "if": { "properties": { "state": { "const": "pending" } }, "required": ["state"] },
-        "then": { "properties": { "decided_at": { "type": "null" } } },
-        "else": { "properties": { "decided_at": { "$ref": "./time.schema.json#/$defs/timestamp" } } }
-      }]
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "pending",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/allOf/0/if/properties/state",
+                  "owner": "realm-actor-material.schema.json#/$defs/device_revocation_status_view/allOf/0/if/properties/state",
+                  "values": [
+                    "pending"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decided_at": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "decided_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              }
+            }
+          }
+        }
+      ],
+      "x-arkret-name-role": "status_view"
     },
-    "outcome_record": {
+    "request_status_record": {
       "type": "object",
       "required": [
         "target_request_digest",
-        "outcome"
+        "request_status"
       ],
       "properties": {
         "target_request_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
         },
-        "outcome": {
+        "request_status": {
           "oneOf": [
             {
-              "$ref": "#/$defs/device_revoke_outcome"
+              "$ref": "#/$defs/device_revocation_status_view"
             },
             {
-              "$ref": "./authority-commit-operations.schema.json#/$defs/submit_outcome"
+              "$ref": "./authority-commit-operations.schema.json#/$defs/submit_response_body"
             },
             {
               "type": "object",
@@ -302,7 +422,18 @@
                     "unknown",
                     "denied",
                     "cancelled"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/2/properties/status",
+                    "values": [
+                      "pending",
+                      "unknown",
+                      "denied",
+                      "cancelled"
+                    ]
+                  }
                 }
               },
               "additionalProperties": false
@@ -317,7 +448,15 @@
               ],
               "properties": {
                 "status": {
-                  "const": "recovery"
+                  "const": "recovery",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/status",
+                    "values": [
+                      "recovery"
+                    ]
+                  }
                 },
                 "begin_ref": {
                   "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -328,7 +467,18 @@
                     "completed",
                     "cancelled",
                     "superseded"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
+                    "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/properties/state",
+                    "values": [
+                      "pending",
+                      "completed",
+                      "cancelled",
+                      "superseded"
+                    ]
+                  }
                 },
                 "terminal_ref": {
                   "oneOf": [
@@ -347,7 +497,15 @@
                   "if": {
                     "properties": {
                       "state": {
-                        "const": "pending"
+                        "const": "pending",
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                          "owner": "realm-actor-material.schema.json#/$defs/request_status_record/properties/request_status/oneOf/3/allOf/0/if/properties/state",
+                          "values": [
+                            "pending"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -374,9 +532,10 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "status_record"
     },
-    "outcome": {
+    "realm_actor_material_response_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -390,7 +549,7 @@
         "control_stream_head",
         "issued_at",
         "expires_at",
-        "result",
+        "material",
         "signature"
       ],
       "properties": {
@@ -404,8 +563,18 @@
           "enum": [
             "current",
             "event",
-            "outcome"
-          ]
+            "request_status"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/properties/purpose",
+            "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/properties/purpose",
+            "values": [
+              "current",
+              "event",
+              "request_status"
+            ]
+          }
         },
         "request_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
@@ -418,8 +587,7 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "authority_ref": {
           "oneOf": [
@@ -447,7 +615,7 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "result": {
+        "material": {
           "oneOf": [
             {
               "$ref": "#/$defs/current_record"
@@ -456,7 +624,7 @@
               "$ref": "#/$defs/event_record"
             },
             {
-              "$ref": "#/$defs/outcome_record"
+              "$ref": "#/$defs/request_status_record"
             }
           ]
         },
@@ -472,7 +640,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "current"
+                "const": "current",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/0/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/0/if/properties/purpose",
+                  "values": [
+                    "current"
+                  ]
+                }
               }
             },
             "required": [
@@ -481,7 +657,7 @@
           },
           "then": {
             "properties": {
-              "result": {
+              "material": {
                 "$ref": "#/$defs/current_record"
               },
               "control_stream_head": {
@@ -494,7 +670,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "event"
+                "const": "event",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/1/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/1/if/properties/purpose",
+                  "values": [
+                    "event"
+                  ]
+                }
               }
             },
             "required": [
@@ -503,7 +687,7 @@
           },
           "then": {
             "properties": {
-              "result": {
+              "material": {
                 "$ref": "#/$defs/event_record"
               },
               "control_stream_head": {
@@ -516,7 +700,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "outcome"
+                "const": "request_status",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/2/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_response_body/allOf/2/if/properties/purpose",
+                  "values": [
+                    "request_status"
+                  ]
+                }
               }
             },
             "required": [
@@ -525,15 +717,16 @@
           },
           "then": {
             "properties": {
-              "result": {
-                "$ref": "#/$defs/outcome_record"
+              "material": {
+                "$ref": "#/$defs/request_status_record"
               }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "unsigned_outcome": {
+    "realm_actor_material_signature_input": {
       "type": "object",
       "required": [
         "realm_id",
@@ -547,7 +740,7 @@
         "control_stream_head",
         "issued_at",
         "expires_at",
-        "result"
+        "material"
       ],
       "properties": {
         "realm_id": {
@@ -560,8 +753,18 @@
           "enum": [
             "current",
             "event",
-            "outcome"
-          ]
+            "request_status"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/properties/purpose",
+            "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/properties/purpose",
+            "values": [
+              "current",
+              "event",
+              "request_status"
+            ]
+          }
         },
         "request_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
@@ -574,8 +777,7 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "authority_ref": {
           "oneOf": [
@@ -603,7 +805,7 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "result": {
+        "material": {
           "oneOf": [
             {
               "$ref": "#/$defs/current_record"
@@ -612,7 +814,7 @@
               "$ref": "#/$defs/event_record"
             },
             {
-              "$ref": "#/$defs/outcome_record"
+              "$ref": "#/$defs/request_status_record"
             }
           ]
         }
@@ -624,7 +826,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "current"
+                "const": "current",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/0/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/0/if/properties/purpose",
+                  "values": [
+                    "current"
+                  ]
+                }
               }
             },
             "required": [
@@ -633,7 +843,7 @@
           },
           "then": {
             "properties": {
-              "result": {
+              "material": {
                 "$ref": "#/$defs/current_record"
               },
               "control_stream_head": {
@@ -646,7 +856,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "event"
+                "const": "event",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/1/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/1/if/properties/purpose",
+                  "values": [
+                    "event"
+                  ]
+                }
               }
             },
             "required": [
@@ -655,7 +873,7 @@
           },
           "then": {
             "properties": {
-              "result": {
+              "material": {
                 "$ref": "#/$defs/event_record"
               },
               "control_stream_head": {
@@ -668,7 +886,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "outcome"
+                "const": "request_status",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/2/if/properties/purpose",
+                  "owner": "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input/allOf/2/if/properties/purpose",
+                  "values": [
+                    "request_status"
+                  ]
+                }
               }
             },
             "required": [
@@ -677,15 +903,16 @@
           },
           "then": {
             "properties": {
-              "result": {
-                "$ref": "#/$defs/outcome_record"
+              "material": {
+                "$ref": "#/$defs/request_status_record"
               }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "signature_input"
     },
-    "peer_request": {
+    "peer_realm_actor_material_request_body": {
       "type": "object",
       "required": [
         "requester_account_id",
@@ -696,10 +923,11 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "request": {
-          "$ref": "#/$defs/request"
+          "$ref": "#/$defs/realm_actor_material_request_body"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     }
   }
 }

@@ -201,13 +201,13 @@ attestation 保留至同一历史 cut 不再可读；重放同一 attestation �
 
 `ak.self.mls.read.roster_authority.v1` 经成员的 Account Station 用
 `ak.peer.mls.read.roster_authority.v1` 向治理 Station 取得同一 accepted group／epoch cut 的完整历史
-provenance。self 使用封闭的 `member_roster_read_request`，按顺序提交 `realm_id`、
+provenance。self 使用封闭的 `mls_member_roster_authority_read_request_body`，按顺序提交 `realm_id`、
 `effective_scope`、`mls_group_id`、`target_commit_event_ref`、`target_epoch`、`caller_actor_id` 及可选
 `cursor`，不接受调用方的 `genesis_event_ref`。Account Station 绑定自己的认证会话与完整 ActorId，
 在同一授权读取 cut 核验目标后，从 exact scope/group 的已接纳 typed current 或治理方已签署并耐久
 冻结的 replica Genesis provenance 得到唯一 Genesis；两者同时存在时必须一致。缺失或冲突使已授权
 请求 `revision_unavailable`，无权或不可见目标仍为 `not_found`。Station 将该 Genesis 与原目标选择器
-组成字段完整的既有 peer `roster_read_request`，分页续读仍重新授权并绑定相同 Genesis/目标/head。
+组成字段完整的既有 peer `mls_roster_authority_read_request_body`，分页续读仍重新授权并绑定相同 Genesis/目标/head。
 普通客户端无需先读取入组前 Genesis Event 或完整 Account/Realm current 基线，必须只从自己 Station
 的持久认证会话消费原 signed manifest 中的 Genesis、治理 Station 与 head；该 Station 已验证它们与
 当前治理 generation/genesis/handoff 相符。客户端仍核对原请求的全部字段、全部页的相同 manifest，
@@ -237,7 +237,7 @@ Station 在签 manifest 前按完整 canonical JSON 响应的 2 MiB 上限确定
 记录数为 1..8；不得截断单条或跳项。self 预算包括 wrapper、manifest 公钥与每条 Add 的两份
 精确公钥条目；verification method 直接取原签名 kid，公钥均为 43 字符，因此治理 Station 可
 在分页前计算该投影的精确编码大小。Account Station MUST 重验两者上限，不得自行分裂治理页。
-`page_count` 是按该确定性边界得到的页数，不由 `ceil(total_records/8)` 推算。计算页边界时须计入
+`page_count` 是按该确定性边界得到的页数，不由 `ceil(total_record_count/8)` 推算。计算页边界时须计入
 最终签名 manifest、`page_index` 与 `next_cursor` 的编码大小；签名后若最终页超限，必须重算并
 重新签名，不能发送超限响应。
 `records_digest` 必须是 `sha256:` 加上 `SHA-256(JCS(上述完整有序 roster_record 数组))` 的小写
@@ -250,14 +250,14 @@ Station 在签 manifest 前按完整 canonical JSON 响应的 2 MiB 上限确定
 roster、跳项或让客户端改用从 `kid` 推导的 URL 取证。
 每条 Add record 的 `consumed_proposal_ordinal` 是该 accepted Commit `proposals[]` 中从零开始、
 计入所有 Proposal kind 的原位置；`sender_actor_id` 是上述已验 Member sender 的完整 ActorId；
-`proposal_wire_b64u` 是该位置**内联** RFC 9420 `Proposal` body 的精确 TLS bytes 的无填充
+`proposal_wire_base64url` 是该位置**内联** RFC 9420 `Proposal` body 的精确 TLS bytes 的无填充
 base64url，不是独立 `MLSMessage`、`PublicMessage` 或合成 ProposalRef。它作为已接纳 signed Commit
 的派生历史证明输出，不是治理 Station 可接纳的裸 Proposal 输入。治理 Station 必须核对 record
 中的 body、ordinal、sender、Commit Event ref 与冻结事实逐字相等，并核对 Add KeyPackage 的完整
 ActorId／leaf signature key 与 recipient attestation 及已验 public tree 一致，才可纳入签名 manifest；
 缺失、重复 ordinal、顺序更改或任何不匹配使已授权的整份 roster read 为 `revision_unavailable`。
 客户端验签 governance manifest 和每个 recipient attestation，重算全量有序记录 digest，并从已验
-`proposal_wire_b64u` 的 Add KeyPackage 对照 attestation 的 ActorId／leaf signature key。治理
+`proposal_wire_base64url` 的 Add KeyPackage 对照 attestation 的 ActorId／leaf signature key。治理
 Station 的签名 manifest 是这些 body／ordinal／sender 与已接纳 Commit 关系的历史权威证明；
 它只在上述原事务冻结和签发前逐项核对后才可签署。历史 Commit Event 可能早于该成员的 `since_join`
 可读范围，因此 roster 安装不要求另行获权读取每笔原 Event，也不得绕过 history policy 取得它；
@@ -279,9 +279,9 @@ Station 角色、same-core、已登记 method 版本、完整方法证明、两�
 并独立核对治理 signer 的 accepted generation／genesis／handoff 绑定与 manifest。独立审计者
 在其授权内验证完整 closure；审计角色不会扩大普通客户端的职责或披露范围。
 
-peer 返回原 `roster_read_outcome`；self 返回封闭 `self_roster_read_outcome`，按 wire 顺序包含：
+peer 返回原 `roster_read_response_body`；self 返回封闭 `self_roster_read_response_body`，按 wire 顺序包含：
 `roster`（原 peer 页逐字不变）、`manifest_signing_key`、`add_signing_keys[]`。每个 signing key
-只有 `verification_method` 与 `public_key_b64u`；manifest key 必须在原 `issued_at` 授权给该
+只有 `verification_method` 与 `public_key_base64url`；manifest key 必须在原 `issued_at` 授权给该
 generation 的治理 Station。每条 Add key row 按该页 Add 顺序携 `record_digest`、
 `claim_receipt_signing_key`、`attestation_signing_key`；digest 是完整该记录（含 closure）的 JCS
 SHA-256，两个 key 分别在原 `claimed_at` 与 `attested_at` 选取，verification method 必须等于
@@ -415,7 +415,7 @@ membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
 
 ### 2.5 MLS authority binding
 
-每个 scope 的 public current result 是：
+每个 scope 的 public current state 是：
 
 ```text
 MlsGroupCurrent {
@@ -517,7 +517,7 @@ Event 的重放或 peer committed replication；这些材料依其 accepted hist
 
 #### 2.5.3 GroupContext extension 与客户端验证
 
-普通客户端信任自己 Account Station返回的 committed public current result用于发送 gate，但仍独立验证 KeyPackage、
+普通客户端信任自己 Account Station返回的 committed public current state用于发送 gate，但仍独立验证 KeyPackage、
 LeafNode、credential、Commit signature、tree、confirmed transcript、confirmation tag、Welcome、AEAD 和本地 state。
 Station 的 acceptance 不证明 recipient已经解密或具有正确 secret。
 
@@ -542,7 +542,7 @@ revoke或claim timeout只影响尚未被 accepted Commit消费的 reservation。
 `producer_proof` 使用 `ak.mls_welcome_delivery_signature.v1`。unsigned projection 是从完整 closed Welcome delivery
 删除 `producer_proof` 后的全部实际存在成员。producer 先对其 RFC 8785 JCS bytes 计算带 `sha256:` 前缀的小写
 SHA-256 digest，再对 `UTF8("ak.mls_welcome_delivery_signature.v1\n")` 与五成员 signature envelope 的 RFC 8785
-JCS bytes 串接值作 Ed25519 签名；`sig` 是完整 64-byte 签名的 86 字符无 padding Base64URL。接收方必须从原始
+JCS bytes 串接值作 Ed25519 签名；`signature` 是完整 64-byte 签名的 86 字符无 padding Base64URL。接收方必须从原始
 Welcome delivery 重建 projection、digest、prefix 与完整签名输入，不能信任载荷自报 digest。authority basis 必须解析
 `commit_event_ref` 所指 winning `ak.mls.commit` Event 的 exact producer signing authority，并要求
 `verification_method` 等于该 producer proof 已验证的方法；治理 Station、recipient 或 claim service key 均不能替代。
@@ -732,7 +732,7 @@ attempt generation。
 
 只有 exact accepted Event 证明完成：队列耗尽、HTTP 2xx、duplicate code、UI 效果完成或本地 emitted/submitted
 标志都 MUST NOT 被当作完成信号。该记录**永不进入任何 wire**：它 MUST NOT 出现在 `ak.realm.create` payload、
-任何 current result 或查询投影、Account Data key、client sync 或 federation 面，也 MUST NOT 被用来让对端相信
+任何 current state 或查询投影、Account Data key、client sync 或 federation 面，也 MUST NOT 被用来让对端相信
 另一方的本地状态——Genesis 是否存在、创建者坐标、锁定的 selector 与可写状态一律只由 exact accepted Event 判定。
 
 ### 5.2 意图与生效
@@ -748,7 +748,7 @@ Committer从current public group state和current desired roster构造完整 RFC 
 
 ### 5.3 Committer 失联与竞争
 
-同一 base 的并发Commit只有一个authority CAS winner。loser重新读取current result并决定是否仍需transition。
+同一 base 的并发Commit只有一个authority CAS winner。loser重新读取current state并决定是否仍需transition。
 
 #### 5.3.1 Direct Conversation
 
@@ -767,7 +767,7 @@ authority transaction。
 
 ## 6. 离线与延迟到达
 
-离线客户端恢复后先取得current authority bundle、可见 stream heads、public MLS current result与tail，再顺序应用本地
+离线客户端恢复后先取得current authority bundle、可见 stream heads、public MLS current state与tail，再顺序应用本地
 缺少的Commit和recipient deliveries。它不得从snapshot或其它成员取得加入前secret。
 
 ## 7. v1 集成要求

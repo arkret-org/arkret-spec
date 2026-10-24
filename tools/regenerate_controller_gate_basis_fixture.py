@@ -33,11 +33,11 @@ def verify_jws(value, message):
     Ed25519PrivateKey.from_private_bytes(KEY_A_SEED).public_key().verify(unb64u(signature), (header + "." + b64u(message)).encode())
 
 
-def record(core, seq, status, previous=None):
+def record(core, sequence, status, previous=None):
     value = copy.deepcopy(core)
     for field in ("account_status_record_id", "proof", "reason_code", "previous_account_status_record_id"):
         value.pop(field, None)
-    value.update(status_seq=seq, status=status, issued_at=f"2026-08-{seq+5:02d}T00:00:00.000Z")
+    value.update(status_sequence=sequence, status=status, issued_at=f"2026-08-{sequence+5:02d}T00:00:00.000Z")
     if previous:
         value["previous_account_status_record_id"] = previous["account_status_record_id"]
     rid = "ak:account_status_record:" + b64u(b"\x01" + hashlib.sha256(jcs(value)).digest())
@@ -84,7 +84,7 @@ def build(data):
         elif field == "binding_version": wrong[field] += 1
         else: wrong[field] = "different_private_coordinate"
         decisions.append({"name": "wrong_" + field, "binding": wrong, "head": initial, "user_active": True, "allowed": False})
-    return {"source_private_seed_b64u": b64u(KEY_A_SEED), "public_key_b64u": public_key(KEY_A_SEED), "scope": "conformance bytes and issuer-source relationships only; not deployed AA ledger or transport", "cases": cases, "default_decisions": decisions}
+    return {"source_private_seed_b64u": b64u(KEY_A_SEED), "public_key_base64url": public_key(KEY_A_SEED), "scope": "conformance bytes and issuer-source relationships only; not deployed AA ledger or transport", "cases": cases, "default_decisions": decisions}
 
 
 def default_allowed(binding, head, user_active):
@@ -92,7 +92,7 @@ def default_allowed(binding, head, user_active):
         return False
     if head is None:
         return True
-    return head["status_seq"] == 1 and head["status"] == "active" and "previous_account_status_record_id" not in head and all(head[k] == v for k, v in binding.items())
+    return head["status_sequence"] == 1 and head["status"] == "active" and "previous_account_status_record_id" not in head and all(head[k] == v for k, v in binding.items())
 
 
 def verify_case(case):
@@ -109,15 +109,15 @@ def verify_case(case):
     if proof["payload_digest"] != digest(core) or proof["created_at"] != head["issued_at"]:
         raise ValueError("record proof metadata")
     verify_jws(proof["jws"], jcs(binding))
-    if head["status_seq"] == 1:
+    if head["status_sequence"] == 1:
         if head["status"] != "active" or "previous_account_status_record_id" in head:
             raise ValueError("invalid initial binding head")
     else:
         previous = case["private_predecessor"]
-        if not previous or previous["status_seq"] + 1 != head["status_seq"] or head["previous_account_status_record_id"] != previous["account_status_record_id"]:
+        if not previous or previous["status_sequence"] + 1 != head["status_sequence"] or head["previous_account_status_record_id"] != previous["account_status_record_id"]:
             raise ValueError("not the original predecessor")
     basis = gate["basis"]
-    if head["status_seq"] == 1:
+    if head["status_sequence"] == 1:
         if basis != {"kind": "account_binding_default", "binding_version": head["binding_version"], "binding_receipt_digest": "sha256:" + "b" * 64}:
             raise ValueError("initial binding basis")
     elif basis != {"kind": "account_status_record", "account_status_record_id": head["account_status_record_id"], "status_record_digest": digest(head)}:

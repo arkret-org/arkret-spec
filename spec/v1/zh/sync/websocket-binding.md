@@ -40,7 +40,7 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
   "kind": "websocket",
   "base_url": "wss://server.example/_arkret/ws",
   "max_frame_bytes": 262144,
-  "max_channels": 16
+  "max_channel_count": 16
 }
 ```
 transport descriptor 只承载连接坐标与传输 limit，**MUST NOT** 携带自己的 operation 列表：
@@ -241,11 +241,11 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
 operation，不适用该字段。
 
 成功后返回 `opened`，其中 `operation_id` 必须与 pending `open` 精确相同。重复 id 返回
-channel-scoped `error(code="conflict")`；该 id 仍永久占用。超过 `max_channels` 返回
+channel-scoped `error(code="conflict")`；该 id 仍永久占用。超过 `max_channel_count` 返回
 `rate_limited`，不得驱逐现有 channel。
 
 客户端可以同时打开一个 account channel、零或多个 events channel和一个 signal channel；
-部署可以把 events channel 数限制得更低，但必须在 advertised `max_channels` 和 operation
+部署可以把 events channel 数限制得更低，但必须在 advertised `max_channel_count` 和 operation
 limit 内一致执行。
 
 ## 6. Data 与 Control 映射
@@ -387,4 +387,4 @@ fixture 的 `discovery_cases[]` 只覆盖 transport descriptor 自身的封闭�
 runner **MUST** 真正 materialize 每个 case 的 mutation，mutation 指向的 carrier 不存在时
 **MUST** 判为 fixture 失败，而不是跳过该 case。
 
-Account open 的 filter、realm_list、replace_filter 与按需 baseline 完全复用 [client-sync §2.3](./client-sync.md#23-按需列表详情与分段-baselinenormative)。filter 使用 realm_ids，不接受旧 realms 别名；channel 重开不能清空账号全局进度。
+Account open 的 filter、realm_list_parameters、replace_filter 与按需 baseline 完全复用 [client-sync §2.3](./client-sync.md#23-按需列表详情与分段-baselinenormative)。filter 使用 realm_ids，不接受旧 realms 别名；channel 重开不能清空账号全局进度。

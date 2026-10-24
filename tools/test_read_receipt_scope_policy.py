@@ -31,11 +31,11 @@ class ScopeReadReceiptPolicyTest(unittest.TestCase):
         self.assertEqual(self.run_gate(), [])
 
     def test_missing_scope_subject_is_rejected(self):
-        self.writer()["result_writes"][0]["result_selector"] = None
+        self.writer()["state_writes"][0]["state_selector"] = None
         self.assertTrue(self.run_gate())
 
     def test_payload_merge_is_rejected(self):
-        self.writer()["result_writes"][0]["result_projection"]["kind"] = "merge"
+        self.writer()["state_writes"][0]["state_projection"]["kind"] = "merge"
         self.assertTrue(self.run_gate())
 
     def test_second_writer_is_rejected(self):

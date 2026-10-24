@@ -1,6 +1,6 @@
-"""Mutation tests for the writer direction of the typed current result contract.
+"""Mutation tests for the writer direction of the current state contract.
 
-`check_result_write_contracts` closes write -> family: a `result_writes[]` row
+`check_result_write_contracts` closes write -> family: a `state_writes[]` row
 may only name a registered family. This file covers the other direction, which
 is the one that actually decayed under `cell_writes[]` -- a family can carry a
 closed selector/value schema, a resolvable `$defs` entry and a prose paragraph,
@@ -9,7 +9,7 @@ say so.
 
 Every mutation test here reads as a delta against the live baseline rather than
 as an absolute error count, so each one keeps testing its own proposition while
-`result_writes[]` coverage is extended kind by kind.
+`state_writes[]` coverage is extended kind by kind.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ EVENT_KINDS = gate.EVENT_KIND_REGISTRY
 FAMILIES = gate.CURRENT_RESULT_REGISTRY
 
 
-class ResultFamilyWriterGateTest(unittest.TestCase):
+class StateFamilyWriterGateTest(unittest.TestCase):
     def _run(self, mutations=None) -> list[str]:
         mutations = mutations or {}
         original_load_json = gate.load_json
@@ -44,7 +44,7 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
         gate.load_json = load_json_with_mutation
         try:
             lint = gate.Lint()
-            gate.check_every_result_family_has_a_writer(lint)
+            gate.check_every_state_family_has_a_writer(lint)
             return lint.errors
         finally:
             gate.load_json = original_load_json
@@ -60,8 +60,8 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
             row["event_kind"]
             for row in registry["event_kinds"]
             if any(
-                write.get("result_family") == family
-                for write in row.get("result_writes") or ()
+                write.get("state_family") == family
+                for write in row.get("state_writes") or ()
             )
         ]
 
@@ -87,13 +87,13 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
             for row in registry["event_kinds"]:
                 if row["event_kind"] != "ak.realm.create":
                     continue
-                row["result_writes"] = [
+                row["state_writes"] = [
                     write
-                    for write in row["result_writes"]
-                    if write.get("result_family") != family
+                    for write in row["state_writes"]
+                    if write.get("state_family") != family
                 ]
-                if not row["result_writes"]:
-                    del row["result_writes"]
+                if not row["state_writes"]:
+                    del row["state_writes"]
 
         reported = self._newly_reported({EVENT_KINDS: drop_the_write})
         self.assertEqual(len(reported), 1, reported)
@@ -104,12 +104,12 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
         """Registering a family is not enough; someone has to produce it."""
 
         def register_an_unwritten_family(registry):
-            registry["result_kinds"].append(
+            registry["state_kinds"].append(
                 {
-                    "result_kind": "hypothetical_family",
+                    "state_kind": "hypothetical_family",
                     "schema_ref": (
-                        "schemas/typed-current-result.schema.json"
-                        "#/$defs/realm_profile_result"
+                        "schemas/current-state.schema.json"
+                        "#/$defs/current_realm_profile"
                     ),
                 }
             )
@@ -125,11 +125,11 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
             for row in registry["event_kinds"]:
                 if row["event_kind"] != "ak.realm.restore":
                     continue
-                row["result_writes"] = [
+                row["state_writes"] = [
                     {
-                        "result_family": "realm_genesis",
-                        "result_selector": None,
-                        "result_projection": {
+                        "state_family": "realm_genesis",
+                        "state_selector": None,
+                        "state_projection": {
                             "kind": "set",
                             "value": {"field": "payload.object"},
                         },
@@ -139,7 +139,7 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
         self.assertEqual(self._newly_reported({EVENT_KINDS: add_a_redundant_writer}), [])
 
     def test_a_write_that_names_no_family_stops_counting_as_a_writer(self) -> None:
-        """A row missing `result_family` writes nothing, so its family goes bare.
+        """A row missing `state_family` writes nothing, so its family goes bare.
 
         `check_result_write_contracts` separately reports the malformed row. The
         two findings are complementary, not duplicates: one says the row is
@@ -150,9 +150,9 @@ class ResultFamilyWriterGateTest(unittest.TestCase):
 
         def blank_the_family(registry):
             for row in registry["event_kinds"]:
-                for write in row.get("result_writes") or ():
-                    if write.get("result_family") == "realm_history_access":
-                        del write["result_family"]
+                for write in row.get("state_writes") or ():
+                    if write.get("state_family") == "realm_history_access":
+                        del write["state_family"]
 
         reported = self._newly_reported({EVENT_KINDS: blank_the_family})
         self.assertEqual(len(reported), 1, reported)

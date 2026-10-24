@@ -5,7 +5,7 @@
     "in_tree_checker": "tools/artifact_lint/read_receipt_scope_policy.py"
   },
   "description": "Unified ak.scope.read_receipt_policy / scope_read_receipt_policy schema and semantic decision vectors. Verified basis/authorization flags are preconditions supplied by the native verifier, not cryptographic evidence or production acceptance. Each case re-evaluates one exact scope; other policies are deliberate non-inputs.",
-  "version": "2026-10-19.1",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.read_receipt.scope_policy.schema.v1",
     "ak.vector.read_receipt.scope_policy.independent.v1",
@@ -202,7 +202,7 @@
     {
       "name": "realm_current",
       "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_scope_read_receipt_policy",
       "instance": {
         "selector": {
           "kind": "scope_read_receipt_policy",
@@ -228,7 +228,7 @@
     {
       "name": "circle_current",
       "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_scope_read_receipt_policy",
       "instance": {
         "selector": {
           "kind": "scope_read_receipt_policy",
@@ -256,7 +256,7 @@
     {
       "name": "old_selector",
       "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result/properties/selector",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_scope_read_receipt_policy/properties/selector",
       "instance": {
         "kind": "realm_read_receipt_policy"
       },
@@ -265,7 +265,7 @@
     {
       "name": "scope_selector_missing_subject",
       "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result/properties/selector",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_scope_read_receipt_policy/properties/selector",
       "instance": {
         "kind": "scope_read_receipt_policy"
       },

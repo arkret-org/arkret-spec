@@ -34,16 +34,16 @@ const multikey = 'z' + base58(Buffer.concat([Buffer.from([0xed, 0x01]), publicBy
 const did = 'did:key:' + multikey;
 const old = vector.envelope;
 // The fixed vector is a genesis envelope: plaintext metadata must agree with it.
-vector.plaintext.series_seq = 0;
+vector.plaintext.series_sequence = 0;
 const item = vector.plaintext.items[0];
 const contents = [{ item_kind: item.item_kind, secret_id: item.secret_id }];
 const encryption = { recipient_method: 'secret_storage_key', recipient_key_ref: 'ak.secret_storage.v1', aead: { name: 'chacha20_poly1305', nonce: vector.crypto_transcript.nonce_b64u } };
 const envelope = {
   backup_id: old.backup_id, actor_id: old.actor_id, backup_kind: old.backup_kind,
-  backup_version: 'kb_hardening_kat', series_id: old.series_id, series_seq: 0,
+  backup_version: 'kb_hardening_kat', series_id: old.series_id, series_sequence: 0,
   created_at: old.created_at, encryption, domain_separation: { subdomain: 'key_backup' },
   contents, ciphertext: '', ciphertext_digest: '',
-  auth_data: {
+  signature_proof: {
     device_id: vector.session.requesting_device_id,
     verification_method: did + '#' + multikey,
     signature_algorithm: 'Ed25519', signature: '',
@@ -67,22 +67,22 @@ const combined = Buffer.concat([encrypted, tag]);
 const digest = 'sha256:' + createHash('sha256').update(combined).digest('hex');
 envelope.ciphertext = b64u(combined);
 envelope.ciphertext_digest = digest;
-for (const field of ['backup_id', 'backup_kind', 'series_id', 'series_seq']) {
+for (const field of ['backup_id', 'backup_kind', 'series_id', 'series_sequence']) {
   if (envelope[field] !== vector.plaintext[field]) throw Error(`plaintext/envelope ${field} mismatch`);
 }
 if (canonical(contents) !== canonical(vector.plaintext.items.map(({ item_kind, secret_id }) => ({ item_kind, secret_id })))) {
   throw Error('plaintext/public contents mismatch');
 }
 const envelopeUnsigned = structuredClone(envelope);
-delete envelopeUnsigned.auth_data.signature;
-envelope.auth_data.signature = b64u(sign(null, Buffer.from(canonical(envelopeUnsigned)), privateKey));
+delete envelopeUnsigned.signature_proof.signature;
+envelope.signature_proof.signature = b64u(sign(null, Buffer.from(canonical(envelopeUnsigned)), privateKey));
 vector.envelope = envelope;
 vector.session.requesting_device_public_key_did = did;
 vector.proof.ciphertext_digest = digest;
-vector.proof.auth_data.verification_method = did + '#' + multikey;
+vector.proof.signature_proof.verification_method = did + '#' + multikey;
 const proofUnsigned = structuredClone(vector.proof);
-delete proofUnsigned.auth_data.signature;
-vector.proof.auth_data.signature = b64u(sign(null, Buffer.from(canonical(proofUnsigned)), privateKey));
+delete proofUnsigned.signature_proof.signature;
+vector.proof.signature_proof.signature = b64u(sign(null, Buffer.from(canonical(proofUnsigned)), privateKey));
 vector.test_key = {
   algorithm: 'Ed25519', private_key_seed: b64u(seed), public_key: b64u(publicBytes),
   note: 'Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_signing_material_denied.'
@@ -113,7 +113,7 @@ if (open(aad, combined) !== plaintext) throw Error('AEAD positive control failed
 for (const [changedAad, changedBytes] of [[aad + ' ', combined], [aad, Buffer.concat([Buffer.from([combined[0] ^ 1]), combined.subarray(1)])]]) {
   try { open(changedAad, changedBytes); throw Error('AEAD mutation accepted'); } catch (e) { if (e.message === 'AEAD mutation accepted') throw e; }
 }
-for (const [payload, signature] of [[canonical(envelopeUnsigned), envelope.auth_data.signature], [canonical(proofUnsigned), vector.proof.auth_data.signature]]) {
+for (const [payload, signature] of [[canonical(envelopeUnsigned), envelope.signature_proof.signature], [canonical(proofUnsigned), vector.proof.signature_proof.signature]]) {
   if (!verify(null, Buffer.from(payload), publicKey, Buffer.from(signature, 'base64url'))) throw Error('Ed25519 positive control failed');
   if (verify(null, Buffer.from(payload + ' '), publicKey, Buffer.from(signature, 'base64url'))) throw Error('Ed25519 mutation accepted');
 }

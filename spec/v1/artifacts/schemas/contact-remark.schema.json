@@ -13,7 +13,15 @@
     "version": {
       "type": "integer",
       "const": 1,
-      "description": "Value format version of this remark. v1 has exactly one value, so a different number is a rejected value rather than a negotiated variant."
+      "description": "Value format version of this remark. v1 has exactly one value, so a different number is a rejected value rather than a negotiated variant.",
+      "x-arkret-value-ownership": {
+        "class": "numeric",
+        "authority": "contact-remark.schema.json#/properties/version",
+        "owner": "contact-remark.schema.json#/properties/version",
+        "values": [
+          1
+        ]
+      }
     },
     "subject": {
       "type": "object",
@@ -24,7 +32,15 @@
       "properties": {
         "kind": {
           "const": "human",
-          "description": "Aligned with the human branch of the Contact list. Organization, device, service and Realm actors MUST NOT reuse this record."
+          "description": "Aligned with the human branch of the Contact list. Organization, device, service and Realm actors MUST NOT reuse this record.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-remark.schema.json#/properties/subject/properties/kind",
+            "owner": "contact-remark.schema.json#/properties/subject/properties/kind",
+            "values": [
+              "human"
+            ]
+          }
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",

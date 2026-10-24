@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-21T10:55:31+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -10,7 +10,7 @@
     "consumer_binding, when present, is the machine-readable disposition for a logical schema that is not directly named by an operation, Event kind, or another schema. Runtime and dynamic wire bindings MUST declare kind, selector, and normative_ref. A prose_only binding MUST instead declare a non-empty rationale and MUST NOT be counted as wire coverage.",
     "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
     "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema.",
-    "This registry lists WIRE schemas: objects that are signed, transmitted, or referenced by id through payload.schema or a DTO $ref. The VALUE shape of a typed current result is out of scope and MUST NOT get an ak.schema.* id of its own: it is a reducer output whose only registered read path is the value_schema_ref JSON Pointer on that family's result_writes[] rows, and an id would make one value look like a wire schema and invite binding by id instead of by the write contract. A whole-document id over typed-current-result.schema.json is fine -- ak.schema.result_projection.v1 is exactly that -- but a row whose fragment points at one value $defs member is not registrable, and the lint rejects one. The realm_authority_root_value row was the sole such row and was withdrawn; its writers always referenced the pointer, so nothing but the id was lost. See zh/sync/current-results.md section 1 and zh/conformance/schema-registry.md section 1.1."
+    "This registry lists WIRE schemas: objects that are signed, transmitted, or referenced by id through payload.schema or a DTO $ref. The VALUE shape of a current state is out of scope and MUST NOT get an ak.schema.* id of its own: it is a reducer output whose only registered read path is the value_schema_ref JSON Pointer on that family's state_writes[] rows, and an id would make one value look like a wire schema and invite binding by id instead of by the write contract. A whole-document id over current-state.schema.json is fine -- ak.schema.current_state.v1 is exactly that -- but a row whose fragment points at one value $defs member is not registrable, and the lint rejects one. The realm_authority_root_value row was the sole such row and was withdrawn; its writers always referenced the pointer, so nothing but the id was lost. See zh/sync/current-state.md section 1 and zh/conformance/schema-registry.md section 1.1."
   ],
   "schemas": [
     {
@@ -25,10 +25,10 @@
       }
     },
     {
-      "schema_id": "ak.schema.account_current_result.v1",
-      "file": "schemas/account-current-result.schema.json",
+      "schema_id": "ak.schema.account_state_view.v1",
+      "file": "schemas/account-state-view.schema.json",
       "status": "active",
-      "description": "Server-trusted typed current typed current result results, deterministic causal-register sources, versioned removal and exact baseline coverage."
+      "description": "Server-trusted typed current current state results, deterministic causal-register sources, versioned removal and exact baseline coverage."
     },
     {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
@@ -469,8 +469,8 @@
       }
     },
     {
-      "schema_id": "ak.schema.authz_operations.v1",
-      "file": "schemas/authz-operations.schema.json",
+      "schema_id": "ak.schema.authorization_operations.v1",
+      "file": "schemas/authorization-operations.schema.json",
       "status": "active",
       "description": "Closed response DTO bundle for authorization query operations."
     },
@@ -550,7 +550,7 @@
       "schema_id": "ak.schema.consent_operations.v1",
       "file": "schemas/consent-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface holder-private consent typed current result operations (ak.self.consent.*); see zh/identity/consent-model.md."
+      "description": "Closed request/response DTO bundle for self-surface holder-private consent current state operations (ak.self.consent.*); see zh/identity/consent-model.md."
     },
     {
       "schema_id": "ak.schema.contact_operations.v1",
@@ -600,9 +600,9 @@
       "description": "Account Authority controller-account eligibility gate signed under ak.controller_account_gate.v1; privacy minimised and valid for at most 300 seconds."
     },
     {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
       "file": "schemas/agent-authority-evidence.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_response_body",
       "status": "active",
       "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
     },
@@ -614,9 +614,9 @@
       "description": "Deployment-authenticated controller gate issuance request; carries no service resolution carrier."
     },
     {
-      "schema_id": "ak.schema.current_principal_outcome.v1",
+      "schema_id": "ak.schema.current_principal_response_body.v1",
       "file": "schemas/identity-resolution.schema.json",
-      "fragment": "#/$defs/current_principal_outcome",
+      "fragment": "#/$defs/current_principal_response_body",
       "status": "active",
       "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
     },
@@ -768,10 +768,10 @@
       "file": "schemas/event-payload.schema.json"
     },
     {
-      "schema_id": "ak.schema.exact_current_results_read.v1",
-      "file": "schemas/exact-current-results-read.schema.json",
+      "schema_id": "ak.schema.exact_current_state_read.v1",
+      "file": "schemas/exact-current-state-read.schema.json",
       "status": "active",
-      "description": "Closed authenticated request/outcome carrier for one exact Relation primary-domain or moderation-target current result at a governing-Station durable cut."
+      "description": "Closed authenticated request/outcome carrier for one exact Relation primary-domain or moderation-target current state at a governing-Station durable cut."
     },
     {
       "schema_id": "ak.schema.extension_manifest.v1",
@@ -827,7 +827,7 @@
       "schema_id": "ak.schema.holder_quarantine.v1",
       "file": "schemas/holder-quarantine.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data typed current result value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "description": "Actor-private plaintext account-data current state value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.holder_quarantine",
@@ -846,8 +846,8 @@
       }
     },
     {
-      "schema_id": "ak.schema.ice_config_response.v1",
-      "file": "schemas/ice-config-response.schema.json"
+      "schema_id": "ak.schema.media_ice_configuration_response_body.v1",
+      "file": "schemas/media-ice-configuration-response-body.schema.json"
     },
     {
       "schema_id": "ak.schema.identity_link.v1",
@@ -883,7 +883,7 @@
       "schema_id": "ak.schema.invite_delivery.v1",
       "file": "schemas/invite-delivery.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data typed current result value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
+      "description": "Actor-private plaintext account-data current state value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.invite_delivery",
@@ -938,8 +938,8 @@
         },
         "predecessor_chain": {
           "independent_from_source_commit_ref": true,
-          "genesis": "series_seq=0 and supersedes_id/supersedes_digest absent",
-          "successor": "series_seq>=1 and exact immediate predecessor supersedes_id/supersedes_digest required"
+          "genesis": "series_sequence=0 and supersedes_id/supersedes_digest absent",
+          "successor": "series_sequence>=1 and exact immediate predecessor supersedes_id/supersedes_digest required"
         }
       }
     },
@@ -1011,15 +1011,15 @@
       "description": "Closed request DTO bundle for realtime media service operations."
     },
     {
-      "schema_id": "ak.schema.media_service_binding_outcome.v1",
-      "file": "schemas/media-service-binding-result.schema.json",
-      "fragment": "#/$defs/media_service_binding_outcome",
+      "schema_id": "ak.schema.media_service_binding_response_body.v1",
+      "file": "schemas/media-service-binding-operations.schema.json",
+      "fragment": "#/$defs/media_service_binding_response_body",
       "status": "active",
       "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
     },
     {
       "schema_id": "ak.schema.media_service_binding_request.v1",
-      "file": "schemas/media-service-binding-result.schema.json",
+      "file": "schemas/media-service-binding-operations.schema.json",
       "fragment": "#/$defs/media_service_binding_request_body",
       "status": "active",
       "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
@@ -1235,7 +1235,7 @@
       "schema_id": "ak.schema.query.v1",
       "file": "schemas/query.schema.json",
       "status": "active",
-      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md.",
+      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpecification / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "OpenAPI QueryRequestBody/SearchRequestBody components",
@@ -1299,9 +1299,9 @@
       "status": "active"
     },
     {
-      "schema_id": "ak.schema.realm_join_bootstrap_outcome.v1",
+      "schema_id": "ak.schema.realm_join_bootstrap_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_bootstrap_outcome",
+      "fragment": "#/$defs/peer_bootstrap_response_body",
       "status": "active",
       "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
     },
@@ -1319,9 +1319,9 @@
       "description": "Closed, untrusted authority-bundle locator returned by Realm discovery, invite delivery, and join intake. Realm scope and freshness belong to the enclosing carrier and nonce-bound current assertion; the locator neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
     },
     {
-      "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
+      "schema_id": "ak.schema.realm_join_peer_preview_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_preview_outcome",
+      "fragment": "#/$defs/peer_preview_response_body",
       "status": "active",
       "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
     },
@@ -1333,9 +1333,9 @@
       "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
     },
     {
-      "schema_id": "ak.schema.realm_join_prepare_outcome.v1",
+      "schema_id": "ak.schema.realm_join_prepare_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_prepare_outcome",
+      "fragment": "#/$defs/self_prepare_response_body",
       "status": "active",
       "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
     },
@@ -1347,9 +1347,9 @@
       "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
     },
     {
-      "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
+      "schema_id": "ak.schema.realm_join_self_preview_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_preview_outcome",
+      "fragment": "#/$defs/self_preview_response_body",
       "status": "active",
       "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
     },
@@ -1388,9 +1388,9 @@
       "file": "schemas/realm-state-snapshot.schema.json"
     },
     {
-      "schema_id": "ak.schema.realm_stream_list.v1",
+      "schema_id": "ak.schema.realm_stream_page.v1",
       "file": "schemas/realm-read-operations.schema.json",
-      "fragment": "#/$defs/realm_stream_list",
+      "fragment": "#/$defs/realm_stream_page",
       "status": "active",
       "description": "Paginated ACL-filtered enumeration outcome of one Realm's authority streams: per-stream head_commit_ref, next_position and the caller's readable_floor, plus next_cursor and has_more."
     },
@@ -1441,10 +1441,10 @@
       "file": "schemas/resource-selector.schema.json"
     },
     {
-      "schema_id": "ak.schema.result_projection.v1",
-      "file": "schemas/typed-current-result.schema.json",
+      "schema_id": "ak.schema.current_state.v1",
+      "file": "schemas/current-state.schema.json",
       "status": "active",
-      "description": "Closed typed current-result selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
+      "description": "Closed typed current-state selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
     },
     {
       "schema_id": "ak.schema.rsvp.v1",
@@ -1567,9 +1567,9 @@
       }
     },
     {
-      "schema_id": "ak.schema.signer_key_query_outcome.v1",
+      "schema_id": "ak.schema.signer_key_query_response_body.v1",
       "file": "schemas/signer-key-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
+      "fragment": "#/$defs/query_response_body",
       "status": "active",
       "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
     },
@@ -1801,6 +1801,12 @@
         "selector": "ak.self.realm_actor.read.material.v1",
         "normative_ref": "zh/extensions/realm-actors.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.decimal_integers.v1",
+      "status": "active",
+      "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
+      "file": "schemas/decimal-integers.schema.json"
     }
   ],
   "metadata_authority": "contract_registry_section"

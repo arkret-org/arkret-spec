@@ -39,7 +39,20 @@
                   "domain",
                   "applet",
                   "keyword"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-blocklist.schema.json#/properties/entries/items/properties/target/properties/kind",
+                  "owner": "account-blocklist.schema.json#/properties/entries/items/properties/target/properties/kind",
+                  "values": [
+                    "actor",
+                    "device",
+                    "handle",
+                    "domain",
+                    "applet",
+                    "keyword"
+                  ]
+                }
               },
               "actor_id": {
                 "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -64,7 +77,15 @@
               {
                 "properties": {
                   "kind": {
-                    "const": "actor"
+                    "const": "actor",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/0/properties/kind",
+                      "owner": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/0/properties/kind",
+                      "values": [
+                        "actor"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -89,7 +110,15 @@
               {
                 "properties": {
                   "kind": {
-                    "const": "device"
+                    "const": "device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/1/properties/kind",
+                      "owner": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/1/properties/kind",
+                      "values": [
+                        "device"
+                      ]
+                    }
                   },
                   "object_ref": {
                     "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -122,7 +151,15 @@
               {
                 "properties": {
                   "kind": {
-                    "const": "applet"
+                    "const": "applet",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/2/properties/kind",
+                      "owner": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/2/properties/kind",
+                      "values": [
+                        "applet"
+                      ]
+                    }
                   },
                   "object_ref": {
                     "$ref": "./event-envelope.schema.json#/$defs/applet_id"
@@ -154,7 +191,17 @@
                       "handle",
                       "domain",
                       "keyword"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/3/properties/kind",
+                      "owner": "account-blocklist.schema.json#/properties/entries/items/properties/target/anyOf/3/properties/kind",
+                      "values": [
+                        "handle",
+                        "domain",
+                        "keyword"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -186,7 +233,17 @@
               "mute",
               "hide"
             ],
-            "description": "block denies a new holder-facing interaction on the selected surfaces and filters shared durable content only after canonical receive/store; mute keeps content visible but suppresses attention surfaces; hide keeps canonical content but omits it from default holder rendering/search. None of the modes revokes a Realm capability or rewrites shared history."
+            "description": "block denies a new holder-facing interaction on the selected surfaces and filters shared durable content only after canonical receive/store; mute keeps content visible but suppresses attention surfaces; hide keeps canonical content but omits it from default holder rendering/search. None of the modes revokes a Realm capability or rewrites shared history.",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "account-blocklist.schema.json#/properties/entries/items/properties/mode",
+              "owner": "account-blocklist.schema.json#/properties/entries/items/properties/mode",
+              "values": [
+                "block",
+                "mute",
+                "hide"
+              ]
+            }
           },
           "applies_to": {
             "type": "array",
@@ -203,7 +260,23 @@
                 "presence",
                 "notifications",
                 "directory"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-blocklist.schema.json#/properties/entries/items/properties/applies_to/items",
+                "owner": "account-blocklist.schema.json#/properties/entries/items/properties/applies_to/items",
+                "values": [
+                  "messages",
+                  "mentions",
+                  "dm",
+                  "calls",
+                  "contacts",
+                  "applets",
+                  "presence",
+                  "notifications",
+                  "directory"
+                ]
+              }
             },
             "uniqueItems": true
           },

@@ -64,7 +64,7 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
     def test_new_sidecar_id_mirror_fails(self) -> None:
         def mutate(schema) -> None:
-            branch = schema["$defs"]["sidecar_ensure_outcome"]["oneOf"][0]
+            branch = schema["$defs"]["sidecar_ensure_response_body"]["oneOf"][0]
             branch["properties"]["sidecar_id"] = {"type": "string"}
 
         errors = self._lint("principal-operations.schema.json", mutate)
@@ -80,7 +80,7 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
     def test_contact_draft_kind_specialization_fails(self) -> None:
         def mutate(schema) -> None:
-            branch = schema["$defs"]["contact_operation_outcome"]["oneOf"][0]
+            branch = schema["$defs"]["contact_operation_response_body"]["oneOf"][0]
             branch["properties"]["event_draft"] = {
                 "allOf": [
                     {"$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"},

@@ -14,7 +14,15 @@
   "properties": {
     "schema": {
       "type": "string",
-      "const": "ak.schema.applet_widget_declaration.v1"
+      "const": "ak.schema.applet_widget_declaration.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "applet-widget-declaration.schema.json#/properties/schema",
+        "owner": "applet-widget-declaration.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.applet_widget_declaration.v1"
+        ]
+      }
     },
     "widget_origin": {
       "allOf": [
@@ -79,7 +87,8 @@
       "additionalProperties": false
     },
     "consent_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     }
   },
   "patternProperties": {

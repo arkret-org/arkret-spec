@@ -5,7 +5,7 @@
   "covers_vectors": [
     "ak.vector.calendar.notification.v1"
   ],
-  "version": "2026-09-19.2",
+  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#10-schedule-notification",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",
@@ -50,7 +50,7 @@
           "ak.profile.calendar_notification_dispatch.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {},
+        "authentication_metadata": {},
         "limits": {},
         "plaintext_visibility": {},
         "verified_profiles": [],

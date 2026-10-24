@@ -5,14 +5,14 @@
   "covers_vectors": [
     "ak.vector.identity.did_webvh_witness_rail.v1"
   ],
-  "version": "2026-09-19.1",
+  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/identity/identity-did.md#341-witness-的-method-native-输入合同normative",
   "source_refs": [
     "spec/v1/zh/identity/identity-did.md",
     "spec/v1/zh/sync/service-http-binding.md",
     "spec/v1/zh/conformance/conformance-vectors.md",
     "spec/v1/artifacts/schemas/did-webvh-witness-receipt.schema.json",
-    "spec/v1/artifacts/schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+    "spec/v1/artifacts/schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListResponseBody",
     "spec/v1/artifacts/registry/error-code-registry.json",
     "spec/v1/artifacts/registry/proof-context-registry.json"
   ],
@@ -616,7 +616,6 @@
       "instance": {
         "schema": "ak.schema.identity_receipt.v1",
         "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-        "seq": 2,
         "accepted_entry_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "registry_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
         "witness_role": "replica",
@@ -628,7 +627,8 @@
           "created_at": "2026-05-01T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
         },
-        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example"
+        "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+        "sequence": 2
       }
     },
     {
@@ -748,7 +748,7 @@
     },
     {
       "name": "receipts_tagged_union_accepts_both_families",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListResponseBody",
       "expect_valid": true,
       "semantic_outcome": "accept",
       "notes": "One response carrying both families. A consumer MUST branch on the schema constant; threshold_met is an Arkret-layer convenience and its absence MUST NOT be read as true.",
@@ -777,7 +777,6 @@
           {
             "schema": "ak.schema.identity_receipt.v1",
             "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-            "seq": 2,
             "accepted_entry_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
             "registry_id": "ak:did_core:webvh:z6mkfixtureregistryexample",
             "witness_role": "replica",
@@ -789,7 +788,8 @@
               "created_at": "2026-05-01T00:00:00.000Z",
               "jws": "eyJhbGciOiJFZDI1NTE5In0..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
             },
-            "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example"
+            "subject_did": "did:webvh:z6mkfixturesubjectexample:subject.example",
+            "sequence": 2
           }
         ],
         "threshold_met": false

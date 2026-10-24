@@ -77,7 +77,7 @@ class IceCredentialTest(unittest.TestCase):
     def test_closed_body_cannot_grow(self):
         for mutation in ("extra", "open"):
             schema = copy.deepcopy(self.schema)
-            body = schema["$defs"]["media_ice_config_request_body"]
+            body = schema["$defs"]["media_ice_configuration_request_body"]
             if mutation == "extra":
                 body["properties"]["pseudonym"] = {"type": "string"}
             else:

@@ -13,7 +13,15 @@
     "service_kind": {
       "enum": [
         "station"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-join-candidate.schema.json#/properties/service_kind",
+        "owner": "realm-join-candidate.schema.json#/properties/service_kind",
+        "values": [
+          "station"
+        ]
+      }
     },
     "service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -28,7 +36,17 @@
         "invite",
         "directory",
         "cache"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-join-candidate.schema.json#/properties/source",
+        "owner": "realm-join-candidate.schema.json#/properties/source",
+        "values": [
+          "invite",
+          "directory",
+          "cache"
+        ]
+      }
     }
   },
   "additionalProperties": false

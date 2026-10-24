@@ -8,64 +8,64 @@
       "$ref": "#/$defs/AcceptedDevicePossessionProof"
     },
     {
-      "$ref": "#/$defs/ActorPrivateEventSubmitOutcome"
+      "$ref": "#/$defs/ActorPrivateEventSubmitResponseBody"
     },
     {
       "$ref": "#/$defs/ActorPrivateEventSubmitRequestBody"
     },
     {
-      "$ref": "#/$defs/AccountCursorRevokeOutcome"
+      "$ref": "#/$defs/AccountCursorRevokeResponseBody"
     },
     {
       "$ref": "#/$defs/AccountCursorRevokeRequestBody"
     },
     {
-      "$ref": "#/$defs/AccountLogoutOutcome"
+      "$ref": "#/$defs/AccountLogoutResponseBody"
     },
     {
       "$ref": "#/$defs/AccountLogoutRequestBody"
     },
     {
-      "$ref": "#/$defs/AuthSessionLogoutOutcome"
+      "$ref": "#/$defs/AuthenticationSessionLogoutResponseBody"
     },
     {
-      "$ref": "#/$defs/AuthSessionLogoutRequestBody"
+      "$ref": "#/$defs/AuthenticationSessionLogoutRequestBody"
     },
     {
-      "$ref": "#/$defs/AuthzCheckOutcome"
+      "$ref": "#/$defs/AuthorizationCheckResponseBody"
     },
     {
-      "$ref": "#/$defs/AuthzCheckRequestBody"
+      "$ref": "#/$defs/AuthorizationCheckRequestBody"
     },
     {
-      "$ref": "#/$defs/BlobPresignOutcome"
+      "$ref": "#/$defs/BlobPresignResponseBody"
     },
     {
       "$ref": "#/$defs/BlobPresignRequestBody"
     },
     {
-      "$ref": "#/$defs/CallMediaTokenExchangeOutcome"
+      "$ref": "#/$defs/CallMediaTokenExchangeResponseBody"
     },
     {
       "$ref": "#/$defs/CallMediaTokenExchangeRequestBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesAckOutcome"
+      "$ref": "#/$defs/DeviceMessagesAcknowledgementResponseBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesAckRequestBody"
+      "$ref": "#/$defs/DeviceMessagesAcknowledgementRequestBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesGetOutcome"
+      "$ref": "#/$defs/DeviceMessagesGetResponseBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesSendOutcome"
+      "$ref": "#/$defs/DeviceMessagesSendResponseBody"
     },
     {
       "$ref": "#/$defs/DeviceMessagesSendRequestBody"
     },
     {
-      "$ref": "#/$defs/DidOperationSubmitOutcome"
+      "$ref": "#/$defs/DidOperationSubmitResponseBody"
     },
     {
       "$ref": "#/$defs/DidOperationSubmitRequestBody"
@@ -77,7 +77,7 @@
       "$ref": "#/$defs/EventAdmissionSubmission"
     },
     {
-      "$ref": "#/$defs/EventDeliveryStatusOutcome"
+      "$ref": "#/$defs/EventDeliveryStatusResponseBody"
     },
     {
       "$ref": "#/$defs/EventDeliveryStatusRequestBody"
@@ -89,19 +89,19 @@
       "$ref": "#/$defs/EventsSubmitBatchRequestBody"
     },
     {
-      "$ref": "#/$defs/GrantList"
+      "$ref": "#/$defs/EffectiveGrantSnapshot"
     },
     {
       "$ref": "#/$defs/IdentityDocumentView"
     },
     {
-      "$ref": "#/$defs/IdentityLogListOutcome"
+      "$ref": "#/$defs/IdentityLogListResponseBody"
     },
     {
-      "$ref": "#/$defs/IdentityReceiptListOutcome"
+      "$ref": "#/$defs/IdentityReceiptListResponseBody"
     },
     {
-      "$ref": "#/$defs/IdentityResolveOutcome"
+      "$ref": "#/$defs/IdentityResolveResponseBody"
     },
     {
       "$ref": "#/$defs/IdentityResolveRequestBody"
@@ -110,13 +110,13 @@
       "$ref": "#/$defs/InitialSessionGrantIntent"
     },
     {
-      "$ref": "#/$defs/MlsGroupStateMaterialOutcome"
+      "$ref": "#/$defs/MlsGroupStateMaterialResponseBody"
     },
     {
       "$ref": "#/$defs/MlsGroupStateMaterialRequestBody"
     },
     {
-      "$ref": "#/$defs/ModerationReportOutcome"
+      "$ref": "#/$defs/ModerationReportResponseBody"
     },
     {
       "$ref": "#/$defs/OrganizationRegistrationChallenge"
@@ -128,7 +128,7 @@
       "$ref": "#/$defs/OrganizationRegistrationEnsureRequestBody"
     },
     {
-      "$ref": "#/$defs/OrganizationRegistrationOutcome"
+      "$ref": "#/$defs/OrganizationRegistrationResponseBody"
     },
     {
       "$ref": "#/$defs/OrganizationRegistrationRefreshRequestBody"
@@ -137,49 +137,49 @@
       "$ref": "#/$defs/OrganizationRegistrationRevokeRequestBody"
     },
     {
-      "$ref": "#/$defs/ProjectionMorphList"
+      "$ref": "#/$defs/MorphPage"
     },
     {
-      "$ref": "#/$defs/ProjectionSpaceList"
+      "$ref": "#/$defs/SpacePage"
     },
     {
-      "$ref": "#/$defs/ProjectionStrandList"
+      "$ref": "#/$defs/StrandPage"
     },
     {
       "$ref": "#/$defs/StrandWatchCurrentRequestBody"
     },
     {
-      "$ref": "#/$defs/StrandWatchCurrentOutcome"
+      "$ref": "#/$defs/StrandWatchCurrentResponseBody"
     },
     {
       "$ref": "#/$defs/ServiceRegistrationEnsureRequestBody"
     },
     {
-      "$ref": "#/$defs/ServiceRegistrationOutcome"
+      "$ref": "#/$defs/ServiceRegistrationResponseBody"
     },
     {
-      "$ref": "#/$defs/SessionGrantIntrospectOutcome"
+      "$ref": "#/$defs/SessionGrantIntrospectResponseBody"
     },
     {
       "$ref": "#/$defs/SessionGrantIntrospectRequestBody"
     },
     {
-      "$ref": "#/$defs/SessionGrantOutcome"
+      "$ref": "#/$defs/SessionGrantResponseBody"
     },
     {
       "$ref": "#/$defs/SessionGrantRefreshRequestBody"
     },
     {
-      "$ref": "#/$defs/SessionGrantReplayExpiredProblem"
+      "$ref": "#/$defs/SessionGrantReplayExpiredProblemExtensions"
     },
     {
-      "$ref": "#/$defs/SessionGrantReplayTerminalProblem"
+      "$ref": "#/$defs/SessionGrantReplayTerminalProblemExtensions"
     },
     {
       "$ref": "#/$defs/SessionGrantRequestBody"
     },
     {
-      "$ref": "#/$defs/SignalSubmitOutcome"
+      "$ref": "#/$defs/SignalSubmitResponseBody"
     },
     {
       "$ref": "#/$defs/SignedSessionGrantClaims"
@@ -210,7 +210,7 @@
       },
       "additionalProperties": false
     },
-    "StrandWatchCurrentOutcome": {
+    "StrandWatchCurrentResponseBody": {
       "description": "One governing durable cut shared by self and peer. Affirmative never_written requires complete accepted watch provenance, including a fully verified handoff import; a cleared null remains current with revision. Generation/head and the exact selector bind the observation, not a future write lease. Snapshot omission, generation zero and member replicas do not prove absence.",
       "oneOf": [
         {
@@ -219,7 +219,8 @@
         {
           "$ref": "#/$defs/StrandWatchCurrentPresent"
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "StrandWatchCurrentNeverWritten": {
       "type": "object",
@@ -232,20 +233,27 @@
       ],
       "properties": {
         "status": {
-          "const": "never_written"
+          "const": "never_written",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/StrandWatchCurrentNeverWritten/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/StrandWatchCurrentNeverWritten/properties/status",
+            "values": [
+              "never_written"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
         "selector": {
-          "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result/properties/selector"
+          "$ref": "./current-state.schema.json#/$defs/current_strand_watch/properties/selector"
         }
       },
       "additionalProperties": false
@@ -257,29 +265,36 @@
         "realm_id",
         "governance_generation",
         "stream_head",
-        "result"
+        "current_state"
       ],
       "properties": {
         "status": {
-          "const": "current"
+          "const": "current",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/StrandWatchCurrentPresent/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/StrandWatchCurrentPresent/properties/status",
+            "values": [
+              "current"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
-        "result": {
-          "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result"
+        "current_state": {
+          "$ref": "./current-state.schema.json#/$defs/current_strand_watch"
         }
       },
       "additionalProperties": false
     },
-    "AccountCursorRevokeOutcome": {
+    "AccountCursorRevokeResponseBody": {
       "type": "object",
       "required": [
         "revoked"
@@ -292,7 +307,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "AccountCursorRevokeRequestBody": {
       "type": "object",
@@ -316,13 +332,23 @@
             "same_device",
             "same_session"
           ],
-          "default": "this_cursor"
+          "default": "this_cursor",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody/properties/revoke_scope",
+            "owner": "service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody/properties/revoke_scope",
+            "values": [
+              "this_cursor",
+              "same_device",
+              "same_session"
+            ]
+          }
         }
       },
       "additionalProperties": false,
       "description": "Revoke an immutable local cursor issuance owned by the authenticated exact account and current device. Validate the canonical token and durable binding before writing. same_session requires the exact private issuing-session identity; it is not a same_device alias. Repetition is idempotent without extending the horizon. Expired, unknown, foreign, altered and unauthorized targets produce zero writes. See client-sync sections 12.2 and 12.2.1."
     },
-    "AccountLogoutOutcome": {
+    "AccountLogoutResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -333,32 +359,34 @@
           "type": "boolean",
           "description": "Whether a live device session was revoked."
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "AccountLogoutRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "properties": {}
     },
-    "AuthSessionLogoutOutcome": {
+    "AuthenticationSessionLogoutResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "grant_chain_terminated",
-        "auth_session_logged_out"
+        "authentication_session_logged_out"
       ],
       "properties": {
         "grant_chain_terminated": {
           "type": "boolean",
           "description": "Whether the grant rotation chain is now unable to refresh, including the already-terminated idempotent case."
         },
-        "auth_session_logged_out": {
+        "authentication_session_logged_out": {
           "type": "boolean",
           "description": "Whether the underlying Auth-side browser/auth session is now logged out, including the already-logged-out idempotent case."
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
-    "AuthSessionLogoutRequestBody": {
+    "AuthenticationSessionLogoutRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "description": "Service-to-service Account Authority to Auth Server request that logs out the Auth-side session owning a ak.session.grant rotation chain.",
@@ -384,11 +412,19 @@
           "enum": [
             "account_logout"
           ],
-          "description": "Reason for logging out the Auth-side session. v1 defines only account_logout for this S2S sub-operation."
+          "description": "Reason for logging out the Auth-side session. v1 defines only account_logout for this S2S sub-operation.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AuthenticationSessionLogoutRequestBody/properties/reason_code",
+            "owner": "service-operation-dtos.schema.json#/$defs/AuthenticationSessionLogoutRequestBody/properties/reason_code",
+            "values": [
+              "account_logout"
+            ]
+          }
         }
       }
     },
-    "AuthzCheckOutcome": {
+    "AuthorizationCheckResponseBody": {
       "type": "object",
       "description": "ak.self.authz.read.check.v1 diagnostic/preflight decision. See zh/authz/capabilities.md §18. This response is advisory; canonical Event admission remains authoritative.",
       "required": [
@@ -404,7 +440,19 @@
             "quarantine",
             "require_review"
           ],
-          "description": "`allow` / `hard_deny` are terminal decisions. `soft_deny` is an evaluated policy soft refusal. `quarantine` / `require_review` are local moderation outcomes. Transient dependency or freshness failures are reported through `freshness_state`, `reason_code`, and `retry_after_ms`, not as policy decision values.\n"
+          "description": "`allow` / `hard_deny` are terminal decisions. `soft_deny` is an evaluated policy soft refusal. `quarantine` / `require_review` are local moderation outcomes. Transient dependency or freshness failures are reported through `freshness_state`, `reason_code`, and `retry_after_ms`, not as policy decision values.\n",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/decision",
+            "owner": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/decision",
+            "values": [
+              "allow",
+              "soft_deny",
+              "hard_deny",
+              "quarantine",
+              "require_review"
+            ]
+          }
         },
         "matched_grants": {
           "type": "array",
@@ -440,7 +488,17 @@
             "stale",
             "unknown"
           ],
-          "description": "Checkpoint freshness classification for revocation-sensitive decisions; see zh/authz/capabilities.md §18.2."
+          "description": "Checkpoint freshness classification for revocation-sensitive decisions; see zh/authz/capabilities.md §18.2.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/freshness_state",
+            "owner": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/freshness_state",
+            "values": [
+              "fresh",
+              "stale",
+              "unknown"
+            ]
+          }
         },
         "last_known_checkpoint_age_ms": {
           "type": "integer",
@@ -455,7 +513,18 @@
             "unreachable",
             "unknown"
           ],
-          "description": "Coarse status of the current governance Station and committed-stream source used to diagnose stale or unknown revocation freshness."
+          "description": "Coarse status of the current governance Station and committed-stream source used to diagnose stale or unknown revocation freshness.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/authority_status",
+            "owner": "service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody/properties/authority_status",
+            "values": [
+              "fresh",
+              "lagging",
+              "unreachable",
+              "unknown"
+            ]
+          }
         },
         "cache_expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -478,9 +547,10 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "AuthzCheckRequestBody": {
+    "AuthorizationCheckRequestBody": {
       "type": "object",
       "description": "ak.self.authz.read.check.v1 advisory local authorization preflight. It is never a cross-service authorization fact and cannot replace the current governance Station's admission decision.",
       "required": [
@@ -507,7 +577,7 @@
       },
       "additionalProperties": false
     },
-    "BlobPresignOutcome": {
+    "BlobPresignResponseBody": {
       "type": "object",
       "required": [
         "url",
@@ -529,7 +599,8 @@
           "description": "Echo of the issued `purpose`."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "BlobPresignRequestBody": {
       "type": "object",
@@ -559,7 +630,17 @@
             "thumbnail",
             "download"
           ],
-          "description": "Intended rendering / download mode. Servers MAY apply purpose-specific Content-Disposition or rate limits."
+          "description": "Intended rendering / download mode. Servers MAY apply purpose-specific Content-Disposition or rate limits.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody/properties/purpose",
+            "owner": "service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody/properties/purpose",
+            "values": [
+              "media_inline",
+              "thumbnail",
+              "download"
+            ]
+          }
         }
       }
     },
@@ -569,7 +650,7 @@
       "required": [
         "kid",
         "payload",
-        "sig",
+        "signature",
         "signature_algorithm"
       ],
       "properties": {
@@ -631,16 +712,24 @@
             }
           }
         },
-        "sig": {
+        "signature": {
           "type": "string",
           "minLength": 1
         },
         "signature_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "service-operation-dtos.schema.json#/$defs/ArkretNativeMediaBackendToken/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         }
       }
     },
-    "CallMediaTokenExchangeOutcome": {
+    "CallMediaTokenExchangeResponseBody": {
       "type": "object",
       "required": [
         "realm_id",
@@ -705,7 +794,19 @@
             "janus",
             "arkret_native",
             "moq_relay"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody/properties/backend_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody/properties/backend_kind",
+            "values": [
+              "livekit",
+              "mediasoup",
+              "janus",
+              "arkret_native",
+              "moq_relay"
+            ]
+          }
         },
         "media": {
           "$ref": "./call-invitation-operations.schema.json#/$defs/media",
@@ -717,7 +818,15 @@
           "if": {
             "properties": {
               "backend_kind": {
-                "const": "arkret_native"
+                "const": "arkret_native",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody/allOf/0/if/properties/backend_kind",
+                  "owner": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody/allOf/0/if/properties/backend_kind",
+                  "values": [
+                    "arkret_native"
+                  ]
+                }
               }
             },
             "required": [
@@ -741,7 +850,8 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "CallMediaTokenExchangeRequestBody": {
       "type": "object",
@@ -830,7 +940,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesAckOutcome": {
+    "DeviceMessagesAcknowledgementResponseBody": {
       "type": "object",
       "required": [
         "pruned_count"
@@ -839,18 +949,20 @@
         "pruned_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "Number of recipient deliveries acknowledged by this token: DeviceMessage rows deleted plus Welcome rows marked delivered and retained for audit; zero is legal for a repeated or older token."
+          "description": "Number of recipient deliveries acknowledged by this token: DeviceMessage rows deleted plus Welcome rows marked delivered and retained for audit; zero is legal for a repeated or older token.",
+          "x-arkret-member-role": "count"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "DeviceMessagesAckRequestBody": {
+    "DeviceMessagesAcknowledgementRequestBody": {
       "type": "object",
       "required": [
-        "ack_token"
+        "acknowledgement_token"
       ],
       "properties": {
-        "ack_token": {
+        "acknowledgement_token": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
@@ -859,7 +971,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesGetOutcome": {
+    "DeviceMessagesGetResponseBody": {
       "type": "object",
       "required": [
         "deliveries",
@@ -873,7 +985,7 @@
             "$ref": "./account-subscribe-frame.schema.json#/$defs/recipient_delivery"
           }
         },
-        "ack_token": {
+        "acknowledgement_token": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
@@ -905,14 +1017,15 @@
           },
           "then": {
             "required": [
-              "ack_token"
+              "acknowledgement_token"
             ]
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "DeviceMessagesSendOutcome": {
+    "DeviceMessagesSendResponseBody": {
       "type": "object",
       "required": [
         "delivered",
@@ -952,7 +1065,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "DeviceMessagesSendRequestBody": {
       "type": "object",
@@ -979,7 +1093,7 @@
       },
       "additionalProperties": false
     },
-    "DidOperationSubmitOutcome": {
+    "DidOperationSubmitResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -995,7 +1109,17 @@
             "accepted",
             "duplicate",
             "pending"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponseBody/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponseBody/properties/status",
+            "values": [
+              "accepted",
+              "duplicate",
+              "pending"
+            ]
+          }
         },
         "did": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -1004,7 +1128,7 @@
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Stable registry decision time for this exact accepted or duplicate operation. A duplicate returns the original acceptance time."
         },
-        "seq": {
+        "sequence": {
           "type": "integer",
           "minimum": 0,
           "description": "New method sequence number when available."
@@ -1019,7 +1143,8 @@
             "type": "object"
           }
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "DidOperationSubmitRequestBody": {
       "type": "object",
@@ -1038,12 +1163,12 @@
           "pattern": "^[a-z0-9]+$",
           "description": "DID method discriminator without the did: prefix (e.g. web, webvh, key). It MUST exactly equal the method component of did; verifiers dispatch method-specific validation only after that equality check."
         },
-        "seq": {
+        "sequence": {
           "type": "integer",
           "minimum": 0,
           "description": "Optional method sequence number when the DID method exposes one."
         },
-        "prev_event_digest": {
+        "previous_event_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "Optional previous operation hash / key-log head, when required by the DID method."
@@ -1066,7 +1191,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "human"
+              "const": "human",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/0/properties/kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/0/properties/kind",
+                "values": [
+                  "human"
+                ]
+              }
             },
             "contact_round_evidence": {
               "$ref": "./contact-operations.schema.json#/$defs/contact_round_evidence_bundle",
@@ -1084,7 +1217,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "controller_agent"
+              "const": "controller_agent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/kind",
+                "values": [
+                  "controller_agent"
+                ]
+              }
             },
             "agent_provision_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id",
@@ -1109,7 +1250,18 @@
         "delivered",
         "cancelled_authority_lost"
       ],
-      "description": "Closed lifecycle for one frozen distinct Realm fanout target. Authority loss is terminal and a later rejoin never revives the old target."
+      "description": "Closed lifecycle for one frozen distinct Realm fanout target. Authority loss is terminal and a later rejoin never revives the old target.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetState",
+        "owner": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetState",
+        "values": [
+          "pending_route",
+          "pending_delivery",
+          "delivered",
+          "cancelled_authority_lost"
+        ]
+      }
     },
     "EventDeliveryTargetStatus": {
       "type": "object",
@@ -1148,7 +1300,7 @@
       },
       "additionalProperties": false
     },
-    "EventDeliveryStatusOutcome": {
+    "EventDeliveryStatusResponseBody": {
       "type": "object",
       "description": "Complete frozen target set for one visible Event. Rows are sorted byte-wise by unique opaque target_id. Consumers derive the pending count by counting pending_route and pending_delivery rows, and derive aggregate state as pending iff that count is non-zero.",
       "required": [
@@ -1168,7 +1320,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "ActorPrivateEventSubmitRequestBody": {
       "type": "object",
@@ -1186,7 +1339,18 @@
                 "ak.agent.action_request",
                 "ak.agent.draft.propose",
                 "ak.device.push_route"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody/properties/event/properties/kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody/properties/event/properties/kind",
+                "values": [
+                  "ak.agent.action_reject",
+                  "ak.agent.action_request",
+                  "ak.agent.draft.propose",
+                  "ak.device.push_route"
+                ]
+              }
             }
           },
           "required": [
@@ -1196,7 +1360,7 @@
       },
       "additionalProperties": false
     },
-    "ActorPrivateEventSubmitOutcome": {
+    "ActorPrivateEventSubmitResponseBody": {
       "description": "Closed outcome of ak.self.actor_private_events.command.submit.v1, discriminated by event_kind. accepted_event_id is the event_id of the accepted Event, and an exact retry returns the first stored outcome. Only ak.device.push_route carries the accepted per-route revision its next write must name as expected_server_revision. No RealmCommit exists for these writes.",
       "oneOf": [
         {
@@ -1208,7 +1372,15 @@
           ],
           "properties": {
             "event_kind": {
-              "const": "ak.device.push_route"
+              "const": "ak.device.push_route",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody/oneOf/0/properties/event_kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody/oneOf/0/properties/event_kind",
+                "values": [
+                  "ak.device.push_route"
+                ]
+              }
             },
             "accepted_event_id": {
               "$ref": "#/$defs/EventId"
@@ -1232,7 +1404,17 @@
                 "ak.agent.action_reject",
                 "ak.agent.action_request",
                 "ak.agent.draft.propose"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody/oneOf/1/properties/event_kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody/oneOf/1/properties/event_kind",
+                "values": [
+                  "ak.agent.action_reject",
+                  "ak.agent.action_request",
+                  "ak.agent.draft.propose"
+                ]
+              }
             },
             "accepted_event_id": {
               "$ref": "#/$defs/EventId"
@@ -1240,7 +1422,8 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "EventAdmissionSubmission": {
       "type": "object",
@@ -1269,7 +1452,7 @@
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
-      "description": "Legacy-named typed array retained only as the nested prepared_event_unit request in security-transaction.schema.json. It is not an ak.self.events.command.submit.v1 request: that operation accepts only authority-commit-operations.schema.json#/$defs/self_submit_request, including its closed ordinary_realm_bootstrap branch. The parent security transaction fixes the recovery unit type, slot count, order and authorization; this array alone grants no generic Event batch admission.",
+      "description": "Legacy-named typed array retained only as the nested prepared_event_unit request in security-transaction.schema.json. It is not an ak.self.events.command.submit.v1 request: that operation accepts only authority-commit-operations.schema.json#/$defs/self_submit_request_body, including its closed ordinary_realm_bootstrap branch. The parent security transaction fixes the recovery unit type, slot count, order and authorization; this array alone grants no generic Event batch admission.",
       "required": [
         "events"
       ],
@@ -1287,7 +1470,7 @@
     },
     "EffectiveCapabilityGrantRow": {
       "type": "object",
-      "description": "One active effective capability grant and the exact revision of that same capability_grant current result, read atomically by the governing Station. This revision is the only valid authoring basis for a subject-signed ak.capability.relinquish Event; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute for it.",
+      "description": "One active effective capability grant and the exact revision of that same capability_grant current state, read atomically by the governing Station. This revision is the only valid authoring basis for a subject-signed ak.capability.relinquish Event; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute for it.",
       "required": [
         "grant",
         "revision"
@@ -1297,14 +1480,14 @@
           "$ref": "./capability-grant.schema.json"
         },
         "revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         }
       },
       "additionalProperties": false
     },
-    "GrantList": {
+    "EffectiveGrantSnapshot": {
       "type": "object",
-      "description": "Atomic subject-visible snapshot of active effective grants. Each row carries its own exact current-result revision; state_digest authenticates the list as a whole and is never a per-grant CAS operand.",
+      "description": "Atomic subject-visible snapshot of active effective grants. Each row carries its own exact current-state revision; state_digest authenticates the list as a whole and is never a per-grant CAS operand.",
       "required": [
         "grants",
         "state_digest",
@@ -1326,7 +1509,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "snapshot"
     },
     "IdentityDocumentView": {
       "type": "object",
@@ -1353,7 +1537,7 @@
       },
       "additionalProperties": false
     },
-    "IdentityLogListOutcome": {
+    "IdentityLogListResponseBody": {
       "type": "object",
       "description": "Result of ak.root.identity.log.read.list.v1. Entries are returned in the DID method's own native log form: for did:webvh each entry is a verbatim did.jsonl log entry with its native versionId, entryHash chain and Data Integrity proof. Arkret defines no parallel entry envelope, sequence numbering, hash chain or proof transcript over DID logs — the method already provides all of them, and a second signed representation of the same history could disagree with the first. Methods without a native history (did:web) MUST report that rather than being wrapped in a shape that implies one.",
       "required": [
@@ -1389,9 +1573,10 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "IdentityReceiptListOutcome": {
+    "IdentityReceiptListResponseBody": {
       "type": "object",
       "description": "Result of ak.root.identity.receipts.read.list.v1. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + accepted_entry_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
       "required": [
@@ -1416,9 +1601,10 @@
           "description": "True when the returned receipt set satisfies the effective witness threshold for the requested head. The effective threshold is the strictest intersection of the method-native parameters.witness.threshold and the deployment / Realm policy minimum (identity-did.md §3.4.2), and distinctness is counted over controlling_organization_did where policy requires distinct organizations. Omitted when the registry cannot evaluate threshold policy for this query; an omitted value MUST NOT be read as true. A true value is an Arkret-layer convenience and MUST NOT replace verifying the standard did-witness.json proofs."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "IdentityResolveOutcome": {
+    "IdentityResolveResponseBody": {
       "type": "object",
       "properties": {
         "did_document": {
@@ -1427,7 +1613,7 @@
         "key_log_head": {
           "$ref": "./account-operations.schema.json#/$defs/digest"
         },
-        "seq": {
+        "sequence": {
           "type": "integer"
         },
         "method_evidence": {
@@ -1440,7 +1626,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "IdentityMethodEvidence": {
       "oneOf": [
@@ -1459,7 +1646,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "did_webvh"
+          "const": "did_webvh",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/DidWebvhIdentityMethodEvidence/properties/kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/DidWebvhIdentityMethodEvidence/properties/kind",
+            "values": [
+              "did_webvh"
+            ]
+          }
         },
         "version_id": {
           "type": "string",
@@ -1489,7 +1684,15 @@
           "items": {
             "enum": [
               "did_webvh"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody/properties/requested_evidence_kinds/items",
+              "owner": "service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody/properties/requested_evidence_kinds/items",
+              "values": [
+                "did_webvh"
+              ]
+            }
           }
         }
       },
@@ -1519,7 +1722,7 @@
       },
       "additionalProperties": false
     },
-    "MlsGroupStateMaterialOutcome": {
+    "MlsGroupStateMaterialResponseBody": {
       "type": "object",
       "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode each content-addressed Blob ref's embedded suite, hash the raw bytes under that suite, compare the digest, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree. Blob suites are independent of the fixed SHA-256 Event/RealmCommit identity suite.",
       "required": [
@@ -1529,9 +1732,9 @@
         "epoch",
         "group_state_event_id",
         "group_info_ref",
-        "group_info_bytes_b64",
+        "group_info_base64url",
         "ratchet_tree_ref",
-        "ratchet_tree_bytes_b64"
+        "ratchet_tree_base64url"
       ],
       "properties": {
         "realm_id": {
@@ -1544,7 +1747,15 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "const": 0
+          "const": "0",
+          "x-arkret-value-ownership": {
+            "class": "decimal_text",
+            "authority": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody/properties/epoch",
+            "owner": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody/properties/epoch",
+            "values": [
+              "0"
+            ]
+          }
         },
         "group_state_event_id": {
           "$ref": "#/$defs/EventId"
@@ -1554,25 +1765,28 @@
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
           "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
-        "group_info_bytes_b64": {
+        "group_info_base64url": {
           "type": "string",
           "minLength": 1,
           "maxLength": 5592406,
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         },
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
           "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
-        "ratchet_tree_bytes_b64": {
+        "ratchet_tree_base64url": {
           "type": "string",
           "minLength": 1,
           "maxLength": 5592406,
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "MlsGroupStateMaterialRequestBody": {
       "type": "object",
@@ -1597,7 +1811,15 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "const": 0
+          "const": "0",
+          "x-arkret-value-ownership": {
+            "class": "decimal_text",
+            "authority": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch",
+            "owner": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch",
+            "values": [
+              "0"
+            ]
+          }
         },
         "group_state_event_id": {
           "$ref": "#/$defs/EventId"
@@ -1609,8 +1831,7 @@
           "$ref": "#/$defs/EventId"
         },
         "target_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "group_info_ref": {
           "type": "string",
@@ -1645,7 +1866,7 @@
       },
       "additionalProperties": false
     },
-    "ModerationReportOutcome": {
+    "ModerationReportResponseBody": {
       "type": "object",
       "required": [
         "report_id"
@@ -1663,7 +1884,8 @@
           "description": "Stable core_ids selected as moderation routing destinations. MUST be omitted for an ordinary reporter and MAY be serialized only when the caller independently holds moderation/governance capability for the report's exact scope. Endpoint discovery and DID verification remain separate resolution steps."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "OrganizationControlProof": {
       "type": "object",
@@ -1680,7 +1902,16 @@
             "resolved_verification_method",
             "governance_quorum"
           ],
-          "description": "resolved_verification_method: a single signature by a verification method that is in the organization DID's control relationship at version_id. governance_quorum: a threshold of signatures from the organization's governance key set. Witness attestation is neither of these and MUST NOT be substituted for control evidence (identity-did.md §8.1)."
+          "description": "resolved_verification_method: a single signature by a verification method that is in the organization DID's control relationship at version_id. governance_quorum: a threshold of signatures from the organization's governance key set. Witness attestation is neither of these and MUST NOT be substituted for control evidence (identity-did.md §8.1).",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/OrganizationControlProof/properties/proof_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/OrganizationControlProof/properties/proof_kind",
+            "values": [
+              "resolved_verification_method",
+              "governance_quorum"
+            ]
+          }
         },
         "quorum_threshold": {
           "type": "integer",
@@ -1701,7 +1932,15 @@
           "if": {
             "properties": {
               "proof_kind": {
-                "const": "governance_quorum"
+                "const": "governance_quorum",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/OrganizationControlProof/allOf/0/if/properties/proof_kind",
+                  "owner": "service-operation-dtos.schema.json#/$defs/OrganizationControlProof/allOf/0/if/properties/proof_kind",
+                  "values": [
+                    "governance_quorum"
+                  ]
+                }
               }
             },
             "required": [
@@ -1755,7 +1994,15 @@
         },
         "purpose": {
           "const": "ak.organization_registration_control_proof.v1",
-          "description": "Fixed purpose tag, identical to the signing context of OrganizationControlProof.proofs[]. A proof produced for any other purpose MUST NOT verify here."
+          "description": "Fixed purpose tag, identical to the signing context of OrganizationControlProof.proofs[]. A proof produced for any other purpose MUST NOT verify here.",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/purpose",
+            "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge/properties/purpose",
+            "values": [
+              "ak.organization_registration_control_proof.v1"
+            ]
+          }
         },
         "nonce": {
           "type": "string",
@@ -1911,7 +2158,16 @@
                 "active",
                 "revoked"
               ],
-              "description": "The issuer's assertion at signing time. It is a floor, not a guarantee: a receiver MUST still consult the issuer's current revocation state before relying on the handle for display, because a self-asserted active is exactly what a revoked attestation would also carry."
+              "description": "The issuer's assertion at signing time. It is a floor, not a guarantee: a receiver MUST still consult the issuer's current revocation state before relying on the handle for display, because a self-asserted active is exactly what a revoked attestation would also carry.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/handle_attestation/properties/status",
+                "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody/properties/handle_attestation/properties/status",
+                "values": [
+                  "active",
+                  "revoked"
+                ]
+              }
             },
             "expires_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1920,7 +2176,7 @@
         }
       }
     },
-    "OrganizationRegistrationOutcome": {
+    "OrganizationRegistrationResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "description": "Result of every organization registration command and of the read surface. Identity, DID, generation and version are read from the signed registration_receipt. created is true exactly on a call that opened a new generation.",
@@ -1936,7 +2192,8 @@
           "type": "boolean",
           "description": "True exactly when this call opened a new generation: the first registration, a re-registration after revoke, or an ensure that changed local_admin_subject or the scope set. False for a byte-identical ensure retry that matches the consumed challenge's canonical_request_digest and stored outcome, and for every read, refresh and revoke. Reusing the challenge with a different digest is an error, not created=false."
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "OrganizationRegistrationReceipt": {
       "type": "object",
@@ -1992,7 +2249,16 @@
             "resolved_verification_method",
             "governance_quorum"
           ],
-          "description": "Mirrors OrganizationControlProof.proof_kind so a later auditor can tell which commitment control_key_digest is over without re-fetching the original request."
+          "description": "Mirrors OrganizationControlProof.proof_kind so a later auditor can tell which commitment control_key_digest is over without re-fetching the original request.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/control_proof_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/control_proof_kind",
+            "values": [
+              "resolved_verification_method",
+              "governance_quorum"
+            ]
+          }
         },
         "control_key_digest": {
           "type": "string",
@@ -2017,7 +2283,17 @@
             "stale",
             "revoked"
           ],
-          "description": "Closed lifecycle. active: control evidence is current. stale: the pinned version no longer reflects current control (controller rotation) or the evidence has aged out; low-risk reads may continue but high-risk paths MUST fail closed until a successful refresh. revoked: terminal for this generation, whether withdrawn locally, atomically superseded by a new generation, or forced by deactivation of the external DID. A signed historical receipt can retain status=active as an immutable audit artifact, but it authorizes only while its generation is the registry current generation and that registry state is active."
+          "description": "Closed lifecycle. active: control evidence is current. stale: the pinned version no longer reflects current control (controller rotation) or the evidence has aged out; low-risk reads may continue but high-risk paths MUST fail closed until a successful refresh. revoked: terminal for this generation, whether withdrawn locally, atomically superseded by a new generation, or forced by deactivation of the external DID. A signed historical receipt can retain status=active as an immutable audit artifact, but it authorizes only while its generation is the registry current generation and that registry state is active.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt/properties/status",
+            "values": [
+              "active",
+              "stale",
+              "revoked"
+            ]
+          }
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -2090,7 +2366,16 @@
             "organization_registration_superseded",
             "organization_registration_withdrawn"
           ],
-          "description": "Closed reason set. superseded: replaced by a new binding for the same organization. withdrawn: the deployment or the organization ended the relationship."
+          "description": "Closed reason set. superseded: replaced by a new binding for the same organization. withdrawn: the deployment or the organization ended the relationship.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody/properties/reason_code",
+            "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody/properties/reason_code",
+            "values": [
+              "organization_registration_superseded",
+              "organization_registration_withdrawn"
+            ]
+          }
         }
       }
     },
@@ -2101,7 +2386,17 @@
         "organization_realm_endorse",
         "organization_service_delegate"
       ],
-      "description": "Closed set of local administrative scopes a registration may delegate. organization_profile_manage covers this deployment's local organization profile and display; organization_realm_endorse permits issuing ak.realm.organization statements on the organization's behalf; organization_service_delegate permits declaring organization-to-service delegations locally. The set is closed because an open scope vocabulary would let a deployment mint authority the organization never consented to. Holding a scope is a permission to act later, not an action: registration by itself creates no Realm, membership, governance-Station authority, capability or service delegation."
+      "description": "Closed set of local administrative scopes a registration may delegate. organization_profile_manage covers this deployment's local organization profile and display; organization_realm_endorse permits issuing ak.realm.organization statements on the organization's behalf; organization_service_delegate permits declaring organization-to-service delegations locally. The set is closed because an open scope vocabulary would let a deployment mint authority the organization never consented to. Holding a scope is a permission to act later, not an action: registration by itself creates no Realm, membership, governance-Station authority, capability or service delegation.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationScope",
+        "owner": "service-operation-dtos.schema.json#/$defs/OrganizationRegistrationScope",
+        "values": [
+          "organization_profile_manage",
+          "organization_realm_endorse",
+          "organization_service_delegate"
+        ]
+      }
     },
     "ProjectionAssignedToRelation": {
       "type": "object",
@@ -2121,13 +2416,13 @@
       },
       "description": "Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
     },
-    "ProjectionMorphList": {
+    "MorphPage": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "realm_id",
         "morphs",
-        "total",
+        "total_count",
         "has_more"
       ],
       "properties": {
@@ -2137,12 +2432,13 @@
         "morphs": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ProjectionMorphRow"
+            "$ref": "#/$defs/MorphRow"
           }
         },
-        "total": {
+        "total_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "next_cursor": {
           "type": "string",
@@ -2151,9 +2447,10 @@
         "has_more": {
           "type": "boolean"
         }
-      }
+      },
+      "x-arkret-name-role": "page"
     },
-    "ProjectionMorphRow": {
+    "MorphRow": {
       "type": "object",
       "additionalProperties": false,
       "allOf": [
@@ -2214,7 +2511,17 @@
             "active",
             "archived",
             "redacted"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/state",
+            "owner": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/state",
+            "values": [
+              "active",
+              "archived",
+              "redacted"
+            ]
+          }
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
@@ -2232,13 +2539,28 @@
                 "done",
                 "cancelled",
                 "superseded"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/stage/oneOf/0",
+                "owner": "service-operation-dtos.schema.json#/$defs/MorphRow/properties/stage/oneOf/0",
+                "values": [
+                  "draft",
+                  "proposed",
+                  "planned",
+                  "in_progress",
+                  "blocked",
+                  "done",
+                  "cancelled",
+                  "superseded"
+                ]
+              }
             },
             {
               "type": "null"
             }
           ],
-          "description": "Business-progression stage from the domain current result; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
+          "description": "Business-progression stage from the domain current state; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
         },
         "stage_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp",
@@ -2260,15 +2582,16 @@
         "updated_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         }
-      }
+      },
+      "x-arkret-name-role": "row"
     },
-    "ProjectionSpaceList": {
+    "SpacePage": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "realm_id",
         "spaces",
-        "total",
+        "total_count",
         "has_more"
       ],
       "properties": {
@@ -2278,12 +2601,13 @@
         "spaces": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ProjectionSpaceRow"
+            "$ref": "#/$defs/SpaceRow"
           }
         },
-        "total": {
+        "total_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "next_cursor": {
           "type": "string",
@@ -2292,9 +2616,10 @@
         "has_more": {
           "type": "boolean"
         }
-      }
+      },
+      "x-arkret-name-role": "page"
     },
-    "ProjectionSpaceRow": {
+    "SpaceRow": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -2339,7 +2664,17 @@
             "active",
             "archived",
             "tombstoned"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SpaceRow/properties/state",
+            "owner": "service-operation-dtos.schema.json#/$defs/SpaceRow/properties/state",
+            "values": [
+              "active",
+              "archived",
+              "tombstoned"
+            ]
+          }
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
@@ -2382,15 +2717,16 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "row"
     },
-    "ProjectionStrandList": {
+    "StrandPage": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "realm_id",
         "strands",
-        "total",
+        "total_count",
         "has_more"
       ],
       "properties": {
@@ -2400,12 +2736,13 @@
         "strands": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ProjectionStrandRow"
+            "$ref": "#/$defs/StrandRow"
           }
         },
-        "total": {
+        "total_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "next_cursor": {
           "type": "string",
@@ -2414,9 +2751,10 @@
         "has_more": {
           "type": "boolean"
         }
-      }
+      },
+      "x-arkret-name-role": "page"
     },
-    "ProjectionStrandRow": {
+    "StrandRow": {
       "type": "object",
       "additionalProperties": false,
       "allOf": [
@@ -2464,7 +2802,17 @@
             "active",
             "archived",
             "redacted"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/state",
+            "owner": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/state",
+            "values": [
+              "active",
+              "archived",
+              "redacted"
+            ]
+          }
         },
         "state_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
@@ -2482,13 +2830,28 @@
                 "done",
                 "cancelled",
                 "superseded"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/stage/oneOf/0",
+                "owner": "service-operation-dtos.schema.json#/$defs/StrandRow/properties/stage/oneOf/0",
+                "values": [
+                  "draft",
+                  "proposed",
+                  "planned",
+                  "in_progress",
+                  "blocked",
+                  "done",
+                  "cancelled",
+                  "superseded"
+                ]
+              }
             },
             {
               "type": "null"
             }
           ],
-          "description": "Business-progression stage from the domain current result; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
+          "description": "Business-progression stage from the domain current state; null or absent when the object has never been written by ak.<kind>.stage.set. Orthogonal to the physical lifecycle in state (common-fields.md 5.3)."
         },
         "stage_changed_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp",
@@ -2587,7 +2950,8 @@
           "type": "boolean",
           "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ak.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-token or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
         }
-      }
+      },
+      "x-arkret-name-role": "row"
     },
     "ServiceDidDocument": {
       "type": "object",
@@ -2614,7 +2978,15 @@
             "format": "uri"
           },
           "contains": {
-            "const": "https://www.w3.org/ns/did/v1"
+            "const": "https://www.w3.org/ns/did/v1",
+            "x-arkret-value-ownership": {
+              "class": "uri",
+              "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidDocument/properties/@context/contains",
+              "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidDocument/properties/@context/contains",
+              "values": [
+                "https://www.w3.org/ns/did/v1"
+              ]
+            }
           }
         },
         "id": {
@@ -2680,14 +3052,31 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "type": {
-          "const": "ArkretService"
+          "const": "ArkretService",
+          "x-arkret-value-ownership": {
+            "class": "selector_grammar",
+            "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
+            "values": [
+              "ArkretService"
+            ]
+          }
         },
         "serviceKind": {
           "type": "string",
           "enum": [
             "station",
             "identity_registry"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/serviceKind",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/serviceKind",
+            "values": [
+              "station",
+              "identity_registry"
+            ]
+          }
         },
         "serviceEndpoint": {
           "type": "string",
@@ -2716,7 +3105,15 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "type": {
-          "const": "Multikey"
+          "const": "Multikey",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.w3.org/TR/controller-document/#multikey",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidVerificationMethod/properties/type",
+            "values": [
+              "Multikey"
+            ]
+          }
         },
         "controller": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -2780,7 +3177,16 @@
           "enum": [
             "station",
             "identity_registry"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/ServiceRegistrationKey/properties/service_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceRegistrationKey/properties/service_kind",
+            "values": [
+              "station",
+              "identity_registry"
+            ]
+          }
         },
         "public_base_url": {
           "type": "string",
@@ -2790,7 +3196,7 @@
         }
       }
     },
-    "ServiceRegistrationOutcome": {
+    "ServiceRegistrationResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -2808,7 +3214,8 @@
         "created": {
           "type": "boolean"
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
@@ -2883,17 +3290,41 @@
       ],
       "properties": {
         "type": {
-          "const": "DataIntegrityProof"
+          "const": "DataIntegrityProof",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.w3.org/TR/vc-data-integrity/#proofs",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceWebvhDataIntegrityProof/properties/type",
+            "values": [
+              "DataIntegrityProof"
+            ]
+          }
         },
         "cryptosuite": {
-          "const": "eddsa-jcs-2022"
+          "const": "eddsa-jcs-2022",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.w3.org/TR/vc-di-eddsa/#eddsa-jcs-2022",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceWebvhDataIntegrityProof/properties/cryptosuite",
+            "values": [
+              "eddsa-jcs-2022"
+            ]
+          }
         },
         "verificationMethod": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "proofPurpose": {
-          "const": "assertionMethod"
+          "const": "assertionMethod",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.w3.org/TR/did-core/#assertion",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceWebvhDataIntegrityProof/properties/proofPurpose",
+            "values": [
+              "assertionMethod"
+            ]
+          }
         },
         "proofValue": {
           "type": "string",
@@ -2960,7 +3391,15 @@
           "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
         },
         "method": {
-          "const": "did:webvh:1.0"
+          "const": "did:webvh:1.0",
+          "x-arkret-value-ownership": {
+            "class": "uri",
+            "authority": "service-operation-dtos.schema.json#/$defs/ServiceWebvhInceptionParameters/properties/method",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceWebvhInceptionParameters/properties/method",
+            "values": [
+              "did:webvh:1.0"
+            ]
+          }
         },
         "updateKeys": {
           "type": "array",
@@ -2992,7 +3431,16 @@
         "standard",
         "recovery_session"
       ],
-      "description": "Closed credential class. recovery_session is a <=15 minute, non-refreshable, DPoP-bound candidate-device grant restricted to the exact recovery operation set; recovery completion issues a distinct standard grant."
+      "description": "Closed credential class. recovery_session is a <=15 minute, non-refreshable, DPoP-bound candidate-device grant restricted to the exact recovery operation set; recovery completion issues a distinct standard grant.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantCredentialClass",
+        "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantCredentialClass",
+        "values": [
+          "standard",
+          "recovery_session"
+        ]
+      }
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
@@ -3208,7 +3656,15 @@
           "if": {
             "properties": {
               "credential_class": {
-                "const": "recovery_session"
+                "const": "recovery_session",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/if/properties/credential_class",
+                  "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/if/properties/credential_class",
+                  "values": [
+                    "recovery_session"
+                  ]
+                }
               }
             },
             "required": [
@@ -3220,7 +3676,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "recovery_candidate_device"
+                    "const": "recovery_candidate_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/then/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/then/properties/holder_binding/properties/kind",
+                      "values": [
+                        "recovery_candidate_device"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3237,7 +3701,16 @@
                     "enum": [
                       "human_device",
                       "agent_runtime"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/else/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/0/else/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device",
+                        "agent_runtime"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3253,7 +3726,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "human_device"
+                    "const": "human_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/1/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/1/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3285,7 +3766,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "recovery_candidate_device"
+                    "const": "recovery_candidate_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/2/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/2/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "recovery_candidate_device"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3309,7 +3798,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "agent_runtime"
+                    "const": "agent_runtime",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/3/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/allOf/3/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "agent_runtime"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3350,7 +3847,7 @@
         }
       ]
     },
-    "SessionGrantIntrospectOutcome": {
+    "SessionGrantIntrospectResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -3377,11 +3874,29 @@
             "proof_required",
             "invalid_proof",
             "not_found"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectResponseBody/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectResponseBody/properties/status",
+            "values": [
+              "active",
+              "revoked",
+              "superseded",
+              "expired",
+              "locked",
+              "suspended",
+              "audience_mismatch",
+              "proof_required",
+              "invalid_proof",
+              "not_found"
+            ]
+          }
         },
         "proof_required": {
           "type": "boolean",
-          "description": "Whether an additional S2S holder proof is required to confirm the grant active for this introspection request. Default Station grant+DPoP validation uses the request DPoP instead of this field."
+          "description": "Whether an additional S2S holder proof is required to confirm the grant active for this introspection request. Default Station grant+DPoP validation uses the request DPoP instead of this field.",
+          "x-arkret-member-role": "obligation"
         },
         "one_time_use_consumed": {
           "type": "boolean",
@@ -3396,7 +3911,15 @@
           "if": {
             "properties": {
               "active": {
-                "const": true
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectResponseBody/allOf/0/if/properties/active",
+                  "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectResponseBody/allOf/0/if/properties/active",
+                  "values": [
+                    true
+                  ]
+                }
               }
             },
             "required": [
@@ -3409,7 +3932,8 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "SessionGrantIntrospectRequestBody": {
       "type": "object",
@@ -3460,7 +3984,7 @@
         }
       }
     },
-    "SessionGrantOutcome": {
+    "SessionGrantResponseBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -3511,7 +4035,8 @@
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
           "description": "Present only on refresh. The predecessor grant atomically superseded by this successor."
         }
-      }
+      },
+      "x-arkret-name-role": "response_body"
     },
     "AcceptedDevicePossessionProof": {
       "type": "object",
@@ -3532,13 +4057,30 @@
       ],
       "properties": {
         "context": {
-          "const": "ak.session_grant_accepted_device_possession_proof.v1"
+          "const": "ak.session_grant_accepted_device_possession_proof.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/properties/context",
+            "owner": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/properties/context",
+            "values": [
+              "ak.session_grant_accepted_device_possession_proof.v1"
+            ]
+          }
         },
         "purpose": {
           "enum": [
             "session_grant_issue",
             "session_grant_refresh"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/properties/purpose",
+            "owner": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/properties/purpose",
+            "values": [
+              "session_grant_issue",
+              "session_grant_refresh"
+            ]
+          }
         },
         "request_id": {
           "type": "string",
@@ -3600,7 +4142,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "session_grant_issue"
+                "const": "session_grant_issue",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/allOf/0/if/properties/purpose",
+                  "owner": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/allOf/0/if/properties/purpose",
+                  "values": [
+                    "session_grant_issue"
+                  ]
+                }
               }
             },
             "required": [
@@ -3661,7 +4211,15 @@
       ],
       "properties": {
         "context": {
-          "const": "ak.agent_session_refresh_proof.v1"
+          "const": "ak.agent_session_refresh_proof.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof/properties/context",
+            "owner": "service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof/properties/context",
+            "values": [
+              "ak.agent_session_refresh_proof.v1"
+            ]
+          }
         },
         "request_canonical_digest": {
           "type": "string",
@@ -3687,7 +4245,7 @@
         }
       }
     },
-    "HumanSessionGrantRefreshRequest": {
+    "HumanSessionGrantRefreshRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -3711,11 +4269,12 @@
         "accepted_device_possession_proof": {
           "$ref": "#/$defs/AcceptedDevicePossessionProof"
         }
-      }
+      },
+      "x-arkret-name-role": "request_body"
     },
-    "AgentSessionGrantRefreshRequest": {
+    "AgentSessionGrantRefreshRequestBody": {
       "type": "object",
-      "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid. Rotation preserves the predecessor action/resource/constraint ceiling and accepts no requested_scope or agent_scope_request. Current authority is revalidated; scope additions or narrower recovery use a fresh AgentSessionGrantRequest with a new signed intent.",
+      "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid. Rotation preserves the predecessor action/resource/constraint ceiling and accepts no requested_scope or agent_scope_request. Current authority is revalidated; scope additions or narrower recovery use a fresh AgentSessionGrantRequestBody with a new signed intent.",
       "additionalProperties": false,
       "required": [
         "grant_jwt",
@@ -3742,20 +4301,21 @@
         "agent_session_refresh_proof": {
           "$ref": "#/$defs/AgentSessionRefreshProof"
         }
-      }
+      },
+      "x-arkret-name-role": "request_body"
     },
     "SessionGrantRefreshRequestBody": {
       "description": "Closed human-versus-Agent SessionGrant rotation union. Neither branch accepts a client-generated challenge or a generic proof_kind enum.",
       "oneOf": [
         {
-          "$ref": "#/$defs/HumanSessionGrantRefreshRequest"
+          "$ref": "#/$defs/HumanSessionGrantRefreshRequestBody"
         },
         {
-          "$ref": "#/$defs/AgentSessionGrantRefreshRequest"
+          "$ref": "#/$defs/AgentSessionGrantRefreshRequestBody"
         }
       ]
     },
-    "HumanSessionGrantRequest": {
+    "HumanSessionGrantRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "description": "Returning-human issuance from an already bound account. Authorization is the DPoP-bound account_handoff_grant plus matching per-request DPoP; the body deliberately carries neither a second holder signature nor requested_scope.",
@@ -3783,9 +4343,10 @@
         "accepted_device_possession_proof": {
           "$ref": "#/$defs/AcceptedDevicePossessionProof"
         }
-      }
+      },
+      "x-arkret-name-role": "request_body"
     },
-    "RecoverySessionGrantRequest": {
+    "RecoverySessionGrantRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "description": "Fresh-device existing-principal recovery issuance. Authorization is the Bound AccountHandoff plus matching per-request DPoP. The Account Authority binds this request to its account/principal mapping and does not consume the handoff on success.",
@@ -3798,7 +4359,15 @@
       ],
       "properties": {
         "credential_class": {
-          "const": "recovery_session"
+          "const": "recovery_session",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequestBody/properties/credential_class",
+            "owner": "service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequestBody/properties/credential_class",
+            "values": [
+              "recovery_session"
+            ]
+          }
         },
         "request_id": {
           "type": "string",
@@ -3813,9 +4382,10 @@
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
-      }
+      },
+      "x-arkret-name-role": "request_body"
     },
-    "AgentSessionGrantRequest": {
+    "AgentSessionGrantRequestBody": {
       "type": "object",
       "description": "Agent runtime session issuance is bound to principal_id (agent_id), proof.verification_method and the current accepted agent_key_authorization_ref. This closed branch MUST NOT carry a device_id or derive one from the Agent key.",
       "additionalProperties": false,
@@ -3906,7 +4476,15 @@
           ],
           "properties": {
             "proof_kind": {
-              "const": "agent_key_proof"
+              "const": "agent_key_proof",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequestBody/properties/proof/properties/proof_kind",
+                "owner": "service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequestBody/properties/proof/properties/proof_kind",
+                "values": [
+                  "agent_key_proof"
+                ]
+              }
             },
             "challenge": {
               "type": "string",
@@ -3941,23 +4519,24 @@
           },
           "description": "Closed initial Agent proof. Require 0 < expires_at-issued_at <= 300 seconds, issued_at <= now+30 seconds, and now < expires_at for first validation. No additional nonce. Exact completed issuer-ledger replay reuses durable one-shot verification, with fresh matching-holder HTTP DPoP."
         }
-      }
+      },
+      "x-arkret-name-role": "request_body"
     },
     "SessionGrantRequestBody": {
       "description": "Closed returning-human, Agent runtime or fresh-device recovery issuance union. OIDC authorization codes are consumed only by account_handoff_request_body and never by this operation.",
       "oneOf": [
         {
-          "$ref": "#/$defs/HumanSessionGrantRequest"
+          "$ref": "#/$defs/HumanSessionGrantRequestBody"
         },
         {
-          "$ref": "#/$defs/AgentSessionGrantRequest"
+          "$ref": "#/$defs/AgentSessionGrantRequestBody"
         },
         {
-          "$ref": "#/$defs/RecoverySessionGrantRequest"
+          "$ref": "#/$defs/RecoverySessionGrantRequestBody"
         }
       ]
     },
-    "SignalSubmitOutcome": {
+    "SignalSubmitResponseBody": {
       "type": "object",
       "description": "Result of transient Signal admission. accepted=true means the service placed the encrypted envelope on the short-lived rail; it creates no Event, RealmCommit, authority-stream position or durable delivery receipt.",
       "required": [
@@ -3980,13 +4559,15 @@
         "dispatched_recipient_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "Optional implementation hint for fanout recipients queued locally."
+          "description": "Optional implementation hint for fanout recipients queued locally.",
+          "x-arkret-member-role": "count"
         },
         "server_received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "DeviceMessageDeliveredRow": {
       "type": "object",
@@ -4000,7 +4581,15 @@
         },
         "status": {
           "const": "delivered",
-          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownRow. It is a positional discriminator, not a success-only outcome constant."
+          "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownRow. It is a positional discriminator, not a success-only outcome constant.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredRow/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageDeliveredRow/properties/status",
+            "values": [
+              "delivered"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -4017,7 +4606,15 @@
         },
         "status": {
           "const": "unknown",
-          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredRow. It is a positional discriminator, not a success-only outcome constant."
+          "description": "Retained on purpose: DeviceMessagesSendResponseBody dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredRow. It is a positional discriminator, not a success-only outcome constant.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownRow/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/DeviceMessageUnknownRow/properties/status",
+            "values": [
+              "unknown"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -4043,7 +4640,15 @@
       "properties": {
         "kind": {
           "type": "string",
-          "const": "ak.session.grant"
+          "const": "ak.session.grant",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/kind",
+            "values": [
+              "ak.session.grant"
+            ]
+          }
         },
         "jti": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
@@ -4104,7 +4709,16 @@
           "enum": [
             "account_handoff",
             "agent_key_proof"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/proof_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/proof_kind",
+            "values": [
+              "account_handoff",
+              "agent_key_proof"
+            ]
+          }
         },
         "scope_details": {
           "type": "object"
@@ -4116,7 +4730,15 @@
           "if": {
             "properties": {
               "credential_class": {
-                "const": "recovery_session"
+                "const": "recovery_session",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/if/properties/credential_class",
+                  "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/if/properties/credential_class",
+                  "values": [
+                    "recovery_session"
+                  ]
+                }
               }
             },
             "required": [
@@ -4128,7 +4750,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "recovery_candidate_device"
+                    "const": "recovery_candidate_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding/properties/kind",
+                      "values": [
+                        "recovery_candidate_device"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -4145,7 +4775,16 @@
                     "enum": [
                       "human_device",
                       "agent_runtime"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device",
+                        "agent_runtime"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -4161,7 +4800,15 @@
               "holder_binding": {
                 "properties": {
                   "kind": {
-                    "const": "human_device"
+                    "const": "human_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/1/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/1/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -4188,7 +4835,7 @@
         }
       ]
     },
-    "SessionGrantReplayExpiredProblem": {
+    "SessionGrantReplayExpiredProblemExtensions": {
       "type": "object",
       "description": "Closed RFC 9457 Problem Details extension members for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
       "required": [
@@ -4202,12 +4849,21 @@
         "state": {
           "type": "string",
           "const": "expired",
-          "description": "Retained on purpose: this is an RFC 9457 Problem Details extension member on the failure path and names the issuer-ledger state that caused the rejection, so the problem document stays self-describing next to SessionGrantReplayTerminalProblem. It is not a success-only outcome constant."
+          "description": "Retained on purpose: this is an RFC 9457 Problem Details extension member on the failure path and names the issuer-ledger state that caused the rejection, so the problem document stays self-describing next to SessionGrantReplayTerminalProblemExtensions. It is not a success-only outcome constant.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantReplayExpiredProblemExtensions/properties/state",
+            "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantReplayExpiredProblemExtensions/properties/state",
+            "values": [
+              "expired"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "problem_extensions"
     },
-    "SessionGrantReplayTerminalProblem": {
+    "SessionGrantReplayTerminalProblemExtensions": {
       "type": "object",
       "description": "Closed RFC 9457 Problem Details extension members for session_grant_replay_terminal. The state is an exact durable issuer-ledger terminal state and no replacement grant is created under the same request identity.",
       "required": [
@@ -4223,10 +4879,20 @@
           "enum": [
             "revoked",
             "superseded"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantReplayTerminalProblemExtensions/properties/state",
+            "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantReplayTerminalProblemExtensions/properties/state",
+            "values": [
+              "revoked",
+              "superseded"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "problem_extensions"
     },
     "EventDisclosure": {
       "type": "object",
@@ -4236,7 +4902,15 @@
       ],
       "properties": {
         "status": {
-          "const": "withheld"
+          "const": "withheld",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/EventDisclosure/properties/status",
+            "owner": "service-operation-dtos.schema.json#/$defs/EventDisclosure/properties/status",
+            "values": [
+              "withheld"
+            ]
+          }
         }
       },
       "additionalProperties": false

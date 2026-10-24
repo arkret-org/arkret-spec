@@ -8,13 +8,13 @@
       "$ref": "#/$defs/applet_install_preview_request_body"
     },
     {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/install_preview_outcome"
+      "$ref": "./applet-install-authoring.schema.json#/$defs/install_preview_response_body"
     },
     {
       "$ref": "./applet-install-authoring.schema.json#/$defs/author_request_body"
     },
     {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/author_outcome"
+      "$ref": "./applet-install-authoring.schema.json#/$defs/author_response_body"
     },
     {
       "$ref": "../schemas/applet-install-plan.schema.json"
@@ -23,19 +23,19 @@
       "$ref": "#/$defs/applet_install_request_body"
     },
     {
-      "$ref": "#/$defs/applet_install_outcome"
+      "$ref": "#/$defs/applet_install_response_body"
     },
     {
       "$ref": "#/$defs/applet_revoke_preview_request_body"
     },
     {
-      "$ref": "#/$defs/applet_revoke_preview_outcome"
+      "$ref": "#/$defs/applet_revoke_preview_response_body"
     },
     {
       "$ref": "#/$defs/applet_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/applet_revoke_outcome"
+      "$ref": "#/$defs/applet_revoke_response_body"
     }
   ],
   "$defs": {
@@ -115,7 +115,7 @@
       },
       "additionalProperties": false
     },
-    "applet_install_outcome": {
+    "applet_install_response_body": {
       "type": "object",
       "required": [
         "install_id",
@@ -181,7 +181,16 @@
           "enum": [
             "installed",
             "partially_installed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_install_response_body/properties/effective_status",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_install_response_body/properties/effective_status",
+            "values": [
+              "installed",
+              "partially_installed"
+            ]
+          }
         },
         "rejections": {
           "type": "array",
@@ -190,7 +199,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "applet_revoke_request_body": {
       "type": "object",
@@ -223,7 +233,17 @@
             "revoke_all",
             "revoke_runtime_only",
             "revoke_widget_only"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/revoke_mode",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/revoke_mode",
+            "values": [
+              "revoke_all",
+              "revoke_runtime_only",
+              "revoke_widget_only"
+            ]
+          }
         },
         "capability_revoke_events": {
           "type": "array",
@@ -249,7 +269,15 @@
                         ],
                         "properties": {
                           "kind": {
-                            "const": "ak.capability.revoke"
+                            "const": "ak.capability.revoke",
+                            "x-arkret-value-ownership": {
+                              "class": "namespaced_symbol",
+                              "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/capability_revoke_events/items/allOf/1/properties/event/allOf/1/properties/kind",
+                              "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/capability_revoke_events/items/allOf/1/properties/event/allOf/1/properties/kind",
+                              "values": [
+                                "ak.capability.revoke"
+                              ]
+                            }
                           }
                         }
                       }
@@ -285,7 +313,15 @@
                         ],
                         "properties": {
                           "kind": {
-                            "const": "ak.member.state"
+                            "const": "ak.member.state",
+                            "x-arkret-value-ownership": {
+                              "class": "namespaced_symbol",
+                              "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/membership_state_events/items/allOf/1/properties/event/allOf/1/properties/kind",
+                              "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/membership_state_events/items/allOf/1/properties/event/allOf/1/properties/kind",
+                              "values": [
+                                "ak.member.state"
+                              ]
+                            }
                           }
                         }
                       }
@@ -325,7 +361,17 @@
             "revoke_all",
             "revoke_runtime_only",
             "revoke_widget_only"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body/properties/revoke_mode",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body/properties/revoke_mode",
+            "values": [
+              "revoke_all",
+              "revoke_runtime_only",
+              "revoke_widget_only"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -366,7 +412,17 @@
             "revoke_all",
             "revoke_runtime_only",
             "revoke_widget_only"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_plan/properties/revoke_mode",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_plan/properties/revoke_mode",
+            "values": [
+              "revoke_all",
+              "revoke_runtime_only",
+              "revoke_widget_only"
+            ]
+          }
         },
         "capability_revocations": {
           "type": "array",
@@ -406,14 +462,22 @@
       ],
       "properties": {
         "event_kind": {
-          "const": "ak.capability.revoke"
+          "const": "ak.capability.revoke",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_capability_revoke_intent/properties/event_kind",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_capability_revoke_intent/properties/event_kind",
+            "values": [
+              "ak.capability.revoke"
+            ]
+          }
         },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
         },
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision",
-          "description": "Exact revision of the same active capability_grant current result returned by the governing Station in this preview plan. It is covered by the canonical plan digest and MUST be copied byte-for-byte into the caller-signed ak.capability.revoke payload."
+          "$ref": "./current-state.schema.json#/$defs/revision",
+          "description": "Exact revision of the same active capability_grant current state returned by the governing Station in this preview plan. It is covered by the canonical plan digest and MUST be copied byte-for-byte into the caller-signed ak.capability.revoke payload."
         },
         "registration_epoch": {
           "$ref": "#/$defs/digest"
@@ -435,13 +499,29 @@
       ],
       "properties": {
         "event_kind": {
-          "const": "ak.member.state"
+          "const": "ak.member.state",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_membership_remove_intent/properties/event_kind",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_membership_remove_intent/properties/event_kind",
+            "values": [
+              "ak.member.state"
+            ]
+          }
         },
         "member_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {
-          "const": "leave"
+          "const": "leave",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_membership_remove_intent/properties/membership",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_membership_remove_intent/properties/membership",
+            "values": [
+              "leave"
+            ]
+          }
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -450,7 +530,7 @@
       },
       "additionalProperties": false
     },
-    "applet_revoke_preview_outcome": {
+    "applet_revoke_preview_response_body": {
       "type": "object",
       "required": [
         "revoke_plan"
@@ -461,7 +541,8 @@
           "description": "Canonical exact revoke plan. The preview carries no revoke_plan_digest: the caller computes SHA-256 over RFC 8785 JCS of this plan and submits that value as applet_revoke_request_body.revoke_plan_digest."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "applet_revoke_step": {
       "description": "Closed state-dependent saga step. Event steps use the immutable submitted EventId before acceptance and the exact CommittedEventRef only after acceptance or duplicate resolution. Local effects always use a non-Event typed resource reference.",
@@ -496,7 +577,16 @@
           "enum": [
             "pending",
             "rejected"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_submitted_event_step/properties/status",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_submitted_event_step/properties/status",
+            "values": [
+              "pending",
+              "rejected"
+            ]
+          }
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -524,7 +614,16 @@
           "enum": [
             "accepted",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_committed_event_step/properties/status",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_committed_event_step/properties/status",
+            "values": [
+              "accepted",
+              "duplicate"
+            ]
+          }
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -546,7 +645,16 @@
           "enum": [
             "widget_token_invalidation",
             "local_applet_fence"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_local_effect_step/properties/effect_kind",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_local_effect_step/properties/effect_kind",
+            "values": [
+              "widget_token_invalidation",
+              "local_applet_fence"
+            ]
+          }
         },
         "effect_ref": {
           "$ref": "#/$defs/applet_revoke_local_effect_ref"
@@ -558,7 +666,18 @@
             "accepted",
             "duplicate",
             "rejected"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_local_effect_step/properties/status",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_local_effect_step/properties/status",
+            "values": [
+              "pending",
+              "accepted",
+              "duplicate",
+              "rejected"
+            ]
+          }
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
@@ -572,9 +691,18 @@
       "enum": [
         "capability_revoke_event",
         "membership_state_event"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_event_effect_kind",
+        "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_event_effect_kind",
+        "values": [
+          "capability_revoke_event",
+          "membership_state_event"
+        ]
+      }
     },
-    "applet_revoke_outcome": {
+    "applet_revoke_response_body": {
       "type": "object",
       "required": [
         "operation_id",
@@ -596,7 +724,17 @@
             "complete",
             "in_progress",
             "partially_completed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-operations.schema.json#/$defs/applet_revoke_response_body/properties/status",
+            "owner": "applet-install-operations.schema.json#/$defs/applet_revoke_response_body/properties/status",
+            "values": [
+              "complete",
+              "in_progress",
+              "partially_completed"
+            ]
+          }
         },
         "steps": {
           "type": "array",
@@ -620,7 +758,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "applet_revoke_effect_ref": {
       "description": "CommittedEventRef for a durable revoke Event, or a local typed resource reference for service-local widget token or fence effects. Bare EventId and RealmCommitId strings are not valid effect references.",

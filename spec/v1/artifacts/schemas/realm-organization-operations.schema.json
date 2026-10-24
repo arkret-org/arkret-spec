@@ -31,14 +31,34 @@
         "governance",
         "sponsor",
         "directory_certifier"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-organization-operations.schema.json#/$defs/relationship",
+        "owner": "realm-organization-operations.schema.json#/$defs/relationship",
+        "values": [
+          "owner",
+          "governance",
+          "sponsor",
+          "directory_certifier"
+        ]
+      }
     },
     "status": {
       "type": "string",
       "enum": [
         "active",
         "revoked"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-organization-operations.schema.json#/$defs/status",
+        "owner": "realm-organization-operations.schema.json#/$defs/status",
+        "values": [
+          "active",
+          "revoked"
+        ]
+      }
     },
     "control_scope": {
       "type": "string",
@@ -50,7 +70,21 @@
         "retention_policy",
         "directory_listing",
         "plaintext_visible_service"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-organization-operations.schema.json#/$defs/control_scope",
+        "owner": "realm-organization-operations.schema.json#/$defs/control_scope",
+        "values": [
+          "official_badge",
+          "realm_admin",
+          "realm_authority",
+          "moderation_policy",
+          "retention_policy",
+          "directory_listing",
+          "plaintext_visible_service"
+        ]
+      }
     },
     "issuer_role": {
       "type": "string",
@@ -59,7 +93,18 @@
         "governance_service",
         "account_authority",
         "threshold_quorum"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-organization-operations.schema.json#/$defs/issuer_role",
+        "owner": "realm-organization-operations.schema.json#/$defs/issuer_role",
+        "values": [
+          "organization",
+          "governance_service",
+          "account_authority",
+          "threshold_quorum"
+        ]
+      }
     },
     "lifecycle_phase": {
       "type": "string",
@@ -67,7 +112,16 @@
         "verified_active",
         "revoked_or_expired"
       ],
-      "description": "Reducer-derived lifecycle phase of the projected statement. verified_active = latest accepted statement for (organization_id, relationship) is status=active and within its validity window. revoked_or_expired = the relationship has been revoked or is outside its not_before/expires_at window. Declared-only organization hints with no statement are carried in declared_organization_hint_ids, not as rows."
+      "description": "Reducer-derived lifecycle phase of the projected statement. verified_active = latest accepted statement for (organization_id, relationship) is status=active and within its validity window. revoked_or_expired = the relationship has been revoked or is outside its not_before/expires_at window. Declared-only organization hints with no statement are carried in declared_organization_hint_ids, not as rows.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-organization-operations.schema.json#/$defs/lifecycle_phase",
+        "owner": "realm-organization-operations.schema.json#/$defs/lifecycle_phase",
+        "values": [
+          "verified_active",
+          "revoked_or_expired"
+        ]
+      }
     },
     "realm_organization_relationship_row": {
       "type": "object",

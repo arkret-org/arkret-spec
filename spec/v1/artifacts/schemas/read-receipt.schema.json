@@ -13,13 +13,19 @@
   ],
   "properties": {
     "kind": {
-      "const": "ak.receipt.read"
+      "const": "ak.receipt.read",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "read-receipt.schema.json#/properties/kind",
+        "owner": "read-receipt.schema.json#/properties/kind",
+        "values": [
+          "ak.receipt.read"
+        ]
+      }
     },
     "payload_sequence": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Arbitrary forward gaps are accepted; a repeated or lower value is stale."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Arbitrary forward gaps are accepted; a repeated or lower value is stale.",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -51,7 +57,20 @@
             "message",
             "morph"
           ],
-          "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports circle/space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object."
+          "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports circle/space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "read-receipt.schema.json#/properties/read_scope/properties/kind",
+            "owner": "read-receipt.schema.json#/properties/read_scope/properties/kind",
+            "values": [
+              "realm",
+              "strand",
+              "thread",
+              "view",
+              "message",
+              "morph"
+            ]
+          }
         },
         "object_ref": {
           "type": "string",
@@ -68,7 +87,15 @@
           "enum": [
             "all"
           ],
-          "description": "Only valid when kind='strand'. Use track_scope='all' for an entire Strand regardless of track."
+          "description": "Only valid when kind='strand'. Use track_scope='all' for an entire Strand regardless of track.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "read-receipt.schema.json#/properties/read_scope/properties/track_scope",
+            "owner": "read-receipt.schema.json#/properties/read_scope/properties/track_scope",
+            "values": [
+              "all"
+            ]
+          }
         }
       },
       "allOf": [
@@ -76,7 +103,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "realm"
+                "const": "realm",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/0/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/0/if/properties/kind",
+                  "values": [
+                    "realm"
+                  ]
+                }
               }
             },
             "required": [
@@ -114,7 +149,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "strand"
+                "const": "strand",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/1/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/1/if/properties/kind",
+                  "values": [
+                    "strand"
+                  ]
+                }
               }
             },
             "required": [
@@ -144,7 +187,15 @@
                 ],
                 "properties": {
                   "track_scope": {
-                    "const": "all"
+                    "const": "all",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "read-receipt.schema.json#/properties/read_scope/allOf/1/then/oneOf/1/properties/track_scope",
+                      "owner": "read-receipt.schema.json#/properties/read_scope/allOf/1/then/oneOf/1/properties/track_scope",
+                      "values": [
+                        "all"
+                      ]
+                    }
                   }
                 },
                 "not": {
@@ -176,7 +227,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "thread"
+                "const": "thread",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/2/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/2/if/properties/kind",
+                  "values": [
+                    "thread"
+                  ]
+                }
               }
             },
             "required": [
@@ -195,7 +254,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "message"
+                "const": "message",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/3/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/3/if/properties/kind",
+                  "values": [
+                    "message"
+                  ]
+                }
               }
             },
             "required": [
@@ -214,7 +281,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "morph"
+                "const": "morph",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/4/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/4/if/properties/kind",
+                  "values": [
+                    "morph"
+                  ]
+                }
               }
             },
             "required": [
@@ -233,7 +308,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "view"
+                "const": "view",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "read-receipt.schema.json#/properties/read_scope/allOf/5/if/properties/kind",
+                  "owner": "read-receipt.schema.json#/properties/read_scope/allOf/5/if/properties/kind",
+                  "values": [
+                    "view"
+                  ]
+                }
               }
             },
             "required": [

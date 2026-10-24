@@ -1,4 +1,4 @@
-"""No Event kind may reset or retarget an arbitrary typed current result.
+"""No Event kind may reset or retarget an arbitrary current state.
 
 `ak.conflict.recovery` was the escape hatch: a kind that named its target in the
 payload (`cell_ref`) and wrote a `reset` projection over whatever it pointed at.
@@ -11,8 +11,8 @@ whole break the only thing keeping that function alive was this test calling it
 directly. A gate with no caller proves nothing about the registry.
 
 In v1 the proposition is carried by the closed sets of
-`check_result_write_contracts`: `cell_ref` is not a member of `result_writes[]`,
-and `reset` is not a `result_projection.kind`. These tests drive the live gate so
+`check_result_write_contracts`: `cell_ref` is not a member of `state_writes[]`,
+and `reset` is not a `state_projection.kind`. These tests drive the live gate so
 that both closures stay the thing that actually rejects the shape.
 """
 
@@ -74,9 +74,9 @@ class DynamicResetRejectionTest(unittest.TestCase):
         for row in registry["event_kinds"]:
             if row["event_kind"] == "ak.agent.key.authorize":
                 continue
-            for write in row.get("result_writes") or ():
+            for write in row.get("state_writes") or ():
                 return write
-        raise AssertionError("no result_writes[] row in the registry")
+        raise AssertionError("no state_writes[] row in the registry")
 
     def test_the_live_registry_is_clean(self) -> None:
         self.assertEqual(self._run(), [])
@@ -99,11 +99,11 @@ class DynamicResetRejectionTest(unittest.TestCase):
         projection any Event kind may declare."""
 
         def mutate(registry: dict) -> None:
-            self._first_write(registry)["result_projection"] = {"kind": "reset"}
+            self._first_write(registry)["state_projection"] = {"kind": "reset"}
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("result_projection.kind must be one of", reported[0])
+        self.assertIn("state_projection.kind must be one of", reported[0])
 
 
 if __name__ == "__main__":

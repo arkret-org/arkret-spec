@@ -1,7 +1,7 @@
 """Closure gate for the account-status replica classification decision table.
 
 zh/identity/account-lifecycle.md section 3.1 previously left the comparison
-baseline of the `same seq + same id is duplicate` branch unstated, so a receiver
+baseline of the `same sequence + same id is duplicate` branch unstated, so a receiver
 could classify against a retained history row instead of the durable head and
 return `duplicate` where another implementation returned
 `failed_precondition` + `account_status_record_stale`. The decision table is now
@@ -59,15 +59,15 @@ REQUIRED_ROW_FIELDS = (
 # must be classified, and the head-absent case must classify both the genesis
 # record and everything above it.
 REQUIRED_HEAD_PRESENT_CONDITIONS = (
-    "submitted.status_seq < head.status_seq",
-    "submitted.status_seq == head.status_seq",
-    "submitted.status_seq == head.status_seq + 1",
-    "submitted.status_seq > head.status_seq + 1",
+    "submitted.status_sequence < head.status_sequence",
+    "submitted.status_sequence == head.status_sequence",
+    "submitted.status_sequence == head.status_sequence + 1",
+    "submitted.status_sequence > head.status_sequence + 1",
 )
 
 REQUIRED_HEAD_ABSENT_CONDITIONS = (
-    "submitted.status_seq == 1",
-    "submitted.status_seq > 1",
+    "submitted.status_sequence == 1",
+    "submitted.status_sequence > 1",
 )
 
 
@@ -165,7 +165,7 @@ def check_account_status_replica_decision_table(lint: Lint) -> None:
             if known_outcomes and outcome not in known_outcomes:
                 lint.fail(
                     TABLE_PATH,
-                    f"{label}.outcome {outcome!r} is not an account_status_publication_outcome status value",
+                    f"{label}.outcome {outcome!r} is not an account_status_publication_response_body status value",
                 )
             if error_code is not None or reason_code is not None:
                 lint.fail(TABLE_PATH, f"{label} non-rejected row must carry null error_code and reason_code")
@@ -194,7 +194,7 @@ def check_account_status_replica_decision_table(lint: Lint) -> None:
 
         if reason_code == "account_status_binding_rollback":
             rollback_index = index if rollback_index is None else rollback_index
-        elif isinstance(condition, str) and "status_seq" in condition and first_sequence_index is None:
+        elif isinstance(condition, str) and "status_sequence" in condition and first_sequence_index is None:
             first_sequence_index = index
         if reason_code == "account_status_record_stale":
             stale_row = row
@@ -233,7 +233,7 @@ def check_account_status_replica_decision_table(lint: Lint) -> None:
 
     if duplicate_row is None:
         lint.fail(TABLE_PATH, "missing duplicate classification")
-    elif "head.status_seq" not in str(duplicate_row.get("condition", "")):
+    elif "head.status_sequence" not in str(duplicate_row.get("condition", "")):
         lint.fail(TABLE_PATH, "the duplicate row must be conditioned on the durable head sequence")
 
     _check_prose_binding(lint)
@@ -260,7 +260,7 @@ def _publication_outcome_values(lint: Lint) -> set[str]:
     data = load_json(lint, OPERATIONS_SCHEMA_PATH)
     if not isinstance(data, dict):
         return set()
-    outcome = (data.get("$defs") or {}).get("account_status_publication_outcome")
+    outcome = (data.get("$defs") or {}).get("account_status_publication_response_body")
     if not isinstance(outcome, dict):
         return set()
     status = (outcome.get("properties") or {}).get("status")

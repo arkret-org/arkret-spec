@@ -1,14 +1,14 @@
 {
-  "profile": "ak.vector.current_results.expected_state_digest.v1",
-  "version": "2026-10-07.1",
+  "profile": "ak.vector.current_state.expected_state_digest.v1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "known_answer_tests"
   },
   "suite": "expected_state_digest_known_answers",
   "covers_vectors": [
-    "ak.vector.current_results.expected_state_digest.v1"
+    "ak.vector.current_state.expected_state_digest.v1"
   ],
-  "description": "Byte-exact known answers for the one expected_state_digest algorithm of zh/sync/current-results.md section 2 (decisions 0113 and 0115): \"sha256:\" || lowercase_hex(SHA-256(RFC8785_JCS(v))) with no domain prefix. v is the complete frozen value of a single-value family, or the read-side fold result of a keyed-set family. A verifier MUST recompute the fold from inputs, then the JCS bytes and the digest; comparing the published values without executing the fold is non-conformant.",
+  "description": "Byte-exact known answers for the one expected_state_digest algorithm of zh/sync/current-state.md section 2 (decisions 0113 and 0115): \"sha256:\" || lowercase_hex(SHA-256(RFC8785_JCS(v))) with no domain prefix. v is the complete frozen value of a single-value family, or the read-side fold result of a keyed-set family. A verifier MUST recompute the fold from inputs, then the JCS bytes and the digest; comparing the published values without executing the fold is non-conformant.",
   "algorithm": {
     "digest": "sha256",
     "encoding": "sha256:<lowercase hex>",
@@ -18,7 +18,7 @@
   "cases": [
     {
       "name": "single_value_family_complete_value",
-      "result_family": "realm_authority_root",
+      "state_family": "realm_authority_root",
       "inputs": {
         "frozen_value": {
           "controller_actor_id": {
@@ -29,7 +29,7 @@
             }
           },
           "controller_epoch": 0,
-          "authority_generation": 0,
+          "authority_generation": "0",
           "authority_event_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8"
         }
       },
@@ -42,7 +42,7 @@
           }
         },
         "controller_epoch": 0,
-        "authority_generation": 0,
+        "authority_generation": "0",
         "authority_event_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8"
       },
       "canonical_utf8": "{\"authority_event_ref\":\"ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8\",\"authority_generation\":0,\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
@@ -51,7 +51,7 @@
     },
     {
       "name": "realm_override_without_assertions",
-      "result_family": "actor_profile_realm_override",
+      "state_family": "actor_profile_realm_override",
       "inputs": {
         "assertions_in_commit_order": []
       },
@@ -62,7 +62,7 @@
     },
     {
       "name": "realm_override_folded_patches",
-      "result_family": "actor_profile_realm_override",
+      "state_family": "actor_profile_realm_override",
       "inputs": {
         "assertions_in_commit_order": [
           {
@@ -93,7 +93,7 @@
     },
     {
       "name": "member_identity_empty_effective_set",
-      "result_family": "member_identity_updates",
+      "state_family": "member_identity_updates",
       "inputs": {
         "updates": []
       },
@@ -104,7 +104,7 @@
     },
     {
       "name": "member_identity_effective_set_after_replacement",
-      "result_family": "member_identity_updates",
+      "state_family": "member_identity_updates",
       "inputs": {
         "updates": [
           {

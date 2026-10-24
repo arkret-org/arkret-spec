@@ -89,7 +89,7 @@ def rebuild_producer_vectors(fixture: dict) -> None:
         core = {
             "trust_domain_id": "ak:trust_domain:fixture", "holder": peers[index], "peer": peers[1-index], "version": 1,
             "request_event_ref": event_ref,
-            "producer_signer": {"verification_method": principal + "#device-fixture", "public_key_b64u": TEST_PUBLIC_KEY},
+            "producer_signer": {"verification_method": principal + "#device-fixture", "public_key_base64url": TEST_PUBLIC_KEY},
             "source_checkpoint": "sha256:" + str(index + 1) * 64,
             "accepted_at": at, "issuer_id": pair[index]["account_id"]["station_id"],
         }
@@ -174,12 +174,12 @@ def check_producer_vectors(fixture: dict) -> None:
             if mutation == "missing_producer_signer": del body["producer_signer"]
             elif mutation == "null_producer_signer": body["producer_signer"] = None
             elif mutation == "unknown_member": descriptor["algorithm"] = "Ed25519"
-            elif mutation == "short_key": descriptor["public_key_b64u"] = b64u(bytes(31))
-            elif mutation == "long_key": descriptor["public_key_b64u"] = b64u(bytes(33))
-            elif mutation == "padded_key": descriptor["public_key_b64u"] += "="
-            elif mutation == "noncanonical_key": descriptor["public_key_b64u"] = descriptor["public_key_b64u"][:-1] + "B"
+            elif mutation == "short_key": descriptor["public_key_base64url"] = b64u(bytes(31))
+            elif mutation == "long_key": descriptor["public_key_base64url"] = b64u(bytes(33))
+            elif mutation == "padded_key": descriptor["public_key_base64url"] += "="
+            elif mutation == "noncanonical_key": descriptor["public_key_base64url"] = descriptor["public_key_base64url"][:-1] + "B"
             elif mutation == "substituted_method": descriptor["verification_method"] += "-other"
-            elif mutation == "substituted_key": descriptor["public_key_b64u"] = b64u(bytes(32))
+            elif mutation == "substituted_key": descriptor["public_key_base64url"] = b64u(bytes(32))
             else: raise SystemExit("unknown producer mutation")
             if mutation not in {"substituted_method", "substituted_key"} and validator.is_valid(tampered):
                 raise SystemExit(case["name"] + ": schema accepted " + mutation)
@@ -243,7 +243,7 @@ def check_delegated_actor_vectors(fixture: dict) -> None:
     # Use all five actual carrier conditionals, not a second copy of their iff rules.
     conditionals = {branch["properties"]["kind"]["const"]: Draft202012Validator(
         {"$id": base, "$defs": schema["$defs"], "allOf": branch["allOf"]}, registry=registry)
-        for branch in schema["$defs"]["peer_contact_submit_request"]["oneOf"][:5]}
+        for branch in schema["$defs"]["peer_contact_submit_request_body"]["oneOf"][:5]}
     receipt_schema = Draft202012Validator({"$ref": base + "#/$defs/request_acceptance_receipt"}, registry=registry)
     source_key = Ed25519PublicKey.from_public_bytes(unb64u(TEST_PUBLIC_KEY))
 

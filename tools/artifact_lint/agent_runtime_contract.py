@@ -168,7 +168,7 @@ def check_agent_runtime_contract(lint: Lint) -> None:
     if set(carrier['required']) != {'authenticated_signer_evidence', 'agent_authority_state_evidence', 'controller_account_gate_attestation', 'authority_resolution'}:
         lint.fail(path, 'producer carrier must preserve ASRE/state/gate/history siblings')
     peer_path = ARTIFACTS / 'schemas/authority-commit-operations.schema.json'
-    peer = load_json(lint, peer_path)['$defs']['peer_submit_request']
+    peer = load_json(lint, peer_path)['$defs']['peer_submit_request_body']
     if peer['properties'].get('producer_agent_evidence', {}).get('$ref') != './agent-authority-evidence.schema.json#/$defs/agent_producer_evidence':
         lint.fail(peer_path, 'formal peer ingress must reference Agent carrier')
     for branch in peer['oneOf']:

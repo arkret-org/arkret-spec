@@ -11,7 +11,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.agent_sidecar_event_exchange_binding.v1"
+      "const": "ak.schema.agent_sidecar_event_exchange_binding.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-sidecar-event-exchange-binding.schema.json#/properties/schema",
+        "owner": "agent-sidecar-event-exchange-binding.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_sidecar_event_exchange_binding.v1"
+        ]
+      }
     },
     "exchange_id": {
       "type": "string",
@@ -25,7 +33,17 @@
         "user_facing_response",
         "internal"
       ],
-      "description": "Closed disposition. request: the controller's private request event itself. user_facing_response: an Agent response the controller MAY echo after validation. internal: exchange-scoped Agent collaboration/tool output that MUST NOT be echoed. Consumers MUST fail closed to non-echo on any value not listed here."
+      "description": "Closed disposition. request: the controller's private request event itself. user_facing_response: an Agent response the controller MAY echo after validation. internal: exchange-scoped Agent collaboration/tool output that MUST NOT be echoed. Consumers MUST fail closed to non-echo on any value not listed here.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-sidecar-event-exchange-binding.schema.json#/properties/role",
+        "owner": "agent-sidecar-event-exchange-binding.schema.json#/properties/role",
+        "values": [
+          "request",
+          "user_facing_response",
+          "internal"
+        ]
+      }
     },
     "request_event_id": {
       "type": "string",
@@ -34,7 +52,15 @@
     },
     "completes_exchange": {
       "const": true,
-      "description": "Optional coordinator completion request; legal only with role=user_facing_response. It does not itself make the exchange terminal. A controller device validates the actor against coordinator_assignment_event_id and, on success, authors a durable ak.agent.sidecar.exchange.control Event with action=close."
+      "description": "Optional coordinator completion request; legal only with role=user_facing_response. It does not itself make the exchange terminal. A controller device validates the actor against coordinator_assignment_event_id and, on success, authors a durable ak.agent.sidecar.exchange.control Event with action=close.",
+      "x-arkret-value-ownership": {
+        "class": "numeric",
+        "authority": "agent-sidecar-event-exchange-binding.schema.json#/properties/completes_exchange",
+        "owner": "agent-sidecar-event-exchange-binding.schema.json#/properties/completes_exchange",
+        "values": [
+          true
+        ]
+      }
     },
     "coordinator_assignment_event_id": {
       "type": "string",
@@ -50,7 +76,15 @@
       "if": {
         "properties": {
           "role": {
-            "const": "request"
+            "const": "request",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/0/if/properties/role",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/0/if/properties/role",
+              "values": [
+                "request"
+              ]
+            }
           }
         },
         "required": [
@@ -75,7 +109,16 @@
             "enum": [
               "user_facing_response",
               "internal"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/1/if/properties/role",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/1/if/properties/role",
+              "values": [
+                "user_facing_response",
+                "internal"
+              ]
+            }
           }
         },
         "required": [
@@ -97,7 +140,16 @@
             "enum": [
               "user_facing_response",
               "internal"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/2/if/properties/role",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/2/if/properties/role",
+              "values": [
+                "user_facing_response",
+                "internal"
+              ]
+            }
           }
         },
         "required": [
@@ -117,7 +169,16 @@
             "enum": [
               "request",
               "internal"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/3/if/properties/role",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/3/if/properties/role",
+              "values": [
+                "request",
+                "internal"
+              ]
+            }
           }
         },
         "required": [
@@ -136,7 +197,15 @@
       "if": {
         "properties": {
           "completes_exchange": {
-            "const": true
+            "const": true,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/4/if/properties/completes_exchange",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/4/if/properties/completes_exchange",
+              "values": [
+                true
+              ]
+            }
           }
         },
         "required": [
@@ -146,7 +215,15 @@
       "then": {
         "properties": {
           "role": {
-            "const": "user_facing_response"
+            "const": "user_facing_response",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/4/then/properties/role",
+              "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/4/then/properties/role",
+              "values": [
+                "user_facing_response"
+              ]
+            }
           }
         },
         "required": [
@@ -159,7 +236,15 @@
         "not": {
           "properties": {
             "completes_exchange": {
-              "const": true
+              "const": true,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "agent-sidecar-event-exchange-binding.schema.json#/allOf/5/if/not/properties/completes_exchange",
+                "owner": "agent-sidecar-event-exchange-binding.schema.json#/allOf/5/if/not/properties/completes_exchange",
+                "values": [
+                  true
+                ]
+              }
             }
           },
           "required": [

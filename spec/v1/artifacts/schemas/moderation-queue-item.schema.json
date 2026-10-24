@@ -31,7 +31,16 @@
         "submitted",
         "resolved"
       ],
-      "description": "Authoritative moderation queue-item lifecycle. v1 is intentionally minimal: 'submitted' = report accepted and awaiting handling; 'resolved' = handling complete (terminal). The disposition (action taken vs no violation) lives on the separate ak.moderation.decision event. Additional intermediate states MAY be introduced in a later revision if a workflow phase needs them. See governance/content-moderation.md §3.3."
+      "description": "Authoritative moderation queue-item lifecycle. v1 is intentionally minimal: 'submitted' = report accepted and awaiting handling; 'resolved' = handling complete (terminal). The disposition (action taken vs no violation) lives on the separate ak.moderation.decision event. Additional intermediate states MAY be introduced in a later revision if a workflow phase needs them. See governance/content-moderation.md §3.3.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "moderation-queue-item.schema.json#/properties/status",
+        "owner": "moderation-queue-item.schema.json#/properties/status",
+        "values": [
+          "submitted",
+          "resolved"
+        ]
+      }
     },
     "priority": {
       "type": "string",
@@ -41,7 +50,18 @@
         "high",
         "urgent"
       ],
-      "description": "Local administrator workflow only: never carried in an Event payload, never part of the decision fold, never replicated across Stations, and never a capability. Omit when unassigned. See governance/content-moderation.md section 3.3."
+      "description": "Local administrator workflow only: never carried in an Event payload, never part of the decision fold, never replicated across Stations, and never a capability. Omit when unassigned. See governance/content-moderation.md section 3.3.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "moderation-queue-item.schema.json#/properties/priority",
+        "owner": "moderation-queue-item.schema.json#/properties/priority",
+        "values": [
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]
+      }
     },
     "visibility": {
       "type": "string",
@@ -51,7 +71,18 @@
         "plaintext_evidence",
         "franking_proof_only"
       ],
-      "description": "Read-side derivation over the accepted report and the target scope, in the order given in governance/content-moderation.md section 3.3: plaintext scope -> plaintext_evidence; evidence_package present -> encrypted_evidence; franking_proof only -> franking_proof_only; otherwise metadata_only. When evidence is withheld or trimmed for an unauthorized caller, this member MUST be downgraded to the evidence shape that caller can actually receive, and MUST NOT reveal whether the trimmed evidence exists. Never written by the reporter and never hard-filled with one default."
+      "description": "Read-side derivation over the accepted report and the target scope, in the order given in governance/content-moderation.md section 3.3: plaintext scope -> plaintext_evidence; evidence_package present -> encrypted_evidence; franking_proof only -> franking_proof_only; otherwise metadata_only. When evidence is withheld or trimmed for an unauthorized caller, this member MUST be downgraded to the evidence shape that caller can actually receive, and MUST NOT reveal whether the trimmed evidence exists. Never written by the reporter and never hard-filled with one default.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "moderation-queue-item.schema.json#/properties/visibility",
+        "owner": "moderation-queue-item.schema.json#/properties/visibility",
+        "values": [
+          "metadata_only",
+          "encrypted_evidence",
+          "plaintext_evidence",
+          "franking_proof_only"
+        ]
+      }
     },
     "assigned_to_ids": {
       "type": "array",
@@ -68,10 +99,12 @@
       ],
       "properties": {
         "plaintext_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "franking_proof_verification_required": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "obligation"
         },
         "retention_expires_at": {
           "$ref": "#/$defs/timestamp"

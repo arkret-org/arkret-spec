@@ -14,19 +14,19 @@
       "$ref": "#/$defs/authoring_request"
     },
     {
-      "$ref": "#/$defs/install_preview_outcome"
+      "$ref": "#/$defs/install_preview_response_body"
     },
     {
       "$ref": "#/$defs/ghost_preview_request_body"
     },
     {
-      "$ref": "#/$defs/ghost_preview_outcome"
+      "$ref": "#/$defs/ghost_preview_response_body"
     },
     {
       "$ref": "#/$defs/author_request_body"
     },
     {
-      "$ref": "#/$defs/author_outcome"
+      "$ref": "#/$defs/author_response_body"
     }
   ],
   "$defs": {
@@ -52,7 +52,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "const": "detached_jws",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/managed_actor_proof/properties/kind",
+            "owner": "applet-install-authoring.schema.json#/$defs/managed_actor_proof/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -124,7 +132,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.applet.registration"
+              "const": "ak.applet.registration",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "applet-install-authoring.schema.json#/$defs/registration_event/allOf/1/properties/kind",
+                "owner": "applet-install-authoring.schema.json#/$defs/registration_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.applet.registration"
+                ]
+              }
             },
             "payload": {
               "type": "object",
@@ -161,7 +177,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.capability.grant"
+              "const": "ak.capability.grant",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "applet-install-authoring.schema.json#/$defs/capability_grant_event/allOf/1/properties/kind",
+                "owner": "applet-install-authoring.schema.json#/$defs/capability_grant_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.capability.grant"
+                ]
+              }
             }
           }
         }
@@ -191,16 +215,29 @@
             "disallowed",
             "controller_approved",
             "policy_declared"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/approval_request/properties/ghost_actor_mode",
+            "owner": "applet-install-authoring.schema.json#/$defs/approval_request/properties/ghost_actor_mode",
+            "values": [
+              "disallowed",
+              "controller_approved",
+              "policy_declared"
+            ]
+          }
         },
         "delegated_native_actors_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "e2ee_join_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         },
         "widget_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         }
       },
       "additionalProperties": false
@@ -213,7 +250,17 @@
             "disallowed",
             "controller_approved",
             "policy_declared"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/actor_policy/properties/ghost_actor_mode",
+            "owner": "applet-install-authoring.schema.json#/$defs/actor_policy/properties/ghost_actor_mode",
+            "values": [
+              "disallowed",
+              "controller_approved",
+              "policy_declared"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -222,7 +269,8 @@
       "type": "object",
       "properties": {
         "mls_join_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         }
       },
       "additionalProperties": false
@@ -231,7 +279,8 @@
       "type": "object",
       "properties": {
         "widget_allowed": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-arkret-member-role": "permission"
         }
       },
       "additionalProperties": false
@@ -253,10 +302,26 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.applet_install_authoring_request_basis.v1"
+          "const": "ak.schema.applet_install_authoring_request_basis.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/install_authoring_request_basis/properties/schema",
+            "owner": "applet-install-authoring.schema.json#/$defs/install_authoring_request_basis/properties/schema",
+            "values": [
+              "ak.schema.applet_install_authoring_request_basis.v1"
+            ]
+          }
         },
         "purpose": {
-          "const": "install_applet"
+          "const": "install_applet",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/install_authoring_request_basis/properties/purpose",
+            "owner": "applet-install-authoring.schema.json#/$defs/install_authoring_request_basis/properties/purpose",
+            "values": [
+              "install_applet"
+            ]
+          }
         },
         "target_station_id": {
           "$ref": "#/$defs/did_core_id"
@@ -321,10 +386,26 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.applet_ghost_authoring_request_basis.v1"
+          "const": "ak.schema.applet_ghost_authoring_request_basis.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/ghost_authoring_request_basis/properties/schema",
+            "owner": "applet-install-authoring.schema.json#/$defs/ghost_authoring_request_basis/properties/schema",
+            "values": [
+              "ak.schema.applet_ghost_authoring_request_basis.v1"
+            ]
+          }
         },
         "purpose": {
-          "const": "provision_ghost"
+          "const": "provision_ghost",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/ghost_authoring_request_basis/properties/purpose",
+            "owner": "applet-install-authoring.schema.json#/$defs/ghost_authoring_request_basis/properties/purpose",
+            "values": [
+              "provision_ghost"
+            ]
+          }
         },
         "target_station_id": {
           "$ref": "#/$defs/did_core_id"
@@ -377,13 +458,30 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.applet_managed_actor_authoring_request.v1"
+          "const": "ak.schema.applet_managed_actor_authoring_request.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/authoring_request/properties/schema",
+            "owner": "applet-install-authoring.schema.json#/$defs/authoring_request/properties/schema",
+            "values": [
+              "ak.schema.applet_managed_actor_authoring_request.v1"
+            ]
+          }
         },
         "purpose": {
           "enum": [
             "provision_bot",
             "provision_ghost"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/authoring_request/properties/purpose",
+            "owner": "applet-install-authoring.schema.json#/$defs/authoring_request/properties/purpose",
+            "values": [
+              "provision_bot",
+              "provision_ghost"
+            ]
+          }
         },
         "basis": {
           "oneOf": [
@@ -414,7 +512,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "provision_bot"
+                "const": "provision_bot",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "applet-install-authoring.schema.json#/$defs/authoring_request/allOf/0/if/properties/purpose",
+                  "owner": "applet-install-authoring.schema.json#/$defs/authoring_request/allOf/0/if/properties/purpose",
+                  "values": [
+                    "provision_bot"
+                  ]
+                }
               }
             },
             "required": [
@@ -433,7 +539,15 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "provision_ghost"
+                "const": "provision_ghost",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "applet-install-authoring.schema.json#/$defs/authoring_request/allOf/1/if/properties/purpose",
+                  "owner": "applet-install-authoring.schema.json#/$defs/authoring_request/allOf/1/if/properties/purpose",
+                  "values": [
+                    "provision_ghost"
+                  ]
+                }
               }
             },
             "required": [
@@ -451,7 +565,7 @@
       ],
       "additionalProperties": false
     },
-    "install_preview_outcome": {
+    "install_preview_response_body": {
       "type": "object",
       "required": [
         "plan"
@@ -461,7 +575,8 @@
           "$ref": "./applet-install-plan.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "ghost_preview_request_body": {
       "type": "object",
@@ -482,7 +597,7 @@
       },
       "additionalProperties": false
     },
-    "ghost_preview_outcome": {
+    "ghost_preview_response_body": {
       "type": "object",
       "required": [
         "authoring_request"
@@ -495,7 +610,8 @@
           "$ref": "./applet-ghost-operations.schema.json#/$defs/existing_managed_actor"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "author_request_body": {
       "type": "object",
@@ -509,7 +625,7 @@
       },
       "additionalProperties": false
     },
-    "author_outcome": {
+    "author_response_body": {
       "type": "object",
       "required": [
         "create_event"
@@ -523,7 +639,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "ak.realm.actor.create"
+                  "const": "ak.realm.actor.create",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "applet-install-authoring.schema.json#/$defs/author_response_body/properties/create_event/allOf/1/properties/kind",
+                    "owner": "applet-install-authoring.schema.json#/$defs/author_response_body/properties/create_event/allOf/1/properties/kind",
+                    "values": [
+                      "ak.realm.actor.create"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -533,7 +657,8 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "bot_authoring_request_basis": {
       "type": "object",
@@ -552,10 +677,26 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.applet_bot_authoring_request_basis.v1"
+          "const": "ak.schema.applet_bot_authoring_request_basis.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/bot_authoring_request_basis/properties/schema",
+            "owner": "applet-install-authoring.schema.json#/$defs/bot_authoring_request_basis/properties/schema",
+            "values": [
+              "ak.schema.applet_bot_authoring_request_basis.v1"
+            ]
+          }
         },
         "purpose": {
-          "const": "provision_bot"
+          "const": "provision_bot",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-install-authoring.schema.json#/$defs/bot_authoring_request_basis/properties/purpose",
+            "owner": "applet-install-authoring.schema.json#/$defs/bot_authoring_request_basis/properties/purpose",
+            "values": [
+              "provision_bot"
+            ]
+          }
         },
         "target_station_id": {
           "$ref": "#/$defs/did_core_id"

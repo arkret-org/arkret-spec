@@ -11,7 +11,7 @@
       "$ref": "#/$defs/account_handoff_request_body"
     },
     {
-      "$ref": "#/$defs/account_handoff_outcome"
+      "$ref": "#/$defs/account_handoff_response_body"
     },
     {
       "$ref": "#/$defs/account_onboarding_state"
@@ -20,19 +20,19 @@
       "$ref": "#/$defs/identity_binding_challenge_request_body"
     },
     {
-      "$ref": "#/$defs/identity_binding_challenge_outcome"
+      "$ref": "#/$defs/identity_binding_challenge_response_body"
     },
     {
       "$ref": "#/$defs/account_register_request_body"
     },
     {
-      "$ref": "#/$defs/account_register_outcome"
+      "$ref": "#/$defs/account_register_response_body"
     },
     {
       "$ref": "#/$defs/account_update_profile_request_body"
     },
     {
-      "$ref": "#/$defs/account_update_profile_outcome"
+      "$ref": "#/$defs/account_update_profile_response_body"
     },
     {
       "$ref": "#/$defs/account_status_record"
@@ -44,25 +44,25 @@
       "$ref": "#/$defs/account_status_resolve_request_body"
     },
     {
-      "$ref": "#/$defs/account_status_resolve_outcome"
+      "$ref": "#/$defs/account_status_resolve_response_body"
     },
     {
       "$ref": "#/$defs/account_status_publication_request_body"
     },
     {
-      "$ref": "#/$defs/account_status_publication_outcome"
+      "$ref": "#/$defs/account_status_publication_response_body"
     },
     {
       "$ref": "#/$defs/session_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/session_revoke_outcome"
+      "$ref": "#/$defs/session_revoke_response_body"
     },
     {
       "$ref": "#/$defs/account_request_erasure_request_body"
     },
     {
-      "$ref": "#/$defs/account_request_erasure_outcome"
+      "$ref": "#/$defs/account_request_erasure_response_body"
     }
   ],
   "$defs": {
@@ -136,7 +136,20 @@
         "deactivated",
         "erasure_pending"
       ],
-      "description": "Account lifecycle projection; mirrors zh/identity/account-lifecycle.md §3."
+      "description": "Account lifecycle projection; mirrors zh/identity/account-lifecycle.md §3.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "account-operations.schema.json#/$defs/account_state",
+        "owner": "account-operations.schema.json#/$defs/account_state",
+        "values": [
+          "active",
+          "soft_logged_out",
+          "locked",
+          "suspended",
+          "deactivated",
+          "erasure_pending"
+        ]
+      }
     },
     "device_summary": {
       "type": "object",
@@ -161,7 +174,19 @@
             "expired",
             "generation_fenced"
           ],
-          "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is authority-derived from a durable accepted ak.device.revoke security transaction; trust/evidence quality is reported separately in verification_state."
+          "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is authority-derived from a durable accepted ak.device.revoke security transaction; trust/evidence quality is reported separately in verification_state.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/device_summary/properties/status",
+            "owner": "account-operations.schema.json#/$defs/device_summary/properties/status",
+            "values": [
+              "active",
+              "revocation_pending",
+              "revoked",
+              "expired",
+              "generation_fenced"
+            ]
+          }
         },
         "verification_state": {
           "type": "string",
@@ -170,7 +195,17 @@
             "unresolved",
             "stale"
           ],
-          "description": "Trust verification of the device authorization evidence, separate from lifecycle status. A consumer MUST NOT interpret lifecycle status=active as usable authority unless verification_state=verified."
+          "description": "Trust verification of the device authorization evidence, separate from lifecycle status. A consumer MUST NOT interpret lifecycle status=active as usable authority unless verification_state=verified.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/device_summary/properties/verification_state",
+            "owner": "account-operations.schema.json#/$defs/device_summary/properties/verification_state",
+            "values": [
+              "verified",
+              "unresolved",
+              "stale"
+            ]
+          }
         },
         "verification_source": {
           "type": "string",
@@ -179,7 +214,17 @@
             "pairing_code",
             "recovery"
           ],
-          "description": "Closed provenance of the verification checkpoint behind verification_state, per device-lifecycle.md section 10.1. genesis is the PCR genesis first device, pairing_code an accepted-device pairing or re-verification ceremony, and recovery an accepted recovery unit replacement device. Login factors, SSO sessions, ordinary session grants and bare server projections MUST NOT mint a checkpoint. Required when verification_state is verified, retained when a previously verified checkpoint went stale, and absent when verification_state is unresolved."
+          "description": "Closed provenance of the verification checkpoint behind verification_state, per device-lifecycle.md section 10.1. genesis is the PCR genesis first device, pairing_code an accepted-device pairing or re-verification ceremony, and recovery an accepted recovery unit replacement device. Login factors, SSO sessions, ordinary session grants and bare server projections MUST NOT mint a checkpoint. Required when verification_state is verified, retained when a previously verified checkpoint went stale, and absent when verification_state is unresolved.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/device_summary/properties/verification_source",
+            "owner": "account-operations.schema.json#/$defs/device_summary/properties/verification_source",
+            "values": [
+              "genesis",
+              "pairing_code",
+              "recovery"
+            ]
+          }
         },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -201,7 +246,7 @@
           "items": {
             "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
           },
-          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by acceptance_seq and Event id. At most 128 distinct unresolved transactions may be admitted; exact replay consumes no slot, a terminal rejected result removes one pending slot, and an already revoked generation accepts no new transaction. Committing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
+          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by acceptance_sequence and Event id. At most 128 distinct unresolved transactions may be admitted; exact replay consumes no slot, a terminal rejected result removes one pending slot, and an already revoked generation accepts no new transaction. Committing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
         }
       },
       "allOf": [
@@ -209,7 +254,15 @@
           "if": {
             "properties": {
               "verification_state": {
-                "const": "verified"
+                "const": "verified",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/device_summary/allOf/0/if/properties/verification_state",
+                  "owner": "account-operations.schema.json#/$defs/device_summary/allOf/0/if/properties/verification_state",
+                  "values": [
+                    "verified"
+                  ]
+                }
               }
             },
             "required": [
@@ -227,7 +280,15 @@
           "if": {
             "properties": {
               "verification_state": {
-                "const": "unresolved"
+                "const": "unresolved",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/device_summary/allOf/1/if/properties/verification_state",
+                  "owner": "account-operations.schema.json#/$defs/device_summary/allOf/1/if/properties/verification_state",
+                  "values": [
+                    "unresolved"
+                  ]
+                }
               }
             },
             "required": [
@@ -246,7 +307,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "revocation_pending"
+                "const": "revocation_pending",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/device_summary/allOf/2/if/properties/status",
+                  "owner": "account-operations.schema.json#/$defs/device_summary/allOf/2/if/properties/status",
+                  "values": [
+                    "revocation_pending"
+                  ]
+                }
               }
             },
             "required": [
@@ -270,7 +339,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "revoked"
+                "const": "revoked",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/device_summary/allOf/3/if/properties/status",
+                  "owner": "account-operations.schema.json#/$defs/device_summary/allOf/3/if/properties/status",
+                  "values": [
+                    "revoked"
+                  ]
+                }
               }
             },
             "required": [
@@ -299,7 +376,17 @@
                   "active",
                   "expired",
                   "generation_fenced"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/device_summary/allOf/4/if/properties/status",
+                  "owner": "account-operations.schema.json#/$defs/device_summary/allOf/4/if/properties/status",
+                  "values": [
+                    "active",
+                    "expired",
+                    "generation_fenced"
+                  ]
+                }
               }
             },
             "required": [
@@ -356,7 +443,19 @@
             "passkey_assertion",
             "oidc_code_exchange",
             "agent_key_proof"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_lifecycle_proof/properties/proof_kind",
+            "owner": "account-operations.schema.json#/$defs/account_lifecycle_proof/properties/proof_kind",
+            "values": [
+              "did_bound_signature",
+              "paired_device_proof",
+              "passkey_assertion",
+              "oidc_code_exchange",
+              "agent_key_proof"
+            ]
+          }
         },
         "challenge": {
           "type": "string",
@@ -419,7 +518,15 @@
       ],
       "properties": {
         "proof_kind": {
-          "const": "did_bound_signature"
+          "const": "did_bound_signature",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/proof_kind",
+            "owner": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/proof_kind",
+            "values": [
+              "did_bound_signature"
+            ]
+          }
         },
         "challenge_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -429,7 +536,15 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding_for_published_did"
+          "const": "account_binding_for_published_did",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/purpose",
+            "owner": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/purpose",
+            "values": [
+              "account_binding_for_published_did"
+            ]
+          }
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/sha256_digest",
@@ -517,7 +632,15 @@
           "description": "Exact control-key verification method derived from the validated terminal anchor entry, including a method-native did:key controller method when applicable. It is not a device key or a DID Document authentication/assertion method."
         },
         "signature_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -547,7 +670,15 @@
       ],
       "properties": {
         "proof_kind": {
-          "const": "oidc_code_exchange"
+          "const": "oidc_code_exchange",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_handoff_authentication_proof/properties/proof_kind",
+            "owner": "account-operations.schema.json#/$defs/account_handoff_authentication_proof/properties/proof_kind",
+            "values": [
+              "oidc_code_exchange"
+            ]
+          }
         },
         "challenge": {
           "type": "string",
@@ -620,7 +751,16 @@
             "identity_creation",
             "published_did"
           ],
-          "description": "Frozen reservation purpose. It cannot be switched by renewal, takeover, replay or abandonment."
+          "description": "Frozen reservation purpose. It cannot be switched by renewal, takeover, replay or abandonment.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/reserved_identity_creation/properties/binding_kind",
+            "owner": "account-operations.schema.json#/$defs/reserved_identity_creation/properties/binding_kind",
+            "values": [
+              "identity_creation",
+              "published_did"
+            ]
+          }
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -665,7 +805,21 @@
             "account_bound",
             "completed"
           ],
-          "description": "Account-Authority-authored durable identity-creation saga state. Clients MUST derive their onboarding phase from this value and MUST NOT infer a phase from local checkpoint presence. reserved_identity MUST be absent only in active and present in every later state. identity_creation uses did_published; published_did uses did_validated, meaning durable independent validation, never registry acceptance. These alternatives cannot be converted into one another."
+          "description": "Account-Authority-authored durable identity-creation saga state. Clients MUST derive their onboarding phase from this value and MUST NOT infer a phase from local checkpoint presence. reserved_identity MUST be absent only in active and present in every later state. identity_creation uses did_published; published_did uses did_validated, meaning durable independent validation, never registry acceptance. These alternatives cannot be converted into one another.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/identity_creation_lease/properties/state",
+            "owner": "account-operations.schema.json#/$defs/identity_creation_lease/properties/state",
+            "values": [
+              "active",
+              "reserved",
+              "did_published",
+              "did_validated",
+              "pcr_accepted",
+              "account_bound",
+              "completed"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -688,7 +842,15 @@
           ],
           "properties": {
             "state": {
-              "const": "identity_creation_active"
+              "const": "identity_creation_active",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/0/properties/state",
+                "owner": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/0/properties/state",
+                "values": [
+                  "identity_creation_active"
+                ]
+              }
             },
             "identity_creation_lease": {
               "$ref": "#/$defs/identity_creation_lease"
@@ -705,7 +867,15 @@
           ],
           "properties": {
             "state": {
-              "const": "identity_creation_busy"
+              "const": "identity_creation_busy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/1/properties/state",
+                "owner": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/1/properties/state",
+                "values": [
+                  "identity_creation_busy"
+                ]
+              }
             },
             "retry_after_ms": {
               "type": "integer",
@@ -727,7 +897,15 @@
           ],
           "properties": {
             "state": {
-              "const": "bound"
+              "const": "bound",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/2/properties/state",
+                "owner": "account-operations.schema.json#/$defs/account_handoff_binding/oneOf/2/properties/state",
+                "values": [
+                  "bound"
+                ]
+              }
             },
             "principal_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -756,7 +934,7 @@
       },
       "additionalProperties": false
     },
-    "account_handoff_outcome": {
+    "account_handoff_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -785,7 +963,16 @@
             "en",
             "zh"
           ],
-          "description": "Optional private UI-language preference of the authenticated service account. It is returned only in this DPoP-bound handoff response so the client can continue the just-completed authentication flow in the selected language; it MUST NOT be copied into a public actor profile."
+          "description": "Optional private UI-language preference of the authenticated service account. It is returned only in this DPoP-bound handoff response so the client can continue the just-completed authentication flow in the selected language; it MUST NOT be copied into a public actor profile.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_handoff_response_body/properties/preferred_locale",
+            "owner": "account-operations.schema.json#/$defs/account_handoff_response_body/properties/preferred_locale",
+            "values": [
+              "en",
+              "zh"
+            ]
+          }
         },
         "account_handoff_grant": {
           "type": "string",
@@ -805,13 +992,30 @@
             "ak.gate.account.command.issue_session_grant.v1",
             "ak.gate.account.command.issue_recovery_completion_grant.v1"
           ],
-          "description": "Closed set of operations this handoff may be presented at. The abandonment command is a member because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them. The device-pairing finalize command is a member for the mirror reason: a fresh device of an already bound account has no accepted-device signer yet, so this handoff is the only sender-constrained credential that can supply the exact AccountId its target proof must sign. Membership here does not widen the handoff into a session credential."
+          "description": "Closed set of operations this handoff may be presented at. The abandonment command is a member because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them. The device-pairing finalize command is a member for the mirror reason: a fresh device of an already bound account has no accepted-device signer yet, so this handoff is the only sender-constrained credential that can supply the exact AccountId its target proof must sign. Membership here does not widen the handoff into a session credential.",
+          "x-arkret-value-ownership": {
+            "class": "structured_literal",
+            "authority": "account-operations.schema.json#/$defs/account_handoff_response_body/properties/allowed_operations",
+            "owner": "account-operations.schema.json#/$defs/account_handoff_response_body/properties/allowed_operations",
+            "values": [
+              [
+                "ak.gate.account.command.issue_identity_binding_challenge.v1",
+                "ak.gate.account.command.issue_did_binding_challenge.v1",
+                "ak.gate.account.command.abandon_identity_creation.v1",
+                "ak.gate.account.command.register.v1",
+                "ak.gate.account.command.finalize_device_pairing.v1",
+                "ak.gate.account.command.issue_session_grant.v1",
+                "ak.gate.account.command.issue_recovery_completion_grant.v1"
+              ]
+            ]
+          }
         },
         "binding": {
           "$ref": "#/$defs/account_handoff_binding"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_onboarding_goal": {
       "type": "object",
@@ -820,7 +1024,15 @@
       ],
       "properties": {
         "goal": {
-          "const": "complete_identity"
+          "const": "complete_identity",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_onboarding_goal/properties/goal",
+            "owner": "account-operations.schema.json#/$defs/account_onboarding_goal/properties/goal",
+            "values": [
+              "complete_identity"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -899,7 +1111,7 @@
       },
       "additionalProperties": false
     },
-    "identity_binding_challenge_outcome": {
+    "identity_binding_challenge_response_body": {
       "type": "object",
       "description": "Only fresh challenge material and domain separation. The authority durably retains the full request, account/handoff subject, lease/fence, DID operation and independently derived pins, PCR/genesis/session digests, audience/origin/trust-domain, and rechecks all of them atomically at registration. The client reconstructs the proof from its frozen submission and authenticated onboarding context.",
       "required": [
@@ -922,7 +1134,15 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding_and_pcr_genesis"
+          "const": "account_binding_and_pcr_genesis",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/identity_binding_challenge_response_body/properties/purpose",
+            "owner": "account-operations.schema.json#/$defs/identity_binding_challenge_response_body/properties/purpose",
+            "values": [
+              "account_binding_and_pcr_genesis"
+            ]
+          }
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -931,17 +1151,34 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "pcr_genesis_unit_kinds": {
       "type": "array",
       "description": "Closed ordered declaration copied into the identity-root creation transcript.",
       "prefixItems": [
         {
-          "const": "ak.realm.create"
+          "const": "ak.realm.create",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "account-operations.schema.json#/$defs/pcr_genesis_unit_kinds/prefixItems/0",
+            "owner": "account-operations.schema.json#/$defs/pcr_genesis_unit_kinds/prefixItems/0",
+            "values": [
+              "ak.realm.create"
+            ]
+          }
         },
         {
-          "const": "ak.device.authorize"
+          "const": "ak.device.authorize",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "account-operations.schema.json#/$defs/pcr_genesis_unit_kinds/prefixItems/1",
+            "owner": "account-operations.schema.json#/$defs/pcr_genesis_unit_kinds/prefixItems/1",
+            "values": [
+              "ak.device.authorize"
+            ]
+          }
         }
       ],
       "minItems": 2,
@@ -984,7 +1221,15 @@
           "enum": [
             "did_webvh_inception_update_key"
           ],
-          "description": "Closed registration root-key derivation discriminator. v1 permits only did_webvh_inception_update_key paired with anchor_kind=webvh_registration."
+          "description": "Closed registration root-key derivation discriminator. v1 permits only did_webvh_inception_update_key paired with anchor_kind=webvh_registration.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/proof_kind",
+            "owner": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/proof_kind",
+            "values": [
+              "did_webvh_inception_update_key"
+            ]
+          }
         },
         "challenge_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -994,7 +1239,15 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding_and_pcr_genesis"
+          "const": "account_binding_and_pcr_genesis",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/purpose",
+            "owner": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/purpose",
+            "values": [
+              "account_binding_and_pcr_genesis"
+            ]
+          }
         },
         "account_subject": {
           "$ref": "#/$defs/account_subject"
@@ -1066,7 +1319,15 @@
           "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
         },
         "signature_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "account-operations.schema.json#/$defs/identity_creation_control_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -1140,7 +1401,15 @@
                 ],
                 "properties": {
                   "anchor_kind": {
-                    "const": "webvh_registration"
+                    "const": "webvh_registration",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/if/properties/principal_registration_anchor/properties/anchor_kind",
+                      "owner": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/if/properties/principal_registration_anchor/properties/anchor_kind",
+                      "values": [
+                        "webvh_registration"
+                      ]
+                    }
                   }
                 }
               }
@@ -1151,14 +1420,30 @@
               "control_proof": {
                 "properties": {
                   "proof_kind": {
-                    "const": "did_webvh_inception_update_key"
+                    "const": "did_webvh_inception_update_key",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof/properties/proof_kind",
+                      "owner": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof/properties/proof_kind",
+                      "values": [
+                        "did_webvh_inception_update_key"
+                      ]
+                    }
                   }
                 }
               },
               "identity_creation_control_proof": {
                 "properties": {
                   "proof_kind": {
-                    "const": "did_webvh_inception_update_key"
+                    "const": "did_webvh_inception_update_key",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof/properties/proof_kind",
+                      "owner": "account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof/properties/proof_kind",
+                      "values": [
+                        "did_webvh_inception_update_key"
+                      ]
+                    }
                   }
                 }
               }
@@ -1187,7 +1472,15 @@
       ],
       "properties": {
         "binding_state": {
-          "const": "bound"
+          "const": "bound",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_binding_receipt/properties/binding_state",
+            "owner": "account-operations.schema.json#/$defs/account_binding_receipt/properties/binding_state",
+            "values": [
+              "bound"
+            ]
+          }
         },
         "binding_kind": {
           "type": "string",
@@ -1195,7 +1488,16 @@
             "published_did",
             "identity_creation"
           ],
-          "description": "Frozen registration branch: new DID publication or complete already-published DID account initialization."
+          "description": "Frozen registration branch: new DID publication or complete already-published DID account initialization.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_binding_receipt/properties/binding_kind",
+            "owner": "account-operations.schema.json#/$defs/account_binding_receipt/properties/binding_kind",
+            "values": [
+              "published_did",
+              "identity_creation"
+            ]
+          }
         },
         "account_authority_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1240,7 +1542,16 @@
             "accepted",
             "duplicate"
           ],
-          "description": "identity_creation preserves the exact registry accepted/duplicate status. published_did uses accepted for the first durable validation acceptance and replays that same value; it never claims publication or invents a registry duplicate."
+          "description": "identity_creation preserves the exact registry accepted/duplicate status. published_did uses accepted for the first durable validation acceptance and replays that same value; it never claims publication or invents a registry duplicate.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_binding_receipt/properties/operation_status",
+            "owner": "account-operations.schema.json#/$defs/account_binding_receipt/properties/operation_status",
+            "values": [
+              "accepted",
+              "duplicate"
+            ]
+          }
         },
         "registration_anchor_digest": {
           "$ref": "#/$defs/sha256_digest",
@@ -1260,7 +1571,15 @@
           "if": {
             "properties": {
               "binding_kind": {
-                "const": "published_did"
+                "const": "published_did",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/account_binding_receipt/allOf/0/if/properties/binding_kind",
+                  "owner": "account-operations.schema.json#/$defs/account_binding_receipt/allOf/0/if/properties/binding_kind",
+                  "values": [
+                    "published_did"
+                  ]
+                }
               }
             },
             "required": [
@@ -1270,7 +1589,15 @@
           "then": {
             "properties": {
               "operation_status": {
-                "const": "accepted"
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/account_binding_receipt/allOf/0/then/properties/operation_status",
+                  "owner": "account-operations.schema.json#/$defs/account_binding_receipt/allOf/0/then/properties/operation_status",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             }
           }
@@ -1310,13 +1637,14 @@
     "account_registration_rate_limit_policy": {
       "type": "object",
       "required": [
-        "max_attempts",
+        "max_attempt_count",
         "window_seconds"
       ],
       "properties": {
-        "max_attempts": {
+        "max_attempt_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "window_seconds": {
           "type": "integer",
@@ -1378,7 +1706,25 @@
         "invitation_invalid",
         "rate_limited",
         "duplicate_conflict"
-      ]
+      ],
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "account_registration_audit",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "account-operations.schema.json#/$defs/account_registration_audit_outcome",
+        "owner": "account-operations.schema.json#/$defs/account_registration_audit_outcome",
+        "values": [
+          "accepted",
+          "registration_closed",
+          "verification_code_required",
+          "verification_code_invalid",
+          "organization_not_allowed",
+          "invitation_required",
+          "invitation_invalid",
+          "rate_limited",
+          "duplicate_conflict"
+        ]
+      }
     },
     "account_registration_evidence_summary": {
       "type": "object",
@@ -1555,7 +1901,7 @@
       ],
       "additionalProperties": false
     },
-    "account_register_outcome": {
+    "account_register_response_body": {
       "type": "object",
       "required": [
         "principal_id",
@@ -1594,7 +1940,7 @@
           "$ref": "#/$defs/account_binding_receipt"
         },
         "session_grant_outcome": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
         },
         "pcr_genesis_commits": {
           "type": "array",
@@ -1618,7 +1964,8 @@
           "primary_handle_claim_ref"
         ]
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_profile_event_submission": {
       "allOf": [
@@ -1678,7 +2025,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.profile.create"
+                      "const": "ak.profile.create",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "account-operations.schema.json#/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/kind",
+                        "owner": "account-operations.schema.json#/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/kind",
+                        "values": [
+                          "ak.profile.create"
+                        ]
+                      }
                     },
                     "payload": {
                       "properties": {
@@ -1701,7 +2056,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.profile.update"
+                      "const": "ak.profile.update",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "account-operations.schema.json#/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/kind",
+                        "owner": "account-operations.schema.json#/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.profile.update"
+                        ]
+                      }
                     },
                     "payload": {
                       "properties": {
@@ -1736,7 +2099,7 @@
       },
       "additionalProperties": false
     },
-    "account_update_profile_outcome": {
+    "account_update_profile_response_body": {
       "type": "object",
       "description": "Stored outcome after the profile Event is authority-committed and its effect is materialized. profile.id is the create-derived ActorProfile ID, profile.realm_id is event.realm_id, and an update projects updated_by/updated_at from event.actor_id/event.created_at. commit is the exact RealmCommit covering the submitted Event. Exact Event replay returns the byte-identical stored outcome and emits no second account-aggregate delta.",
       "required": [
@@ -1751,7 +2114,8 @@
           "$ref": "./realm-commit.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_status_record": {
       "type": "object",
@@ -1764,14 +2128,22 @@
         "account_id",
         "principal_control_realm_id",
         "binding_version",
-        "status_seq",
+        "status_sequence",
         "status",
         "issued_at",
         "proof"
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.account_status_record.v1"
+          "const": "ak.schema.account_status_record.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_status_record/properties/schema",
+            "owner": "account-operations.schema.json#/$defs/account_status_record/properties/schema",
+            "values": [
+              "ak.schema.account_status_record.v1"
+            ]
+          }
         },
         "account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
@@ -1790,7 +2162,7 @@
           "minimum": 1,
           "description": "Monotonic Account Authority-local account-to-principal binding generation."
         },
-        "status_seq": {
+        "status_sequence": {
           "type": "integer",
           "minimum": 1
         },
@@ -1806,7 +2178,20 @@
             "suspended",
             "deactivated",
             "erasure_pending"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_status_record/properties/status",
+            "owner": "account-operations.schema.json#/$defs/account_status_record/properties/status",
+            "values": [
+              "active",
+              "soft_logged_out",
+              "locked",
+              "suspended",
+              "deactivated",
+              "erasure_pending"
+            ]
+          }
         },
         "reason_code": {
           "type": "string",
@@ -1831,18 +2216,34 @@
         {
           "if": {
             "properties": {
-              "status_seq": {
-                "const": 1
+              "status_sequence": {
+                "const": 1,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "account-operations.schema.json#/$defs/account_status_record/allOf/0/if/properties/status_sequence",
+                  "owner": "account-operations.schema.json#/$defs/account_status_record/allOf/0/if/properties/status_sequence",
+                  "values": [
+                    1
+                  ]
+                }
               }
             },
             "required": [
-              "status_seq"
+              "status_sequence"
             ]
           },
           "then": {
             "properties": {
               "status": {
-                "const": "active"
+                "const": "active",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-operations.schema.json#/$defs/account_status_record/allOf/0/then/properties/status",
+                  "owner": "account-operations.schema.json#/$defs/account_status_record/allOf/0/then/properties/status",
+                  "values": [
+                    "active"
+                  ]
+                }
               }
             },
             "not": {
@@ -1908,7 +2309,7 @@
         "record_digest",
         "account_authority_id",
         "account_id",
-        "status_seq",
+        "status_sequence",
         "receiver_id",
         "accepted_at",
         "proof"
@@ -1930,7 +2331,7 @@
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
-        "status_seq": {
+        "status_sequence": {
           "type": "integer",
           "minimum": 1
         },
@@ -1964,7 +2365,7 @@
       "required": [
         "account_authority_id",
         "account_id",
-        "from_status_seq",
+        "from_status_sequence",
         "limit"
       ],
       "properties": {
@@ -1974,7 +2375,7 @@
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
-        "from_status_seq": {
+        "from_status_sequence": {
           "type": "integer",
           "minimum": 1
         },
@@ -1986,9 +2387,9 @@
       },
       "additionalProperties": false
     },
-    "account_status_resolve_outcome": {
+    "account_status_resolve_response_body": {
       "type": "object",
-      "description": "Contiguous Account Authority issuer-ledger range. Records are ordered by status_seq, begin exactly at from_status_seq when present, and retain the Account Authority's original bytes and proofs.",
+      "description": "Contiguous Account Authority issuer-ledger range. Records are ordered by status_sequence, begin exactly at from_status_sequence when present, and retain the Account Authority's original bytes and proofs.",
       "required": [
         "account_authority_id",
         "account_id",
@@ -2014,20 +2415,21 @@
         "has_more": {
           "type": "boolean"
         },
-        "next_status_seq": {
+        "next_status_sequence": {
           "type": "integer",
           "minimum": 1
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "account_status_publication_outcome": {
+    "account_status_publication_response_body": {
       "type": "object",
       "description": "Durable replica operation state. accepted/duplicate are terminal for this receiver and dependency_missing performs zero writes while identifying the exact next sequence required for gap recovery.",
       "required": [
         "status",
         "account_status_record_id",
-        "status_seq",
+        "status_sequence",
         "account_id",
         "propagation_state"
       ],
@@ -2038,12 +2440,22 @@
             "accepted",
             "duplicate",
             "dependency_missing"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_status_publication_response_body/properties/status",
+            "owner": "account-operations.schema.json#/$defs/account_status_publication_response_body/properties/status",
+            "values": [
+              "accepted",
+              "duplicate",
+              "dependency_missing"
+            ]
+          }
         },
         "account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
         },
-        "status_seq": {
+        "status_sequence": {
           "type": "integer",
           "minimum": 1
         },
@@ -2053,11 +2465,11 @@
         "current_account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
         },
-        "current_status_seq": {
+        "current_status_sequence": {
           "type": "integer",
           "minimum": 1
         },
-        "required_status_seq": {
+        "required_status_sequence": {
           "type": "integer",
           "minimum": 1
         },
@@ -2071,17 +2483,30 @@
             "scheduled",
             "complete",
             "incomplete"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/account_status_publication_response_body/properties/propagation_state",
+            "owner": "account-operations.schema.json#/$defs/account_status_publication_response_body/properties/propagation_state",
+            "values": [
+              "not_required",
+              "scheduled",
+              "complete",
+              "incomplete"
+            ]
+          }
         },
         "pending_destination_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "receipt": {
           "$ref": "#/$defs/account_status_receipt"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "session_revoke_request_body": {
       "type": "object",
@@ -2093,7 +2518,15 @@
           "$ref": "#/$defs/device_id"
         },
         "all_sessions": {
-          "const": true
+          "const": true,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "account-operations.schema.json#/$defs/session_revoke_request_body/properties/all_sessions",
+            "owner": "account-operations.schema.json#/$defs/session_revoke_request_body/properties/all_sessions",
+            "values": [
+              true
+            ]
+          }
         },
         "proof": {
           "$ref": "#/$defs/account_lifecycle_proof"
@@ -2123,7 +2556,7 @@
       },
       "additionalProperties": false
     },
-    "session_revoke_outcome": {
+    "session_revoke_response_body": {
       "type": "object",
       "required": [
         "revoked_count"
@@ -2131,7 +2564,8 @@
       "properties": {
         "revoked_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "revoked_session_grant_ids": {
           "type": "array",
@@ -2141,7 +2575,8 @@
           "uniqueItems": true
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "did_binding_challenge_request_body": {
       "type": "object",
@@ -2194,7 +2629,7 @@
       "additionalProperties": false,
       "description": "Freeze complete published-DID account initialization intent under the live lease/fence. The caller supplies the full anchor as primary material; the designated fact owner independently resolves the DID at high tier and requires the current verified head/key and exact anchor to agree. Caller history is never trusted as a resolution result. No registry write or PCR effect occurs here."
     },
-    "did_binding_challenge_outcome": {
+    "did_binding_challenge_response_body": {
       "type": "object",
       "description": "Durable single-use published-DID challenge. Existing echoed identity/key/holder fields are compared with the frozen request and authenticated account context. The record additionally retains the entire request, lease/fence, anchor and PCR/genesis/initial-session digests. Register requires proof plus published_identity, rechecks currentness before first acceptance and freezes the exact outcome. No witness_evidence string substitutes for independently verified method-native witness/freshness.",
       "required": [
@@ -2226,7 +2661,15 @@
           "minLength": 22
         },
         "purpose": {
-          "const": "account_binding_for_published_did"
+          "const": "account_binding_for_published_did",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/did_binding_challenge_response_body/properties/purpose",
+            "owner": "account-operations.schema.json#/$defs/did_binding_challenge_response_body/properties/purpose",
+            "values": [
+              "account_binding_for_published_did"
+            ]
+          }
         },
         "account_subject": {
           "$ref": "#/$defs/non_empty_string",
@@ -2274,7 +2717,8 @@
         }
       },
       "additionalProperties": false,
-      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected.",
+      "x-arkret-name-role": "response_body"
     },
     "identity_abandonment_request_body": {
       "type": "object",
@@ -2314,7 +2758,7 @@
       },
       "additionalProperties": false
     },
-    "identity_abandonment_outcome": {
+    "identity_abandonment_response_body": {
       "type": "object",
       "description": "Exact terminal outcome of explicitly abandoning the frozen local registration reservation before any PCR acceptance. identity_creation retains the orphan-anchor rule. published_did cancels only this account initialization attempt and tombstones its request/challenge: it never deactivates, globally tombstones or makes the external DID unusable. Both suppress the old holder-readable checkpoint and release the lease atomically; unresolved PCR dispatch must be reconciled first.",
       "required": [
@@ -2337,7 +2781,16 @@
           "enum": [
             "identity_creation",
             "published_did"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-operations.schema.json#/$defs/identity_abandonment_response_body/properties/binding_kind",
+            "owner": "account-operations.schema.json#/$defs/identity_abandonment_response_body/properties/binding_kind",
+            "values": [
+              "identity_creation",
+              "published_did"
+            ]
+          }
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -2357,7 +2810,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_request_erasure_request_body": {
       "type": "object",
@@ -2373,7 +2827,7 @@
       },
       "additionalProperties": false
     },
-    "account_request_erasure_outcome": {
+    "account_request_erasure_response_body": {
       "type": "object",
       "description": "Acceptance confirmation of a self-initiated account erasure request. At most one live intent record exists per account while the erasure_pending AccountStatusRecord is unsigned. This outcome proves only that the intent is durably recorded; it MUST NOT be read as record issuance or physical erasure completion. Completion is observed through the existing account-status read surface, and physical completion through the erasure receipt rail (zh/identity/account-lifecycle.md section 8).",
       "required": [
@@ -2398,7 +2852,8 @@
           "description": "Present only when the deployment grants a withdrawal window. The Account Authority MUST NOT sign the erasure_pending AccountStatusRecord before this time; once the record is signed the request is irreversible (zh/identity/account-lifecycle.md section 3 rule 3) and no withdrawal is possible."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "published_identity_registration": {
       "type": "object",

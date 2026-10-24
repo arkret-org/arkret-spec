@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.cross_station_welcome_replication.v1"
   },
-  "version": "2026-09-29.2",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.cross_station_welcome_replication.v1"
@@ -14,7 +14,7 @@
     "registry/contract-registry.json",
     "registry/operations-error-mapping.json",
     "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
-    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
     "schemas/mls-welcome-delivery.schema.json"
   ],
   "description": "Executable evidence for ak.vector.mls.cross_station_welcome_replication.v1 (zh/crypto-media/encryption-and-audit.md section 2.2, zh/crypto-media/device-lifecycle.md section 9.2.3, zh/sync/client-sync.md section 10.1, decisions 0119 and 0121). Every governance variant starts from a fresh governance Station. A governance variant has committer author and sign one ak.mls.commit whose inline Adds are exactly the adds endpoints and one producer-signed MlsWelcomeDelivery per added endpoint, sorted by welcome_id; its outcome lists the Welcomes queued on the governance Station, the claims bound there and, per remote committed-replication target, the Welcomes carried by that target's intent (null when the intent carries no welcomes member). A replica variant delivers to Station Y one committed_replication item of item_event_kind carrying the listed Welcomes of that Commit. A Station Y variant that names claims starts from a fresh Station Y whose ledger holds each named claim in the given state (live, absent, expired, consumed, bound_to_other_welcome or other_endpoint); a Station Y variant without claims continues from the state the earlier variants of its case left. queue_capacity and preloaded_deliveries give each endpoint the variant delivers to its queue bound and the unacknowledged deliveries it already holds. queue and claim_bindings list the recipients whose Welcome is queued and whose claim is bound after the variant; outstanding counts unacknowledged deliveries per endpoint. A refused submission or request MUST leave every Station exactly as before.",
@@ -203,19 +203,19 @@
             "kind": "ak.mls.commit",
             "payload": {
               "base_group_state_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
-              "previous_epoch": 0,
-              "next_epoch": 1,
-              "covers_key_access_revision": 0,
-              "commit_bytes_b64": "Y29tbWl0",
+              "previous_epoch": "0",
+              "next_epoch": "1",
+              "covers_key_access_revision": "0",
+              "commit_base64url": "Y29tbWl0",
               "governance_binding": {
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
                 },
                 "base_group_state_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
-                "previous_epoch": 0,
-                "next_epoch": 1,
-                "key_access_revision": 0
+                "previous_epoch": "0",
+                "next_epoch": "1",
+                "key_access_revision": "0"
               }
             },
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -244,7 +244,7 @@
           "stream_position": 0,
           "previous_commit_ref": null,
           "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "committed_at": "2026-09-20T00:00:00.000Z",
           "signature": {
@@ -253,7 +253,7 @@
             "verification_method": "did:web:station.example#authority",
             "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-09-20T00:00:00.000Z",
-            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         },
         "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
@@ -275,14 +275,14 @@
               "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
             },
             "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-            "ciphertext_b64": "AQIDBA",
+            "ciphertext_base64url": "AQIDBA",
             "producer_proof": {
               "context": "ak.mls_welcome_delivery_signature.v1",
               "signature_algorithm": "Ed25519",
               "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
               "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
               "created_at": "2026-09-20T00:00:00.000Z",
-              "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+              "signature": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
             }
           }
         ]
@@ -349,7 +349,7 @@
           "stream_position": 0,
           "previous_commit_ref": null,
           "event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "authority_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
           "committed_at": "2026-09-20T00:00:00.000Z",
           "signature": {
@@ -358,7 +358,7 @@
             "verification_method": "did:web:station.example#authority",
             "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "created_at": "2026-09-20T00:00:00.000Z",
-            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         }
       }
@@ -436,14 +436,14 @@
                 "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
               },
               "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-              "ciphertext_b64": "AQIDBA",
+              "ciphertext_base64url": "AQIDBA",
               "producer_proof": {
                 "context": "ak.mls_welcome_delivery_signature.v1",
                 "signature_algorithm": "Ed25519",
                 "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
                 "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
                 "created_at": "2026-09-20T00:00:00.000Z",
-                "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+                "signature": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
               }
             }
           ]
@@ -497,22 +497,22 @@
         {
           "op": "replace",
           "path": "/event_submission/event/payload/previous_epoch",
-          "value": 2
+          "value": "2"
         },
         {
           "op": "replace",
           "path": "/event_submission/event/payload/next_epoch",
-          "value": 3
+          "value": "3"
         },
         {
           "op": "replace",
           "path": "/event_submission/event/payload/governance_binding/previous_epoch",
-          "value": 2
+          "value": "2"
         },
         {
           "op": "replace",
           "path": "/event_submission/event/payload/governance_binding/next_epoch",
-          "value": 3
+          "value": "3"
         }
       ]
     },
@@ -545,9 +545,24 @@
           "commit_previous_epoch": 2,
           "base_group_state_ref": "previous_commit_event",
           "genesis_event_ref": "accepted_genesis_event",
-          "welcomes": ["bob"],
-          "claims": {"bob": "live"},
-          "expected": {"decision": "accept", "replication_outcome": "stored", "attestation_genesis_event_ref": "accepted_genesis_event", "replicas": 1, "queue": ["bob"], "claim_bindings": ["bob"]}
+          "welcomes": [
+            "bob"
+          ],
+          "claims": {
+            "bob": "live"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "attestation_genesis_event_ref": "accepted_genesis_event",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ]
+          }
         },
         {
           "name": "wrong_genesis_ref_conflicts_with_held_group",
@@ -559,9 +574,19 @@
           "base_group_state_ref": "previous_commit_event",
           "genesis_event_ref": "other_group_genesis_event",
           "held_group_genesis_event_ref": "accepted_genesis_event",
-          "welcomes": ["bob"],
-          "claims": {"bob": "live"},
-          "expected": {"decision": "reject", "replicas": 0, "queue": [], "claim_bindings": [], "attestations": 0}
+          "welcomes": [
+            "bob"
+          ],
+          "claims": {
+            "bob": "live"
+          },
+          "expected": {
+            "decision": "reject",
+            "replicas": 0,
+            "queue": [],
+            "claim_bindings": [],
+            "attestations": 0
+          }
         },
         {
           "name": "replay_changes_genesis_ref",
@@ -573,9 +598,19 @@
           "base_group_state_ref": "previous_commit_event",
           "genesis_event_ref": "other_group_genesis_event",
           "previously_stored_genesis_event_ref": "accepted_genesis_event",
-          "welcomes": ["bob"],
-          "claims": {"bob": "live"},
-          "expected": {"decision": "reject", "replicas": 0, "queue": [], "claim_bindings": [], "attestations": 0}
+          "welcomes": [
+            "bob"
+          ],
+          "claims": {
+            "bob": "live"
+          },
+          "expected": {
+            "decision": "reject",
+            "replicas": 0,
+            "queue": [],
+            "claim_bindings": [],
+            "attestations": 0
+          }
         }
       ]
     },

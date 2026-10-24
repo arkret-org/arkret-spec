@@ -13,11 +13,19 @@
     "previous_series_ids",
     "source_commit_ref",
     "issued_at",
-    "auth_data"
+    "signature_proof"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.key_backup_active_series.v1"
+      "const": "ak.schema.key_backup_active_series.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "key-backup-active-series.schema.json#/properties/schema",
+        "owner": "key-backup-active-series.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.key_backup_active_series.v1"
+        ]
+      }
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -48,7 +56,7 @@
     "issued_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "auth_data": {
+    "signature_proof": {
       "type": "object",
       "required": [
         "verification_method",
@@ -64,12 +72,20 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "key-backup-active-series.schema.json#/properties/signature_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over RFC 8785 JCS(record without auth_data.signature). The closed record shape fixes the authenticated projection."
+          "description": "base64url signature over RFC 8785 JCS(record without signature_proof.signature). The closed record shape fixes the authenticated projection."
         },
         "device_authorize_event_id": {
           "type": "string",
@@ -96,7 +112,15 @@
       "type": "string",
       "enum": [
         "secret_storage"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "key-backup-active-series.schema.json#/$defs/backup_kind",
+        "owner": "key-backup-active-series.schema.json#/$defs/backup_kind",
+        "values": [
+          "secret_storage"
+        ]
+      }
     },
     "backup_series_id": {
       "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"

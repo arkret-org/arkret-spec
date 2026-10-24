@@ -97,7 +97,7 @@ Profile 之间的 `inherits` / `depends_on` / `mutually_exclusive_with` 关系�
 身份托管、服务器内部的 DID method 解析验证、向客户端公开通用解析 API 是不同能力。
 WebVH 托管提供签名历史文件，内部解析验证读取并验证方法材料；二者不自动意味着公告了
 `ak.root.identity.read.resolve.v1`。使用该公开 API 时，按其提供方的 role-scoped Describe
-检查 exact pair；`auth_metadata.account_authority.gate_account_base_url` 只选择账号准入路径，
+检查 exact pair；`authentication_metadata.account_authority.gate_account_base_url` 只选择账号准入路径，
 不能作为该解析 API 已公告或可调用的证据。业务操作返回的已验证身份结果仍按
 [服务器信任与结果消费](../sync/server-trusted-results.md) 处理。
 
@@ -360,7 +360,7 @@ MUST 支持：
   durable authority；ID/JWT `jti` 必须从 closed issuance preimage 重算
 - durable exact replay、same-identity conflicting intent 零写入，以及 expired / revoked|superseded /
   indeterminate replay 的 terminal fail-closed 语义
-- `auth_metadata.account_authority`、`auth_metadata.methods[]`、`auth_metadata.did_binding_methods`
+- `authentication_metadata.account_authority`、`authentication_metadata.methods[]`、`authentication_metadata.did_binding_methods`
 
 SHOULD 支持：
 
@@ -374,7 +374,7 @@ Station 的 Account Authority capability MUST NOT 把成功的 OIDC / SSO / pass
 
 部署内部认证组件只可用 issuer key 签自己的 JWT、introspection/status 与 issuer receipt。它 MUST NOT 持有或
 请求 principal/root/device private key 或 governance-Station authority key，MUST NOT author SessionGrant genesis/lifecycle Event、查询
-subject PCR authoring checkpoint 或依赖 grant Event/typed current result。客户端 DPoP
+subject PCR authoring checkpoint 或依赖 grant Event/current state。客户端 DPoP
 签 holder/request proof；真正的 principal Event 必须由当前获授权客户端 signer 签署，S2S transport proof
 不能替代内层 Event proof。
 
@@ -676,8 +676,8 @@ SHOULD 支持：
 `ak.profile.agent_provisioning.v1` 注册 controller-面的 Agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/typed current result。controller 把该承诺写入本地冻结的 Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim typed results；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
-- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key.v1`) 校验 current controller/Agent authority、pairing handle、requested-scope disclosure、proof-of-possession 与 accepted authority-committed current results，不得以 history-only backup 为前置。agent 已有 active key 时(runtime replacement re-pairing)必须提交不同 raw signing key，并以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization；同 key 续权不属于 replacement。
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/current state。controller 把该承诺写入本地冻结的 Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim typed results；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key.v1`) 校验 current controller/Agent authority、pairing handle、requested-scope disclosure、proof-of-possession 与 accepted authority-committed current state，不得以 history-only backup 为前置。agent 已有 active key 时(runtime replacement re-pairing)必须提交不同 raw signing key，并以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization；同 key 续权不属于 replacement。
 - Agent 通用 list/get projection 恰好暴露 lifecycle、readiness、presence 三轴；generic readiness 只含主体级 durable blockers，例如 `runtime_key_missing`、`pairing_open`，不得出现 `session_missing`、backup 状态、KP 库存、target Realm grant/membership 或 MLS blocker。`key_state` 只承载 key/handle/authorization，不得重复产品状态或备份状态。pairing poll 的 closed `runtime_state` 仅返回该 handle 的 pairing mode、expiry 和当前步骤所需 refs，不披露其它 Agent/handle/requested scope/grant/PCR history/session。SDK 必须区分 controller、pairing-handle runtime、authorized-key/no-session runtime、authenticated runtime 四种角色；authorized-key/no-session runtime 凭 active authorization 与 PoP 申请 session，不依赖 controller 在线或 generic list/get
 - Pairing expiry 关闭并省略 open-handle fields、重算 readiness；尚未首次配对的 Agent 保持 `not_ready` + `runtime_key_missing`，replacement handle 过期则清除 `pairing_open` 且不改变既有 key/grant/lifecycle。上述两者均不得创建、撤销或改写 Realm grant
 - `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing.v1`) 对 bootstrap 状态重开 pairing，或对已持有 active authorized key 且 lifecycle 为 `active | paused` 的 agent 执行 new-key runtime replacement；`active` 无需先 pause，怀疑旧 key 失陷时 SHOULD 先 pause(见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
@@ -714,7 +714,7 @@ MUST 支持:
 - capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的 submit、scan、subscribe 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`；KeyPackage upload/consume 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload；现行单包 revoke 是 device-only，Agent 分支失败关闭，不参与 capability 选择。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写继续独立检查相应 `ak.event.read` / `ak.message.create` action、已登记资源授权来源与 participation 等动作时 gate；成员读取不要求显式读取 grant，写入不由读取来源派生。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
 - 服务会话取得后续内容 ceiling 使用新 intent 的既有 issue operation；refresh 只轮换原 ceiling，不扩 action/resource/constraint。current 来源失效时旧会话停止新供给；Sidecar Welcome 引导检查 desired 与 exact lineage，不提前要求 effective，业务 payload 仍要求 effective。必须通过 `ak.vector.agent.session_content_authority.v1`
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
-- Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
+- Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_problem_extensions`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
 MUST NOT:
 - 把 `agent_key_proof` 降级走 password / OIDC / passkey validator fallback
@@ -790,7 +790,7 @@ MUST 支持:
 - own Station 的 notification/inbox/push/subscribe 在本地派生时检查 current selection 和所需有效治理事实；投递成功不授予外站自治写权限。跨独立治理 Station 的 target MUST 同时取得动作时可验证的 controller current selection 与目标 scope 完整治理 cut；内部 owner-current 通道不得跨该边界，closed introspection 的 active/status 也不能替代 selection current。v1 不登记跨站 selection carrier/取回 operation；缺 current 输入时 MUST 拒绝该自治动作且零写入，使用适用入口已登记的 `failed_precondition` / `agent_participation_ceiling_unresolved`。不得以 session overlay、短 TTL、Agent portable authority evidence 或 own Station 投递结果放行，不能声称支持跨站自治成功。selection 不得塞入 PCR 闭包、peer replica 或 unknown introspection 字段。
 - replace 的 closed body 固定为 `{target_scope,selection,expected_version}`。`target_scope` 是
   `realm{realm_id}|circle{realm_id,circle_id}|strand{realm_id,strand_id}` closed XOR；selection 是 required 五位
-  `{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}`。首次写
+  `{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}`。首次写
   `expected_version=0`，每次成功严格加一；版本不匹配返回 `cas_conflict` 且零写入。GET 与 replace outcome 的每项
   固定为 `{target_scope,selection,version,next_replace_input:{expected_version}}`，其中
   `next_replace_input.expected_version=version`
@@ -808,9 +808,9 @@ MUST 支持:
   pause/deactivate 继续是全局紧急停机；deployment ceiling 是 target 本地运行时安全门，只能进一步拒绝动作，
   不进入 controller selection wire、Realm reducer 或跨服务共识
 - Realm/Circle/Strand policy ceiling 复用同一 required 五位 shape，子级只能逐位收紧父级。不得保留缺省继承、
-  三位 shape、bit 重命名或把 `reply_message` 隐式扩展为 reaction 权限
-- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
-- `reply_message`只映射`ak.message.create`，reaction add/remove分别映射`ak.reaction.add/remove`。
+  三位 shape、bit 重命名或把 `message_creation_allowed` 隐式扩展为 reaction 权限
+- 第三方 mention gate：`third_party_mention_delivery_allowed=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
+- `message_creation_allowed`只映射`ak.message.create`，reaction add/remove分别映射`ak.reaction.add/remove`。
   reply-as-Agent固定`actor_id=agent_id`；act-on-behalf固定`actor_id=controller_account_id,executed_by=agent_id`并携匹配
   controller approval/accountability authorization ref，二者不可混用
 
@@ -1057,7 +1057,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 **本节定位（normative for grading and claims）**：本节不新增 profile、不新增 wire MUST、不扩展部署用途的 `profile_requirements`；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。`conformance-profiles.json#sdk_conformance_contract` 为这些条款提供独立机读 claim 面：稳定 `clause_id`、V/A/U 等级、证据类型和 claim 必填字段。SDK 声明不得复用 deployment profile 字段，也不得以易漂移的表格行号代替 clause ID。
 
-**证据映射（normative）**：`sdk_conformance_contract` 中 `required_evidence` 含 `vector_result` 的条款 MUST 携带 `vector_evidence`，其余条款 MUST NOT 携带。`vector_evidence.vectors` 点名承载该条款的已登记向量；以 `.*` 结尾的条目只是书写便利，MUST 在当前 spec revision 的 `vector-registry.json` 下展开为非空且不含失活成员的集合。`vector_evidence.decision_points` 逐条登记该义务中可分别观测的判定点，每个判定点 MUST 有条款内唯一的 `id`、一句 `requirement`，以及至少一个取自展开后集合的精确 vector id。门禁只证明这层映射可解析；它不读 `requirement` 的自然语言，也不证明任一向量的语义足以覆盖该判定点——因此判定点在登记或变更时 MUST 经复核，且 MUST NOT 为迁就某份 fixture 现有的 case 把判定点写窄。SDK claim 中 `kind=vector_result` 的证据 MUST 携带 `covers_vectors`，其并集 MUST 是该条款展开后向量集合的子集，并 MUST 覆盖其每个判定点点名的向量；结果 MUST 与 claim 同一 `spec_revision` 并携带不可变摘要。本映射只服务于 SDK claim 的证据记账，MUST NOT 被当作部署 profile 的适用性 selector，也不改变 `evidence_coverage_semantics` 的 acceptable-set 语义。
+**证据映射（normative）**：`sdk_conformance_contract` 中 `required_evidence` 含 `vector_result` 的条款 MUST 携带 `vector_evidence`，其余条款 MUST NOT 携带。`vector_evidence.vectors` 点名承载该条款的已登记向量；以 `.*` 结尾的条目只是书写便利，MUST 在当前 spec revision 的 `vector-registry.json` 下展开为非空且不含失活成员的集合。`vector_evidence.decision_points` 逐条登记该义务中可分别观测的判定点，每个判定点 MUST 有条款内唯一的 `id`、一句 `requirement`，以及至少一个取自展开后集合的精确 vector id。门禁只证明这层映射可解析；它不读 `requirement` 的自然语言，也不证明任一向量的语义足以覆盖该判定点——因此判定点在登记或变更时 MUST 经复核，且 MUST NOT 为迁就某份 fixture 现有的 case 把判定点写窄。SDK claim 中 `kind=vector_result` 的证据 MUST 携带 `covers_vectors`，其并集 MUST 是该条款展开后向量集合的子集，并 MUST 覆盖其每个判定点点名的向量；结果 MUST 与 claim 同一 `specification_revision` 并携带不可变摘要。本映射只服务于 SDK claim 的证据记账，MUST NOT 被当作部署 profile 的适用性 selector，也不改变 `evidence_coverage_semantics` 的 acceptable-set 语义。
 
 **判定点到 case（normative）**：判定点映射到向量还不是可执行证据——一份 fixture 可以只有一条 case，而条款声明五个判定点。因此每个判定点 MUST 被至少一条 fixture case 点名。case 即 `artifacts/fixtures/` 下携带 `covers_decision_points` 的对象，其值是非空的 `"<clause_id>/<decision_point_id>"` 列表；该对象 MUST 另带非空 `name` 与非空 `expected`，并 MUST 位于承载该判定点自身向量的 fixture 内——把判定点 id 放进无关 fixture 不成立。承载 fixture MUST 声明 `runner`；`runner.kind=named_suite` 时 MUST 声明工具中立的 `ak.suite.*.v1` entrypoint，未知或未映射的 suite MUST fail closed。一条 case MAY 覆盖多个判定点，一个判定点 MAY 被多条 case 覆盖。
 
@@ -1100,7 +1100,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |
 | <a id="ak-sdk-017"></a>17 | 具体 schema 明示的 `x_*` 槽中未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes；该正例不得推广成任意对象都接受扩展 | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
-| <a id="ak-sdk-018"></a>18 | `ack_token` MUST 作为不透明字符串原样回传，SDK MUST NOT 解析其内部结构 | client-sync §10.1 | **A**（不暴露结构化解码 API） |
+| <a id="ak-sdk-018"></a>18 | `acknowledgement_token` MUST 作为不透明字符串原样回传，SDK MUST NOT 解析其内部结构 | client-sync §10.1 | **A**（不暴露结构化解码 API） |
 | <a id="ak-sdk-019"></a>19 | `retry_safe=false` 的 operation MUST NOT 自动全量重试；请求内容改变时 MUST 换 request key | api-conventions §6.2 | **A/U**（重试 API 与配置审计） |
 | <a id="ak-sdk-020"></a>20 | 客户端 MUST 以 `max(server_hint_delay, jitter(local_backoff_delay))` 组合 `Retry-After` 与本地退避；0/已过期提示不得加速本地梯子，长提示不得按本地上限截断，且不存在忽略服务端提示的配置开关 | api-conventions §9 | **V/U**（注入时钟、配置审计与出向请求观测） |
 | <a id="ak-sdk-021"></a>21 | 客户端 MUST 仅按 `has_more` 决定是否继续分页 | api-conventions §7.1 | **V/A**（分页响应向量与 paginator API） |
@@ -1117,12 +1117,12 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
 - SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
-- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。条款 21 的 `has_more` 合同只覆盖列表分页：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1` 既无 cursor 也无 `has_more`，续页由调用方从本批的 `stream_position` 自行推进（[api-conventions §7.2](../sync/api-conventions.md)），SDK 不得把列表 paginator 套到该面上。
+- SHOULD 将 cursor 与 `acknowledgement_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。条款 21 的 `has_more` 合同只覆盖列表分页：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1` 既无 cursor 也无 `has_more`，续页由调用方从本批的 `stream_position` 自行推进（[api-conventions §7.2](../sync/api-conventions.md)），SDK 不得把列表 paginator 套到该面上。
 - SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
 - MUST 让 outer shape 与 payload shape 的非法组合无法通过公开构造器产生；raw wire Event 只能进入解析/草稿态，必须显式转换成 immutable verified submission 后才可交给 publication evidence 或 submit API（对应条款 23）。
 - SHOULD 让 describe/ping 的公开消费 API 从 raw JSON bootstrap 判别开始，并只在版本精确匹配后产出 typed service 值；不得提供跳过该判别而直接写入已验证路由缓存的公开入口（对应条款 24）。
 
-声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。验证器还 MUST 按 `sdk_conformance_contract.evidence_coverage_semantics`（`acceptable_set`）强制证据类型覆盖：对每个 `result=pass` / `result=fail` 的 clause claim，MUST 存在至少一条 evidence，且每条 `evidence[].kind` MUST 属于该 clause 在 contract 中登记的 `required_evidence` 集合；仅由该集合外类型佐证的 pass / fail clause MUST 被拒绝。该检查独立于且叠加于上面的 digest / 签名检查，`required_evidence` 采用可接受集合语义（列出可接受的证据类型，而非要求全部类型齐备）。
+声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `specification_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。验证器还 MUST 按 `sdk_conformance_contract.evidence_coverage_semantics`（`acceptable_set`）强制证据类型覆盖：对每个 `result=pass` / `result=fail` 的 clause claim，MUST 存在至少一条 evidence，且每条 `evidence[].kind` MUST 属于该 clause 在 contract 中登记的 `required_evidence` 集合；仅由该集合外类型佐证的 pass / fail clause MUST 被拒绝。该检查独立于且叠加于上面的 digest / 签名检查，`required_evidence` 采用可接受集合语义（列出可接受的证据类型，而非要求全部类型齐备）。
 
 ### 23.4 与机读面的关系
 

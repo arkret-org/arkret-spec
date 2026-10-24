@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-22.4",
-  "generated_at": "2026-10-22T07:50:48+08:00",
+  "version": "2026-10-24.2",
+  "generated_at": "2026-10-24T14:46:12+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -599,7 +599,7 @@
       "code": "cas_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "An optimistic concurrency precondition failed because the authority-committed typed current result or stream head no longer equals the submitted expectation. The caller must read current state and create a new signed Event; exact retry retains the original identity.",
+      "description": "An optimistic concurrency precondition failed because the authority-committed current state or stream head no longer equals the submitted expectation. The caller must read current state and create a new signed Event; exact retry retains the original identity.",
       "type_uri": "https://arkret.org/problems/cas_conflict",
       "title": "Cas conflict",
       "status": "active"
@@ -1477,7 +1477,7 @@
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
-      "description": "Reducer state-machine or typed CAS precondition failed. A stale typed revision writes nothing and does not carry a generic current/current_result Problem extension; authorized current is obtained only through a separately registered read. Other failures may carry a registered reason_code in the {strand,space,morph}_not_active / _not_archived or {strand,space,morph,message,relation}_already_terminal families, or an object-specific reason such as space_parent_cycle. See zh/models/common-fields.md §5.1 and zh/sync/current-results.md §2.",
+      "description": "Reducer state-machine or typed CAS precondition failed. A stale typed revision writes nothing and does not carry a generic current/current_state Problem extension; authorized current is obtained only through a separately registered read. Other failures may carry a registered reason_code in the {strand,space,morph}_not_active / _not_archived or {strand,space,morph,message,relation}_already_terminal families, or an object-specific reason such as space_parent_cycle. See zh/models/common-fields.md §5.1 and zh/sync/current-state.md §2.",
       "type_uri": "https://arkret.org/problems/failed_precondition",
       "title": "Failed precondition",
       "status": "active"
@@ -2712,7 +2712,7 @@
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "authority-commit plane invariant failed: the registered reducer projection for a Event targeted a data-plane typed current result, or a Event targeted a control-plane typed current result. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
+      "description": "authority-commit plane invariant failed: the registered reducer projection for a Event targeted a data-plane current state, or a Event targeted a control-plane current state. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes).",
       "type_uri": "https://arkret.org/problems/failed_plane",
       "title": "Failed plane",
       "status": "active"
@@ -2785,7 +2785,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Station received an AccountStatusRecord that conflicts with the issuer-ledger chain: either the durable status_seq already names a different record, or the next status_seq does not name the durable head as previous_account_status_record_id. The receiver MUST return failed_precondition with this reason, perform zero writes, stop automatic retry or gap recovery for the conflicting record, and quarantine/alert for operator investigation. It MUST NOT reuse duplicate_conflict, which is reserved by this operation for Idempotency-Key reuse with different canonical request bytes. See zh/identity/account-lifecycle.md §3.",
+      "description": "A Station received an AccountStatusRecord that conflicts with the issuer-ledger chain: either the durable status_sequence already names a different record, or the next status_sequence does not name the durable head as previous_account_status_record_id. The receiver MUST return failed_precondition with this reason, perform zero writes, stop automatic retry or gap recovery for the conflicting record, and quarantine/alert for operator investigation. It MUST NOT reuse duplicate_conflict, which is reserved by this operation for Idempotency-Key reuse with different canonical request bytes. See zh/identity/account-lifecycle.md §3.",
       "status": "active"
     },
     {
@@ -2795,7 +2795,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A Station received an otherwise valid AccountStatusRecord whose status_seq is lower than its durable replica head. The durable head is the only comparison baseline, so this reason applies even when the submitted record is byte-identical to a history row the receiver still stores for that status_seq; a retained history row MUST NOT downgrade the outcome to duplicate. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable. duplicate is reserved for a submission whose status_seq and record identity both equal the durable head. The full ordered classification is registry/account-status-replica-decision-table.json. See zh/identity/account-lifecycle.md §3.1.",
+      "description": "A Station received an otherwise valid AccountStatusRecord whose status_sequence is lower than its durable replica head. The durable head is the only comparison baseline, so this reason applies even when the submitted record is byte-identical to a history row the receiver still stores for that status_sequence; a retained history row MUST NOT downgrade the outcome to duplicate. The receiver MUST return failed_precondition with this reason, perform zero writes, and treat the exact record as terminal/non-retryable. duplicate is reserved for a submission whose status_sequence and record identity both equal the durable head. The full ordered classification is registry/account-status-replica-decision-table.json. See zh/identity/account-lifecycle.md §3.1.",
       "status": "active"
     },
     {
@@ -2853,7 +2853,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an Agent principal whose current `agent_status` typed current result is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md §3.6.1.",
+      "description": "A request targeted an Agent principal whose current `agent_status` current state is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md §3.6.1.",
       "status": "active"
     },
     {
@@ -2908,7 +2908,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an agent principal whose current `agent_status` typed current result is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6.1.",
+      "description": "A request targeted an agent principal whose current `agent_status` current state is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6.1.",
       "status": "active"
     },
     {
@@ -2917,7 +2917,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the commit-ordered projection claim typed current result rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3.",
+      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the commit-ordered projection claim current state rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md §3.6.3.",
       "status": "active"
     },
     {
@@ -2952,7 +2952,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "An Agent attempted to author ak.message.create in a scope where current controller selection and current target policy do not both enable reply_message. See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1.",
+      "description": "An Agent attempted to author ak.message.create in a scope where current controller selection and current target policy do not both enable message_creation_allowed. See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1.",
       "status": "active"
     },
     {
@@ -3006,7 +3006,7 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "A grant approval constraint or ak.policy.action approval requirement targets a capability action whose approval_requirement_eligibility is ineligible_no_registered_carrier. The governance Station rejects the authoring Event at write admission with top-level schema_violation (HTTP 422), this reason_code, and zero Event/RealmCommit/current-result effects. The canonical eligibility registry is capability-action-registry.json; the direct producers are ak.self.events.command.submit.v1 and ak.peer.events.command.submit.v1 authority_forward, with ak.self.applet.command.install.v1 covering its grant Event. See zh/authz/constraint-schema.md section 9.1 and zh/models/governance-objects.md section 3.4.",
+      "description": "A grant approval constraint or ak.policy.action approval requirement targets a capability action whose approval_requirement_eligibility is ineligible_no_registered_carrier. The governance Station rejects the authoring Event at write admission with top-level schema_violation (HTTP 422), this reason_code, and zero Event/RealmCommit/current-state effects. The canonical eligibility registry is capability-action-registry.json; the direct producers are ak.self.events.command.submit.v1 and ak.peer.events.command.submit.v1 authority_forward, with ak.self.applet.command.install.v1 covering its grant Event. See zh/authz/constraint-schema.md section 9.1 and zh/models/governance-objects.md section 3.4.",
       "status": "active"
     },
     {
@@ -3024,7 +3024,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An eligible execution was rejected because approval evidence is required and what was supplied through its registered carrier does not meet the requirement. Two independent layers can raise that requirement and both are evaluated: an approval constraint on a matched capability grant (zh/authz/capabilities.md §6 / §8, zh/authz/constraint-schema.md §9), and the Realm governance approval configuration registered as the policy_action typed current result (zh/models/governance-objects.md §3.5), which hangs off an (action token, scope) pair rather than off one grant. Either layer alone is enough to produce this reason code, and a layer writing approval_required=false only withdraws its own demand -- it never cancels the other's. The top-level error is claim_required. This is a require_review-class outcome, not a deny: supplying the missing approval signatures through the carrier named by capability-action-registry.json and retrying is the defined path. Requirements for actions without a registered carrier are instead rejected at configuration write time with approval_carrier_unregistered.",
+      "description": "An eligible execution was rejected because approval evidence is required and what was supplied through its registered carrier does not meet the requirement. Two independent layers can raise that requirement and both are evaluated: an approval constraint on a matched capability grant (zh/authz/capabilities.md §6 / §8, zh/authz/constraint-schema.md §9), and the Realm governance approval configuration registered as the policy_action current state (zh/models/governance-objects.md §3.5), which hangs off an (action token, scope) pair rather than off one grant. Either layer alone is enough to produce this reason code, and a layer writing approval_required=false only withdraws its own demand -- it never cancels the other's. The top-level error is claim_required. This is a require_review-class outcome, not a deny: supplying the missing approval signatures through the carrier named by capability-action-registry.json and retrying is the defined path. Requirements for actions without a registered carrier are instead rejected at configuration write time with approval_carrier_unregistered.",
       "status": "active"
     },
     {
@@ -3566,7 +3566,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The current governance Station's active ak.authority.direct_conversation_participant.v1 evaluator rejected an Event-mapped allowlisted action because it could not establish every required immutable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, directional Contact, device, or Agent input. The ak.self.events.command.submit.v1 rejection exposes only this non-enumerating reason and writes nothing. Encrypted Signal product actions use their own outer admission carrier and recipient policy, never this Event reason. Consent, created_by, a local projection row, Realm owner aggregation, or an arbitrary Event/current result cannot substitute; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "description": "The current governance Station's active ak.authority.direct_conversation_participant.v1 evaluator rejected an Event-mapped allowlisted action because it could not establish every required immutable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, directional Contact, device, or Agent input. The ak.self.events.command.submit.v1 rejection exposes only this non-enumerating reason and writes nothing. Encrypted Signal product actions use their own outer admission carrier and recipient policy, never this Event reason. Consent, created_by, a local projection row, Realm owner aggregation, or an arbitrary Event/current state cannot substitute; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
       "status": "active"
     },
     {
@@ -3837,7 +3837,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A ak.capability.relinquish named a grant whose subject is not the actor. Relinquish is subject-only precisely so it needs no revoke capability; allowing any other actor would turn it into an unauthorized revocation. The authority-root typed current result is not a grant and can never be a relinquish target. The rejection MUST NOT disclose whether the target exists.",
+      "description": "A ak.capability.relinquish named a grant whose subject is not the actor. Relinquish is subject-only precisely so it needs no revoke capability; allowing any other actor would turn it into an unauthorized revocation. The authority-root current state is not a grant and can never be a relinquish target. The rejection MUST NOT disclose whether the target exists.",
       "status": "active"
     },
     {
@@ -4100,7 +4100,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no typed current result write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3.",
+      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no current state write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3.",
       "status": "active"
     },
     {
@@ -4134,7 +4134,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Station device/key surface received a `ak.keys.backups.*` request body that does not validate as `ak.schema.key_backup.v1`. Wire backups MUST carry the dedicated key-backup envelope with `series_id` and `series_seq`; client-local secret-storage envelopes are not accepted on wire endpoints. See zh/crypto-media/device-lifecycle.md §11.",
+      "description": "Station device/key surface received a `ak.keys.backups.*` request body that does not validate as `ak.schema.key_backup.v1`. Wire backups MUST carry the dedicated key-backup envelope with `series_id` and `series_sequence`; client-local secret-storage envelopes are not accepted on wire endpoints. See zh/crypto-media/device-lifecycle.md §11.",
       "status": "active"
     },
     {
@@ -4219,7 +4219,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without a matching Realm policy plaintext_visible_services[] entry whose data_classes[] contains media_plaintext, OR without the active media key-access revision covering media_service_decrypts=true. Free-text purposes do not grant authority. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md §8.2.",
+      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without a matching Realm policy plaintext_visible_services[] entry whose data_classes[] contains media_plaintext, OR without the active media key-access revision covering media_service_decryption_allowed=true. Free-text purposes do not grant authority. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md §8.2.",
       "status": "active"
     },
     {
@@ -4227,7 +4227,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A client attempted to join a call where media_service_decrypts=true without first displaying the required prominent plaintext-service warning and obtaining explicit second confirmation. The client MUST reject the join before releasing a token or media key. See zh/crypto-media/media-service-binding.md §8.2.",
+      "description": "A client attempted to join a call where media_service_decryption_allowed=true without first displaying the required prominent plaintext-service warning and obtaining explicit second confirmation. The client MUST reject the join before releasing a token or media key. See zh/crypto-media/media-service-binding.md §8.2.",
       "status": "active"
     },
     {
@@ -4281,7 +4281,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the digest of the current effective set for the same (realm_id, member_id, segment): sha256 over RFC 8785 JCS of the exact signed payload objects of the effective updates ordered by event_id ascending, [] when empty (zh/sync/current-results.md section 2). The Station MUST reject the Event with failed_precondition and zero writes instead of applying it as a valid replacement.",
+      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the digest of the current effective set for the same (realm_id, member_id, segment): sha256 over RFC 8785 JCS of the exact signed payload objects of the effective updates ordered by event_id ascending, [] when empty (zh/sync/current-state.md section 2). The Station MUST reject the Event with failed_precondition and zero writes instead of applying it as a valid replacement.",
       "status": "active"
     },
     {
@@ -4431,7 +4431,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "A decrypting media service join or token request found that the current MLS group has not yet covered its current key_access_revision (a membership change is still awaiting its winning ak.mls.commit). Media policy fields such as media_service_decrypts and plaintext_visible_services are authorized from the current accepted policy projection and never advance key_access_revision. Receivers MUST refuse to act until a Commit covers the current revision. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.4.1.",
+      "description": "A decrypting media service join or token request found that the current MLS group has not yet covered its current key_access_revision (a membership change is still awaiting its winning ak.mls.commit). Media policy fields such as media_service_decryption_allowed and plaintext_visible_services are authorized from the current accepted policy projection and never advance key_access_revision. Receivers MUST refuse to act until a Commit covers the current revision. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.4.1.",
       "status": "active"
     },
     {
@@ -4791,7 +4791,7 @@
     {
       "code": "push_gateway_unreachable",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the gateway could not durably take the route over. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms, and its presence is the wire signal that the caller â€” not the gateway â€” owns the next attempt. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4799,7 +4799,7 @@
     {
       "code": "push_payload_too_large",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the notification exceeds the push profile, provider, or deployment size limit. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal until the caller shrinks the payload; MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4825,7 +4825,7 @@
     {
       "code": "push_target_unknown",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the push target is unknown or no longer visible. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal; not caller-retryable and MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4833,7 +4833,7 @@
     {
       "code": "push_token_invalid",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the registered route failed provider validation or is no longer bound to this device. Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity â€” the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4841,7 +4841,7 @@
     {
       "code": "push_token_unknown",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: no active push registration exists for this (push_target_id, device_id). Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity â€” the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4876,7 +4876,7 @@
     {
       "code": "rate_limited",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: gateway-side admission limiting refused durable takeover of this route. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms. A route the gateway already accepted is retried by the gateway and never surfaces this reason. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -4935,7 +4935,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.realm.create event attempted to create a Realm id whose genesis typed current result is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields.",
+      "description": "A ak.realm.create event attempted to create a Realm id whose genesis current state is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields.",
       "status": "reserved",
       "activation_condition": "Promote realm_already_exists to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -4946,7 +4946,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "An Event presented ak:result:realm_authority_root:null as its authorization_ref but the typed current result's current controller_actor_id is not the authorizing ActorId, or the epoch / authority_generation bound at issuance no longer matches the typed current result in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2.",
+      "description": "An Event presented ak:result:realm_authority_root:null as its authorization_ref but the current state's current controller_actor_id is not the authorizing ActorId, or the epoch / authority_generation bound at issuance no longer matches the current state in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2.",
       "status": "reserved",
       "activation_condition": "Promote realm_authority_controller_mismatch to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -4956,7 +4956,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The authority-root typed current result value was author-supplied or otherwise diverges from the registered value_projection: controller_actor_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, or members beyond the closed three-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5.",
+      "description": "The authority-root current state value was author-supplied or otherwise diverges from the registered value_projection: controller_actor_id not equal to the create envelope actor_id, a non-zero controller_epoch or authority_generation at genesis, or members beyond the closed three-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5.",
       "status": "active"
     },
     {
@@ -4966,7 +4966,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "The Realm has no registered realm_authority_root typed current result in the authorization basis, or an ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving genesis, profile, policy, or membership facets, and MUST NOT fall back to membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5.",
+      "description": "The Realm has no registered realm_authority_root current state in the authorization basis, or an ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving genesis, profile, policy, or membership facets, and MUST NOT fall back to membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5.",
       "status": "reserved",
       "activation_condition": "Promote realm_authority_root_missing to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -5093,7 +5093,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A capture attempted to enter or stay in recording/transcribing without the consent evidence its Realm requires. The reachable trigger is the per-participant consent acknowledgment profile of zh/crypto-media/call-state.md §5.2: a recorded party has no current device-signed acknowledgment, or membership, device or capture epoch changed and the acknowledgment was not re-acquired. This code is NOT how a producer-declared consent value is refused: `call_recording_start_payload.result.retention.consent_confirmed` is `const: true`, so any other value is `schema_violation` before the reducer runs, and the capture-kind start-event ref is stamped by the reducer because the payload MUST NOT carry it. Reducer MUST reject before either capture FSM or result typed current result is written.",
+      "description": "A capture attempted to enter or stay in recording/transcribing without the consent evidence its Realm requires. The reachable trigger is the per-participant consent acknowledgment profile of zh/crypto-media/call-state.md §5.2: a recorded party has no current device-signed acknowledgment, or membership, device or capture epoch changed and the acknowledgment was not re-acquired. This code is NOT how a producer-declared consent value is refused: `call_recording_start_payload.capture_metadata.retention.consent_confirmed` is `const: true`, so any other value is `schema_violation` before the reducer runs, and the capture-kind start-event ref is stamped by the reducer because the payload MUST NOT carry it. Reducer MUST reject before either capture FSM or result current state is written.",
       "status": "active"
     },
     {
@@ -5237,7 +5237,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets relation_kind=watches. The watches Relation is a derived projection only: its truth source is the strand_watch typed current result written via the ak.strand.watch.set durable event, never a direct Relation write. See zh/models/relation.md §3.2 and zh/models/strand-and-message.md §8.",
+      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets relation_kind=watches. The watches Relation is a derived projection only: its truth source is the strand_watch current state written via the ak.strand.watch.set durable event, never a direct Relation write. See zh/models/relation.md §3.2 and zh/models/strand-and-message.md §8.",
       "status": "active"
     },
     {
@@ -5281,7 +5281,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "payload.occurrence is neither JSON null nor a canonical instance key (YYYY-MM-DD for all-day, YYYY-MM-DDTHH:MM:SS[Zone] for timed), including when its date component is not a real proleptic-Gregorian date. Receivers MUST reject instead of rewriting the key, since the typed current result subject derives from the signed value. See zh/models/calendar-event.md.",
+      "description": "payload.occurrence is neither JSON null nor a canonical instance key (YYYY-MM-DD for all-day, YYYY-MM-DDTHH:MM:SS[Zone] for timed), including when its date component is not a real proleptic-Gregorian date. Receivers MUST reject instead of rewriting the key, since the current state subject derives from the signed value. See zh/models/calendar-event.md.",
       "status": "active"
     },
     {
@@ -5446,7 +5446,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "A PUT /_arkret/self/keys/backups/{backup_id} request whose `series_seq` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_seq != 0. See zh/crypto-media/device-lifecycle.md §12.1.",
+      "description": "A PUT /_arkret/self/keys/backups/{backup_id} request whose `series_sequence` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_sequence != 0. See zh/crypto-media/device-lifecycle.md §12.1.",
       "status": "active"
     },
     {
@@ -5499,7 +5499,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "The committed `ak.call.state.session_focus` is authoritative and write-once: once it exists, a connect / token-exchange failure against that focus MUST be surfaced as focus-unavailable (`focus_unavailable_for_client`) and clients MUST NOT silently fall back to a different focus to keep the media path up. Naming the invariant explicitly closes the split-brain attack where two subsets of a conference converge on different SFUs. See zh/crypto-media/media-service-binding.md §5 and §2 (`foci[].health_endpoint`).",
+      "description": "The committed `ak.call.state.session_focus` is authoritative and write-once: once it exists, a connect / token-exchange failure against that focus MUST be surfaced as focus-unavailable (`focus_unavailable_for_client`) and clients MUST NOT silently fall back to a different focus to keep the media path up. Naming the invariant explicitly closes the split-brain attack where two subsets of a conference converge on different SFUs. See zh/crypto-media/media-service-binding.md §5 and §2 (`foci[].health_url`).",
       "status": "active"
     },
     {
@@ -5734,7 +5734,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Sub-reason for failed_precondition when the accepted ak.invite.third_party attested for activation differs from the frozen provisioning record in author, Realm, expiry or any member of the public third_party_invite object. The verification service MUST refuse rather than adopt the accepted typed current result values, because its private token, salt or pepper and ephemeral key were generated for the frozen material. See zh/sync/third-party-invites.md section 7.5.",
+      "description": "Sub-reason for failed_precondition when the accepted ak.invite.third_party attested for activation differs from the frozen provisioning record in author, Realm, expiry or any member of the public third_party_invite object. The verification service MUST refuse rather than adopt the accepted current state values, because its private token, salt or pepper and ephemeral key were generated for the frozen material. See zh/sync/third-party-invites.md section 7.5.",
       "status": "active"
     },
     {
@@ -5807,7 +5807,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A bounded-lifetime artefact (member application, reservation typed current result, presign envelope, runtime gate proof, etc.) is past its declared `expires_at` / TTL window. See per-feature spec sections.",
+      "description": "A bounded-lifetime artefact (member application, reservation current state, presign envelope, runtime gate proof, etc.) is past its declared `expires_at` / TTL window. See per-feature spec sections.",
       "status": "reserved",
       "activation_condition": "Promote ttl_expired to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -5922,7 +5922,7 @@
     {
       "code": "unsupported_profile",
       "applies_to": [
-        "push_notify_outcome"
+        "push_notify_response_body"
       ],
       "description": "Per-device rejection reason in ak.edge.push.command.notify.v1: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2.",
       "status": "active"
@@ -6005,7 +6005,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A `ak.strand.watch.set` write that uses `ak.strand.watch.set.others` to set another actor's watch state was rejected because it lacked semantic_refs[role=audit_pair] to a same-batch `ak.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, typed current result id, paired event id/digest, and before/after heads. See zh/models/strand-and-message.md §8.4.",
+      "description": "A `ak.strand.watch.set` write that uses `ak.strand.watch.set.others` to set another actor's watch state was rejected because it lacked semantic_refs[role=audit_pair] to a same-batch `ak.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, current state id, paired event id/digest, and before/after heads. See zh/models/strand-and-message.md §8.4.",
       "status": "reserved",
       "activation_condition": "Promote watch_set_others_audit_missing to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },

@@ -35,7 +35,7 @@ class CurrentPrincipalSchemaTests(unittest.TestCase):
         self.assertFalse(validator.is_valid(request))
 
     def test_success_requires_pcr_and_complete_projection(self):
-        validator = self.validator("current_principal_outcome")
+        validator = self.validator("current_principal_response_body")
         outcome = self.outcome()
         validator.validate(outcome)
         for key in outcome:
@@ -48,7 +48,7 @@ class CurrentPrincipalSchemaTests(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed))
 
     def test_result_rejects_closure_and_lease(self):
-        validator = self.validator("current_principal_outcome")
+        validator = self.validator("current_principal_response_body")
         for key in ["method_history_evidence", "projection_attestation", "accepted_seal", "expires_at", "profile", "observed_at"]:
             changed = self.outcome()
             changed[key] = None

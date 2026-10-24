@@ -16,21 +16,38 @@
     "mls_epoch",
     "response_signing_verification_method",
     "response_signing_algorithm",
-    "response_signing_public_key_b64u",
+    "response_signing_public_key_base64url",
     "response_signing_public_key_digest",
     "effective_at",
     "proof"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.identity_link.v1"
+      "const": "ak.schema.identity_link.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "identity-link.schema.json#/properties/schema",
+        "owner": "identity-link.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.identity_link.v1"
+        ]
+      }
     },
     "status": {
       "type": "string",
       "enum": [
         "active",
         "revoked"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "identity-link.schema.json#/properties/status",
+        "owner": "identity-link.schema.json#/properties/status",
+        "values": [
+          "active",
+          "revoked"
+        ]
+      }
     },
     "pairwise_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -62,19 +79,27 @@
       "minimum": 0
     },
     "mls_epoch": {
-      "type": "integer",
-      "minimum": 0
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "response_signing_verification_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
     "response_signing_algorithm": {
-      "const": "Ed25519"
+      "const": "Ed25519",
+      "x-arkret-value-ownership": {
+        "class": "external_literal",
+        "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+        "owner": "identity-link.schema.json#/properties/response_signing_algorithm",
+        "values": [
+          "Ed25519"
+        ]
+      }
     },
-    "response_signing_public_key_b64u": {
+    "response_signing_public_key_base64url": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$"
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "x-arkret-member-role": "binary_encoding"
     },
     "response_signing_public_key_digest": {
       "$ref": "./event-envelope.schema.json#/$defs/digest"
@@ -108,7 +133,15 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "signature_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "identity-link.schema.json#/$defs/proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "payload_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"
@@ -133,7 +166,15 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "signature_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "identity-link.schema.json#/$defs/proof_metadata/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -152,21 +193,38 @@
         "mls_epoch",
         "response_signing_verification_method",
         "response_signing_algorithm",
-        "response_signing_public_key_b64u",
+        "response_signing_public_key_base64url",
         "response_signing_public_key_digest",
         "effective_at",
         "proof"
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.identity_link.v1"
+          "const": "ak.schema.identity_link.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "identity-link.schema.json#/$defs/proof_preimage/properties/schema",
+            "owner": "identity-link.schema.json#/$defs/proof_preimage/properties/schema",
+            "values": [
+              "ak.schema.identity_link.v1"
+            ]
+          }
         },
         "status": {
           "type": "string",
           "enum": [
             "active",
             "revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "identity-link.schema.json#/$defs/proof_preimage/properties/status",
+            "owner": "identity-link.schema.json#/$defs/proof_preimage/properties/status",
+            "values": [
+              "active",
+              "revoked"
+            ]
+          }
         },
         "pairwise_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -198,19 +256,27 @@
           "minimum": 0
         },
         "mls_epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "response_signing_verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "response_signing_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "identity-link.schema.json#/$defs/proof_preimage/properties/response_signing_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
-        "response_signing_public_key_b64u": {
+        "response_signing_public_key_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "x-arkret-member-role": "binary_encoding"
         },
         "response_signing_public_key_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/digest"

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .core import ARTIFACTS, Lint, jsonschema_errors, load_json
+from .core import ARTIFACTS, Lint, jsonschema_errors, load_contract_json as load_json
 
 SCHEMA = ARTIFACTS / "schemas" / "account-subscribe-frame.schema.json"
 MAPPING = ARTIFACTS / "registry" / "operations-error-mapping.json"

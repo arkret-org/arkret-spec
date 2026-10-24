@@ -13,13 +13,19 @@
   ],
   "properties": {
     "kind": {
-      "const": "ak.presence"
+      "const": "ak.presence",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "signal-presence.schema.json#/properties/kind",
+        "owner": "signal-presence.schema.json#/properties/kind",
+        "values": [
+          "ak.presence"
+        ]
+      }
     },
     "payload_sequence": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 18446744073709551615,
-      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Multi-device presence accepts arbitrary forward gaps and only considers signals that advance the Actor/device/scope high-water."
+      "description": "Strictly increasing but non-contiguous u64 within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. Multi-device presence accepts arbitrary forward gaps and only considers signals that advance the Actor/device/scope high-water.",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -33,7 +39,18 @@
         "offline",
         "dnd"
       ],
-      "description": "Closed v1 presence state set. Unknown values MUST be dropped or rejected as schema_violation; receivers MUST NOT map them onto an approximate state. Invisibility is not a state value: it is expressed by ak.presence.visibility=nobody."
+      "description": "Closed v1 presence state set. Unknown values MUST be dropped or rejected as schema_violation; receivers MUST NOT map them onto an approximate state. Invisibility is not a state value: it is expressed by ak.presence.visibility=nobody.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "signal-presence.schema.json#/properties/state",
+        "owner": "signal-presence.schema.json#/properties/state",
+        "values": [
+          "online",
+          "idle",
+          "offline",
+          "dnd"
+        ]
+      }
     },
     "status_message": {
       "type": "string",

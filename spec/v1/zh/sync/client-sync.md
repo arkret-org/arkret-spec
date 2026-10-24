@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-10-17
 see_also:
   - authority-commit-log.md
-  - current-results.md
+  - current-state.md
   - service-http-binding.md
   - federation.md
   - ../governance/history-visibility.md
@@ -21,7 +21,7 @@ see_also:
 Client Sync 是 own Account Station 向客户端提供的受信账号聚合流。它传送：
 
 - Realm/Circle/Sidecar 各自独立 authority stream 的 committed delta；
-- typed current results 与签名 snapshot；
+- typed current state 与签名 snapshot；
 - Account-private 数据、to-device、device list 和 notification projection；
 - MLS public transition 提示和 recipient-scoped Welcome delivery。
 
@@ -156,14 +156,14 @@ current，也不能先推进 cursor 再安装投影。有界恢复与等待不�
 
 ### 5.1 服务器当前结果
 
-Typed current result至少绑定 selector、value/status、领域二元 revision，以及必填的 `source_stream_ref`；来源坐标为
+typed current state至少绑定 selector、value/status、领域二元 revision，以及必填的 `source_stream_ref`；来源坐标为
 `{revision.commit_id, source_stream_ref, revision.stream_position}`，三者必须指向最后改变该结果的同一 accepted
-RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后安装结果，不执行 authority-commit projection/typed current result reducer。
+RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后安装结果，不执行 authority-commit projection/current state reducer。
 
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
 signer-key selector 的 `committed_event_ref` 可从已验证 `realm_sync_entry.committed_events[]` 的
 `stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
-`stream_scan_outcome.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
+`stream_scan_response_body.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
 Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
 Event 字段、account sibling map 或 signer 专用 carrier，也不得从 current projection、cursor、producer time、
 arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可验 producer envelope，必须保持 unresolved。
@@ -347,7 +347,7 @@ v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。每个 
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，它把允许区间的下端绑定到已接受的链上，且不要求 caller 持有 position 0；Snapshot `retention_and_history_floor` 携带同一数值。该 floor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
+客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_response_body.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，它把允许区间的下端绑定到已接受的链上，且不要求 caller 持有 position 0；Snapshot `retention_and_history_floor` 携带同一数值。该 floor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
 
 ## 13. Initial Sync
 
@@ -355,7 +355,7 @@ v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。每个 
 2. 从 current authority取得 nonce-bound bundle；
 3. 拉取 authority-signed typed snapshot；
 4. 按 Realm、每个可见 Circle、每个可见 Sidecar的独立 head补 tail；
-5. 安装 current result、delivery和Account-private baseline。
+5. 安装 current state、delivery和Account-private baseline。
 
 Invite issuer、Directory、cache或 genesis Station都只能提供 locator。默认不拉全历史。
 

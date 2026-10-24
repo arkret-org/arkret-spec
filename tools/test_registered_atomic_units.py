@@ -24,13 +24,13 @@ class RegisteredAtomicUnitsTest(unittest.TestCase):
     def test_peer_signature_cannot_be_removed(self):
         next(x for x in self.catalog['operation_registry']['operations'] if x['operation_id']==PEER).pop('auth_requirements');self.assertTrue(self.errors())
     def test_parallel_unsigned_selector_is_rejected(self):
-        self.audit['$defs']['watch_audit_read_request']['properties']['watcher_actor_id']={};self.assertTrue(self.errors())
+        self.audit['$defs']['watch_audit_read_request_body']['properties']['watcher_actor_id']={};self.assertTrue(self.errors())
     def test_missing_replay_or_delivery_case_is_rejected(self):
         self.fixture['read_cases']=[x for x in self.fixture['read_cases'] if x['name']!='delivery_revoked'];self.assertTrue(self.errors())
     def test_negative_cannot_be_blessed(self):
         next(x for x in self.fixture['unit_cases'] if x['name']=='cas_conflict')['expected']='accepted_two_commits';self.assertTrue(self.errors())
     def test_read_requires_actual_producer_proof(self):
-        self.audit['$defs']['peer_watch_audit_read_request'].pop('oneOf');self.assertTrue(self.errors())
+        self.audit['$defs']['peer_watch_audit_read_request_body'].pop('oneOf');self.assertTrue(self.errors())
     def test_audit_pair_requires_per_event_fences(self):
         self.catalog['atomic_unit_registry']['units'][-1]['replay_fence']='pair_only';self.assertTrue(self.errors())
     def test_circle_audit_exception_cannot_expand(self):

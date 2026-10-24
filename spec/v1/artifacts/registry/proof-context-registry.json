@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.2",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-23T10:19:20+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -350,7 +350,7 @@
     },
     {
       "context": "ak.mimi_identifier_query_outcome_proof.v1",
-      "object_family": "mimi_identifier_query_outcome",
+      "object_family": "mimi_identifier_query_response_body",
       "binding_fields": [
         "payload_digest",
         "operation_id",
@@ -360,7 +360,7 @@
         "audience"
       ],
       "defined_in": "zh/extensions/mimi-interop.md#51-mimi-operation-actor-proofnormative",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_response_body",
       "injected_fields": [
         {
           "field": "operation_id",
@@ -1023,7 +1023,7 @@
         "mls_epoch",
         "response_signing_verification_method",
         "response_signing_algorithm",
-        "response_signing_public_key_b64u",
+        "response_signing_public_key_base64url",
         "response_signing_public_key_digest",
         "effective_at",
         "expires_at",
@@ -1062,7 +1062,7 @@
       "injected_fields": [
         {
           "field": "policy_without_auth_data",
-          "source": "pure function: the RFC 8785 JCS bytes of this policy object with auth_data removed"
+          "source": "pure function: the RFC 8785 JCS bytes of this policy object with signature_proof removed"
         }
       ]
     },
@@ -1109,7 +1109,7 @@
       "injected_fields": [
         {
           "field": "receipt_without_auth_data",
-          "source": "pure function: the RFC 8785 JCS bytes of this receipt object with auth_data removed"
+          "source": "pure function: the RFC 8785 JCS bytes of this receipt object with signature_proof removed"
         }
       ]
     },
@@ -1279,7 +1279,7 @@
         "request_kind",
         "request_digest",
         "outcome",
-        "result_digest",
+        "control_material_digest",
         "recipient_id",
         "received_at",
         "issuer_id"
@@ -1532,7 +1532,7 @@
       "domain": "ak.call.invitation.admission.v1",
       "object_family": "call_invitation_admission",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+      "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_decision",
       "binding_fields": [
         "request_digest",
         "admitted",
@@ -1582,7 +1582,7 @@
       "domain": "ak.consent.current_read.v1",
       "object_family": "consent_current_read",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+      "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
       "binding_fields": [
         "request_digest",
         "realm_id",
@@ -1605,7 +1605,7 @@
       "domain": "ak.applet.configuration_command.v1",
       "object_family": "applet_execution_request",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_request",
+      "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body",
       "binding_fields": [
         "command",
         "intent",
@@ -1627,7 +1627,7 @@
       "domain": "ak.applet.configuration_outcome.v1",
       "object_family": "applet_execution_outcome",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_outcome",
+      "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_response_body",
       "binding_fields": [
         "request_id",
         "intent_digest",
@@ -1776,7 +1776,7 @@
       "domain": "ak.realm_actor_material_signature.v1",
       "object_family": "realm_actor_material_signature",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body",
       "transcript_schema_refs": [
         "schemas/detached-object-signature.schema.json#/$defs/realm_actor_material_signature"
       ],
@@ -1804,7 +1804,7 @@
       "signer_authority": "Owning Realm current governance Station verified through authority chain",
       "defined_in": "zh/extensions/realm-actors.md",
       "known_answer_ref": "fixtures/realm-actor-signature-kat-fixture.json#/cases/3",
-      "unsigned_projection_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/unsigned_outcome"
+      "unsigned_projection_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input"
     },
     {
       "domain": "ak.realm_actor_recovery_acceptance_signature.v1",

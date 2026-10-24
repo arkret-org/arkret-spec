@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-10-19.2",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
@@ -245,11 +245,11 @@
               "realm_id": "ak:realm:AXHSTVD5ytlxxQe9ylL4IJEfvL9QDJ0A6XqSjW8G2tBI",
               "title": "Launch calendar",
               "summary": "Public discovery metadata only",
-              "as_of": "2026-05-02T00:00:00.000Z",
               "source_refs": [
                 "ak:event:AaUJiCU-JUNsjdd0UdUOZsTKXp2FHI0hH6JBpxHn0QEO"
               ],
-              "policy_revision": "dir-rev-1"
+              "policy_revision": "dir-rev-1",
+              "evaluated_at": "2026-05-02T00:00:00.000Z"
             }
           },
           {
@@ -450,7 +450,7 @@
       "assertions": [
         "missing accountability grant rejects the entire profile Event on every conformant verifier",
         "reducer never accepts a field-stripped Actor Profile value",
-        "accepted typed current result value preserves the signed payload exactly",
+        "accepted current state value preserves the signed payload exactly",
         "unverified presentation state applies only after a previously valid grant expires or is revoked"
       ]
     },

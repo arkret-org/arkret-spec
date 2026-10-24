@@ -207,7 +207,7 @@ def claim_fixture(contract_document: dict) -> dict:
     ).hexdigest()
     instance = {
         "sdk_name": "probe-sdk",
-        "spec_revision": "0" * 39 + "1",
+        "specification_revision": "0" * 39 + "1",
         "contract_digest": digest,
         "clause_claims": [
             {

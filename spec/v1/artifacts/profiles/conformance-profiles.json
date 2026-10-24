@@ -1,13 +1,13 @@
 {
-  "version": "2026-10-22.1",
-  "generated_at": "2026-10-22T07:58:47+08:00",
+  "version": "2026-10-24.1",
+  "generated_at": "2026-10-24T14:22:45+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
       "sdk_name",
       "sdk_version",
       "sdk_artifact",
-      "spec_revision",
+      "specification_revision",
       "contract_digest",
       "issued_at",
       "issuer",
@@ -48,7 +48,7 @@
       "A verifier MUST enforce evidence_coverage_semantics: for every clause claim whose result is pass or fail, it MUST reject the claim unless at least one evidence entry is present and every evidence[].kind is a member of that clause's required_evidence set. A pass/fail clause substantiated only by evidence kinds outside its required_evidence set MUST be rejected. This check is independent of, and applied in addition to, the digest and signature checks above.",
       "Section numbers and table row numbers are not clause identifiers; only clause_id is stable.",
       "Every evidence entry whose kind is vector_result MUST carry covers_vectors: the exact vector ids the referenced run produced results for. A verifier MUST reject the claim unless, for each pass or fail clause claim, the union of covers_vectors across that clause's vector_result evidence is a subset of the clause's expanded vector_evidence.vectors and covers every vector named by at least one of its decision_points.",
-      "A vector_result evidence entry MUST be bound to the same spec_revision as the claim and MUST carry the immutable digest of the result artifact it references; a result produced against a different spec revision MUST NOT be accepted."
+      "A vector_result evidence entry MUST be bound to the same specification_revision as the claim and MUST carry the immutable digest of the result artifact it references; a result produced against a different spec revision MUST NOT be accepted."
     ],
     "clauses": [
       {
@@ -905,7 +905,7 @@
           "A"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-018",
-        "summary": "Model ack_token as opaque and expose no structured decode API",
+        "summary": "Model acknowledgement_token as opaque and expose no structured decode API",
         "required_evidence": [
           "public_api_inventory"
         ]
@@ -1968,13 +1968,13 @@
         }
       ],
       "wire_contract_refs": [
-        "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
-        "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
-        "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
-        "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
-        "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
-        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+        "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
+        "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
         "schemas/space.schema.json#/$defs/space_metadata",
         "schemas/strand.schema.json#/$defs/strand_topic"
       ],
@@ -2387,7 +2387,7 @@
         "Agent PCR genesis created_by MUST equal the Agent DID and governance_station_id MUST name the generation-0 governance Station; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md §3.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
-        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision.",
+        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution current state, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision.",
         "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. User-managed Agent accepted genesis and controller provision likewise permanently bind its PCR and complete Agent/controller Accounts to the original Station at generation zero. Agent change/freeze/export/import/acceptance/activation/foreign-current/proxy/publication reject without effects; its dedicated accepted authority bundle has no authority_transitions member. Legitimate generation-zero Agent disclosure retains its existing gates and is not subject to the Human public-bundle ban. The shared allowlist and required transfer support apply only to independently verified Organization PCR provenance; Realm Bot/Ghost have no independent PCR and their realm_control state follows the owning Realm handoff. pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
       ],
       "pcr_governance_policy": {
@@ -2448,7 +2448,7 @@
           ],
           "governor": "account_station",
           "provenance_mutable": false,
-          "governance_generation": 0,
+          "governance_generation": "0",
           "rejected_event_kinds": [
             "ak.realm.governance_station.change"
           ],
@@ -3054,7 +3054,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.signer_key_query_request.v1",
-        "ak.schema.signer_key_query_outcome.v1"
+        "ak.schema.signer_key_query_response_body.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [
@@ -3358,9 +3358,9 @@
           "supported_profiles",
           "plaintext_visibility_classes",
           "invite_claim_reducer_state_machine",
-          "auth_metadata.account_authority",
-          "auth_metadata.methods",
-          "auth_metadata.did_binding_methods"
+          "authentication_metadata.account_authority",
+          "authentication_metadata.methods",
+          "authentication_metadata.did_binding_methods"
         ],
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       },
@@ -3371,10 +3371,10 @@
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
-        "account_authority_surface_must": "The Station MUST publish exactly one auth_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
+        "account_authority_surface_must": "The Station MUST publish exactly one authentication_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
         "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, governance-Station authority, or Event proof.",
-        "account_status_publication_must": "The Station Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit, and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery and publishes exact record bytes through ak.peer.account_status.command.submit.v1 without maintaining a second status truth.",
+        "account_status_publication_must": "The Station Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit, and outbox; genesis is status_sequence=1 active and every successor is a current-head CAS. It exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery and publishes exact record bytes through ak.peer.account_status.command.submit.v1 without maintaining a second status truth.",
         "third_party_invite_provisioning_material_custody_must": "The verification service MUST generate and durably hold the invite token, the per-invite 256-bit token_salt or lookup pepper and the per-invite ephemeral signing key inside ak.open.third_party_invite.command.provision.v1, and MUST return only the public third_party_invite object, the effective expires_at, the activation deadline and an opaque provisioning_id. Returning the token, salt, pepper, ephemeral private key or the private delivery target, deriving any of them from token_commitment or verification_public_key, or treating a successful provisioning as a pending Realm Invite or as invite permission is forbidden.",
         "third_party_invite_activation_acceptance_attestation_must": "ak.open.third_party_invite.command.activate.v1 MUST bind a provisioned record to an invite only on a Station-signed ThirdPartyInviteAcceptanceAttestation whose signature, audience, exact verification_id, pending invite_state and revocation freshness all verify, and whose author, Realm, expiry and complete public material equal the frozen provisioning record member for member. A caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT substitute. One provisioning record binds to exactly one invite for its whole life; a second attestation naming a different invite, Realm or author is duplicate_conflict and MUST NOT rebind, rotate the ephemeral key or reissue the token.",
         "third_party_invite_lifecycle_recovery_must": "Provisioning MUST be idempotent on request_id with byte-identical canonical intent and MUST fail duplicate_conflict on a reused request_id with any different intent; activation MUST return the same immutable binding for a byte-identical retry, a concurrent duplicate and a retry after a process restart; the binding and the out-of-band delivery intent MUST be committed atomically before success is returned; and an unactivated record MUST expire at activation_expires_at, zeroize its material on the third-party-invites.md section 6.1 schedule and never be revived.",
@@ -3392,7 +3392,7 @@
           "original_recipient_signatures",
           "realm_claim_authority_and_add_authority_same_realm_verified_succession"
         ],
-        "output": "self_roster_read_outcome",
+        "output": "self_roster_read_response_body",
         "failure_code": "revision_unavailable"
       },
       "governance_result_consumption": {
@@ -4169,7 +4169,7 @@
         },
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery_authentication_record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
-        "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
+        "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_signature_policy.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
         "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event MUST verify its original producer proof, complete actor_id, applet_id, authorization_ref and capability grants. A Realm actor must have accepted creation provenance and the exact current manager; an ordinary Account requires its actual delegation. Actor DID namespace matching is not supported and cannot establish ownership or authorization.",
         "managed_authority_contract_must": "Service-only install, 0..N independent Bot/Ghost; exact role creation actions, ordinary Service parent to terminal child and Device content supply follow registry/applet-managed-authority-registry.json and zh/authz/managed-governance.md."
       },
@@ -4664,8 +4664,8 @@
         "ak.schema.agent_sidecar_exchange_control.v1"
       ],
       "wire_contract_refs": [
-        "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
-        "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+        "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+        "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
         "schemas/principal-operations.schema.json#/$defs/sidecar_stream_head"
       ],
       "required_fixtures": [
@@ -4734,9 +4734,9 @@
         "ak.schema.principal_operations.v1"
       ],
       "wire_contract_refs": [
-        "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
+        "schemas/principal-operations.schema.json#/$defs/agent_participation_replace_request_body",
         "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
-        "schemas/typed-current-result.schema.json#/$defs/agent_interaction_result"
+        "schemas/current-state.schema.json#/$defs/current_agent_interaction"
       ],
       "required_fixtures": [
         "agent-participation-fixture.json"
@@ -5911,7 +5911,7 @@
       "profile_set": "candidate"
     },
     "ak.profile.key_backup.memory_hard.v1": {
-      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
+      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_sequence / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "enforcement_phases": [
         "build",
         "conformance"

@@ -47,9 +47,9 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 | --- | --- | --- |
 | `ak.<symbol-path>` | **符号名称 / 注册表词汇**。`.` 只表达命名空间与分类层级；值命名一种 event、operation、schema、profile、capability action、content kind 或 namespaced key，不直接充当某个协议对象实例的 typed reference。 | `ak.message.create`、`ak.self.events.command.submit.v1`、`ak.schema.event.v1` |
 | `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<44-char-event-token>`、`ak:strand:<44-char-event-token>`、`ak:realm_commit:sha256:<digest>`、`ak:trust_domain:<scope>` |
-| `{kind, ...identity}` | **领域 current-result selector**。`kind` 与其身份字段由 `typed-current-result.schema.json` 的 closed branch 定义；它是 JSON typed object，不拼接字符串 ID。 | `{ "kind": "strand", "strand_id": "ak:strand:..." }` |
+| `{kind, ...identity}` | **领域 current-state selector**。`kind` 与其身份字段由 `current-state.schema.json` 的 closed branch 定义；它是 JSON typed object，不拼接字符串 ID。 | `{ "kind": "strand", "strand_id": "ak:strand:..." }` |
 
-因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。领域 current-result selector 始终按其 closed JSON schema 解析，不编码成第三种字符串命名空间。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；缺席于当前 registry/schema 的前缀、selector kind 或拼写都不是 alias，parser MUST fail closed。
+因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。领域 current-state selector 始终按其 closed JSON schema 解析，不编码成第三种字符串命名空间。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；缺席于当前 registry/schema 的前缀、selector kind 或拼写都不是 alias，parser MUST fail closed。
 
 需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值。`proof-context-registry.json` 的 `contexts[].context` 与 `domain_separations[].domain` 统一使用 `ak.<symbol-path>.v1`：`.` 分隔命名层级、层级内复合词使用 snake_case。两类 label 不靠分隔符编码语义，而由其所属数组及 `primitive` 唯一决定；同一 label MUST NOT 同时登记于两类中。历史 `ak.<kebab-case>-proof-v1` 拼写无效且不是 alias；调用点 MUST 逐字使用所属 registry 行。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。它唯一承载一个 deterministic-CBOR map：所有 scope 共有 `effective_scope`、`base_group_state_ref`、`previous_epoch`、`next_epoch`、`key_access_revision` 五个公共成员，仅 Sidecar scope 另外必需 `participant_authority_digest` 与 `authority_stream_head`，Realm／Circle 携带其中任一字段即 `schema_violation`。外层 key 的编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、`base_group_state_ref`、`authority_stream_head`、`participant_authority_digest`（缺席成员直接跳过）；三个整数均为 `0..2^64-1`，其中 `key_access_revision` 是单调计数器而非摘要。精确 decoder 上限与拒绝条件见 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)。
 
@@ -79,7 +79,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
   四条硬判据（normative）：
 
-  1. **Selector 判据**：任何 wire 字段若被可执行 artifact 的 `{"kind":"select","selector":"<path>"}` 引用，作为主 typed current result subject 分类维度，或在 discriminated schema 分支中选择互斥 Arkret shape，其字段名 MUST 为 `kind` / `*_kind` / `*_kinds`。
+  1. **Selector 判据**：任何 wire 字段若被可执行 artifact 的 `{"kind":"select","selector":"<path>"}` 引用，作为主 current state subject 分类维度，或在 discriminated schema 分支中选择互斥 Arkret shape，其字段名 MUST 为 `kind` / `*_kind` / `*_kinds`。
   2. **闭集判据**：`*_class` / `*_classes` MUST 直接或经 `$ref` 解析到有限 enum/const；registry/fixture-only context MUST 在 classification registry 明列 `allowed_values`。自由字符串、开放 registry 或 `additionalProperties` taxonomy 不得使用 class 轴。
   3. **外部锚点判据**：wire、normative canonical JSON 与 Arkret 可执行 artifact DSL 中的 `type` 轴字段 MUST 有逐路径外部锚点，且 `dispatch_authority="external_standard"`、`arkret_extensions_allowed=false`。真正的 JSON Schema `type` vocabulary keyword 由 parser 上下文排除；Arkret mini-schema 的值形状声明使用 `value_shape`。
   4. **同轴与顺序判据**：同一概念不得并存不同后缀轴；无法从 stem 判断的正交概念必须用 `semantic_axis` / `distinct_from` 显式声明。任何 tier 字段必须有有限值、严格全序和比较语义。
@@ -89,13 +89,13 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload **MUST NOT** 携带目标 `state`：§5.2 由 event kind 本身确定目标值，reducer 按 `object_lifecycle_state` 产出，payload 只指名目标对象与可选理由。`target_state` 这个字段名保留给 kind 本身**不能**确定终态的 FSM 型 lifecycle（v1 只有 Invite 一例：一条 `ak.invite.revoke` 可落 6 个不同终态），不得用于物理 `state` 轴。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只保留给外部协议或加密 transcript 自身的创建者 tuple，不得作为 object 创建主体字段的别名；v1 未登记任何 `creator_*` wire 字段，新增字段不得引入该形态。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；算法选择器只能使用 `<noun>_algorithm`，字节输出只能使用 `<noun>_digest`。复合 commitment 对象使用 `<noun>_commitment`：外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
-- 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
+- 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `signature` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
 - `recipient_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_id`；反之亦然。 对于 schema 已闭合为单一稳定责任主体 `DidCoreId` 的受众，使用 `audience_id`（例如 SessionGrant 与 其它明确登记的单一稳定主体载体）；其类别、受众唯一性与身份绑定必须由各对象合同明确，不得因通用 proof 存在 `audience` 就去掉 `_id`。通用 proof 的字符串／数组 `audience` 不构成 typed identity 字段的命名例外。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`effective_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
 - ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且 MUST 与 snake_case `kind` 逐字相同——**不存在拼写例外**。`membership_compensation_delegation` 的 wire form 固定为 `ak:membership_compensation_delegation:`。artifact lint 对 segment ≠ kind 直接失败。
 - **schema → registry 封闭（normative）**：任何 schema validation carrier（`pattern`，含分组 / union 分支；`const`；`enum`；以及经本地 `$ref` 复用的同一形状）实际可接受的每一个字面 `ak:<segment>:` 前缀，MUST 唯一命中 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中某个 `id_kinds` 或 `special_forms` 行由 `wire_form` 解析出的 canonical wire prefix。artifact lint 执行该封闭；未登记前缀是合同缺陷，不是可以留待运行时容忍的写法。反过来，纯关联用途的有界 opaque 字符串（例如 `ServiceRegistrationEnsureRequestBody.idempotency_key`）MUST NOT 借用 `ak:` 命名空间：它不进入 typed-ID parser，也不得成为该 operation 的第二个幂等 authority——注册 identity 是 canonical `(service_kind, public_base_url)` 唯一约束，幂等机制以 operation registry 的 `idempotency_mechanism` 为准。
-- typed current result 状态模型字段统一使用 `domain reducer`，封闭取值为 `current-value projection`、`commit-ordered projection`、`keyed-set projection`、`counter`、`append-only projection`；执行域由 `execution=data|security` 明示，物理值形态由 `value_shape=register|set|counter|log` 明示。不得用 CAS、业务状态机或旧的 register 别名扩展状态模型；新增模型必须先完成合并/顺序语义、op schema、profile gate 与 conformance vector 闭包。
+- current state 状态模型字段统一使用 `domain reducer`，封闭取值为 `current-value projection`、`commit-ordered projection`、`keyed-set projection`、`counter`、`append-only projection`；执行域由 `execution=data|security` 明示，物理值形态由 `value_shape=register|set|counter|log` 明示。不得用 CAS、业务状态机或旧的 register 别名扩展状态模型；新增模型必须先完成合并/顺序语义、op schema、profile gate 与 conformance vector 闭包。
 
   **`keyed-set projection` 的 join（normative，本节是唯一真源）**：该模型的值是一个 **tagged 断言集**。每个元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot `<event_id>:<write_index>`，MUST NOT 退化为裸 `event_id`；元素值是产生它的那条已接纳 Event 的完整 payload，投影不拼装、改名或裁剪字段。join 是 **dot 集合并**，因此可交换、可结合、幂等，且与 `RealmCommit` 的执行顺序无关——同一 dot 重复投影是 no-op。**每条参与该 family 的 Event 都只能 `keyed_set_add`**：撤销语义 MUST 表达为「再加一条断言」而不是删除既有 dot，否则并发的 (add, remove) 会丢掉一侧，审计视图无法重建，且 `keyed_set_remove_observed` 只删冻结前态里存活的 dot，会把并发对静默收敛成单侧。`keyed_set_remove_observed` 与 `keyed_set_remove_dots` 只用于由**同一 writer** 显式指名、不承载并发断言语义的集合。**断言者与极性不是元素字段**：reader MUST 从 dot 所指 Event 的签名 envelope（`actor_id` 与 `kind`）读出，因为同一 family 的两个 kind 可能产生逐字节相同的 payload。集合之上的一切——排序 roster、remove-wins 折叠、计数、冲突视图——都是**读侧折叠**，MUST NOT 成为第二份存储状态或新的 `domain reducer` 取值。使用该模型的 family MUST 在自己的正文节里给出这些读侧折叠，并 MUST NOT 重新定义此处的 join。
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。**每个 active event kind MUST 在 `contract-registry.json#/event_kind_registry.event_kinds[]` 登记终段形态 `verb_form`**，取值为封闭三值 `base`（动词原形）/ `past_participle`（过去分词）/ `not_applicable`（终段是名词化 facet、状态名或外部标准专名，不表达动词）；`event-kind-registry.json` 的同名字段是该登记的生成投影，不是第二个真源。`verb_form: "past_participle"` MUST 同时携带非空 `verb_form_rationale`；`base` 与 `not_applicable` MUST NOT 携带该字段，伪造例外理由与漏登记同样不可接受。判据是语义而非拼写：`bound` 与 `withheld` 都是不规则过去分词，任何 `ed` / `en` 后缀扫描都会漏项，因此英文后缀启发式只能作为 review 提示，MUST NOT 充当 correctness gate。下表是同一登记的可读投影，一 kind 一行，由 artifact lint 与 registry 双向闭合：
@@ -119,7 +119,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - <!-- rule_id: NC-BOOL-001 --> **R1 布尔许可与义务**：许可字段 MUST 使用 `<axis>_allowed`，强制义务 MUST 使用 `<axis>_required`；wire boolean MUST NOT 使用 `allow_*`、`require_*`、`requires_*`、`deny_*`、`force_*` 或负极性 `no_*` / `disallow_*`。`include_*` 只用于请求侧投影开关；`*_present` 只用于 fixture/诊断，或逐路径登记的不回显原材料审计摘要。
 - <!-- rule_id: NC-COUNT-001 --> **R2 计数与长度**：元素个数 MUST 使用 `_count`，字节数 MUST 使用 `_bytes`，字符/码位数 MUST 使用 `_chars` / `_code_points`；Arkret wire、registry 语义字段与 fixture 断言 MUST NOT 使用 `_len`、`_length` 或 `_size`。`cardinality` 只用于 registry 的关系基数元数据。
 - <!-- rule_id: NC-ENUM-001 --> **R3 符号枚举值**：Arkret 自有符号型枚举 MUST 使用 snake_case。只有外部规范定义了该字面值且 Arkret 必须逐字节往返时才可例外，并须登记外部章节/codepoint；数值区间、URI 与 media type 按各自词法。
-- <!-- rule_id: NC-TYPE-001 --> **R4 类型名**：JSON Schema `$defs` 键 MUST 使用 snake_case；OpenAPI schema component 与规范自有的概念类型名 MUST 使用 PascalCase。PascalCase 中的缩写 MUST 按普通单词折叠大小写（例如 `MlsCommitSubmission`、`DidOperationSubmitOutcome`），不得写成连续全大写片段（例如 `MLS…`、`DID…`）；外部标准要求逐字引用的类型名不在此改写。承担结构包装角色的末词只能是 `RequestBody`、`Outcome`、`View`、`Row`、`List`、`Envelope`、`Ref`、`Problem`；领域主语不受包装词封闭表约束。`service-operation-dtos.schema.json` 作为 OpenAPI DTO 镜像是已登记结构例外。
+- <!-- rule_id: NC-TYPE-001 --> **R4 类型名**：JSON Schema `$defs` 键 MUST 使用 snake_case；OpenAPI schema component 与规范自有的概念类型名 MUST 使用 PascalCase。PascalCase 中的缩写 MUST 按普通单词折叠大小写（例如 `MlsCommitSubmission`、`DidOperationSubmitResponseBody`），不得写成连续全大写片段（例如 `MLS…`、`DID…`）；外部标准要求逐字引用的类型名不在此改写。类型 MUST 按实际角色命名；消息体使用 `RequestBody` / `ResponseBody`，当前领域状态使用 `Current<Family>`，已定处理结局使用 `Outcome`，裁决使用 `Decision`，验证判定使用 `Verdict`，解析材料使用 `Resolution`。集合与领域结构按下方角色表使用 `View`、`Row`、`Record`、`Entry`、`List`、`Page`、`Set`、`Snapshot`、`Envelope`、`Frame`、`Payload`、`Submission`、`Receipt`、`Ref`、`Proof`、`Attestation`、`Evidence`、`Transcript`、`Metadata`、`Artifact`、`Problem` / `ProblemExtensions`、`Parameters` 或 `Fields`；领域主语不受机械后缀表限制，但 MUST NOT 用泛化 `Result` 充当角色。`service-operation-dtos.schema.json` 作为 OpenAPI DTO 镜像是已登记结构例外。
 - <!-- rule_id: NC-CODE-001 --> **R5 机器原因码**：机器可枚举原因 MUST 使用 `reason_code` / `<domain>_reason_code`，协议标准错误码 MUST 使用 `error_code`；`failure_code` / `rejection_code` 等中间形态禁止。
 - <!-- rule_id: NC-EVIDENCE-001 --> **R6 证据材料名词**：`proof` 是可独立验证的密码学命题材料；`attestation` 是第三方对范围/状态的签发断言；`receipt` 是请求状态回执；`witness` 是背书角色；`commitment` 是集合/树承诺；`transcript` 是签名/KDF 的规范输入。`evidence` 仅用于可容纳至少两类上述材料的多态容器。
 - <!-- rule_id: NC-ARTIFACT-001 --> **R7 artifact 文件与 provenance**：artifact 文件名 MUST 为 kebab-case。类别词按数据形态使用：`registry`、`table`、`graph`、`report`、`index`、`digests`、`fixture`、`manifest`、`probes`；provenance 由真实数据流决定，canonical artifact 使用 `source_of_truth: true`，派生 artifact 使用 `source_of_truth: false` 且声明非空 `generated_from` / `generated_by`。
@@ -208,7 +208,7 @@ expected_<role>_<kind>_id
 
 `_ref` / `_refs` 只用于 reference material，而不是单一具体 object kind 字段。允许类别：
 
-- Event / RealmCommit / typed current result / Snapshot / Receipt 等 finality、state 或证明引用：`commit_ref`、`result_selector`、`realm_state_snapshot_ref`、`poll_event_ref`。
+- Event / RealmCommit / current state / Snapshot / Receipt 等 finality、state 或证明引用：`commit_ref`、`state_selector`、`realm_state_snapshot_ref`、`poll_event_ref`。
 - Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_blob_ref`。
 - Schema / Profile / Feature 引用：`schema_refs`、`profile_ref`、`feature_ref`。
 - Proof / evidence / transcript 引用：`evidence_ref`、`proof_ref`、`service_acceptance_ref`、`policy_event_ref`。
@@ -222,7 +222,7 @@ expected_<role>_<kind>_id
 
 唯一的词类级裸名规则是已登记的 provenance/byline 角色：`<past-participle>_by` 整体是完整角色词，而不是“角色 + 被遗漏的 identifier 后缀”。`created_by`、`updated_by`、`executed_by`、`generated_by` 等登记字段永远保持裸名，MUST NOT 改成 `*_by_id`、`*_by_did` 或 `*_by_verification_method`；其值仍须按该字段的真实职责精确登记为 `ActorId`、W3C `did`、DID URL，或其它词法互斥的闭合 identifier union。字段名绝不为了保留裸 byline 而降级为 `string`，类型也绝不为了统一而强制成裸 `did_core_id`。该规则不构成任意裸角色白名单：只有 `tools/identifier-role-suffix-registry.json#registered_provenance_byline_fields` 中登记的精确字段名可使用此形态；新增词必须证明它表达 durable provenance/byline、声明 terminal profile，并通过 mutation gate。查询或索引函数中的 `get_by_id` / `*_by_id` 局部变量不属于 wire 字段命名合同。
 
-URI/URL 与上述 identifier profile **正交**。可通过 HTTP(S) 解引用或通过 WS(S) 连接的网络 locator 使用 `_url`；通用 URI identity/reference、`geo:` / `mimi:` 等非网络 scheme、以及 OAuth/OIDC 等外部标准拥有的精确 URI 词法使用 `_uri`。Web Origin 是完整协议角色，使用裸 `origin`。当前闭合网络 locator 集合为 `arkret_base_url`、`base_url`、`connect_url`、`resolution_url`、`endpoint_url`、`gate_account_base_url`、`inclusion_proof_url`、`openid_configuration_url`、`public_base_url`、`push_gateway_url`、`retrieval_url`、`source_url`、`webhook_url`，以及 `BlobPresignOutcome.url`；当前 URI identity/reference 集合为 `acct_uri`、`gate_audience_uri`、`geo_uri`、`issuer_uri`、`mimi_room_uri`、`mimi_uri`、`provider_uri`、`redirect_uri` 和完整 generic `uri`。DID 专名 `did_url` / `verification_method` 不进入此集合。rate-limit policy 的 `endpoint` 是闭合 selector（absolute service path 或 absolute HTTP(S) URL），不是纯 locator 字段，保持裸名。所有 `_url` schema terminal MUST 明确收紧到登记的 HTTP(S)/WS(S) scheme；`format: uri` 本身既不能证明它是网络 URL，也不能决定字段后缀。
+URI/URL 与上述 identifier profile **正交**。可通过 HTTP(S) 解引用或通过 WS(S) 连接的网络 locator 使用 `_url`；通用 URI identity/reference、`geo:` / `mimi:` 等非网络 scheme、以及 OAuth/OIDC 等外部标准拥有的精确 URI 词法使用 `_uri`。Web Origin 是完整协议角色，使用裸 `origin`。当前闭合网络 locator 集合为 `arkret_base_url`、`base_url`、`connect_url`、`resolution_url`、`endpoint_url`、`gate_account_base_url`、`inclusion_proof_url`、`openid_configuration_url`、`public_base_url`、`push_gateway_url`、`retrieval_url`、`source_url`、`webhook_url`，以及 `BlobPresignResponseBody.url`；当前 URI identity/reference 集合为 `acct_uri`、`gate_audience_uri`、`geo_uri`、`issuer_uri`、`mimi_room_uri`、`mimi_uri`、`provider_uri`、`redirect_uri` 和完整 generic `uri`。DID 专名 `did_url` / `verification_method` 不进入此集合。rate-limit policy 的 `endpoint` 是闭合 selector（absolute service path 或 absolute HTTP(S) URL），不是纯 locator 字段，保持裸名。所有 `_url` schema terminal MUST 明确收紧到登记的 HTTP(S)/WS(S) scheme；`format: uri` 本身既不能证明它是网络 URL，也不能决定字段后缀。
 
 Web Origin 的完整角色名不等于宽松字符串：所有真实 Web Origin occurrence MUST 解析到 `common-ids.schema.json#/$defs/web_origin`。其 wire canonical 形态只允许 lowercase HTTP(S) scheme、host 与可选有效非默认 port；userinfo、任何 path（包括尾 `/`）、query、fragment、显式默认端口和越界端口都 MUST fail closed。`agent-sidecar-exchange-projection.origin` 是 closed provenance enum，不属于此 profile。
 
@@ -335,7 +335,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 - `labels` 仅适用于 Space。Realm / Circle / Strand / Message / Morph / Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 的标签语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）或扩展容器承担，避免与 Space labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Strand / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 终态复用 update**：共享 View 通过 `ak.view.update` patch `state="tombstoned"` 进入 durable terminal state；不另注册平行的 `ak.view.tombstone` event kind。Reducer 派生 `state_changed_at`，终态后的 update / reconcile 用 `view_already_terminal` 拒绝；见 [`views.md` §3.1](./views.md)。
-- **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由各自的领域 Event 与 current result 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at`。读取面 MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 区分 successor 迁移与永久关闭；不得把该显示状态写回 Realm 对象。
+- **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由各自的领域 Event 与 current state 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at`。读取面 MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 区分 successor 迁移与永久关闭；不得把该显示状态写回 Realm 对象。
 - **Agent Sidecar（`ak:sidecar:`）authorship 与 state 特例**：Sidecar 不使用通用 `created_by` / `updated_by`；其 authorship 是 exact controller account（`controller_account_id`，create-locked、必为父 Realm active member），create / update 主体由 reducer 从 controller account / Realm membership / lifecycle checkpoint 派生（`agent-sidecar.schema.json` 无 `created_by` / `updated_by`）。本表对应格写"—"与 Capability Grant / Invite 同理——不表示没有创建主体记录。Sidecar 的 `state`（`active` / `suspended` / `tombstoned`）是**reducer-derived 特例生命周期轴**：`suspended` 不属于 §5 通用物理 lifecycle 枚举（见 §5 附注），无 actor-authored `ak.sidecar.update/archive/restore`；`state_changed_at` 取触发派生转换的已接受 Event timestamp。合法 / 非法迁移封闭表见 [`sidecar.md` §7](./sidecar.md)。Sidecar 无 `labels` / `stage` / `stage_changed_at` / 顶层 `fields` 扩展容器。
 
 ### 3.2 字段声明 / 展示顺序约定（normative reference）
@@ -385,8 +385,8 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 | 来源 | 含义 | 机器表达 |
 | --- | --- | --- |
 | 作者输入 | 成员取自签名 Event 的闭合作者载荷 | `apply_patch` 的 `allowed_paths[]`，或 whole-value 投影所读的闭合作者载荷区域的声明属性 |
-| reducer 派生 | 成员由本次已接受 Event / RealmCommit 按固定规则算出 | `result_writes[].derived_members[]`，`derivation` 取自封闭派生名集合 |
-| 前态保留 | 成员逐字保留冻结前态的值，本次写入不改变它 | `result_writes[].retained_members[]` |
+| reducer 派生 | 成员由本次已接受 Event / RealmCommit 按固定规则算出 | `state_writes[].derived_members[]`，`derivation` 取自封闭派生名集合 |
+| 前态保留 | 成员逐字保留冻结前态的值，本次写入不改变它 | `state_writes[].retained_members[]` |
 | create-locked | 成员由 create 写入一次性确定，此后只能以前态保留出现 | registry 的 `create_locked[]`：仅 `producer_kinds` 命名的写入以 `derived_members[]` 产出，family 的其它每一条写入都 MUST 在 `retained_members[]` 里列出它 |
 | 专属事件维护 | 成员只由某个专属 event kind 写 | 该 kind 的已登记写入；其它写入 MUST NOT 产出它 |
 
@@ -515,18 +515,29 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
 主体字段新增策略：
 
 - 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`controller`）登记的是语义 stem，不豁免 §2.1.3 的主体类别与 carrier 后缀；其 identifier 字段按合同使用 `issuer_id`、`inviter_account_id`、`holder_service_id` / `holder_account_id`、`controller_id` 等形态。durable provenance/byline 只有在 registry 精确登记为完整 `<past-participle>_by` 角色后才能使用裸名（例如 `approved_by`、`revoked_by`），并按职责强类型为 `DidCoreId`、`Did`、DID URL 或闭合 union；不得追加 identifier 后缀。时间点独立使用 `<verb>_at`。
-- 过程结果词汇按对象族固定（**封闭四词**，normative）：
+- 类型与成员的角色 MUST 先由其合同决定，再选择名字；不能从旧名字反推职责，也不能把以下词当成通用输出近义词。
 
-  | 词 | 语义 | 典型载体 |
-  | --- | --- | --- |
-  | `outcome` | 请求 / 提交 / receipt 的完成结果，配 `outcome_reason_code` | 全部 `*_outcome` DTO、receipt 的结果字段 |
-  | `result` | 执行体或 session 自身算出的运行结果 | call recording / transcript 的 `result`、SDK conformance claim |
-  | `decision` | 人为或治理裁决 | moderation、join review、consent |
-  | `resolution` | 名称 / 选择器 / 冲突的**解析**结果，不是过程结局 | `service_resolution`、agent selector、applet namespace conflict |
+  | 角色 | 唯一职责与命名 |
+  | --- | --- |
+  | RequestBody / ResponseBody | binding 的实际消息体；不含本次 HTTP 的 path、query、header、status 或 trailer。完整 HTTP 消息 envelope 独立建模。独立领域对象、Receipt、Page、View、Snapshot 可以直接作为 body，不增加同形 alias 或单字段包装。 |
+  | CurrentState / Current&lt;Family&gt; | 给定读取 cut 上带 selector、source_stream_ref、revision、value 的权威现状。具体名字完整保留 current-state registry 的 family；不是某个流程的终态，也不承诺缓存永久新鲜。 |
+  | Outcome | 一个明确步骤或流程已定的结局；pending / prepared / unknown 的同一步骤状态不是 Outcome。受理尝试的结局不等于最终送达，必须明确 Attempt 等对象。 |
+  | Decision / Verdict / Resolution | 分别为有权主体的裁决、验证检查的判定、名称或引用解析材料；不得互换。 |
+  | View / Row / Record / Entry | 分别为读取投影或组合、集合中的投影条目、保留事实、具有 key／绑定／dot 等语法职责的条目。不能因为位于数组就要求 Record 或 Entry。 |
+  | List / Page / Set | List 无续读；Page 为明确游标、continuation 与 has_more 判据的片段；Set 具有唯一性与 canonical 排序语义。一次 exists／identity 查询使用 LookupResponseBody。 |
+  | Snapshot | 指定 cut 且有明确覆盖／完整性边界的快照；不推导跨 stream 总顺序。 |
+  | Envelope / Frame / Payload / Submission | 分别为带上下文的外层载体、传输帧、kind 绑定领域正文、提交处理的原子单元或证明组合；Submission 不表示已受理。 |
+  | Receipt / Metadata / Artifact | 分别为合同固定阶段的回执、对已有对象或过程的描述、具名输出产物。 |
+  | Problem / ProblemExtensions | 完整规范错误对象／仅有扩展成员的片段。HTTP Problem 使用 RFC 9457 顶层 type URI 与扩展成员，不使用 error.code/details 包装；闭合对象不能用互相排斥成员的 allOf 强行拼接。 |
+  | Parameters / Fields | 操作输入的部分参数集合／可复用共享字段片段；两者不冒充完整 RequestBody。 |
 
-  新增相邻对象 MUST 从上表取词，不得随机换用近义词。receipt 使用 `outcome`，moderation 使用
-  `decision`，后者与 `ak.moderation.decision` 及 `moderation_decision_payload` 两层一致。
-  `response` / `ack` 不是独立结果词：HTTP 响应体统一走 `*_outcome`，确认类载荷按其真实语义归入上表。
+  字段同样按职责使用 `current_state`、`material`、`capture_metadata`、`outcome`、`decision`、`verdict` 或 `resolutions` 等。`Result / result` 不作为泛化协议结构角色。签名、authority、freshness 与授权义务由所属合同决定，名字本身不构成证据。
+
+  许可使用 `_allowed`、义务使用 `_required`，事实使用正极性状态名，实现能力使用 `_supported`，请求意向使用 `_requested`。controller selection 仍是偏好与 capability 的交集，不因 allowed 字段而成为授权。
+
+  计数按单数语义轴使用 `_count`，上下界在前，周期在后，例如 `max_channel_count`、`operation_count_per_minute`。普通绝对时刻使用 `_at`；`not_before`、calendar recurrence `until` 和精确外部 literal 按所属合同保留。原始序列化缓冲区明确使用 `_base64` 或 `_base64url`，不得双编码；signature、nonce、digest、typed ref 等角色 terminal 固定其唯一编码。
+
+  命名角色、全部 enum／const 的 ownership、开放槽和外部例外由实际 schema terminal 与精确 owner 元数据闭合。例外不得随字段同名或 $ref 传播。门禁分别报告声明覆盖与语义裁决；walker 覆盖不能替代语义证明。
 
 ### 4.3 角色名词登记索引
 
@@ -546,7 +557,7 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
 ### 4.4 `agent_participation` wire 形态（normative）
 
 Realm、Circle、Strand 的 `agent_participation` policy component 使用
-`{agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}}`；
+`{agent:{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}}`；
 controller-private selection 直接使用同一个五位 inner object。五个 boolean 全部 required，两个 object 都 closed；
 任一位缺失或出现未知位均 `schema_violation`，不得默认补齐。外层 axis 为其它 actor family 保留，不同
 family 使用独立 sibling key。
@@ -581,7 +592,7 @@ Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock
 其它 Actor 分支使用完整 ActorId；不得回退到裸 DID。
 ## 5. 状态字段的命名边界
 
-common 只定义 `state` 与 `stage` 两个共享概念。`state` 是所属对象/资源的当前状态，既可以是 FSM 值，也可以是多个已登记事实的确定性投影；同名不表示共享枚举、typed current result 或一个通用 FSM。`stage` 是 Strand/Morph 的业务进度，与 `state` 正交。
+common 只定义 `state` 与 `stage` 两个共享概念。`state` 是所属对象/资源的当前状态，既可以是 FSM 值，也可以是多个已登记事实的确定性投影；同名不表示共享枚举、current state 或一个通用 FSM。`stage` 是 Strand/Morph 的业务进度，与 `state` 正交。
 
 `status` 是领域局部字段；closed DTO 内无歧义时可使用，多个领域结果并列时使用 `account_status`、`delivery_status` 等明确名字。这里不按“谁拥有状态”给同名字段分配全局状态机。Agent selector 的绑定与撤销只由 [actor §3.2](./actor.md) 定义。
 
@@ -589,7 +600,7 @@ common 只定义 `state` 与 `stage` 两个共享概念。`state` 是所属对�
 
 ### 5.1 对象状态的权威入口
 
-合法操作由对象自己的定义定位到 event-kind registry 的 effect、领域迁移校验与组合规则，不得根据字段名或 Event 拼写推断，也不得把业务状态机复制成 typed current result 状态模型或第二份可逆性标签。Realm 见 [realm-and-space §2.6](./realm-and-space.md)，Strand/Message 见 [strand-and-message](./strand-and-message.md)，其它对象分别见 [circle](./circle.md)、[morph](./morph.md)、[relation](./relation.md)、[views](./views.md)、[sidecar](./sidecar.md)。存在 `state` 不意味着支持 archive/restore。
+合法操作由对象自己的定义定位到 event-kind registry 的 effect、领域迁移校验与组合规则，不得根据字段名或 Event 拼写推断，也不得把业务状态机复制成 current state 状态模型或第二份可逆性标签。Realm 见 [realm-and-space §2.6](./realm-and-space.md)，Strand/Message 见 [strand-and-message](./strand-and-message.md)，其它对象分别见 [circle](./circle.md)、[morph](./morph.md)、[relation](./relation.md)、[views](./views.md)、[sidecar](./sidecar.md)。存在 `state` 不意味着支持 archive/restore。
 
 `state_changed_at` 仍是 reducer-derived：安全转换取 `max(Event.created_at, accepting RealmCommit.committed_at)`，其中 accepting RealmCommit 是唯一确认序列里直接接受该命令的确切位置；普通转换只取 `created_at`。actor 不得通过 payload 改写它。对象缺失不表示 active；缺 create/依赖时按同步规则保留 pending_causal_apply/replay 并按目标建索引，不得成功丢弃操作。依赖、snapshot 或可验证 visibility 材料到达后重新执行同一校验；证明永久不可见时沿 dependency_missing / capability_denied / history_not_visible 报告，不得记为 applied。
 
@@ -662,13 +673,13 @@ Realm 没有 materialized `state` 字段（§5.1 表末），因此 `ak.realm.ar
 
 #### 5.3.4 与本地 workflow 的关系（normative）
 
-**v1 不提供可互操作的 Realm workflow profile。** 没有 profile object、安装 / 更新 Event、capability、typed current result family 或 `transition_contracts` 条目能声明 workflow state、state 到 stage 的映射或 transition matrix；实现 MUST NOT 把 Realm 私有 metadata key、部署配置文件、数据库表或服务端硬编码 transition matrix 当作这样的 carrier——它们没有 signed authority、authority-commit basis、版本与跨 Station 语义，两个 conforming 实现据此会对同一条 `ak.<kind>.stage.set` 得出不同 admission 结果。
+**v1 不提供可互操作的 Realm workflow profile。** 没有 profile object、安装 / 更新 Event、capability、current state family 或 `transition_contracts` 条目能声明 workflow state、state 到 stage 的映射或 transition matrix；实现 MUST NOT 把 Realm 私有 metadata key、部署配置文件、数据库表或服务端硬编码 transition matrix 当作这样的 carrier——它们没有 signed authority、authority-commit basis、版本与跨 Station 语义，两个 conforming 实现据此会对同一条 `ak.<kind>.stage.set` 得出不同 admission 结果。
 
 - actor 通过 `ak.<kind>.stage.set` 直接推进 stage，reducer 只执行 §5.3.3 硬约束；本节不给任何实现“按 profile 收紧”的许可。
 - 细粒度 workflow state（“In Dev / Reviewing / QA”等）是本地产品关注点：放在 domain-named `metadata.fields.<domain>_status`（bare `status` 是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 hard-reject 保留名）或 Morph schema 字段里，不进入 canonical Event admission，跨实现不保证一致解释。
 - 跨 Realm / 跨实现只认 8 值 `stage`：维护本地细粒度状态的产品 SHOULD 在本地状态变化时由客户端另发 `ak.<kind>.stage.set` 写入对应粗粒度值；dashboard 只聚合 `stage`（同一个 `stage=in_progress` bucket 涵盖各产品自定义的“In Dev / Reviewing / QA”）。
 
-Rationale（informative）：内建状态模型、领域转移表与写入者在 canonical registry 冻结；Realm policy 不能动态定义新的 typed current result 模型或覆盖内建目标。per-Realm profile 只可按已有注册合同收窄取值和业务约束。
+Rationale（informative）：内建状态模型、领域转移表与写入者在 canonical registry 冻结；Realm policy 不能动态定义新的 current state 模型或覆盖内建目标。per-Realm profile 只可按已有注册合同收窄取值和业务约束。
 
 ## 6. 通用对象 ID 约定
 
@@ -760,7 +771,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `federation_policy`），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
 
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / ...）。schema 内联约束，无需引用独立对象。Event／RealmCommit 的 content-address suite 不是 profile 字段，而是 current-v1 全局固定合同。
-- **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 typed current result state 有交互。同样内联，不通过引用对象。
+- **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 current state state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`ak:policy:<uuid>`）的 ID，pattern `^ak:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
 - **`_floor` 不构成通用加密／隐私策略轴**：current-v1 不定义 Realm encryption profile 与 Circle encryption / metadata floor 的继承或取严算法。Realm-default / Circle 分别由自己的 Genesis 激活 MLS，Sidecar 固定独立 MLS；Space 只表达 placement 谓词。已登记 `readable_floor` 等历史读取下界按其专章定义，不能据后缀推导其它 floor 字段或策略传播；设置矩阵见 [`scope-settings.md`](../governance/scope-settings.md)。
 

@@ -1,0 +1,113 @@
+"""Mutations exercise semantic names and the complete release contract."""
+import copy
+import unittest
+import json
+import subprocess
+import tempfile
+from pathlib import Path
+from jsonschema import Draft202012Validator
+
+from .artifact_lint.semantic_naming import capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors
+from .protocol_member_contract import REFERENCE, check, compare, contract_shape, derive, registry_contract_shape
+
+
+class SemanticNamingTests(unittest.TestCase):
+    def test_capture_prose_references_follow_the_schema_member(self):
+        self.assertEqual(capture_member_reference_errors('recording_transition.capture_metadata.retention'), [])
+        self.assertTrue(capture_member_reference_errors('recording_transition.result.retention'))
+        self.assertTrue(capture_member_reference_errors('outcome="blocked_by_legal_hold"'))
+
+    def test_decimal_integer_schema_rejects_numeric_and_noncanonical_values(self):
+        schema = json.loads((Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas/decimal-integers.schema.json').read_text(encoding='utf-8'))
+        for name, maximum in [('uint64_decimal', 2**64 - 1), ('nonnegative_int64_decimal', 2**63 - 1)]:
+            validator = Draft202012Validator(schema['$defs'][name])
+            for number in (0, 1, 2**53 + 1, maximum - 1, maximum):
+                with self.subTest(name=name, valid=number):
+                    self.assertTrue(validator.is_valid(str(number)))
+                    self.assertFalse(validator.is_valid(number))
+            for invalid in ('', '00', '01', '+1', '-1', '1.0', '1e3', ' 1', '1 ', str(maximum + 1), None):
+                with self.subTest(name=name, invalid=invalid):
+                    self.assertFalse(validator.is_valid(invalid))
+
+    def test_published_v1_tag_blocks_replacing_the_reference(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifacts = root / 'spec/v1/artifacts'
+            for folder in ('schemas', 'registry', 'openapi'):
+                (artifacts / folder).mkdir(parents=True)
+            encoding = root / 'spec/v1/zh/conformance/encoding.md'
+            encoding.parent.mkdir(parents=True)
+            encoding.write_text('Canonical encoding', encoding='utf-8')
+            (artifacts / 'openapi/arkret-service-api.openapi.yaml').write_text('openapi: 3.1.0\n', encoding='utf-8')
+            schema = artifacts / 'schemas/value.schema.json'
+            schema.write_text(json.dumps({'type': 'object', 'properties': {'value': {'type': 'string'}}}), encoding='utf-8')
+            reference = root / REFERENCE
+            reference.parent.mkdir(parents=True)
+            reference.write_text(json.dumps(derive(root)), encoding='utf-8')
+            commands = [
+                ['init', '-q'], ['config', 'user.name', 'Contract Test'],
+                ['config', 'user.email', 'contract@example.invalid'],
+                ['add', '.'], ['commit', '-qm', 'Freeze initial contract'], ['tag', 'v1.2.3'],
+            ]
+            for command in commands:
+                subprocess.run(['git', *command], cwd=root, check=True, capture_output=True)
+            self.assertEqual(check(root), [])
+            schema.write_text(json.dumps({'type': 'object', 'properties': {'renamed': {'type': 'string'}}}), encoding='utf-8')
+            reference.write_text(json.dumps(derive(root)), encoding='utf-8')
+            self.assertTrue(any('v1.2.3 is immutable' in error for error in check(root)))
+
+    def test_maintenance_metadata_does_not_erase_wire_version(self):
+        document = {'source_of_truth': True, 'version': '2026-10-24.1',
+                    'properties': {'version': {'const': 'v1'}}}
+        changed = copy.deepcopy(document)
+        changed['version'] = '2026-10-24.2'
+        self.assertEqual(registry_contract_shape(document), registry_contract_shape(changed))
+        changed['properties']['version']['const'] = 'v2'
+        self.assertNotEqual(contract_shape(document), contract_shape(changed))
+
+    def test_body_and_terminal_roles_are_distinct(self):
+        self.assertEqual(type_role_errors('IssueResponseBody',{'x-arkret-name-role':'response_body'}),[])
+        self.assertTrue(type_role_errors('IssueOutcome',{'x-arkret-name-role':'response_body'}))
+        settled={'x-arkret-name-role':'terminal_outcome','x-arkret-outcome-scope':'attempt','enum':['accepted','rejected']}
+        self.assertEqual(type_role_errors('AttemptOutcome',settled),[])
+        self.assertTrue(type_role_errors('AttemptOutcome',{**settled,'enum':['accepted','pending']}))
+
+    def test_positive_member_grammar(self):
+        self.assertEqual(member_role_errors('max_channel_count',{'x-arkret-member-role':'count','type':'integer'}),[])
+        self.assertTrue(member_role_errors('max_channels',{'x-arkret-member-role':'count','type':'integer'}))
+        self.assertTrue(member_role_errors('export',{'x-arkret-member-role':'permission','type':'boolean'}))
+        self.assertTrue(member_role_errors('expires_after',{'x-arkret-member-role':'instant'}))
+
+    def test_current_list_page_and_set_have_roles(self):
+        self.assertTrue(type_role_errors('AgentResult',{}))
+        self.assertTrue(type_role_errors('AgentState',{'x-arkret-name-role':'current_state'}))
+        self.assertTrue(type_role_errors('UserList',{'properties':{'next_cursor':{}}}))
+        self.assertTrue(type_role_errors('UserPage',{'properties':{'exists':{}}}))
+        self.assertTrue(type_role_errors('AlgorithmSet',{'type':'array','uniqueItems':True}))
+
+    def test_enum_authority_cannot_expand_or_propagate(self):
+        node={'enum':['valid'],'x-arkret-value-ownership':{'class':'owned_symbol','authority':'owner','owner':'schema#/field','values':['valid']}}
+        self.assertEqual(enum_errors(node,'schema#/field'),[])
+        self.assertTrue(enum_errors({**node,'enum':['New-Wrong-Value']},'schema#/field'))
+        self.assertTrue(enum_errors(node,'schema#/another_field'))
+        self.assertTrue(enum_errors({'enum':['Bad-Value']}))
+        external={'const':'Ed25519','x-arkret-value-ownership':{'class':'external_literal','authority':'https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1','owner':'schema#/algorithm','values':['Ed25519']}}
+        self.assertEqual(enum_errors(external,'schema#/algorithm'),[])
+        self.assertTrue(enum_errors(external,'schema#/unrelated'))
+
+    def test_every_public_contract_axis_is_frozen(self):
+        base={'schemas':[{'file':'one.schema.json','contract':{'type':'object','required':['value'],'properties':{'value':{'type':'string','enum':['a'],'x-arkret-member-role':'domain_value'}},'additionalProperties':False}}],'canonical_registries':[],'openapi':{}}
+        for change in ('name','type','required','nullable','enum','encoding','unit','signature','open_slot'):
+            with self.subTest(change=change):
+                actual=copy.deepcopy(base);shape=actual['schemas'][0]['contract'];member=shape['properties']['value']
+                if change=='name':shape['properties']['other']=shape['properties'].pop('value')
+                elif change=='required':shape['required']=[]
+                elif change=='type':member['type']='integer'
+                elif change=='nullable':member['type']=['string','null']
+                elif change=='enum':member['enum'].append('b')
+                elif change=='open_slot':shape['additionalProperties']=True
+                else:member['x-arkret-'+change]='changed'
+                self.assertTrue(compare(base,actual))
+
+
+if __name__=='__main__':unittest.main()

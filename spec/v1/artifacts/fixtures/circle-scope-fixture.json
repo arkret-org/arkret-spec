@@ -5,7 +5,7 @@
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-20.2",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.circle.scope_rebind_and_admission.v1",
     "ak.vector.circle.lifecycle_admission_barrier.v1",
@@ -41,7 +41,7 @@
     }
   },
   "canonical_reducer_output_shape": {
-    "description": "Reducer-derived, immutable tagged effective_scope written only to the materialized object typed current result, never to the Event Envelope. Two discriminated forms: kind=realm | kind=circle.",
+    "description": "Reducer-derived, immutable tagged effective_scope written only to the materialized object current state, never to the Event Envelope. Two discriminated forms: kind=realm | kind=circle.",
     "schema": {
       "oneOf": [
         {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-21.4",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-21T17:58:12+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -44,7 +44,7 @@
       "ak.self.mls.read.group_state_material.v1",
       "ak.self.mls.read.roster_authority.v1",
       "ak.self.signer_keys.read.resolve.v1",
-      "ak.self.current_results.read.exact.v1",
+      "ak.self.current_state.read.exact.v1",
       "ak.self.committed_event.resource.get.v1",
       "ak.self.committed_event.read.scan.v1",
       "ak.self.committed_event.stream.subscribe.v1",
@@ -205,7 +205,7 @@
         ]
       },
       {
-        "operation_id": "ak.self.current_results.read.exact.v1",
+        "operation_id": "ak.self.current_state.read.exact.v1",
         "mode": "all_actions",
         "actions": [
           "ak.event.read"

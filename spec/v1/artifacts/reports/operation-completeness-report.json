@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.3",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-23T13:01:46+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -10,7 +10,7 @@
   "description": "Per-operation machine-readable schema-contract completeness report covering every operation in the operation registry. JSON Schema files and the registry remain canonical; this report is a derived summary for SDK / conformance tooling and schema-coverage review.",
   "completeness_class_definitions": {
     "typed_schema": "registry declares a request and/or response artifact schema ref.",
-    "generic_binding": "OpenAPI binds the governed generic OperationRequest/OperationResult envelope.",
+    "generic_binding": "OpenAPI binds the governed generic OperationRequest/OperationResponseBody envelope.",
     "streaming_frame_schema": "success_shape_kind=event_stream; frame contract in a dedicated frame schema.",
     "binary_or_redirect": "success_shape_kind=binary_stream/metadata_headers/redirect; no JSON DTO body by design.",
     "service_describe": "response is the shared ServiceDescribe contract.",
@@ -59,10 +59,10 @@
       "http": "POST /_arkret/edge/applet/transactions",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletTransactionRequestBody",
-        "response": "#/components/schemas/AppletTransactionOutcome"
+        "response": "#/components/schemas/AppletTransactionResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -72,11 +72,11 @@
       "surface_class": "interop_bridge",
       "http": "POST /_arkret/edge/applet/configuration",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_request",
-      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_outcome",
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/execution_request",
-        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/execution_outcome"
+        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body",
+        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/execution_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -87,10 +87,10 @@
       "http": "POST /_arkret/edge/applet/managed-actors/author",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_request_body",
-      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletManagedActorAuthorRequestBody",
-        "response": "#/components/schemas/AppletManagedActorAuthorOutcome"
+        "response": "#/components/schemas/AppletManagedActorAuthorResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -114,9 +114,9 @@
       "http": "GET /_arkret/edge/applet/ping",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AppletPingOutcome"
+        "response": "#/components/schemas/AppletPingResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -153,9 +153,9 @@
       "http": "GET /_arkret/edge/applet/third_party/locations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AppletThirdPartyLocationList"
+        "response": "#/components/schemas/AppletThirdPartyLocationLookupResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -166,9 +166,9 @@
       "http": "GET /_arkret/edge/applet/third_party/users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AppletThirdPartyUserList"
+        "response": "#/components/schemas/AppletThirdPartyUserLookupResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -179,10 +179,10 @@
       "http": "POST /_arkret/edge/push/registrations:apply",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
-      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PushRegistrationHandoffRequestBody",
-        "response": "#/components/schemas/PushRegistrationHandoffOutcome"
+        "response": "#/components/schemas/PushRegistrationHandoffResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -193,10 +193,10 @@
       "http": "POST /_arkret/edge/push/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
-      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PushNotifyRequestBody",
-        "response": "#/components/schemas/PushNotifyOutcome"
+        "response": "#/components/schemas/PushNotifyResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -207,10 +207,10 @@
       "http": "POST /_arkret/edge/push/register-device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
-      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PushRegisterDeviceRequestBody",
-        "response": "#/components/schemas/PushRegisterDeviceOutcome"
+        "response": "#/components/schemas/PushRegisterDeviceResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -247,10 +247,10 @@
       "http": "POST /_arkret/find/directory/resolve-realm",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryResolveRealmRequestBody",
-        "response": "#/components/schemas/DirectoryRealmResolutionOutcome"
+        "response": "#/components/schemas/DirectoryRealmResolutionResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -261,10 +261,10 @@
       "http": "POST /_arkret/find/directory/search-realms",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectorySearchRealmsRequestBody",
-        "response": "#/components/schemas/DirectoryRealmSearchOutcome"
+        "response": "#/components/schemas/DirectoryRealmSearchResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -275,10 +275,10 @@
       "http": "POST /_arkret/gate/account/identity-abandonments",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/IdentityAbandonmentRequestBody",
-        "response": "#/components/schemas/IdentityAbandonmentOutcome"
+        "response": "#/components/schemas/IdentityAbandonmentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -289,10 +289,10 @@
       "http": "POST /_arkret/gate/account/device-pairing/finalizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
-      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DevicePairingFinalizeRequestBody",
-        "response": "#/components/schemas/DevicePairingFinalizeOutcome"
+        "response": "#/components/schemas/DevicePairingFinalizeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -303,10 +303,10 @@
       "http": "POST /_arkret/gate/account/did-binding-challenges",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DidBindingChallengeRequestBody",
-        "response": "#/components/schemas/DidBindingChallengeOutcome"
+        "response": "#/components/schemas/DidBindingChallengeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -317,10 +317,10 @@
       "http": "POST /_arkret/gate/account/identity-binding-challenges",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/IdentityBindingChallengeRequestBody",
-        "response": "#/components/schemas/IdentityBindingChallengeOutcome"
+        "response": "#/components/schemas/IdentityBindingChallengeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -330,11 +330,11 @@
       "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/recovery-session-grants/issue",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request",
-      "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome",
+      "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body",
+      "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/RecoveryCompletionGrantRequestBody",
-        "response": "#/components/schemas/RecoveryCompletionGrantOutcome"
+        "response": "#/components/schemas/RecoveryCompletionGrantResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -345,10 +345,10 @@
       "http": "POST /_arkret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionGrantRequestBody",
-        "response": "#/components/schemas/SessionGrantOutcome"
+        "response": "#/components/schemas/SessionGrantResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -359,10 +359,10 @@
       "http": "POST /_arkret/gate/account/logout",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountLogoutRequestBody",
-        "response": "#/components/schemas/AccountLogoutOutcome"
+        "response": "#/components/schemas/AccountLogoutResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -373,10 +373,10 @@
       "http": "POST /_arkret/gate/account/agent-key-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentKeyPairRequestBody",
-        "response": "#/components/schemas/AgentKeyPairOutcome"
+        "response": "#/components/schemas/AgentKeyPairResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -387,10 +387,10 @@
       "http": "POST /_arkret/gate/account/device-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDevicePairRequestBody",
-        "response": "#/components/schemas/AccountDevicePairOutcome"
+        "response": "#/components/schemas/AccountDevicePairResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -401,10 +401,10 @@
       "http": "POST /_arkret/gate/account/session-grants/refresh",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionGrantRefreshRequestBody",
-        "response": "#/components/schemas/SessionGrantOutcome"
+        "response": "#/components/schemas/SessionGrantResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -415,10 +415,10 @@
       "http": "POST /_arkret/gate/account/register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountRegisterRequestBody",
-        "response": "#/components/schemas/AccountRegisterOutcome"
+        "response": "#/components/schemas/AccountRegisterResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -429,10 +429,10 @@
       "http": "POST /_arkret/gate/account/erasure-requests",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_response_body",
       "openapi_component_refs": {
         "request": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body",
-        "response": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome"
+        "response": "../schemas/account-operations.schema.json#/$defs/account_request_erasure_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -443,10 +443,10 @@
       "http": "POST /_arkret/gate/account/session-grants/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionRevokeRequestBody",
-        "response": "#/components/schemas/SessionRevokeOutcome"
+        "response": "#/components/schemas/SessionRevokeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -457,10 +457,10 @@
       "http": "POST /_arkret/gate/account/authentication-handoffs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountHandoffRequestBody",
-        "response": "#/components/schemas/AccountHandoffOutcome"
+        "response": "#/components/schemas/AccountHandoffResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -471,10 +471,10 @@
       "http": "POST /_arkret/gate/account/device-pairing/code-claims",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
-      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DevicePairingCodeClaimRequestBody",
-        "response": "#/components/schemas/DevicePairingCodeClaimOutcome"
+        "response": "#/components/schemas/DevicePairingCodeClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -498,10 +498,10 @@
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentRuntimeApprovalRequestBody",
-        "response": "#/components/schemas/AgentRuntimeApprovalOutcome"
+        "response": "#/components/schemas/AgentRuntimeApprovalResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -526,10 +526,10 @@
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentRuntimeApprovalStatusRequestBody",
-        "response": "#/components/schemas/AgentRuntimeApprovalStatusOutcome"
+        "response": "#/components/schemas/AgentRuntimeApprovalStatusResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -540,10 +540,10 @@
       "http": "POST /_arkret/open/device-pairing/requests",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
-      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DevicePairingStageRequestBody",
-        "response": "#/components/schemas/DevicePairingStageOutcome"
+        "response": "#/components/schemas/DevicePairingStageResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -568,10 +568,10 @@
       "http": "POST /_arkret/open/device-pairing/requests/status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
-      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DevicePairingStatusRequestBody",
-        "response": "#/components/schemas/DevicePairingStatusOutcome"
+        "response": "#/components/schemas/DevicePairingStatusResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -609,10 +609,10 @@
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiNotifyRequestBody",
-        "response": "#/components/schemas/MimiNotifyOutcome"
+        "response": "#/components/schemas/MimiNotifyResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -623,10 +623,10 @@
       "http": "POST /_arkret/open/mimi/proxy-download",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiProxyDownloadRequestBody",
-        "response": "#/components/schemas/MimiProxyDownloadOutcome"
+        "response": "#/components/schemas/MimiProxyDownloadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -637,10 +637,10 @@
       "http": "POST /_arkret/open/mimi/report-abuse",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiReportAbuseRequestBody",
-        "response": "#/components/schemas/MimiReportAbuseOutcome"
+        "response": "#/components/schemas/MimiReportAbuseResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -651,10 +651,10 @@
       "http": "POST /_arkret/open/mimi/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiRequestConsentRequestBody",
-        "response": "#/components/schemas/MimiRequestConsentOutcome"
+        "response": "#/components/schemas/MimiRequestConsentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -665,10 +665,10 @@
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiSubmitMessageRequestBody",
-        "response": "#/components/schemas/MimiSubmitMessageOutcome"
+        "response": "#/components/schemas/MimiSubmitMessageResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -679,10 +679,10 @@
       "http": "POST /_arkret/open/mimi/consent/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiUpdateConsentRequestBody",
-        "response": "#/components/schemas/MimiUpdateConsentOutcome"
+        "response": "#/components/schemas/MimiUpdateConsentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -693,10 +693,10 @@
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiRoomUpdateRequestBody",
-        "response": "#/components/schemas/MimiRoomUpdateOutcome"
+        "response": "#/components/schemas/MimiRoomUpdateResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -707,10 +707,10 @@
       "http": "POST /_arkret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesClaimRequestBody",
-        "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"
+        "response": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -721,10 +721,10 @@
       "http": "POST /_arkret/open/mimi/identifiers/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MimiIdentifierQueryRequestBody",
-        "response": "#/components/schemas/MimiIdentifierQueryOutcome"
+        "response": "#/components/schemas/MimiIdentifierQueryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -747,10 +747,10 @@
       "surface_class": "core",
       "http": "POST /_arkret/open/realm-authority/bundle",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_bundle_request_body",
       "response_schema_ref": "schemas/realm-authority-bundle.schema.json",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/realm_authority_bundle_request_body",
         "response": "../schemas/realm-authority-bundle.schema.json"
       },
       "completeness_class": "typed_schema",
@@ -775,10 +775,10 @@
       "http": "POST /_arkret/open/third-party-invites/activate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_outcome",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInviteActivationRequestBody",
-        "response": "#/components/schemas/ThirdPartyInviteActivationOutcome"
+        "response": "#/components/schemas/ThirdPartyInviteActivationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -789,10 +789,10 @@
       "http": "POST /_arkret/open/third-party-invites/present",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInvitePresentRequestBody",
-        "response": "#/components/schemas/ThirdPartyInvitePresentOutcome"
+        "response": "#/components/schemas/ThirdPartyInvitePresentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -803,10 +803,10 @@
       "http": "POST /_arkret/open/third-party-invites/provision",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInviteProvisionRequestBody",
-        "response": "#/components/schemas/ThirdPartyInviteProvisionOutcome"
+        "response": "#/components/schemas/ThirdPartyInviteProvisionResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -817,10 +817,10 @@
       "http": "POST /_arkret/open/third-party-invites/status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_outcome",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInviteProvisioningStatusRequestBody",
-        "response": "#/components/schemas/ThirdPartyInviteProvisioningStatusOutcome"
+        "response": "#/components/schemas/ThirdPartyInviteProvisioningStatusResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -831,10 +831,10 @@
       "http": "POST /_arkret/peer/account-status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountStatusPublicationRequestBody",
-        "response": "#/components/schemas/AccountStatusPublicationOutcome"
+        "response": "#/components/schemas/AccountStatusPublicationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -845,10 +845,10 @@
       "http": "POST /_arkret/peer/account-status/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountStatusResolveRequestBody",
-        "response": "#/components/schemas/AccountStatusResolveOutcome"
+        "response": "#/components/schemas/AccountStatusResolveResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -858,11 +858,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/applets/{applet_id}/configuration",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
-      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_applet_configuration_request_body",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
-        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/outcome"
+        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/peer_applet_configuration_request_body",
+        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -873,10 +873,10 @@
       "http": "POST /_arkret/peer/rtc/invitation",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
-      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_response_body",
       "openapi_component_refs": {
         "request": "../schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
-        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_outcome"
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -887,10 +887,10 @@
       "http": "POST /_arkret/peer/rtc/invitation-admission",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
-      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_decision",
       "openapi_component_refs": {
         "request": "../schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
-        "response": "../schemas/call-invitation-operations.schema.json#/$defs/admission_outcome"
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/admission_decision"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -900,11 +900,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/streams/scan",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -914,11 +914,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/consent/proxy",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request",
-      "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_outcome",
+      "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request_body",
+      "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/consent-private-operations.schema.json#/$defs/proxy_request",
-        "response": "../schemas/consent-private-operations.schema.json#/$defs/proxy_outcome"
+        "request": "../schemas/consent-private-operations.schema.json#/$defs/proxy_request_body",
+        "response": "../schemas/consent-private-operations.schema.json#/$defs/proxy_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -928,11 +928,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/consent/effects",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
-      "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome",
+      "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request_body",
+      "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
-        "response": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome"
+        "request": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_request_body",
+        "response": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -943,10 +943,10 @@
       "http": "POST /_arkret/peer/consent/current",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
       "openapi_component_refs": {
         "request": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
-        "response": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome"
+        "response": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -956,11 +956,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-        "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+        "request": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
+        "response": "../schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -971,10 +971,10 @@
       "http": "POST /_arkret/peer/erasure-receipts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body",
-      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+      "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ErasureReceiptSubmitRequestBody",
-        "response": "#/components/schemas/ErasureReceiptSubmitOutcome"
+        "response": "#/components/schemas/ErasureReceiptSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -997,11 +997,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/events",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1012,10 +1012,10 @@
       "http": "POST /_arkret/peer/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-delivery-request.schema.json",
-      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteDeliveryRequestBody",
-        "response": "#/components/schemas/InviteDeliveryOutcome"
+        "response": "#/components/schemas/InviteDeliveryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1026,10 +1026,10 @@
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimRequestBody",
-        "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"
+        "response": "#/components/schemas/PeerKeyPackagesClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1040,10 +1040,10 @@
       "http": "POST /_arkret/peer/keys/keypackages/claims/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimQueryRequestBody",
-        "response": "#/components/schemas/PeerKeyPackagesClaimQueryOutcome"
+        "response": "#/components/schemas/PeerKeyPackagesClaimQueryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1054,10 +1054,10 @@
       "http": "POST /_arkret/peer/keys/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeysQueryRequestBody",
-        "response": "#/components/schemas/PeerKeysQueryOutcome"
+        "response": "#/components/schemas/PeerKeysQueryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1067,11 +1067,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/mls/add-authority-attestations",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_request",
-      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_add_authority_attest_request_body",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsAddAuthorityAttestRequestBody",
-        "response": "#/components/schemas/MlsAddAuthorityAttestOutcome"
+        "response": "#/components/schemas/MlsAddAuthorityAttestResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1082,10 +1082,10 @@
       "http": "POST /_arkret/peer/mls/group-state-material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsGroupStateMaterialRequestBody",
-        "response": "#/components/schemas/MlsGroupStateMaterialOutcome"
+        "response": "#/components/schemas/MlsGroupStateMaterialResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1095,11 +1095,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/mls/roster-authority/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
-      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_roster_authority_read_request_body",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsRosterAuthorityReadRequestBody",
-        "response": "#/components/schemas/MlsRosterAuthorityReadOutcome"
+        "response": "#/components/schemas/MlsRosterAuthorityReadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1109,11 +1109,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/realm-actors/material",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_request",
-      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_realm_actor_material_request_body",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/realm-actor-material.schema.json#/$defs/peer_request",
-        "response": "../schemas/realm-actor-material.schema.json#/$defs/outcome"
+        "request": "../schemas/realm-actor-material.schema.json#/$defs/peer_realm_actor_material_request_body",
+        "response": "../schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1123,10 +1123,10 @@
       "surface_class": "core",
       "http": "POST /_arkret/peer/realm-authority/handoff",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
       "response_schema_ref": "schemas/realm-authority-handoff.schema.json",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
         "response": "../schemas/realm-authority-handoff.schema.json"
       },
       "completeness_class": "typed_schema",
@@ -1138,10 +1138,10 @@
       "http": "POST /_arkret/peer/realm-joins/bootstrap",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/RealmJoinBootstrapRequestBody",
-        "response": "#/components/schemas/RealmJoinBootstrapOutcome"
+        "response": "#/components/schemas/RealmJoinBootstrapResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1152,10 +1152,10 @@
       "http": "POST /_arkret/peer/realm-joins/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/RealmJoinPeerPreviewRequestBody",
-        "response": "#/components/schemas/RealmJoinPeerPreviewOutcome"
+        "response": "#/components/schemas/RealmJoinPeerPreviewResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1178,11 +1178,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/strands/watch/audit-read",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
-      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request_body",
+      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerWatchAuditReadRequestBody",
-        "response": "#/components/schemas/WatchAuditReadOutcome"
+        "response": "#/components/schemas/WatchAuditReadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1193,10 +1193,10 @@
       "http": "POST /_arkret/peer/strands/watch/current",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/StrandWatchCurrentRequestBody",
-        "response": "#/components/schemas/StrandWatchCurrentOutcome"
+        "response": "#/components/schemas/StrandWatchCurrentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1207,10 +1207,10 @@
       "http": "POST /_arkret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/DidOperationSubmitRequestBody",
-        "response": "#/components/schemas/DidOperationSubmitOutcome"
+        "response": "#/components/schemas/DidOperationSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1234,9 +1234,9 @@
       "http": "GET /_arkret/root/identity/log",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListResponseBody",
       "openapi_component_refs": {
-        "response": "#/components/schemas/IdentityLogListOutcome"
+        "response": "#/components/schemas/IdentityLogListResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1247,10 +1247,10 @@
       "http": "POST /_arkret/root/identity/organization-registrations:ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/OrganizationRegistrationEnsureRequestBody",
-        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+        "response": "#/components/schemas/OrganizationRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1275,10 +1275,10 @@
       "http": "POST /_arkret/root/identity/organization-registrations:refresh",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/OrganizationRegistrationRefreshRequestBody",
-        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+        "response": "#/components/schemas/OrganizationRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1289,10 +1289,10 @@
       "http": "POST /_arkret/root/identity/organization-registrations:revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/OrganizationRegistrationRevokeRequestBody",
-        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+        "response": "#/components/schemas/OrganizationRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1303,9 +1303,9 @@
       "http": "GET /_arkret/root/identity/organization-registrations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
       "openapi_component_refs": {
-        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+        "response": "#/components/schemas/OrganizationRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1316,10 +1316,10 @@
       "http": "POST /_arkret/root/identity/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
-        "response": "#/components/schemas/IdentityResolveOutcome"
+        "response": "#/components/schemas/IdentityResolveResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1330,9 +1330,9 @@
       "http": "GET /_arkret/root/identity/receipts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListResponseBody",
       "openapi_component_refs": {
-        "response": "#/components/schemas/IdentityReceiptListOutcome"
+        "response": "#/components/schemas/IdentityReceiptListResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1342,11 +1342,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
-      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
+      "request_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request_body",
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
-        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
+        "request": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request_body",
+        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1357,9 +1357,9 @@
       "http": "GET /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_status_view",
       "openapi_component_refs": {
-        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
+        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_status_view"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1384,10 +1384,10 @@
       "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_response_body",
       "openapi_component_refs": {
         "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
-        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1424,10 +1424,10 @@
       "http": "POST /_arkret/root/identity/service-registrations:ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/ServiceRegistrationEnsureRequestBody",
-        "response": "#/components/schemas/ServiceRegistrationOutcome"
+        "response": "#/components/schemas/ServiceRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1438,9 +1438,9 @@
       "http": "GET /_arkret/root/identity/service-registrations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationResponseBody",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceRegistrationOutcome"
+        "response": "#/components/schemas/ServiceRegistrationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1451,10 +1451,10 @@
       "http": "POST /_arkret/self/account/cursor/revoke",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
-        "response": "../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome"
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1465,10 +1465,10 @@
       "http": "POST /_arkret/self/account/profile",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountUpdateProfileRequestBody",
-        "response": "#/components/schemas/AccountUpdateProfileOutcome"
+        "response": "#/components/schemas/AccountUpdateProfileResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1529,10 +1529,10 @@
       "http": "DELETE /_arkret/self/account_data/{account_data_key}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body",
-      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
+      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDataDeleteRequestBody",
-        "response": "#/components/schemas/AccountDataDeleteOutcome"
+        "response": "#/components/schemas/AccountDataDeleteResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1570,10 +1570,10 @@
       "http": "POST /_arkret/self/actor-private-events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/ActorPrivateEventSubmitRequestBody",
-        "response": "#/components/schemas/ActorPrivateEventSubmitOutcome"
+        "response": "#/components/schemas/ActorPrivateEventSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1583,11 +1583,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/actor-profiles/query",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
-      "response_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+      "request_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request_body",
+      "response_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
-        "response": "../schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome"
+        "request": "../schemas/actor-profile-operations.schema.json#/$defs/resolve_request_body",
+        "response": "../schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1598,7 +1598,7 @@
       "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentDeactivateRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
@@ -1612,7 +1612,7 @@
       "http": "POST /_arkret/self/agents/{agent_id}/pause",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentPauseRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
@@ -1626,10 +1626,10 @@
       "http": "POST /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentProvisionRequestBody",
-        "response": "#/components/schemas/AgentProvisionOutcome"
+        "response": "#/components/schemas/AgentProvisionResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1640,10 +1640,10 @@
       "http": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentRenewPairingRequestBody",
-        "response": "#/components/schemas/AgentRenewPairingOutcome"
+        "response": "#/components/schemas/AgentRenewPairingResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1654,7 +1654,7 @@
       "http": "POST /_arkret/self/agents/{agent_id}/resume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentResumeRequestBody",
         "response": "#/components/schemas/AgentLifecycleState"
@@ -1668,9 +1668,9 @@
       "http": "GET /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AgentParticipationOutcome"
+        "response": "#/components/schemas/AgentParticipationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1680,11 +1680,11 @@
       "surface_class": "extension",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_participation_replace_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
-        "response": "#/components/schemas/AgentParticipationOutcome"
+        "response": "#/components/schemas/AgentParticipationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1695,9 +1695,9 @@
       "http": "GET /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AgentList"
+        "response": "#/components/schemas/AgentPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1720,11 +1720,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
-      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+      "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+      "response_schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentSidecarEnsureRequestBody",
-        "response": "#/components/schemas/AgentSidecarEnsureOutcome"
+        "response": "#/components/schemas/AgentSidecarEnsureResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1735,9 +1735,9 @@
       "http": "GET /_arkret/self/agent-sidecars",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AgentSidecarList"
+        "response": "#/components/schemas/AgentSidecarPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1760,11 +1760,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/applets/{applet_id}/authority/material",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/request",
-      "response_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/applet_authority_material_request_body",
+      "response_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/applet-authority-material.schema.json#/$defs/request",
-        "response": "../schemas/applet-authority-material.schema.json#/$defs/outcome"
+        "request": "../schemas/applet-authority-material.schema.json#/$defs/applet_authority_material_request_body",
+        "response": "../schemas/applet-authority-material.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1775,10 +1775,10 @@
       "http": "POST /_arkret/self/applets/{applet_id}/bots/provision/preview",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body",
-      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome",
+      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_response_body",
       "openapi_component_refs": {
         "request": "../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body",
-        "response": "../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome"
+        "response": "../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1789,10 +1789,10 @@
       "http": "POST /_arkret/self/applets/install",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
-      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletInstallRequestBody",
-        "response": "#/components/schemas/AppletInstallOutcome"
+        "response": "#/components/schemas/AppletInstallResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1803,10 +1803,10 @@
       "http": "POST /_arkret/self/applets/{applet_id}/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
-      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletRevokeRequestBody",
-        "response": "#/components/schemas/AppletRevokeOutcome"
+        "response": "#/components/schemas/AppletRevokeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1816,11 +1816,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/applets/{applet_id}/configuration",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request",
-      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/request",
-        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/outcome"
+        "request": "../schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body",
+        "response": "../schemas/applet-configuration-operations.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1831,10 +1831,10 @@
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/GhostPreviewRequestBody",
-        "response": "#/components/schemas/GhostPreviewOutcome"
+        "response": "#/components/schemas/GhostPreviewResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1845,10 +1845,10 @@
       "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
+      "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletInstallPreviewRequestBody",
-        "response": "#/components/schemas/AppletInstallPreviewOutcome"
+        "response": "#/components/schemas/AppletInstallPreviewResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1859,10 +1859,10 @@
       "http": "POST /_arkret/self/applets/{applet_id}/revoke/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/AppletRevokePreviewRequestBody",
-        "response": "#/components/schemas/AppletRevokePreviewOutcome"
+        "response": "#/components/schemas/AppletRevokePreviewResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1873,9 +1873,9 @@
       "http": "GET /_arkret/self/authz/effective-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot",
       "openapi_component_refs": {
-        "response": "#/components/schemas/GrantList"
+        "response": "#/components/schemas/EffectiveGrantSnapshot"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1886,9 +1886,9 @@
       "http": "GET /_arkret/self/authz/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
+      "response_schema_ref": "schemas/authorization-operations.schema.json#/$defs/authorization_invite_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AuthzInviteList"
+        "response": "#/components/schemas/AuthorizationInvitePage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1898,11 +1898,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/authz/check",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationCheckRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AuthzCheckRequestBody",
-        "response": "#/components/schemas/AuthzCheckOutcome"
+        "request": "#/components/schemas/AuthorizationCheckRequestBody",
+        "response": "#/components/schemas/AuthorizationCheckResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1913,10 +1913,10 @@
       "http": "POST /_arkret/self/blob/presign",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
-        "response": "../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1949,10 +1949,10 @@
       "http": "POST /_arkret/self/blob/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
-      "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome",
+      "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/BlobUploadRequestBody",
-        "response": "#/components/schemas/BlobUploadOutcome"
+        "response": "#/components/schemas/BlobUploadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1963,10 +1963,10 @@
       "http": "POST /_arkret/self/rtc/invitation",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
-      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_response_body",
       "openapi_component_refs": {
         "request": "../schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
-        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_outcome"
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1977,10 +1977,10 @@
       "http": "POST /_arkret/self/rtc/token",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
-        "response": "../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2005,9 +2005,9 @@
       "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/CircleScopeRotateOutcome"
+        "response": "#/components/schemas/CircleScopeRotateResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2018,10 +2018,10 @@
       "http": "POST /_arkret/self/circles/{circle_id}/members",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/CircleMemberRequestBody",
-        "response": "#/components/schemas/CircleMembershipOutcome"
+        "response": "#/components/schemas/CircleMembershipResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2032,10 +2032,10 @@
       "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/CircleMemberDeleteRequestBody",
-        "response": "#/components/schemas/CircleMembershipOutcome"
+        "response": "#/components/schemas/CircleMembershipResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2071,11 +2071,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/streams/scan",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2113,7 +2113,7 @@
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/ConsentReplaceRequestBody",
-        "response": "#/components/schemas/ConsentResultView"
+        "response": "#/components/schemas/ConsentView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2124,10 +2124,10 @@
       "http": "POST /_arkret/self/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ConsentRequestRequestBody",
-        "response": "#/components/schemas/ConsentRequestOutcome"
+        "response": "#/components/schemas/ConsentRequestResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2138,10 +2138,10 @@
       "http": "POST /_arkret/self/consent/current",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
       "openapi_component_refs": {
         "request": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
-        "response": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome"
+        "response": "../schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2154,7 +2154,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_list",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentResultList"
+        "response": "#/components/schemas/ConsentList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2167,7 +2167,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentResultView"
+        "response": "#/components/schemas/ConsentView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2177,11 +2177,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/reject",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRejectRequestBody",
-        "response": "#/components/schemas/ContactRejectOutcome"
+        "response": "#/components/schemas/ContactRejectResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2191,11 +2191,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRequestRequestBody",
-        "response": "#/components/schemas/ContactRequestOutcome"
+        "response": "#/components/schemas/ContactRequestResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2205,11 +2205,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactRespondRequestBody",
-        "response": "#/components/schemas/ContactRespondOutcome"
+        "response": "#/components/schemas/ContactRespondResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2219,11 +2219,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/scope-update",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactScopeUpdateRequestBody",
-        "response": "#/components/schemas/ContactScopeUpdateOutcome"
+        "response": "#/components/schemas/ContactScopeUpdateResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2233,8 +2233,8 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactTombstoneRequestBody",
         "response": "#/components/schemas/ContactTombstone"
@@ -2248,9 +2248,9 @@
       "http": "GET /_arkret/self/contacts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ContactList"
+        "response": "#/components/schemas/ContactPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2261,24 +2261,24 @@
       "http": "POST /_arkret/self/account/current-principal",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_request_body",
-      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_outcome",
+      "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/CurrentPrincipalRequestBody",
-        "response": "#/components/schemas/CurrentPrincipalOutcome"
+        "response": "#/components/schemas/CurrentPrincipalResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.current_results.read.exact.v1",
+      "operation_id": "ak.self.current_state.read.exact.v1",
       "surface_class": "core",
-      "http": "POST /_arkret/self/current-results/exact",
+      "http": "POST /_arkret/self/current-state/exact",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
-      "response_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "request_schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
+      "response_schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "openapi_component_refs": {
-        "request": "#/components/schemas/ExactCurrentResultsReadRequestBody",
-        "response": "#/components/schemas/ExactCurrentResultsReadOutcome"
+        "request": "#/components/schemas/ExactCurrentStateReadRequestBody",
+        "response": "#/components/schemas/ExactCurrentStateReadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2288,11 +2288,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/device_messages/ack",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementResponseBody",
       "openapi_component_refs": {
-        "request": "#/components/schemas/DeviceMessagesAckRequestBody",
-        "response": "#/components/schemas/DeviceMessagesAckOutcome"
+        "request": "#/components/schemas/DeviceMessagesAcknowledgementRequestBody",
+        "response": "#/components/schemas/DeviceMessagesAcknowledgementResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2303,10 +2303,10 @@
       "http": "POST /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/DeviceMessagesSendRequestBody",
-        "response": "#/components/schemas/DeviceMessagesSendOutcome"
+        "response": "#/components/schemas/DeviceMessagesSendResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2317,9 +2317,9 @@
       "http": "GET /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponseBody",
       "openapi_component_refs": {
-        "response": "#/components/schemas/DeviceMessagesGetOutcome"
+        "response": "#/components/schemas/DeviceMessagesGetResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2329,11 +2329,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
-      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+      "request_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
+      "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectConversationResolveRequestBody",
-        "response": "#/components/schemas/DirectConversationResolveOutcome"
+        "response": "#/components/schemas/DirectConversationResolveResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2343,11 +2343,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/events",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2358,10 +2358,10 @@
       "http": "QUERY /_arkret/self/events/delivery-status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/EventDeliveryStatusRequestBody",
-        "response": "#/components/schemas/EventDeliveryStatusOutcome"
+        "response": "#/components/schemas/EventDeliveryStatusResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2371,10 +2371,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/identity/resolution-audit/query",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request",
+      "request_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request_body",
       "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
       "openapi_component_refs": {
-        "request": "../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request",
+        "request": "../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request_body",
         "response": "../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence"
       },
       "completeness_class": "typed_schema",
@@ -2386,10 +2386,10 @@
       "http": "POST /_arkret/self/invite-locators",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
-      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteLocatorIssueRequestBody",
-        "response": "#/components/schemas/InviteLocatorIssueOutcome"
+        "response": "#/components/schemas/InviteLocatorIssueResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2400,10 +2400,10 @@
       "http": "POST /_arkret/self/invite-locators/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
-      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteLocatorRevokeRequestBody",
-        "response": "#/components/schemas/InviteLocatorRevokeOutcome"
+        "response": "#/components/schemas/InviteLocatorRevokeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2414,10 +2414,10 @@
       "http": "POST /_arkret/self/invite-locators/rotate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
-      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteLocatorRotateRequestBody",
-        "response": "#/components/schemas/InviteLocatorIssueOutcome"
+        "response": "#/components/schemas/InviteLocatorIssueResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2455,10 +2455,10 @@
       "http": "POST /_arkret/self/invites/dispatch",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
-      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/SelfInviteDispatchRequestBody",
-        "response": "#/components/schemas/InviteDeliveryOutcome"
+        "response": "#/components/schemas/InviteDeliveryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2511,9 +2511,9 @@
       "http": "GET /_arkret/self/keys/backups",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/KeysBackupsList"
+        "response": "#/components/schemas/KeysBackupsPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2537,10 +2537,10 @@
       "http": "PUT /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/key-backup.schema.json",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body",
       "openapi_component_refs": {
         "request": "../schemas/key-backup.schema.json",
-        "response": "#/components/schemas/KeysBackupsReplaceOutcome"
+        "response": "#/components/schemas/KeysBackupsReplaceResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2551,10 +2551,10 @@
       "http": "POST /_arkret/self/keys/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysClaimRequestBody",
-        "response": "#/components/schemas/KeysClaimOutcome"
+        "response": "#/components/schemas/KeysClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2565,10 +2565,10 @@
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesClaimRequestBody",
-        "response": "#/components/schemas/KeyPackagesClaimOutcome"
+        "response": "#/components/schemas/KeyPackagesClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2579,10 +2579,10 @@
       "http": "POST /_arkret/self/keys/keypackages/consume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesConsumeRequestBody",
-        "response": "#/components/schemas/KeyPackagesConsumeOutcome"
+        "response": "#/components/schemas/KeyPackagesConsumeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2593,10 +2593,10 @@
       "http": "POST /_arkret/self/keys/keypackages/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesRevokeRequestBody",
-        "response": "#/components/schemas/KeyPackagesRevokeOutcome"
+        "response": "#/components/schemas/KeyPackagesRevokeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2607,10 +2607,10 @@
       "http": "POST /_arkret/self/keys/keypackages/claims/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesClaimQueryRequestBody",
-        "response": "#/components/schemas/KeyPackagesClaimOutcome"
+        "response": "#/components/schemas/KeyPackagesClaimResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2621,10 +2621,10 @@
       "http": "POST /_arkret/self/keys/keypackages/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
-      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesUploadRequestBody",
-        "response": "#/components/schemas/KeyPackagesUploadOutcome"
+        "response": "#/components/schemas/KeyPackagesUploadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2635,10 +2635,10 @@
       "http": "POST /_arkret/self/keys/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysQueryRequestBody",
-        "response": "#/components/schemas/KeysQueryOutcome"
+        "response": "#/components/schemas/KeysQueryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2649,10 +2649,10 @@
       "http": "POST /_arkret/self/keys/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysUploadRequestBody",
-        "response": "#/components/schemas/KeysUploadOutcome"
+        "response": "#/components/schemas/KeysUploadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2662,11 +2662,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/management-reviews/decisions",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/decision",
-      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_decision_request_body",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/management-review-operations.schema.json#/$defs/decision",
-        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
+        "request": "../schemas/management-review-operations.schema.json#/$defs/management_review_decision_request_body",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2676,11 +2676,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/management-reviews/requests",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
-      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_request_body",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/management-review-operations.schema.json#/$defs/request",
-        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
+        "request": "../schemas/management-review-operations.schema.json#/$defs/management_review_request_body",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2690,11 +2690,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/management-reviews/status",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/lookup",
-      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_status_request_body",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
       "openapi_component_refs": {
-        "request": "../schemas/management-review-operations.schema.json#/$defs/lookup",
-        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
+        "request": "../schemas/management-review-operations.schema.json#/$defs/management_review_status_request_body",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2704,11 +2704,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
-      "response_schema_ref": "schemas/ice-config-response.schema.json",
+      "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_configuration_request_body",
+      "response_schema_ref": "schemas/media-ice-configuration-response-body.schema.json",
       "openapi_component_refs": {
-        "request": "#/components/schemas/MediaIceConfigRequestBody",
-        "response": "#/components/schemas/MediaIceConfigOutcome"
+        "request": "#/components/schemas/MediaIceConfigurationRequestBody",
+        "response": "#/components/schemas/MediaIceConfigurationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2718,11 +2718,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/media-service-bindings/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
-      "response_schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+      "request_schema_ref": "schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_request_body",
+      "response_schema_ref": "schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MediaServiceBindingRequestBody",
-        "response": "#/components/schemas/MediaServiceBindingOutcome"
+        "response": "#/components/schemas/MediaServiceBindingResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2732,11 +2732,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/mls/group-state-material/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsMemberGroupStateMaterialReadRequestBody",
-        "response": "#/components/schemas/MlsGroupStateMaterialOutcome"
+        "response": "#/components/schemas/MlsGroupStateMaterialResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2746,11 +2746,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/mls/roster-authority/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
-      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsMemberRosterAuthorityReadRequestBody",
-        "response": "#/components/schemas/MlsSelfRosterAuthorityReadOutcome"
+        "response": "#/components/schemas/MlsSelfRosterAuthorityReadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2761,10 +2761,10 @@
       "http": "POST /_arkret/self/moderation/report",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
-        "response": "#/components/schemas/ModerationReportOutcome"
+        "response": "#/components/schemas/ModerationReportResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2775,9 +2775,9 @@
       "http": "GET /_arkret/self/realms/{realm_id}/morphs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MorphPage",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionMorphList"
+        "response": "#/components/schemas/MorphPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2788,9 +2788,9 @@
       "http": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
+      "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_view",
       "openapi_component_refs": {
-        "response": "#/components/schemas/DocumentMorphProjectionOutcome"
+        "response": "#/components/schemas/DocumentMorphView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2801,10 +2801,10 @@
       "http": "POST /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
-      "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
+      "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ReadCursorAdvanceRequestBody",
-        "response": "#/components/schemas/ReadMarkerOutcome"
+        "response": "#/components/schemas/ReadMarkerResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2841,9 +2841,9 @@
       "http": "GET /_arkret/self/realms/{realm_id}/streams",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_page",
       "openapi_component_refs": {
-        "response": "#/components/schemas/RealmStreamList"
+        "response": "#/components/schemas/RealmStreamPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2866,11 +2866,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/realm-actors/material",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
-      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+      "request_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
+      "response_schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/realm-actor-material.schema.json#/$defs/request",
-        "response": "../schemas/realm-actor-material.schema.json#/$defs/outcome"
+        "request": "../schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
+        "response": "../schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2881,10 +2881,10 @@
       "http": "POST /_arkret/self/realm-joins/prepare",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/RealmJoinPrepareRequestBody",
-        "response": "#/components/schemas/RealmJoinPrepareOutcome"
+        "response": "#/components/schemas/RealmJoinPrepareResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2895,10 +2895,10 @@
       "http": "POST /_arkret/self/realm-joins/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome",
+      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/RealmJoinSelfPreviewRequestBody",
-        "response": "#/components/schemas/RealmJoinSelfPreviewOutcome"
+        "response": "#/components/schemas/RealmJoinSelfPreviewResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2960,10 +2960,10 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/security_transaction_continue_request_body",
       "response_schema_ref": "schemas/security-transaction.schema.json",
       "openapi_component_refs": {
-        "request": "../schemas/security-transaction.schema.json#/$defs/continue_request",
+        "request": "../schemas/security-transaction.schema.json#/$defs/security_transaction_continue_request_body",
         "response": "../schemas/security-transaction.schema.json"
       },
       "completeness_class": "typed_schema",
@@ -2974,10 +2974,10 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/security-transactions",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/security_transaction_create_request_body",
       "response_schema_ref": "schemas/security-transaction.schema.json",
       "openapi_component_refs": {
-        "request": "../schemas/security-transaction.schema.json#/$defs/create_request",
+        "request": "../schemas/security-transaction.schema.json#/$defs/security_transaction_create_request_body",
         "response": "../schemas/security-transaction.schema.json"
       },
       "completeness_class": "typed_schema",
@@ -3002,10 +3002,10 @@
       "http": "POST /_arkret/self/signal",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signal-envelope.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitResponseBody",
       "openapi_component_refs": {
         "request": "../schemas/signal-envelope.schema.json",
-        "response": "#/components/schemas/SignalSubmitOutcome"
+        "response": "#/components/schemas/SignalSubmitResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3027,10 +3027,10 @@
       "http": "POST /_arkret/self/signer-keys/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
-      "response_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+      "response_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/SignerKeyQueryRequestBody",
-        "response": "#/components/schemas/SignerKeyQueryOutcome"
+        "response": "#/components/schemas/SignerKeyQueryResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3041,9 +3041,9 @@
       "http": "GET /_arkret/self/realms/{realm_id}/spaces",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SpacePage",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionSpaceList"
+        "response": "#/components/schemas/SpacePage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -3054,9 +3054,9 @@
       "http": "GET /_arkret/self/realms/{realm_id}/strands",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandPage",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionStrandList"
+        "response": "#/components/schemas/StrandPage"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -3066,11 +3066,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/strands/watch/audit-read",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
-      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
+      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/WatchAuditReadRequestBody",
-        "response": "#/components/schemas/WatchAuditReadOutcome"
+        "response": "#/components/schemas/WatchAuditReadResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3081,10 +3081,10 @@
       "http": "POST /_arkret/self/strands/watch/current",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "openapi_component_refs": {
         "request": "#/components/schemas/StrandWatchCurrentRequestBody",
-        "response": "#/components/schemas/StrandWatchCurrentOutcome"
+        "response": "#/components/schemas/StrandWatchCurrentResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -3095,10 +3095,10 @@
       "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome",
+      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/ThirdPartyInviteAcceptanceAttestationRequestBody",
-        "response": "#/components/schemas/ThirdPartyInviteAcceptanceAttestationOutcome"
+        "response": "#/components/schemas/ThirdPartyInviteAcceptanceAttestationResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

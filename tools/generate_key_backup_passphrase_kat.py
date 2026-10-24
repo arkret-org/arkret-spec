@@ -62,7 +62,7 @@ def main() -> None:
         "items": [{
             "item_kind": "private_account_state",
             "secret_id": "account.state",
-            "secret_b64u": "c2VjcmV0LW9uZQ",
+            "secret_base64url": "c2VjcmV0LW9uZQ",
             "secret_generation": 3,
         }],
     }
@@ -84,7 +84,7 @@ def main() -> None:
     nonce_bytes = jcs(nonce_transcript)
     plaintext_bytes = jcs(plaintext)
     algorithms = []
-    for name, params in (
+    for name, parameters in (
         ("argon2id", {"memory_kib": 65536, "iterations": 3, "parallelism": 1}),
         ("pbkdf2", {"iterations": 600000, "digest_algorithm": "sha512"}),
     ):
@@ -105,7 +105,7 @@ def main() -> None:
             "kdf": {
                 "name": name,
                 "salt": b64u(salt),
-                "params": params,
+                "parameters": parameters,
                 **({"degraded_profile_reason": "platform_memory_hard_kdf_unavailable"}
                    if name == "pbkdf2" else {}),
             },

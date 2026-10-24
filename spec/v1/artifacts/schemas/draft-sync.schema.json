@@ -22,7 +22,16 @@
       "enum": [
         "message",
         "strand_field"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "draft-sync.schema.json#/properties/kind",
+        "owner": "draft-sync.schema.json#/properties/kind",
+        "values": [
+          "message",
+          "strand_field"
+        ]
+      }
     },
     "draft_slot": {
       "type": "string",

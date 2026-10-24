@@ -27,7 +27,7 @@ class EncryptedEnvelopeSchemaTest(unittest.TestCase):
             "version": "1.0",
             "content_type": "application/json",
             "encryption_context": {
-                "epoch": 0,
+                "epoch": "0",
                 "group_state_ref": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
             },
             "ciphertext": "AQID",
@@ -55,9 +55,9 @@ class EncryptedEnvelopeSchemaTest(unittest.TestCase):
 
     def test_epoch_and_extra_fields_obey_canonical_envelope(self):
         value = self.envelope()
-        value["encryption_context"]["epoch"] = 9007199254740991
+        value["encryption_context"]["epoch"] = "18446744073709551615"
         self.validator.validate(value)
-        value["encryption_context"]["epoch"] += 1
+        value["encryption_context"]["epoch"] = "18446744073709551616"
         self.assertFalse(self.validator.is_valid(value))
         for context in ({"scheme": "mls_rfc9420"}, {"unknown": True}):
             value = self.envelope()

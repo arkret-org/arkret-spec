@@ -26,7 +26,15 @@
   "properties": {
     "schema": {
       "const": "ak.schema.did_webvh_witness_receipt.v1",
-      "description": "Closed discriminator. ak.root.identity.receipts.read.list.v1 returns a tagged union of receipt families; this constant is what lets a verifier pick the did:webvh method-witness branch instead of the registry consensus branch without guessing."
+      "description": "Closed discriminator. ak.root.identity.receipts.read.list.v1 returns a tagged union of receipt families; this constant is what lets a verifier pick the did:webvh method-witness branch instead of the registry consensus branch without guessing.",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "did-webvh-witness-receipt.schema.json#/properties/schema",
+        "owner": "did-webvh-witness-receipt.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.did_webvh_witness_receipt.v1"
+        ]
+      }
     },
     "receipt_id": {
       "type": "string",

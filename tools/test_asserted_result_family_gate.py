@@ -2,7 +2,7 @@
 
 `artifacts/**` descriptions are a normative surface: they carry the closed field
 sets, subjects and write contracts that `zh` prose defers to. So a payload
-description saying "rule_id is the stable policy_rule typed current result
+description saying "rule_id is the stable policy_rule current state
 subject" is a registration claim, and nothing checked it -- both existing family
 gates start from the registry, so neither can see a family that was only ever
 asserted.
@@ -36,8 +36,8 @@ def errors_for(
     lint = gate.Lint()
     original_read = Path.read_text
     original_is_file = Path.is_file
-    original_families = gate._registered_result_families
-    original_sources = gate._asserted_result_family_sources
+    original_families = gate._registered_state_families
+    original_sources = gate._asserted_state_family_sources
     overrides = dict(artifact_overrides or {})
     if payload_schema is not None:
         overrides[gate.EVENT_PAYLOAD_SCHEMA] = payload_schema
@@ -62,22 +62,22 @@ def errors_for(
     Path.read_text = read_text  # type: ignore[method-assign]
     Path.is_file = is_file  # type: ignore[method-assign]
     if overrides:
-        gate._asserted_result_family_sources = lambda: sorted(overrides)  # type: ignore[assignment]
+        gate._asserted_state_family_sources = lambda: sorted(overrides)  # type: ignore[assignment]
     if families is not None:
-        gate._registered_result_families = lambda _lint: set(families)  # type: ignore[assignment]
+        gate._registered_state_families = lambda _lint: set(families)  # type: ignore[assignment]
     try:
-        gate.check_asserted_result_families_are_registered(lint)
+        gate.check_asserted_state_families_are_registered(lint)
     finally:
         Path.read_text = original_read  # type: ignore[method-assign]
         Path.is_file = original_is_file  # type: ignore[method-assign]
-        gate._registered_result_families = original_families  # type: ignore[assignment]
-        gate._asserted_result_family_sources = original_sources  # type: ignore[assignment]
+        gate._registered_state_families = original_families  # type: ignore[assignment]
+        gate._asserted_state_family_sources = original_sources  # type: ignore[assignment]
         parse_json_file.cache_clear()
         cached_read_text.cache_clear()
     return lint.errors
 
 
-class AssertedResultFamilyGateTest(unittest.TestCase):
+class AssertedStateFamilyGateTest(unittest.TestCase):
     def test_the_live_tree_passes(self) -> None:
         self.assertEqual(errors_for(), [])
 
@@ -85,7 +85,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
         """The exact regression the gate exists for: a description claims a
         family the registry never carried."""
         reported = errors_for(
-            payload_schema='{"d": "x_id is the never_registered typed current result subject."}',
+            payload_schema='{"d": "x_id is the never_registered current state subject."}',
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
         )
@@ -95,7 +95,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
 
     def test_a_registered_family_is_accepted(self) -> None:
         reported = errors_for(
-            payload_schema='{"d": "Writes the realm_profile typed current result."}',
+            payload_schema='{"d": "Writes the realm_profile current state."}',
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
         )
@@ -103,12 +103,12 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
 
     def test_a_ledgered_family_is_accepted(self) -> None:
         reported = errors_for(
-            payload_schema='{"d": "Writes the deferred_family typed current result."}',
+            payload_schema='{"d": "Writes the deferred_family current state."}',
             families=["realm_profile"],
             ledger=json.dumps(
                 {
                     "unregistered_families": [
-                        {"result_family": "deferred_family", "reason": "why"}
+                        {"state_family": "deferred_family", "reason": "why"}
                     ]
                 }
             ),
@@ -119,12 +119,12 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
         """A listed family that acquires a registration is itself an error, so
         the ledger cannot quietly outlive the gap it recorded."""
         reported = errors_for(
-            payload_schema='{"d": "Writes the deferred_family typed current result."}',
+            payload_schema='{"d": "Writes the deferred_family current state."}',
             families=["deferred_family"],
             ledger=json.dumps(
                 {
                     "unregistered_families": [
-                        {"result_family": "deferred_family", "reason": "why"}
+                        {"state_family": "deferred_family", "reason": "why"}
                     ]
                 }
             ),
@@ -138,7 +138,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
             ledger=json.dumps(
                 {
                     "unregistered_families": [
-                        {"result_family": "deferred_family", "reason": "why"}
+                        {"state_family": "deferred_family", "reason": "why"}
                     ]
                 }
             ),
@@ -149,10 +149,10 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
         """An exemption with no stated reason is how a ratchet turns into a
         dumping ground."""
         reported = errors_for(
-            payload_schema='{"d": "Writes the deferred_family typed current result."}',
+            payload_schema='{"d": "Writes the deferred_family current state."}',
             families=["realm_profile"],
             ledger=json.dumps(
-                {"unregistered_families": [{"result_family": "deferred_family"}]}
+                {"unregistered_families": [{"state_family": "deferred_family"}]}
             ),
         )
         self.assertTrue(any("must state a reason" in e for e in reported), reported)
@@ -160,7 +160,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
     def test_single_word_assignment_claims_are_reported(self) -> None:
         """A role noun plus ``stable`` is an assignment, not ordinary prose."""
         reported = errors_for(
-            payload_schema='{"d": "policy_id is the stable policy typed current result subject."}',
+            payload_schema='{"d": "policy_id is the stable policy current state subject."}',
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
         )
@@ -169,7 +169,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
     def test_a_single_word_claim_in_another_artifact_file_is_reported(self) -> None:
         reported = errors_for(
             artifact_overrides={
-                ERROR_CODE_REGISTRY: '{"d": "The stable phantom typed current result family."}'
+                ERROR_CODE_REGISTRY: '{"d": "The stable phantom current state family."}'
             },
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
@@ -179,7 +179,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
     def test_a_negated_family_sentence_is_not_an_assignment(self) -> None:
         reported = errors_for(
             payload_schema=(
-                '{"d": "A refusal does not produce never_registered typed current result state."}'
+                '{"d": "A refusal does not produce never_registered current state state."}'
             ),
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
@@ -192,7 +192,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
         reported = errors_for(
             artifact_overrides={
                 CONTRACT_REGISTRY: "{}",
-                generated: '{"d": "Writes generated_split typed current result state."}',
+                generated: '{"d": "Writes generated_split current state state."}',
             },
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
@@ -204,7 +204,7 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
             gate.ASSERTED_FAMILY_EXEMPTIONS.read_text(encoding="utf-8")
         )
         for entry in document["unregistered_families"]:
-            self.assertTrue(entry.get("result_family"), entry)
+            self.assertTrue(entry.get("state_family"), entry)
             self.assertGreater(len(entry.get("reason", "")), 80, entry)
 
 

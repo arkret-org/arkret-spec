@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 13,
+  "version": 14,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -448,7 +448,7 @@
       "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
       "did": "did:webvh:z6mkfixture:alice.example",
-      "registration_anchor_digest": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+      "registration_anchor_digest": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
       "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
       "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
@@ -470,8 +470,8 @@
       "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
       "signature_algorithm": "Ed25519"
     },
-    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494\",\"signature_algorithm\":\"Ed25519\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
-    "canonical_json_sha256": "sha256:9e46da341557f13b794dd27ab9160d767dd4e910febb5673ce0bf7a0a4a7053a",
+    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea\",\"signature_algorithm\":\"Ed25519\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
+    "canonical_json_sha256": "sha256:341971841496b4ff1dbaa3e227ed9c8f7b54324ffd0810418dab6414bf5cb1dd",
     "forbidden_fields": [
       "audience",
       "founding_authorize_envelope_digest",
@@ -483,7 +483,7 @@
     ],
     "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
     "signing_input": "UTF-8(\"ak.identity_creation_control_proof.v1\" || 0x0A) || JCS(signature_omitted_object)",
-    "signature": "BKFvPAdf9iV1noRx_LVmBwkOHbAeZfTw2KngNkp9q3kACY1n3K39vb30hmsJ9VToVOWzuIDA3gy204UHTEhqAw",
+    "signature": "sk4xPAu6NimUvpcvJBWQJe1mlenKQVLbfemlDc4950mXIEmb6yr0FqSVkrBgzV6Mdtsr4_vmbLQIIeXfPzJ-DA",
     "signed_object": {
       "proof_kind": "did_webvh_inception_update_key",
       "challenge_id": "genesis-challenge-000001",
@@ -492,7 +492,7 @@
       "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
       "did": "did:webvh:z6mkfixture:alice.example",
-      "registration_anchor_digest": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+      "registration_anchor_digest": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
       "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
       "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
@@ -513,7 +513,7 @@
       "expires_at": "2026-08-09T00:05:00.000Z",
       "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
       "signature_algorithm": "Ed25519",
-      "signature": "BKFvPAdf9iV1noRx_LVmBwkOHbAeZfTw2KngNkp9q3kACY1n3K39vb30hmsJ9VToVOWzuIDA3gy204UHTEhqAw"
+      "signature": "sk4xPAu6NimUvpcvJBWQJe1mlenKQVLbfemlDc4950mXIEmb6yr0FqSVkrBgzV6Mdtsr4_vmbLQIIeXfPzJ-DA"
     },
     "account_subject_preimage": {
       "domain": "ak.account-subject.v1",
@@ -614,7 +614,7 @@
       {
         "name": "reserved_identity_creation_is_unreadable_after_abandonment",
         "read_surfaces": [
-          "account_handoff_outcome.binding.identity_creation_lease.reserved_identity"
+          "account_handoff_response_body.binding.identity_creation_lease.reserved_identity"
         ],
         "expected": "absent_on_every_holder_readable_surface",
         "notes": "Security property, not a cleanup policy."
@@ -686,7 +686,7 @@
       "registration_did_operation": {
         "did": "did:webvh:z6mkfixture:alice.example",
         "did_method": "webvh",
-        "seq": 1,
+        "sequence": 1,
         "operation": {
           "versionId": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
           "versionTime": "2026-08-08T00:00:00Z",
@@ -828,7 +828,7 @@
         "extensions": []
       }
     },
-    "anchor_canonical_json_sha256": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+    "anchor_canonical_json_sha256": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
     "derivations": {
       "did": "did:webvh:z6mkfixture:alice.example",
       "version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",

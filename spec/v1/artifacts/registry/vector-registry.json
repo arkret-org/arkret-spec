@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.1",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-23T10:19:20+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -122,7 +122,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.act_on_behalf.v1",
+      "vector_id": "ak.vector.agent.acting_on_behalf_allowed.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [
@@ -253,7 +253,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Circle and Strand participation ceilings may only drop bits from their parent: a child enabling act_on_behalf under a disabled parent bit, or a Strand re-enabling a Circle-disabled third-party mention bit, is rejected with agent_participation_ceiling_widen.",
+      "description": "Circle and Strand participation ceilings may only drop bits from their parent: a child enabling acting_on_behalf_allowed under a disabled parent bit, or a Strand re-enabling a Circle-disabled third-party mention bit, is rejected with agent_participation_ceiling_widen.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -301,7 +301,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "With accept_third_party_mention false, non-controller mentions fan out to no agent notification, inbox entry, push or subscribe projection while the controller's own mention still delivers; enabling the bit later is non-retroactive.",
+      "description": "With third_party_mention_delivery_allowed false, non-controller mentions fan out to no agent notification, inbox entry, push or subscribe projection while the controller's own mention still delivers; enabling the bit later is non-retroactive.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -986,7 +986,7 @@
       "applies_to_fixtures": [
         "call-state-core-fixture.json"
       ],
-      "description": "Call state axes project independently: each axis carries its own typed current result, and a transition on one axis never rewrites another.",
+      "description": "Call state axes project independently: each axis carries its own current state, and a transition on one axis never rewrites another.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
@@ -1283,7 +1283,7 @@
       "applies_to_fixtures": [
         "capability-relinquish-authoring-fixture.json"
       ],
-      "description": "The governing Station atomically returns each active effective CapabilityGrant with its exact capability_grant current-result revision. Relinquish copies only that row revision; a list digest, historical evaluation, missing revision or silent post-refresh replacement blocks authoring. Concurrent revoke and relinquish have one CAS winner, while unauthorized, missing and terminal targets remain non-enumerating.",
+      "description": "The governing Station atomically returns each active effective CapabilityGrant with its exact capability_grant current-state revision. Relinquish copies only that row revision; a list digest, historical evaluation, missing revision or silent post-refresh replacement blocks authoring. Concurrent revoke and relinquish have one CAS winner, while unauthorized, missing and terminal targets remain non-enumerating.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-relinquish-authoring-fixture.json"
       ]
@@ -1490,9 +1490,9 @@
       ]
     },
     {
-      "vector_id": "ak.vector.current_results.expected_state_digest.v1",
+      "vector_id": "ak.vector.current_state.expected_state_digest.v1",
       "status": "active",
-      "domain": "current_results",
+      "domain": "current_state",
       "applies_to_fixtures": [
         "expected-state-digest-kat-fixture.json"
       ],
@@ -2233,11 +2233,11 @@
       ]
     },
     {
-      "vector_id": "ak.vector.encoding.result_selector_uri.v1",
+      "vector_id": "ak.vector.encoding.state_selector_uri.v1",
       "status": "reserved",
       "domain": "encoding",
       "scope": "universal",
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The canonical MIMI room URI is the typed current result subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The canonical MIMI room URI is the current state subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
@@ -2919,7 +2919,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Directed invite liveness has one truth source, the invite_live_target typed current result keyed by canonical_json(payload.invitee_account_id) without realm_id: a second directed create for the same account fails with invite_live_target_occupied while pending counts as live; private delivery failure leaves shared authorization unchanged.",
+      "description": "Directed invite liveness has one truth source, the invite_live_target current state keyed by canonical_json(payload.invitee_account_id) without realm_id: a second directed create for the same account fails with invite_live_target_occupied while pending counts as live; private delivery failure leaves shared authorization unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -3516,7 +3516,7 @@
       "applies_to_fixtures": [
         "keypackage-recipient-claim-read-fixture.json"
       ],
-      "description": "ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, the byte-identical original keypackages_claim_outcome; the requester, another device of the same Account, an unknown claim id, a superseded Agent authorization and a claim past its query retention are one keypackage_unknown; no read changes claim or KeyPackage state; the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, winning Add Commit and current endpoint authorization before decrypting, and any failure, including a failed read, leaves the Welcome undecrypted.",
+      "description": "ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, the byte-identical original keypackages_claim_response_body; the requester, another device of the same Account, an unknown claim id, a superseded Agent authorization and a claim past its query retention are one keypackage_unknown; no read changes claim or KeyPackage state; the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, winning Add Commit and current endpoint authorization before decrypting, and any failure, including a failed read, leaves the Welcome undecrypted.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -3886,7 +3886,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any typed current result write, while a non-Message object target and the ak.message.redact positive both validate.",
+      "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any current state write, while a non-Message object target and the ak.message.redact positive both validate.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
@@ -3960,7 +3960,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Every directly writable Relation shape has one primary_conflict_domain current-result subject. create, update and tombstone carry the closed domain plus its exact expected_revision; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
+      "description": "Every directly writable Relation shape has one primary_conflict_domain current-state subject. create, update and tombstone carry the closed domain plus its exact expected_revision; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -5062,14 +5062,14 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json",
         "event-kind-payload-coverage-fixture.json",
-        "exact-current-results-read-fixture.json"
+        "exact-current-state-read-fixture.json"
       ],
       "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation. Explicit scoped reply configuration, independent human/Agent message authority, partial acceptance, effective readiness, and cold/reset/restart recovery boundaries.",
       "source_refs": [
         "spec/v1/zh/models/agent-interaction.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
         "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-        "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json",
+        "spec/v1/artifacts/fixtures/exact-current-state-read-fixture.json",
         "spec/v1/zh/authz/capabilities.md",
         "spec/v1/zh/conformance/conformance-profiles.md"
       ]

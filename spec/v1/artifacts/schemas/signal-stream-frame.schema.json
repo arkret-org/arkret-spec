@@ -27,7 +27,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "signal"
+          "const": "signal",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-stream-frame.schema.json#/$defs/signal/properties/kind",
+            "owner": "signal-stream-frame.schema.json#/$defs/signal/properties/kind",
+            "values": [
+              "signal"
+            ]
+          }
         },
         "envelope": {
           "$ref": "./signal-envelope.schema.json"
@@ -45,7 +53,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "heartbeat"
+          "const": "heartbeat",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-stream-frame.schema.json#/$defs/heartbeat/properties/kind",
+            "owner": "signal-stream-frame.schema.json#/$defs/heartbeat/properties/kind",
+            "values": [
+              "heartbeat"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -57,7 +73,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "drain"
+          "const": "drain",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-stream-frame.schema.json#/$defs/drain/properties/kind",
+            "owner": "signal-stream-frame.schema.json#/$defs/drain/properties/kind",
+            "values": [
+              "drain"
+            ]
+          }
         },
         "reconnect_after_ms": {
           "type": "integer",
@@ -78,7 +102,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "unauthorized"
+          "const": "unauthorized",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-stream-frame.schema.json#/$defs/unauthorized/properties/kind",
+            "owner": "signal-stream-frame.schema.json#/$defs/unauthorized/properties/kind",
+            "values": [
+              "unauthorized"
+            ]
+          }
         },
         "reason": {
           "type": "string",
@@ -174,7 +206,15 @@
         "owner_actions": {
           "type": "array",
           "items": {
-            "const": "ak.message.create"
+            "const": "ak.message.create",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "signal-stream-frame.schema.json#/$defs/product_authority/properties/owner_actions/items",
+              "owner": "signal-stream-frame.schema.json#/$defs/product_authority/properties/owner_actions/items",
+              "values": [
+                "ak.message.create"
+              ]
+            }
           },
           "maxItems": 1,
           "uniqueItems": true
@@ -185,7 +225,16 @@
             "enum": [
               "ak.message.create",
               "ak.typing.broadcast"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "signal-stream-frame.schema.json#/$defs/product_authority/properties/profile_actions/items",
+              "owner": "signal-stream-frame.schema.json#/$defs/product_authority/properties/profile_actions/items",
+              "values": [
+                "ak.message.create",
+                "ak.typing.broadcast"
+              ]
+            }
           },
           "maxItems": 2,
           "uniqueItems": true
@@ -230,7 +279,15 @@
         "historical_controller_owner_actions": {
           "type": "array",
           "items": {
-            "const": "ak.message.create"
+            "const": "ak.message.create",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/historical_controller_owner_actions/items",
+              "owner": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/historical_controller_owner_actions/items",
+              "values": [
+                "ak.message.create"
+              ]
+            }
           },
           "maxItems": 1,
           "uniqueItems": true
@@ -238,7 +295,15 @@
         "current_controller_owner_actions": {
           "type": "array",
           "items": {
-            "const": "ak.message.create"
+            "const": "ak.message.create",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/current_controller_owner_actions/items",
+              "owner": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/current_controller_owner_actions/items",
+              "values": [
+                "ak.message.create"
+              ]
+            }
           },
           "maxItems": 1,
           "uniqueItems": true

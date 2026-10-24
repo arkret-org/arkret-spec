@@ -1425,7 +1425,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "applet_device_scope_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_device_scope_contract"], cwd=ROOT).returncode,
         "managed_governance_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_managed_governance_contract"], cwd=ROOT).returncode,
         "authority_commit_protocol": lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode,
-        "result_family_writer_gate": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_result_family_writer_gate"], cwd=ROOT).returncode,
+        "state_family_writer_gate": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_state_family_writer_gate"], cwd=ROOT).returncode,
         "current_principal_schema": lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode,
         "openapi_operation_selector": lambda: run_openapi_operation_selector("check"),
         "operation_closure_locks": lambda: run_operation_closure_locks("check"),

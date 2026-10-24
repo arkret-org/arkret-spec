@@ -221,7 +221,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ```json fragment
 {
-  "auth_metadata": {
+  "authentication_metadata": {
     "account_authority": {
       "origin": "https://account.example",
       "gate_account_base_url": "https://account.example/_arkret/gate/account"
@@ -247,7 +247,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 规则：
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
-- 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ak.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。该 credential 的 durable authority 是 Account Authority 的 issuer ledger，不是 Principal Control Realm Event/typed current result；issuer MUST NOT 为 SessionGrant 代签 principal Event。
+- 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantResponseBody`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ak.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。该 credential 的 durable authority 是 Account Authority 的 issuer ledger，不是 Principal Control Realm Event/current state；issuer MUST NOT 为 SessionGrant 代签 principal Event。
 - Resource server MUST 按 §3.3 的 exact-token 内省权威合同判定 `ak.session.grant`：在预先绑定的部署内认证通道（[`service-http-binding.md` §2.2.3](./service-http-binding.md)）上提交**完整 token** 与目标 `audience_id`，由 Account Authority 从 issuer ledger 定位该 exact credential、判定状态并返回本次准入所需的全部权威元数据。该权威结果就是 resource server 对这枚 token 的唯一状态来源：resource server MUST NOT 把本地 JWT 验签、issuer DID 历史回放或从 signed claims 重算 issuance preimage / suite-tagged ID / `jti` 当作该 token 的授权依据，本地验签结果 MUST NOT 产生独立的 active 判定。resource server 仍 MUST 校验返回结果的 `issuer_id`、`audience_id`、完整 `account_id`、`credential_class`、`scopes`、`expires_at`、holder 绑定与本次业务 gate，并在依赖不可达或响应不完整时按 §3.3 fail closed。
 - 客户端 MUST 把 `ak.session.grant` 当作不透明凭据：不解析其 claim、不依据本地解码结果判断有效性，也不据此跳过任何服务端判定。
 - Agent runtime 的 `SessionGrantIntrospectGrant` MUST 返回该 exact credential 在 issuer ledger 中冻结的原 `scope_details`，包含 `controller_principal_id`、`agent_key_authorization_ref`、`realm_ids`、`strand_ids`、`resources`、`constraints`、`capability_grant_refs`、`policy_refs` 及已签的可选 `participations`。该材料只经部署内认证内省交付，不从 runtime 自报或 resource server 本地解析 token 补齐。Resource server MUST 在每次实际内容操作及后续交付检查该 session 的 action/resource/constraint ceiling；内省缺失、不完整、与 holder 绑定不符或当前资源不可确认时 MUST fail closed。Human 与 recovery grant MUST 省略此 Agent 字段。
@@ -270,7 +270,7 @@ introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder
 - `/_arkret/self/*` 以及 Account Authority 的 refresh、revoke、logout 等直接出示 SessionGrant 的 endpoint MUST 使用 §3.3 的 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof header；`Bearer` + DPoP、DPoP scheme 无 proof、错误 `ath` 均 MUST 拒绝。
 - 高安全 profile 对所有受保护的 `ak.self.*` operation MUST 要求 RFC 9421 HTTP Message Signature 会话出示并绑定 transcript/body。`ak.self.` 前缀是机器可判定的默认保护面；同一 operation 若在 registry 明确列为匿名 public metadata projection，无有效 proof 时只能返回该公开 projection，MUST NOT 把 bare bearer 当作 session / capability 认证。新增或未知 `ak.self.*` operation 默认 fail closed，除非 operation registry 与其规范性 contract 同时明确声明匿名 public projection。
 - 对其它受保护 current-v1 endpoint，实现仍 MUST 使用其合同指定的 sender-constrained proof；只要 credential 是 `ak.session.grant`，Authorization scheme 仍固定为 `DPoP`。
-- 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），其中 session_dpop 表示唯一默认层，session_http_signature 表示可追加的高安全层，不能作为可互换选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
+- 服务 SHOULD 通过 `authentication_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），其中 session_dpop 表示唯一默认层，session_http_signature 表示可追加的高安全层，不能作为可互换选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
 **PoP 出示形态（RFC 9421）**：客户端用 `session_public_key` 对应私钥对请求签名。本场景是
@@ -355,7 +355,7 @@ Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项判定为不�
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
-**其它仍合法的入站凭据**:除 grant + DPoP 外，Station MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantOutcome`，不得作为 Station 的 self-path 直接凭据。
+**其它仍合法的入站凭据**:除 grant + DPoP 外，Station MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantResponseBody`，不得作为 Station 的 self-path 直接凭据。
 
 **SessionGrant operation replay（normative）**：issue 与 refresh 使用 proof/operation-specific 稳定 request
 identity 加 canonical intent digest。exact replay 在重新验证当前 holder/DPoP、method/target、issuer/audience
@@ -370,7 +370,7 @@ one-shot proof 与 request identity 重新认证。account-first 恢复不得重
 
 [`account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 的 `account_handoff_grant` 是 Account Authority 的临时 sender-constrained 凭据，不是 `ak.session.grant` 或 OAuth bearer。创建 handoff 时尚无 credential 可计算 `ath`：客户端对 `POST /_arkret/gate/account/authentication-handoffs` 发送不带 Authorization 的 DPoP proof，proof JWT header 中的 public JWK 建立候选 holder；该 JWK MUST 是 Ed25519，body `AccountHandoffAuthenticationProof.signature` MUST 由同一 key 按 canonical schema transcript 签名。Account Authority 必须验证两处 key 一致后，才把其 RFC 7638 thumbprint写入 handoff `cnf.jkt`。
 
-后续 challenge、register 与 returning-device `HumanSessionGrantRequest` 使用：
+后续 challenge、register 与 returning-device `HumanSessionGrantRequestBody` 使用：
 
 ```http
 POST /_arkret/gate/account/identity-binding-challenges
@@ -461,7 +461,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - Contact self commit 的暂时未确认响应遵守 [Contact 写链 §2](../identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round)：`503 temporarily_unavailable` 不表示未写入，也不是首次耐久终局 outcome。相同完整请求继续查询原 Event 的终局；不得永久缓存该临时错误、重建 Event 或在 RealmCommit 确认前返回可授权 receipt。prepare 的首次 draft 与 commit 的首次耐久终局分别固定；终局包括 typed accepted/领域 failed 与按真实拒绝原因登记映射的 Problem Details，后者固定原 HTTP status/body。
 - 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
 - `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、checkpoint、版本或状态机规则约束。
-- **Event submit 的两层 identity**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 均登记为 `canonical_hash / full_body / retry_safe=true`，不得解释成 `protocol_sequence` 或把 `event_id` 当作 request identity。外层 request replay identity 是完整 `submit_request` canonical body 的 SHA-256；普通 Event 分支即完整 `EventAdmissionSubmission`，包括 Event 之外的 `approval_signatures`。它服从本节的 principal／operation 作用域、至少 24 小时记录下限与同 identity 异完整 body 的 `duplicate_conflict`。内层 `event_id` 只是不变 Event 内容身份：接收方仍 MUST 从当前 canonical Event bytes 重算 EventId；carried ID 不匹配是 `event_id_digest_mismatch` 且零副作用。只有不同 digest-preimage canonical bytes 各自重算为同一个完整 EventId 时，才 MUST 按 operations-sync §12／event-auth-state-resolution §15 整组 quarantine，并返回登记的 `witness_disagreement` reason。任何被外层 full-body hash 覆盖但不进入 EventId preimage 的字段变化都会形成不同外层请求；仅 excluded envelope 字段不同本身不构成 EventId 碰撞，也不得弱化内层重算与见证分歧规则。
+- **Event submit 的两层 identity**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 均登记为 `canonical_hash / full_body / retry_safe=true`，不得解释成 `protocol_sequence` 或把 `event_id` 当作 request identity。外层 request replay identity 是完整 `submit_request_body` canonical body 的 SHA-256；普通 Event 分支即完整 `EventAdmissionSubmission`，包括 Event 之外的 `approval_signatures`。它服从本节的 principal／operation 作用域、至少 24 小时记录下限与同 identity 异完整 body 的 `duplicate_conflict`。内层 `event_id` 只是不变 Event 内容身份：接收方仍 MUST 从当前 canonical Event bytes 重算 EventId；carried ID 不匹配是 `event_id_digest_mismatch` 且零副作用。只有不同 digest-preimage canonical bytes 各自重算为同一个完整 EventId 时，才 MUST 按 operations-sync §12／event-auth-state-resolution §15 整组 quarantine，并返回登记的 `witness_disagreement` reason。任何被外层 full-body hash 覆盖但不进入 EventId preimage 的字段变化都会形成不同外层请求；仅 excluded envelope 字段不同本身不构成 EventId 碰撞，也不得弱化内层重算与见证分歧规则。
 - **首次准入与复制的 request identity 分开计算**：`authority_forward` 的完整请求 hash 包括所带 `approval_signatures`；`committed_replication` 的完整请求 hash 只覆盖按 [`federation.md` §4.1.1](./federation.md#411-realm-fanout-目标集合与持久-intentnormative) 组装、已经省略该私密字段的复制 body。两者不是相同的 request replay identity；剥离审批证据不能改变 source Event、EventId、source Commit 或首次准入的原 outcome。复制重试仍逐字节重发同一已剥离 body。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
@@ -543,7 +543,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
 本小节的三字段合同**不**适用于单 stream 扫描：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1`
-既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{committed_events, truncated, readable_floor?}`
+既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_response_body` 的 `{committed_events, truncated, readable_floor?}`
 （[`authority-commit-operations.schema.json`](../../artifacts/schemas/authority-commit-operations.schema.json)），
 语义见 [`service-http-binding.md` §3.1](./service-http-binding.md) 与本文 §7.2。
 
@@ -560,11 +560,11 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 不需要服务端签发的不透明 token。`ak.self.committed_event.read.scan.v1` 与 `ak.peer.committed_event.read.scan.v1` 因此使用
 位置分页：
 
-- 请求是 `stream_scan_request` = `{realm_id, stream_ref, after_position | before_position（恰一个）, limit}`。
+- 请求是 `stream_scan_request_body` = `{realm_id, stream_ref, after_position | before_position（恰一个）, limit}`。
   `after_position` 朝更新方向、`before_position` 朝更旧方向（历史回填）；两者的排他性由 request
   合同的 `oneOf` 结构给出，同时出现或都不出现是 schema 违规。取 `null` 分别表示从该 caller
   获准读取的最旧位置、最新位置起——**不是**物理流首与物理流头。
-- 响应是 `stream_scan_outcome` = `{committed_events, truncated, readable_floor?}`。续页由客户端取本批的
+- 响应是 `stream_scan_response_body` = `{committed_events, truncated, readable_floor?}`。续页由客户端取本批的
   最大 / 最小 `stream_position` 自行得到；响应 MUST NOT 返回 `prev_cursor` / `next_cursor` / `has_more`。
 - 边界一律按该 caller 的允许区间解释：`truncated` 只表示该方向上还有它获准读取的 Commit，
   `readable_floor` 给出允许区间下端的 `oldest_position` 与该位置的 `floor_commit_id`。
@@ -583,7 +583,7 @@ scan 若只收 opaque cursor，规范自己的 bootstrap 起不了步。federati
 
 ## 8. 读己之所写
 
-仅当某写 operation 的正式 closed response schema 登记了 barrier `cursor` 字段时，成功响应才 SHOULD 返回该字段。通用写接口不得据本节增加未登记字段；尤其 `ak.self.events.command.submit.v1` 的 closed `submit_outcome` 成功分支只允许 `status` 与 `commit`，MUST NOT 返回 `cursor`。若返回了已登记的 barrier cursor，其 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。持有合法 barrier cursor 的后续读接口 SHOULD 接受：
+仅当某写 operation 的正式 closed response schema 登记了 barrier `cursor` 字段时，成功响应才 SHOULD 返回该字段。通用写接口不得据本节增加未登记字段；尤其 `ak.self.events.command.submit.v1` 的 closed `submit_response_body` 成功分支只允许 `status` 与 `commit`，MUST NOT 返回 `cursor`。若返回了已登记的 barrier cursor，其 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。持有合法 barrier cursor 的后续读接口 SHOULD 接受：
 
 ```text
 X-Arkret-Wait-For: <cursor>
@@ -616,11 +616,11 @@ X-Arkret-Wait-For: <cursor>
 - `policy_version` 或等价版本/hash。
 - `entries[]`，每项绑定 `endpoint` 或 `operation_id`。
 - 适用范围：`rate_limit_scope`，例如 actor DID、service DID、device id、source IP、Realm id 或 blob quota。
-- 窗口与额度：`window_seconds`、`max_requests`、`burst`；若是字节或批量限制，使用 `max_bytes`、`max_events_per_batch`、`max_body_bytes`。
+- 窗口与额度：`window_seconds`、`max_request_count`、`burst`；若是字节或批量限制，使用 `max_bytes`、`max_event_count_per_batch`、`max_body_bytes`。
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
 - `effective_at` / `expires_at` 或缓存 TTL。若这些时间界限未知，客户端 MUST 把该策略视为最多缓存 60 秒，并按默认退避重试：首次重试间隔 ≥ 1,000 ms，随后指数倍增（factor=2）到 ≥ 60,000 ms 上限，加入 0-20% jitter，且同一 `(endpoint, scope)` 在 5 分钟内最多重试 5 次。
 
-公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。ServiceDescribe MUST 携带 `rate_limit_policy` 或 `rate_limit_policy_id`；若服务除了通用滥用防护外没有可预期的端点级限流，也必须返回显式空策略（例如 `rate_limit_policy.entries=[]`），不得同时省略二者。一旦可能返回 `rate_limited`，describe 中的策略信息至少 MUST 暴露：受影响的 `endpoint` 或 `operation_id`、`rate_limit_scope` 类别、窗口字段（`window_seconds` 与 `max_requests` / `max_bytes` / `max_events_per_batch` / `max_body_bytes` 之一）或明确的重试提示字段（`retry_after_ms` / `backoff_hint` / `next_retry_at` 之一）。若安全原因只能返回 coarse policy，服务端仍 MUST 在每次 `rate_limited` 响应中返回可执行的 `retry_after_ms` 或 HTTP `Retry-After`。
+公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。ServiceDescribe MUST 携带 `rate_limit_policy` 或 `rate_limit_policy_id`；若服务除了通用滥用防护外没有可预期的端点级限流，也必须返回显式空策略（例如 `rate_limit_policy.entries=[]`），不得同时省略二者。一旦可能返回 `rate_limited`，describe 中的策略信息至少 MUST 暴露：受影响的 `endpoint` 或 `operation_id`、`rate_limit_scope` 类别、窗口字段（`window_seconds` 与 `max_request_count` / `max_bytes` / `max_event_count_per_batch` / `max_body_bytes` 之一）或明确的重试提示字段（`retry_after_ms` / `backoff_hint` / `next_retry_at` 之一）。若安全原因只能返回 coarse policy，服务端仍 MUST 在每次 `rate_limited` 响应中返回可执行的 `retry_after_ms` 或 HTTP `Retry-After`。
 
 触发限流时 MUST 返回 `rate_limited`，并 SHOULD 附带：
 
@@ -688,7 +688,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - `service_id`
 - `supported_features`
 - `supported_profiles`
-- `auth_metadata`
+- `authentication_metadata`
 - `max_body_bytes`
 - `limits`
 - `rate_limit_policy`

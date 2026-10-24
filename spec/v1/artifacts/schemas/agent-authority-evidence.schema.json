@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-authority-evidence.schema.json",
   "title": "Arkret Agent Authority Portable Evidence",
-  "description": "Portable Agent signer evidence carried to a Station or peer verifier: the Agent Authority state evidence over one exact confirmed RealmCommit state, and the Account Authority controller gate. Both objects anchor their own local detached signature under their own registered domain separation; neither reuses the shared Event proof leaf. Agent and controller private keys, MLS private state, service-local account_id and raw account typed current results never appear here.",
+  "description": "Portable Agent signer evidence carried to a Station or peer verifier: the Agent Authority state evidence over one exact confirmed RealmCommit state, and the Account Authority controller gate. Both objects anchor their own local detached signature under their own registered domain separation; neither reuses the shared Event proof leaf. Agent and controller private keys, MLS private state, service-local account_id and raw account typed current state never appear here.",
   "oneOf": [
     {
       "$ref": "#/$defs/agent_authority_state_evidence"
@@ -14,7 +14,7 @@
       "$ref": "#/$defs/controller_account_gate_attestation_issue_request_body"
     },
     {
-      "$ref": "#/$defs/controller_account_gate_attestation_issue_outcome"
+      "$ref": "#/$defs/controller_account_gate_attestation_issue_response_body"
     }
   ],
   "$defs": {
@@ -27,7 +27,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "const": "detached_jws",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-authority-evidence.schema.json#/$defs/detached_jws/properties/kind",
+            "owner": "agent-authority-evidence.schema.json#/$defs/detached_jws/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "jws": {
           "type": "string",
@@ -49,7 +57,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "account_binding_default"
+              "const": "account_binding_default",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_basis/oneOf/0/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_basis/oneOf/0/properties/kind",
+                "values": [
+                  "account_binding_default"
+                ]
+              }
             },
             "binding_version": {
               "type": "integer",
@@ -70,7 +86,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "account_status_record"
+              "const": "account_status_record",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_basis/oneOf/1/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_basis/oneOf/1/properties/kind",
+                "values": [
+                  "account_status_record"
+                ]
+              }
             },
             "account_status_record_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
@@ -86,7 +110,7 @@
     },
     "controller_account_gate_attestation": {
       "type": "object",
-      "description": "Account Authority answer to one question: is the controller principal behind an Agent key authorization still eligible? Signed under ak.controller_account_gate.v1. Member order is byte-for-byte the binding_fields order of that domain_separations row; proof follows as the detached signature over exactly those bound members. It is privacy minimised by construction: a service-local account_id, a raw account typed current result or a caller-asserted active boolean is a schema violation, not an optional member.",
+      "description": "Account Authority answer to one question: is the controller principal behind an Agent key authorization still eligible? Signed under ak.controller_account_gate.v1. Member order is byte-for-byte the binding_fields order of that domain_separations row; proof follows as the detached signature over exactly those bound members. It is privacy minimised by construction: a service-local account_id, a raw account current state or a caller-asserted active boolean is a schema violation, not an optional member.",
       "required": [
         "schema",
         "principal_id",
@@ -102,7 +126,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.controller_account_gate_attestation.v1"
+          "const": "ak.schema.controller_account_gate_attestation.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/schema",
+            "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/schema",
+            "values": [
+              "ak.schema.controller_account_gate_attestation.v1"
+            ]
+          }
         },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -114,7 +146,16 @@
             "active",
             "inactive"
           ],
-          "description": "The only decision a consumer acts on. It is active if and only if status is active."
+          "description": "The only decision a consumer acts on. It is active if and only if status is active.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/eligibility",
+            "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/eligibility",
+            "values": [
+              "active",
+              "inactive"
+            ]
+          }
         },
         "status": {
           "$ref": "./account-operations.schema.json#/$defs/account_state"
@@ -150,7 +191,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "active"
+                "const": "active",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/if/properties/status",
+                  "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/if/properties/status",
+                  "values": [
+                    "active"
+                  ]
+                }
               }
             },
             "required": [
@@ -160,14 +209,30 @@
           "then": {
             "properties": {
               "eligibility": {
-                "const": "active"
+                "const": "active",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/then/properties/eligibility",
+                  "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/then/properties/eligibility",
+                  "values": [
+                    "active"
+                  ]
+                }
               }
             }
           },
           "else": {
             "properties": {
               "eligibility": {
-                "const": "inactive"
+                "const": "inactive",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/else/properties/eligibility",
+                  "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/0/else/properties/eligibility",
+                  "values": [
+                    "inactive"
+                  ]
+                }
               }
             }
           },
@@ -179,7 +244,15 @@
               "basis": {
                 "properties": {
                   "kind": {
-                    "const": "account_binding_default"
+                    "const": "account_binding_default",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/if/properties/basis/properties/kind",
+                      "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/if/properties/basis/properties/kind",
+                      "values": [
+                        "account_binding_default"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -194,10 +267,26 @@
           "then": {
             "properties": {
               "status": {
-                "const": "active"
+                "const": "active",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/then/properties/status",
+                  "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/then/properties/status",
+                  "values": [
+                    "active"
+                  ]
+                }
               },
               "eligibility": {
-                "const": "active"
+                "const": "active",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/then/properties/eligibility",
+                  "owner": "agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation/allOf/1/then/properties/eligibility",
+                  "values": [
+                    "active"
+                  ]
+                }
               }
             }
           },
@@ -283,11 +372,11 @@
     },
     "agent_key_state_witness": {
       "type": "object",
-      "description": "Signed RealmCommit plus the closed agent_key typed current result it covers. v1 has no state_root, leaf digest, index, count or Merkle inclusion proof: the Commit itself is the commitment.",
+      "description": "Signed RealmCommit plus the closed agent_key current state it covers. v1 has no state_root, leaf digest, index, count or Merkle inclusion proof: the Commit itself is the commitment.",
       "required": [
         "commit_id",
         "commit",
-        "result"
+        "current_state"
       ],
       "properties": {
         "commit_id": {
@@ -296,8 +385,8 @@
         "commit": {
           "$ref": "./realm-commit.schema.json"
         },
-        "result": {
-          "$ref": "./typed-current-result.schema.json#/$defs/agent_key_result"
+        "current_state": {
+          "$ref": "./current-state.schema.json#/$defs/current_agent_key"
         }
       },
       "additionalProperties": false
@@ -313,7 +402,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "genesis"
+              "const": "genesis",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/0/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/0/properties/kind",
+                "values": [
+                  "genesis"
+                ]
+              }
             },
             "realm_create_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -329,7 +426,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "pause"
+              "const": "pause",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/1/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/1/properties/kind",
+                "values": [
+                  "pause"
+                ]
+              }
             },
             "pause_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -345,7 +450,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "resume"
+              "const": "resume",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/2/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/2/properties/kind",
+                "values": [
+                  "resume"
+                ]
+              }
             },
             "resume_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -361,7 +474,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "deactivate"
+              "const": "deactivate",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/3/properties/kind",
+                "owner": "agent-authority-evidence.schema.json#/$defs/agent_lifecycle_provenance/oneOf/3/properties/kind",
+                "values": [
+                  "deactivate"
+                ]
+              }
             },
             "deactivate_event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -373,11 +494,11 @@
     },
     "agent_lifecycle_witness": {
       "type": "object",
-      "description": "Signed RealmCommit, the closed agent_status typed current result it covers, the accepted status Event and its closed provenance branch. The receiver recomputes the lifecycle result and its transition from the signed Event before trusting any of them.",
+      "description": "Signed RealmCommit, the closed agent_status current state it covers, the accepted status Event and its closed provenance branch. The receiver recomputes the lifecycle result and its transition from the signed Event before trusting any of them.",
       "required": [
         "commit_id",
         "commit",
-        "result",
+        "current_state",
         "accepted_status_event",
         "provenance"
       ],
@@ -388,8 +509,8 @@
         "commit": {
           "$ref": "./realm-commit.schema.json"
         },
-        "result": {
-          "$ref": "./typed-current-result.schema.json#/$defs/agent_status_result"
+        "current_state": {
+          "$ref": "./current-state.schema.json#/$defs/current_agent_status"
         },
         "accepted_status_event": {
           "$ref": "./event-envelope.schema.json"
@@ -530,7 +651,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.agent_authority_state_evidence.v1"
+          "const": "ak.schema.agent_authority_state_evidence.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-authority-evidence.schema.json#/$defs/agent_authority_state_evidence/properties/schema",
+            "owner": "agent-authority-evidence.schema.json#/$defs/agent_authority_state_evidence/properties/schema",
+            "values": [
+              "ak.schema.agent_authority_state_evidence.v1"
+            ]
+          }
         },
         "state": {
           "$ref": "#/$defs/agent_authority_state"
@@ -569,7 +698,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 4096
     },
-    "controller_account_gate_attestation_issue_outcome": {
+    "controller_account_gate_attestation_issue_response_body": {
       "type": "object",
       "description": "Byte-stable issuance result. A replay of the same request_id and canonical intent returns these original bytes; a different intent under the same request_id is a duplicate_conflict with zero issuance.",
       "required": [
@@ -585,7 +714,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-name-role": "response_body"
     },
     "agent_accepted_authority_bundle": {
       "type": "object",

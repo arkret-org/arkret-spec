@@ -281,7 +281,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
     def test_dto_container_may_not_pack_families_behind_one_proof_node(self) -> None:
         families = {
             "mimi_identifier_query_request_body": "ak.mimi_identifier_query_request_proof.v1",
-            "mimi_identifier_query_outcome": "ak.mimi_identifier_query_outcome_proof.v1",
+            "mimi_identifier_query_response_body": "ak.mimi_identifier_query_outcome_proof.v1",
             "mimi_request_consent_request_body": "ak.mimi_request_consent_request_proof.v1",
         }
         def repack_registry(document) -> None:
@@ -315,14 +315,14 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 ),
                 SCHEMAS
                 / "mimi-operations.schema.json": lambda doc: doc["$defs"][
-                    "mimi_identifier_query_outcome"
+                    "mimi_identifier_query_response_body"
                 ].pop("x-arkret-proof-context"),
             }
         )
         self.assertAnyContains(
             errors,
             "shared detached-proof use point has no registered context: "
-            "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
+            "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_response_body"
             "/properties/proofs/items",
         )
 

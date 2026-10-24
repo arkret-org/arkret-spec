@@ -12,7 +12,15 @@
   ],
   "properties": {
     "version": {
-      "const": "1.0"
+      "const": "1.0",
+      "x-arkret-value-ownership": {
+        "class": "version_text",
+        "authority": "encrypted-envelope.schema.json#/properties/version",
+        "owner": "encrypted-envelope.schema.json#/properties/version",
+        "values": [
+          "1.0"
+        ]
+      }
     },
     "content_type": {
       "type": "string",
@@ -54,9 +62,7 @@
       ],
       "properties": {
         "epoch": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "group_state_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"

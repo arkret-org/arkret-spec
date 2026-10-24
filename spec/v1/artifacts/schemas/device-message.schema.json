@@ -75,7 +75,16 @@
             "enum": [
               "ak.secret.request",
               "ak.secret.send"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "device-message.schema.json#/allOf/0/not/properties/kind",
+              "owner": "device-message.schema.json#/allOf/0/not/properties/kind",
+              "values": [
+                "ak.secret.request",
+                "ak.secret.send"
+              ]
+            }
           }
         },
         "required": [
@@ -197,7 +206,15 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.read_cursor.update"
+            "const": "ak.read_cursor.update",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "device-message.schema.json#/allOf/3/if/properties/kind",
+              "owner": "device-message.schema.json#/allOf/3/if/properties/kind",
+              "values": [
+                "ak.read_cursor.update"
+              ]
+            }
           }
         },
         "required": [
@@ -220,7 +237,16 @@
       "enum": [
         "ak.account_data.update",
         "ak.read_cursor.update"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "device-message.schema.json#/$defs/actor_private_update_kind",
+        "owner": "device-message.schema.json#/$defs/actor_private_update_kind",
+        "values": [
+          "ak.account_data.update",
+          "ak.read_cursor.update"
+        ]
+      }
     },
     "device_message_id": {
       "type": "string",
@@ -252,7 +278,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.read_cursor_update.v1"
+          "const": "ak.schema.read_cursor_update.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "device-message.schema.json#/$defs/read_cursor_update_content/properties/schema",
+            "owner": "device-message.schema.json#/$defs/read_cursor_update_content/properties/schema",
+            "values": [
+              "ak.schema.read_cursor_update.v1"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id",

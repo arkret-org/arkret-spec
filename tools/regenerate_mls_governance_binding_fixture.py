@@ -105,7 +105,7 @@ def binding(scope: dict[str, str], *, base: str | None = BASE_REF,
 def accepted(name: str, value: dict[str, Any]) -> dict[str, Any]:
     return {
         "name": name,
-        "binding": value,
+        "binding": {key: str(item) if key in {"previous_epoch", "next_epoch", "key_access_revision"} else item for key,item in value.items()},
         "encoded_map_hex": encode(value).hex(),
         "expected": {"decision": "accept"},
     }
@@ -315,9 +315,18 @@ def build_fixture() -> dict[str, Any]:
         },
     ]
 
+    def json_coordinates(value):
+        if isinstance(value, list):
+            return [json_coordinates(item) for item in value]
+        if isinstance(value, dict):
+            return {key: str(item) if key in {"previous_epoch", "next_epoch", "key_access_revision"} and isinstance(item, int) else json_coordinates(item)
+                    for key, item in value.items()}
+        return value
+
+    cases = json_coordinates(cases)
     return {
         "profile": "ak.vector_group.privacy_security.v1",
-        "version": "2026-09-24.1",
+        "version": "2026-10-24.2",
         "suite": "mls_governance_binding_closure",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.mls.governance_binding_closure.v1"},
         "covers_vectors": [VECTOR_ID, EPOCH_VECTOR_ID],

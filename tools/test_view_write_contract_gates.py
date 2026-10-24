@@ -59,8 +59,8 @@ def _row(registry: dict, kind: str) -> dict:
 
 
 def _write(registry: dict, kind: str, family: str = "view") -> dict:
-    for write in _row(registry, kind).get("result_writes") or ():
-        if write.get("result_family") == family:
+    for write in _row(registry, kind).get("state_writes") or ():
+        if write.get("state_family") == family:
             return write
     raise AssertionError(f"{kind} declares no write of {family}")
 
@@ -186,7 +186,7 @@ class ReducerManagedPathSolveTest(_Harness):
 
         def reach_under_a_banned_path(document: dict) -> None:
             write = _write(document, VIEW_UPDATE)
-            write["result_projection"]["allowed_paths"].append("created_by.account_id")
+            write["state_projection"]["allowed_paths"].append("created_by.account_id")
 
         self.assertNewFailure({EVENT_KINDS: reach_under_a_banned_path}, "allowed_paths")
 
@@ -216,9 +216,9 @@ class ReducerManagedPathSolveTest(_Harness):
 
     def test_the_family_and_the_value_schema_must_agree(self) -> None:
         def disagree(document: dict) -> None:
-            _object_row(document, "view")["result_family"] = "realm_profile"
+            _object_row(document, "view")["state_family"] = "realm_profile"
 
-        self.assertNewFailure({REDUCER_PATHS: disagree}, "result_family")
+        self.assertNewFailure({REDUCER_PATHS: disagree}, "state_family")
 
 
 class ValueMemberClosureTest(_Harness):
@@ -367,7 +367,7 @@ class ValueMemberFrontierTest(unittest.TestCase):
 class AuthorWritableStateAxisTest(_Harness):
     """The third lifecycle carrier, and the price the section charges for it.
 
-    ``sync/current-results.md`` section 2.1 said a stored lifecycle axis had
+    ``sync/current-state.md`` section 2.1 said a stored lifecycle axis had
     exactly two carriers and that one field name -- ``expected_revision`` --
     decided which. The registry it described disagreed twice:
     ``ak.moderation.decision.lift`` carries that field and writes a keyed set,
@@ -408,7 +408,7 @@ class AuthorWritableStateAxisTest(_Harness):
         """
 
         def open_the_path(document: dict) -> None:
-            projection = _write(document, VIEW_UPDATE)["result_projection"]
+            projection = _write(document, VIEW_UPDATE)["state_projection"]
             projection["allowed_paths"] = [*projection["allowed_paths"], "state_changed_at"]
 
         self.assertNewFailure({EVENT_KINDS: open_the_path}, "state_changed_at")
@@ -456,7 +456,7 @@ class AuthorWritableStateAxisTest(_Harness):
         """
 
         def close_the_path(document: dict) -> None:
-            projection = _write(document, VIEW_UPDATE)["result_projection"]
+            projection = _write(document, VIEW_UPDATE)["state_projection"]
             projection["allowed_paths"] = [
                 path for path in projection["allowed_paths"] if path != "state"
             ]

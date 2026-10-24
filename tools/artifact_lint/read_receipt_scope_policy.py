@@ -31,8 +31,8 @@ def decide(value: dict) -> dict:
         if row["source_stream_ref"] != scope:
             return denied
         validator = schema_validator(
-            ARTIFACTS / "schemas/typed-current-result.schema.json",
-            "#/$defs/scope_read_receipt_policy_result",
+            ARTIFACTS / "schemas/current-state.schema.json",
+            "#/$defs/current_scope_read_receipt_policy",
         )
         if list(validator.iter_errors(row)):
             return denied
@@ -61,22 +61,22 @@ def check_read_receipt_scope_policy(lint: Lint) -> None:
         return
     try:
         events = catalog["event_kind_registry"]["event_kinds"]
-        writers = [(event, write) for event in events for write in event.get("result_writes", [])
-                   if write["result_family"] == FAMILY]
+        writers = [(event, write) for event in events for write in event.get("state_writes", [])
+                   if write["state_family"] == FAMILY]
         if len(writers) != 1 or writers[0][0]["event_kind"] != KIND:
             raise ValueError("one scope policy Event must be the sole current writer")
         event, write = writers[0]
-        if write["result_selector"] != {"kind": "composite", "components": [
+        if write["state_selector"] != {"kind": "composite", "components": [
             {"kind": "canonical_json", "field": "envelope.scope_ref"}
-        ]} or write["result_projection"] != {"kind": "set", "value": {"field": "payload"}}:
+        ]} or write["state_projection"] != {"kind": "set", "value": {"field": "payload"}}:
             raise ValueError("scope selector and complete payload replacement are mandatory")
         if event["payload_schema_ref"] != "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload":
             raise ValueError("the shared closed payload is required")
         if any(row["event_kind"] == "ak.realm.read_receipt_policy" for row in events):
             raise ValueError("legacy Realm-only writer must not remain registered")
-        families = catalog["current_result_registry"]["result_kinds"]
-        if sum(row["result_kind"] == FAMILY for row in families) != 1 or any(
-            row["result_kind"] == "realm_read_receipt_policy" for row in families
+        families = catalog["current_state_registry"]["state_kinds"]
+        if sum(row["state_kind"] == FAMILY for row in families) != 1 or any(
+            row["state_kind"] == "realm_read_receipt_policy" for row in families
         ):
             raise ValueError("only the unified scope family may be registered")
         branch = next(row["then"] for row in envelope["allOf"]

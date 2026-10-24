@@ -44,7 +44,7 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 
 ## 3. Typed current rows
 
-`current_state_entries[]` 的每个元素必须是 `typed-current-result.schema.json` 的 closed typed result；
+`current_state_entries[]` 的每个元素必须是 `current-state.schema.json` 的 closed typed result；
 其 selector、revision 和 value 由各 family 的 schema 决定，不额外包一层通用 row/chunk。当前治理 Station
 必须从同一 durable cut 读取本用途覆盖范围内全部可向该请求者披露的 rows、`visible_stream_heads[]` 和 stream floors，
 不得把无权 Circle/Sidecar 的 row、head 或 floor 混入；同一完整 typed subject 不得出现两个 current row。
@@ -76,7 +76,7 @@ membership 与 scope 可见性披露，不受 history floor 限制：Realm 共�
 `message_revision` row 的 snapshot 对该请求者不可用。接收方 MUST 接受「只有 `object_redaction`、没有
 `message_revision` row」的 Message，也 MUST NOT 把 floor 以下 Message row 的缺席当作缺口。
 从 snapshot 边界之后的逐 stream tail 继续运行同一 typed reducer，不得用 generic patch、
-typed current result merge 或 wall-clock last-write-wins 修补差异。`current_state_entries: []` 仅在该 cut
+current state merge 或 wall-clock last-write-wins 修补差异。`current_state_entries: []` 仅在该 cut
 确实没有可披露 current row 时合法；它不是要求另取 chunk 的占位符，也不能证明隐藏 row 不存在。
 
 ## 4. 创建与验证

@@ -2,10 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/media-operations.schema.json",
   "title": "Arkret Realtime Media Operation DTOs",
-  "description": "Closed request DTOs for realtime media service operations. ak.self.media.read.ice_config.v1 responses use ice-config-response.schema.json.",
+  "description": "Closed request DTOs for realtime media service operations. ak.self.media.read.ice_config.v1 responses use media-ice-configuration-response-body.schema.json.",
   "anyOf": [
     {
-      "$ref": "#/$defs/media_ice_config_request_body"
+      "$ref": "#/$defs/media_ice_configuration_request_body"
     }
   ],
   "$defs": {
@@ -15,7 +15,7 @@
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
-    "media_ice_config_request_body": {
+    "media_ice_configuration_request_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -43,7 +43,17 @@
             "p2p",
             "sfu",
             "turn"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "media-operations.schema.json#/$defs/media_ice_configuration_request_body/properties/mode",
+            "owner": "media-operations.schema.json#/$defs/media_ice_configuration_request_body/properties/mode",
+            "values": [
+              "p2p",
+              "sfu",
+              "turn"
+            ]
+          }
         }
       },
       "additionalProperties": false

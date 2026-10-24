@@ -40,7 +40,17 @@
             "principal",
             "service",
             "agent"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authenticated-signer-resolution-evidence.schema.json#/$defs/base/properties/signer_kind",
+            "owner": "authenticated-signer-resolution-evidence.schema.json#/$defs/base/properties/signer_kind",
+            "values": [
+              "principal",
+              "service",
+              "agent"
+            ]
+          }
         },
         "subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -68,7 +78,15 @@
         {
           "properties": {
             "signer_kind": {
-              "const": "principal"
+              "const": "principal",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence/allOf/1/properties/signer_kind",
+                "owner": "authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence/allOf/1/properties/signer_kind",
+                "values": [
+                  "principal"
+                ]
+              }
             }
           }
         }
@@ -82,7 +100,15 @@
         {
           "properties": {
             "signer_kind": {
-              "const": "service"
+              "const": "service",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/1/properties/signer_kind",
+                "owner": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/1/properties/signer_kind",
+                "values": [
+                  "service"
+                ]
+              }
             }
           }
         }
@@ -96,7 +122,15 @@
         {
           "properties": {
             "signer_kind": {
-              "const": "agent"
+              "const": "agent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/allOf/1/properties/signer_kind",
+                "owner": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/allOf/1/properties/signer_kind",
+                "values": [
+                  "agent"
+                ]
+              }
             }
           }
         }

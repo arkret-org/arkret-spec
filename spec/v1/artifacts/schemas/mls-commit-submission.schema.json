@@ -18,7 +18,15 @@
         {
           "properties": {
             "kind": {
-              "const": "ak.mls.commit"
+              "const": "ak.mls.commit",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                "owner": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.mls.commit"
+                ]
+              }
             }
           }
         }

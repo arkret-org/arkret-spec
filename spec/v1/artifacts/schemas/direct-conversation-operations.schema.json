@@ -8,10 +8,10 @@
       "$ref": "#/$defs/direct_conversation_coordinates"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_outcome"
+      "$ref": "#/$defs/direct_conversation_resolve_response_body"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_request"
+      "$ref": "#/$defs/direct_conversation_resolve_request_body"
     },
     {
       "$ref": "#/$defs/direct_conversation_send_blocker"
@@ -56,7 +56,7 @@
       },
       "additionalProperties": false
     },
-    "direct_conversation_resolve_outcome": {
+    "direct_conversation_resolve_response_body": {
       "type": "object",
       "description": "Closed tagged outcome of ak.self.direct_conversation.read.resolve.v1. Evaluation order is fixed: temporarily_unavailable when the current basis or founder cannot be verified; then creation_blocked, creation_required or awaiting_founder while no Realm exists; then suspended for identity, materialization, terminal or gate conflicts; then provisional while no binding confirmation exists; found last. awaiting_founder never transfers authority by timeout, recovery policy, successor designation or permanent-unavailability inference; v1 defines no founder_unrecoverable state.",
       "required": [
@@ -70,7 +70,15 @@
           ],
           "properties": {
             "state": {
-              "const": "creation_required"
+              "const": "creation_required",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/0/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/0/properties/state",
+                "values": [
+                  "creation_required"
+                ]
+              }
             },
             "next_founding_input": {
               "$ref": "#/$defs/direct_conversation_founding_input"
@@ -85,7 +93,15 @@
           ],
           "properties": {
             "state": {
-              "const": "creation_blocked"
+              "const": "creation_blocked",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/1/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/1/properties/state",
+                "values": [
+                  "creation_blocked"
+                ]
+              }
             },
             "blockers": {
               "type": "array",
@@ -104,7 +120,15 @@
           ],
           "properties": {
             "state": {
-              "const": "awaiting_founder"
+              "const": "awaiting_founder",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/2/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/2/properties/state",
+                "values": [
+                  "awaiting_founder"
+                ]
+              }
             },
             "retry_after_ms": {
               "type": "integer",
@@ -122,7 +146,15 @@
           ],
           "properties": {
             "state": {
-              "const": "provisional"
+              "const": "provisional",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/3/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/3/properties/state",
+                "values": [
+                  "provisional"
+                ]
+              }
             },
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates"
@@ -146,7 +178,18 @@
                 "durable",
                 "repair_required"
               ],
-              "description": "Authoritative current occupied peer leaf admission state at this read cut; not a write authorization or a client timer."
+              "description": "Authoritative current occupied peer leaf admission state at this read cut; not a write authorization or a client timer.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/3/properties/peer_mls_admission",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/3/properties/peer_mls_admission",
+                "values": [
+                  "missing",
+                  "pending",
+                  "durable",
+                  "repair_required"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -160,7 +203,15 @@
           ],
           "properties": {
             "state": {
-              "const": "found"
+              "const": "found",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/4/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/4/properties/state",
+                "values": [
+                  "found"
+                ]
+              }
             },
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates",
@@ -190,7 +241,15 @@
           ],
           "properties": {
             "state": {
-              "const": "suspended"
+              "const": "suspended",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/5/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/5/properties/state",
+                "values": [
+                  "suspended"
+                ]
+              }
             },
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates"
@@ -216,7 +275,15 @@
           ],
           "properties": {
             "state": {
-              "const": "temporarily_unavailable"
+              "const": "temporarily_unavailable",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/6/properties/state",
+                "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body/oneOf/6/properties/state",
+                "values": [
+                  "temporarily_unavailable"
+                ]
+              }
             },
             "retry_after_ms": {
               "type": "integer",
@@ -225,9 +292,10 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "direct_conversation_resolve_request": {
+    "direct_conversation_resolve_request_body": {
       "type": "object",
       "description": "Closed query body for ak.self.direct_conversation.read.resolve.v1. Creation is never carried here: a Direct Conversation Realm is created only by the derived founder through the direct_conversation_genesis admission variant of ak.realm.create.",
       "required": [
@@ -238,7 +306,8 @@
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "direct_conversation_send_blocker": {
       "type": "string",
@@ -258,7 +327,28 @@
         "realm_terminal_fault",
         "governance_station_unavailable",
         "unsupported_profile"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "direct-conversation-operations.schema.json#/$defs/direct_conversation_send_blocker",
+        "owner": "direct-conversation-operations.schema.json#/$defs/direct_conversation_send_blocker",
+        "values": [
+          "session_missing",
+          "presence_offline",
+          "keypackage_empty",
+          "grant_missing",
+          "policy_stale",
+          "contact_scope_stale",
+          "mls_reconcile_required",
+          "agent_runtime_unavailable",
+          "peer_not_joined_mls",
+          "member_count_invalid",
+          "pair_materialization_conflict",
+          "realm_terminal_fault",
+          "governance_station_unavailable",
+          "unsupported_profile"
+        ]
+      }
     }
   }
 }

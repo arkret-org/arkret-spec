@@ -40,7 +40,15 @@
             "method_version_evidence": {
               "properties": {
                 "method": {
-                  "const": "did:webvh"
+                  "const": "did:webvh",
+                  "x-arkret-value-ownership": {
+                    "class": "uri",
+                    "authority": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/0/properties/method_version_evidence/properties/method",
+                    "owner": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/0/properties/method_version_evidence/properties/method",
+                    "values": [
+                      "did:webvh"
+                    ]
+                  }
                 }
               }
             }
@@ -56,7 +64,15 @@
             "method_version_evidence": {
               "properties": {
                 "method": {
-                  "const": "did:key"
+                  "const": "did:key",
+                  "x-arkret-value-ownership": {
+                    "class": "uri",
+                    "authority": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/1/properties/method_version_evidence/properties/method",
+                    "owner": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/1/properties/method_version_evidence/properties/method",
+                    "values": [
+                      "did:key"
+                    ]
+                  }
                 }
               }
             }

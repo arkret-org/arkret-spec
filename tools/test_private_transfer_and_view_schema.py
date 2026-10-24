@@ -60,7 +60,7 @@ class PrivateTransferAndViewSchemaTest(unittest.TestCase):
             self.assertFalse(validator.is_valid({**whole, field: None}))
 
     def test_open_view_config_rejects_only_named_forbidden_keys(self):
-        cases = (("collection_config", {"item_object_kinds": ["strand"],
+        cases = (("collection_configuration", {"item_object_kinds": ["strand"],
                                        "item_order_by": [{"field": "rank", "direction": "asc"}],
                                        "grouping": {"mode": "none"}}),
                  ("collection_grouping", {"mode": "none"}))

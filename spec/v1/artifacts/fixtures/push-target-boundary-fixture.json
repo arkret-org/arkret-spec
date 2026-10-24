@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-24.1",
   "description": "Test-only HMAC context KATs and closed Describe probes. Public fixed secrets are not deployment material. These checks do not prove deployed secret independence, provider unlinkability, registration durability or live delivery. Existing push lifecycle fixtures retain ownership of CAS, handoff and replay.",
   "runner": {
     "kind": "known_answer_tests",
@@ -161,7 +161,7 @@
           "ak.profile.station.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
             "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
@@ -219,7 +219,7 @@
           "ak.profile.station.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
             "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
@@ -292,7 +292,7 @@
           "ak.profile.push_gateway.blind_wakeup.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "methods": [
             {
               "method": "oidc",
@@ -346,7 +346,7 @@
           "ak.profile.push_gateway.blind_wakeup.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "methods": [
             {
               "method": "oidc",

@@ -8,25 +8,25 @@
       "$ref": "#/$defs/self_prepare_request_body"
     },
     {
-      "$ref": "#/$defs/self_prepare_outcome"
+      "$ref": "#/$defs/self_prepare_response_body"
     },
     {
       "$ref": "#/$defs/self_preview_request_body"
     },
     {
-      "$ref": "#/$defs/self_preview_outcome"
+      "$ref": "#/$defs/self_preview_response_body"
     },
     {
       "$ref": "#/$defs/peer_preview_request_body"
     },
     {
-      "$ref": "#/$defs/peer_preview_outcome"
+      "$ref": "#/$defs/peer_preview_response_body"
     },
     {
       "$ref": "#/$defs/peer_bootstrap_request_body"
     },
     {
-      "$ref": "#/$defs/peer_bootstrap_outcome"
+      "$ref": "#/$defs/peer_bootstrap_response_body"
     }
   ],
   "$defs": {
@@ -74,7 +74,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "invite_accept"
+              "const": "invite_accept",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/0/properties/kind",
+                "owner": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/0/properties/kind",
+                "values": [
+                  "invite_accept"
+                ]
+              }
             },
             "invite_id": {
               "$ref": "#/$defs/invite_id"
@@ -92,7 +100,16 @@
               "enum": [
                 "member_join",
                 "knock"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/1/properties/kind",
+                "owner": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/1/properties/kind",
+                "values": [
+                  "member_join",
+                  "knock"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -118,9 +135,8 @@
           "$ref": "./realm.schema.json#/properties/history_access"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Station tenure the intake descriptor was answered under."
+          "description": "Station tenure the intake descriptor was answered under.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "display_name": {
           "type": "string",
@@ -145,7 +161,7 @@
       },
       "additionalProperties": false
     },
-    "self_preview_outcome": {
+    "self_preview_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -164,7 +180,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Pre-join disclosure relayed by the caller's own Station. authority_bundle is the RealmAuthorityBundle that Station fetched with its own nonce and verified before asking the current governance Station for the preview; the preview is not membership, a join commitment or verified governance state."
+      "description": "Pre-join disclosure relayed by the caller's own Station. authority_bundle is the RealmAuthorityBundle that Station fetched with its own nonce and verified before asking the current governance Station for the preview; the preview is not membership, a join commitment or verified governance state.",
+      "x-arkret-name-role": "response_body"
     },
     "peer_preview_request_body": {
       "type": "object",
@@ -189,7 +206,7 @@
       },
       "additionalProperties": false
     },
-    "peer_preview_outcome": {
+    "peer_preview_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -204,7 +221,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Disclosure answered by the verified current governance Station. It carries no authority bundle: the caller Station has already verified this Station through its own nonce-bound RealmAuthorityBundle and authenticates it as Destination-Service-ID."
+      "description": "Disclosure answered by the verified current governance Station. It carries no authority bundle: the caller Station has already verified this Station through its own nonce-bound RealmAuthorityBundle and authenticates it as Destination-Service-ID.",
+      "x-arkret-name-role": "response_body"
     },
     "self_prepare_request_body": {
       "type": "object",
@@ -226,7 +244,7 @@
       },
       "additionalProperties": false
     },
-    "self_prepare_outcome": {
+    "self_prepare_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -245,7 +263,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Current context for authoring a producer-signed join Event. It does not reserve a position or authorize admission."
+      "description": "Current context for authoring a producer-signed join Event. It does not reserve a position or authorize admission.",
+      "x-arkret-name-role": "response_body"
     },
     "peer_bootstrap_request_body": {
       "type": "object",
@@ -276,7 +295,7 @@
       },
       "additionalProperties": false
     },
-    "peer_bootstrap_outcome": {
+    "peer_bootstrap_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -304,7 +323,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO."
+      "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO.",
+      "x-arkret-name-role": "response_body"
     }
   }
 }

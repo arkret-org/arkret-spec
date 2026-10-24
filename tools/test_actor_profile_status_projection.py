@@ -16,7 +16,7 @@ object that no reducer may produce and no author may self-report is unwritable
 by construction: it sat optional forever, and every reader that saw it absent
 was free to guess. The member now lives in the read response as
 `actor-profile-operations.schema.json#/$defs/account_status_projection`, which
-carries the record identity and `status_seq` the reader needs in order to check
+carries the record identity and `status_sequence` the reader needs in order to check
 what it is being handed, and whose absence is defined to mean unknown.
 
 So: one closed enum in the account contract, one copy in the read projection
@@ -86,7 +86,7 @@ class ActorProfileStatusProjectionTest(unittest.TestCase):
     def test_the_durable_object_carries_no_status_member(self) -> None:
         """account-lifecycle.md section 4: AccountStatusRecord is not an Event.
 
-        It never reaches a reducer, so no `result_writes[]` row of the
+        It never reaches a reducer, so no `state_writes[]` row of the
         actor_profile family could derive this member, and no author may be
         trusted to report a value the Account Authority signs elsewhere. A
         durable member with no possible producer is not an optional field, it
@@ -103,13 +103,13 @@ class ActorProfileStatusProjectionTest(unittest.TestCase):
         """A bare status string cannot be checked against anything.
 
         The reader is told which account and which record it is looking at, and
-        gets the `status_seq` it needs to order the record against its own
+        gets the `status_sequence` it needs to order the record against its own
         replica head. All four are required together: a projection missing any
         of them is a value the caller can only take on faith.
         """
         self.assertEqual(
             sorted(self.projection["required"]),
-            ["account_id", "account_status_record_id", "status", "status_seq"],
+            ["account_id", "account_status_record_id", "status", "status_sequence"],
         )
         self.assertFalse(self.projection["additionalProperties"])
 

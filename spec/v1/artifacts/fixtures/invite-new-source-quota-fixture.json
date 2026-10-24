@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.invite.new_source_quota.v1"
   },
-  "version": "2026-09-02",
+  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.invite.new_source_quota_holder_admission.v1",
     "ak.vector.invite.new_source_quota_effective_bounds.v1"
@@ -17,11 +17,11 @@
   ],
   "specification_defaults": {
     "window_seconds": 86400,
-    "default_new_sources_per_window": 3,
-    "max_new_sources_per_window": 10,
+    "default_source_count_per_window": 3,
+    "max_source_count_per_window": 10,
     "retention_seconds": 2592000,
-    "default_new_sources_per_retention": 30,
-    "max_new_sources_per_retention": 200
+    "default_source_count_per_retention": 30,
+    "max_source_count_per_retention": 200
   },
   "principals": {
     "holder": {
@@ -46,11 +46,11 @@
   "deployment_constraints_profiles": {
     "narrow": {
       "window_seconds": 3600,
-      "default_new_sources_per_window": 2,
-      "max_new_sources_per_window": 4,
+      "default_source_count_per_window": 2,
+      "max_source_count_per_window": 4,
       "retention_seconds": 7200,
-      "default_new_sources_per_retention": 3,
-      "max_new_sources_per_retention": 8
+      "default_source_count_per_retention": 3,
+      "max_source_count_per_retention": 8
     }
   },
   "effective_bounds_cases": [
@@ -62,9 +62,9 @@
         "decision": "accepted",
         "effective": {
           "window_seconds": 86400,
-          "new_sources_per_window": 3,
+          "source_count_per_window": 3,
           "retention_seconds": 2592000,
-          "new_sources_per_retention": 30
+          "source_count_per_retention": 30
         }
       },
       "invariants": [
@@ -83,9 +83,9 @@
         "decision": "accepted",
         "effective": {
           "window_seconds": 600,
-          "new_sources_per_window": 3,
+          "source_count_per_window": 3,
           "retention_seconds": 1200,
-          "new_sources_per_retention": 30
+          "source_count_per_retention": 30
         }
       },
       "invariants": [
@@ -97,23 +97,23 @@
       "name": "holder_override_above_deployment_max_is_clamped",
       "deployment_constraints": {
         "window_seconds": 3600,
-        "default_new_sources_per_window": 2,
-        "max_new_sources_per_window": 4,
+        "default_source_count_per_window": 2,
+        "max_source_count_per_window": 4,
         "retention_seconds": 7200,
-        "default_new_sources_per_retention": 3,
-        "max_new_sources_per_retention": 8
+        "default_source_count_per_retention": 3,
+        "max_source_count_per_retention": 8
       },
       "holder_override": {
-        "new_sources_per_window": 999,
-        "new_sources_per_retention": 999
+        "source_count_per_window": 999,
+        "source_count_per_retention": 999
       },
       "expected": {
         "decision": "accepted",
         "effective": {
           "window_seconds": 3600,
-          "new_sources_per_window": 4,
+          "source_count_per_window": 4,
           "retention_seconds": 7200,
-          "new_sources_per_retention": 8
+          "source_count_per_retention": 8
         }
       },
       "invariants": [
@@ -125,23 +125,23 @@
       "name": "holder_zero_override_is_legal_and_narrows_to_zero",
       "deployment_constraints": {
         "window_seconds": 3600,
-        "default_new_sources_per_window": 2,
-        "max_new_sources_per_window": 4,
+        "default_source_count_per_window": 2,
+        "max_source_count_per_window": 4,
         "retention_seconds": 7200,
-        "default_new_sources_per_retention": 3,
-        "max_new_sources_per_retention": 8
+        "default_source_count_per_retention": 3,
+        "max_source_count_per_retention": 8
       },
       "holder_override": {
-        "new_sources_per_window": 0,
-        "new_sources_per_retention": 0
+        "source_count_per_window": 0,
+        "source_count_per_retention": 0
       },
       "expected": {
         "decision": "accepted",
         "effective": {
           "window_seconds": 3600,
-          "new_sources_per_window": 0,
+          "source_count_per_window": 0,
           "retention_seconds": 7200,
-          "new_sources_per_retention": 0
+          "source_count_per_retention": 0
         }
       },
       "invariants": [
@@ -153,23 +153,23 @@
       "name": "holder_override_below_default_narrows",
       "deployment_constraints": {
         "window_seconds": 3600,
-        "default_new_sources_per_window": 2,
-        "max_new_sources_per_window": 4,
+        "default_source_count_per_window": 2,
+        "max_source_count_per_window": 4,
         "retention_seconds": 7200,
-        "default_new_sources_per_retention": 3,
-        "max_new_sources_per_retention": 8
+        "default_source_count_per_retention": 3,
+        "max_source_count_per_retention": 8
       },
       "holder_override": {
-        "new_sources_per_window": 1,
-        "new_sources_per_retention": 2
+        "source_count_per_window": 1,
+        "source_count_per_retention": 2
       },
       "expected": {
         "decision": "accepted",
         "effective": {
           "window_seconds": 3600,
-          "new_sources_per_window": 1,
+          "source_count_per_window": 1,
           "retention_seconds": 7200,
-          "new_sources_per_retention": 2
+          "source_count_per_retention": 2
         }
       },
       "invariants": [
@@ -180,22 +180,22 @@
       "name": "partial_holder_override_takes_the_deployment_default_for_the_omitted_member",
       "deployment_constraints": {
         "window_seconds": 3600,
-        "default_new_sources_per_window": 2,
-        "max_new_sources_per_window": 4,
+        "default_source_count_per_window": 2,
+        "max_source_count_per_window": 4,
         "retention_seconds": 7200,
-        "default_new_sources_per_retention": 3,
-        "max_new_sources_per_retention": 8
+        "default_source_count_per_retention": 3,
+        "max_source_count_per_retention": 8
       },
       "holder_override": {
-        "new_sources_per_window": 1
+        "source_count_per_window": 1
       },
       "expected": {
         "decision": "accepted",
         "effective": {
           "window_seconds": 3600,
-          "new_sources_per_window": 1,
+          "source_count_per_window": 1,
           "retention_seconds": 7200,
-          "new_sources_per_retention": 3
+          "source_count_per_retention": 3
         }
       },
       "invariants": [
@@ -205,8 +205,8 @@
     {
       "name": "max_below_default_rejects_the_whole_constraints_object",
       "deployment_constraints": {
-        "default_new_sources_per_window": 4,
-        "max_new_sources_per_window": 3
+        "default_source_count_per_window": 4,
+        "max_source_count_per_window": 3
       },
       "holder_override": null,
       "expected": {
@@ -215,15 +215,15 @@
         "partial_member_evaluation": false
       },
       "invariants": [
-        "max_new_sources_per_window >= default_new_sources_per_window is a cross-field MUST the schema cannot express",
+        "max_source_count_per_window >= default_source_count_per_window is a cross-field MUST the schema cannot express",
         "the whole constraints object is rejected; the remaining members MUST NOT keep being evaluated"
       ]
     },
     {
       "name": "max_retention_below_default_retention_rejects_the_whole_constraints_object",
       "deployment_constraints": {
-        "default_new_sources_per_retention": 40,
-        "max_new_sources_per_retention": 30
+        "default_source_count_per_retention": 40,
+        "max_source_count_per_retention": 30
       },
       "holder_override": null,
       "expected": {
@@ -232,7 +232,7 @@
         "partial_member_evaluation": false
       },
       "invariants": [
-        "max_new_sources_per_retention >= default_new_sources_per_retention is enforced by the validator"
+        "max_source_count_per_retention >= default_source_count_per_retention is enforced by the validator"
       ]
     },
     {
@@ -254,7 +254,7 @@
     {
       "name": "zero_deployment_member_rejects_the_whole_constraints_object",
       "deployment_constraints": {
-        "default_new_sources_per_window": 0
+        "default_source_count_per_window": 0
       },
       "holder_override": null,
       "expected": {
@@ -375,9 +375,9 @@
         ]
       },
       "invariants": [
-        "the source over the short-window ceiling is absent from the quarantine typed current result",
-        "a denied contact performs zero ledger writes and zero typed current result writes",
-        "an already-charged source still enters the typed current result while the short window is full, which is what separates a seen-source ledger from a plain per-holder counter",
+        "the source over the short-window ceiling is absent from the quarantine current state",
+        "a denied contact performs zero ledger writes and zero current state writes",
+        "an already-charged source still enters the current state while the short window is full, which is what separates a seen-source ledger from a plain per-holder counter",
         "the requester-visible outcome is unchanged across all four contacts",
         "this timeline starts from an empty ledger inside one short window, so a live deployment can replay it without controlling the clock"
       ]
@@ -595,8 +595,8 @@
       },
       "invariants": [
         "prune runs first and both ignores and physically removes the over-age row",
-        "after prune the ledger size is bounded by max_new_sources_per_retention",
-        "pruning anti-abuse ledger rows never removes quarantine typed current result entries; the two lifetimes are separate"
+        "after prune the ledger size is bounded by max_source_count_per_retention",
+        "pruning anti-abuse ledger rows never removes quarantine current state entries; the two lifetimes are separate"
       ]
     },
     {
@@ -708,8 +708,8 @@
       "name": "zero_holder_override_locks_the_inbox",
       "deployment_constraints_profile": "narrow",
       "holder_override": {
-        "new_sources_per_window": 0,
-        "new_sources_per_retention": 0
+        "source_count_per_window": 0,
+        "source_count_per_retention": 0
       },
       "consent_profile": "default",
       "initial_ledger": [],
@@ -801,7 +801,7 @@
       },
       "invariants": [
         "a delivery deduplicated by request_digest or idempotency_key_digest never reaches quota evaluation",
-        "the deduplicated replay adds no typed current result entry and no ledger row"
+        "the deduplicated replay adds no current state entry and no ledger row"
       ]
     }
   ],

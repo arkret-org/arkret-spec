@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.2",
+  "version": "2026-10-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-22T07:36:05+08:00",
+  "generated_at": "2026-10-24T14:44:10+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -36,7 +36,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:ebce70e9bd44869e7e128a83f5338f7e104708a2b89308467691fe67d4428bd1",
+      "section_digest": "sha256:0e8129f9dbdf1a45fad233e787caf94b5e3c727a9a63135ed9c666b24bdbb9b5",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -104,7 +104,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:34c8f32d23dbc490d5146fdfecfb78e95b05894d634cd9882762b49d5dcc04f9",
+      "section_digest": "sha256:d9146f01cd6d4570f1f70c145e40d19cf5c557dfb36466ef95abe42173bdf438",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected. Unknown handles, including a fresh foreign-service handle, fail with cursor_integrity_invalid before server-side advancement. Foreign-service and local-tamper recovery remain independent cases and preserve verified Commits, MLS private state and delivery ACKs through durable fresh-process readback.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -156,7 +156,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:31b900f8b00daac76c8517ba6db6996de8d1069243ff3da8af1b8876a40feb97",
+      "section_digest": "sha256:f324be3774f96b5d56cba8c71c5d6515c575eb49c0ad817f8759590adff10274",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome. Committed-replication dependency_missing is an unfinished position: retry the original complete canonical body after verified repair without rewriting successful positions or bypassing current transport, origin binding or recipient authority; existing terminal idempotency retention remains at least 24 hours.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -169,7 +169,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:890c397f8052ba9b85eae210e4ddd0ca2b199a8337431a11cd1a0ad5e5a9365a",
+      "section_digest": "sha256:79c708ce3004bbd8c7bc29d3d4332d0e87743a7aee4971daf11a1f404600071f",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -212,8 +212,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:3d315fa514d1635200ae68d93f372503f5aa19fa5467a780ea8017c272a7a295",
-      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Realm actor subject; every other narrowing rule stays effective. This is not general delegation.",
+      "section_digest": "sha256:1ff053e0f872c42257764f45e8e62db06a8a8549cd917e7b7dfd04ff4e183e47",
+      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root current state's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Realm actor subject; every other narrowing rule stays effective. This is not general delegation.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_cycle.v1",
@@ -240,7 +240,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:d0ad5a2c00cc7c78e64b58c36ed1e4f05afc9c6efba0ba91c54d384c1f4e8960",
+      "section_digest": "sha256:af53c230eb8c77ea4488208f8675489113afbe1021eee8322fadc68c5cbb3218",
       "requirement": "Call transitions retain their registered matrix, terminal absorption, exact replay and whole-axis CAS. Roster join/leave use complete ActorId and real DeviceId; account identity includes principal_id and station_id. Public participant_binding contains expires_at/issuer_kid/sig and signs the exact nine fields realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid. Refresh resolves the accepted active full actor/device/participant at a current cut and preserves historical issuer verification and independent permissions; anonymous aliases, private subject receipts and their digests are not protocol inputs. v1 continues to reject every mute_override write. Call roster/moderation current is the complete effective entries plus last_source, not accumulated history: leave/restore advance the whole-axis revision even when empty, restore preserves kick, exact full ActorId/device isolates targets, and each effective SFU binding retains its original issuer key. Ordinary reads are complete authority Snapshots with explicit context and omission trust limits.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -259,7 +259,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:ce643a6ed138fbfadb553e05e821e3beb1b088059fbed280176106a2b12b235f",
+      "section_digest": "sha256:c7ef6deacbfcf0b55dc1d2eb73780dd92a405a63e259cf7751f1f500adcfe9c4",
       "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -307,7 +307,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#424-redactable-content-slots-normative",
-      "section_digest": "sha256:339e17855b3a2d211c03152ccbe9873e59d4c3a2854779340bded4f43681edc5",
+      "section_digest": "sha256:f2ef893aa6213a155bafd043e376850a25d4aca88a7cd4ca6ad7f726e0b4dba1",
       "requirement": "A cross-object ak.redaction whose target_ref uses the ak:event: form only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; an object enters state=redacted only through the object typed-id form of target_ref (Message still goes exclusively through ak.message.redact). The two spellings of one 33-octet token land in two distinct object_redaction typed results that are independent and never merge; a reducer MUST NOT canonicalize the ak:event: spelling into the derived object typed id.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -359,7 +359,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:2c3a208b62c2552d6b2ee88d654f69ffe0523297f879067c66beabbebc51bbe7",
+      "section_digest": "sha256:655c7d917d82f95b9b7cc501b07ea819db2d853bb98b6e278ef44fa29f51fa47",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
@@ -369,7 +369,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#12-普通客户端的-station-接入normative",
-      "section_digest": "sha256:622f2fa941d74b39bb1391c30d61a02f337dcf9078163f92729a4ea68cf04205",
+      "section_digest": "sha256:9d91834d712d56164c076f3e5462095d2b2b37e4b91599240f4e1d88d3fe4162",
       "requirement": "Ordinary clients bootstrap from an independently selected Station origin, fetch public describe without credentials or redirects, and durably compare identity and authentication bindings before authentication or credential reuse. Changes require explicit re-enrollment and fresh authentication; client DID-history replay is not required and independent server verification remains mandatory.",
       "testability_grade": "audit",
       "test_plan": "Run SDK models-discovery station_connection cases for selected/preconfigured identity, split authority, issuer replacement, inert changes and invalid routes; run http-client public bootstrap redirect/encoding/size negatives. Run Inkson durable store restart, concurrent installation, corruption and explicit replacement cases, OIDC issuer tests and native/wasm compilation. Audit connection and callback gating, frozen authentication context and credential disposal at explicit re-enrollment. These focused checks do not prove a complete live cross-Station deployment or browser authentication flow."
@@ -389,8 +389,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:54aba1fce5a48d3266a5942e711f964b61865677473e9f63b40d6765b9a0a99c",
-      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact. Ordinary human current results contain only public_key_b64u after own-Station exact-device directory verification; PCR coordinates remain private and key-only cannot cross into Agent/history.",
+      "section_digest": "sha256:28117fe897368e80fea3cffa62608720f521977442a1f943dbfbc7c07fb45fbe",
+      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact. Ordinary human current state contain only public_key_base64url after own-Station exact-device directory verification; PCR coordinates remain private and key-only cannot cross into Agent/history.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner. Run current-signer-contact-endpoint-fixture.json schema cases and Cotest signer_keys_query_live against rebuilt two-Station binaries."
     },
@@ -409,7 +409,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:2c3a208b62c2552d6b2ee88d654f69ffe0523297f879067c66beabbebc51bbe7",
+      "section_digest": "sha256:655c7d917d82f95b9b7cc501b07ea819db2d853bb98b6e278ef44fa29f51fa47",
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The structurally defined delegated producer branch remains unavailable to v1 Contact commands; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Coland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. V1 production acceptance must reject controller-device Agent Contact commands before reservation or Event admission, while ordinary human and Agent-runtime Contact paths remain available."
@@ -419,7 +419,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建-transaction",
-      "section_digest": "sha256:84bdd16e0d03a8b74c496d2559014569d370b048511bb5643aae0595ecb27e4d",
+      "section_digest": "sha256:6f73ddc3c0c2146ff963dda2963d11be34a3829b9b3b085b0b52291b7bb13de7",
       "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) for a realm or circle scope, never for a sidecar scope, and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any governance-evidence read and before any selector-dependent randomness; while the record is still at genesis_intent_persisted the whole closed creation intent MAY be replaced in one atomic durable commit and it is immutable from realm_accepted on; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state. The accepted Genesis producer explicitly signs creator_leaf_authority binding its sole RFC leaf signature key, endpoint and historical authorization Event; the leaf key need not equal the Event signer key. Before any MLS randomness, governance_result_pinned durably binds the exact accepted scope-create Event and covering Commit, independently verified nonce-bound current authority bundle and complete chain, a verified complete authorized current cut proving exact-scope Genesis absence, complete current creator Actor/device/signer authorization, canonical closed local proposal bytes and digest, and its unchanged governance_binding. Missing, partial, unauthenticated or unavailable reads cannot establish absence or permit generation, upload, signing or enqueue. Existing verified reads supply this evidence; no proof RPC, new wire carrier or Station-signed local proposal is introduced. Every Genesis, including Sidecar, freezes one canonical authoring timestamp into both Event.created_at and payload.created_at. The governing Station rejects inequality with generic failed_precondition before any accepted effect, and consumers independently revalidate this equality before accepting a winner. Proof and commit clocks are independent.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -444,7 +444,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#22-commit-与-welcome",
-      "section_digest": "sha256:91440170b930a2a97019028967e89085c3944146ef5f3918c86118cedb142131",
+      "section_digest": "sha256:57432aba28b1fd7a304470300e05e193d15f3fc73ae7aa435cd986ad695a0ff2",
       "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding (the claim only for recipients it hosts), appends the RealmCommit, enqueues each hosted recipient's Welcome durably together with that claim's Welcome binding on the claim ledger and writes each cross-Station recipient's Welcome into that routing service's committed-replication outbox intent. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable. The member Station re-verifies a replicated Welcome's claim against its own ledger and queues it, with the same claim-ledger Welcome binding, in the same replica transaction as the Commit replica; a Welcome failing that check is never queued and never blocks the Commit replica. A remote recipient Station separately signs exact accepted Add authority after its existing replica claim check; governance never treats that later proof as a second Commit admission. The own-Station member roster selector binds the authorized accepted target to immutable Genesis provenance without a prejoin client baseline; missing/conflicting authorized provenance fails closed, and ordinary clients independently verify all original signatures and RFC installation. Realm actor claims retain their original signed claim_authority_ref and claim issuer; Add attestations bind the actual accepting governor. Separate frozen claim and Add Station histories plus verified same-Realm governance succession and actual imported ledger replace the fixed-Account same-Station comparison only for Realm actors.",
       "testability_grade": "audit",
       "test_plan": "Audited against the Commit/Welcome transaction contract: a conformance run submits an MlsCommitSubmission whose welcomes[] contains one mis-bound delivery and asserts the Station returns no acceptance and leaves the RealmCommit log, the public group result and every recipient queue unchanged. No vector exists because the obligation is on server transaction atomicity rather than on a byte-level artifact. The historical roster proof read is additionally checked by ak.vector.mls.roster_authority.v1. Member selection additionally requires the roster-client-role carrier vectors and a real authorized since-join replica test without a client Genesis baseline, with wrong Actor/scope/group/target/epoch and missing/conflicting immutable provenance negatives. RA-CLAIM-1 and RA-HANDOFF-1 through RA-HANDOFF-6 additionally require real request decoding, original two-issuer signatures, complete ledger import, crash/replay, sequential handoffs and zero effects under wrong history, expiry and generation fences. The schema/KAT/ledger reference model in tools/test_realm_actor_mls_contract.py is partial specification evidence, not real database or multistation acceptance."
@@ -464,7 +464,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#222-公开握手契约",
-      "section_digest": "sha256:dc777e873f6e0fc0894546ac0cb0762272757db50f43f6d8a87310b6a68f6c86",
+      "section_digest": "sha256:3003f124244c292cf00db0dae7ae264dab26c1a3e30d92ee48480e3413fef4ba",
       "requirement": "For realm and circle effective scopes the Proposal and Commit wire inputs are complete RFC 9420 PublicMessage MLSMessages, and the governance Station verifies the public transition from the bytes it parsed itself. The membership MAC is verifiable only by a member holding that epoch membership_key, so the Station never obtains member secrets and never treats that MAC as its admission criterion. Shared v1 Commit Events consume inline Proposals only; a referenced Proposal is unsupported_feature with zero writes. The Station freezes, in the accepted Commit transaction, the original zero-based ordinal among all Proposal kinds, exact inline TLS Proposal body, verified full Member sender ActorId and applicable leaf target, then signs that accepted source relation in the roster manifest. A prejoin member need not fetch historically unreadable Commit Events; it verifies the governance manifest, the signed full-record digest, each retained attestor resolution against the original claim receipt and Add attestation historical assertion methods and signatures, and the Add KeyPackage binding, and compares an original Commit only when separately authorized to read it. Remove+Add always creates new provenance even when the leaf tuple is unchanged. Application content and Welcome keep their existing protection, the public handshake discloses nothing beyond the public quantities the section already lists, and a sidecar scope keeps its own separate contract. A Welcome recipient installs a leaf authority map only after a complete signed historical roster is reconstructed from accepted Genesis/Commit provenance and recipient-Station Add attestations; a later-joined member takes immutable Genesis Blob refs from the verified governance-signed roster manifest before the dual-cut authorized self-to-peer material read and derives leaf indices solely from verified RFC public tree bytes. For a Circle scope both cuts use effective Circle membership: the caller's Circle join must still carry the parent Realm member_state current revision as its parent_membership_revision, a target cut at or after the current Circle join is continuous, and an earlier target cut under a Circle join whose bound parent join is no longer current is not_found; Realm and Circle position numbers are never compared. The separate Sidecar contract explicitly uses complete PublicMessage within Sidecar-only disclosure, verifies the actual transition and freezes inline provenance at the exact participant-authority cut, gives MAC verification only to members, and excludes the creator-bootstrap transaction. Realm actor claims retain their original signed claim_authority_ref and claim issuer; Add attestations bind the actual accepting governor. Separate frozen claim and Add Station histories plus verified same-Realm governance succession and actual imported ledger replace the fixed-Account same-Station comparison only for Realm actors.",
       "testability_grade": "audit",
       "test_plan": "Audited against the x-arkret-public-handshake-contract annotation in event-payload.schema.json, which fixes all eight keys this clause states. The review pass asserts the prose and the annotation agree key by key, that no operation accepts a PrivateMessage or standalone bare Proposal handshake input, that no Station-facing schema carries membership_key or any member secret, and that each inline consumed-proposal provenance record comes from the accepted signed Commit bytes. The ak.vector.mls.roster_authority.v1 named fixture tests true wire ordinals across non-Add kinds, referenced-Proposal zero-write refusal, wrong body/sender/ordinal rejection, complete roster, dual-cut disclosure and fail-closed reads. Circle effective-membership and historical-cut continuity are checked by ak.vector.circle.parent_membership_revision.v1. The independent x-arkret-sidecar-handshake-contract is checked by the governance-binding gate with mutations for PrivateMessage, Realm disclosure, Station MAC role and missing exact-cut authority; the Realm/Circle annotation remains scoped to those two kinds. RA-CLAIM-1 and RA-HANDOFF-1 through RA-HANDOFF-6 additionally require real request decoding, original two-issuer signatures, complete ledger import, crash/replay, sequential handoffs and zero effects under wrong history, expiry and generation fences. The schema/KAT/ledger reference model in tools/test_realm_actor_mls_contract.py is partial specification evidence, not real database or multistation acceptance."
@@ -487,7 +487,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
-      "section_digest": "sha256:285a1192ce0642ffef50ade35039059fc8f0762f526c2a5b4ec5da1bf9194a5e",
+      "section_digest": "sha256:ebb6dc4d2c55631f6d9b7ae172ff8be4f47de4677571cf63c31a547d9d226615",
       "requirement": "The Welcome producer proof removes only producer_proof from the closed delivery, recomputes its RFC 8785 JCS SHA-256 digest, signs the registered context-plus-LF and five-member envelope with Ed25519, and is authorized only by the exact winning Commit Event producer method.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -543,7 +543,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:54aba1fce5a48d3266a5942e711f964b61865677473e9f63b40d6765b9a0a99c",
+      "section_digest": "sha256:28117fe897368e80fea3cffa62608720f521977442a1f943dbfbc7c07fb45fbe",
       "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied from an original stream_row or the section 2.1 frozen complete self request Event paired with its bound accepted original Commit consumed from its persistently bound authenticated own Station after Station native governance verification and client exact coordinates/continuity checks. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance. A committed Agent reply with unresolved exact historical signing evidence triggers per-stream resolution independently of product projection changes, later Account frames or a page reload; exact target and producer MLS authorization gates remain mandatory before publishing verified content. Self-submitted Human PCR queries require original same-Station self-admission, exact authenticated recipient/actual producer fullAccount and complete immutable historical authorization/proof; controller Human Agent PCR genesis requires original accepted provision, complete controllerAccount and original delegation in that same transaction. No current-row reconstruction, sibling/foreign source, PCR history permission or floor/head advancement is allowed.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence. Inkson identity::agent_signer_evidence::historical_result_tests::changed_realm_projection_resolves_agent_reply_without_an_account_frame exercises the real HTTP selector and verified producer transition with a changed product projection and no subsequent Account frame. The named suite has no Cotest production executor yet; owner1725 retains live/full-matrix acceptance. The self submission rule mutations cover every source-binding and restricted-PCR field plus each positive/negative flow. Real original admission transaction, key verification, no-history-scan behavior and zero-write denial require native/PG/full evidence in owner1725; these spec fixtures do not establish production correctness."
@@ -553,7 +553,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:54aba1fce5a48d3266a5942e711f964b61865677473e9f63b40d6765b9a0a99c",
+      "section_digest": "sha256:28117fe897368e80fea3cffa62608720f521977442a1f943dbfbc7c07fb45fbe",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."
@@ -563,7 +563,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/service-http-binding.md#28-普通消息的本地-authoring",
-      "section_digest": "sha256:701faf12a9b07d6b328b4855da19d1637048679582513e5b646c334a8eb553d9",
+      "section_digest": "sha256:f177d278337ea40ba93f9fcc9069bdd982ebc9cfa97e51c80c90cf378b169d99",
       "requirement": "Ordinary Message authoring is local SDK canonical construction, caller signature and unified submit. All input groups use actual registered supply, never guessed scope. Before network freeze exact signed bytes/ciphertext/identity/MLS state. Unknown recovers original finality without re-encryption or second sender generation. Current submit identity/scope/MLS gates and epoch errors remain. Remote ordinary prepare, cache and TTL retire; security prepare remains.",
       "testability_grade": "audit",
       "test_plan": "Check message_authoring_contract supply operations and retained shared schema roots, absence of prepare route/advertisements, local submit schema and scope/session/epoch/unknown vectors. Production executor must preserve independent account cursor and producer assertions when retiring optional prepare cases."
@@ -573,7 +573,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#104-revoke-与-relinquish-的分工normative",
-      "section_digest": "sha256:989e2fe4fc4b8ea32cb23372a9dcd3c8409366997a081768d30b37f25df7d82c",
+      "section_digest": "sha256:e8eb4afef1ee0fbb7446acad4875502028183b8f09b51ae203d10e9672dff83a",
       "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -669,7 +669,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/identity/account-lifecycle.md#31-account-authority-issuer-ledger-与复制载体normative",
-      "section_digest": "sha256:bf7442ea037ecf1d9340a660e9c0f55431c90b9ee884220e145afd0a2919f128",
+      "section_digest": "sha256:bede75aa4c680886912c1dbaa1db5d6f4a64154e67eb1c94b4df9809a697afa9",
       "requirement": "The Account Authority issuer ledger chains genesis and CAS successors inside the binding commit transaction, binds each record to its issuer identity and proof, classifies every replica state through one closed table, and bounds the fanout outbox.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -734,7 +734,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/governance/content-moderation.md#34-e2ee-举报-evidence-package-与-franking",
-      "section_digest": "sha256:ae5f8082866cc2e1f46c85254af0415e1a4b75385c8b74689658de60d413966c",
+      "section_digest": "sha256:482748019241d552de65d2a1a3e4341ad270afdaa626012a73ffbff300b72a0a",
       "requirement": "An authorized own-Station moderation_franking_proof current row is installed independently of report workflow and moderator verification. The closed selector names the target Event, value repeats that target and Realm, and the value remains the canonical closed FrankingProof. Installing the current row grants no permission or cryptographic verdict; ordinary MLS chat must not wait for a report or optional existence anchor, while invalid source, cut, scope or target bindings fail closed.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_franking_current_installation_gate and the existing franking transcript/controller gates: mutations of selector target type, canonical value reference, row closure and the ordinary-chat independence obligation must fail. This checks schema and normative guards, not moderator verification or native client installation; Inkson current installation and owner1725 live acceptance remain implementation evidence."
@@ -756,7 +756,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#2-动作与持续上界",
-      "section_digest": "sha256:91367a9972e171900a64ac0359ec73e74c40fe3e766346fba76e2f6d1bb5d22e",
+      "section_digest": "sha256:99ddcdd2ca646a383505b0b41f9186df0fd8bfe37ef8ad39797072afe6c8063d",
       "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing. Agent session issuance includes complete registered profile read sources without mandatory literal grants, preserves resource/action correlation, and uses fresh issue for scope changes; refresh is non-expanding and Sidecar bootstrap eligibility is distinct from effective payload access. A sole remediable missing owned-Agent grant returns a non-authorizing opaque approval correlation; a fresh signed issue intent pins current accepted controller grant Events, while all nonremediable gates fail closed and normal refresh and completed replay preserve their existing ceilings. Participation predicates apply only to registered gates for the actual action; the current reply-selection refusal uses a complete capability grant for message.create and does not invent a reading selection bit. The payload approval example binds a granted message.create to the existing exact-target act-on-behalf confirmation; session-scope approval does not replace that independent action confirmation. The payload condition and quota examples bind actual constrained message.create grant paths: a temporal window closes while the row and session remain active; issuance does not debit quota, accepted effects count once, exact retry does not count twice, and an exhausted fresh operation leaves no business or reservation effect. Independent membership reading is not charged to an unrelated allow path.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -783,7 +783,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#4-主人撤回恢复与重试",
-      "section_digest": "sha256:68dcc908d9ce7d999c491bae9f34a930ebc4c087e3d2879c9a277fc87b2307cc",
+      "section_digest": "sha256:dd98fa8b838aef348658eefab8b0b8dda393de05238016bb4c8be8e51894f678",
       "requirement": "The original issuer may revoke its owned-Agent grant with exact CAS without a revoke action or online runtime; ineffective and terminal exact reads remain available, old revoked records never restore and fresh explicitly confirmed grants may be issued under current gates.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -807,7 +807,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#foreign-account-device-event-authorization-source-normative",
-      "section_digest": "sha256:5120444645964df16afb3c9662c7b787881fef96dcb150273a13bed0f20be54a",
+      "section_digest": "sha256:0afd206a50298f626aa45f4195e32a679f11f0ef044466161ec5fb865c8206d7",
       "requirement": "Foreign Account Device event authorization source (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Shared live Account Device applicability is additionally guarded by peer-submit native-source/pair/business semantic cases and requirement mutations. Real managed origin/governor acceptance and cold peer delivery remain implementation obligations of 0847; static normative validation does not discharge them."
@@ -817,7 +817,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#account-device-historical-signer-delivery-normative",
-      "section_digest": "sha256:35a8b87f74041bf8bfec6a9a438f1dca9e5d621b071d1a6bdb013b625e7c48a1",
+      "section_digest": "sha256:4c63cdfabe3da4a5d6285823bc596fea40050db3f038e379bc273664683b2f8d",
       "requirement": "Account Device historical signer delivery (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Realm Device uses a separate realm_device minimal signer fact. The Human KAT does not prove this new branch; schema privacy assertions cover its closed fields, while actual freezing and delivery remain implementation acceptance under task 0847."
@@ -827,7 +827,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#account-device-signer-fact-commitment-and-transfer-normative",
-      "section_digest": "sha256:ec910cc3c5fd94ff3a7e1f9f38d61f4bf552e578682c14f5769c4b5b606fc299",
+      "section_digest": "sha256:dc36a3808b56a1b9efa491a5126e618ebea4aa8928861393861f16cb6bbc6e54",
       "requirement": "Original Commit-bound Account Device and Applet Service signer facts: immutable minimal source, producer proof, exact target binding, atomic freeze/retain, authorized read, replica and complete handoff transfer.",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Decision 0156 adds the Service union and smallest exact readable Event key projection. Historical Service authority, PG freeze/retention and consumer verification must be executed on the revised source before claiming implementation acceptance. Realm actor formalization supplies separate realm_device and private realm_control facts in the registered four-branch union; RealmActor uses its own DID/control/Device schema and does not acquire an Account or PCR identity. Existing signed Human KAT evidence remains Human-only. Schema/KAT validation does not prove new native origin admission, atomic retention, private disclosure or live Realm Device delivery; those implementation obligations remain under 0847."
@@ -837,7 +837,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/federation.md#account-device-historical-signer-fact-transport-normative",
-      "section_digest": "sha256:e1fd5ad92626adf33b88b8daeffae5802739eb0001da9fc355dfe1a109795b83",
+      "section_digest": "sha256:58d2bcfa2893793a82330fecda6970a18153d66df163d350bc5858e60295a838",
       "requirement": "Account Device historical signer fact transport (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Invite notification supplement: closed original fact carrier iff original Commit has its digest, no self-dispatch fact echo, exact recipient Station only, no membership/PCR read or holder value expansion. Four mandatory gate tests (including both conditional mutations) execute these shape and boundary obligations. Real accepted Invite delivery, historical Event Ed verification and zero holder writes on refusal remain native/PG/live implementation obligations. Realm actor formalization supplies separate realm_device and private realm_control facts in the registered four-branch union; RealmActor uses its own DID/control/Device schema and does not acquire an Account or PCR identity. Existing signed Human KAT evidence remains Human-only. Schema/KAT validation does not prove new native origin admission, atomic retention, private disclosure or live Realm Device delivery; those implementation obligations remain under 0847."
@@ -857,7 +857,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/managed-governance.md#4-applet-授权来源与持续上界",
-      "section_digest": "sha256:532238b1ec6ed44a3d59d11eb8608b5e46f229529e80fdf5ce457a32457ff94a",
+      "section_digest": "sha256:4904484b8ef385d20081e4782a6e475972b583dfa4bca588d47de90616de5731",
       "requirement": "An Applet business parent grants exact Service issuer a role-restricted terminal child to its accepted Realm actor. Creation is not a business parent; exact subject identity, narrowing, shared quotas, revocation and per-scope current ceilings are required. Parent and child each require one allow/grant_local Applet binding: Service parent executor, full Realm actor child executor, unchanged Applet/epoch and verified role/hosting provenance. All other constraints persist; evaluate parent with Service facts and child with actual Realm actor producer facts. Service borrowing, duplicate/missing binding and cross-Applet/epoch/Realm must fail. Service child grant and issuer revoke use the registered Applet transaction admission, not the self/events creation/recovery exception. Current-binding material separates current installation from original grant provenance; inactive reveals no replacement Service. Historical creation confirmation and independent recovery do not require active business installation, and confer no business authority.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -869,7 +869,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/crypto-media/webrtc-signaling.md#3b-通话邀请的三层-consent-准入normative",
-      "section_digest": "sha256:036ec2f672a2f89ca147090ee97ea67177275730b510659a37305b5617210130",
+      "section_digest": "sha256:6c141471ece8361fda4ffaa2d19bf179b3ab44404a14e79d62c7c887c9a3dd3f",
       "requirement": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, unique exact-peer concrete permissions with no OR fallback, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery. Human and user-managed Agent PCRs reject independent handoff; only independently authorized Organization PCRs with existing Consent capability may switch governor.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -905,7 +905,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#53-带审计的-watch-精确读取normative",
-      "section_digest": "sha256:e465aa45143d4e455216239a7b4e607ceeabbde14c64f39d977a277f7e9fbb06",
+      "section_digest": "sha256:265a4e5c793b3aab22fe0e21529f24813cb3618eae4821c77648b14799ac958f",
       "requirement": "One signed audit command, two capabilities, same-cut accepted audit/frozen result, nonmember scoped Circle exception, replay and final delivery privacy gates.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -29,7 +29,7 @@ class RealmActorMlsTests(unittest.TestCase):
             req = self.request(target, requester)
             self.validator("keypackage-operations", "keypackages_claim_request_body").validate(req)
             unsigned = {k: v for k, v in req.items() if k not in ("service_binding", "requester_authorization")}
-            self.validator("keypackage-operations", "peer_keypackages_claim_unsigned_request").validate(unsigned)
+            self.validator("keypackage-operations", "peer_keypackages_claim_fields").validate(unsigned)
 
     def test_claim_mixed_missing_or_fake_account_rejected(self):
         valid = self.request(True, True)

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/ice-config-response.schema.json",
-  "title": "Arkret Media ICE Config Result",
+  "$id": "https://arkret.org/v1/schemas/media-ice-configuration-response-body.schema.json",
+  "title": "Arkret Media ICE Configuration Response Body",
   "description": "Result shape for the WebRTC media service ICE config endpoint. Used by ak.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §4.",
   "type": "object",
   "required": [
@@ -61,7 +61,8 @@
     "turn_required": {
       "type": "boolean",
       "default": false,
-      "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Realms to prevent IP leakage."
+      "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Realms to prevent IP leakage.",
+      "x-arkret-member-role": "obligation"
     },
     "constraints": {
       "type": "object",
@@ -69,15 +70,18 @@
       "properties": {
         "udp_allowed": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "x-arkret-member-role": "permission"
         },
         "tcp_allowed": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "x-arkret-member-role": "permission"
         },
         "ipv6_allowed": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "x-arkret-member-role": "permission"
         }
       },
       "additionalProperties": false
@@ -131,7 +135,16 @@
             "password",
             "oauth"
           ],
-          "default": "password"
+          "default": "password",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "media-ice-configuration-response-body.schema.json#/$defs/ice_server/properties/credential_type",
+            "owner": "media-ice-configuration-response-body.schema.json#/$defs/ice_server/properties/credential_type",
+            "values": [
+              "password",
+              "oauth"
+            ]
+          }
         }
       },
       "patternProperties": {
@@ -144,7 +157,7 @@
       "required": [
         "kid",
         "signature_algorithm",
-        "sig"
+        "signature"
       ],
       "properties": {
         "kid": {
@@ -157,9 +170,17 @@
           "enum": [
             "Ed25519"
           ],
-          "description": "Current-v1 signature algorithm. Reserved algorithms, including ML-DSA-65, are rejected as unsupported until a new negotiated schema/profile activates them while preserving the exact signing input defined in webrtc-signaling.md §4.1."
+          "description": "Current-v1 signature algorithm. Reserved algorithms, including ML-DSA-65, are rejected as unsupported until a new negotiated schema/profile activates them while preserving the exact signing input defined in webrtc-signaling.md §4.1.",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "media-ice-configuration-response-body.schema.json#/$defs/signature/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
-        "sig": {
+        "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+={0,2}$",
           "description": "base64url-encoded detached signature over canonical response bytes."

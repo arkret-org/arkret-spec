@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-05.5",
+  "version": "2026-10-24.1",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -293,32 +293,32 @@
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "kind": "ceiling_chain",
       "parent_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "accepted_child_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": false
       },
       "widening_child_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": true
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": true
       },
       "strand_widening_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "expected": {
         "accepted": true,
@@ -326,7 +326,7 @@
       },
       "assertions": [
         "Circle and Strand participation ceilings may only drop bits from their parent",
-        "a child that enables act_on_behalf below a disabled parent bit is rejected",
+        "a child that enables acting_on_behalf_allowed below a disabled parent bit is rejected",
         "a Strand that re-enables a Circle-disabled third-party mention bit is rejected"
       ]
     },
@@ -339,40 +339,40 @@
         "ak.reaction.add"
       ],
       "governance_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "selection": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": true
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": true
       },
       "expected": {
         "effective": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
+          "message_creation_allowed": true,
+          "reaction_addition_allowed": true,
+          "reaction_removal_allowed": false,
+          "third_party_mention_delivery_allowed": false,
+          "acting_on_behalf_allowed": false
         },
         "after_reply_tighten": {
-          "reply_message": false,
-          "reaction_add": false,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
+          "message_creation_allowed": false,
+          "reaction_addition_allowed": false,
+          "reaction_removal_allowed": false,
+          "third_party_mention_delivery_allowed": false,
+          "acting_on_behalf_allowed": false
         },
         "unknown_source_effective": {
-          "reply_message": false,
-          "reaction_add": false,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
+          "message_creation_allowed": false,
+          "reaction_addition_allowed": false,
+          "reaction_removal_allowed": false,
+          "third_party_mention_delivery_allowed": false,
+          "acting_on_behalf_allowed": false
         }
       },
       "assertions": [
@@ -394,30 +394,30 @@
       },
       "initial_expected_version": 0,
       "governance_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": false
       },
       "selection": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "expected": {
         "stored_version": 1,
         "effective": {
-          "reply_message": true,
-          "reaction_add": true,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
+          "message_creation_allowed": true,
+          "reaction_addition_allowed": true,
+          "reaction_removal_allowed": false,
+          "third_party_mention_delivery_allowed": false,
+          "acting_on_behalf_allowed": false
         },
         "capped_bits": [
-          "accept_third_party_mention"
+          "third_party_mention_delivery_allowed"
         ]
       },
       "assertions": [
@@ -435,15 +435,15 @@
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "selection": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": false
       },
-      "version": 7,
+      "version": "7",
       "next_replace_input": {
-        "expected_version": 7
+        "expected_version": "7"
       },
       "expected": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_entry",
@@ -463,18 +463,18 @@
       "third_party_subject": "ak:did_core:webvh:z6mkfixtureacmeexampleusersbob",
       "agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicesummary",
       "effective_before": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": false
       },
       "effective_after": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "expected": {
         "third_party_before": {
@@ -503,7 +503,7 @@
         }
       },
       "assertions": [
-        "when accept_third_party_mention is false, non-controller mentions fan out to no agent delivery artifacts",
+        "when third_party_mention_delivery_allowed is false, non-controller mentions fan out to no agent delivery artifacts",
         "the controller's own mention still delivers",
         "enabling third-party mention later is non-retroactive",
         "subsequent third-party mentions deliver only after the effective bit is true"
@@ -517,18 +517,18 @@
         "ak.message.create"
       ],
       "governance_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "selection": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": true
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": true
       },
       "required_policy_source": "unknown",
       "expected": {
@@ -549,32 +549,32 @@
         "ak.message.create"
       ],
       "governance_ceiling": {
-        "reply_message": true,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": true,
-        "act_on_behalf": false
+        "message_creation_allowed": true,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": true,
+        "acting_on_behalf_allowed": false
       },
       "selection": {
-        "reply_message": false,
-        "reaction_add": true,
-        "reaction_remove": false,
-        "accept_third_party_mention": false,
-        "act_on_behalf": true
+        "message_creation_allowed": false,
+        "reaction_addition_allowed": true,
+        "reaction_removal_allowed": false,
+        "third_party_mention_delivery_allowed": false,
+        "acting_on_behalf_allowed": true
       },
       "expected": {
         "accepted": false,
         "reason": "agent_reply_not_permitted",
         "effective": {
-          "reply_message": false,
-          "reaction_add": true,
-          "reaction_remove": false,
-          "accept_third_party_mention": false,
-          "act_on_behalf": false
+          "message_creation_allowed": false,
+          "reaction_addition_allowed": true,
+          "reaction_removal_allowed": false,
+          "third_party_mention_delivery_allowed": false,
+          "acting_on_behalf_allowed": false
         }
       },
       "assertions": [
-        "an Agent may author ak.message.create only where the current controller selection and the current target policy both enable reply_message",
+        "an Agent may author ak.message.create only where the current controller selection and the current target policy both enable message_creation_allowed",
         "effective participation is the bitwise meet of the current governance/deployment ceiling and controller selection",
         "participation is an additional action gate and never materializes a capability grant"
       ]
@@ -2701,7 +2701,7 @@
         "agent_action_gates": true,
         "parent_quota_available": true,
         "operation": "authorize",
-        "action": "ak.self.current_results.read.exact.v1",
+        "action": "ak.self.current_state.read.exact.v1",
         "controller_account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
           "station_id": "ak:did_core:webvh:z6mkfixturestation"
@@ -4824,8 +4824,8 @@
       },
       {
         "name": "issuer_grant_exact_selector",
-        "schema_file": "schemas/exact-current-results-read.schema.json",
-        "fragment": "#/$defs/exact_current_results_read_request",
+        "schema_file": "schemas/exact-current-state-read.schema.json",
+        "fragment": "#/$defs/exact_current_state_read_request_body",
         "valid": true,
         "canonical_json": "{\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"selector\":{\"grant_id\":\"ak:grant:AWkp_LRabiuNzkxWHXWpl_YS5_jG4nVYeocsHG9sGDvP\",\"kind\":\"capability_grant\"}}"
       }

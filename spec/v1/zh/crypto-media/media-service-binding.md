@@ -35,7 +35,7 @@ sidebar:
         "turn",
         "sfu"
       ],
-      "ice_config_endpoint": "https://media.example.com/_arkret/self/rtc/ice-config",
+      "ice_configuration_url": "https://media.example.com/_arkret/self/rtc/ice-config",
       "foci": [
         {
           "focus_id": "fra-1",
@@ -44,7 +44,7 @@ sidebar:
           "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
           "connect_url": "wss://livekit-fra.example.com",
           "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-          "health_endpoint": "https://media.example.com/_arkret/self/rtc/health/fra-1"
+          "health_url": "https://media.example.com/_arkret/self/rtc/health/fra-1"
         },
         {
           "focus_id": "us-east-1",
@@ -73,12 +73,12 @@ sidebar:
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §3），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 backend binding 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
-- `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `call_focus` 已存在 `session_focus`，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
+- `foci[].health_url`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `call_focus` 已存在 `session_focus`，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Arkret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
 `ak.realm.media_service` 的媒体描述符位于 `payload.value`；`payload.value.foci[]` MUST 非空。只提供单个 `sfu_endpoint`、把媒体描述符扁平放在 `payload` 下，或缺少 `payload.value.foci[]` MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
 
-**字段集合是封闭的（normative）**：`payload.value` 与 `foci[]` 的完整字段集以 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_media_service_payload` 为权威机读真源，二者都 `additionalProperties: false`；`foci[].focus_id`、`focus_kind`、`token_endpoint` 与 `connect_url` 是 required。**token issuer 的部署配置 MUST NOT 出现在本 typed current result 中**——签名 key id、token audience、TTL 与 backend API 凭据都是 `foci[].token_endpoint` 所指服务自己的配置，把它们写进本 typed current result 会有两个后果：轮换一次 issuer key 就需要一条持有 `ak.realm.media_service` / `ak.policy.manage` capability 的 Realm policy Event，且 issuer 内部配置对全体 Realm 成员外露。客户端与 token issuer MUST 都按同一 schema 消费该 typed current result；任何一侧私自读写未登记字段，都会让另一侧对同一条已签名 typed current result 解析出不同结果，而这种错配不会被任何东西报错。
+**字段集合是封闭的（normative）**：`payload.value` 与 `foci[]` 的完整字段集以 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_media_service_payload` 为权威机读真源，二者都 `additionalProperties: false`；`foci[].focus_id`、`focus_kind`、`token_endpoint` 与 `connect_url` 是 required。**token issuer 的部署配置 MUST NOT 出现在本 current state 中**——签名 key id、token audience、TTL 与 backend API 凭据都是 `foci[].token_endpoint` 所指服务自己的配置，把它们写进本 current state 会有两个后果：轮换一次 issuer key 就需要一条持有 `ak.realm.media_service` / `ak.policy.manage` capability 的 Realm policy Event，且 issuer 内部配置对全体 Realm 成员外露。客户端与 token issuer MUST 都按同一 schema 消费该 current state；任何一侧私自读写未登记字段，都会让另一侧对同一条已签名 current state 解析出不同结果，而这种错配不会被任何东西报错。
 
 修改该 state event 需要 `ak.realm.media_service` 或 `ak.policy.manage` capability。
 
@@ -86,11 +86,11 @@ sidebar:
 
 **Station 兼任 issuer（current-v1，normative）**：持有真实 `station` Service DID 的 Station MAY 承担媒体 credential issuer 职责。此时 accepted `payload.value.service_id` MUST 指向该 Station；own-Station binding 的 `route.service_kind` MUST 保留 method-native DID Document 实际声明的 `station`，不得改写为 `media_service`。验证方 MUST 独立验证当前 DID 的唯一该角色 ArkretService entry、完整 method authority／防回退与 canonical HTTPS endpoint，并核该 route 对应的已验证 Station Describe 声明 `ak.profile.media_service_binding.v1`、所选 focus 的 backend sub-profile，以及包含 `ak.self.call.media.exchange.issue_token.v1` HTTP binding 的已登记 Station operation bundle。仅有 Station 身份、Describe profile 或可访问 token URL 均不构成媒体授权；还 MUST 命中目标 Realm 当前 accepted assignment，且所有 credential endpoint origin 与该 route 一致。签署 key MUST 是与该 route 同一已验证当前 DID Document 的 assertion-capable Ed25519 key，所有签名 kid MUST 命中返回的 signing_keys。Station 的此职责不授予媒体明文可见权，也不要求视频流量经过 Station 进程；实际 backend 仍由 focus 描述符选择。独立 `media_service` role 不因本条取得 service_registration_key 资格；其独立身份供给须另行登记，不能由 Station 身份伪装。
 
-`ak.realm.media_service` 的 `service_id`、`ice_config_endpoint` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
+`ak.realm.media_service` 的 `service_id`、`ice_configuration_url` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
 
-- `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、authority-commit admission 与 accepted RealmCommit state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
-- 普通已登录客户端在把这些字段锚定为 credential issuer DID 前，MUST 通过 [`../sync/server-trusted-results.md` §5.9](../sync/server-trusted-results.md) 的 `ak.self.media_service_binding.read.resolve.v1` 取得自己 Station 在其 exact accepted basis 下给出的已验证 `route` 与 `signing_keys`，并把 `route.service_id` 与本地已安装的该 typed current result 当前值逐字比较，再核对 `ice_config_endpoint` 与每个 `foci[].token_endpoint` 的 origin 落在 `route.base_url` 之内；不相等、缺失、stale 或结果窗口已过期时 fail closed（`media_service_binding_uncovered`）。客户端 MUST NOT 自行解析该 service DID 的 method history、witness 记录或 describe，也 MUST NOT 把任意候选 origin 的自报当作 route。服务器、联邦接收方与独立审计者按各自角色继续执行 DID 权威验证。普通 endpoint 变更不改变 MLS key 持有人，因此不得仅为它强制 rekey。
-- `media_service_decrypts` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文接收者，但不改变 MLS leaf 集合，因此不推进 `key_access_revision`（[`encryption-and-audit.md` §2.4.1](./encryption-and-audit.md) 只由 membership 推进）。解密媒体的 SFU／MCU 只经 §8.1 取得绑定 call、focus 与 participant 的 frame key，是否向它发布只按当前 accepted policy projection 与 §8.2 三层校验判定。
+- `ak.realm.media_service` state Event（含 `service_id`、`ice_configuration_url` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、authority-commit admission 与 accepted RealmCommit state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
+- 普通已登录客户端在把这些字段锚定为 credential issuer DID 前，MUST 通过 [`../sync/server-trusted-results.md` §5.9](../sync/server-trusted-results.md) 的 `ak.self.media_service_binding.read.resolve.v1` 取得自己 Station 在其 exact accepted basis 下给出的已验证 `route` 与 `signing_keys`，并把 `route.service_id` 与本地已安装的该 current state 当前值逐字比较，再核对 `ice_configuration_url` 与每个 `foci[].token_endpoint` 的 origin 落在 `route.base_url` 之内；不相等、缺失、stale 或结果窗口已过期时 fail closed（`media_service_binding_uncovered`）。客户端 MUST NOT 自行解析该 service DID 的 method history、witness 记录或 describe，也 MUST NOT 把任意候选 origin 的自报当作 route。服务器、联邦接收方与独立审计者按各自角色继续执行 DID 权威验证。普通 endpoint 变更不改变 MLS key 持有人，因此不得仅为它强制 rekey。
+- `media_service_decryption_allowed` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文接收者，但不改变 MLS leaf 集合，因此不推进 `key_access_revision`（[`encryption-and-audit.md` §2.4.1](./encryption-and-audit.md) 只由 membership 推进）。解密媒体的 SFU／MCU 只经 §8.1 取得绑定 call、focus 与 participant 的 frame key，是否向它发布只按当前 accepted policy projection 与 §8.2 三层校验判定。
 
 ## 3. Token Exchange (normative)
 
@@ -131,7 +131,7 @@ Content-Type: application/json
 
 响应（binding scheme 由本 operation 固定为 `ak.media.participant_binding.v1`，不重复携带）：
 
-```json schema=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome
+```json schema=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody
 {
   "focus_id": "fra-1",
   "backend_kind": "livekit",
@@ -141,7 +141,7 @@ Content-Type: application/json
   "participant_binding": {
     "expires_at": "2026-05-27T12:34:56.000Z",
     "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
-    "sig": "AA"
+    "signature": "AA"
   },
   "expires_at": "2026-05-27T12:34:56.000Z",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -166,7 +166,7 @@ Content-Type: application/json
 
 - **Backend token branch**：`backend_kind` 与 `backend_token` 形状 MUST 逐项匹配。`arkret_native` branch 是 closed `{kid,payload,sig,signature_algorithm:"Ed25519"}` object，其中 `payload` 也是 closed typed object；其余 v1 branch 是非空 string。实现不得使用 `Value`、object-as-JSON-string、先尝试 string 再尝试 object，或任何未登记 fallback。
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
-- **Token issuer DID 锚定**：`ak.realm.media_service` 是 `commit-ordered projection` 单值 typed current result；`participant_binding.issuer_kid` 的 controller bare DID MUST 逐字等于当前 epoch 唯一 settled `ak.realm.media_service.service_id`，具体 key MUST 命中 §2.1 同一 service 结果 `signing_keys` 中的某个 `verification_method`。typed current result 缺失、必要证明未就绪、安全确认故障或结果 service 不等时均不可用，不存在多 service 列表或“之一”分支；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或该结果窗口过期时重新取得 §2.1 的结果，普通客户端不因此获得 DID 权威验证职责。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
+- **Token issuer DID 锚定**：`ak.realm.media_service` 是 `commit-ordered projection` 单值 current state；`participant_binding.issuer_kid` 的 controller bare DID MUST 逐字等于当前 epoch 唯一 settled `ak.realm.media_service.service_id`，具体 key MUST 命中 §2.1 同一 service 结果 `signing_keys` 中的某个 `verification_method`。current state 缺失、必要证明未就绪、安全确认故障或结果 service 不等时均不可用，不存在多 service 列表或“之一”分支；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或该结果窗口过期时重新取得 §2.1 的结果，普通客户端不因此获得 DID 权威验证职责。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
   - **命名与类型（normative）**：`issuer_kid` 是 issuer **key identifier**，不是 issuer service identifier，因此该字段名不得改成 `issuer_id`。其值 MUST 是带 verification-method fragment 的 DID URL（例如 `did:web:media.example#key-1`）；去掉 `#fragment` 后得到的 service DID 才与当前 epoch 的 `service_id` 做锚定。`service_id` 标识服务主体，`issuer_kid` 标识该主体用于本次签名的具体密钥，二者不可互换。
   - **轮换语义（normative）**：`participant_binding` 只承诺本节定义的九字段，**不**绑定签发时的 media_service epoch。issuer 锚定按**写入 `ak.call.state` 时的当前 epoch** `service_id` 判定（[`call-state.md` §4.1](./call-state.md)），因此一次 media_service 轮换（旧 `service_id` 被移出当前 epoch）即时作废由被移出 service 签发、尚在 TTL 内的在途 binding：reducer MUST 以 `token_issuer_unauthorised` 拒绝其落账，客户端 MUST 重新向当前 epoch service 兑换。这是已知的 ≤600s 活性窗口（与 TTL 上限一致），不引入跨 epoch binding 复用；实现 MUST NOT 为旧 epoch binding 增设 grace 接受。
 - **`participant_id` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。完整 ActorId／真实 DeviceId 与 media 范围的绑定职责由下方 `participant_binding` 的签名承诺承担。
@@ -191,7 +191,7 @@ Content-Type: application/json
 - 如果 `call_focus` 已存在 `session_focus`，请求的 `focus_id` 必须与其完全一致；不一致 MUST 返回 `focus_mismatch`。
 - call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
 - `ak.realm.media_service` 与 token request 使用同一 current accepted policy projection；stale endpoint 返回 `media_service_binding_uncovered`。若服务将解密媒体，另要求 current MLS group 已覆盖其 current `key_access_revision`（不处于 `epoch_update_required`）；未覆盖返回 `mls_governance_binding_stale`。
-- 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §8.2 的三层校验。
+- 如果 backend 将解密媒体（`media_service_decryption_allowed=true`），完整执行 §8.2 的三层校验。
 
 ### 3.1 签名 domain label 分离（normative）
 
@@ -285,7 +285,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 
 SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实现端到端媒体加密。SFU 可转发 RTP 包和处理转发层 metadata，但不应获得明文媒体。
 
-若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decrypts=true`。
+若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decryption_allowed=true`。
 
 ### 8.1 E2EE Key Injection 通用契约（normative）
 
@@ -306,7 +306,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 - `key_bytes` MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ak.rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_id, device_id}`，其中 `participant_id` / `device_id` 来自已验证的 call roster participant value 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`ak.rtc-frame-key/v1` / `ak.rtc-recording-key/v1` / `ak.rtc-transcript-key/v1` 是**固定的 canonical wire label**（密钥派生的安全域分离参数，canonical 登记见 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）；实现 MUST 逐字节使用登记的 label 字符串，MUST NOT 与其它 label 混用。该 label 的任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - `rotation_trigger` 不得被 adapter 当作不透明枚举透传:`rotation_trigger=member_leave`（成员离开 / 被踢 / 被 ban）**MUST** 对应一次 MLS commit（Remove）并推进 `epoch_id`，使新 `key_bytes` 从离开成员不掌握的新 group secret 派生；adapter **MUST NOT** 在 `member_leave` 时仅更换 SFrame KID / keyIndex 而复用旧 epoch 的 group secret，否则离开成员仍能解密后续帧（E2EE 媒体前向保密失效）。`member_join` 同样 MUST 绑定推进后的 `epoch_id`。`manual` / `scheduled` 触发亦 MUST 携带推进后的 `epoch_id`；任何 `rotation_trigger` 下若 `epoch_id` 未相对前一帧密钥推进，客户端 MUST fail closed（`e2ee_key_source_unauthorised`）。
-- backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
+- backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decryption_allowed=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `ak.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
 
 Conformance vectors for the full media binding framework：
@@ -323,15 +323,15 @@ Conformance vectors for the full media binding framework：
 
 ### 8.2 治理绑定（normative）
 
-**三层关系**: `ak.realm.media_service` declares SFU existence; `plaintext_visible_services` grants decryption authority; Event kind `ak.realm.policy_bundle` 的 payload path `media_service_decrypts=true` carries the boolean toggle — 三者 MUST 同时成立才能让 media service 解密。
+**三层关系**: `ak.realm.media_service` declares SFU existence; `plaintext_visible_services` grants decryption authority; Event kind `ak.realm.policy_bundle` 的 payload path `media_service_decryption_allowed=true` carries the boolean toggle — 三者 MUST 同时成立才能让 media service 解密。
 
-`media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
+`media_service_decryption_allowed=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
 
-1. **进入 `ak.realm.policy_bundle`**：`media_service_decrypts=true` MUST 由一条 `ak.realm.policy_bundle` 显式写入，受 capability `ak.policy.manage` 控制；当前 accepted bundle 未包含该开关时 MUST 视为未开启。
+1. **进入 `ak.realm.policy_bundle`**：`media_service_decryption_allowed=true` MUST 由一条 `ak.realm.policy_bundle` 显式写入，受 capability `ak.policy.manage` 控制；当前 accepted bundle 未包含该开关时 MUST 视为未开启。
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，且该条目的机器可判定 `data_classes[]` MUST 包含 `media_plaintext`。自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。仅出现在 `media_services[]`、仅在 `purposes` 中声称媒体处理用途，或未获 `media_plaintext` data class 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
 3. **MLS current 覆盖**：成员在 join 前 MUST 核对自己 Station 返回的 current MLS group 已覆盖其 current `key_access_revision`，且 frame key 只从该 current epoch 派生；前两条规则的授权只取自当前 accepted policy projection，不进入 `key_access_revision`。group 尚未覆盖时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
-4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。该切换不推进 `key_access_revision`：SFU 不是 MLS leaf，只取得按 §8.1 绑定 call／focus／participant 的 frame key；切换 accepted 前客户端沿用旧 policy 视图并禁止按 OOB 字段提前授权。
-**Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) 当前 accepted policy 未授权 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
+4. **Downgrade 攻击拒绝**：从 `media_service_decryption_allowed=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。该切换不推进 `key_access_revision`：SFU 不是 MLS leaf，只取得按 §8.1 绑定 call／focus／participant 的 frame key；切换 accepted 前客户端沿用旧 policy 视图并禁止按 OOB 字段提前授权。
+**Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) 当前 accepted policy 未授权 `media_service_decryption_allowed` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
 
 实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被当前 accepted policy 授权的状态都是 attack，必须 fail closed。
 

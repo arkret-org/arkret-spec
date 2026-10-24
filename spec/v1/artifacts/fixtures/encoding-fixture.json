@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-10-21.1",
+  "version": "2026-10-24.1",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [
@@ -401,15 +401,15 @@
         "version": "1.0",
         "content_type": "application/json",
         "encryption_context": {
-          "epoch": 12,
+          "epoch": "12",
           "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
         }
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"content_type\":\"application/json\",\"encryption_context\":{\"epoch\":12,\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"version\":\"1.0\"}",
+      "expected_metadata_canonical_bytes_utf8": "{\"content_type\":\"application/json\",\"encryption_context\":{\"epoch\":\"12\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
-      "expected_digest": "sha256:8fa15f456452e132ecda28f4ba94ba12f8bf93e7f56a0d110e0ba130f4a219a6",
+      "expected_digest": "sha256:a9b48ace0d15993bcec611c1dd0fa51ac3ccf2c55abc6c28851e451bb6652655",
       "rules": [
         "payload_metadata is exactly {version,content_type,encryption_context}; scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on wire",
         "encryption_context is closed to epoch, group_state_ref and registered routing context only; a counter, scheme, algorithm, scope, group id or AAD digest member makes the envelope invalid rather than selecting another content scheme",
@@ -551,7 +551,7 @@
             "retry_under_different_secrets": false
           },
           "assertions": [
-            "no typed current result, outbox row or partial decrypt is written",
+            "no current state, outbox row or partial decrypt is written",
             "the message is not downgraded to plaintext and is not admitted under any other content scheme",
             "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
             "the rebuilt AAD differing from the AAD the ciphertext was sealed under MUST fail with aad_digest_mismatch",
@@ -575,7 +575,7 @@
             "retry_under_different_secrets": false
           },
           "assertions": [
-            "no typed current result, outbox row or partial decrypt is written",
+            "no current state, outbox row or partial decrypt is written",
             "the message is not downgraded to plaintext and is not admitted under any other content scheme",
             "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
             "the ciphertext digest is recomputed over the raw ciphertext bytes, not over a re-encoding of them, and MUST equal the digest the signed outer Event references",
@@ -604,7 +604,7 @@
             "retry_under_different_secrets": false
           },
           "assertions": [
-            "no typed current result, outbox row or partial decrypt is written",
+            "no current state, outbox row or partial decrypt is written",
             "the message is not downgraded to plaintext and is not admitted under any other content scheme",
             "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
             "the context is checked against the exact public group revision the receiver verified itself; current time, current UI state and another stream head MUST NOT substitute for that revision",
@@ -792,7 +792,7 @@
         {
           "label": "all_0x2a",
           "public_key_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
-          "public_key_b64u": "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
+          "public_key_base64url": "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
           "multicodec_prefix_hex": "ed01",
           "expected_multibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5",
           "expected_did_key": "did:key:z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5"
@@ -800,7 +800,7 @@
         {
           "label": "all_0x00",
           "public_key_hex": "0000000000000000000000000000000000000000000000000000000000000000",
-          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "multicodec_prefix_hex": "ed01",
           "expected_multibase": "z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP",
           "expected_did_key": "did:key:z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP"
@@ -808,7 +808,7 @@
         {
           "label": "fixed_sequential",
           "public_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-          "public_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+          "public_key_base64url": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
           "multicodec_prefix_hex": "ed01",
           "expected_multibase": "z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c",
           "expected_did_key": "did:key:z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c"
@@ -930,12 +930,12 @@
       "subject_schema": "spec/v1/artifacts/schemas/key-backup.schema.json",
       "subject_schema_slots": [
         "^x_[a-z][a-z0-9_]{0,63}$ at the envelope root",
-        "^x_[a-z][a-z0-9_]{0,63}$ under auth_data",
+        "^x_[a-z][a-z0-9_]{0,63}$ under signature_proof",
         "^x_[a-z][a-z0-9_]{0,63}$ under encryption and encryption.aead"
       ],
       "subject_note": "The subject is the extension-carrying projection of a concrete canonical schema that explicitly declares x_* slots; it is a partial envelope, kept to the members the slot rule is about. An x_* positive on an arbitrary container MUST NOT be generalized into “every schema admits extensions”; the schema-undeclared-field rejection case below is part of the same vector for exactly that reason.",
       "input": {
-        "auth_data": {
+        "signature_proof": {
           "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
           "x_vendor_note": "kéép me",
           "x_vendor_tree": {
@@ -958,8 +958,8 @@
         },
         "x_vendor_top": "top-level slot"
       },
-      "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-      "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",
+      "expected_canonical_bytes_utf8": "{\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"x_vendor_top\":\"top-level slot\"}",
+      "expected_digest": "sha256:80bf88ddd78b80a4bc4cc9290dfd524961a25f6fcdb5760f5a25c5433303f5f7",
       "rules": [
         "unrecognised members inside a declared x_* slot MUST survive decode and encode byte for byte",
         "nested values, array order and string content inside the slot MUST NOT be dropped, defaulted or normalized",
@@ -974,7 +974,7 @@
             "AK-SDK-017/extension_slot_content_survives_the_canonical_round_trip"
           ],
           "input": {
-            "auth_data": {
+            "signature_proof": {
               "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
               "x_vendor_note": "kéép me",
               "x_vendor_tree": {
@@ -997,13 +997,13 @@
             },
             "x_vendor_top": "top-level slot"
           },
-          "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-          "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",
+          "expected_canonical_bytes_utf8": "{\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"x_vendor_top\":\"top-level slot\"}",
+          "expected_digest": "sha256:80bf88ddd78b80a4bc4cc9290dfd524961a25f6fcdb5760f5a25c5433303f5f7",
           "expected": {
             "unknown_members_present_after_roundtrip": [
               "x_vendor_top",
-              "auth_data.x_vendor_note",
-              "auth_data.x_vendor_tree",
+              "signature_proof.x_vendor_note",
+              "signature_proof.x_vendor_tree",
               "encryption.aead.x_vendor_rounds"
             ],
             "nested_value_preserved": true,
@@ -1025,18 +1025,18 @@
           "paths": [
             {
               "path": "storage_read_back",
-              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+              "expected_canonical_bytes_utf8": "{\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:90e94c41d77b53480c1af2b40c23462a5d1a9c7ea89e7daaa9332d52f5837695"
             },
             {
               "path": "federation_forward_then_peer_read",
-              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+              "expected_canonical_bytes_utf8": "{\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:90e94c41d77b53480c1af2b40c23462a5d1a9c7ea89e7daaa9332d52f5837695"
             },
             {
               "path": "backfill_replay",
-              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+              "expected_canonical_bytes_utf8": "{\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:90e94c41d77b53480c1af2b40c23462a5d1a9c7ea89e7daaa9332d52f5837695"
             }
           ],
           "expected": {
@@ -1051,7 +1051,7 @@
             "AK-SDK-017/extension_content_enters_canonical_bytes_and_binds_the_signature"
           ],
           "input": {
-            "auth_data": {
+            "signature_proof": {
               "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
               "x_vendor_note": "kéép me",
               "x_vendor_tree": {
@@ -1074,8 +1074,8 @@
             },
             "x_vendor_top": "top-level slot"
           },
-          "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[1,2,3]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
-          "expected_digest": "sha256:a4c07d60d9a2bfcb57a276334cee357a050ebc567ea4433384edd5e4e94c8ced",
+          "expected_canonical_bytes_utf8": "{\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"signature_proof\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[1,2,3]}},\"x_vendor_top\":\"top-level slot\"}",
+          "expected_digest": "sha256:3d7c23c922301a4e3d88813ee056d266b70e129aa99373eb52dc46d7c8d877dc",
           "expected": {
             "digest_differs_from_the_unmutated_subject": true,
             "unmutated_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",

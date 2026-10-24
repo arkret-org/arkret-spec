@@ -84,7 +84,7 @@ ID 语义：
       "kind": "realm_root",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "authority_event_ref": "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv",
-      "authority_generation": 0
+      "authority_generation": "0"
     }
   ],
   "authority_depth": 1,
@@ -93,7 +93,7 @@ ID 语义：
       "kind": "realm_root",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "authority_event_ref": "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv",
-      "authority_generation": 0
+      "authority_generation": "0"
     }
   ],
   "actions": [
@@ -136,7 +136,7 @@ ID 语义：
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `status`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 typed current result subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_station_id`，也不得接受 `subject_station_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `status`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 current state subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_station_id`，也不得接受 `subject_station_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -150,18 +150,18 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 以 `kind="grant"` ref 签出的 grant 由 §10.1 强制逐 action 的 `child.actions[] ⊆ union(refs.actions)`、resources 收窄等上界约束，防止再授权扩权。**以 `kind="realm_root"` ref 签出的 grant 受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。两条路径是同一种 grant，只是 `issuer_authority_refs[]` 的 ref 类型不同。
 
-签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在治理 Station 接纳该 Event 的原子判定点**自身当前有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root typed current result current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
+签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在治理 Station 接纳该 Event 的原子判定点**自身当前有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root current state current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
 聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 使用 Realm 的冻结 fixed reducer semantics compiled rules：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再从同一 profile 解释器解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该 profile 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。同一稳定 fixed reducer semantics 的 coverage set 永久冻结；新增 durable Event/action coverage 必须进入 successor profile。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
 
 **Realm owner authority（normative）**：`ak.realm.owner` 是 Realm 内最高的显式授权聚合，有且仅有两个来源：
 
-1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` typed current result 的 current controller。该分支的 operational authorization **MUST** 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
-2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root typed current result。
+1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` current state 的 current controller。该分支的 operational authorization **MUST** 使用该 current state 在同一 RealmCommit basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
+2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root current state。
 
-current-v1 **不定义** authority-policy override typed current result、role-assignment typed current result 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 fixed reducer semantics bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 typed current result、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 typed current result 缺席不是 fallback，而是 current-v1 的唯一协议状态。
+current-v1 **不定义** authority-policy override current state、role-assignment current state 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 fixed reducer semantics bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 current state、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 current state 缺席不是 fallback，而是 current-v1 的唯一协议状态。
 
-**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root typed current result 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST 以 `realm_authority_root_conflict` fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
+**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root current state 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST 以 `realm_authority_root_conflict` fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
 
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
@@ -170,7 +170,7 @@ Profile 对 non-event action 的显式授权规则必须登记在
 `required_claimed_profile`、`required_constraint_kind/subkind`、`subject_binding`、
 `scope_binding`、`epoch_binding`、`requested_action_binding` 与
 `issuer_owner_authority_allowed`。`issuer_owner_authority_allowed=true` 时 issuer 侧另接受
-Realm effective owner（authority-root typed current result current controller 或 active co-owner grant）；
+Realm effective owner（authority-root current state current controller 或 active co-owner grant）；
 该扩展只替换 issuer 来源，profile 的 registration / constraint / evidence gate 一条不减。
 Reducer 只有在同一接纳判定点的 current confirmed state 下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
 effective owner）和 child resource，
@@ -187,12 +187,12 @@ Capability grant wire body MUST NOT 携带 registry version、timestamp 或 dige
 - 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在接纳判定点不再持有某 action，则不得据此签发包含该 action 的首发 grant。
 - Realm 的结构角色（由签名 genesis `purpose` 决定）不得扩张 owner ceiling，Realm `schema_refs` 中的任何 schema id 同样不得。`ak.realm.owner.grant_authority_actions` 是 fixed reducer semantics bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 显式 application exceptions 是 `ak.applet.bridge_error`、`ak.rsvp.set` 与 `ak.pin.add` / `ak.pin.remove` / `ak.pin.reorder`。`ak.applet.bridge_error` 只扩展 grant issuer 上界，不给 owner 直接 Event coverage；grant 和后续 Event 仍 MUST 命中 `ak.profile.applet_bridge.v1`、精确 active installation、registration epoch、effective scope、完整 Service Account subject 与专用 native Service actor 映射，保留 producer 签名和当前 revoke fence；MUST NOT 由此推导其它 Applet action 的 owner authority 或通用 Account/Service 身份等价（见 `applet-integration.md` §4b/§8）。Pin 三项只扩展 grant issuer 上界，不给 owner 直接 Event coverage；使用时仍 MUST 命中 `ak.profile.pinned_items.v1` 的有效 profile、精确 resource / constraint 与 `pins.md` §3 的目标可见性和 effective scope guard，MUST NOT 从 `pin_scope` 推导成员资格或跨 Circle 读取权限。`ak.rsvp.set` 的 grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 fixed reducer semantics 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
 - 此规则关闭"窄 `ak.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ak.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
-- v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` typed current result，它由 `ak.realm.create` 的注册 reducer contract 在 genesis RealmCommit 的同一接纳事务内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm fixed reducer semantics 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。typed current result 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
+- v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` current state，它由 `ak.realm.create` 的注册 reducer contract 在 genesis RealmCommit 的同一接纳事务内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm fixed reducer semantics 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。current state 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
 - 除该 registered authority root 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免，也不承认任何形态的 creator / owner omnipotence 捷径。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
 
 **接纳 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 由唯一 governing Station 在接受该 Event 的安全确认顺序中完成。签名只绑定 closed `issuer_authority_refs[]` 语义 lineage；ref **MUST NOT** 携带 producer 选择的 `expected_revision`、`auth_state_digest`、Station id 或 `CommittedEventRef`。接纳该 Event 的 RealmCommit 是该次决定的唯一 durable basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
-- 同 Realm 的 grant/root/policy/claim 等可撤销安全读取必须按 canonical dependency key 排序，加入接纳事务的 current-result 行锁／revision 集，并在 Event、RealmCommit 与 materialized grant 原子写入前重新检查；竞争变化导致整条 Event 零写入失败，不能靠 RealmCommit 年龄或进程内 cache 推断当前资格。
+- 同 Realm 的 grant/root/policy/claim 等可撤销安全读取必须按 canonical dependency key 排序，加入接纳事务的 current-state 行锁／revision 集，并在 Event、RealmCommit 与 materialized grant 原子写入前重新检查；竞争变化导致整条 Event 零写入失败，不能靠 RealmCommit 年龄或进程内 cache 推断当前资格。
 - 普通 `ak.capability.grant` 的 direct `realm_root` 必须属于 Event 的目标 Realm，`kind="grant"` ref 也必须解析为该目标 Realm 内的 current `capability_grant` row；普通 grant 不得直接锁定远端 Realm，也没有自动跨 Realm derived grant。需要在另一 Realm 授权时，目标 Realm 的 current controller／获授权 issuer 必须签发新的本地 grant；source Realm 状态不得成为 reducer authority。
 - 若 issuer 的上界 ancestor 能力在接纳判定点**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 current state 的确定性结果，不是 freshness 问题。
 - 若 issuer 的上界 ancestor 能力存活，但其 current proof 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`）。`stale` 状态同样 fail closed。
@@ -205,7 +205,7 @@ Capability grant wire body MUST NOT 携带 registry version、timestamp 或 dige
 v1 普通授权仍以 capability grant 为默认。唯一注册的 profile-scoped 非 grant source 是
 `ak.authority.direct_conversation_participant.v1`，canonical 行见
 [`authority-source-registry.json`](../../artifacts/registry/authority-source-registry.json)。语法匹配、membership、
-任意 Event/typed current result ref 或本地 projection row 都不能创建 source。该 source：
+任意 Event/current state ref 或本地 projection row 都不能创建 source。该 source：
 
 - 只在 `ak.profile.direct_conversation_realm.v1` 内，按唯一 immutable binding 与 exact participant/member/
   Realm/Strand/MLS/lifecycle/consent/Agent gate 求值；
@@ -381,7 +381,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 - `ak.event.read`
 - `ak.message.create`
-- `ak.message.mention.broadcast`（high risk；允许在 `ak.message.create` / `ak.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period` + `constraint_scope`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
+- `ak.message.mention.broadcast`（high risk；允许在 `ak.message.create` / `ak.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operation_count` + `period` + `constraint_scope`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
 - `ak.message.revise`
 - `ak.message.revise.own`
 - `ak.message.redact`
@@ -401,7 +401,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ak.audit.accessed` 配对）
 - `ak.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ak.audit.accessed` 配对）
 - `ak.realm.admin`
-- `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root typed current result 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
+- `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root current state 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`；授权 installed Applet Service 提交 `actor_role="ghost"` 的 `ak.realm.actor.create`，由所属 Realm 私有控制流原子接纳主体及外部映射；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration。批准资格按显式 `ak.realm.admin` grant 核验，见 [constraint-schema.md §9.1](constraint-schema.md)；本 action 不授予普通 Account 创建、PCR 或 Profile 通用写入权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
@@ -427,7 +427,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.agent.sidecar.write`（profile action；`target_event_kinds=[ak.message.create]`，resource 必须限定 controller 自己的原生 Sidecar scope，且 actor 位于当前 Realm-scoped `effective_agent_ids`）
 - `ak.agent.sidecar.exchange.control`（controller-only profile action；target 为同名 Event，resource 必须限定自己的原生 Sidecar scope；Agent capability 即使包含普通 Sidecar write 也不得 author control）
 - `ak.agent.sidecar.publish`（profile action；target event kinds 由最终发布目标决定，至少包括 `ak.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束）
-- `ak.self.agent.participation.resource.replace.v1`（controller-only private Account Data replace；profile=`ak.profile.agent_participation_policy.v1`）。请求为 closed `{target_scope,selection,expected_version}`，selection 是 required 五位 `{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}`。该操作只保存 controller 偏好并推进 CAS version，不创建或撤销 capability。实际动作把当前 selection 与 target-local deployment safety、Realm/Circle/Strand policy 逐位求交，再独立校验普通 capability、session scope、membership 与 lifecycle；任一 required 输入 unknown/stale/fork 均 fail closed（reason `agent_participation_ceiling_unresolved`：该 gate 把未决 policy 视为全 false，controller 的私有 selection 保持不变）。`reply_message`只治理`ak.message.create`；reactions 分别治理其 action；mention 只治理 fanout；act-on-behalf 必须保留 controller/Agent attribution 与 approval/accountability。
+- `ak.self.agent.participation.resource.replace.v1`（controller-only private Account Data replace；profile=`ak.profile.agent_participation_policy.v1`）。请求为 closed `{target_scope,selection,expected_version}`，selection 是 required 五位 `{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}`。该操作只保存 controller 偏好并推进 CAS version，不创建或撤销 capability。实际动作把当前 selection 与 target-local deployment safety、Realm/Circle/Strand policy 逐位求交，再独立校验普通 capability、session scope、membership 与 lifecycle；任一 required 输入 unknown/stale/fork 均 fail closed（reason `agent_participation_ceiling_unresolved`：该 gate 把未决 policy 视为全 false，controller 的私有 selection 保持不变）。`message_creation_allowed`只治理`ak.message.create`；reactions 分别治理其 action；mention 只治理 fanout；act-on-behalf 必须保留 controller/Agent attribution 与 approval/accountability。
 - `ak.policy.manage`
 - `ak.policy.set`
 - `ak.policy.action`（登记 policy 动作的**审批配置**，target=`ak.policy.action`；配置不是执行回执也不是审批授权，见 [`models/governance-objects.md` §3.4](../models/governance-objects.md)）
@@ -439,12 +439,12 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.member.leave.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_realm.v1`；scope_suffix_variant，target=`ak.member.state`；只允许 `actor_id == payload.member_id`（完整 ActorId）的 `join → leave`，不得 leave/ban 对方或执行 join）
 - `ak.member.rejoin.own`（risk_tier=medium；profile=`ak.profile.direct_conversation_repair.v1`；scope_suffix_variant，target=`ak.member.state`；Direct Conversation exact-pair self-rejoin 专用，只允许 `actor_id == payload.member_id`（完整 ActorId）的 `leave → join`，不得承载首次 join、第三 participant 或代对方 join，也不得取得 grant/policy/admin/Strand/binding 变更权）
 - `ak.approval.vote`
-- `ak.moderation.decision`（写入 committed moderation state typed current result；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
+- `ak.moderation.decision`（写入 committed moderation state current state；详见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）
 - `ak.moderation.decision.lift`（解除已 committed 的 moderation 决策）
 
 ### 5.5 服务动作
 
-v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `mls_epoch` typed current result reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
+v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `mls_epoch` current state reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
 Audit action 只授权对已可见材料的特权读取留痕（`ak.audit.accessed` 配对）。协议不提供把 MLS 历史密钥 release 给第三方的动作面。普通 Realm/Circle 治理举报只路由给 scoped 管理员 / moderator。
 
@@ -509,7 +509,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `allowed_relation_kinds` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_relation_kinds` |
 | `allowed_from_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_from_container_refs` |
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
-| `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
+| `wip_limit_override_allowed` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override_allowed`（看板容器 WIP 上限覆盖） |
 | `allowed_history_access_values` | `confidentiality` | `visibility` | `allowed_history_access_values` |
 | `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（仅 `true` 允许读取 redacted stub；`false` / 缺省拒绝） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
@@ -526,8 +526,8 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `authority_path_ids` | `authority_control` | — | `authority_path_ids`（授权链 DID core id 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
 | `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
-| `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
-| `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
+| `rate_limit` | `quota` | `rate` | `max_operation_count`, `period`, `constraint_scope`, `burst` |
+| `resource_limit` | `quota` | `resource` | `max_resource_count`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required`（grant 层开关；与 Realm 治理面 `policy_action.value.approval_required` 是两个独立开关，取严相交的裁决见 [`../models/governance-objects.md` §3.5](../models/governance-objects.md)） |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
@@ -621,7 +621,7 @@ v1 只有 `before_commit` 一种审批模式，顺序固定为三步，MUST NOT 
 
 ### 9.1 Agent 授权预设展开（normative）
 
-产品 UI / SDK MAY 暴露 agent 授权预设(`read`、`draft`、`reply_as_agent`、`act_on_behalf`、`organizer`),以简化 `ak.profile.agent_provisioning.v1` 下的 agent 授权输入。本节是这些预设到 canonical grant 的**权威展开定义**。
+产品 UI / SDK MAY 暴露 agent 授权预设(`read`、`draft`、`reply_as_agent`、`acting_on_behalf_allowed`、`organizer`),以简化 `ak.profile.agent_provisioning.v1` 下的 agent 授权输入。本节是这些预设到 canonical grant 的**权威展开定义**。
 
 预设名的语义约束(MUST):
 
@@ -646,7 +646,7 @@ canonical 展开表:
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
 | `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求。`ak.agent.draft.propose` 只让 Station 保存带 controller-device HPKE handoff 的 pending intent；controller holder 随后用 account secret 与唯一 `ak.account_data.set` CAS 创建 `ak.agent.draft.v1` encrypted account data（见 [`../models/actor-private-effects.md` §3.2](../models/actor-private-effects.md#32-agent-draftrequest-与-rejection)）。Station 不生成密文。两个 action 均 profile-gated 于 `ak.profile.agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
 | `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
-| `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
+| `acting_on_behalf_allowed` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
 
 **服务面 scope 与内容能力分层(normative)。** 本展开表定义的是**内容层 capability grant**(`ak.capability.grant.actions[]`)。要真正调用某服务面 endpoint,调用方 session **MUST** 另行携带对应**服务面 scope**——例如 events 面的 `ak.self.committed_event.read.scan.v1` / `ak.self.committed_event.stream.subscribe.v1`(§5.5 服务动作),由 session 签发时 provision(Agent 见 [`conformance-profiles.md` §18.1](../conformance/conformance-profiles.md))。服务面 scope 与内容能力是**正交两层，按 AND 组合**:持有 `ak.event.read` 内容能力 **MUST NOT** 被解释为授予该服务面(§5.0 `actions[]` 逐字命中、无 subsumption),持有服务面 scope 也不授予内容读；最终可见性再叠加 membership / history visibility(见 [`../models/relation.md` §4.2](../models/relation.md))。对于 Agent runtime,`agent_key_scope.actions[]` MAY 同时列出服务操作 id 与内容 action token；其中内容 action 是 Agent 的全局硬上界而不是 grant，provision / key authorize 不得因其出现而物化内容授权。后续 Realm-scoped grant必须是该 action 上界的子集。Participation selection 是独立的 controller 行为偏好，可以预先选择任意已登记 bit，但不能授予或补回 requested scope、key scope或Realm grant缺失的authority。session 签发时必须分别求交:服务面 scope = requested_scope ∩ agent_key_scope 服务上界 ∩ endpoint/resource policy;内容 payload 可见性 = agent_key_scope 内容 action 上界 ∩ 有效 Realm capability grant ∩ 服务面允许 ∩ membership/history/E2EE 允许。预设展开 **MUST NOT** 把服务面 scope 混入本内容能力表——服务面授权随 session 演进，与本表解耦，二者可各自独立演进。
@@ -674,14 +674,14 @@ v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` �
 | | root controller 直发 | 普通 principal 再授予 |
 | --- | --- | --- |
 | ref | `{kind:"realm_root", realm_id, authority_event_ref, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
-| issuer 证明 | 签发 RealmCommit basis 下 root typed current result 的 `controller_actor_id == issuer_id`，且 `issuer_id == Event.actor_id` | 每条 ref 的具体 `subject == child.issuer_id`（完整 ActorId 相等） |
+| issuer 证明 | 签发 RealmCommit basis 下 root current state 的 `controller_actor_id == issuer_id`，且 `issuer_id == Event.actor_id` | 每条 ref 的具体 `subject == child.issuer_id`（完整 ActorId 相等） |
 | 持续有效性 | root 存在、Realm 未终止且 `authority_generation` 与 ref 相同；controller transfer 不影响 | 该 ref grant 当前 active |
 | 上界 | root owner ceiling ∩ Realm policy | union(ref grants) ∩ Realm policy |
 
 wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是全部差异。`realm_root` 是有根终点，`grant` 是一条边。
 
 **`authority_generation` 与 `governance_generation` 是两个不同的计数器（normative）**：`realm_root` ref 里的
-`authority_generation` 是 authority-root typed current result 的**委派代次**，创世为 0，只由
+`authority_generation` 是 authority-root current state 的**委派代次**，创世为 0，只由
 `ak.realm.authority.reset` 递增，用途只有一个——一次性整代失效本 Realm 由 root 派生的全部 grant。
 `RealmCommit` / snapshot / join intake / `AccountCurrentView` 上的 `governance_generation` 是**治理 Station
 任期代次**，只由 `ak.realm.governance_station.change` 递增（见
@@ -694,7 +694,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 没有普通 `authority_control` constraint 的 grant 不具备再授权能力，MUST NOT 被任何 child grant 引用为 ref。若某条 ref 的普通 `authority_control` constraint 声明 `authority_regrant_allowed=false`（字段缺省同样为 false），则以它为 ref 的 child grant MUST 在 wire 上显式携带普通 `authority_control` 与 `max_authority_depth=0`，且 child 的 `authority_regrant_allowed` 必须为 false（字段省略按 false 求值）；该 terminal child MUST NOT 再被任何 grant 引用为 ref。省略 carrier、声明正深度或重新开启 regrant 时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。`constraint_subkind=applet_authority` 不构成普通再授权控制。
 
-**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Station 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 typed current result 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
+**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Station 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 current state 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
 普通 author MUST 从已认证 own Station 的既有 exact `realm_authority_root` current value 取得 required `authority_event_ref` 与 `authority_generation`，绑定请求完整账号／会话、Realm、selector 和 current cut。genesis 引用 accepted create Event；reset 同事务换代并更新引用；owner transfer／Station handoff MUST 保留委派 anchor。current revision 可能来自较后 transfer，MUST NOT 作为该 anchor。current 引用披露不扩大历史 floor，也不要求普通客户端取得隐藏 reset 原件；缺准确材料 MUST fail closed。`realm_authority_event_ref` 是 reset writer 的具名派生，值恰为该 accepted reset 的 envelope.event_id，作者无可选值。
 
@@ -703,7 +703,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
 - `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲授权可能追溯到多条本 Realm root lineage。去重键为 `(realm_id, authority_event_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；所有条目的 `realm_id` 必须等于 grant 所属 Realm；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
-二者 MUST 登记进 `ak.capability.grant` 的 `result_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.event_kinds[].result_writes[]`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则；集合由本节与 [`../models/common-fields.md` §3.3](../models/common-fields.md) 共同定义——本节登记 capability / consent / authority-root 的专属派生名，common-fields §3.3 登记八个可复用的公共元数据派生名（三个更新元数据与五个 create-locked 身份／创建元数据）。本节集合的第三个成员是 §12.1 的 `capability_status`，它同样只能由 reducer 物化，四条已登记的 `capability_grant` 写入各自决定它的取值。未登记的 reducer 顺带写入 MUST NOT 进入已提交 typed current result（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+二者 MUST 登记进 `ak.capability.grant` 的 `state_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.event_kinds[].state_writes[]`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则；集合由本节与 [`../models/common-fields.md` §3.3](../models/common-fields.md) 共同定义——本节登记 capability / consent / authority-root 的专属派生名，common-fields §3.3 登记八个可复用的公共元数据派生名（三个更新元数据与五个 create-locked 身份／创建元数据）。本节集合的第三个成员是 §12.1 的 `capability_status`，它同样只能由 reducer 物化，四条已登记的 `capability_grant` 写入各自决定它的取值。未登记的 reducer 顺带写入 MUST NOT 进入已提交 current state（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 
 审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
 
@@ -752,7 +752,7 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 
 ### 10.3 Revoke 因果传播
 
-已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态。首发 `ak.capability.grant` 的上界 ancestor 已关闭时，MUST 按 §3.2 返回 `failed_precondition`、reason=`grant_exceeds_issuer_authority`，并保持 Event／RealmCommit／current result 零写入。其它依赖该 grant 的安全操作在已确认的当前 ancestor 关闭时 MUST fail closed；对外使用已激活的通用 `capability_denied`，不得输出 reserved `grant_revoked_upstream` 或泄露调用者无权观察的 ancestor 状态。必需的 current authority 或依赖尚不能验证时，按下一段保持 queued/pending，不得把未知状态当作已关闭或放行。
+已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态。首发 `ak.capability.grant` 的上界 ancestor 已关闭时，MUST 按 §3.2 返回 `failed_precondition`、reason=`grant_exceeds_issuer_authority`，并保持 Event／RealmCommit／current state 零写入。其它依赖该 grant 的安全操作在已确认的当前 ancestor 关闭时 MUST fail closed；对外使用已激活的通用 `capability_denied`，不得输出 reserved `grant_revoked_upstream` 或泄露调用者无权观察的 ancestor 状态。必需的 current authority 或依赖尚不能验证时，按下一段保持 queued/pending，不得把未知状态当作已关闭或放行。
 
 所有共享持久 Event 都由当前治理 Station在 RealmCommit 位置读取 current grant 状态。消费方可以缓存 committed 结果，但缓存不得形成独立 accepted 状态；缺少 current authority 或必需依赖时保持 queued/pending，不得本地放行。
 
@@ -762,14 +762,14 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 
 - `ak.capability.revoke`：actor MUST 先通过普通 action authorization，随后 target guard 只接受 `actor == target.issuer`，或 actor 是 **target grant 自身 `realm_id`** 的 current root controller。所有 `authority_root_refs[]` 均属于该 Realm，控制其它 Realm 的 root 不获得撤销权。后一分支保证 Realm 转让后新 root owner 能治理旧 controller 签出的 grant；普通 co-owner 与 sibling 不能借 `ak.realm.owner` 撤销上游或同级 grant。不满足时 reducer MUST 拒绝，reason=`grant_revoke_not_authorized`。
 - `ak.capability.relinquish`：subject-only self-service state-changing Event，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
-- authority-root typed current result **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
+- authority-root current state **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
 
 上面的 revoke 普通 action gate 有且仅有 [自有受限授权撤回](./owned-agent-authority.md) 的 original issuer/controller 收权例外：合法主人签名和 exact target CAS 足够，无需 revoke action、仍有父行动权、管理新增许可或 Agent runtime 在线。该例外不适用于他人／管理员独立 grant。exact revision 读面覆盖自己的 ineffective/terminal owned_agent grant，撤回终态不阻止以后重新确认签发新的 grant。
 - target guard 需要 target 才能校验 issuer / root-controller / subject 关系，所以 target grant 尚未投影时治理方 **MUST NOT** 接纳该 revoke / relinquish，也 **MUST NOT** 预写未经关系校验的 tombstone。提交方 MAY 把它留在本地队列（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md) 的 `queued` 本地持久态），在 target grant 可见后**重新**检查 target guard 与 exact revision 并重新提交；该本地待发状态不是共享 reducer 状态，也不得被当作已接纳。接纳发生在治理方的单次原子接纳事务内，因此不存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。材料不全时 MUST NOT 反过来伪造终局拒绝——未知不是 rejected。
 
 subject authoring 的唯一 revision 读面是 `ak.self.authz.grants.read.effective.v1`：治理 Station MUST 从同一次原子
-`capability_grant` current-result 快照返回 closed `EffectiveCapabilityGrantRow { grant, revision }`。`revision` MUST 与该 row 的
-canonical grant value 属于同一个 current result；列表级 `state_digest`、`evaluated_at`、Event id、本地历史折叠或其它
+`capability_grant` current-state 快照返回 closed `EffectiveCapabilityGrantRow { grant, revision }`。`revision` MUST 与该 row 的
+canonical grant value 属于同一个 current state；列表级 `state_digest`、`evaluated_at`、Event id、本地历史折叠或其它
 Realm checkpoint 都不能替代它。客户端选择 row 后只能逐字复制该 `revision` 到 `ak.capability.relinquish.expected_revision`；
 缺少 revision 时 MUST 禁止 authoring。页面刷新或 `cas_conflict` 后必须重新读取并让用户重新确认，MUST NOT 静默替换
 用户已确认的 authoring basis 后自动重签。
@@ -813,9 +813,9 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `ex
 
 **撤销的生效切点（normative）**：capability revoke 在目标 Realm stream 的 RealmCommit 位置生效。治理 Station在同一事务中验证目标 grant current revision 等于 `expected_revision`；竞争撤销至多一个成功，exact Event 重试返回原结果。撤销不追溯改写历史 Commit，但会阻止后续 Event 使用该 grant。
 
-### 12.1 Grant typed current result 的确定性收敛（normative）
+### 12.1 Grant current state 的确定性收敛（normative）
 
-capability 授权状态投影到 typed current result family `capability_grant`。该 family 有且只有三个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `result_writes[]`。每个 `grant_id` 有一个 closed current result；其公开 typed schema 只携 selector、包含 canonical grant 与 status 的 value，以及 revision。canonical materialized grant **MUST** 包含 reducer-derived `authority_depth`、`authority_root_refs[]` 与 `status`；三者都在 producer create body 中禁止。治理 Station的内部投影／审计 backing 还必须保留产生该 revision 的 `CommittedEventRef` 及接纳 dependency basis，但 effective-list row 不重复暴露这些内部字段，客户端也不得把 Event ref 当成 revision。`status` 是 grant body自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
+capability 授权状态投影到 current state family `capability_grant`。该 family 有且只有三个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `state_writes[]`。每个 `grant_id` 有一个 closed current state；其公开 typed schema 只携 selector、包含 canonical grant 与 status 的 value，以及 revision。canonical materialized grant **MUST** 包含 reducer-derived `authority_depth`、`authority_root_refs[]` 与 `status`；三者都在 producer create body 中禁止。治理 Station的内部投影／审计 backing 还必须保留产生该 revision 的 `CommittedEventRef` 及接纳 dependency basis，但 effective-list row 不重复暴露这些内部字段，客户端也不得把 Event ref 当成 revision。`status` 是 grant body自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
 
 - **grant**：`grant_id` 必须尚未存在，初始 revision 为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}`，status=`active`；subject 由 `retype(event_id,"grant")` 派生，projection 为 `set`。
 - **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 变为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}`，status=`revoked` 或 `relinquished`。两者 projection 均为 `merge`——不可变的 grant body 在关闭后仍要留存——差别在于写哪一对 lifecycle 字段：revoke 写 `revoked_by` / `revoked_at`，relinquish 按 §10.4 不是撤销，写 `updated_by` / `updated_at`。两者都取承载 Event envelope 的 `actor_id` / `created_at`，不取 payload，因为关闭该 grant 的权威就是这条 Event 的签名方。
@@ -823,9 +823,9 @@ capability 授权状态投影到 typed current result family `capability_grant`�
 - **压缩**：可以压缩 payload，但必须保留 grant ID、terminal status、revision 与 Commit 引用，snapshot / export 不得把 terminal grant 计为有效授权。
 
 `ak.self.authz.grants.read.effective.v1` 的每个 `EffectiveCapabilityGrantRow` MUST 由本节所定义的同一个
-`capability_grant` current result 原子读取 grant value 与 revision；它是 revoke / relinquish authoring 的 exact CAS carrier，
+`capability_grant` current state 原子读取 grant value 与 revision；它是 revoke / relinquish authoring 的 exact CAS carrier，
 不是新的授权真相。列表级 digest 仅绑定整次查询结果，绝不等于任一 row revision。带 `at` 的查询只在该求值时点筛选
-effective 集合，不是历史 current-result snapshot，也不是可直接签名的 authoring basis；发起 relinquish 前客户端 MUST
+effective 集合，不是历史 current-state snapshot，也不是可直接签名的 authoring basis；发起 relinquish 前客户端 MUST
 刷新不带 `at` 的当前 row，并让用户基于新 revision 重新确认。
 
 conformance：[`capability-fixture.json`](../sync/authority-commit-log.md) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
@@ -944,19 +944,19 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 Event 或确认控制面 RealmCommit 并更新相关 typed current result 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 typed current result 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
-- **Moderation state typed current result 与 cache 的关系**：committed moderation decision（写入 `moderation_state`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation typed current result 标记的 actor 不在其中），则该 typed current result 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 Event 或确认控制面 RealmCommit 并更新相关 current state 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 current state 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
+- **Moderation state current state 与 cache 的关系**：committed moderation decision（写入 `moderation_state`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation current state 标记的 actor 不在其中），则该 current state 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
-    2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` 中的任一项（moderator role grant 通常依赖 moderation typed current result 决定谁是 moderator）；
-    3. `constraints[]` 中存在任何 typed constraint 引用 moderation state typed current result、moderation queue、moderation report 或 moderation tag。
+    2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` 中的任一项（moderator role grant 通常依赖 moderation current state 决定谁是 moderator）；
+    3. `constraints[]` 中存在任何 typed constraint 引用 moderation state current state、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
-  - 不在上述条件内的普通 grant（典型如 `ak.strand.update`、`ak.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation typed current result 失效抖动影响，符合本节"moderation 是后置层"的设计。
-  - **条件 2 的保守取舍（normative rationale）**：条件 2 按 `actions[]` 是否含 moderation 写入动作触发，即使 subject 是固定 DID 的 admin / moderator grant（其"谁是 moderator"并不真正依赖 moderation typed current result）也强制 `depends_on_moderation_state=true`，因而该 grant 的 fast-path cache 会被无关 moderation typed current result 变化抖动失效。这是**有意的 fail-safe 设计**：lint 是 schema / reducer 层的静态规则，无法廉价区分"固定 DID admin"与"依赖 moderation state 的 condition-selector moderator"，而漏失效（已被 moderation 降权的 moderator 仍走 fast-path allow）的安全代价远高于多失效一次 cache 的性能代价。真正精确依赖 moderation state 的 grant 由条件 1、条件 3 覆盖；条件 2 是对"moderation 动作持有者"的额外保守网，**不收窄**。
+  - 不在上述条件内的普通 grant（典型如 `ak.strand.update`、`ak.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation current state 失效抖动影响，符合本节"moderation 是后置层"的设计。
+  - **条件 2 的保守取舍（normative rationale）**：条件 2 按 `actions[]` 是否含 moderation 写入动作触发，即使 subject 是固定 DID 的 admin / moderator grant（其"谁是 moderator"并不真正依赖 moderation current state）也强制 `depends_on_moderation_state=true`，因而该 grant 的 fast-path cache 会被无关 moderation current state 变化抖动失效。这是**有意的 fail-safe 设计**：lint 是 schema / reducer 层的静态规则，无法廉价区分"固定 DID admin"与"依赖 moderation state 的 condition-selector moderator"，而漏失效（已被 moderation 降权的 moderator 仍走 fast-path allow）的安全代价远高于多失效一次 cache 的性能代价。真正精确依赖 moderation state 的 grant 由条件 1、条件 3 覆盖；条件 2 是对"moderation 动作持有者"的额外保守网，**不收窄**。
 - Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
-- `partial_auth_state`、授权依赖未能完整验证、或无法确认当前撤销状态时 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。这三者都是**本地评估状态**，不是共享 Event 的接纳结果：pending 只描述本站还没判完，MUST NOT 被 fanout、写入 typed current result，或被当作「先接纳、稍后验证」的依据。
+- `partial_auth_state`、授权依赖未能完整验证、或无法确认当前撤销状态时 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。这三者都是**本地评估状态**，不是共享 Event 的接纳结果：pending 只描述本站还没判完，MUST NOT 被 fanout、写入 current state，或被当作「先接纳、稍后验证」的依据。
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
 - 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、checkpoint 对账和 `auth_state_digest` 失效。
 

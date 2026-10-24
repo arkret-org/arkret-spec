@@ -25,9 +25,9 @@ def validator(document, subschema):
 class CallCurrentGenesisSchemaTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        current = json.loads((SCHEMAS / "typed-current-result.schema.json").read_text(encoding="utf-8"))
+        current = json.loads((SCHEMAS / "current-state.schema.json").read_text(encoding="utf-8"))
         events = json.loads((SCHEMAS / "event-payload.schema.json").read_text(encoding="utf-8"))
-        cls.current = validator(current, current["$defs"]["call_state_result"]["properties"]["value"])
+        cls.current = validator(current, current["$defs"]["current_call_state"]["properties"]["value"])
         cls.create = validator(events, events["$defs"]["call_create_payload"])
         cls.delta = validator(events, events["$defs"]["call_state_payload"]["properties"]["state_transition"])
 
@@ -68,9 +68,9 @@ class CallCurrentGenesisSchemaTest(unittest.TestCase):
                         if found is not None:
                             return found
                 return None
-            writer = find_create(registry)["result_writes"][0]
+            writer = find_create(registry)["state_writes"][0]
             self.assertEqual(writer["value_schema_ref"],
-                             "schemas/typed-current-result.schema.json#/$defs/call_state_result/properties/value")
+                             "schemas/current-state.schema.json#/$defs/current_call_state/properties/value")
 
 
 class CallActorIdentitySchemaTest(unittest.TestCase):
@@ -112,15 +112,15 @@ class CallActorIdentitySchemaTest(unittest.TestCase):
         self.assertFalse(self.refresh.is_valid({"kind": "refresh"}))
 
     def test_moderation_targets_the_same_full_actor_namespace(self):
-        signal = {"kind": "ak.call.signal", "payload_sequence": 1,
-                  "call_id": "ak:call:" + "A" * 44, "signal_kind": "moderation", "seq": 1,
+        signal = {"kind": "ak.call.signal", "payload_sequence": "1",
+                  "call_id": "ak:call:" + "A" * 44, "signal_kind": "moderation", "sequence": "1",
                   "data": {"action": "kick", "target_actor_id": self.actor, "target_device_id": self.device}}
         self.signal.validate(signal)
         signal["data"]["target_actor_id"] = self.actor["account_id"]["principal_id"]
         self.assertFalse(self.signal.is_valid(signal))
 
     def test_public_binding_rejects_retired_private_commitment(self):
-        binding = {"expires_at": "2026-10-17T00:05:00.000Z", "issuer_kid": "did:web:media.example#key", "sig": "AA"}
+        binding = {"expires_at": "2026-10-17T00:05:00.000Z", "issuer_kid": "did:web:media.example#key", "signature": "AA"}
         self.binding.validate(binding)
         binding["subject_binding_digest"] = "sha256:" + "00" * 32
         self.assertFalse(self.binding.is_valid(binding))

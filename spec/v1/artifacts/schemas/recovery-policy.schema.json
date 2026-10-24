@@ -12,12 +12,20 @@
     "supersedes_id",
     "trust_domain",
     "issued_at",
-    "auth_data",
+    "signature_proof",
     "methods"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.recovery_policy.v1"
+      "const": "ak.schema.recovery_policy.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "recovery-policy.schema.json#/properties/schema",
+        "owner": "recovery-policy.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.recovery_policy.v1"
+        ]
+      }
     },
     "policy_id": {
       "type": "string",
@@ -68,7 +76,7 @@
         }
       ]
     },
-    "auth_data": {
+    "signature_proof": {
       "type": "object",
       "required": [
         "verification_method",
@@ -84,12 +92,20 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-policy.schema.json#/properties/signature_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over UTF8('ak.identity.recovery_policy.signature.v1\\n') followed by RFC 8785 JCS of all present top-level policy members except auth_data. The closed policy shape fixes the projection; absent optional members are omitted and null is retained only where the schema explicitly admits null."
+          "description": "base64url signature over UTF8('ak.identity.recovery_policy.signature.v1\\n') followed by RFC 8785 JCS of all present top-level policy members except signature_proof. The closed policy shape fixes the projection; absent optional members are omitted and null is retained only where the schema explicitly admits null."
         }
       },
       "additionalProperties": false
@@ -127,7 +143,7 @@
       },
       "additionalProperties": false
     },
-    "recovery_policy_publish_request": {
+    "recovery_policy_publish_request_body": {
       "allOf": [
         {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -137,7 +153,15 @@
             "event": {
               "properties": {
                 "kind": {
-                  "const": "ak.policy.set"
+                  "const": "ak.policy.set",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "recovery-policy.schema.json#/$defs/recovery_policy_publish_request_body/allOf/1/properties/event/properties/kind",
+                    "owner": "recovery-policy.schema.json#/$defs/recovery_policy_publish_request_body/allOf/1/properties/event/properties/kind",
+                    "values": [
+                      "ak.policy.set"
+                    ]
+                  }
                 },
                 "payload": {
                   "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_set_payload"
@@ -147,7 +171,8 @@
           }
         }
       ],
-      "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.account_id's exact Principal Control Realm."
+      "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.account_id's exact Principal Control Realm.",
+      "x-arkret-name-role": "request_body"
     },
     "did_url": {
       "$ref": "./account-operations.schema.json#/$defs/did_url"
@@ -181,7 +206,15 @@
           "enum": [
             "Ed25519"
           ],
-          "description": "Current-v1 signature algorithm used by the recovery key. Reserved algorithms, including ML-DSA-65, fail closed as unsupported until a future negotiated schema/profile activation."
+          "description": "Current-v1 signature algorithm used by the recovery key. Reserved algorithms, including ML-DSA-65, fail closed as unsupported until a future negotiated schema/profile activation.",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-policy.schema.json#/$defs/recovery_key_entry/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",
@@ -226,7 +259,15 @@
           "description": "Stable identifier used by key-backup encryption.recipient_key_ref."
         },
         "key_agreement_algorithm": {
-          "const": "X25519"
+          "const": "X25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc7748.html#section-5",
+            "owner": "recovery-policy.schema.json#/$defs/recovery_key_agreement_entry/properties/key_agreement_algorithm",
+            "values": [
+              "X25519"
+            ]
+          }
         },
         "public_key_multibase": {
           "type": "string",
@@ -242,11 +283,28 @@
             "enum": [
               "ak.hpke_x25519_aead_chacha20poly1305.v1",
               "ak.hpke_x25519_aead_aes256gcm.v1"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "recovery-policy.schema.json#/$defs/recovery_key_agreement_entry/properties/hpke_suites/items",
+              "owner": "recovery-policy.schema.json#/$defs/recovery_key_agreement_entry/properties/hpke_suites/items",
+              "values": [
+                "ak.hpke_x25519_aead_chacha20poly1305.v1",
+                "ak.hpke_x25519_aead_aes256gcm.v1"
+              ]
+            }
           }
         },
         "use": {
-          "const": "backup_hpke"
+          "const": "backup_hpke",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-policy.schema.json#/$defs/recovery_key_agreement_entry/properties/use",
+            "owner": "recovery-policy.schema.json#/$defs/recovery_key_agreement_entry/properties/use",
+            "values": [
+              "backup_hpke"
+            ]
+          }
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -389,7 +447,7 @@
       },
       "additionalProperties": false
     },
-    "recovery_policy_active_outcome": {
+    "recovery_policy_status_view": {
       "type": "object",
       "description": "Response for ak.root.identity.recovery_policy.resource.get.v1. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved exact account.",
       "required": [
@@ -414,16 +472,18 @@
           "$ref": "#/$defs/recovery_policy_ref",
           "description": "Convenience tuple for the active policy. MUST be absent or null-equivalent when active_policy is null, and MUST match active_policy.policy_id/version when active_policy is present."
         },
-        "as_of": {
-          "$ref": "#/$defs/timestamp"
+        "evaluated_at": {
+          "$ref": "#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         },
         "authority_stream_head": {
           "$ref": "#/$defs/authority_stream_head"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "status_view"
     },
-    "recovery_policy_publish_outcome": {
+    "recovery_policy_publish_response_body": {
       "type": "object",
       "description": "Response for ak.root.identity.recovery_policy.command.publish.v1 after accepting a ak.schema.recovery_policy.v1 publish or rotation.",
       "required": [
@@ -452,7 +512,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "recovery_method": {
       "oneOf": [
@@ -463,7 +524,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "did_root"
+              "const": "did_root",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/0/properties/kind",
+                "owner": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/0/properties/kind",
+                "values": [
+                  "did_root"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -476,7 +545,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "recovery_unlock"
+              "const": "recovery_unlock",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/1/properties/kind",
+                "owner": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/1/properties/kind",
+                "values": [
+                  "recovery_unlock"
+                ]
+              }
             },
             "keys": {
               "type": "array",
@@ -499,7 +576,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device_quorum"
+              "const": "device_quorum",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/2/properties/kind",
+                "owner": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/2/properties/kind",
+                "values": [
+                  "device_quorum"
+                ]
+              }
             },
             "k": {
               "type": "integer",
@@ -525,7 +610,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "trusted_recovery_service"
+              "const": "trusted_recovery_service",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/3/properties/kind",
+                "owner": "recovery-policy.schema.json#/$defs/recovery_method/oneOf/3/properties/kind",
+                "values": [
+                  "trusted_recovery_service"
+                ]
+              }
             },
             "services": {
               "type": "array",

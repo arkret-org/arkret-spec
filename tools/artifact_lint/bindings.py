@@ -728,9 +728,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "ak.root.identity.command.submit_did_operation.v1": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
-        "ak.gate.account.command.issue_session_grant.v1": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ak.gate.account.command.refresh_session_grant.v1": ("SessionGrantRefreshRequestBody", "SessionGrantOutcome"),
+        "ak.root.identity.command.submit_did_operation.v1": ("DidOperationSubmitRequestBody", "DidOperationSubmitResponseBody"),
+        "ak.gate.account.command.issue_session_grant.v1": ("SessionGrantRequestBody", "SessionGrantResponseBody"),
+        "ak.gate.account.command.refresh_session_grant.v1": ("SessionGrantRefreshRequestBody", "SessionGrantResponseBody"),
     }
     expected_response_only = {}
     dedicated_schema_refs = {
@@ -780,26 +780,26 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     dto_document = load_json(lint, ARTIFACTS / "schemas" / "service-operation-dtos.schema.json")
     dto_defs = dto_document.get("$defs", {}) if isinstance(dto_document, dict) else {}
     human_session_grant_required = set(
-        (dto_defs.get("HumanSessionGrantRequest", {}) or {}).get("required", [])
+        (dto_defs.get("HumanSessionGrantRequestBody", {}) or {}).get("required", [])
     )
     if not {"audience_id", "accepted_device_possession_proof"}.issubset(human_session_grant_required):
         lint.fail(
             openapi_path,
-            "HumanSessionGrantRequest.required must include audience_id and accepted_device_possession_proof",
+            "HumanSessionGrantRequestBody.required must include audience_id and accepted_device_possession_proof",
         )
     agent_session_grant_proof_required = set(
-        (dto_defs.get("AgentSessionGrantRequest", {}) or {})
+        (dto_defs.get("AgentSessionGrantRequestBody", {}) or {})
         .get("properties", {})
         .get("proof", {})
         .get("required", [])
     )
     if "audience_id" not in agent_session_grant_proof_required:
-        lint.fail(openapi_path, "AgentSessionGrantRequest.proof.required must include audience_id")
+        lint.fail(openapi_path, "AgentSessionGrantRequestBody.proof.required must include audience_id")
 
     projection_components = {
-        "ak.self.space.read.list.v1": "ProjectionSpaceList",
-        "ak.self.strand.read.list.v1": "ProjectionStrandList",
-        "ak.self.morph.read.list.v1": "ProjectionMorphList",
+        "ak.self.space.read.list.v1": "SpacePage",
+        "ak.self.strand.read.list.v1": "StrandPage",
+        "ak.self.morph.read.list.v1": "MorphPage",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -1250,7 +1250,7 @@ def infer_openapi_success_shape(method: str, content: Any) -> str:
     if isinstance(schema, dict):
         ref = schema.get("$ref")
         if ref == GENERIC_OPERATION_RESULT_REF:
-            return "operation_result"
+            return "operation_response_body"
         if ref == "#/components/schemas/ServiceDescribe":
             return "service_describe"
         if isinstance(ref, str) and ref.startswith("#/components/schemas/"):
@@ -1468,7 +1468,7 @@ def check_operation_binding_metadata(lint: Lint) -> None:
                     f"{operation_id} has surface_class=core and must not use generic OpenAPI bindings",
                 )
             if not isinstance(generic_binding, dict):
-                lint.fail(operation_path, f"{operation_id} uses OperationRequest/OperationResult and must declare generic_binding")
+                lint.fail(operation_path, f"{operation_id} uses OperationRequest/OperationResponseBody and must declare generic_binding")
                 continue
             if generic_binding.get("request") is not facts["generic_request"]:
                 lint.fail(operation_path, f"{operation_id} generic_binding.request does not match OpenAPI")
@@ -1971,7 +1971,8 @@ def _supply_collect_supply(
         key = (rfile, ridentity)
         if key in visiting:
             return
-        defs_out.add(key)
+        if not rfile.endswith("/decimal-integers.schema.json"):
+            defs_out.add(key)
         _supply_collect_supply(
             schema_files, rfile, rnode, visiting | {key}, defs_out, names_out
         )
@@ -2097,6 +2098,10 @@ def _supply_walk_demand(
                 ref_supplied = (resolved[0], resolved[2]) in supplied_defs
                 resolved_file = resolved[0]
                 resolved_sub = resolved[3]
+                # A shared scalar encoding supplies no domain-specific CAS echo.
+                if ref_file.endswith("/decimal-integers.schema.json"):
+                    ref_def = ""
+                    ref_supplied = False
         elif isinstance(sub, dict) and isinstance(sub.get("items"), dict):
             item_schema = sub["items"]
             if "$ref" in item_schema:

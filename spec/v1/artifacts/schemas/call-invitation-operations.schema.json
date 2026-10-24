@@ -8,13 +8,13 @@
       "$ref": "#/$defs/send_request_body"
     },
     {
-      "$ref": "#/$defs/send_outcome"
+      "$ref": "#/$defs/send_response_body"
     },
     {
       "$ref": "#/$defs/admission_request_body"
     },
     {
-      "$ref": "#/$defs/admission_outcome"
+      "$ref": "#/$defs/admission_decision"
     },
     {
       "$ref": "#/$defs/delivery_view"
@@ -105,7 +105,7 @@
       },
       "additionalProperties": false
     },
-    "send_outcome": {
+    "send_response_body": {
       "type": "object",
       "required": [
         "status"
@@ -116,10 +116,19 @@
           "type": "string",
           "enum": [
             "deferred"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-invitation-operations.schema.json#/$defs/send_response_body/properties/status",
+            "owner": "call-invitation-operations.schema.json#/$defs/send_response_body/properties/status",
+            "values": [
+              "deferred"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "admission_request_body": {
       "type": "object",
@@ -144,7 +153,16 @@
             "product_delivery",
             "media_token"
           ],
-          "type": "string"
+          "type": "string",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-invitation-operations.schema.json#/$defs/admission_request_body/properties/admission_phase",
+            "owner": "call-invitation-operations.schema.json#/$defs/admission_request_body/properties/admission_phase",
+            "values": [
+              "product_delivery",
+              "media_token"
+            ]
+          }
         },
         "audience_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -176,7 +194,15 @@
           "if": {
             "properties": {
               "admission_phase": {
-                "const": "media_token"
+                "const": "media_token",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "call-invitation-operations.schema.json#/$defs/admission_request_body/allOf/0/if/properties/admission_phase",
+                  "owner": "call-invitation-operations.schema.json#/$defs/admission_request_body/allOf/0/if/properties/admission_phase",
+                  "values": [
+                    "media_token"
+                  ]
+                }
               }
             },
             "required": [
@@ -208,7 +234,7 @@
         }
       ]
     },
-    "admission_outcome": {
+    "admission_decision": {
       "type": "object",
       "required": [
         "request_digest",
@@ -227,10 +253,8 @@
           "type": "boolean"
         },
         "authority_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615,
-          "description": "Actual holder PCR governance tenure, independently verified from accepted inception and eligible authority continuity. Human stays at the account Station; same-Station endpoint/key changes do not advance this value. Never an authority-root delegation or device generation."
+          "description": "Actual holder PCR governance tenure, independently verified from accepted inception and eligible authority continuity. Human stays at the account Station; same-Station endpoint/key changes do not advance this value. Never an authority-root delegation or device generation.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "evaluated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -244,14 +268,15 @@
       },
       "additionalProperties": false,
       "description": "Minimal audience/request/stage-bound verdict, consumed only as the direct response to the outstanding fresh authorized request. Signature/TTL alone never authorize another cut. No Consent ID, revision, value, PCR head, existence or history is disclosed.",
-      "x-arkret-signature-domain": "ak.call.invitation.admission.v1"
+      "x-arkret-signature-domain": "ak.call.invitation.admission.v1",
+      "x-arkret-name-role": "decision"
     },
     "delivery_view": {
       "type": "object",
       "required": [
         "invitation",
         "request",
-        "outcome"
+        "decision"
       ],
       "properties": {
         "invitation": {
@@ -260,8 +285,8 @@
         "request": {
           "$ref": "#/$defs/admission_request_body"
         },
-        "outcome": {
-          "$ref": "#/$defs/admission_outcome"
+        "decision": {
+          "$ref": "#/$defs/admission_decision"
         }
       },
       "additionalProperties": false,
@@ -329,7 +354,15 @@
           "type": "string",
           "enum": [
             "invitation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-invitation-operations.schema.json#/$defs/invitation_join_context/properties/kind",
+            "owner": "call-invitation-operations.schema.json#/$defs/invitation_join_context/properties/kind",
+            "values": [
+              "invitation"
+            ]
+          }
         },
         "invitation": {
           "$ref": "#/$defs/invitation_envelope"
@@ -355,7 +388,15 @@
           "type": "string",
           "enum": [
             "voluntary"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-invitation-operations.schema.json#/$defs/voluntary_join_context/properties/kind",
+            "owner": "call-invitation-operations.schema.json#/$defs/voluntary_join_context/properties/kind",
+            "values": [
+              "voluntary"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -405,7 +446,15 @@
           "type": "string",
           "enum": [
             "refresh"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-invitation-operations.schema.json#/$defs/refresh_join_context/properties/kind",
+            "owner": "call-invitation-operations.schema.json#/$defs/refresh_join_context/properties/kind",
+            "values": [
+              "refresh"
+            ]
+          }
         },
         "participant_id": {
           "type": "string",

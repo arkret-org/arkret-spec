@@ -1,10 +1,10 @@
 """Close the persistent Event effect-owner classification.
 
-``result_writes[]`` proves a typed-result writer only after the row exists.  It
+``state_writes[]`` proves a typed-result writer only after the row exists.  It
 cannot distinguish a deliberate private service effect, a durable audit fact
 with no current projection, and a specification gap.  Every active durable
 Event (shared durable or actor-private) therefore carries one closed
-``result_effect_ownership`` object in the
+``effect_ownership`` object in the
 canonical contract registry; this gate checks the classification against the
 writer rows, service contracts and live gap owner it cites.
 """
@@ -29,7 +29,7 @@ from .core import (
 CONTRACT_REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
 _EVENT_KIND_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\b")
 _OWNERSHIP_KEYS = {
-    "typed_result_writer": frozenset({"kind"}),
+    "typed_state_writer": frozenset({"kind"}),
     "private_service_effect": frozenset({"kind", "service_contract_id"}),
     "durable_fact_no_current_projection": frozenset({"kind", "defined_in"}),
     "authority_commit_effect": frozenset({"kind", "service_contract_id"}),
@@ -40,7 +40,7 @@ _SERVICE_BRANCH_FIELDS = frozenset(
 )
 _ACTOR_PRIVATE_EFFECT_KEYS = frozenset(
     {
-        "result_family",
+        "state_family",
         "durable_effect",
         "storage_owner",
         "unique_key",
@@ -62,7 +62,7 @@ _ACTOR_PRIVATE_OWNER_SOURCES = {
     "ak.read_cursor.advance": "payload.actor_id.account_id",
 }
 _SHARED_GAP_CLOSURE_TERMS = (
-    "result_writes[]",
+    "state_writes[]",
     "family",
     "selector",
     "projection",
@@ -135,10 +135,10 @@ def _validate_actor_private_effect(
     event_registry = document.get("event_kind_registry")
     registry = event_registry.get("actor_private_contracts") if isinstance(event_registry, dict) else None
     writes = registry.get("event_writes") if isinstance(registry, dict) else None
-    families = registry.get("result_families") if isinstance(registry, dict) else None
+    families = registry.get("state_families") if isinstance(registry, dict) else None
     merges = registry.get("merge_definitions") if isinstance(registry, dict) else None
     if not isinstance(writes, dict) or not isinstance(families, dict) or not isinstance(merges, dict):
-        lint.fail(CONTRACT_REGISTRY, "actor_private_contracts must declare event_writes, result_families and merge_definitions objects")
+        lint.fail(CONTRACT_REGISTRY, "actor_private_contracts must declare event_writes, state_families and merge_definitions objects")
         return
     effect = writes.get(event_kind)
     if not isinstance(effect, dict):
@@ -152,10 +152,10 @@ def _validate_actor_private_effect(
     if set(effect) != expected_effect_keys:
         lint.fail(CONTRACT_REGISTRY, f"{where} must have exactly {sorted(expected_effect_keys)}")
 
-    family_id = effect.get("result_family")
+    family_id = effect.get("state_family")
     family = families.get(family_id) if isinstance(family_id, str) else None
     if not isinstance(family, dict):
-        lint.fail(CONTRACT_REGISTRY, f"{where}.result_family is not registered: {family_id!r}")
+        lint.fail(CONTRACT_REGISTRY, f"{where}.state_family is not registered: {family_id!r}")
 
     owner = effect.get("storage_owner")
     if not isinstance(owner, dict) or set(owner) != {"kind", "account_id_source", "station_id_source"}:
@@ -275,7 +275,7 @@ def _owner_report_exists(owner: str) -> bool:
     return owner.startswith(prefix) and (work / owner[len(prefix) :]).is_file()
 
 
-def check_result_effect_ownership(lint: Lint) -> None:
+def check_effect_ownership(lint: Lint) -> None:
     """Every active persistent Event has one non-contradictory effect owner."""
 
     document = load_json(lint, CONTRACT_REGISTRY)
@@ -304,7 +304,7 @@ def check_result_effect_ownership(lint: Lint) -> None:
         if not isinstance(row, dict):
             continue
         event_kind = row.get("event_kind")
-        ownership = row.get("result_effect_ownership")
+        ownership = row.get("effect_ownership")
         in_scope = row.get("status") == "active" and row.get("wire_scope") in {
             "durable_event",
             "actor_private_event",
@@ -313,11 +313,11 @@ def check_result_effect_ownership(lint: Lint) -> None:
             if ownership is not None:
                 lint.fail(
                     CONTRACT_REGISTRY,
-                    f"{event_kind}.result_effect_ownership is orphaned: only active persistent Event rows carry it",
+                    f"{event_kind}.effect_ownership is orphaned: only active persistent Event rows carry it",
                 )
             continue
         active_persistent += 1
-        where = f"{event_kind}.result_effect_ownership"
+        where = f"{event_kind}.effect_ownership"
         if not isinstance(ownership, dict):
             lint.fail(CONTRACT_REGISTRY, f"{where} must be a closed object")
             continue
@@ -335,14 +335,14 @@ def check_result_effect_ownership(lint: Lint) -> None:
                 f"{where} for {classification} must have exactly {sorted(expected_keys)}",
             )
 
-        writes = row.get("result_writes")
+        writes = row.get("state_writes")
         has_writes = isinstance(writes, list) and bool(writes)
         reducer_input = row.get("reducer_input")
-        if classification == "typed_result_writer":
+        if classification == "typed_state_writer":
             if row.get("wire_scope") != "durable_event" or not has_writes or reducer_input is not True:
                 lint.fail(
                     CONTRACT_REGISTRY,
-                    f"{where} says typed_result_writer but the row does not have non-empty result_writes[] with reducer_input=true",
+                    f"{where} says typed_state_writer but the row does not have non-empty state_writes[] with reducer_input=true",
                 )
         elif classification == "private_service_effect":
             contract_id = ownership.get("service_contract_id")
@@ -389,7 +389,7 @@ def check_result_effect_ownership(lint: Lint) -> None:
             if has_writes:
                 lint.fail(
                     CONTRACT_REGISTRY,
-                    f"{where} says durable_fact_no_current_projection but the row declares result_writes[]",
+                    f"{where} says durable_fact_no_current_projection but the row declares state_writes[]",
                 )
             if (
                 not isinstance(defined_in, str)
@@ -401,7 +401,7 @@ def check_result_effect_ownership(lint: Lint) -> None:
             contract_id = ownership.get("service_contract_id")
             service = services.get(contract_id)
             if has_writes or reducer_input is not True or row.get("wire_scope") != "durable_event":
-                lint.fail(CONTRACT_REGISTRY, f"{where} must be a durable reducer input with no Realm result_writes[]")
+                lint.fail(CONTRACT_REGISTRY, f"{where} must be a durable reducer input with no Realm state_writes[]")
             if not isinstance(service, dict) or service.get("contract_kind") != "authority_commit_effect_owner":
                 lint.fail(CONTRACT_REGISTRY, f"{where}.service_contract_id is not an authority-commit effect owner")
             else:
@@ -412,7 +412,7 @@ def check_result_effect_ownership(lint: Lint) -> None:
                     required = {
                         "event_kind", "storage_owner", "unique_key", "precondition",
                         "accepted_effect", "exact_retry", "rejection", "counter_owner",
-                        "typed_current_result_effect",
+                        "current_state_effect",
                     }
                     if set(branch) != required or not all(
                         _nonempty_string(branch.get(member)) for member in required
@@ -420,7 +420,7 @@ def check_result_effect_ownership(lint: Lint) -> None:
                         lint.fail(CONTRACT_REGISTRY, f"{where} authority-commit branch is not structurally closed")
                     if branch.get("counter_owner") != "RealmCommit.governance_generation":
                         lint.fail(CONTRACT_REGISTRY, f"{where} names the wrong governance counter owner")
-                    if branch.get("typed_current_result_effect") != "none":
+                    if branch.get("current_state_effect") != "none":
                         lint.fail(CONTRACT_REGISTRY, f"{where} duplicates governance_generation into a Realm typed result")
             if isinstance(event_kind, str) and isinstance(contract_id, str):
                 private_owners[event_kind] = contract_id
@@ -520,8 +520,8 @@ def check_result_effect_ownership(lint: Lint) -> None:
         isinstance(row, dict)
         and row.get("status") == "active"
         and row.get("wire_scope") in {"durable_event", "actor_private_event"}
-        and isinstance(row.get("result_effect_ownership"), dict)
-        and row["result_effect_ownership"].get("kind") == "owned_gap"
+        and isinstance(row.get("effect_ownership"), dict)
+        and row["effect_ownership"].get("kind") == "owned_gap"
         for row in rows
     ) and not owner_reports:
         lint.fail(CONTRACT_REGISTRY, "owned_gap rows exist but no live owner_report resolved")

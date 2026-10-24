@@ -8,12 +8,12 @@ It read `cell_writes[].cell_family` / `effect_projection`, all renamed, and it
 was called only from inside `if any("cell_writes" in row ...)`, a condition no
 row has satisfied since the break -- so it did not merely read nothing, it was
 never entered. `models/views.md` section 3.2 still argues the rule in full: an
-update that lands on a typed current result nobody wrote has no pre-state, the
+update that lands on a current state nobody wrote has no pre-state, the
 current-value contract forbids a registered `initial_value`, and `null` MUST NOT
 be read as implicit initialization. `apply_patch` is not in the v1 projection
 closed set, but `merge` is, and the same sentence covers it verbatim.
 
-`check_result_family_write_agreement` is what survives of
+`check_state_family_write_agreement` is what survives of
 `check_concurrency_class_closure`, which compared `execution` / `state_model` /
 `value_shape` across the writers of one family. The break removed all three
 members, so it compared three absent values on an absent array. Its one live
@@ -48,8 +48,8 @@ def row_of(registry: dict, kind: str) -> dict:
 
 
 def write_of(registry: dict, kind: str, family: str) -> dict:
-    for write in row_of(registry, kind).get("result_writes") or ():
-        if write["result_family"] == family:
+    for write in row_of(registry, kind).get("state_writes") or ():
+        if write["state_family"] == family:
             return write
     raise AssertionError(f"{kind} declares no write of {family}")
 
@@ -107,11 +107,11 @@ class PartialUpdateBaseProducerTest(_GateHarness):
         updated: set[str] = set()
         produced: set[str] = set()
         for row in registry["event_kinds"]:
-            for write in row.get("result_writes") or ():
-                family = write["result_family"]
-                if write["result_projection"]["kind"] in gate._PARTIAL_UPDATE_PROJECTIONS:
+            for write in row.get("state_writes") or ():
+                family = write["state_family"]
+                if write["state_projection"]["kind"] in gate._PARTIAL_UPDATE_PROJECTIONS:
                     updated.add(family)
-                elif gate._is_base_producer(write["result_projection"]):
+                elif gate._is_base_producer(write["state_projection"]):
                     produced.add(family)
         self.assertEqual(
             updated,
@@ -123,7 +123,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             # Its base producer is `ak.view.create`'s whole-value `set`.
             #
             # The six object families joined in the 2200 landing, which stopped
-            # them at `result_writes: []` -- every one of them had an `update`
+            # them at `state_writes: []` -- every one of them had an `update`
             # kind that was a reducer_input writing nothing, so the patch
             # surface these gates measure did not exist to be measured. Each
             # one's base producer is its own `ak.<kind>.create` whole-value
@@ -155,10 +155,10 @@ class PartialUpdateBaseProducerTest(_GateHarness):
         a removal too, so it changes nothing about the base question."""
         registry = gate.load_json(gate.Lint(), EVENT_KIND_REGISTRY)
         projections = {
-            write["result_projection"]["kind"]
+            write["state_projection"]["kind"]
             for row in registry["event_kinds"]
-            for write in row.get("result_writes") or ()
-            if write["result_family"] == "agent_key"
+            for write in row.get("state_writes") or ()
+            if write["state_family"] == "agent_key"
         }
         self.assertEqual(
             projections,
@@ -190,22 +190,22 @@ class PartialUpdateBaseProducerTest(_GateHarness):
     def test_an_empty_sweep_is_a_failure_not_a_pass(self) -> None:
         def mutate(registry: dict) -> None:
             for row in registry["event_kinds"]:
-                if "result_writes" in row:
-                    row["cell_writes"] = row.pop("result_writes")
+                if "state_writes" in row:
+                    row["cell_writes"] = row.pop("state_writes")
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("inspected no result_writes[] entry", reported[0])
+        self.assertIn("inspected no state_writes[] entry", reported[0])
 
     # ---- the rules ------------------------------------------------------
 
     def test_a_partial_update_with_no_producer_at_all_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             row = row_of(registry, "ak.mls.genesis")
-            row["result_writes"] = [
+            row["state_writes"] = [
                 write
-                for write in row["result_writes"]
-                if write["result_family"] != "mls_group"
+                for write in row["state_writes"]
+                if write["state_family"] != "mls_group"
             ]
 
         reported = self._newly_reported(mutate)
@@ -218,7 +218,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.mls.genesis", "mls_group")
-            write["result_projection"] = {"kind": "keyed_set_add", "tag": {"dot": True}}
+            write["state_projection"] = {"kind": "keyed_set_add", "tag": {"dot": True}}
 
         reported = self._newly_reported(mutate)
         # The missing base, and the fact that what is left writes no whole value.
@@ -233,7 +233,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.mls.genesis", "mls_group")
-            write["result_selector"] = {"kind": "id:realm", "field": "payload.realm_id"}
+            write["state_selector"] = {"kind": "id:realm", "field": "payload.realm_id"}
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -247,15 +247,15 @@ class PartialUpdateBaseProducerTest(_GateHarness):
     def test_a_recorded_gap_is_not_reported_twice(self) -> None:
         def mutate(registry: dict) -> None:
             row = row_of(registry, "ak.mls.genesis")
-            row["result_writes"] = [
+            row["state_writes"] = [
                 write
-                for write in row["result_writes"]
-                if write["result_family"] != "mls_group"
+                for write in row["state_writes"]
+                if write["state_family"] != "mls_group"
             ]
 
         def mutate_baseline(baseline: dict) -> None:
             baseline["families_without_base_producer"] = [
-                {"result_family": "mls_group", "note": "test fixture"}
+                {"state_family": "mls_group", "note": "test fixture"}
             ]
 
         self.assertEqual(self._newly_reported(mutate, mutate_baseline), [])
@@ -266,7 +266,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
 
         def mutate_baseline(baseline: dict) -> None:
             baseline["families_without_base_producer"] = [
-                {"result_family": "mls_group", "note": "test fixture"}
+                {"state_family": "mls_group", "note": "test fixture"}
             ]
 
         reported = self._newly_reported(None, mutate_baseline)
@@ -276,7 +276,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
     def test_a_ledger_entry_for_a_family_nobody_updates_is_reported(self) -> None:
         def mutate_baseline(baseline: dict) -> None:
             baseline["families_without_base_producer"] = [
-                {"result_family": "call_roster", "note": "test fixture"}
+                {"state_family": "call_roster", "note": "test fixture"}
             ]
 
         reported = self._newly_reported(None, mutate_baseline)
@@ -284,8 +284,8 @@ class PartialUpdateBaseProducerTest(_GateHarness):
         self.assertIn("is no longer the target of any partial update write", reported[0])
 
 
-class ResultFamilyWriteAgreementTest(_GateHarness):
-    check = staticmethod(gate.check_result_family_write_agreement)
+class StateFamilyWriteAgreementTest(_GateHarness):
+    check = staticmethod(gate.check_state_family_write_agreement)
 
     def test_the_live_registry_is_clean(self) -> None:
         self.assertEqual(self._run(), [])
@@ -299,8 +299,8 @@ class ResultFamilyWriteAgreementTest(_GateHarness):
         refs = [
             write.get("value_schema_ref")
             for row in registry["event_kinds"]
-            for write in row.get("result_writes") or ()
-            if write["result_family"] == "realm_history_access"
+            for write in row.get("state_writes") or ()
+            if write["state_family"] == "realm_history_access"
         ]
         self.assertGreater(len(refs), 1)
         self.assertIn(None, refs)
@@ -310,7 +310,7 @@ class ResultFamilyWriteAgreementTest(_GateHarness):
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.capability.revoke", "capability_grant")
             write["value_schema_ref"] = (
-                "schemas/typed-current-result.schema.json#/$defs/mls_group_value"
+                "schemas/current-state.schema.json#/$defs/mls_group_value"
             )
 
         reported = self._newly_reported(mutate)

@@ -59,7 +59,7 @@ from .core import (
     all_json_files,
     canonical_json,
     json,
-    load_json,
+    load_contract_json as load_json,
     load_yaml,
     markdown_files,
     markdown_section_body,
@@ -651,7 +651,7 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
         if derived in resource_required or derived in resource_properties:
             lint.fail(path, f"transaction resource must not serialize derived {derived}")
 
-    for create_name in ("recovery_create_request", "security_rotation_create_request"):
+    for create_name in ("recovery_create_request_body", "security_rotation_create_request_body"):
         create = defs.get(create_name)
         required = create.get("required", []) if isinstance(create, dict) else []
         properties = create.get("properties", {}) if isinstance(create, dict) else {}
@@ -761,20 +761,20 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     ]:
         lint.fail(fixture_path, "recovery terminal artifact case must reject every RealmCommit carrier")
 
-    continue_request = defs.get("continue_request")
-    continue_required = continue_request.get("required", []) if isinstance(continue_request, dict) else []
-    continue_properties = continue_request.get("properties", {}) if isinstance(continue_request, dict) else {}
+    security_transaction_continue_request_body = defs.get("security_transaction_continue_request_body")
+    continue_required = security_transaction_continue_request_body.get("required", []) if isinstance(security_transaction_continue_request_body, dict) else []
+    continue_properties = security_transaction_continue_request_body.get("properties", {}) if isinstance(security_transaction_continue_request_body, dict) else {}
     if "expected_accepted_step_count" not in continue_required:
-        lint.fail(path, "$defs/continue_request must require expected_accepted_step_count CAS")
+        lint.fail(path, "$defs/security_transaction_continue_request_body must require expected_accepted_step_count CAS")
     if "client_attestation" not in continue_required:
-        lint.fail(path, "$defs/continue_request must require the client-attested terminal step")
-    if isinstance(continue_request, dict) and "allOf" in continue_request:
-        lint.fail(path, "$defs/continue_request must not encode kind-blind terminal indexes in allOf")
+        lint.fail(path, "$defs/security_transaction_continue_request_body must require the client-attested terminal step")
+    if isinstance(security_transaction_continue_request_body, dict) and "allOf" in security_transaction_continue_request_body:
+        lint.fail(path, "$defs/security_transaction_continue_request_body must not encode kind-blind terminal indexes in allOf")
     accepted_count = continue_properties.get("expected_accepted_step_count", {})
     if isinstance(accepted_count, dict) and any(key in accepted_count for key in ("maximum", "enum")):
-        lint.fail(path, "$defs/continue_request accepted-step CAS must not encode kind-blind maximum or terminal indexes")
+        lint.fail(path, "$defs/security_transaction_continue_request_body accepted-step CAS must not encode kind-blind maximum or terminal indexes")
     if "expected_next_step" in continue_required or "expected_next_step" in continue_properties:
-        lint.fail(path, "$defs/continue_request must not accept a derived expected_next_step")
+        lint.fail(path, "$defs/security_transaction_continue_request_body must not accept a derived expected_next_step")
 
     plan_refs: set[str] = set()
     for def_name, definition in defs.items():
@@ -845,7 +845,7 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
     mls_fields = (
         (event_payload_path, event_payload, "mls_genesis_payload"),
         (dto_path, dto, "MlsGroupStateMaterialRequestBody"),
-        (dto_path, dto, "MlsGroupStateMaterialOutcome"),
+        (dto_path, dto, "MlsGroupStateMaterialResponseBody"),
     )
     for path, document, def_name in mls_fields:
         properties = document.get("$defs", {}).get(def_name, {}).get("properties", {})
@@ -937,7 +937,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     draft = principal_defs.get("prepared_event_draft") if isinstance(principal_defs, dict) else None
     draft_required = draft.get("required") if isinstance(draft, dict) else None
     draft_properties = draft.get("properties") if isinstance(draft, dict) else None
-    expected_draft_fields = {"unsigned_event_bytes", "event_digest"}
+    expected_draft_fields = {"unsigned_event_base64url", "event_digest"}
     if not isinstance(draft_required, list) or set(draft_required) != expected_draft_fields:
         lint.fail(principal_path, "$defs/prepared_event_draft must require only bytes and typed digest")
     if not isinstance(draft_properties, dict) or set(draft_properties) != expected_draft_fields:
@@ -956,7 +956,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     expected_ref = "./principal-operations.schema.json#/$defs/prepared_event_draft"
     if contact_refs != {expected_ref}:
         lint.fail(contact_path, "all Contact prepared drafts must reference the generic draft schema")
-    contact_outcome = contact_defs.get("contact_operation_outcome") if isinstance(contact_defs, dict) else None
+    contact_outcome = contact_defs.get("contact_operation_response_body") if isinstance(contact_defs, dict) else None
     contact_branches = contact_outcome.get("oneOf", []) if isinstance(contact_outcome, dict) else []
     prepared_contact_branches = [
         branch
@@ -1004,7 +1004,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
                 "source_commit_ref.device_generation_ref must reuse the canonical PCR generation integer",
             )
 
-    sidecar_outcome = principal_defs.get("sidecar_ensure_outcome") if isinstance(principal_defs, dict) else None
+    sidecar_outcome = principal_defs.get("sidecar_ensure_response_body") if isinstance(principal_defs, dict) else None
     branches = sidecar_outcome.get("oneOf", []) if isinstance(sidecar_outcome, dict) else []
     prepared_branches = [
         branch
@@ -1031,7 +1031,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     duplicated_pair_fields = sorted({"hpke_key", "device_signature"} & (pair_required | pair_properties))
     if duplicated_pair_fields:
         lint.fail(agent_path, f"device pair commit duplicates signed payload fields {duplicated_pair_fields}")
-    for retained in ("new_device_pubkey", "device_pairing_request_id", "authorize_event"):
+    for retained in ("new_device_public_key", "device_pairing_request_id", "authorize_event"):
         if retained not in pair_required or retained not in pair_properties:
             lint.fail(agent_path, f"device pair commit must retain required {retained}")
 
@@ -1438,7 +1438,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
     data = load_json(lint, schema_path)
     defs = data.get("$defs", {}) if isinstance(data, dict) else {}
     signed = defs.get("keypackages_claim_request_body", {}) if isinstance(defs, dict) else {}
-    unsigned = defs.get("peer_keypackages_claim_unsigned_request", {}) if isinstance(defs, dict) else {}
+    unsigned = defs.get("peer_keypackages_claim_fields", {}) if isinstance(defs, dict) else {}
     if not isinstance(signed, dict) or not isinstance(unsigned, dict):
         lint.fail(schema_path, "KeyPackage claim signed and unsigned request definitions must exist")
         return
@@ -1455,7 +1455,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
     if projected_properties != unsigned_properties:
         lint.fail(
             schema_path,
-            "peer_keypackages_claim_unsigned_request properties must equal the signed claim request projection with only service_binding and requester_authorization removed",
+            "peer_keypackages_claim_fields properties must equal the signed claim request projection with only service_binding and requester_authorization removed",
         )
     signed_required = [
         key for key in signed.get("required", []) if key not in transport_members
@@ -1463,7 +1463,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
     if signed_required != unsigned.get("required"):
         lint.fail(
             schema_path,
-            "peer_keypackages_claim_unsigned_request required[] must preserve the signed request business-member order",
+            "peer_keypackages_claim_fields required[] must preserve the signed request business-member order",
         )
     if signed.get("allOf") != unsigned.get("allOf"):
         lint.fail(schema_path, "KeyPackage claim signed and unsigned selector branches must be identical")
@@ -1862,7 +1862,7 @@ def check_composite_subject_terminal_types(
     event_schema_path: Path,
     event_schema: Any,
 ) -> None:
-    """Reject `result_selector` endpoints that are absent or not typed scalars.
+    """Reject `state_selector` endpoints that are absent or not typed scalars.
 
     Single-field selectors and every composite component must exist in the
     payload class selected for the Event kind. Coalesce descriptors may share
@@ -1873,8 +1873,8 @@ def check_composite_subject_terminal_types(
     transformation.
 
     This gate read `cell_writes[].cell_subject` until 2026-09-18. The clean
-    break renamed the array to `result_writes[]` and the member to
-    `result_selector`, so every row loop below iterated an absent key and the
+    break renamed the array to `state_writes[]` and the member to
+    `state_selector`, so every row loop below iterated an absent key and the
     gate reported success over every selector in the registry -- including four
     `ak.call.state` rows naming a `payload.recording_id` that
     `call_state_payload` does not have. A selector whose components do not
@@ -2340,14 +2340,14 @@ def check_composite_subject_terminal_types(
         if not isinstance(row, dict) or not isinstance(row.get("event_kind"), str):
             continue
         kind = row["event_kind"]
-        writes = row.get("result_writes")
+        writes = row.get("state_writes")
         for write_index, write in enumerate(writes if isinstance(writes, list) else []):
             writes_seen += 1
-            subject = write.get("result_selector") if isinstance(write, dict) else None
+            subject = write.get("state_selector") if isinstance(write, dict) else None
             if not isinstance(subject, dict):
                 continue
             subject_kind = subject.get("kind")
-            subject_ref = f"{kind} result_writes[{write_index}].result_selector"
+            subject_ref = f"{kind} state_writes[{write_index}].state_selector"
             if subject_kind == "canonical_json":
                 # Ruling 2026-09-05-1200: canonical_json is only a components[]
                 # descriptor (encoding.md 9.5.1). A top-level use has no row in the
@@ -2393,7 +2393,7 @@ def check_composite_subject_terminal_types(
                 components if isinstance(components, list) else []
             ):
                 component_ref = (
-                    f"{kind} result_writes[{write_index}].result_selector.components"
+                    f"{kind} state_writes[{write_index}].state_selector.components"
                     f"[{component_index}]"
                 )
                 if (
@@ -2446,7 +2446,7 @@ def check_composite_subject_terminal_types(
                     elif selector_types != {"string"}:
                         lint.fail(
                             event_registry_path,
-                            f"{kind} result_writes[{write_index}].result_selector.components"
+                            f"{kind} state_writes[{write_index}].state_selector.components"
                             f"[{component_index}] selector {selector!r} must be a "
                             f"schema-declared JSON string, got "
                             f"{sorted(selector_types) or ['untyped']}",
@@ -2463,7 +2463,7 @@ def check_composite_subject_terminal_types(
     if not writes_seen:
         lint.fail(
             event_registry_path,
-            "check_composite_subject_terminal_types inspected no result_writes[] entry at "
+            "check_composite_subject_terminal_types inspected no state_writes[] entry at "
             "all; the registry either lost its writes or spells the array under another key, "
             "and either way this gate's silence means nothing",
         )
@@ -2905,7 +2905,7 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
             "recovery_completion_attestation"
         ]
         completion_properties = completion["properties"]
-        signature_description = completion_properties["auth_data"]["properties"]["signature"][
+        signature_description = completion_properties["signature_proof"]["properties"]["signature"][
             "description"
         ]
     except (KeyError, TypeError):
@@ -3400,7 +3400,7 @@ def check_blob_identifier_form_closure(lint: Lint) -> None:
 CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("blob.schema.json", ("$defs", "encrypted_attachment"), "blob_ref", "ciphertext_digest"),
     ("blob-operations.schema.json", ("$defs", "upload_receipt"), "blob_ref", "content_digest"),
-    ("blob-operations.schema.json", ("$defs", "blob_upload_outcome"), "blob_ref", "content_digest"),
+    ("blob-operations.schema.json", ("$defs", "blob_upload_response_body"), "blob_ref", "content_digest"),
     ("file-transfer.schema.json", (), "blob_ref", "content_digest"),
     ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "source_blob_ref", "source_ciphertext_digest"),
     ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "thumbnail_blob_ref", "thumbnail_ciphertext_digest"),
@@ -3418,16 +3418,16 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("contact-operations.schema.json", ("$defs", "peer_contact_mirror_receipt"), "signed_event_ref", "signed_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "DirectConversationFoundingAuthorityEvidence", "oneOf", 1), "agent_provision_ref", "agent_provision_digest"),
     ("device-revocation-state.schema.json", ("$defs", "common_record"), "proposal_event_id", "proposal_digest"),
-    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 3), "group_state_ref", "group_state_digest"),
-    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 4), "group_state_ref", "group_state_digest"),
-    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 5), "group_state_ref", "group_state_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 3), "group_state_ref", "group_state_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 4), "group_state_ref", "group_state_digest"),
+    ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_response_body", "oneOf", 5), "group_state_ref", "group_state_digest"),
     ("holder-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "group_info_ref", "group_info_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "ratchet_tree_ref", "ratchet_tree_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "group_info_ref", "group_info_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "ratchet_tree_ref", "ratchet_tree_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "group_info_ref", "group_info_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "ratchet_tree_ref", "ratchet_tree_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialResponseBody"), "group_info_ref", "group_info_digest"),
+    ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialResponseBody"), "ratchet_tree_ref", "ratchet_tree_digest"),
 )
 
 
@@ -3746,7 +3746,7 @@ def check_account_identity_carrier_closure(lint: Lint) -> None:
     targets = (
         ("websocket-frame", "/$defs/events_open_parameters/properties/actor_ids/items", "actor_id"),
         ("service-operation-dtos", "/$defs/EventsQueryPostRequestBody/properties/actor_ids/items", "actor_id"),
-        ("actor-profile-operations", "/$defs/resolve_request/properties/actor_ids/items", "actor_id"),
+        ("actor-profile-operations", "/$defs/resolve_request_body/properties/actor_ids/items", "actor_id"),
         ("account-subscribe-frame", "/$defs/realm_summary/properties/hero_ids/items", "actor_id"),
         ("agent-membership-cascade", "/$defs/agent_cleanup_record/properties/expected_agent_ids/items", "actor_id"),
         ("invite-receive-policy", "/properties/account_id", "account_id"),
@@ -3820,7 +3820,7 @@ def check_circle_membership_enum_single_source(lint: Lint) -> None:
     # single-sources the same enum from inside event-payload.schema.json.
     fields = (
         ("circle_view", "viewer_membership"),
-        ("circle_membership_outcome", "membership"),
+        ("circle_membership_response_body", "membership"),
     )
     for def_name, field_name in fields:
         definition = defs.get(def_name, {})
@@ -4097,7 +4097,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     pcr_did = (
         schema_docs.get("principal-operations.schema.json", {})
         .get("$defs", {})
-        .get("pcr_genesis_submit_request", {})
+        .get("pcr_genesis_submit_request_body", {})
         .get("properties", {})
         .get("did", {})
     )
@@ -4542,7 +4542,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         lint.fail(
             registry_path,
             "event_kind_registry.transition_contracts must be a non-empty object; without it "
-            "every typed current result lifecycle axis is unchecked and this gate reports "
+            "every current state lifecycle axis is unchecked and this gate reports "
             "success over nothing",
         )
         return
@@ -4577,11 +4577,11 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         event_kind = row.get("event_kind")
         if not isinstance(event_kind, str):
             continue
-        for write in row.get("result_writes") or []:
+        for write in row.get("state_writes") or []:
             if not isinstance(write, dict):
                 continue
-            family = write.get("result_family")
-            projection = write.get("result_projection")
+            family = write.get("state_family")
+            projection = write.get("state_projection")
             if not isinstance(family, str) or not isinstance(projection, dict):
                 continue
             if projection.get("kind") == "transition":
@@ -4616,15 +4616,15 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         )
 
     registered_families = {
-        row.get("result_kind")
-        for row in (contract.get("current_result_registry") or {}).get("result_kinds") or []
+        row.get("state_kind")
+        for row in (contract.get("current_state_registry") or {}).get("state_kinds") or []
         if isinstance(row, dict)
     }
     for family in sorted(set(transition_contracts) - registered_families):
         lint.fail(
             registry_path,
-            f"transition_contracts.{family}: no such typed current result family in "
-            "current_result_registry.result_kinds",
+            f"transition_contracts.{family}: no such current state family in "
+            "current_state_registry.state_kinds",
         )
 
     fsm_exemption_rows = [

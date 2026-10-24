@@ -1,294 +1,294 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/typed-current-result.schema.json",
-  "title": "Arkret Typed Realm Current Result",
-  "description": "Closed domain result selected without protocol typed current result IDs. Every result names the last authority commit that affected the typed target.",
+  "$id": "https://arkret.org/v1/schemas/current-state.schema.json",
+  "title": "Arkret Typed Realm current state",
+  "description": "Closed domain result selected without protocol current state IDs. Every result names the last authority commit that affected the typed target.",
   "oneOf": [
     {
-      "$ref": "#/$defs/agent_interaction_result"
+      "$ref": "#/$defs/current_agent_interaction"
     },
     {
-      "$ref": "#/$defs/realm_authority_root_result"
+      "$ref": "#/$defs/current_realm_authority_root"
     },
     {
-      "$ref": "#/$defs/realm_profile_result"
+      "$ref": "#/$defs/current_realm_profile"
     },
     {
-      "$ref": "#/$defs/member_state_result"
+      "$ref": "#/$defs/current_member_state"
     },
     {
-      "$ref": "#/$defs/strand_result"
+      "$ref": "#/$defs/current_strand"
     },
     {
-      "$ref": "#/$defs/space_result"
+      "$ref": "#/$defs/current_space"
     },
     {
-      "$ref": "#/$defs/message_reactions_result"
+      "$ref": "#/$defs/current_message_reactions"
     },
     {
-      "$ref": "#/$defs/relation_result"
+      "$ref": "#/$defs/current_relation"
     },
     {
-      "$ref": "#/$defs/mls_group_result"
+      "$ref": "#/$defs/current_mls_group"
     },
     {
-      "$ref": "#/$defs/agent_key_result"
+      "$ref": "#/$defs/current_agent_key"
     },
     {
-      "$ref": "#/$defs/agent_status_result"
+      "$ref": "#/$defs/current_agent_status"
     },
     {
-      "$ref": "#/$defs/realm_genesis_result"
+      "$ref": "#/$defs/current_realm_genesis"
     },
     {
-      "$ref": "#/$defs/realm_history_access_result"
+      "$ref": "#/$defs/current_realm_history_access"
     },
     {
-      "$ref": "#/$defs/identity_resolution_result"
+      "$ref": "#/$defs/current_identity_resolution"
     },
     {
-      "$ref": "#/$defs/identity_accountability_result"
+      "$ref": "#/$defs/current_identity_accountability"
     },
     {
-      "$ref": "#/$defs/capability_grant_result"
+      "$ref": "#/$defs/current_capability_grant"
     },
     {
-      "$ref": "#/$defs/call_state_result"
+      "$ref": "#/$defs/current_call_state"
     },
     {
-      "$ref": "#/$defs/call_focus_result"
+      "$ref": "#/$defs/current_call_focus"
     },
     {
-      "$ref": "#/$defs/call_recording_state_result"
+      "$ref": "#/$defs/current_call_recording_state"
     },
     {
-      "$ref": "#/$defs/call_recording_artifact_result"
+      "$ref": "#/$defs/current_call_recording_artifact"
     },
     {
-      "$ref": "#/$defs/call_transcript_state_result"
+      "$ref": "#/$defs/current_call_transcript_state"
     },
     {
-      "$ref": "#/$defs/call_transcript_artifact_result"
+      "$ref": "#/$defs/current_call_transcript_artifact"
     },
     {
-      "$ref": "#/$defs/call_moderation_result"
+      "$ref": "#/$defs/current_call_moderation"
     },
     {
-      "$ref": "#/$defs/call_roster_result"
+      "$ref": "#/$defs/current_call_roster"
     },
     {
-      "$ref": "#/$defs/call_mute_override_result"
+      "$ref": "#/$defs/current_call_mute_override"
     },
     {
-      "$ref": "#/$defs/realm_schema_result"
+      "$ref": "#/$defs/current_realm_schema"
     },
     {
-      "$ref": "#/$defs/realm_link_result"
+      "$ref": "#/$defs/current_realm_link"
     },
     {
-      "$ref": "#/$defs/realm_join_rule_result"
+      "$ref": "#/$defs/current_realm_join_rule"
     },
     {
-      "$ref": "#/$defs/realm_discovery_result"
+      "$ref": "#/$defs/current_realm_discovery"
     },
     {
-      "$ref": "#/$defs/realm_alias_result"
+      "$ref": "#/$defs/current_realm_alias"
     },
     {
-      "$ref": "#/$defs/realm_policy_bundle_result"
+      "$ref": "#/$defs/current_realm_policy_bundle"
     },
     {
-      "$ref": "#/$defs/realm_asset_privacy_policy_result"
+      "$ref": "#/$defs/current_realm_asset_privacy_policy"
     },
     {
-      "$ref": "#/$defs/realm_plaintext_visible_services_result"
+      "$ref": "#/$defs/current_realm_plaintext_visible_services"
     },
     {
-      "$ref": "#/$defs/realm_media_service_result"
+      "$ref": "#/$defs/current_realm_media_service"
     },
     {
-      "$ref": "#/$defs/scope_read_receipt_policy_result"
+      "$ref": "#/$defs/current_scope_read_receipt_policy"
     },
     {
-      "$ref": "#/$defs/realm_preview_policy_result"
+      "$ref": "#/$defs/current_realm_preview_policy"
     },
     {
-      "$ref": "#/$defs/mimi_room_binding_result"
+      "$ref": "#/$defs/current_mimi_room_binding"
     },
     {
-      "$ref": "#/$defs/moderation_franking_proof_result"
+      "$ref": "#/$defs/current_moderation_franking_proof"
     },
     {
-      "$ref": "#/$defs/realm_tombstone_result"
+      "$ref": "#/$defs/current_realm_tombstone"
     },
     {
-      "$ref": "#/$defs/realm_destroy_result"
+      "$ref": "#/$defs/current_realm_destroy"
     },
     {
-      "$ref": "#/$defs/realm_set_default_strand_result"
+      "$ref": "#/$defs/current_realm_set_default_strand"
     },
     {
-      "$ref": "#/$defs/strand_position_result"
+      "$ref": "#/$defs/current_strand_position"
     },
     {
-      "$ref": "#/$defs/invite_lifecycle_result"
+      "$ref": "#/$defs/current_invite_lifecycle"
     },
     {
-      "$ref": "#/$defs/invite_live_target_result"
+      "$ref": "#/$defs/current_invite_live_target"
     },
     {
-      "$ref": "#/$defs/invite_directed_invitee_result"
+      "$ref": "#/$defs/current_invite_directed_invitee"
     },
     {
-      "$ref": "#/$defs/pin_result"
+      "$ref": "#/$defs/current_pin"
     },
     {
-      "$ref": "#/$defs/space_parent_result"
+      "$ref": "#/$defs/current_space_parent"
     },
     {
-      "$ref": "#/$defs/space_child_scope_policy_result"
+      "$ref": "#/$defs/current_space_child_scope_policy"
     },
     {
-      "$ref": "#/$defs/agent_provisioning_result"
+      "$ref": "#/$defs/current_agent_provisioning"
     },
     {
-      "$ref": "#/$defs/agent_pcr_genesis_declaration_result"
+      "$ref": "#/$defs/current_agent_pcr_genesis_declaration"
     },
     {
-      "$ref": "#/$defs/agent_selector_claim_result"
+      "$ref": "#/$defs/current_agent_selector_claim"
     },
     {
-      "$ref": "#/$defs/consent_result"
+      "$ref": "#/$defs/current_consent"
     },
     {
-      "$ref": "#/$defs/moderation_state_result"
+      "$ref": "#/$defs/current_moderation_state"
     },
     {
-      "$ref": "#/$defs/object_redaction_result"
+      "$ref": "#/$defs/current_object_redaction"
     },
     {
-      "$ref": "#/$defs/organization_moderation_policy_result"
+      "$ref": "#/$defs/current_organization_moderation_policy"
     },
     {
-      "$ref": "#/$defs/view_result"
+      "$ref": "#/$defs/current_view"
     },
     {
-      "$ref": "#/$defs/policy_result"
+      "$ref": "#/$defs/current_policy"
     },
     {
-      "$ref": "#/$defs/device_authorization_result"
+      "$ref": "#/$defs/current_device_authorization"
     },
     {
-      "$ref": "#/$defs/device_generation_result"
+      "$ref": "#/$defs/current_device_generation"
     },
     {
-      "$ref": "#/$defs/device_revocation_proposals_result"
+      "$ref": "#/$defs/current_device_revocation_proposals"
     },
     {
-      "$ref": "#/$defs/agent_action_approval_result"
+      "$ref": "#/$defs/current_agent_action_approval"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_exchange_controls_result"
+      "$ref": "#/$defs/current_agent_sidecar_exchange_controls"
     },
     {
-      "$ref": "#/$defs/applet_discovery_result"
+      "$ref": "#/$defs/current_applet_discovery"
     },
     {
-      "$ref": "#/$defs/applet_registration_result"
+      "$ref": "#/$defs/current_applet_registration"
     },
     {
-      "$ref": "#/$defs/key_backup_active_series_result"
+      "$ref": "#/$defs/current_key_backup_active_series"
     },
     {
-      "$ref": "#/$defs/member_identity_updates_result"
+      "$ref": "#/$defs/current_member_identity_updates"
     },
     {
-      "$ref": "#/$defs/message_revision_result"
+      "$ref": "#/$defs/current_message_revision"
     },
     {
-      "$ref": "#/$defs/actor_profile_realm_override_result"
+      "$ref": "#/$defs/current_actor_profile_realm_override"
     },
     {
-      "$ref": "#/$defs/realm_organization_result"
+      "$ref": "#/$defs/current_realm_organization"
     },
     {
-      "$ref": "#/$defs/circle_member_state_result"
+      "$ref": "#/$defs/current_circle_member_state"
     },
     {
-      "$ref": "#/$defs/circle_result"
+      "$ref": "#/$defs/current_circle"
     },
     {
-      "$ref": "#/$defs/realm_search_policy_result"
+      "$ref": "#/$defs/current_realm_search_policy"
     },
     {
-      "$ref": "#/$defs/rsvp_result"
+      "$ref": "#/$defs/current_rsvp"
     },
     {
-      "$ref": "#/$defs/schema_definition_result"
+      "$ref": "#/$defs/current_schema_definition"
     },
     {
-      "$ref": "#/$defs/sidecar_context_result"
+      "$ref": "#/$defs/current_sidecar_context"
     },
     {
-      "$ref": "#/$defs/sidecar_result"
+      "$ref": "#/$defs/current_sidecar"
     },
     {
-      "$ref": "#/$defs/strand_watch_result"
+      "$ref": "#/$defs/current_strand_watch"
     },
     {
-      "$ref": "#/$defs/calendar_schedule_source_result"
+      "$ref": "#/$defs/current_calendar_schedule_source"
     },
     {
-      "$ref": "#/$defs/actor_profile_result"
+      "$ref": "#/$defs/current_actor_profile"
     },
     {
-      "$ref": "#/$defs/direct_conversation_binding_result"
+      "$ref": "#/$defs/current_direct_conversation_binding"
     },
     {
-      "$ref": "#/$defs/moderation_report_result"
+      "$ref": "#/$defs/current_moderation_report"
     },
     {
-      "$ref": "#/$defs/morph_result"
+      "$ref": "#/$defs/current_morph"
     },
     {
-      "$ref": "#/$defs/policy_action_result"
+      "$ref": "#/$defs/current_policy_action"
     },
     {
-      "$ref": "#/$defs/realm_archive_result"
+      "$ref": "#/$defs/current_realm_archive"
     },
     {
-      "$ref": "#/$defs/realm_freeze_result"
+      "$ref": "#/$defs/current_realm_freeze"
     },
     {
-      "$ref": "#/$defs/realm_actor_identity_result"
+      "$ref": "#/$defs/current_realm_actor_identity"
     },
     {
-      "$ref": "#/$defs/realm_actor_control_result"
+      "$ref": "#/$defs/current_realm_actor_control"
     },
     {
-      "$ref": "#/$defs/realm_actor_manager_result"
+      "$ref": "#/$defs/current_realm_actor_manager"
     },
     {
-      "$ref": "#/$defs/realm_actor_status_result"
+      "$ref": "#/$defs/current_realm_actor_status"
     },
     {
-      "$ref": "#/$defs/realm_actor_device_generation_result"
+      "$ref": "#/$defs/current_realm_actor_device_generation"
     },
     {
-      "$ref": "#/$defs/realm_actor_device_authorization_result"
+      "$ref": "#/$defs/current_realm_actor_device_authorization"
     },
     {
-      "$ref": "#/$defs/realm_actor_device_revocation_proposals_result"
+      "$ref": "#/$defs/current_realm_actor_device_revocation_proposals"
     },
     {
-      "$ref": "#/$defs/realm_actor_profile_result"
+      "$ref": "#/$defs/current_realm_actor_profile"
     },
     {
-      "$ref": "#/$defs/realm_actor_recovery_result"
+      "$ref": "#/$defs/current_realm_actor_recovery"
     }
   ],
   "$defs": {
-    "agent_action_approval_result": {
+    "current_agent_action_approval": {
       "type": "object",
       "required": [
         "selector",
@@ -305,7 +305,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_action_approval"
+              "const": "agent_action_approval",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_action_approval/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_action_approval/properties/selector/properties/kind",
+                "values": [
+                  "agent_action_approval"
+                ]
+              }
             },
             "approval_id": {
               "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approval_id"
@@ -323,7 +331,8 @@
           "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_sidecar_exchange_control_entry": {
       "type": "object",
@@ -357,7 +366,7 @@
       },
       "additionalProperties": false
     },
-    "agent_sidecar_exchange_controls_result": {
+    "current_agent_sidecar_exchange_controls": {
       "type": "object",
       "required": [
         "selector",
@@ -375,7 +384,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_sidecar_exchange_controls"
+              "const": "agent_sidecar_exchange_controls",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_sidecar_exchange_controls/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_sidecar_exchange_controls/properties/selector/properties/kind",
+                "values": [
+                  "agent_sidecar_exchange_controls"
+                ]
+              }
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
@@ -396,9 +413,10 @@
           "$ref": "#/$defs/agent_sidecar_exchange_controls_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "applet_discovery_result": {
+    "current_applet_discovery": {
       "type": "object",
       "required": [
         "selector",
@@ -415,7 +433,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "applet_discovery"
+              "const": "applet_discovery",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_applet_discovery/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_applet_discovery/properties/selector/properties/kind",
+                "values": [
+                  "applet_discovery"
+                ]
+              }
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -433,9 +459,10 @@
           "$ref": "./event-payload.schema.json#/$defs/applet_discovery_state_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "applet_registration_result": {
+    "current_applet_registration": {
       "type": "object",
       "required": [
         "selector",
@@ -453,7 +480,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "applet_registration"
+              "const": "applet_registration",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_applet_registration/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_applet_registration/properties/selector/properties/kind",
+                "values": [
+                  "applet_registration"
+                ]
+              }
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -468,7 +503,15 @@
           "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_applet_registration/properties/source_stream_ref/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_applet_registration/properties/source_stream_ref/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             }
           }
         },
@@ -479,9 +522,10 @@
           "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "key_backup_active_series_result": {
+    "current_key_backup_active_series": {
       "type": "object",
       "required": [
         "selector",
@@ -499,7 +543,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "key_backup_active_series"
+              "const": "key_backup_active_series",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_key_backup_active_series/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_key_backup_active_series/properties/selector/properties/kind",
+                "values": [
+                  "key_backup_active_series"
+                ]
+              }
             },
             "actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -520,7 +572,8 @@
           "$ref": "./key-backup-active-series.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "member_identity_update_entry": {
       "type": "object",
@@ -554,7 +607,7 @@
       },
       "additionalProperties": false
     },
-    "member_identity_updates_result": {
+    "current_member_identity_updates": {
       "type": "object",
       "required": [
         "selector",
@@ -572,7 +625,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "member_identity_updates"
+              "const": "member_identity_updates",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_member_identity_updates/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_member_identity_updates/properties/selector/properties/kind",
+                "values": [
+                  "member_identity_updates"
+                ]
+              }
             },
             "member_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -593,7 +654,8 @@
           "$ref": "#/$defs/member_identity_updates_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "message_revision_value": {
       "oneOf": [
@@ -605,7 +667,7 @@
         }
       ]
     },
-    "message_revision_result": {
+    "current_message_revision": {
       "type": "object",
       "required": [
         "selector",
@@ -622,7 +684,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "message_revision"
+              "const": "message_revision",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_message_revision/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_message_revision/properties/selector/properties/kind",
+                "values": [
+                  "message_revision"
+                ]
+              }
             },
             "message_id": {
               "$ref": "./event-payload.schema.json#/$defs/message_id"
@@ -640,7 +710,8 @@
           "$ref": "#/$defs/message_revision_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "actor_profile_realm_override_entry": {
       "type": "object",
@@ -674,7 +745,7 @@
       },
       "additionalProperties": false
     },
-    "actor_profile_realm_override_result": {
+    "current_actor_profile_realm_override": {
       "type": "object",
       "required": [
         "selector",
@@ -691,7 +762,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "actor_profile_realm_override"
+              "const": "actor_profile_realm_override",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_actor_profile_realm_override/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_actor_profile_realm_override/properties/selector/properties/kind",
+                "values": [
+                  "actor_profile_realm_override"
+                ]
+              }
             },
             "actor_profile_id": {
               "$ref": "./event-payload.schema.json#/$defs/actor_profile_id"
@@ -709,9 +788,10 @@
           "$ref": "#/$defs/actor_profile_realm_override_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_organization_result": {
+    "current_realm_organization": {
       "type": "object",
       "required": [
         "selector",
@@ -729,7 +809,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_organization"
+              "const": "realm_organization",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_organization/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_organization/properties/selector/properties/kind",
+                "values": [
+                  "realm_organization"
+                ]
+              }
             },
             "organization_id": {
               "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -750,7 +838,8 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_organization_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "direct_conversation_binding_value": {
       "type": "object",
@@ -769,7 +858,7 @@
       },
       "additionalProperties": false
     },
-    "direct_conversation_binding_result": {
+    "current_direct_conversation_binding": {
       "type": "object",
       "description": "Write-once current inside the one Direct Conversation Realm, keyed by its verified founding pair_key; uniqueness still comes from founding admission.",
       "required": [
@@ -787,7 +876,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "direct_conversation_binding"
+              "const": "direct_conversation_binding",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_direct_conversation_binding/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_direct_conversation_binding/properties/selector/properties/kind",
+                "values": [
+                  "direct_conversation_binding"
+                ]
+              }
             },
             "pair_key": {
               "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload/properties/pair_key"
@@ -805,7 +902,8 @@
           "$ref": "#/$defs/direct_conversation_binding_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "revision": {
       "type": "object",
@@ -844,20 +942,19 @@
           "description": "Increments only on a root controller rotation. Genesis is 0."
         },
         "authority_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Realm delegation-root generation. Genesis is 0 and only accepted ak.realm.authority.reset increments it; owner transfer and planned governance Station handoff preserve it, so neither invalidates existing grants."
+          "description": "Realm delegation-root generation. Genesis is 0 and only accepted ak.realm.authority.reset increments it; owner transfer and planned governance Station handoff preserve it, so neither invalidates existing grants.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "authority_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Exact create Event at delegation generation zero or the accepted authority reset Event establishing the current nonzero generation. Owner transfer and Station handoff preserve this anchor. It is not the current result revision and grants no historical Event read."
+          "description": "Exact create Event at delegation generation zero or the accepted authority reset Event establishing the current nonzero generation. Owner transfer and Station handoff preserve this anchor. It is not the current state revision and grants no historical Event read."
         }
       },
       "additionalProperties": false
     },
-    "realm_authority_root_result": {
+    "current_realm_authority_root": {
       "type": "object",
-      "description": "Singleton authority-root typed current result. The selector carries no component beyond its kind, so (realm_id, selector) is the Realm's lifetime-stable authority root identity.",
+      "description": "Singleton authority-root current state. The selector carries no component beyond its kind, so (realm_id, selector) is the Realm's lifetime-stable authority root identity.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -872,7 +969,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_authority_root"
+              "const": "realm_authority_root",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_authority_root/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_authority_root/properties/selector/properties/kind",
+                "values": [
+                  "realm_authority_root"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -887,9 +992,10 @@
           "$ref": "#/$defs/realm_authority_root_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_profile_result": {
+    "current_realm_profile": {
       "type": "object",
       "required": [
         "selector",
@@ -905,7 +1011,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_profile"
+              "const": "realm_profile",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_profile/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_profile/properties/selector/properties/kind",
+                "values": [
+                  "realm_profile"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -920,9 +1034,10 @@
           "$ref": "./realm-profile.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "member_state_result": {
+    "current_member_state": {
       "type": "object",
       "required": [
         "selector",
@@ -939,7 +1054,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "member_state"
+              "const": "member_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_member_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_member_state/properties/selector/properties/kind",
+                "values": [
+                  "member_state"
+                ]
+              }
             },
             "actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -957,10 +1080,11 @@
           "$ref": "#/$defs/member_state_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "member_state_value": {
-      "description": "Closed value of the member_state typed current result: the materialized membership register of one complete ActorId. models/common-fields.md section 4.5 fixes it as a four-state register over join/knock/leave/ban. It is a named def rather than an inline object because registry/contract-registry.json cites it as the value_schema_ref of ak.member.state; an enclosing _result envelope names the selector and revision beside the value, so citing the envelope would let a value_projection member be checked against the wrong object.",
+      "description": "Closed value of the member_state current state: the materialized membership register of one complete ActorId. models/common-fields.md section 4.5 fixes it as a four-state register over join/knock/leave/ban. It is a named def rather than an inline object because registry/contract-registry.json cites it as the value_schema_ref of ak.member.state; an enclosing _result envelope names the selector and revision beside the value, so citing the envelope would let a value_projection member be checked against the wrong object.",
       "type": "object",
       "required": [
         "membership"
@@ -972,7 +1096,18 @@
             "knock",
             "leave",
             "ban"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/member_state_value/properties/membership",
+            "owner": "current-state.schema.json#/$defs/member_state_value/properties/membership",
+            "values": [
+              "join",
+              "knock",
+              "leave",
+              "ban"
+            ]
+          }
         },
         "joined_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -980,7 +1115,7 @@
       },
       "additionalProperties": false
     },
-    "strand_result": {
+    "current_strand": {
       "type": "object",
       "required": [
         "selector",
@@ -997,7 +1132,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "strand"
+              "const": "strand",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_strand/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_strand/properties/selector/properties/kind",
+                "values": [
+                  "strand"
+                ]
+              }
             },
             "strand_id": {
               "type": "string",
@@ -1016,9 +1159,10 @@
           "$ref": "./strand.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "message_reactions_result": {
+    "current_message_reactions": {
       "type": "object",
       "required": [
         "selector",
@@ -1036,7 +1180,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "message_reactions"
+              "const": "message_reactions",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_message_reactions/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_message_reactions/properties/selector/properties/kind",
+                "values": [
+                  "message_reactions"
+                ]
+              }
             },
             "target_ref": {
               "$ref": "./event-payload.schema.json#/$defs/object_ref"
@@ -1055,11 +1207,12 @@
         }
       },
       "additionalProperties": false,
-      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is a keyed-set projection of the closed enum in models/common-fields.md section 2, whose join that section defines: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value."
+      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is a keyed-set projection of the closed enum in models/common-fields.md section 2, whose join that section defines: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value.",
+      "x-arkret-name-role": "current_state"
     },
     "message_reactions_value": {
       "type": "object",
-      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because models/strand-and-message.md section 9.8.3 requires the audit view to rebuild them.",
+      "description": "Closed value of the message_reactions current state: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because models/strand-and-message.md section 9.8.3 requires the audit view to rebuild them.",
       "required": [
         "assertions"
       ],
@@ -1091,7 +1244,7 @@
       },
       "additionalProperties": false
     },
-    "mls_group_result": {
+    "current_mls_group": {
       "type": "object",
       "required": [
         "selector",
@@ -1108,7 +1261,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "mls_group"
+              "const": "mls_group",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_mls_group/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_mls_group/properties/selector/properties/kind",
+                "values": [
+                  "mls_group"
+                ]
+              }
             },
             "scope_ref": {
               "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
@@ -1126,7 +1287,8 @@
           "$ref": "#/$defs/mls_group_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "mls_group_value": {
       "type": "object",
@@ -1154,16 +1316,13 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "current_key_access_revision": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "covered_key_access_revision": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "public_tree_ref": {
           "$ref": "./common-ids.schema.json#/$defs/blob_ref"
@@ -1178,7 +1337,7 @@
     },
     "agent_key_authorization_entry": {
       "type": "object",
-      "description": "One tagged entry of the agent_key typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete authorize or revoke payload of that Event.",
+      "description": "One tagged entry of the agent_key current state. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete authorize or revoke payload of that Event.",
       "required": [
         "tag_id",
         "value"
@@ -1200,7 +1359,7 @@
       },
       "additionalProperties": false
     },
-    "agent_key_result": {
+    "current_agent_key": {
       "type": "object",
       "description": "Registered reducer projection of one Agent signing key. It is the single state source a portable state witness may quote; a service-private key table is not an alternative.",
       "required": [
@@ -1220,7 +1379,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_key"
+              "const": "agent_key",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_key/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_key/properties/selector/properties/kind",
+                "values": [
+                  "agent_key"
+                ]
+              }
             },
             "agent_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1241,9 +1408,10 @@
           "$ref": "#/$defs/agent_key_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "agent_status_result": {
+    "current_agent_status": {
       "type": "object",
       "description": "Registered Agent lifecycle projection. The first active value has exactly one provenance: the delegated PCR genesis ak.realm.create conditional write of zh/models/realm-and-space.md section 2.5.1.",
       "required": [
@@ -1261,7 +1429,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_status"
+              "const": "agent_status",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_status/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_status/properties/selector/properties/kind",
+                "values": [
+                  "agent_status"
+                ]
+              }
             },
             "agent_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1282,14 +1458,26 @@
             "active",
             "paused",
             "deactivated"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/current_agent_status/properties/value",
+            "owner": "current-state.schema.json#/$defs/current_agent_status/properties/value",
+            "values": [
+              "uninitialized",
+              "active",
+              "paused",
+              "deactivated"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_key_value": {
       "type": "object",
-      "description": "Closed value of the agent_key typed current result.",
+      "description": "Closed value of the agent_key current state.",
       "required": [
         "authorizations"
       ],
@@ -1305,7 +1493,7 @@
       },
       "additionalProperties": false
     },
-    "realm_genesis_result": {
+    "current_realm_genesis": {
       "type": "object",
       "description": "Singleton create-locked identity/security core. Written once by the registered ak.realm.create result write (zh/models/realm-and-space.md section 2.5.1); the value is the closed ak.schema.realm_genesis.v1 object.",
       "required": [
@@ -1322,7 +1510,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_genesis"
+              "const": "realm_genesis",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_genesis/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_genesis/properties/selector/properties/kind",
+                "values": [
+                  "realm_genesis"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1337,9 +1533,10 @@
           "$ref": "./realm-genesis.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_history_access_result": {
+    "current_realm_history_access": {
       "type": "object",
       "description": "Singleton Realm history-access FSM current state (zh/models/realm-and-space.md section 2.5.1). Initialized by the conditional ak.realm.create write and moved only by ak.realm.history_access.",
       "required": [
@@ -1356,7 +1553,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_history_access"
+              "const": "realm_history_access",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_history_access/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_history_access/properties/selector/properties/kind",
+                "values": [
+                  "realm_history_access"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1371,9 +1576,10 @@
           "$ref": "./event-payload.schema.json#/$defs/history_access_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "identity_resolution_result": {
+    "current_identity_resolution": {
       "type": "object",
       "description": "Singleton Realm identity-resolution projection. The PCR reducer initialises it from the genesis object's initial_resolution on the conditional ak.realm.create write and ak.identity.resolution.update is its only post-genesis writer (zh/identity/identity-did.md section 4.2). The stored value is the five-member resolution_projection, not the three-member commitment the owner signs: resolution_event_ref and updated_at are reducer-derived from the carrying envelope and are read back off this result by section 5.",
       "required": [
@@ -1390,7 +1596,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "identity_resolution"
+              "const": "identity_resolution",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_identity_resolution/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_identity_resolution/properties/selector/properties/kind",
+                "values": [
+                  "identity_resolution"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1405,9 +1619,10 @@
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "identity_accountability_result": {
+    "current_identity_accountability": {
       "type": "object",
       "description": "One accountability endorsement (family identity_accountability). zh/models/actor.md section 3.3.1: there is one record with two writers, and its identity is (Realm, issuer principal, subject principal, normalized exact scope set) -- the Realm component is the scope this result lives in, so it is not a selector member. A grant that changes a provision endorsement MUST be written into the original controller PCR; the same tuple in another Realm is a different record and cannot revoke this one.",
       "required": [
@@ -1428,7 +1643,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "identity_accountability"
+              "const": "identity_accountability",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_identity_accountability/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_identity_accountability/properties/selector/properties/kind",
+                "values": [
+                  "identity_accountability"
+                ]
+              }
             },
             "issuer_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -1452,9 +1675,10 @@
           "$ref": "./accountability-grant.schema.json#/$defs/accountability_projection"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "capability_grant_result": {
+    "current_capability_grant": {
       "type": "object",
       "description": "Registered projection of one Capability Grant. The subject GrantId is derived by retyping the accepted ak.capability.grant Event id; the value is the complete projected grant, including reducer-inserted id and the registered derived members authority_depth / authority_root_refs (zh/authz/capabilities.md section 10).",
       "required": [
@@ -1472,7 +1696,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "capability_grant"
+              "const": "capability_grant",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_capability_grant/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_capability_grant/properties/selector/properties/kind",
+                "values": [
+                  "capability_grant"
+                ]
+              }
             },
             "grant_id": {
               "$ref": "./common-ids.schema.json#/$defs/grant_id"
@@ -1490,7 +1722,8 @@
           "$ref": "./capability-grant.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "call_id_component": {
       "type": "string",
@@ -1507,7 +1740,16 @@
         "recording",
         "stopped"
       ],
-      "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed artifact details live in the separate call_recording_artifact family."
+      "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed artifact details live in the separate call_recording_artifact family.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "current-state.schema.json#/$defs/call_recording_state_value",
+        "owner": "current-state.schema.json#/$defs/call_recording_state_value",
+        "values": [
+          "recording",
+          "stopped"
+        ]
+      }
     },
     "call_transcript_state_value": {
       "type": "string",
@@ -1515,9 +1757,18 @@
         "transcribing",
         "stopped"
       ],
-      "description": "Capture permission state of one transcript segment: ak.call.recording.start opens it as transcribing, a committed ak.call.state transcript_transition.to=stopped closes it."
+      "description": "Capture permission state of one transcript segment: ak.call.recording.start opens it as transcribing, a committed ak.call.state transcript_transition.to=stopped closes it.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "current-state.schema.json#/$defs/call_transcript_state_value",
+        "owner": "current-state.schema.json#/$defs/call_transcript_state_value",
+        "values": [
+          "transcribing",
+          "stopped"
+        ]
+      }
     },
-    "call_state_result": {
+    "current_call_state": {
       "type": "object",
       "description": "Commit-ordered projection of the ak.call.state state_transition axis (crypto-media/call-state.md section 4.1).",
       "required": [
@@ -1535,7 +1786,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_state"
+              "const": "call_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_state/properties/selector/properties/kind",
+                "values": [
+                  "call_state"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1594,7 +1853,17 @@
                       "scheduled",
                       "ringing",
                       "connecting"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "current-state.schema.json#/$defs/current_call_state/properties/value/allOf/0/then/properties/to",
+                      "owner": "current-state.schema.json#/$defs/current_call_state/properties/value/allOf/0/then/properties/to",
+                      "values": [
+                        "scheduled",
+                        "ringing",
+                        "connecting"
+                      ]
+                    }
                   }
                 },
                 "not": {
@@ -1610,9 +1879,10 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_focus_result": {
+    "current_call_focus": {
       "type": "object",
       "description": "Commit-ordered projection of the ak.call.state focus axis. The first committed session_focus is binding (MEDIA-2); later writes MUST restate it verbatim.",
       "required": [
@@ -1630,7 +1900,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_focus"
+              "const": "call_focus",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_focus/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_focus/properties/selector/properties/kind",
+                "values": [
+                  "call_focus"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1648,11 +1926,12 @@
           "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/focus"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_recording_state_result": {
+    "current_call_recording_state": {
       "type": "object",
-      "description": "Capture permission state typed current result of one recording segment (family call_recording_state), keyed by the (call_id, recording_id) segment key so several captures in one call never collide.",
+      "description": "Capture permission state current state of one recording segment (family call_recording_state), keyed by the (call_id, recording_id) segment key so several captures in one call never collide.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1669,7 +1948,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_recording_state"
+              "const": "call_recording_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_recording_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_recording_state/properties/selector/properties/kind",
+                "values": [
+                  "call_recording_state"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1690,11 +1977,12 @@
           "$ref": "#/$defs/call_recording_state_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_recording_artifact_result": {
+    "current_call_recording_artifact": {
       "type": "object",
-      "description": "Published artifact typed current result of one recording segment (family call_recording_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
+      "description": "Published artifact current state of one recording segment (family call_recording_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1711,7 +1999,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_recording_artifact"
+              "const": "call_recording_artifact",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/selector/properties/kind",
+                "values": [
+                  "call_recording_artifact"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1729,14 +2025,15 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/result"
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_transcript_state_result": {
+    "current_call_transcript_state": {
       "type": "object",
-      "description": "Capture permission state typed current result of one transcript segment (family call_transcript_state), keyed by the (call_id, recording_id) segment key.",
+      "description": "Capture permission state current state of one transcript segment (family call_transcript_state), keyed by the (call_id, recording_id) segment key.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1753,7 +2050,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_transcript_state"
+              "const": "call_transcript_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_transcript_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_transcript_state/properties/selector/properties/kind",
+                "values": [
+                  "call_transcript_state"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1774,11 +2079,12 @@
           "$ref": "#/$defs/call_transcript_state_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_transcript_artifact_result": {
+    "current_call_transcript_artifact": {
       "type": "object",
-      "description": "Published artifact typed current result of one transcript segment (family call_transcript_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
+      "description": "Published artifact current state of one transcript segment (family call_transcript_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1795,7 +2101,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_transcript_artifact"
+              "const": "call_transcript_artifact",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_transcript_artifact/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_transcript_artifact/properties/selector/properties/kind",
+                "values": [
+                  "call_transcript_artifact"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1813,12 +2127,13 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/result"
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/capture_metadata"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_moderation_result": {
+    "current_call_moderation": {
       "type": "object",
       "description": "Complete effective Call axis with original sources and independent whole-axis revision, bound by the enclosing authenticated authority Snapshot. Not a portable grant or independent omission proof.",
       "required": [
@@ -1836,7 +2151,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_moderation"
+              "const": "call_moderation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_moderation/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_moderation/properties/selector/properties/kind",
+                "values": [
+                  "call_moderation"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1854,9 +2177,10 @@
           "$ref": "#/$defs/call_moderation_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_roster_result": {
+    "current_call_roster": {
       "type": "object",
       "description": "Complete effective Call axis with original sources and independent whole-axis revision, bound by the enclosing authenticated authority Snapshot. Not a portable grant or independent omission proof.",
       "required": [
@@ -1874,7 +2198,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_roster"
+              "const": "call_roster",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_roster/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_roster/properties/selector/properties/kind",
+                "values": [
+                  "call_roster"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1892,9 +2224,10 @@
           "$ref": "#/$defs/call_roster_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "call_mute_override_result": {
+    "current_call_mute_override": {
       "type": "object",
       "description": "Reserved call-only shape for the ak.call.state mute_override axis. v1 rejects every mute_override write; this single-leg value cannot establish per-leg media authority (crypto-media/call-state.md section 4.1).",
       "required": [
@@ -1912,7 +2245,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_mute_override"
+              "const": "call_mute_override",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_call_mute_override/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_call_mute_override/properties/selector/properties/kind",
+                "values": [
+                  "call_mute_override"
+                ]
+              }
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -1930,7 +2271,8 @@
           "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/mute_override"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "strand_position_value": {
       "description": "The registered value shape of strand_position, pinned by models/realm-and-space.md section 3.6 as list_space_id with rank, or null. The null branch is the pre-placement state of a Strand that has been created but never moved onto a Board.",
@@ -1956,7 +2298,7 @@
         }
       ]
     },
-    "realm_schema_result": {
+    "current_realm_schema": {
       "type": "object",
       "description": "Per-Realm declaration of the Realm-scoped Morph kind tightening (models/governance-objects.md section 4). Singleton: the Realm is given by the Event envelope, which conformance/encoding.md section 9.5.1 forbids repeating in the subject.",
       "required": [
@@ -1973,7 +2315,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_schema"
+              "const": "realm_schema",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_schema/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_schema/properties/selector/properties/kind",
+                "values": [
+                  "realm_schema"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1988,9 +2338,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_schema_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_link_result": {
+    "current_realm_link": {
       "type": "object",
       "description": "One directed Realm-to-Realm link. models/realm-links.md section 5 makes the subject the (target_realm_id, link_kind) tuple with the source Realm given by Event scope, and the current value the last accepted write.",
       "required": [
@@ -2009,7 +2360,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_link"
+              "const": "realm_link",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_link/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_link/properties/selector/properties/kind",
+                "values": [
+                  "realm_link"
+                ]
+              }
             },
             "target_realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -2030,9 +2389,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_link_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_join_rule_result": {
+    "current_realm_join_rule": {
       "type": "object",
       "description": "The Realm default_join_rule enum. models/realm-and-space.md section 2.3 makes ak.realm.join_rule its sole canonical carrier.",
       "required": [
@@ -2049,7 +2409,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_join_rule"
+              "const": "realm_join_rule",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_join_rule/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_join_rule/properties/selector/properties/kind",
+                "values": [
+                  "realm_join_rule"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2064,9 +2432,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_join_rule_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_discovery_result": {
+    "current_realm_discovery": {
       "type": "object",
       "description": "The Realm default_discoverability envelope (models/realm-and-space.md section 2.3).",
       "required": [
@@ -2083,7 +2452,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_discovery"
+              "const": "realm_discovery",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_discovery/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_discovery/properties/selector/properties/kind",
+                "values": [
+                  "realm_discovery"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2098,9 +2475,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_discovery_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_alias_result": {
+    "current_realm_alias": {
       "type": "object",
       "description": "The Realm-local alias declaration or its tombstone. The tombstone branch is retained rather than collapsed to null so durable withdrawal remains distinguishable from never-declared; Directory does not resolve aliases.",
       "required": [
@@ -2117,7 +2495,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_alias"
+              "const": "realm_alias",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_alias/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_alias/properties/selector/properties/kind",
+                "values": [
+                  "realm_alias"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2132,9 +2518,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_alias_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_policy_bundle_result": {
+    "current_realm_policy_bundle": {
       "type": "object",
       "description": "The Realm policy components that have no facet Event kind of their own. models/realm-and-space.md section 2.3 restates the whole bundle on every policy_revision.",
       "required": [
@@ -2151,7 +2538,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_policy_bundle"
+              "const": "realm_policy_bundle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_policy_bundle/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_policy_bundle/properties/selector/properties/kind",
+                "values": [
+                  "realm_policy_bundle"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2166,9 +2561,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_policy_bundle_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_asset_privacy_policy_result": {
+    "current_realm_asset_privacy_policy": {
       "type": "object",
       "description": "The Realm asset metadata and download policy (crypto-media/media-and-blob.md section 6). It is deliberately not a policy_bundle component and is excluded from key_access_revision.",
       "required": [
@@ -2185,7 +2581,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_asset_privacy_policy"
+              "const": "realm_asset_privacy_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_asset_privacy_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_asset_privacy_policy/properties/selector/properties/kind",
+                "values": [
+                  "realm_asset_privacy_policy"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2200,9 +2604,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_plaintext_visible_services_result": {
+    "current_realm_plaintext_visible_services": {
       "type": "object",
       "description": "The declared set of services that may see plaintext in this Realm (models/realm-and-space.md section 2.3).",
       "required": [
@@ -2219,7 +2624,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_plaintext_visible_services"
+              "const": "realm_plaintext_visible_services",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_plaintext_visible_services/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_plaintext_visible_services/properties/selector/properties/kind",
+                "values": [
+                  "realm_plaintext_visible_services"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2234,9 +2647,10 @@
           "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_media_service_result": {
+    "current_realm_media_service": {
       "type": "object",
       "description": "The single settled media service binding of the Realm. crypto-media/media-service-binding.md section 4 calls it a single-valued commit-ordered projection; section 2.1 pins the closed field set.",
       "required": [
@@ -2253,7 +2667,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_media_service"
+              "const": "realm_media_service",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_media_service/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_media_service/properties/selector/properties/kind",
+                "values": [
+                  "realm_media_service"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2268,9 +2690,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_media_service_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "mimi_room_binding_result": {
+    "current_mimi_room_binding": {
       "type": "object",
       "description": "One MIMI room binding (extensions/mimi-interop.md section 3). The subject is the MIMI room URI, not an Arkret id: the family records how one external room is bound, and the same Realm or Strand may be bound into more than one room. The binding is a projection into MIMI and is never canonical truth about the Arkret side.",
       "required": [
@@ -2288,7 +2711,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "mimi_room_binding"
+              "const": "mimi_room_binding",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_mimi_room_binding/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_mimi_room_binding/properties/selector/properties/kind",
+                "values": [
+                  "mimi_room_binding"
+                ]
+              }
             },
             "mimi_room_uri": {
               "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload/properties/mimi_room_uri"
@@ -2306,9 +2737,10 @@
           "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "moderation_franking_proof_result": {
+    "current_moderation_franking_proof": {
       "type": "object",
       "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 3.4). The subject is the proven Event id. Installing an authorized signed current row is independent of a later report and does not itself establish moderator verification or an existence-time verdict.",
       "required": [
@@ -2326,7 +2758,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "moderation_franking_proof"
+              "const": "moderation_franking_proof",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_moderation_franking_proof/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_moderation_franking_proof/properties/selector/properties/kind",
+                "values": [
+                  "moderation_franking_proof"
+                ]
+              }
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -2344,9 +2784,10 @@
           "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "moderation_report_result": {
+    "current_moderation_report": {
       "type": "object",
       "description": "The accepted moderation report itself (governance/content-moderation.md section 3.3). The subject is the report Event's own EventId, which is the same value ak.moderation.decision carries in payload.target_ref for decision=dismiss. The value is the complete report payload. The queue item is a read-side View over this family and the dismiss records in moderation_state, not a second stored state.",
       "required": [
@@ -2364,7 +2805,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "moderation_report"
+              "const": "moderation_report",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_moderation_report/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_moderation_report/properties/selector/properties/kind",
+                "values": [
+                  "moderation_report"
+                ]
+              }
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -2382,9 +2831,10 @@
           "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_preview_policy_result": {
+    "current_realm_preview_policy": {
       "type": "object",
       "description": "The Realm preview / peek policy (models/realm-and-space.md section 2.3). It is the projected source of the query field preview_policy_id and is a per-Realm singleton like every sibling facet in that sentence. The value is payload.value only: payload.reason is audit provenance carried by the Event, not projected state.",
       "required": [
@@ -2401,7 +2851,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_preview_policy"
+              "const": "realm_preview_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_preview_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_preview_policy/properties/selector/properties/kind",
+                "values": [
+                  "realm_preview_policy"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2416,9 +2874,10 @@
           "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_tombstone_result": {
+    "current_realm_tombstone": {
       "type": "object",
       "description": "The terminal tombstone of the Realm, with its required successor_realm_id (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
       "required": [
@@ -2435,7 +2894,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_tombstone"
+              "const": "realm_tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_tombstone/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_tombstone/properties/selector/properties/kind",
+                "values": [
+                  "realm_tombstone"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2450,9 +2917,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_destroy_result": {
+    "current_realm_destroy": {
       "type": "object",
       "description": "The terminal destroy of the Realm, which MUST NOT carry a successor (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
       "required": [
@@ -2469,7 +2937,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_destroy"
+              "const": "realm_destroy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_destroy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_destroy/properties/selector/properties/kind",
+                "values": [
+                  "realm_destroy"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2484,7 +2960,8 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_set_default_strand_value": {
       "type": "object",
@@ -2499,7 +2976,7 @@
       },
       "additionalProperties": false
     },
-    "realm_set_default_strand_result": {
+    "current_realm_set_default_strand": {
       "type": "object",
       "description": "The authoritative default_strand_id pointer of the Realm (models/strand-and-message.md section 1). The current value is the last accepted write on the stream.",
       "required": [
@@ -2516,7 +2993,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_set_default_strand"
+              "const": "realm_set_default_strand",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_set_default_strand/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_set_default_strand/properties/selector/properties/kind",
+                "values": [
+                  "realm_set_default_strand"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -2531,9 +3016,10 @@
           "$ref": "#/$defs/realm_set_default_strand_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "strand_position_result": {
+    "current_strand_position": {
       "type": "object",
       "description": "The position of one Strand on one Board. models/realm-and-space.md section 3.6 pins the subject to the reversible typed_pair of board_space_id and strand_id and forbids a hash subject, so both typed-ID components MUST be validated on parse.",
       "required": [
@@ -2552,7 +3038,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "strand_position"
+              "const": "strand_position",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_strand_position/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_strand_position/properties/selector/properties/kind",
+                "values": [
+                  "strand_position"
+                ]
+              }
             },
             "board_space_id": {
               "$ref": "./event-payload.schema.json#/$defs/board_space_id"
@@ -2573,10 +3067,11 @@
           "$ref": "#/$defs/strand_position_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "invite_lifecycle_value": {
-      "description": "Closed value of the invite_lifecycle typed current result: the one process-state register of one Invite. zh/models/governance-objects.md section 5.3 declares the state set and the edge set, and registry/contract-registry.json carries the edges as event_kind_registry.transition_contracts.invite_lifecycle, so this def holds the state names only. The register carries nothing else on purpose: a transition projection writes one axis, and every other Invite fact that has to be checked against the pre-state is its own registered family (invite_directed_invitee, invite_live_target). A mirrored copy here would be the drifting second truth that section removed join_rule_snapshot for.",
+      "description": "Closed value of the invite_lifecycle current state: the one process-state register of one Invite. zh/models/governance-objects.md section 5.3 declares the state set and the edge set, and registry/contract-registry.json carries the edges as event_kind_registry.transition_contracts.invite_lifecycle, so this def holds the state names only. The register carries nothing else on purpose: a transition projection writes one axis, and every other Invite fact that has to be checked against the pre-state is its own registered family (invite_directed_invitee, invite_live_target). A mirrored copy here would be the drifting second truth that section removed join_rule_snapshot for.",
       "type": "string",
       "enum": [
         "pending",
@@ -2585,9 +3080,22 @@
         "rejected",
         "revoked",
         "expired"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "current-state.schema.json#/$defs/invite_lifecycle_value",
+        "owner": "current-state.schema.json#/$defs/invite_lifecycle_value",
+        "values": [
+          "pending",
+          "claimed",
+          "accepted",
+          "rejected",
+          "revoked",
+          "expired"
+        ]
+      }
     },
-    "invite_lifecycle_result": {
+    "current_invite_lifecycle": {
       "type": "object",
       "description": "Registered projection of one Invite's process state. The subject InviteId is the create Event id retyped (zh/models/common-fields.md section 6.0), so a directed ak.invite.create and a third-party ak.invite.third_party each open exactly one of these and every later Event names it through payload.invite_id.",
       "required": [
@@ -2605,7 +3113,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "invite_lifecycle"
+              "const": "invite_lifecycle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_invite_lifecycle/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_invite_lifecycle/properties/selector/properties/kind",
+                "values": [
+                  "invite_lifecycle"
+                ]
+              }
             },
             "invite_id": {
               "$ref": "./event-payload.schema.json#/$defs/invite_id"
@@ -2623,7 +3139,8 @@
           "$ref": "#/$defs/invite_lifecycle_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "invite_live_target_value": {
       "description": "Closed value of the invite_live_target slot: the record of the directed Invite that currently occupies this account's slot, or null for an empty slot. zh/models/governance-objects.md section 5.3 fixes the occupant as create_event_id in the verbatim ak:event: spelling rather than the ak:invite: retype, because the projection grammar has no retype source; the slot carries no process state, since occupancy itself is what live means. null is the reusable empty state a registered release write returns it to, not a read-only sentinel.",
@@ -2646,7 +3163,7 @@
         }
       ]
     },
-    "invite_live_target_result": {
+    "current_invite_live_target": {
       "type": "object",
       "description": "The one live directed Invite slot of one invitee account inside one Realm. zh/models/governance-objects.md section 5.3 makes it the single source of truth for directed-invite liveness deduplication, keyed by the invitee AccountId alone: the Realm is already given by the Event envelope, so carrying realm_id in the subject is forbidden by zh/conformance/encoding.md section 4.",
       "required": [
@@ -2664,7 +3181,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "invite_live_target"
+              "const": "invite_live_target",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_invite_live_target/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_invite_live_target/properties/selector/properties/kind",
+                "values": [
+                  "invite_live_target"
+                ]
+              }
             },
             "invitee_account_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -2682,7 +3207,8 @@
           "$ref": "#/$defs/invite_live_target_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "invite_directed_invitee_value": {
       "description": "Closed value of the invite_directed_invitee record: the exact account one directed Invite is addressed to, written once by ak.invite.create from that same Event's payload and never updated. It is the reverse index of invite_live_target, and the two together are what make the slot release checkable: the slot answers \"which Invite holds this account\", this record answers \"which account does this Invite hold\". ak.invite.third_party writes no record at all, so a third-party Invite's stored invitee is absent rather than null -- that absence is what the stored_field_matches_payload pre-state requirement of zh/models/governance-objects.md section 5.3 reads.",
@@ -2697,7 +3223,7 @@
       },
       "additionalProperties": false
     },
-    "invite_directed_invitee_result": {
+    "current_invite_directed_invitee": {
       "type": "object",
       "description": "Registered create-locked projection of one directed Invite's invitee. The subject InviteId is the create Event id retyped, the same subject invite_lifecycle uses, so a later Event that names payload.invite_id reaches both the state register and this binding without carrying either of them on the wire.",
       "required": [
@@ -2715,7 +3241,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "invite_directed_invitee"
+              "const": "invite_directed_invitee",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_invite_directed_invitee/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_invite_directed_invitee/properties/selector/properties/kind",
+                "values": [
+                  "invite_directed_invitee"
+                ]
+              }
             },
             "invite_id": {
               "$ref": "./event-payload.schema.json#/$defs/invite_id"
@@ -2733,7 +3267,8 @@
           "$ref": "#/$defs/invite_directed_invitee_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "pin_assertion_entry": {
       "type": "object",
@@ -2764,7 +3299,7 @@
     },
     "pin_value": {
       "type": "object",
-      "description": "Closed value of the pin typed current result: the canonically sorted dot set of pin assertions in one pin scope. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent. Every one of the three pin kinds adds an assertion, including remove and reorder, so the set keeps both sides of a concurrent pair; the ordered roster, the remove-wins fold, the note inherited by a reorder and the conflict view are all read-side folds above this set, defined in models/pins.md section 4.1, and MUST NOT be implemented as further stored state.",
+      "description": "Closed value of the pin current state: the canonically sorted dot set of pin assertions in one pin scope. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent. Every one of the three pin kinds adds an assertion, including remove and reorder, so the set keeps both sides of a concurrent pair; the ordered roster, the remove-wins fold, the note inherited by a reorder and the conflict view are all read-side folds above this set, defined in models/pins.md section 4.1, and MUST NOT be implemented as further stored state.",
       "required": [
         "assertions"
       ],
@@ -2779,7 +3314,7 @@
       },
       "additionalProperties": false
     },
-    "pin_result": {
+    "current_pin": {
       "type": "object",
       "required": [
         "selector",
@@ -2797,7 +3332,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "pin"
+              "const": "pin",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_pin/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_pin/properties/selector/properties/kind",
+                "values": [
+                  "pin"
+                ]
+              }
             },
             "pin_scope": {
               "$ref": "./event-payload.schema.json#/$defs/pin_scope"
@@ -2816,7 +3359,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Registered projection of one pin scope. models/pins.md section 4.1 is authoritative and spells this projection verbatim: ak.pin.add, ak.pin.remove and ak.pin.reorder each project exactly one keyed_set_add, so a remove and a reorder are themselves asserted elements rather than explicit revocations. The reason is in that section: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which silently converges a concurrent (add, remove) pair to add instead of surfacing it."
+      "description": "Registered projection of one pin scope. models/pins.md section 4.1 is authoritative and spells this projection verbatim: ak.pin.add, ak.pin.remove and ak.pin.reorder each project exactly one keyed_set_add, so a remove and a reorder are themselves asserted elements rather than explicit revocations. The reason is in that section: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which silently converges a concurrent (add, remove) pair to add instead of surfacing it.",
+      "x-arkret-name-role": "current_state"
     },
     "space_parent_value": {
       "type": "object",
@@ -2838,7 +3382,7 @@
       },
       "additionalProperties": false
     },
-    "space_parent_result": {
+    "current_space_parent": {
       "type": "object",
       "description": "The structural parent of one Space. models/realm-and-space.md section 3.5 is authoritative: the subject is the SpaceId alone, the projection is an ordinary current value, and the current value is the last accepted write on the stream, ordered only by stream_position. The Space metadata projection deliberately excludes parent_space_id, so this family and not the object is the truth source models/relation.md and sync/views.md read the derived contains edge from. A directed cycle among current parents makes every edge in it domain-unresolved; it MUST NOT reselect a register value, fake a root, or produce a live contains.",
       "required": [
@@ -2856,7 +3400,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "space_parent"
+              "const": "space_parent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_space_parent/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_space_parent/properties/selector/properties/kind",
+                "values": [
+                  "space_parent"
+                ]
+              }
             },
             "space_id": {
               "$ref": "./event-payload.schema.json#/$defs/space_id"
@@ -2874,7 +3426,8 @@
           "$ref": "#/$defs/space_parent_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "space_child_scope_policy_value": {
       "description": "The registered value shape of space_child_scope_policy: the closed placement policy object of models/circle.md section 7.1, or null. null is the undeclared state; that section says a Space MAY declare a policy, and an undeclared policy adds no constraint, which is what allow_any also means. The reducer MUST NOT synthesize the allow_any object out of an absent member: a projection may only write a value the signed Event or the envelope supplies, and null is the one registered spelling of the absent state.",
@@ -2887,7 +3440,7 @@
         }
       ]
     },
-    "space_child_scope_policy_result": {
+    "current_space_child_scope_policy": {
       "type": "object",
       "description": "The child placement policy of one Space, keyed by SpaceId. models/circle.md section 7.1 is authoritative for the enum and for the four reducer obligations it creates on ak.strand.create, ak.strand.move, ak.space.parent and structural contains writes; section 6.3 is authoritative for why it is not interchangeable with Space.scope_circle_id. It is a family rather than a create-locked object member because space_patch_payload carries a dedicated top-level child_scope_policy command whose own description makes it select security execution, while the generic metadata patch is forbidden from reaching the path at all.",
       "required": [
@@ -2905,7 +3458,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "space_child_scope_policy"
+              "const": "space_child_scope_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
+                "values": [
+                  "space_child_scope_policy"
+                ]
+              }
             },
             "space_id": {
               "$ref": "./event-payload.schema.json#/$defs/space_id"
@@ -2923,7 +3484,8 @@
           "$ref": "#/$defs/space_child_scope_policy_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_provisioning_value": {
       "type": "object",
@@ -2952,7 +3514,7 @@
       },
       "additionalProperties": false
     },
-    "agent_provisioning_result": {
+    "current_agent_provisioning": {
       "type": "object",
       "description": "One Agent provisioning fact (family agent_provisioning), the first of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative. The subject is the Agent DID alone and deliberately not the Agent's full account ActorId: zh/models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, so an ActorId subject would be unconstructible at the moment this write happens. The reason zh/identity/key-management.md section 3.6 forbids a bare DidCoreId for the LIFECYCLE subject -- one principal on two Stations is two accounts -- is already discharged here: this result lives in the controller PCR, and the same-Station rule of section 3.6.3 pins the Agent PCR to that same Station. It is a commit-ordered projection, and a second ak.agent.provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared): the immutable requested_scope ceiling of section 3.6.1 can only be changed by provisioning a new Agent principal, so re-declaring one agent_id is the widening that section forbids.",
       "required": [
@@ -2970,7 +3532,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_provisioning"
+              "const": "agent_provisioning",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_provisioning/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_provisioning/properties/selector/properties/kind",
+                "values": [
+                  "agent_provisioning"
+                ]
+              }
             },
             "agent_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -2988,7 +3558,8 @@
           "$ref": "#/$defs/agent_provisioning_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_pcr_genesis_declaration_value": {
       "type": "object",
@@ -3003,7 +3574,7 @@
       },
       "additionalProperties": false
     },
-    "agent_pcr_genesis_declaration_result": {
+    "current_agent_pcr_genesis_declaration": {
       "type": "object",
       "description": "One Agent PCR realm-id declaration (family agent_pcr_genesis_declaration), the fourth of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative: the subject is the forward-declared principal_control_realm_id, the projection is commit-ordered, and a second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict). This result covers one controller PCR only; duplicate declarations across controllers are caught by the Station's local uniqueness index, and the two layers together are what makes \"at most one provision declaration per realm id\" hold. The Agent PCR genesis carries no ref back to its provision, so the reverse look-up against this family IS the whole binding: no row MUST fail closed with agent_pcr_genesis_declaration_missing and zero writes, materializing neither the Realm nor the agent_status transition.",
       "required": [
@@ -3021,7 +3592,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_pcr_genesis_declaration"
+              "const": "agent_pcr_genesis_declaration",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_pcr_genesis_declaration/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_pcr_genesis_declaration/properties/selector/properties/kind",
+                "values": [
+                  "agent_pcr_genesis_declaration"
+                ]
+              }
             },
             "principal_control_realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -3039,7 +3618,8 @@
           "$ref": "#/$defs/agent_pcr_genesis_declaration_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_selector_claim_value": {
       "type": "object",
@@ -3062,7 +3642,7 @@
       },
       "additionalProperties": false
     },
-    "agent_selector_claim_result": {
+    "current_agent_selector_claim": {
       "type": "object",
       "description": "One controller-scoped Agent selector binding (family agent_selector_claim). zh/models/actor.md section 3.3 is authoritative: the only writer is the selector projection of ak.agent.provision, which has no inner proof, and a later provision of the same slug replaces the binding. The subject is principal-scoped -- (controller principal, agent_slug), never with a Station -- while the target is account-scoped; neither is derived from the other.",
       "required": [
@@ -3081,7 +3661,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_selector_claim"
+              "const": "agent_selector_claim",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_selector_claim/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_selector_claim/properties/selector/properties/kind",
+                "values": [
+                  "agent_selector_claim"
+                ]
+              }
             },
             "controller_principal_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3102,7 +3690,8 @@
           "$ref": "#/$defs/agent_selector_claim_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "consent_value": {
       "type": "object",
@@ -3117,7 +3706,7 @@
       },
       "additionalProperties": false
     },
-    "consent_result": {
+    "current_consent": {
       "type": "object",
       "description": "One exact-peer permission set inside the holder PCR, with accepted source stream and exact current revision. No independent ID or lifecycle axis.",
       "required": [
@@ -3135,7 +3724,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "consent"
+              "const": "consent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_consent/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_consent/properties/selector/properties/kind",
+                "values": [
+                  "consent"
+                ]
+              }
             },
             "peer_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -3153,11 +3750,12 @@
           "$ref": "#/$defs/consent_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "moderation_decision_entry": {
       "type": "object",
-      "description": "One tagged entry of the moderation_state typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete decision or lift payload of that Event, unassembled. The asserting issuer and the polarity are read from the dot's signed envelope and from which of the two payload branches matched, per models/common-fields.md section 2.",
+      "description": "One tagged entry of the moderation_state current state. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete decision or lift payload of that Event, unassembled. The asserting issuer and the polarity are read from the dot's signed envelope and from which of the two payload branches matched, per models/common-fields.md section 2.",
       "required": [
         "tag_id",
         "value"
@@ -3181,7 +3779,7 @@
     },
     "moderation_state_value": {
       "type": "object",
-      "description": "Closed value of the moderation_state typed current result: the canonically sorted dot set of committed moderation assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which that section makes commutative, associative, idempotent and order-independent. Both writers project keyed_set_add and NEITHER removes a dot: that section says a family carrying concurrent assertions MUST express revocation as one more assertion, and governance/content-moderation.md section 5.3 has several issuers' records active at once, so a lift that deleted the decision dot would silently drop one side of a concurrent (decision, lift) pair and make the audit view unrebuildable. The active decision set and the hard_deny > quarantine > require_review > none fold of that section are read-side folds above this set and MUST NOT be stored as a second state.",
+      "description": "Closed value of the moderation_state current state: the canonically sorted dot set of committed moderation assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which that section makes commutative, associative, idempotent and order-independent. Both writers project keyed_set_add and NEITHER removes a dot: that section says a family carrying concurrent assertions MUST express revocation as one more assertion, and governance/content-moderation.md section 5.3 has several issuers' records active at once, so a lift that deleted the decision dot would silently drop one side of a concurrent (decision, lift) pair and make the audit view unrebuildable. The active decision set and the hard_deny > quarantine > require_review > none fold of that section are read-side folds above this set and MUST NOT be stored as a second state.",
       "required": [
         "assertions"
       ],
@@ -3196,7 +3794,7 @@
       },
       "additionalProperties": false
     },
-    "moderation_state_result": {
+    "current_moderation_state": {
       "type": "object",
       "required": [
         "selector",
@@ -3214,7 +3812,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "moderation_state"
+              "const": "moderation_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_moderation_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_moderation_state/properties/selector/properties/kind",
+                "values": [
+                  "moderation_state"
+                ]
+              }
             },
             "target_ref": {
               "$ref": "./event-payload.schema.json#/$defs/object_ref"
@@ -3232,11 +3838,12 @@
           "$ref": "#/$defs/moderation_state_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "object_redaction_entry": {
       "type": "object",
-      "description": "One tagged entry of the object_redaction typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete redact payload of that Event, unassembled. models/event-and-patch.md section 4.2.4 says several redactions may stand on one subject and deliberately registers no rule for choosing among them, which is why each one keeps its own dot instead of replacing the previous value.",
+      "description": "One tagged entry of the object_redaction current state. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete redact payload of that Event, unassembled. models/event-and-patch.md section 4.2.4 says several redactions may stand on one subject and deliberately registers no rule for choosing among them, which is why each one keeps its own dot instead of replacing the previous value.",
       "required": [
         "tag_id",
         "value"
@@ -3260,7 +3867,7 @@
     },
     "object_redaction_value": {
       "type": "object",
-      "description": "Closed value of the object_redaction typed current result: the canonically sorted dot set of committed redaction assertions on one subject. The join is the keyed-set union of models/common-fields.md section 2. Both writers project keyed_set_add and neither removes a dot, because redaction is terminal and audit-sealed and a removal would erase the audit record of the redaction itself. models/event-and-patch.md section 4.2.4 fixes what this value depends on: the two target spellings of one event-derived token are two independent subjects that never merge, the ak:event: spelling trims that Event by preserve[] and MUST NOT move any object state, and several assertions may stand on one subject with no ordering rule. The object's own state=redacted and message.redaction_ref stay where they are and MUST NOT be mirrored here.",
+      "description": "Closed value of the object_redaction current state: the canonically sorted dot set of committed redaction assertions on one subject. The join is the keyed-set union of models/common-fields.md section 2. Both writers project keyed_set_add and neither removes a dot, because redaction is terminal and audit-sealed and a removal would erase the audit record of the redaction itself. models/event-and-patch.md section 4.2.4 fixes what this value depends on: the two target spellings of one event-derived token are two independent subjects that never merge, the ak:event: spelling trims that Event by preserve[] and MUST NOT move any object state, and several assertions may stand on one subject with no ordering rule. The object's own state=redacted and message.redaction_ref stay where they are and MUST NOT be mirrored here.",
       "required": [
         "assertions"
       ],
@@ -3275,7 +3882,7 @@
       },
       "additionalProperties": false
     },
-    "object_redaction_result": {
+    "current_object_redaction": {
       "type": "object",
       "required": [
         "selector",
@@ -3293,7 +3900,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "object_redaction"
+              "const": "object_redaction",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_object_redaction/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_object_redaction/properties/selector/properties/kind",
+                "values": [
+                  "object_redaction"
+                ]
+              }
             },
             "target_ref": {
               "$ref": "./event-payload.schema.json#/$defs/object_ref"
@@ -3311,12 +3926,13 @@
           "$ref": "#/$defs/object_redaction_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "organization_moderation_policy_value": {
       "$ref": "./event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/value"
     },
-    "organization_moderation_policy_result": {
+    "current_organization_moderation_policy": {
       "type": "object",
       "required": [
         "selector",
@@ -3334,7 +3950,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "organization_moderation_policy"
+              "const": "organization_moderation_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_organization_moderation_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_organization_moderation_policy/properties/selector/properties/kind",
+                "values": [
+                  "organization_moderation_policy"
+                ]
+              }
             },
             "organization_id": {
               "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -3352,7 +3976,8 @@
           "$ref": "#/$defs/organization_moderation_policy_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "view_value": {
       "allOf": [
@@ -3367,9 +3992,9 @@
           }
         }
       ],
-      "description": "Closed value of the view typed current result: the whole View definition object. models/views.md section 3.2 forbids storing the self-reportable id here -- the reader derives it from the subject -- so that ak.view.create's object snapshot and ak.view.reconcile's definition leave exactly one value shape in one family."
+      "description": "Closed value of the view current state: the whole View definition object. models/views.md section 3.2 forbids storing the self-reportable id here -- the reader derives it from the subject -- so that ak.view.create's object snapshot and ak.view.reconcile's definition leave exactly one value shape in one family."
     },
-    "view_result": {
+    "current_view": {
       "type": "object",
       "required": [
         "selector",
@@ -3387,7 +4012,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "view"
+              "const": "view",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_view/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_view/properties/selector/properties/kind",
+                "values": [
+                  "view"
+                ]
+              }
             },
             "view_id": {
               "type": "string",
@@ -3406,12 +4039,13 @@
           "$ref": "#/$defs/view_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "policy_value": {
       "$ref": "./event-payload.schema.json#/$defs/policy_set_state_payload/properties/value"
     },
-    "policy_result": {
+    "current_policy": {
       "type": "object",
       "required": [
         "selector",
@@ -3429,7 +4063,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "policy"
+              "const": "policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_policy/properties/selector/properties/kind",
+                "values": [
+                  "policy"
+                ]
+              }
             },
             "policy_id": {
               "$ref": "./event-payload.schema.json#/$defs/policy_set_state_payload/properties/policy_id"
@@ -3447,12 +4089,13 @@
           "$ref": "#/$defs/policy_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "policy_action_value": {
       "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/value"
     },
-    "policy_action_result": {
+    "current_policy_action": {
       "type": "object",
       "required": [
         "selector",
@@ -3472,7 +4115,15 @@
             {
               "properties": {
                 "branch": {
-                  "const": "policy_ref"
+                  "const": "policy_ref",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "current-state.schema.json#/$defs/current_policy_action/properties/selector/oneOf/0/properties/branch",
+                    "owner": "current-state.schema.json#/$defs/current_policy_action/properties/selector/oneOf/0/properties/branch",
+                    "values": [
+                      "policy_ref"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -3488,7 +4139,15 @@
             {
               "properties": {
                 "branch": {
-                  "const": "realm_action"
+                  "const": "realm_action",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "current-state.schema.json#/$defs/current_policy_action/properties/selector/oneOf/1/properties/branch",
+                    "owner": "current-state.schema.json#/$defs/current_policy_action/properties/selector/oneOf/1/properties/branch",
+                    "values": [
+                      "realm_action"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -3512,14 +4171,31 @@
           ],
           "properties": {
             "kind": {
-              "const": "policy_action"
+              "const": "policy_action",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_policy_action/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_policy_action/properties/selector/properties/kind",
+                "values": [
+                  "policy_action"
+                ]
+              }
             },
             "branch": {
               "enum": [
                 "policy_ref",
                 "realm_action"
               ],
-              "description": "The branch tag is part of the key, not a rendering hint: without it the two subject spaces would be an untagged coalesce."
+              "description": "The branch tag is part of the key, not a rendering hint: without it the two subject spaces would be an untagged coalesce.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_policy_action/properties/selector/properties/branch",
+                "owner": "current-state.schema.json#/$defs/current_policy_action/properties/selector/properties/branch",
+                "values": [
+                  "policy_ref",
+                  "realm_action"
+                ]
+              }
             },
             "policy_id": {
               "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/policy_id"
@@ -3543,11 +4219,12 @@
           "$ref": "#/$defs/policy_action_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "device_authorization_value": {
       "type": "object",
-      "description": "Closed value of the device_authorization typed current result, fixed by zh/crypto-media/device-lifecycle.md section 5.5.1. One accepted ak.device.authorize replaces it whole; there is no partial patch. Every member but device_authorize_event_id is a verbatim copy of the signed payload, and that one member comes from this Event's own envelope event_id because the payload MUST NOT carry it. device_status is deliberately absent: section 5.5.3 makes the lifecycle axis a read-side fold over this result, the revocation proposal set, the current generation and verified conflict evidence, so storing it here would be a second, staler truth. attested_at and the attestation's own expires_at are absent for the same reason in reverse: they are freshness coordinates of the section 8.2 device_projection_attestation, which is a DOWNSTREAM signed projection of this result and MUST NOT define it. authorization_window is not a member either -- it is the paired presentation of not_before and expires_at on the keys/query surface. No account_id or principal_id copy appears: the PCR and the Event envelope already fix them.",
+      "description": "Closed value of the device_authorization current state, fixed by zh/crypto-media/device-lifecycle.md section 5.5.1. One accepted ak.device.authorize replaces it whole; there is no partial patch. Every member but device_authorize_event_id is a verbatim copy of the signed payload, and that one member comes from this Event's own envelope event_id because the payload MUST NOT carry it. device_status is deliberately absent: section 5.5.3 makes the lifecycle axis a read-side fold over this result, the revocation proposal set, the current generation and verified conflict evidence, so storing it here would be a second, staler truth. attested_at and the attestation's own expires_at are absent for the same reason in reverse: they are freshness coordinates of the section 8.2 device_projection_attestation, which is a DOWNSTREAM signed projection of this result and MUST NOT define it. authorization_window is not a member either -- it is the paired presentation of not_before and expires_at on the keys/query surface. No account_id or principal_id copy appears: the PCR and the Event envelope already fix them.",
       "required": [
         "device_public_key_did",
         "hpke_key",
@@ -3569,11 +4246,19 @@
           "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
         },
         "algorithms": {
-          "$ref": "./event-payload.schema.json#/$defs/string_list",
+          "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array",
           "description": "Already UTF-8 bytewise sorted and deduplicated by admission."
         },
         "device_key_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "current-state.schema.json#/$defs/device_authorization_value/properties/device_key_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "authorized_by": {
           "$ref": "./event-payload.schema.json#/$defs/device_or_principal_ref"
@@ -3584,7 +4269,17 @@
             "registration_anchor",
             "pcr_recovery",
             "accepted_device"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/device_authorization_value/properties/authorization_binding_kind",
+            "owner": "current-state.schema.json#/$defs/device_authorization_value/properties/authorization_binding_kind",
+            "values": [
+              "registration_anchor",
+              "pcr_recovery",
+              "accepted_device"
+            ]
+          }
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
@@ -3597,7 +4292,7 @@
           "$ref": "./event-payload.schema.json#/$defs/nullable_timestamp"
         },
         "scopes": {
-          "$ref": "./event-payload.schema.json#/$defs/string_list"
+          "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array"
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -3619,7 +4314,7 @@
       },
       "additionalProperties": false
     },
-    "device_authorization_result": {
+    "current_device_authorization": {
       "type": "object",
       "description": "Current authorization of one device inside its principal control Realm (family device_authorization). The selector is the device_id alone: the PCR already fixes the account, so an account_id selector component would be a second truth. zh/crypto-media/device-lifecycle.md section 5.5.1 is authoritative.",
       "required": [
@@ -3637,7 +4332,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device_authorization"
+              "const": "device_authorization",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_device_authorization/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_device_authorization/properties/selector/properties/kind",
+                "values": [
+                  "device_authorization"
+                ]
+              }
             },
             "device_id": {
               "$ref": "./event-payload.schema.json#/$defs/device_id"
@@ -3655,11 +4358,12 @@
           "$ref": "#/$defs/device_authorization_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "device_generation_value": {
       "type": "object",
-      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
+      "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
       "required": [
         "current_device_generation_ref"
       ],
@@ -3671,7 +4375,7 @@
       },
       "additionalProperties": false
     },
-    "device_generation_result": {
+    "current_device_generation": {
       "type": "object",
       "description": "Singleton PCR-local device generation fence (family device_generation). The selector carries no component beyond its kind: one principal control Realm has exactly one generation. Both writers are registered Event kinds, which is why this family has no genesis-only initializer -- the registration_anchor branch of ak.device.authorize IS the pcr_genesis_unit's second member.",
       "required": [
@@ -3688,7 +4392,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device_generation"
+              "const": "device_generation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_device_generation/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_device_generation/properties/selector/properties/kind",
+                "values": [
+                  "device_generation"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -3703,7 +4415,8 @@
           "$ref": "#/$defs/device_generation_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "device_revocation_proposal_entry": {
       "type": "object",
@@ -3739,9 +4452,9 @@
       },
       "additionalProperties": false
     },
-    "device_revocation_proposals_result": {
+    "current_device_revocation_proposals": {
       "type": "object",
-      "description": "Accepted revocation proposals against one device (family device_revocation_proposals), keyed by device_id inside its principal control Realm. ak.schema.device_revocation_state.v1 in device-revocation-state.schema.json is the READ-SIDE fold of this set, not its write shape: its target_device_authorize_event_id and target_device_generation_ref come from joining the device_authorization result of the same device_id, accepted_at / acceptance_seq from the accepting transaction, and committed_at / denied_actions from the covering command result. That is why a producer never self-reports a derived pending selector.",
+      "description": "Accepted revocation proposals against one device (family device_revocation_proposals), keyed by device_id inside its principal control Realm. ak.schema.device_revocation_state.v1 in device-revocation-state.schema.json is the READ-SIDE fold of this set, not its write shape: its target_device_authorize_event_id and target_device_generation_ref come from joining the device_authorization result of the same device_id, accepted_at / acceptance_sequence from the accepting transaction, and committed_at / denied_actions from the covering command result. That is why a producer never self-reports a derived pending selector.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -3757,7 +4470,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "device_revocation_proposals"
+              "const": "device_revocation_proposals",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_device_revocation_proposals/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_device_revocation_proposals/properties/selector/properties/kind",
+                "values": [
+                  "device_revocation_proposals"
+                ]
+              }
             },
             "device_id": {
               "$ref": "./event-payload.schema.json#/$defs/device_id"
@@ -3775,9 +4496,10 @@
           "$ref": "#/$defs/device_revocation_proposals_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "circle_result": {
+    "current_circle": {
       "type": "object",
       "description": "Registered projection of one Circle object (zh/models/circle.md). ak.circle.create writes the whole object and the dedicated ak.circle.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
@@ -3795,7 +4517,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle"
+              "const": "circle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_circle/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_circle/properties/selector/properties/kind",
+                "values": [
+                  "circle"
+                ]
+              }
             },
             "circle_id": {
               "type": "string",
@@ -3814,9 +4544,10 @@
           "$ref": "./circle.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "morph_result": {
+    "current_morph": {
       "type": "object",
       "description": "Registered projection of one Morph object (zh/models/morph.md). ak.morph.create writes the whole object and the dedicated ak.morph.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
@@ -3834,7 +4565,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "morph"
+              "const": "morph",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_morph/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_morph/properties/selector/properties/kind",
+                "values": [
+                  "morph"
+                ]
+              }
             },
             "morph_id": {
               "type": "string",
@@ -3853,9 +4592,10 @@
           "$ref": "./morph.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "relation_result": {
+    "current_relation": {
       "type": "object",
       "description": "The single Relation current value for one registered primary conflict domain (zh/models/relation.md section 6). Realm comes from the accepted Event envelope. The value retains its event-derived RelationId and immutable domain identity; create/update/tombstone all address this same subject and use exact revision CAS.",
       "required": [
@@ -3873,7 +4613,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "relation"
+              "const": "relation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_relation/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_relation/properties/selector/properties/kind",
+                "values": [
+                  "relation"
+                ]
+              }
             },
             "primary_conflict_domain": {
               "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
@@ -3891,9 +4639,10 @@
           "$ref": "./relation.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "space_result": {
+    "current_space": {
       "type": "object",
       "description": "Registered projection of one Space object (zh/models/realm-and-space.md). ak.space.create writes the whole object and the dedicated ak.space.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
@@ -3911,7 +4660,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "space"
+              "const": "space",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_space/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_space/properties/selector/properties/kind",
+                "values": [
+                  "space"
+                ]
+              }
             },
             "space_id": {
               "type": "string",
@@ -3930,11 +4687,12 @@
           "$ref": "./space.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_archive_value": {
       "type": "object",
-      "description": "Closed value of the realm_archive typed current result. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_archive_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
+      "description": "Closed value of the realm_archive current state. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_archive_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
       "required": [
         "archived"
       ],
@@ -3946,7 +4704,7 @@
       },
       "additionalProperties": false
     },
-    "realm_archive_result": {
+    "current_realm_archive": {
       "type": "object",
       "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
       "required": [
@@ -3963,7 +4721,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_archive"
+              "const": "realm_archive",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_archive/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_archive/properties/selector/properties/kind",
+                "values": [
+                  "realm_archive"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -3978,11 +4744,12 @@
           "$ref": "#/$defs/realm_archive_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_freeze_value": {
       "type": "object",
-      "description": "Closed value of the realm_freeze typed current result. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_freeze_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
+      "description": "Closed value of the realm_freeze current state. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_freeze_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
       "required": [
         "frozen"
       ],
@@ -3994,7 +4761,7 @@
       },
       "additionalProperties": false
     },
-    "realm_freeze_result": {
+    "current_realm_freeze": {
       "type": "object",
       "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
       "required": [
@@ -4011,7 +4778,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_freeze"
+              "const": "realm_freeze",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_freeze/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_freeze/properties/selector/properties/kind",
+                "values": [
+                  "realm_freeze"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -4026,11 +4801,12 @@
           "$ref": "#/$defs/realm_freeze_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "actor_profile_result": {
+    "current_actor_profile": {
       "type": "object",
-      "description": "Registered projection of one global Actor Profile (zh/discovery/profiles-presence.md section 2.3). ak.profile.create and ak.profile.update write ONE family: section 2.3 is normative that the two kinds share a typed current result, and it used to name it profile_create:<target_actor_profile_id> -- a create-only spelling for a value the update kind also writes, and a third spelling beside the registry's and the owning report's. The one registered name is actor_profile. create derives the subject from its own event_id; update names it in payload.target_ref.",
+      "description": "Registered projection of one global Actor Profile (zh/discovery/profiles-presence.md section 2.3). ak.profile.create and ak.profile.update write ONE family: section 2.3 is normative that the two kinds share a current state, and it used to name it profile_create:<target_actor_profile_id> -- a create-only spelling for a value the update kind also writes, and a third spelling beside the registry's and the owning report's. The one registered name is actor_profile. create derives the subject from its own event_id; update names it in payload.target_ref.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -4046,7 +4822,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "actor_profile"
+              "const": "actor_profile",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_actor_profile/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_actor_profile/properties/selector/properties/kind",
+                "values": [
+                  "actor_profile"
+                ]
+              }
             },
             "actor_profile_id": {
               "type": "string",
@@ -4065,7 +4849,8 @@
           "$ref": "./actor-profile.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "circle_member_state_value": {
       "type": "object",
@@ -4091,7 +4876,15 @@
           "if": {
             "properties": {
               "membership": {
-                "const": "join"
+                "const": "join",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "current-state.schema.json#/$defs/circle_member_state_value/allOf/0/if/properties/membership",
+                  "owner": "current-state.schema.json#/$defs/circle_member_state_value/allOf/0/if/properties/membership",
+                  "values": [
+                    "join"
+                  ]
+                }
               }
             },
             "required": [
@@ -4113,7 +4906,7 @@
         }
       ]
     },
-    "circle_member_state_result": {
+    "current_circle_member_state": {
       "type": "object",
       "required": [
         "selector",
@@ -4131,7 +4924,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle_member_state"
+              "const": "circle_member_state",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_circle_member_state/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_circle_member_state/properties/selector/properties/kind",
+                "values": [
+                  "circle_member_state"
+                ]
+              }
             },
             "circle_id": {
               "$ref": "./common-ids.schema.json#/$defs/circle_id"
@@ -4152,9 +4953,10 @@
           "$ref": "#/$defs/circle_member_state_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "realm_search_policy_result": {
+    "current_realm_search_policy": {
       "type": "object",
       "required": [
         "selector",
@@ -4170,7 +4972,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_search_policy"
+              "const": "realm_search_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_search_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_search_policy/properties/selector/properties/kind",
+                "values": [
+                  "realm_search_policy"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -4185,9 +4995,10 @@
           "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "rsvp_result": {
+    "current_rsvp": {
       "type": "object",
       "required": [
         "selector",
@@ -4206,7 +5017,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "rsvp"
+              "const": "rsvp",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_rsvp/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_rsvp/properties/selector/properties/kind",
+                "values": [
+                  "rsvp"
+                ]
+              }
             },
             "event_ref": {
               "$ref": "./event-payload.schema.json#/$defs/strand_id"
@@ -4230,9 +5049,10 @@
           "$ref": "./event-payload.schema.json#/$defs/rsvp_entry"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "schema_definition_result": {
+    "current_schema_definition": {
       "type": "object",
       "required": [
         "selector",
@@ -4249,7 +5069,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "schema_definition"
+              "const": "schema_definition",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_schema_definition/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_schema_definition/properties/selector/properties/kind",
+                "values": [
+                  "schema_definition"
+                ]
+              }
             },
             "schema_id": {
               "type": "string",
@@ -4268,9 +5096,10 @@
           "$ref": "./event-payload.schema.json#/$defs/schema_define_state_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "sidecar_context_result": {
+    "current_sidecar_context": {
       "type": "object",
       "required": [
         "selector",
@@ -4288,7 +5117,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "sidecar_context"
+              "const": "sidecar_context",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_sidecar_context/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_sidecar_context/properties/selector/properties/kind",
+                "values": [
+                  "sidecar_context"
+                ]
+              }
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
@@ -4309,9 +5146,10 @@
           "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
-    "sidecar_result": {
+    "current_sidecar": {
       "type": "object",
       "required": [
         "selector",
@@ -4328,7 +5166,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "sidecar"
+              "const": "sidecar",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_sidecar/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_sidecar/properties/selector/properties/kind",
+                "values": [
+                  "sidecar"
+                ]
+              }
             },
             "sidecar_id": {
               "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
@@ -4346,7 +5192,8 @@
           "$ref": "./agent-sidecar.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "strand_watch_value": {
       "oneOf": [
@@ -4366,7 +5213,18 @@
                 "participating",
                 "all",
                 "muted"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/strand_watch_value/oneOf/1/properties/level",
+                "owner": "current-state.schema.json#/$defs/strand_watch_value/oneOf/1/properties/level",
+                "values": [
+                  "mentions_only",
+                  "participating",
+                  "all",
+                  "muted"
+                ]
+              }
             },
             "level_public": {
               "type": "boolean"
@@ -4376,7 +5234,7 @@
         }
       ]
     },
-    "strand_watch_result": {
+    "current_strand_watch": {
       "type": "object",
       "required": [
         "selector",
@@ -4394,7 +5252,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "strand_watch"
+              "const": "strand_watch",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_strand_watch/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_strand_watch/properties/selector/properties/kind",
+                "values": [
+                  "strand_watch"
+                ]
+              }
             },
             "strand_id": {
               "$ref": "./event-payload.schema.json#/$defs/strand_id"
@@ -4415,7 +5281,8 @@
           "$ref": "#/$defs/strand_watch_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "agent_interaction_value": {
       "type": "object",
@@ -4432,12 +5299,21 @@
           "enum": [
             "private",
             "public"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/agent_interaction_value/properties/interaction_mode",
+            "owner": "current-state.schema.json#/$defs/agent_interaction_value/properties/interaction_mode",
+            "values": [
+              "private",
+              "public"
+            ]
+          }
         }
       },
       "additionalProperties": false
     },
-    "agent_interaction_result": {
+    "current_agent_interaction": {
       "type": "object",
       "required": [
         "selector",
@@ -4454,7 +5330,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent_interaction"
+              "const": "agent_interaction",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_agent_interaction/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_agent_interaction/properties/selector/properties/kind",
+                "values": [
+                  "agent_interaction"
+                ]
+              }
             },
             "agent_account_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -4472,7 +5356,8 @@
           "$ref": "#/$defs/agent_interaction_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "calendar_metadata_context": {
       "type": "object",
@@ -4490,7 +5375,16 @@
           "enum": [
             "ak.strand.create",
             "ak.strand.update"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "current-state.schema.json#/$defs/calendar_metadata_context/properties/event_kind",
+            "owner": "current-state.schema.json#/$defs/calendar_metadata_context/properties/event_kind",
+            "values": [
+              "ak.strand.create",
+              "ak.strand.update"
+            ]
+          }
         },
         "signer_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -4539,7 +5433,7 @@
       },
       "additionalProperties": false
     },
-    "calendar_schedule_source_result": {
+    "current_calendar_schedule_source": {
       "type": "object",
       "required": [
         "selector",
@@ -4556,7 +5450,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "calendar_schedule_source"
+              "const": "calendar_schedule_source",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_calendar_schedule_source/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_calendar_schedule_source/properties/selector/properties/kind",
+                "values": [
+                  "calendar_schedule_source"
+                ]
+              }
             },
             "strand_id": {
               "type": "string",
@@ -4575,7 +5477,8 @@
           "$ref": "#/$defs/calendar_schedule_source_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "call_roster_value": {
       "type": "object",
@@ -4735,18 +5638,19 @@
     "call_participant_signing_key": {
       "type": "object",
       "required": [
-        "public_key_b64u"
+        "public_key_base64url"
       ],
       "properties": {
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$"
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false,
       "description": "Exact Ed25519 key for this entry participant_binding issuer_kid at its join source_commit.committed_at. Native issuer authority is independently verified by the consuming Account Station; the ordinary client checks the original binding signature with these Snapshot-bound bytes. No identity mirror, current grant, Event producer key or portable proof."
     },
-    "scope_read_receipt_policy_result": {
+    "current_scope_read_receipt_policy": {
       "type": "object",
       "description": "One independently configured Realm/Circle scope policy. Selector scope_ref and source_stream_ref must identify the same scope; no inheritance, override or broader Realm disclosure.",
       "required": [
@@ -4764,7 +5668,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "scope_read_receipt_policy"
+              "const": "scope_read_receipt_policy",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_scope_read_receipt_policy/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_scope_read_receipt_policy/properties/selector/properties/kind",
+                "values": [
+                  "scope_read_receipt_policy"
+                ]
+              }
             },
             "scope_ref": {
               "$ref": "./event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref"
@@ -4782,7 +5694,8 @@
           "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_identity_selector": {
       "type": "object",
@@ -4792,7 +5705,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_identity"
+          "const": "realm_actor_identity",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_identity_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_identity_selector/properties/kind",
+            "values": [
+              "realm_actor_identity"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -4816,7 +5737,16 @@
           "enum": [
             "bot",
             "ghost"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_identity_value/properties/actor_role",
+            "owner": "current-state.schema.json#/$defs/realm_actor_identity_value/properties/actor_role",
+            "values": [
+              "bot",
+              "ghost"
+            ]
+          }
         },
         "creation_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -4827,7 +5757,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_identity_result": {
+    "current_realm_actor_identity": {
       "type": "object",
       "required": [
         "selector",
@@ -4849,7 +5779,8 @@
           "$ref": "#/$defs/realm_actor_identity_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_control_selector": {
       "type": "object",
@@ -4859,7 +5790,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_control"
+          "const": "realm_actor_control",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_control_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_control_selector/properties/kind",
+            "values": [
+              "realm_actor_control"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -4883,7 +5822,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_control_result": {
+    "current_realm_actor_control": {
       "type": "object",
       "required": [
         "selector",
@@ -4905,7 +5844,8 @@
           "$ref": "#/$defs/realm_actor_control_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_manager_selector": {
       "type": "object",
@@ -4915,7 +5855,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_manager"
+          "const": "realm_actor_manager",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_manager_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_manager_selector/properties/kind",
+            "values": [
+              "realm_actor_manager"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -4943,7 +5891,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_manager_result": {
+    "current_realm_actor_manager": {
       "type": "object",
       "required": [
         "selector",
@@ -4965,7 +5913,8 @@
           "$ref": "#/$defs/realm_actor_manager_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_status_selector": {
       "type": "object",
@@ -4976,7 +5925,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_status"
+          "const": "realm_actor_status",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_status_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_status_selector/properties/kind",
+            "values": [
+              "realm_actor_status"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -4985,7 +5942,16 @@
           "enum": [
             "governance",
             "owner"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_status_selector/properties/gate",
+            "owner": "current-state.schema.json#/$defs/realm_actor_status_selector/properties/gate",
+            "values": [
+              "governance",
+              "owner"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -4995,9 +5961,19 @@
         "active",
         "paused",
         "retired"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "current-state.schema.json#/$defs/realm_actor_status_value",
+        "owner": "current-state.schema.json#/$defs/realm_actor_status_value",
+        "values": [
+          "active",
+          "paused",
+          "retired"
+        ]
+      }
     },
-    "realm_actor_status_result": {
+    "current_realm_actor_status": {
       "type": "object",
       "required": [
         "selector",
@@ -5019,7 +5995,8 @@
           "$ref": "#/$defs/realm_actor_status_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_device_generation_selector": {
       "type": "object",
@@ -5029,7 +6006,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_device_generation"
+          "const": "realm_actor_device_generation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_device_generation_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_device_generation_selector/properties/kind",
+            "values": [
+              "realm_actor_device_generation"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -5039,7 +6024,7 @@
     },
     "realm_actor_device_generation_value": {
       "type": "object",
-      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
+      "description": "Closed value of the device_generation current state: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
       "required": [
         "current_device_generation_ref"
       ],
@@ -5051,7 +6036,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_device_generation_result": {
+    "current_realm_actor_device_generation": {
       "type": "object",
       "required": [
         "selector",
@@ -5073,7 +6058,8 @@
           "$ref": "#/$defs/realm_actor_device_generation_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_device_authorization_selector": {
       "type": "object",
@@ -5084,7 +6070,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_device_authorization"
+          "const": "realm_actor_device_authorization",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_device_authorization_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_device_authorization_selector/properties/kind",
+            "values": [
+              "realm_actor_device_authorization"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -5122,17 +6116,33 @@
           "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
         },
         "algorithms": {
-          "$ref": "./event-payload.schema.json#/$defs/string_list",
+          "$ref": "./applet-package.schema.json#/$defs/non_empty_string_array",
           "description": "Already UTF-8 bytewise sorted and deduplicated by admission."
         },
         "device_key_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "current-state.schema.json#/$defs/realm_actor_device_authorization_value/properties/device_key_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "authorized_by": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "authorization_binding_kind": {
-          "const": "realm_managed_delegation"
+          "const": "realm_managed_delegation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_device_authorization_value/properties/authorization_binding_kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_device_authorization_value/properties/authorization_binding_kind",
+            "values": [
+              "realm_managed_delegation"
+            ]
+          }
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
@@ -5159,7 +6169,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_device_authorization_result": {
+    "current_realm_actor_device_authorization": {
       "type": "object",
       "required": [
         "selector",
@@ -5181,7 +6191,8 @@
           "$ref": "#/$defs/realm_actor_device_authorization_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_device_revocation_proposals_selector": {
       "type": "object",
@@ -5192,7 +6203,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_device_revocation_proposals"
+          "const": "realm_actor_device_revocation_proposals",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_device_revocation_proposals_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_device_revocation_proposals_selector/properties/kind",
+            "values": [
+              "realm_actor_device_revocation_proposals"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -5204,9 +6223,9 @@
       "additionalProperties": false
     },
     "realm_actor_device_revocation_proposals_value": {
-      "$ref": "./typed-current-result.schema.json#/$defs/device_revocation_proposals_value"
+      "$ref": "./current-state.schema.json#/$defs/device_revocation_proposals_value"
     },
-    "realm_actor_device_revocation_proposals_result": {
+    "current_realm_actor_device_revocation_proposals": {
       "type": "object",
       "required": [
         "selector",
@@ -5228,7 +6247,8 @@
           "$ref": "#/$defs/realm_actor_device_revocation_proposals_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_profile_selector": {
       "type": "object",
@@ -5238,7 +6258,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_profile"
+          "const": "realm_actor_profile",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_profile_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_profile_selector/properties/kind",
+            "values": [
+              "realm_actor_profile"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -5262,7 +6290,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_profile_result": {
+    "current_realm_actor_profile": {
       "type": "object",
       "required": [
         "selector",
@@ -5284,7 +6312,8 @@
           "$ref": "#/$defs/realm_actor_profile_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     },
     "realm_actor_recovery_value": {
       "type": "object",
@@ -5295,7 +6324,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "manager_native"
+          "const": "manager_native",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_recovery_value/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_recovery_value/properties/kind",
+            "values": [
+              "manager_native"
+            ]
+          }
         },
         "enabled": {
           "type": "boolean"
@@ -5321,7 +6358,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "realm_actor_recovery"
+          "const": "realm_actor_recovery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_recovery_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_recovery_selector/properties/kind",
+            "values": [
+              "realm_actor_recovery"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
@@ -5329,7 +6374,7 @@
       },
       "additionalProperties": false
     },
-    "realm_actor_recovery_result": {
+    "current_realm_actor_recovery": {
       "type": "object",
       "required": [
         "selector",
@@ -5351,7 +6396,8 @@
           "$ref": "#/$defs/realm_actor_recovery_value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
     }
   }
 }

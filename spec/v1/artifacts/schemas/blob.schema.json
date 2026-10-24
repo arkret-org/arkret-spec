@@ -21,14 +21,31 @@
           "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         },
         "encrypted": {
-          "const": true
+          "const": true,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "blob.schema.json#/$defs/encrypted_attachment/properties/encrypted",
+            "owner": "blob.schema.json#/$defs/encrypted_attachment/properties/encrypted",
+            "values": [
+              true
+            ]
+          }
         },
         "scheme": {
           "type": "string",
           "enum": [
             "ak.blob.whole_file_aead.v1",
             "ak.blob.stream_aead.v1"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "blob.schema.json#/$defs/encrypted_attachment/properties/scheme",
+            "owner": "blob.schema.json#/$defs/encrypted_attachment/properties/scheme",
+            "values": [
+              "ak.blob.whole_file_aead.v1",
+              "ak.blob.stream_aead.v1"
+            ]
+          }
         },
         "encryption_algorithm": {
           "type": "string",
@@ -37,7 +54,18 @@
             "mls_exporter_aead_aes_256_gcm",
             "mls_exporter_aead_xchacha20poly1305_stream",
             "mls_exporter_aead_aes_256_gcm_stream"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "blob.schema.json#/$defs/encrypted_attachment/properties/encryption_algorithm",
+            "owner": "blob.schema.json#/$defs/encrypted_attachment/properties/encryption_algorithm",
+            "values": [
+              "mls_exporter_aead_xchacha20poly1305",
+              "mls_exporter_aead_aes_256_gcm",
+              "mls_exporter_aead_xchacha20poly1305_stream",
+              "mls_exporter_aead_aes_256_gcm_stream"
+            ]
+          }
         },
         "key_ref": {
           "$comment": "Closed MLS group-binding object owned by this encrypted_attachment definition; not an opaque string.",
@@ -48,7 +76,15 @@
           ],
           "properties": {
             "algorithm": {
-              "const": "MLS"
+              "const": "MLS",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.rfc-editor.org/rfc/rfc9420.html#section-8",
+                "owner": "blob.schema.json#/$defs/encrypted_attachment/properties/key_ref/properties/algorithm",
+                "values": [
+                  "MLS"
+                ]
+              }
             },
             "group_state_ref": {
               "oneOf": [
@@ -87,13 +123,30 @@
           "$comment": "whole-file AEAD form: single nonce; blob_ref embeds the whole stored-ciphertext digest",
           "properties": {
             "scheme": {
-              "const": "ak.blob.whole_file_aead.v1"
+              "const": "ak.blob.whole_file_aead.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "blob.schema.json#/$defs/encrypted_attachment/oneOf/0/properties/scheme",
+                "owner": "blob.schema.json#/$defs/encrypted_attachment/oneOf/0/properties/scheme",
+                "values": [
+                  "ak.blob.whole_file_aead.v1"
+                ]
+              }
             },
             "encryption_algorithm": {
               "enum": [
                 "mls_exporter_aead_xchacha20poly1305",
                 "mls_exporter_aead_aes_256_gcm"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "blob.schema.json#/$defs/encrypted_attachment/oneOf/0/properties/encryption_algorithm",
+                "owner": "blob.schema.json#/$defs/encrypted_attachment/oneOf/0/properties/encryption_algorithm",
+                "values": [
+                  "mls_exporter_aead_xchacha20poly1305",
+                  "mls_exporter_aead_aes_256_gcm"
+                ]
+              }
             },
             "nonce": {
               "type": "string",
@@ -123,13 +176,30 @@
           "$comment": "streaming chunked AEAD form (STREAM / OAE2): per-segment AEAD, per-object random nonce_prefix",
           "properties": {
             "scheme": {
-              "const": "ak.blob.stream_aead.v1"
+              "const": "ak.blob.stream_aead.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/scheme",
+                "owner": "blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/scheme",
+                "values": [
+                  "ak.blob.stream_aead.v1"
+                ]
+              }
             },
             "encryption_algorithm": {
               "enum": [
                 "mls_exporter_aead_xchacha20poly1305_stream",
                 "mls_exporter_aead_aes_256_gcm_stream"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/encryption_algorithm",
+                "owner": "blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/encryption_algorithm",
+                "values": [
+                  "mls_exporter_aead_xchacha20poly1305_stream",
+                  "mls_exporter_aead_aes_256_gcm_stream"
+                ]
+              }
             },
             "nonce_prefix": {
               "type": "string",
@@ -172,7 +242,16 @@
               "enum": [
                 "ak.blob.whole_file_aead.v1",
                 "ak.blob.stream_aead.v1"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "blob.schema.json#/$defs/storage_encryption/oneOf/1/properties/scheme",
+                "owner": "blob.schema.json#/$defs/storage_encryption/oneOf/1/properties/scheme",
+                "values": [
+                  "ak.blob.whole_file_aead.v1",
+                  "ak.blob.stream_aead.v1"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -223,7 +302,15 @@
       "then": {
         "properties": {
           "media_type": {
-            "const": "application/octet-stream"
+            "const": "application/octet-stream",
+            "x-arkret-value-ownership": {
+              "class": "media_type",
+              "authority": "blob.schema.json#/allOf/2/then/properties/media_type",
+              "owner": "blob.schema.json#/allOf/2/then/properties/media_type",
+              "values": [
+                "application/octet-stream"
+              ]
+            }
           }
         }
       }
@@ -234,7 +321,15 @@
       "$ref": "./common-ids.schema.json#/$defs/blob_id"
     },
     "schema": {
-      "const": "ak.schema.blob.v1"
+      "const": "ak.schema.blob.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "blob.schema.json#/properties/schema",
+        "owner": "blob.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.blob.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",

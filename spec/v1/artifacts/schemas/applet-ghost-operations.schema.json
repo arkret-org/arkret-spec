@@ -8,15 +8,16 @@
       "$ref": "#/$defs/ghost_preview_request_body"
     },
     {
-      "$ref": "#/$defs/ghost_preview_outcome"
+      "$ref": "#/$defs/ghost_preview_response_body"
     }
   ],
   "$defs": {
     "ghost_preview_request_body": {
       "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_request_body"
     },
-    "ghost_preview_outcome": {
-      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_outcome"
+    "ghost_preview_response_body": {
+      "$ref": "./applet-install-authoring.schema.json#/$defs/ghost_preview_response_body",
+      "x-arkret-name-role": "response_body"
     },
     "existing_managed_actor": {
       "type": "object",

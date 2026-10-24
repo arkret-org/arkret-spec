@@ -67,7 +67,7 @@ key；`verification_method` 必须属于该 exact service identity。验证方�
 - `commit_id` 是去掉 signature 后 closed body 的 content-addressed typed ID；
 - signature 只能由 `governance_generation` 对应的治理 Station service key 产生。
 
-`governance_generation` 是**治理 Station 任期代次**，只由已接受的 `ak.realm.governance_station.change` 递增，其 `payload.expected_governance_generation` 就是对该计数器的 CAS。它与 authority-root typed current result 的 `authority_generation`（授权委派代次，只由 `ak.realm.authority.reset` 递增）是两个不同的计数器，MUST NOT 互相替代；一次 planned handoff 不改变任何 grant 的有效性。
+`governance_generation` 是**治理 Station 任期代次**，只由已接受的 `ak.realm.governance_station.change` 递增，其 `payload.expected_governance_generation` 就是对该计数器的 CAS。它与 authority-root current state 的 `authority_generation`（授权委派代次，只由 `ak.realm.authority.reset` 递增）是两个不同的计数器，MUST NOT 互相替代；一次 planned handoff 不改变任何 grant 的有效性。
 
 同一 governing Station 对多个 Realm 执行 [`../governance/join-policy.md` §4](../governance/join-policy.md) 的
 `parent_membership` gate 时，接纳事务必须按 RealmId canonical bytes 排序锁定每个 Realm 的 current authority tenure
@@ -103,9 +103,9 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 ## 5. Typed reducer 与并发
 
-共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 typed current result key、通用 CRDT、deterministic projection、rank、dot、通用 predicate 或 state-root DSL。
+共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 current state key、通用 CRDT、deterministic projection、rank、dot、通用 predicate 或 state-root DSL。
 
-默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义 `expected_revision`，其类型是 [`current-results.md`](./current-results.md) 的封闭 `revision`，即 `{commit_id, stream_position}` 二元组，比较是**逐字段相等**；它不是裸 Commit ID，也不是计数器。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
+默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义 `expected_revision`，其类型是 [`current-state.md`](./current-state.md) 的封闭 `revision`，即 `{commit_id, stream_position}` 二元组，比较是**逐字段相等**；它不是裸 Commit ID，也不是计数器。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
 
 跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
@@ -200,8 +200,8 @@ current governor 在一个事务 cut 中检查完整 auditor 的当前父 Realm 
 `ak.circle.audit`。后一情形仅为本 command 的 `watch_audit_read` audit Event 提供记录这次获授权读取的受控接纳例外；
 不授予普通 Circle Event 写入、membership、内容历史或 MLS key。普通 Event 提交／projection 不得复用此例外。
 授权、scope、完整性或 audit 接纳失败时不写 audit、不释放值。成功在同事务接纳一条 audit、签一个 RealmCommit，
-并耐久冻结该 exact Watch observation 与 canonical self request 绑定；事务提交后才释放 `watch_audit_read_outcome`。
-其 `audit_commit` 逐字绑定请求 Event；`current` 复用 `StrandWatchCurrentOutcome`，保留 never_written 与 current:null，
+并耐久冻结该 exact Watch observation 与 canonical self request 绑定；事务提交后才释放 `watch_audit_read_response_body`。
+其 `audit_commit` 逐字绑定请求 Event；`current` 复用 `StrandWatchCurrentResponseBody`，保留 never_written 与 current:null，
 其 Realm／selector／generation 正确且 `stream_head` 恰为该 audit Commit 的同 stream coordinate。
 
 完整 canonical self request 与唯一 audit Event ID 是一次读取的耐久 fence。第一次只接纳一次；exact retry 只能返回原冻结结果，
@@ -240,7 +240,7 @@ peer 以 S2S signature、完整 auditor Account Station 和新鲜 actual-produce
 
 ## 7. Snapshot 与 join bootstrap
 
-Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.json` 对象：内联 `current_state_entries[]` 是可见范围内的 typed current result rows，并与 `governance_generation`、调用方获准的全部 `visible_stream_heads[]`、`retention_and_history_floor` 取自同一 durable cut。它不含另一个 `sections`／`chunk_digests` wire 层、独立 typed-current chunk/tree、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。签名确认当前治理方对这份 materialization 负责；它不证明隐藏 stream 不存在，也不构成独立 omission proof。
+Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.json` 对象：内联 `current_state_entries[]` 是可见范围内的 current state rows，并与 `governance_generation`、调用方获准的全部 `visible_stream_heads[]`、`retention_and_history_floor` 取自同一 durable cut。它不含另一个 `sections`／`chunk_digests` wire 层、独立 typed-current chunk/tree、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。签名确认当前治理方对这份 materialization 负责；它不证明隐藏 stream 不存在，也不构成独立 omission proof。
 
 加入流程必须为：
 
@@ -347,13 +347,13 @@ Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，�
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 
-计划handoff MUST 同冻结cut迁移全部原digest-bearing Commit/fact及原既有合法private audit。现RealmAuthorityHandoff在final_stream_heads_digest后携historical_signer_facts_digest，现handoff_request在原四字段后携historical_signer_facts；newhandoff即使无facts亦携空数组及其digest。inventory是完整 {target,producer_signer_fact}，按stream_ref JCS UTF8、numeric stream_position、event_id UTF8、commit_id UTF8排序；digest为SHA256(JCS数组)。target只能由原已accepted Commit配出，逐项核Commitfactdigest。new governor MUST 在冻结 cut 下将已导入原件中全部 digest-bearing Full Commit 的 exact target 集合与 inventory entry target 集合作相等比较：没有重复、缺项或额外项，逐项签名不能代替全集核验。交接治理授权负责迁移所有 stream 的冻结原件（含依法迁移的隐藏 stream/private audit），MUST NOT 以普通成员 readable floor 裁剪此全集；普通 peer Full 披露仍受原成员可见性与 floor 门约束，不能借交接权限扩大普通查询。原非流请求预算不扩，超过既有预算返回 limit_exceeded，禁止 partial 导入后启动。禁止从snapshot current补历史，漏项/冲突/digest错零导入，完成原chain/原件/facts原子导入前不得签new acceptance或启动authority。
+计划handoff MUST 同冻结cut迁移全部原digest-bearing Commit/fact及原既有合法private audit。现RealmAuthorityHandoff在final_stream_heads_digest后携historical_signer_facts_digest，现realm_authority_handoff_request_body在原四字段后携historical_signer_facts；newhandoff即使无facts亦携空数组及其digest。inventory是完整 {target,producer_signer_fact}，按stream_ref JCS UTF8、numeric stream_position、event_id UTF8、commit_id UTF8排序；digest为SHA256(JCS数组)。target只能由原已accepted Commit配出，逐项核Commitfactdigest。new governor MUST 在冻结 cut 下将已导入原件中全部 digest-bearing Full Commit 的 exact target 集合与 inventory entry target 集合作相等比较：没有重复、缺项或额外项，逐项签名不能代替全集核验。交接治理授权负责迁移所有 stream 的冻结原件（含依法迁移的隐藏 stream/private audit），MUST NOT 以普通成员 readable floor 裁剪此全集；普通 peer Full 披露仍受原成员可见性与 floor 门约束，不能借交接权限扩大普通查询。原非流请求预算不扩，超过既有预算返回 limit_exceeded，禁止 partial 导入后启动。禁止从snapshot current补历史，漏项/冲突/digest错零导入，完成原chain/原件/facts原子导入前不得签new acceptance或启动authority。
 
 old/new handoff unsigned projection仍仅删两signature，保留handoff_id及所有实际字段，新增inventorydigest由两个原context覆盖。旧无digesthandoff只可exact 旧已签原件解码，不能迁移或宣称已闭合新digest-bearing历史。旧没有完整source/digest的Commit保持旧原字节与Unavailable，不重签后冒原记录。正式切换须将全部原件签名/ID消费者同批同步，未支持新成员的消费者failclosed。
 
 本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。
 
-普通成员获准读取 exact Applet Service Event 后，self signer query 的 `historical_event` / `service` selector MUST 只披露该原件在接纳时冻结的 ServiceHistoricalSigningKey 和原 Commit committed_at。该 key 按 public_key_b64u、applet_id、registration_epoch、registration_ref、authorization_ref、effective_scope 顺序闭合；后两引用分别为原 accepted registration 与原 installation capability grant 创建事件的完整 committed coordinate，effective_scope 为该 Event 的已核安装 scope。历史 target 必须由该可读原 Event/Commit 构造；查询不可借这些引用读取隐藏原件。current Service selector 禁止。缺材料、错 target、错 scope、非 Service actor、未获准读取均只返回 unavailable，不得用 current DID key 或 runtime completion 补出历史答案。
+普通成员获准读取 exact Applet Service Event 后，self signer query 的 `historical_event` / `service` selector MUST 只披露该原件在接纳时冻结的 ServiceHistoricalSigningKey 和原 Commit committed_at。该 key 按 public_key_base64url、applet_id、registration_epoch、registration_ref、authorization_ref、effective_scope 顺序闭合；后两引用分别为原 accepted registration 与原 installation capability grant 创建事件的完整 committed coordinate，effective_scope 为该 Event 的已核安装 scope。历史 target 必须由该可读原 Event/Commit 构造；查询不可借这些引用读取隐藏原件。current Service selector 禁止。缺材料、错 target、错 scope、非 Service actor、未获准读取均只返回 unavailable，不得用 current DID key 或 runtime completion 补出历史答案。
 
 治理 Station MUST 在接受事务同一 authority/registration/installation/grant 锁定截点重核原 Service DID epoch、原 producer Ed25519 proof、method、grant 约束及 scope，并逐字比较签 Commit 前准备的最小 fact。Service fact 依次含 event_id、actor（actual_signer 的完整 Service actor）、verification_method、key、accepted_at；accepted_at 是原目标 Commit 的 committed_at，fact 内不得含目标 Commit 坐标，以免摘要循环。原 Commit 摘要、fact 与 canonical Event 同事务冻结。peer replication、peer scan 与 planned handoff 的原 producer_signer_fact/inventory 使用 Account Device/Service 闭合联合，逐项核原治理签名、原 fact digest 与原 producer proof，复制原字节，不重新按当前 key/安装状态授权。普通 Applet 创建、问责记录仍保原读取权限；最小公钥投影不包含 private runtime fixed set、私钥、控制 Realm 历史或私有 Profile 内容。
 

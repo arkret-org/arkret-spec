@@ -16,7 +16,7 @@
     "ak.vector.calendar.attendee_roster.v1",
     "ak.vector.calendar.rsvp_privacy.v1"
   ],
-  "version": "2026-09-20",
+  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#1-模型与激活",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",
@@ -676,7 +676,7 @@
             "version": "1.0",
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "encryption_context": {
-              "epoch": 7,
+              "epoch": "7",
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
             "ciphertext": "rsvpAlpha"
@@ -724,7 +724,7 @@
             "version": "1.0",
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "encryption_context": {
-              "epoch": 7,
+              "epoch": "7",
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
             "ciphertext": "rsvpAlpha"
@@ -1080,7 +1080,7 @@
             "version": "1.0",
             "content_type": "application/json",
             "encryption_context": {
-              "epoch": 7,
+              "epoch": "7",
               "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
             },
             "ciphertext": "rsvpAlpha"
@@ -1222,7 +1222,7 @@
     {
       "name": "rsvp_reducer_projection_value_must_equal_payload_entry",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares result_projection set(payload.entry), and the submitted Event contains only kind plus its typed payload rather than producer-selected writes",
+      "precondition": "registry declares state_projection set(payload.entry), and the submitted Event contains only kind plus its typed payload rather than producer-selected writes",
       "action": "mutate the reducer implementation so the projected set value differs from payload.entry",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
@@ -1230,23 +1230,23 @@
     {
       "name": "rsvp_reducer_projection_missing_write_rejected",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares exactly one typed current result write for ak.rsvp.set",
-      "action": "mutate the reducer implementation so it omits the registered RSVP typed current result write",
+      "precondition": "registry declares exactly one current state write for ak.rsvp.set",
+      "action": "mutate the reducer implementation so it omits the registered RSVP current state write",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
     },
     {
       "name": "rsvp_reducer_projection_extra_target_rejected",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares exactly one RSVP typed current result target for ak.rsvp.set",
-      "action": "mutate the reducer implementation so it also projects an unregistered typed current result write",
+      "precondition": "registry declares exactly one RSVP current state target for ak.rsvp.set",
+      "action": "mutate the reducer implementation so it also projects an unregistered current state write",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
     },
     {
       "name": "rsvp_effective_projection_instance_overrides_series",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
-      "precondition": "same responder has a series-typed current result winner and an instance-typed current result winner for the same occurrence",
+      "precondition": "same responder has a series-current state winner and an instance-current state winner for the same occurrence",
       "action": "compute the effective response",
       "semantic_outcome": "accept",
       "expected_projection": "the instance winner is used; the series winner is only a fallback and the two typed results are never unioned"
@@ -1255,7 +1255,7 @@
       "name": "rsvp_effective_projection_causal_successor_dominates",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
       "precondition": "the same responder rewrites an earlier RSVP while observing it",
-      "action": "join the current-value projection typed current result in either arrival order",
+      "action": "join the current-value projection current state in either arrival order",
       "semantic_outcome": "accept",
       "expected_projection": "the causal successor is the unique winner and the result is independent of arrival order, HLC and created_at"
     },
@@ -1397,7 +1397,7 @@
       "action": "submit ak.rsvp.set",
       "semantic_outcome": "reject",
       "expected_reason_code": "rsvp_occurrence_not_canonical",
-      "expected_projection": "the receiver parses and validates the signed date component during shape admission; it MUST NOT create a typed current result address for a nonexistent date or defer the check until schedule decryption"
+      "expected_projection": "the receiver parses and validates the signed date component during shape admission; it MUST NOT create a current state address for a nonexistent date or defer the check until schedule decryption"
     },
     {
       "name": "rsvp_privacy_plaintext_branch_requires_dual_authorization",

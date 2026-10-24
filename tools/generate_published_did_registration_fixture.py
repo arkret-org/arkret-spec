@@ -129,7 +129,7 @@ def build():
     for name, value, valid in [('external_validation', complete_external, True), ('new_registry_acceptance', complete_new, True), ('mixed_time_roles', dict(complete_external, accepted_at=complete_new['accepted_at']), False)]:
         case(name, 'registration-did-evidence.schema.json#/$defs/accepted_registration_did_evidence', value, valid)
     return {
-        'version': 1, 'suite': 'published_did_registration', 'fixture_kind': 'schema_only',
+        'version': 2, 'suite': 'published_did_registration', 'fixture_kind': 'schema_only',
         'generated_by': 'tools/generate_published_did_registration_fixture.py',
         'covers_vectors': ['ak.vector.identity.published_did_registration.v1'],
         'runner': {'kind': 'json_schema_and_semantic_cases', 'command': 'python -B -m unittest tools.test_published_did_registration_contract'},

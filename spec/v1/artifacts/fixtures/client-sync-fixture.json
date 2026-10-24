@@ -1,6 +1,6 @@
 {
   "suite": "client_sync",
-  "version": "2026-10-10.2",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sync.client_account_stream.v1"
@@ -118,7 +118,7 @@
         },
         {
           "step": 1,
-          "action": "install_typed_current_result",
+          "action": "install_current_state",
           "durable": true
         },
         {
@@ -144,7 +144,7 @@
         },
         {
           "step": 2,
-          "action": "install_typed_current_result",
+          "action": "install_current_state",
           "durable": true
         }
       ],
@@ -188,7 +188,7 @@
         },
         {
           "step": 1,
-          "action": "install_typed_current_result",
+          "action": "install_current_state",
           "durable": true,
           "expected_state": "one transaction installs verified Sidecar history, typed current and the verified basis for a private projection at the same authenticated stream head and generation"
         },
@@ -216,7 +216,7 @@
         },
         {
           "step": 1,
-          "action": "install_typed_current_result",
+          "action": "install_current_state",
           "durable": false,
           "expected_state": "the newer current is missing its required continuous committed tail"
         }
@@ -239,7 +239,7 @@
         },
         {
           "step": 1,
-          "action": "install_typed_current_result",
+          "action": "install_current_state",
           "durable": false,
           "expected_state": "transaction persistence fails before history, current and projection verification basis become durable"
         }

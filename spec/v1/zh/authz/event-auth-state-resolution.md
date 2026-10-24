@@ -7,7 +7,7 @@ updated: 2026-09-16
 see_also:
   - ../sync/authority-commit-log.md
   - capabilities.md
-  - ../sync/current-results.md
+  - ../sync/current-state.md
   - ../conformance/normative-language.md
 ---
 
@@ -47,7 +47,7 @@ Station 在该 stream 上给出的 `stream_position`：位置更大的已接纳�
 
 ## 7. 其他普通状态与结构
 
-Membership、policy、Strand、Message、Relation、Circle和capability由各自 typed reducer处理。wire 只暴露 producer-signed Event、RealmCommit 与登记的 typed current result。
+Membership、policy、Strand、Message、Relation、Circle和capability由各自 typed reducer处理。wire 只暴露 producer-signed Event、RealmCommit 与登记的 current state。
 
 ## 8. 安全状态与 RealmCommit
 

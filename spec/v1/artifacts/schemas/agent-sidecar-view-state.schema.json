@@ -14,7 +14,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.agent_sidecar_view_state.v1"
+      "const": "ak.schema.agent_sidecar_view_state.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-sidecar-view-state.schema.json#/properties/schema",
+        "owner": "agent-sidecar-view-state.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_sidecar_view_state.v1"
+        ]
+      }
     },
     "controller_account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id"

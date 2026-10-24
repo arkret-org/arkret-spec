@@ -19,7 +19,7 @@
     "identity_model",
     "recovery_authority_kind",
     "previous_model_generation_ref",
-    "result_model_generation_ref",
+    "new_model_generation_ref",
     "authorization_event_id",
     "reanchor_event_id",
     "proof_summary",
@@ -28,11 +28,19 @@
     "outcome",
     "started_at",
     "completed_at",
-    "auth_data"
+    "signature_proof"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.recovery_receipt.v1"
+      "const": "ak.schema.recovery_receipt.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "recovery-receipt.schema.json#/properties/schema",
+        "owner": "recovery-receipt.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.recovery_receipt.v1"
+        ]
+      }
     },
     "receipt_id": {
       "type": "string",
@@ -76,7 +84,15 @@
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "identity_model": {
-      "const": "pcr_policy"
+      "const": "pcr_policy",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-receipt.schema.json#/properties/identity_model",
+        "owner": "recovery-receipt.schema.json#/properties/identity_model",
+        "values": [
+          "pcr_policy"
+        ]
+      }
     },
     "recovery_authority_kind": {
       "type": "string",
@@ -84,14 +100,23 @@
         "pcr_policy",
         "did_root"
       ],
-      "description": "did_root is valid only when the accepted PCR policy explicitly enabled that optional factor."
+      "description": "did_root is valid only when the accepted PCR policy explicitly enabled that optional factor.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-receipt.schema.json#/properties/recovery_authority_kind",
+        "owner": "recovery-receipt.schema.json#/properties/recovery_authority_kind",
+        "values": [
+          "pcr_policy",
+          "did_root"
+        ]
+      }
     },
     "previous_model_generation_ref": {
       "type": "integer",
       "minimum": 1,
       "description": "PCR device generation snapshotted at recovery-session creation."
     },
-    "result_model_generation_ref": {
+    "new_model_generation_ref": {
       "type": "integer",
       "minimum": 2,
       "description": "Accepted monotonic PCR device generation after completion."
@@ -118,7 +143,18 @@
             "recovery_unlock",
             "device_quorum",
             "trusted_recovery_service"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-receipt.schema.json#/properties/proof_summary/properties/kind",
+            "owner": "recovery-receipt.schema.json#/properties/proof_summary/properties/kind",
+            "values": [
+              "did_root",
+              "recovery_unlock",
+              "device_quorum",
+              "trusted_recovery_service"
+            ]
+          }
         },
         "proof_digest": {
           "$ref": "#/$defs/digest",
@@ -127,7 +163,8 @@
         "quorum_participant_count": {
           "type": "integer",
           "minimum": 1,
-          "description": "Required for device_quorum; equals the number of distinct participating member devices."
+          "description": "Required for device_quorum; equals the number of distinct participating member devices.",
+          "x-arkret-member-role": "count"
         }
       },
       "additionalProperties": false
@@ -149,7 +186,15 @@
             "type": "string",
             "enum": [
               "secret_storage"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "recovery-receipt.schema.json#/properties/unlocked_backups/items/properties/backup_kind",
+              "owner": "recovery-receipt.schema.json#/properties/unlocked_backups/items/properties/backup_kind",
+              "values": [
+                "secret_storage"
+              ]
+            }
           },
           "backup_id": {
             "type": "string",
@@ -169,7 +214,8 @@
     "welcome_count": {
       "type": "integer",
       "minimum": 0,
-      "description": "Number of MLS Welcomes successfully replayed for the recovering device."
+      "description": "Number of MLS Welcomes successfully replayed for the recovering device.",
+      "x-arkret-member-role": "count"
     },
     "welcome_realm_summaries": {
       "type": "array",
@@ -189,8 +235,7 @@
             "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
           },
           "epoch": {
-            "type": "integer",
-            "minimum": 0
+            "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
           }
         },
         "additionalProperties": false
@@ -205,7 +250,20 @@
         "policy_denied",
         "evidence_insufficient",
         "service_defined"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-receipt.schema.json#/properties/outcome",
+        "owner": "recovery-receipt.schema.json#/properties/outcome",
+        "values": [
+          "completed",
+          "partial",
+          "aborted_by_user",
+          "policy_denied",
+          "evidence_insufficient",
+          "service_defined"
+        ]
+      }
     },
     "outcome_reason_code": {
       "type": "string",
@@ -218,7 +276,7 @@
       "$ref": "#/$defs/timestamp",
       "description": "Authoring time at which the replacement device signed 'complete this recovery if every check passes'. It is not proof that anything was committed. The durable, linearized commit time is the completed_at of the paired ak.schema.recovery_completion_attestation.v1, which MUST NOT be earlier than this value."
     },
-    "auth_data": {
+    "signature_proof": {
       "type": "object",
       "required": [
         "verification_method",
@@ -235,12 +293,20 @@
           "enum": [
             "Ed25519"
           ],
-          "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 14; transaction binding in zh/identity/security-transactions.md section 2). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.method signing entries.alg and MUST NOT be reused as a reason to widen this one."
+          "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 14; transaction binding in zh/identity/security-transactions.md section 2). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.method signing entries.alg and MUST NOT be reused as a reason to widen this one.",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-receipt.schema.json#/properties/signature_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url signature over UTF8('ak.identity.recovery_receipt.signature.v1\\n') followed by RFC 8785 JCS of all present top-level receipt members except auth_data. The closed receipt shape fixes the projection; absent optional members are omitted and every present optional member is authenticated."
+          "description": "base64url signature over UTF8('ak.identity.recovery_receipt.signature.v1\\n') followed by RFC 8785 JCS of all present top-level receipt members except signature_proof. The closed receipt shape fixes the projection; absent optional members are omitted and every present optional member is authenticated."
         }
       },
       "additionalProperties": false
@@ -253,7 +319,15 @@
           "proof_summary": {
             "properties": {
               "kind": {
-                "const": "device_quorum"
+                "const": "device_quorum",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-receipt.schema.json#/allOf/0/if/properties/proof_summary/properties/kind",
+                  "owner": "recovery-receipt.schema.json#/allOf/0/if/properties/proof_summary/properties/kind",
+                  "values": [
+                    "device_quorum"
+                  ]
+                }
               }
             },
             "required": [
@@ -280,7 +354,15 @@
         "properties": {
           "outcome": {
             "not": {
-              "const": "completed"
+              "const": "completed",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "recovery-receipt.schema.json#/allOf/1/if/properties/outcome/not",
+                "owner": "recovery-receipt.schema.json#/allOf/1/if/properties/outcome/not",
+                "values": [
+                  "completed"
+                ]
+              }
             }
           }
         },

@@ -10,7 +10,7 @@
     "verification_method",
     "signed_digest",
     "created_at",
-    "sig"
+    "signature"
   ],
   "properties": {
     "context": {
@@ -26,10 +26,36 @@
         "ak.realm_actor_manager_acceptance_signature.v1",
         "ak.realm_actor_material_signature.v1",
         "ak.realm_actor_recovery_acceptance_signature.v1"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "detached-object-signature.schema.json#/properties/context",
+        "owner": "detached-object-signature.schema.json#/properties/context",
+        "values": [
+          "ak.realm_commit_signature.v1",
+          "ak.realm_authority_handoff_old_signature.v1",
+          "ak.realm_authority_handoff_new_acceptance_signature.v1",
+          "ak.realm_authority_current_assertion_signature.v1",
+          "ak.realm_snapshot_signature.v1",
+          "ak.mls_welcome_delivery_signature.v1",
+          "ak.realm_actor_creation_signature.v1",
+          "ak.realm_actor_control_acceptance_signature.v1",
+          "ak.realm_actor_manager_acceptance_signature.v1",
+          "ak.realm_actor_material_signature.v1",
+          "ak.realm_actor_recovery_acceptance_signature.v1"
+        ]
+      }
     },
     "signature_algorithm": {
-      "const": "Ed25519"
+      "const": "Ed25519",
+      "x-arkret-value-ownership": {
+        "class": "external_literal",
+        "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+        "owner": "detached-object-signature.schema.json#/properties/signature_algorithm",
+        "values": [
+          "Ed25519"
+        ]
+      }
     },
     "verification_method": {
       "$ref": "./event-envelope.schema.json#/$defs/proof/properties/verification_method"
@@ -42,7 +68,7 @@
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "sig": {
+    "signature": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{86}$",
       "description": "Unpadded Base64URL encoding of an Ed25519 signature."
@@ -58,7 +84,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_commit_signature.v1"
+              "const": "ak.realm_commit_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_commit_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_commit_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_commit_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -72,7 +106,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_authority_handoff_old_signature.v1"
+              "const": "ak.realm_authority_handoff_old_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_authority_handoff_old_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_authority_handoff_old_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_authority_handoff_old_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -86,7 +128,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_authority_handoff_new_acceptance_signature.v1"
+              "const": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_authority_handoff_new_acceptance_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_authority_handoff_new_acceptance_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_authority_handoff_new_acceptance_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -100,7 +150,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_authority_current_assertion_signature.v1"
+              "const": "ak.realm_authority_current_assertion_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_authority_current_assertion_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -114,7 +172,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_snapshot_signature.v1"
+              "const": "ak.realm_snapshot_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_snapshot_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_snapshot_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_snapshot_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -128,7 +194,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.mls_welcome_delivery_signature.v1"
+              "const": "ak.mls_welcome_delivery_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.mls_welcome_delivery_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -142,7 +216,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_actor_creation_signature.v1"
+              "const": "ak.realm_actor_creation_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_actor_creation_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_actor_creation_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_actor_creation_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -156,7 +238,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_actor_control_acceptance_signature.v1"
+              "const": "ak.realm_actor_control_acceptance_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_actor_control_acceptance_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_actor_control_acceptance_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_actor_control_acceptance_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -170,7 +260,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_actor_manager_acceptance_signature.v1"
+              "const": "ak.realm_actor_manager_acceptance_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_actor_manager_acceptance_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_actor_manager_acceptance_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_actor_manager_acceptance_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -184,7 +282,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_actor_material_signature.v1"
+              "const": "ak.realm_actor_material_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_actor_material_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_actor_material_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_actor_material_signature.v1"
+                ]
+              }
             }
           }
         }
@@ -198,7 +304,15 @@
         {
           "properties": {
             "context": {
-              "const": "ak.realm_actor_recovery_acceptance_signature.v1"
+              "const": "ak.realm_actor_recovery_acceptance_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_actor_recovery_acceptance_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_actor_recovery_acceptance_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_actor_recovery_acceptance_signature.v1"
+                ]
+              }
             }
           }
         }

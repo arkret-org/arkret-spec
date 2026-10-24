@@ -24,18 +24,24 @@
         "message_id",
         "attempt",
         "stream_id",
-        "seq",
+        "sequence",
         "frame_kind"
       ],
       "properties": {
         "kind": {
-          "const": "ak.message.stream"
+          "const": "ak.message.stream",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "signal-message-stream.schema.json#/$defs/common_properties/properties/kind",
+            "owner": "signal-message-stream.schema.json#/$defs/common_properties/properties/kind",
+            "values": [
+              "ak.message.stream"
+            ]
+          }
         },
         "payload_sequence": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615,
-          "description": "Strictly increasing but non-contiguous sequence within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. It is independent of the per-stream seq and participates in generic Signal replay handling."
+          "description": "Strictly increasing but non-contiguous sequence within (sender_actor_id, sender_device_id, canonical scope_ref), including the complete ActorId. It is independent of the per-stream seq and participates in generic Signal replay handling.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
@@ -53,17 +59,25 @@
           "type": "string",
           "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "seq": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+        "sequence": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "frame_kind": {
           "enum": [
             "keyframe",
             "delta",
             "abort"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-message-stream.schema.json#/$defs/common_properties/properties/frame_kind",
+            "owner": "signal-message-stream.schema.json#/$defs/common_properties/properties/frame_kind",
+            "values": [
+              "keyframe",
+              "delta",
+              "abort"
+            ]
+          }
         }
       }
     },
@@ -93,12 +107,18 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.message.stream"
+              "const": "ak.message.stream",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/kind",
+                "owner": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/kind",
+                "values": [
+                  "ak.message.stream"
+                ]
+              }
             },
             "payload_sequence": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
@@ -115,19 +135,34 @@
               "type": "string",
               "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "seq": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
+            "sequence": {
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "frame_kind": {
-              "const": "keyframe"
+              "const": "keyframe",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/frame_kind",
+                "owner": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/frame_kind",
+                "values": [
+                  "keyframe"
+                ]
+              }
             },
             "format": {
               "enum": [
                 "plain",
                 "markdown"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/format",
+                "owner": "signal-message-stream.schema.json#/$defs/keyframe/allOf/1/properties/format",
+                "values": [
+                  "plain",
+                  "markdown"
+                ]
+              }
             },
             "text": {
               "$ref": "#/$defs/preview_text"
@@ -148,17 +183,23 @@
         {
           "type": "object",
           "required": [
-            "base_seq",
+            "base_sequence",
             "text_append"
           ],
           "properties": {
             "kind": {
-              "const": "ak.message.stream"
+              "const": "ak.message.stream",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/kind",
+                "owner": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/kind",
+                "values": [
+                  "ak.message.stream"
+                ]
+              }
             },
             "payload_sequence": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
@@ -175,18 +216,35 @@
               "type": "string",
               "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "seq": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 18446744073709551615
+            "sequence": {
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+              "not": {
+                "enum": [
+                  "0"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/sequence/not",
+                  "owner": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/sequence/not",
+                  "values": [
+                    "0"
+                  ]
+                }
+              }
             },
             "frame_kind": {
-              "const": "delta"
+              "const": "delta",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/frame_kind",
+                "owner": "signal-message-stream.schema.json#/$defs/delta/allOf/1/properties/frame_kind",
+                "values": [
+                  "delta"
+                ]
+              }
             },
-            "base_seq": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
+            "base_sequence": {
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "text_append": {
               "allOf": [
@@ -215,12 +273,18 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.message.stream"
+              "const": "ak.message.stream",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/kind",
+                "owner": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/kind",
+                "values": [
+                  "ak.message.stream"
+                ]
+              }
             },
             "payload_sequence": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 18446744073709551615
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "strand_id": {
               "$ref": "#/$defs/strand_id"
@@ -237,20 +301,49 @@
               "type": "string",
               "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "seq": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 18446744073709551615
+            "sequence": {
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+              "not": {
+                "enum": [
+                  "0"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/sequence/not",
+                  "owner": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/sequence/not",
+                  "values": [
+                    "0"
+                  ]
+                }
+              }
             },
             "frame_kind": {
-              "const": "abort"
+              "const": "abort",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/frame_kind",
+                "owner": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/frame_kind",
+                "values": [
+                  "abort"
+                ]
+              }
             },
             "reason_code": {
               "enum": [
                 "generation_cancelled",
                 "generation_failed",
                 "superseded"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/reason_code",
+                "owner": "signal-message-stream.schema.json#/$defs/abort/allOf/1/properties/reason_code",
+                "values": [
+                  "generation_cancelled",
+                  "generation_failed",
+                  "superseded"
+                ]
+              }
             }
           },
           "additionalProperties": false

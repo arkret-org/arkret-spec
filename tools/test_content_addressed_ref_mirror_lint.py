@@ -128,12 +128,12 @@ class SiblingDigestPatternGateTest(_MutatingLint):
 
     def test_digest_reached_through_ref_chain_is_caught(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["MlsGroupStateMaterialOutcome"]["properties"]["material_digest"] = {
+            schema["$defs"]["MlsGroupStateMaterialResponseBody"]["properties"]["material_digest"] = {
                 "$ref": "./principal-operations.schema.json#/$defs/digest"
             }
 
         errors = self._sibling("service-operation-dtos.schema.json", mutate)
-        self.assertTrue(any("MlsGroupStateMaterialOutcome.properties.material_digest is a bare digest" in error for error in errors), errors)
+        self.assertTrue(any("MlsGroupStateMaterialResponseBody.properties.material_digest is a bare digest" in error for error in errors), errors)
 
     def test_digest_without_any_content_addressed_sibling_is_not_a_candidate(self) -> None:
         def mutate(schema) -> None:

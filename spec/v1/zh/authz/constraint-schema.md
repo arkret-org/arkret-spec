@@ -19,7 +19,7 @@ updated: 2026-10-18
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **state-changing Event precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，也不携带任何 caller 自述的授权状态；其数据面约束由注册的 `refs`、领域 payload 的 `expected_revision` 与 deterministic projection 规则表达，授权依据由当前治理 Station 在接纳事务内从已提交 typed state 解析。
+- **state-changing Event precondition** 只表达 current state 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，也不携带任何 caller 自述的授权状态；其数据面约束由注册的 `refs`、领域 payload 的 `expected_revision` 与 deterministic projection 规则表达，授权依据由当前治理 Station 在接纳事务内从已提交 typed state 解析。
 - **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / Event / state-changing Event canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
@@ -68,8 +68,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
 | `authority_control` | — | core | 再授权深度、路径、`authority_scope` 等。 | core |
 | `authority_control` | `applet_authority` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
-| `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
-| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
+| `quota` | `rate` | core | 操作频率（`max_operation_count` + `period` + `constraint_scope` + `burst`）。 | core |
+| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resource_count` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = accepted PCR device 表达。 | `ak.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 approval workflow（v1 只有 `approval_mode=before_commit`）；审批证据是 §9.2 的 approval signature。 | `ak.profile.constraint.approval_workflow.v1` |
 | `claim_based` | `accountability` | extension | grant-local 责任主体、guardian / controller 审批关系；使用 `accountability_required`、`approval_relation`、`approval_actor_ids` 等已注册字段。 | `ak.profile.constraint.claim_based.v1` |
@@ -94,13 +94,13 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `field_access` 带 `condition.kind` | `realm_state` | (realm_id, source_commit_ref, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `kind_restriction` | `stateless` | (constraint_digest, op_target_kind) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_digest, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, source_commit_ref, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override_allowed`） | `realm_state` | (realm_id, source_commit_ref, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_labels`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `authority_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `authority_control` (`constraint_subkind=applet_authority`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
 | `quota` (`constraint_subkind=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`constraint_subkind=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
-| `quota` (`constraint_subkind=resource`，`max_resources` / `max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
+| `quota` (`constraint_subkind=resource`，`max_resource_count` / `max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
 | `claim_based` (`constraint_subkind=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`constraint_subkind=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`constraint_subkind=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
@@ -216,7 +216,7 @@ duration 使用 schema 定义的非负整数分量（年、月、周、日、时
 ```
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-**依赖不可判定时 fail closed**：condition 所引用的数据 typed current result 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按 RealmCommit 确认顺序求值。
+**依赖不可判定时 fail closed**：condition 所引用的数据 current state 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按 RealmCommit 确认顺序求值。
 
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
@@ -357,7 +357,7 @@ duration 使用 schema 定义的非负整数分量（年、月、周、日、时
   "allowed_to_container_refs": [
     "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
   ],
-  "wip_limit_override": false
+  "wip_limit_override_allowed": false
 }
 ```
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` 不得直接生效。
@@ -487,7 +487,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
   "constraint_kind": "quota",
   "constraint_subkind": "rate",
   "effect": "allow",
-  "max_operations": 100,
+  "max_operation_count": 100,
   "period": "PT1H",
   "burst": 10,
   "constraint_scope": "per_space"
@@ -504,18 +504,18 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 | `per_realm` | `(actor_id, realm_id)`；操作无法确定目标 Realm 时 MUST fail closed |
 | `global` | `(actor_id)` across the enforcing service's global quota domain；不得把它解释为不受 actor 约束的部署级总量 |
 
-`max_operations` MUST 携带 `constraint_scope`。`period` 用于 quota 时 MUST 是可换算为固定毫秒数的非零 ISO 8601 duration，只允许 week / day / hour / minute / second；year / month 因长度随日历变化而 MUST 被 schema / reducer 拒绝。固定窗口 id 为 `floor(quota_verification_time_unix_ms / period_ms)`，以 Unix epoch UTC 对齐；实现不得按“该节点首次看到请求的时刻”各自滚动窗口。
+`max_operation_count` MUST 携带 `constraint_scope`。`period` 用于 quota 时 MUST 是可换算为固定毫秒数的非零 ISO 8601 duration，只允许 week / day / hour / minute / second；year / month 因长度随日历变化而 MUST 被 schema / reducer 拒绝。固定窗口 id 为 `floor(quota_verification_time_unix_ms / period_ms)`，以 Unix epoch UTC 对齐；实现不得按“该节点首次看到请求的时刻”各自滚动窗口。
 
-`constraint_subkind=rate` MUST 同时携带 `max_operations`、`period` 与 `constraint_scope`；任一缺失均为 `schema_violation`。`max_operations=0` 是合法的显式全拒绝窗口。`burst` 不得脱离 `max_operations` / `period` 单独出现。
+`constraint_subkind=rate` MUST 同时携带 `max_operation_count`、`period` 与 `constraint_scope`；任一缺失均为 `schema_violation`。`max_operation_count=0` 是合法的显式全拒绝窗口。`burst` 不得脱离 `max_operation_count` / `period` 单独出现。
 
-**权威 counter 与多节点原子性（normative）**：每个 `(grant_id, constraint_id-or-canonical-hash, counter key, window_id)` 只能有一个**逻辑 quota authority**。这里“一个”指可由共识 / 事务数据库复制的单一线性化写入点，不要求单进程。执行该 operation 的 service 是 quota domain 的 owner；同一 service 的所有副本、region 与 worker MUST 在产生业务副作用前，对该 authority 执行原子的 `read current → verify limit → reserve/increment`，隔离级别必须保证两个并发请求不可能都观察同一个剩余额度后同时越界提交。按节点维护互不协调的本地 counter、异步汇总后容忍 overshoot、或把 `max_operations` 完整复制给每个节点均不符合 v1 hard-quota 语义。
+**权威 counter 与多节点原子性（normative）**：每个 `(grant_id, constraint_id-or-canonical-hash, counter key, window_id)` 只能有一个**逻辑 quota authority**。这里“一个”指可由共识 / 事务数据库复制的单一线性化写入点，不要求单进程。执行该 operation 的 service 是 quota domain 的 owner；同一 service 的所有副本、region 与 worker MUST 在产生业务副作用前，对该 authority 执行原子的 `read current → verify limit → reserve/increment`，隔离级别必须保证两个并发请求不可能都观察同一个剩余额度后同时越界提交。按节点维护互不协调的本地 counter、异步汇总后容忍 overshoot、或把 `max_operation_count` 完整复制给每个节点均不符合 v1 hard-quota 语义。
 
 quota authority MUST 同时满足：
 
 1. `quota_verification_time` 由 authority 的共享时钟 / transaction timestamp 固定，同一次求值只取一次，并受 §16.1 `ak.time_tolerance.temporal_constraint.v1` 运维门禁约束；caller / edge node 不得自报窗口时刻。
 2. 计数单位是 operation registry 为该 operation 声明的 idempotency identity；durable Event 写入以稳定 `event_id` 为 identity。相同 identity 的成功重试返回既有 outcome 且只计一次；同 identity 不同 canonical request digest 必须按 `duplicate_conflict` 拒绝；在进入任何业务副作用前被拒绝的请求不消耗额度。
 3. authority 不可达、无法证明最新 counter、事务冲突重试耗尽或窗口时刻不可确定时，hard quota MUST fail closed（`rate_limited` / `quota_exceeded` 或 `failed_precondition`），不得降级为 advisory allow。
-4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operations / period`，bucket capacity 为 `min(burst, max_operations)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operations`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
+4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operation_count / period`，bucket capacity 为 `min(burst, max_operation_count)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operation_count`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
 
 `constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
 
@@ -535,7 +535,7 @@ quota-only、未知条件或 authority/identity 不可证的准备 MUST 在任�
   "constraint_kind": "quota",
   "constraint_subkind": "resource",
   "effect": "allow",
-  "max_resources": 1000,
+  "max_resource_count": 1000,
   "resource_kind": "object",
   "blob_presign_max_ttl_seconds": 300,
   "max_artifact_bytes": 10485760,
@@ -545,7 +545,7 @@ quota-only、未知条件或 authority/identity 不可证的准备 MUST 在任�
 ```
 `blob_presign_max_ttl_seconds` 是 `ak.self.blob.command.presign.v1` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
-`max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope`、window id 与逻辑 quota authority 规则，二者均 MUST 携带 `constraint_scope`。携带 `period` 时按 UTC epoch-aligned window 重置；省略 `period` 时 `window_id="lifetime"`，从该 grant 首次生效起累计到 grant revoke / expiry，绝不按节点重启或本地 cache eviction 清零。authority MUST 在创建 / 删除 / 调整资源的同一原子事务中按**实际 committed delta** reservation / refund，不能先放行业务写入再异步更新累计值；无法把资源写入与 counter 原子提交时 MUST fail closed 或先取得具有唯一 reservation id 的耐久 reservation，并在失败时幂等释放。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
+`max_resource_count` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope`、window id 与逻辑 quota authority 规则，二者均 MUST 携带 `constraint_scope`。携带 `period` 时按 UTC epoch-aligned window 重置；省略 `period` 时 `window_id="lifetime"`，从该 grant 首次生效起累计到 grant revoke / expiry，绝不按节点重启或本地 cache eviction 清零。authority MUST 在创建 / 删除 / 调整资源的同一原子事务中按**实际 committed delta** reservation / refund，不能先放行业务写入再异步更新累计值；无法把资源写入与 counter 原子提交时 MUST fail closed 或先取得具有唯一 reservation id 的耐久 reservation，并在失败时幂等释放。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
 
 ## 9. 审批工作流（claim_based, constraint_subkind=approval）
 
@@ -773,7 +773,7 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 | 对象 | 是什么 | 绑定 | 职责 |
 | --- | --- | --- | --- |
 | 本节 approval signature（`ak.schema.approval_signature.v1`） | detached 签名证据，非 Event | `approval_context` + `approval_target` + 原请求摘要 + 投票资格 | grant 层（§9.1）与 Realm 治理层（§9.3）的通用审批 quorum 证据 |
-| `ak.agent.action_approve` | 已登记的 **Event kind**，写 `agent_action_approval` typed current result | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令**；`approval_id` 选择不可变记录，`(controller ActorId, approval_nonce)` 一次性分配 |
+| `ak.agent.action_approve` | 已登记的 **Event kind**，写 `agent_action_approval` current state | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令**；`approval_id` 选择不可变记录，`(controller ActorId, approval_nonce)` 一次性分配 |
 | `agent_key_approval_evidence` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
 
 - 已接纳的私有 request / draft 选择对应完整 Event 的 confirmation gate；act-on-behalf attribution
@@ -1340,10 +1340,10 @@ function matches_field_access(operation, constraint):
 
 #### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `moderation_state` typed current result”，从而决定该 typed current result 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `moderation_state` current state”，从而决定该 current state 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
 - 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
-- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / typed current result）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
+- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / current state）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
 - 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
 - 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_kind`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
 
@@ -1595,7 +1595,7 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   "allowed_to_container_refs": [
     "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
   ],
-  "wip_limit_override": false
+  "wip_limit_override_allowed": false
 }
 ```
 规则：
@@ -1606,7 +1606,7 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   和可移入的列 / collection。
 - `allowed_view_ids` 限定授权适用的 View；同一个 Strand item 出现在多个 View
   时不得自动继承移动权。
-- `wip_limit_override=false` 时，若目标 `Space(kind=list).fields.wip_limit_enforcement` 为 `reject`
+- `wip_limit_override_allowed=false` 时，若目标 `Space(kind=list).fields.wip_limit_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。
 
 

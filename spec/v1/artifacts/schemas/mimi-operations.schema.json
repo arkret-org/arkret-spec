@@ -8,49 +8,49 @@
       "$ref": "#/$defs/mimi_room_update_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_room_update_outcome"
+      "$ref": "#/$defs/mimi_room_update_response_body"
     },
     {
       "$ref": "#/$defs/mimi_notify_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_notify_outcome"
+      "$ref": "#/$defs/mimi_notify_response_body"
     },
     {
       "$ref": "#/$defs/mimi_submit_message_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_submit_message_outcome"
+      "$ref": "#/$defs/mimi_submit_message_response_body"
     },
     {
       "$ref": "#/$defs/mimi_request_consent_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_request_consent_outcome"
+      "$ref": "#/$defs/mimi_request_consent_response_body"
     },
     {
       "$ref": "#/$defs/mimi_update_consent_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_update_consent_outcome"
+      "$ref": "#/$defs/mimi_update_consent_response_body"
     },
     {
       "$ref": "#/$defs/mimi_identifier_query_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_identifier_query_outcome"
+      "$ref": "#/$defs/mimi_identifier_query_response_body"
     },
     {
       "$ref": "#/$defs/mimi_report_abuse_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_report_abuse_outcome"
+      "$ref": "#/$defs/mimi_report_abuse_response_body"
     },
     {
       "$ref": "#/$defs/mimi_proxy_download_request_body"
     },
     {
-      "$ref": "#/$defs/mimi_proxy_download_outcome"
+      "$ref": "#/$defs/mimi_proxy_download_response_body"
     }
   ],
   "$defs": {
@@ -115,7 +115,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "const": "detached_jws",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-operations.schema.json#/$defs/signature/properties/kind",
+            "owner": "mimi-operations.schema.json#/$defs/signature/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
@@ -219,8 +227,7 @@
           "additionalProperties": false
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "confirmed_transcript_hash": {
           "$ref": "#/$defs/digest"
@@ -235,7 +242,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_room_update_outcome": {
+    "mimi_room_update_response_body": {
       "type": "object",
       "required": [
         "accepted"
@@ -254,7 +261,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "mimi_notify_request_body": {
       "type": "object",
@@ -302,7 +310,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_notify_outcome": {
+    "mimi_notify_response_body": {
       "type": "object",
       "required": [
         "accepted"
@@ -316,7 +324,8 @@
           "minimum": 1
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "ciphertext": {
       "type": "object",
@@ -359,8 +368,7 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "associated_data": {
           "$ref": "#/$defs/opaque_payload"
@@ -368,7 +376,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_submit_message_outcome": {
+    "mimi_submit_message_response_body": {
       "type": "object",
       "required": [
         "delivery"
@@ -389,7 +397,17 @@
                 "accepted",
                 "partial",
                 "rejected"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "mimi-operations.schema.json#/$defs/mimi_submit_message_response_body/properties/delivery/properties/status",
+                "owner": "mimi-operations.schema.json#/$defs/mimi_submit_message_response_body/properties/delivery/properties/status",
+                "values": [
+                  "accepted",
+                  "partial",
+                  "rejected"
+                ]
+              }
             },
             "delivered_to_ids": {
               "type": "array",
@@ -408,7 +426,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "mimi_request_consent_request_body": {
       "type": "object",
@@ -426,7 +445,7 @@
         },
         "holder_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact Account the request is addressed to, chosen and signed by the requester. It is not evidence that the holder exists, is visible or has consented: creating the private correlation queries no consent typed current result, and a request that is syntactically valid and authenticated MUST produce an indistinguishable opaque outcome whether or not the holder exists. A correlation may freeze a target nobody can legitimately accept; it carries no authority. This operation resolves no aliases -- the external identifier to Arkret identity mapping happens before it, under the section 10 rules."
+          "description": "Exact Account the request is addressed to, chosen and signed by the requester. It is not evidence that the holder exists, is visible or has consented: creating the private correlation queries no consent current state, and a request that is syntactically valid and authenticated MUST produce an indistinguishable opaque outcome whether or not the holder exists. A correlation may freeze a target nobody can legitimately accept; it carries no authority. This operation resolves no aliases -- the external identifier to Arkret identity mapping happens before it, under the section 10 rules."
         },
         "purpose": {
           "type": "string",
@@ -435,7 +454,18 @@
             "voice_call",
             "video_call",
             "presence"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/purpose",
+            "owner": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/purpose",
+            "values": [
+              "invite",
+              "voice_call",
+              "video_call",
+              "presence"
+            ]
+          }
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id",
@@ -456,7 +486,7 @@
       "additionalProperties": false,
       "description": "Request that a named Arkret holder grant consent to a named Arkret Actor. The signed request writes both identities in full and the facade freezes exactly those into its private correlation, so update_consent is a byte comparison rather than a re-resolution against whatever the facade's current Station or alias table happens to say."
     },
-    "mimi_request_consent_outcome": {
+    "mimi_request_consent_response_body": {
       "type": "object",
       "required": [
         "consent_id"
@@ -469,7 +499,8 @@
           "$ref": "#/$defs/non_empty_string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "mimi_update_consent_request_body": {
       "type": "object",
@@ -492,7 +523,17 @@
             "accept",
             "deny",
             "revoke"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-operations.schema.json#/$defs/mimi_update_consent_request_body/properties/decision",
+            "owner": "mimi-operations.schema.json#/$defs/mimi_update_consent_request_body/properties/decision",
+            "values": [
+              "accept",
+              "deny",
+              "revoke"
+            ]
+          }
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -520,7 +561,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.consent.replace"
+                      "const": "ak.consent.replace",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "mimi-operations.schema.json#/$defs/mimi_update_consent_request_body/allOf/0/properties/consent_event/properties/event/properties/kind",
+                        "owner": "mimi-operations.schema.json#/$defs/mimi_update_consent_request_body/allOf/0/properties/consent_event/properties/event/properties/kind",
+                        "values": [
+                          "ak.consent.replace"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -536,7 +585,7 @@
         }
       ]
     },
-    "mimi_update_consent_outcome": {
+    "mimi_update_consent_response_body": {
       "type": "object",
       "required": [
         "consent_id",
@@ -554,7 +603,17 @@
             "accept",
             "deny",
             "revoke"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-operations.schema.json#/$defs/mimi_update_consent_response_body/properties/decision",
+            "owner": "mimi-operations.schema.json#/$defs/mimi_update_consent_response_body/properties/decision",
+            "values": [
+              "accept",
+              "deny",
+              "revoke"
+            ]
+          }
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -563,7 +622,8 @@
           "$ref": "#/$defs/event_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "identifier": {
       "type": "object",
@@ -581,7 +641,20 @@
             "phone",
             "email",
             "opaque"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mimi-operations.schema.json#/$defs/identifier/properties/kind",
+            "owner": "mimi-operations.schema.json#/$defs/identifier/properties/kind",
+            "values": [
+              "mimi_uri",
+              "did",
+              "handle",
+              "phone",
+              "email",
+              "opaque"
+            ]
+          }
         },
         "identifier_commitment": {
           "$ref": "#/$defs/digest"
@@ -620,7 +693,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_identifier_query_outcome": {
+    "mimi_identifier_query_response_body": {
       "type": "object",
       "x-arkret-proof-context": "ak.mimi_identifier_query_outcome_proof.v1",
       "required": [
@@ -664,7 +737,8 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "mimi_report_abuse_request_body": {
       "type": "object",
@@ -750,7 +824,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_report_abuse_outcome": {
+    "mimi_report_abuse_response_body": {
       "type": "object",
       "required": [
         "report_id"
@@ -767,7 +841,8 @@
           "uniqueItems": true
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "mimi_proxy_download_request_body": {
       "type": "object",
@@ -827,7 +902,7 @@
       },
       "additionalProperties": false
     },
-    "mimi_proxy_download_outcome": {
+    "mimi_proxy_download_response_body": {
       "type": "object",
       "required": [
         "download_ref"
@@ -836,7 +911,7 @@
         "download_ref": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "headers": {
+        "download_request_headers": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/non_empty_string"
@@ -846,7 +921,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

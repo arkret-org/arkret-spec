@@ -1,6 +1,6 @@
 """The two namespaces `ak.policy.action` writes, and why they stay apart.
 
-`models/governance-objects.md` section 3.4 registers one typed current result,
+`models/governance-objects.md` section 3.4 registers one current state,
 `policy_action`, behind a payload whose top level is a closed XOR over
 `policy_id` and `action_id`. That XOR is TWO subject spaces, not one coalesced
 subject, and v1's selector grammar has no `coalesce` kind and no literal
@@ -44,7 +44,7 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.registry = _load(gate.EVENT_KIND_REGISTRY)
-        cls.results = _load(ARTIFACTS / "schemas" / "typed-current-result.schema.json")
+        cls.results = _load(ARTIFACTS / "schemas" / "current-state.schema.json")
         cls.payloads = _load(ARTIFACTS / "schemas" / "event-payload.schema.json")
         cls.row = next(
             row
@@ -55,8 +55,8 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
     # ---- the pair -------------------------------------------------------
 
     def test_the_kind_registers_exactly_the_two_branches(self) -> None:
-        writes = self.row["result_writes"]
-        self.assertEqual([write["result_family"] for write in writes], [FAMILY] * 2)
+        writes = self.row["state_writes"]
+        self.assertEqual([write["state_family"] for write in writes], [FAMILY] * 2)
 
     def test_the_branches_are_disjoint_by_construction(self) -> None:
         """Not merely different conditions -- provably exclusive ones.
@@ -67,7 +67,7 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
         the second kind, and a condition pair that merely looks different would
         be two writes racing on one result.
         """
-        left, right = (write["condition"] for write in self.row["result_writes"])
+        left, right = (write["condition"] for write in self.row["state_writes"])
         self.assertTrue(
             complementary_conditions(left, right),
             f"{left} and {right} are not provably disjoint",
@@ -85,26 +85,26 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
         """
         write = next(
             write
-            for write in self.row["result_writes"]
+            for write in self.row["state_writes"]
             if write["condition"]["kind"] == "field_present"
         )
         self.assertEqual(
-            write["result_selector"]["components"],
+            write["state_selector"]["components"],
             ["payload.policy_id", "payload.value.action"],
         )
 
     def test_the_realm_action_key_hangs_off_no_policy(self) -> None:
         write = next(
             write
-            for write in self.row["result_writes"]
+            for write in self.row["state_writes"]
             if write["condition"]["kind"] == "field_absent"
         )
-        self.assertEqual(write["result_selector"]["components"], ["payload.action_id"])
+        self.assertEqual(write["state_selector"]["components"], ["payload.action_id"])
 
     def test_both_branches_replace_the_whole_value(self) -> None:
-        for write in self.row["result_writes"]:
-            self.assertEqual(write["result_projection"]["kind"], "set")
-            self.assertEqual(write["result_projection"]["value"], {"field": "payload.value"})
+        for write in self.row["state_writes"]:
+            self.assertEqual(write["state_projection"]["kind"], "set")
+            self.assertEqual(write["state_projection"]["value"], {"field": "payload.value"})
 
     # ---- the tag --------------------------------------------------------
 
@@ -116,7 +116,7 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
         the two spaces distinguishable as a matter of contract rather than as an
         accident of the members that happen to be registered.
         """
-        selector = self.results["$defs"]["policy_action_result"]["properties"]["selector"]
+        selector = self.results["$defs"]["current_policy_action"]["properties"]["selector"]
         self.assertIn("branch", selector["required"])
         self.assertEqual(
             selector["properties"]["branch"]["enum"], ["policy_ref", "realm_action"]
@@ -124,7 +124,7 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
         self.assertFalse(selector["additionalProperties"])
 
     def test_neither_branch_admits_the_other_branch_members(self) -> None:
-        selector = self.results["$defs"]["policy_action_result"]["properties"]["selector"]
+        selector = self.results["$defs"]["current_policy_action"]["properties"]["selector"]
         branches = {
             option["properties"]["branch"]["const"]: option
             for option in selector["oneOf"]

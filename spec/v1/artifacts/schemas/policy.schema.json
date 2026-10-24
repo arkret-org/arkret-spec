@@ -18,7 +18,15 @@
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ak.schema.policy.v1"
+      "const": "ak.schema.policy.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "policy.schema.json#/properties/schema",
+        "owner": "policy.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.policy.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -38,7 +46,26 @@
         "media",
         "applet",
         "agent"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "policy.schema.json#/properties/policy_kind",
+        "owner": "policy.schema.json#/properties/policy_kind",
+        "values": [
+          "access",
+          "encryption",
+          "retention",
+          "federation",
+          "moderation",
+          "discoverability",
+          "join",
+          "history_access",
+          "plaintext_visibility",
+          "media",
+          "applet",
+          "agent"
+        ]
+      }
     },
     "rules": {
       "type": "array",
@@ -54,7 +81,18 @@
         "deny",
         "quarantine",
         "require_review"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "policy.schema.json#/properties/default_effect",
+        "owner": "policy.schema.json#/properties/default_effect",
+        "values": [
+          "allow",
+          "deny",
+          "quarantine",
+          "require_review"
+        ]
+      }
     },
     "default_review_requirement": {
       "$ref": "#/$defs/management_review_requirement"
@@ -69,7 +107,18 @@
           "publish",
           "create_bot",
           "map_ghost"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "policy.schema.json#/properties/default_operations/items",
+          "owner": "policy.schema.json#/properties/default_operations/items",
+          "values": [
+            "join",
+            "publish",
+            "create_bot",
+            "map_ghost"
+          ]
+        }
       },
       "description": "Required when a managed default is require_review: only these review-capable operations use that default; nonselected operations default deny unless an explicit rule matches."
     },
@@ -106,7 +155,18 @@
         "deny",
         "quarantine",
         "require_review"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "policy.schema.json#/$defs/policy_effect",
+        "owner": "policy.schema.json#/$defs/policy_effect",
+        "values": [
+          "allow",
+          "deny",
+          "quarantine",
+          "require_review"
+        ]
+      }
     },
     "policy_rule": {
       "type": "object",
@@ -135,7 +195,25 @@
             "extension",
             "agent",
             "applet"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "policy.schema.json#/$defs/policy_rule/properties/kind",
+            "owner": "policy.schema.json#/$defs/policy_rule/properties/kind",
+            "values": [
+              "action",
+              "resource",
+              "server",
+              "actor",
+              "temporal",
+              "rate_limit",
+              "crypto",
+              "moderation",
+              "extension",
+              "agent",
+              "applet"
+            ]
+          }
         },
         "effect": {
           "$ref": "#/$defs/policy_effect"
@@ -171,7 +249,19 @@
                   "space",
                   "object",
                   "service"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/properties/resources/items/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/properties/resources/items/properties/kind",
+                  "values": [
+                    "realm",
+                    "strand",
+                    "space",
+                    "object",
+                    "service"
+                  ]
+                }
               },
               "realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -206,7 +296,7 @@
           "type": "string",
           "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
         },
-        "params": {
+        "parameters": {
           "type": "object",
           "additionalProperties": true
         },
@@ -226,7 +316,21 @@
               "deliver",
               "publish",
               "serve"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/$defs/policy_rule/properties/agent_operations/items",
+              "owner": "policy.schema.json#/$defs/policy_rule/properties/agent_operations/items",
+              "values": [
+                "join",
+                "authorize",
+                "execute",
+                "read",
+                "deliver",
+                "publish",
+                "serve"
+              ]
+            }
           }
         },
         "applet_target": {
@@ -249,7 +353,25 @@
               "publish",
               "serve",
               "invoke"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/$defs/policy_rule/properties/applet_operations/items",
+              "owner": "policy.schema.json#/$defs/policy_rule/properties/applet_operations/items",
+              "values": [
+                "install",
+                "create_bot",
+                "map_ghost",
+                "join",
+                "authorize",
+                "execute",
+                "read",
+                "deliver",
+                "publish",
+                "serve",
+                "invoke"
+              ]
+            }
           }
         },
         "review_requirement": {
@@ -262,7 +384,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "action"
+                "const": "action",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/0/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/0/if/properties/kind",
+                  "values": [
+                    "action"
+                  ]
+                }
               }
             },
             "required": [
@@ -279,7 +409,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "resource"
+                "const": "resource",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/1/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/1/if/properties/kind",
+                  "values": [
+                    "resource"
+                  ]
+                }
               }
             },
             "required": [
@@ -296,7 +434,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "server"
+                "const": "server",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/2/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/2/if/properties/kind",
+                  "values": [
+                    "server"
+                  ]
+                }
               }
             },
             "required": [
@@ -313,7 +459,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "extension"
+                "const": "extension",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/3/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/3/if/properties/kind",
+                  "values": [
+                    "extension"
+                  ]
+                }
               }
             },
             "required": [
@@ -334,7 +488,7 @@
               }
             ],
             "required": [
-              "params"
+              "parameters"
             ]
           }
         },
@@ -342,7 +496,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "agent"
+                "const": "agent",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/4/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/4/if/properties/kind",
+                  "values": [
+                    "agent"
+                  ]
+                }
               }
             },
             "required": [
@@ -363,7 +525,7 @@
                 },
                 {
                   "required": [
-                    "params"
+                    "parameters"
                   ]
                 },
                 {
@@ -415,7 +577,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "applet"
+                "const": "applet",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/5/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/5/if/properties/kind",
+                  "values": [
+                    "applet"
+                  ]
+                }
               }
             },
             "required": [
@@ -446,7 +616,7 @@
                 },
                 {
                   "required": [
-                    "params"
+                    "parameters"
                   ]
                 },
                 {
@@ -496,10 +666,27 @@
                 "enum": [
                   "agent",
                   "applet"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/6/then/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/6/then/properties/kind",
+                  "values": [
+                    "agent",
+                    "applet"
+                  ]
+                }
               },
               "effect": {
-                "const": "require_review"
+                "const": "require_review",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/6/then/properties/effect",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/6/then/properties/effect",
+                  "values": [
+                    "require_review"
+                  ]
+                }
               }
             }
           }
@@ -511,10 +698,27 @@
                 "enum": [
                   "agent",
                   "applet"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/7/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/7/if/properties/kind",
+                  "values": [
+                    "agent",
+                    "applet"
+                  ]
+                }
               },
               "effect": {
-                "const": "require_review"
+                "const": "require_review",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/7/if/properties/effect",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/7/if/properties/effect",
+                  "values": [
+                    "require_review"
+                  ]
+                }
               }
             },
             "required": [
@@ -532,10 +736,26 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "agent"
+                "const": "agent",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/8/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/8/if/properties/kind",
+                  "values": [
+                    "agent"
+                  ]
+                }
               },
               "effect": {
-                "const": "require_review"
+                "const": "require_review",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/8/if/properties/effect",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/8/if/properties/effect",
+                  "values": [
+                    "require_review"
+                  ]
+                }
               }
             },
             "required": [
@@ -550,7 +770,16 @@
                   "enum": [
                     "join",
                     "publish"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "policy.schema.json#/$defs/policy_rule/allOf/8/then/properties/agent_operations/items",
+                    "owner": "policy.schema.json#/$defs/policy_rule/allOf/8/then/properties/agent_operations/items",
+                    "values": [
+                      "join",
+                      "publish"
+                    ]
+                  }
                 }
               }
             }
@@ -560,10 +789,26 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "applet"
+                "const": "applet",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/9/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/9/if/properties/kind",
+                  "values": [
+                    "applet"
+                  ]
+                }
               },
               "effect": {
-                "const": "require_review"
+                "const": "require_review",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/policy_rule/allOf/9/if/properties/effect",
+                  "owner": "policy.schema.json#/$defs/policy_rule/allOf/9/if/properties/effect",
+                  "values": [
+                    "require_review"
+                  ]
+                }
               }
             },
             "required": [
@@ -580,7 +825,18 @@
                     "publish",
                     "create_bot",
                     "map_ghost"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "policy.schema.json#/$defs/policy_rule/allOf/9/then/properties/applet_operations/items",
+                    "owner": "policy.schema.json#/$defs/policy_rule/allOf/9/then/properties/applet_operations/items",
+                    "values": [
+                      "join",
+                      "publish",
+                      "create_bot",
+                      "map_ghost"
+                    ]
+                  }
                 }
               }
             }
@@ -609,7 +865,17 @@
             "service_id",
             "domain",
             "trust_domain"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "policy.schema.json#/$defs/server_selector/properties/kind",
+            "owner": "policy.schema.json#/$defs/server_selector/properties/kind",
+            "values": [
+              "service_id",
+              "domain",
+              "trust_domain"
+            ]
+          }
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -631,7 +897,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "service_id"
+                "const": "service_id",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/server_selector/allOf/0/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/server_selector/allOf/0/if/properties/kind",
+                  "values": [
+                    "service_id"
+                  ]
+                }
               }
             },
             "required": [
@@ -648,7 +922,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "domain"
+                "const": "domain",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/server_selector/allOf/1/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/server_selector/allOf/1/if/properties/kind",
+                  "values": [
+                    "domain"
+                  ]
+                }
               }
             },
             "required": [
@@ -665,7 +947,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "trust_domain"
+                "const": "trust_domain",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "policy.schema.json#/$defs/server_selector/allOf/2/if/properties/kind",
+                  "owner": "policy.schema.json#/$defs/server_selector/allOf/2/if/properties/kind",
+                  "values": [
+                    "trust_domain"
+                  ]
+                }
               }
             },
             "required": [
@@ -689,7 +979,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "all"
+              "const": "all",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/agent_target/oneOf/0/properties/kind",
+                "owner": "policy.schema.json#/$defs/agent_target/oneOf/0/properties/kind",
+                "values": [
+                  "all"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -702,7 +1000,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "controller"
+              "const": "controller",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/agent_target/oneOf/1/properties/kind",
+                "owner": "policy.schema.json#/$defs/agent_target/oneOf/1/properties/kind",
+                "values": [
+                  "controller"
+                ]
+              }
             },
             "controller_account_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -718,7 +1024,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent"
+              "const": "agent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/agent_target/oneOf/2/properties/kind",
+                "owner": "policy.schema.json#/$defs/agent_target/oneOf/2/properties/kind",
+                "values": [
+                  "agent"
+                ]
+              }
             },
             "agent_account_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -737,7 +1051,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "all"
+              "const": "all",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/applet_target/oneOf/0/properties/kind",
+                "owner": "policy.schema.json#/$defs/applet_target/oneOf/0/properties/kind",
+                "values": [
+                  "all"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -750,7 +1072,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "applet"
+              "const": "applet",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/applet_target/oneOf/1/properties/kind",
+                "owner": "policy.schema.json#/$defs/applet_target/oneOf/1/properties/kind",
+                "values": [
+                  "applet"
+                ]
+              }
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -766,7 +1096,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "requester"
+              "const": "requester",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/applet_target/oneOf/2/properties/kind",
+                "owner": "policy.schema.json#/$defs/applet_target/oneOf/2/properties/kind",
+                "values": [
+                  "requester"
+                ]
+              }
             },
             "actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -784,7 +1122,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "installation"
+              "const": "installation",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/applet_target/oneOf/3/properties/kind",
+                "owner": "policy.schema.json#/$defs/applet_target/oneOf/3/properties/kind",
+                "values": [
+                  "installation"
+                ]
+              }
             },
             "applet_id": {
               "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -806,7 +1152,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "managed_actor"
+              "const": "managed_actor",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/$defs/applet_target/oneOf/4/properties/kind",
+                "owner": "policy.schema.json#/$defs/applet_target/oneOf/4/properties/kind",
+                "values": [
+                  "managed_actor"
+                ]
+              }
             },
             "actor_id": {
               "allOf": [
@@ -816,7 +1170,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "account"
+                      "const": "account",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "policy.schema.json#/$defs/applet_target/oneOf/4/properties/actor_id/allOf/1/properties/kind",
+                        "owner": "policy.schema.json#/$defs/applet_target/oneOf/4/properties/actor_id/allOf/1/properties/kind",
+                        "values": [
+                          "account"
+                        ]
+                      }
                     }
                   }
                 }
@@ -868,7 +1230,15 @@
             "contains": {
               "properties": {
                 "kind": {
-                  "const": "agent"
+                  "const": "agent",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "policy.schema.json#/allOf/0/if/properties/rules/contains/properties/kind",
+                    "owner": "policy.schema.json#/allOf/0/if/properties/rules/contains/properties/kind",
+                    "values": [
+                      "agent"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -887,7 +1257,15 @@
         ],
         "properties": {
           "policy_kind": {
-            "const": "agent"
+            "const": "agent",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/allOf/0/then/properties/policy_kind",
+              "owner": "policy.schema.json#/allOf/0/then/properties/policy_kind",
+              "values": [
+                "agent"
+              ]
+            }
           }
         }
       }
@@ -899,7 +1277,15 @@
             "contains": {
               "properties": {
                 "kind": {
-                  "const": "applet"
+                  "const": "applet",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "policy.schema.json#/allOf/1/if/properties/rules/contains/properties/kind",
+                    "owner": "policy.schema.json#/allOf/1/if/properties/rules/contains/properties/kind",
+                    "values": [
+                      "applet"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -918,7 +1304,15 @@
         ],
         "properties": {
           "policy_kind": {
-            "const": "applet"
+            "const": "applet",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/allOf/1/then/properties/policy_kind",
+              "owner": "policy.schema.json#/allOf/1/then/properties/policy_kind",
+              "values": [
+                "applet"
+              ]
+            }
           }
         }
       }
@@ -930,10 +1324,27 @@
             "enum": [
               "agent",
               "applet"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/allOf/2/if/properties/policy_kind",
+              "owner": "policy.schema.json#/allOf/2/if/properties/policy_kind",
+              "values": [
+                "agent",
+                "applet"
+              ]
+            }
           },
           "default_effect": {
-            "const": "require_review"
+            "const": "require_review",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/allOf/2/if/properties/default_effect",
+              "owner": "policy.schema.json#/allOf/2/if/properties/default_effect",
+              "values": [
+                "require_review"
+              ]
+            }
           }
         },
         "required": [
@@ -968,7 +1379,15 @@
       "if": {
         "properties": {
           "policy_kind": {
-            "const": "agent"
+            "const": "agent",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "policy.schema.json#/allOf/3/if/properties/policy_kind",
+              "owner": "policy.schema.json#/allOf/3/if/properties/policy_kind",
+              "values": [
+                "agent"
+              ]
+            }
           }
         },
         "required": [
@@ -982,7 +1401,16 @@
               "enum": [
                 "join",
                 "publish"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "policy.schema.json#/allOf/3/then/properties/default_operations/items",
+                "owner": "policy.schema.json#/allOf/3/then/properties/default_operations/items",
+                "values": [
+                  "join",
+                  "publish"
+                ]
+              }
             }
           }
         }

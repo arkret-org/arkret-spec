@@ -5,13 +5,13 @@
   "description": "Closed request/response DTOs for Applet edge and bridge operations.",
   "anyOf": [
     {
-      "$ref": "#/$defs/applet_ping_outcome"
+      "$ref": "#/$defs/applet_ping_response_body"
     },
     {
       "$ref": "#/$defs/applet_transaction_request_body"
     },
     {
-      "$ref": "#/$defs/applet_transaction_outcome"
+      "$ref": "#/$defs/applet_transaction_response_body"
     },
     {
       "$ref": "#/$defs/applet_actor_view"
@@ -26,10 +26,10 @@
       "$ref": "#/$defs/third_party_query"
     },
     {
-      "$ref": "#/$defs/applet_third_party_user_list"
+      "$ref": "#/$defs/applet_third_party_user_lookup_response_body"
     },
     {
-      "$ref": "#/$defs/applet_third_party_location_list"
+      "$ref": "#/$defs/applet_third_party_location_lookup_response_body"
     },
     {
       "$ref": "#/$defs/third_party_user_query"
@@ -147,7 +147,21 @@
             "external_ref",
             "uri",
             "enum"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-edge-operations.schema.json#/$defs/field_definition/properties/value_kind",
+            "owner": "applet-edge-operations.schema.json#/$defs/field_definition/properties/value_kind",
+            "values": [
+              "string",
+              "number",
+              "boolean",
+              "datetime",
+              "external_ref",
+              "uri",
+              "enum"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -178,7 +192,7 @@
       },
       "additionalProperties": false
     },
-    "applet_ping_outcome": {
+    "applet_ping_response_body": {
       "type": "object",
       "required": [
         "applet_id",
@@ -194,10 +208,19 @@
         },
         "protocol_version": {
           "type": "string",
-          "const": "1.0"
+          "const": "1.0",
+          "x-arkret-value-ownership": {
+            "class": "version_text",
+            "authority": "applet-edge-operations.schema.json#/$defs/applet_ping_response_body/properties/protocol_version",
+            "owner": "applet-edge-operations.schema.json#/$defs/applet_ping_response_body/properties/protocol_version",
+            "values": [
+              "1.0"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "applet_transaction_request_body": {
       "description": "Body for ak.edge.applet.command.transaction.v1. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted delivery_authentication_record. See zh/extensions/applet-integration.md section 7.3.1. Event/Signal delivery and managed-actor completion are mutually exclusive closed branches. Completion is allowed only in the node-to-Applet direction.",
@@ -210,7 +233,7 @@
         }
       ]
     },
-    "applet_transaction_outcome": {
+    "applet_transaction_response_body": {
       "type": "object",
       "required": [
         "status"
@@ -223,7 +246,17 @@
             "partial",
             "rejected"
           ],
-          "description": "Closed transaction result: all items accepted, a mixed result, or all items rejected."
+          "description": "Closed transaction result: all items accepted, a mixed result, or all items rejected.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-edge-operations.schema.json#/$defs/applet_transaction_response_body/properties/status",
+            "owner": "applet-edge-operations.schema.json#/$defs/applet_transaction_response_body/properties/status",
+            "values": [
+              "accepted",
+              "partial",
+              "rejected"
+            ]
+          }
         },
         "rejections": {
           "type": "array",
@@ -254,7 +287,16 @@
                 "enum": [
                   "accepted",
                   "partial"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "applet-edge-operations.schema.json#/$defs/applet_transaction_response_body/allOf/0/if/properties/status",
+                  "owner": "applet-edge-operations.schema.json#/$defs/applet_transaction_response_body/allOf/0/if/properties/status",
+                  "values": [
+                    "accepted",
+                    "partial"
+                  ]
+                }
               }
             },
             "required": [
@@ -274,7 +316,8 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "applet_actor_view": {
       "type": "object",
@@ -384,7 +427,7 @@
       },
       "additionalProperties": false
     },
-    "applet_third_party_user_list": {
+    "applet_third_party_user_lookup_response_body": {
       "type": "object",
       "required": [
         "exists"
@@ -406,7 +449,15 @@
           "if": {
             "properties": {
               "exists": {
-                "const": true
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body/allOf/0/if/properties/exists",
+                  "owner": "applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body/allOf/0/if/properties/exists",
+                  "values": [
+                    true
+                  ]
+                }
               }
             },
             "required": [
@@ -436,9 +487,10 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "lookup_response"
     },
-    "applet_third_party_location_list": {
+    "applet_third_party_location_lookup_response_body": {
       "type": "object",
       "required": [
         "exists"
@@ -454,7 +506,8 @@
           "$ref": "#/$defs/external_ref"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "lookup_response"
     },
     "applet_event_transaction_request_body": {
       "type": "object",
@@ -552,7 +605,7 @@
       ],
       "properties": {
         "material": {
-          "$ref": "./realm-actor-material.schema.json#/$defs/outcome"
+          "$ref": "./realm-actor-material.schema.json#/$defs/realm_actor_material_response_body"
         }
       },
       "additionalProperties": false,

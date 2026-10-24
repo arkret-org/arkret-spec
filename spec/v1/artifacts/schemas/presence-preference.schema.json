@@ -12,7 +12,17 @@
         "idle",
         "dnd"
       ],
-      "description": "Optional pinned broadcast state. offline is expressed by stopping broadcasts and TTL expiry; invisibility is expressed by ak.presence.visibility=nobody."
+      "description": "Optional pinned broadcast state. offline is expressed by stopping broadcasts and TTL expiry; invisibility is expressed by ak.presence.visibility=nobody.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "presence-preference.schema.json#/properties/manual_state",
+        "owner": "presence-preference.schema.json#/properties/manual_state",
+        "values": [
+          "online",
+          "idle",
+          "dnd"
+        ]
+      }
     },
     "status_message": {
       "type": "string",

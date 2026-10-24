@@ -36,7 +36,7 @@ Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请�
 
 ## 2. 固定 reducer 与顺序边界
 
-每个注册 Event kind 直接绑定其领域 payload、领域 reducer 与 typed current result。治理 Station只按 Event 所属 stream 的 `RealmCommit.stream_position` 顺序执行这些规则：
+每个注册 Event kind 直接绑定其领域 payload、领域 reducer 与 current state。治理 Station只按 Event 所属 stream 的 `RealmCommit.stream_position` 顺序执行这些规则：
 
 - Realm、每个 Circle、每个 Sidecar 各自拥有独立 stream；不同 stream 不定义总序。
 - producer Event 不携带 predecessor、提交位置或治理方选择。
@@ -63,7 +63,7 @@ Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请�
 - extensible map 内的 namespaced 非 critical 字段按 schema 规则保留或忽略；
 - critical extension 不受支持时只拒绝相关 Event；
 - 不改变共享状态解释的功能使用 capability 协商；
-- 任何改变 Event admission、typed current result、RealmCommit 验证或 key-access revision 的修订必须同步更新规范、机器工件、SDK 与 conformance vectors。
+- 任何改变 Event admission、current state、RealmCommit 验证或 key-access revision 的修订必须同步更新规范、机器工件、SDK 与 conformance vectors。
 
 ## 5. 协商面清单
 

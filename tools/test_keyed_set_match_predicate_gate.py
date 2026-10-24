@@ -46,8 +46,8 @@ def row_of(registry: dict, kind: str) -> dict:
 
 def remove_write(registry: dict) -> dict:
     """The one registered `keyed_set_remove_observed` write."""
-    for write in row_of(registry, REVOKE)["result_writes"]:
-        if write["result_projection"]["kind"] == "keyed_set_remove_observed":
+    for write in row_of(registry, REVOKE)["state_writes"]:
+        if write["state_projection"]["kind"] == "keyed_set_remove_observed":
             return write
     raise AssertionError("ak.agent.key.revoke no longer removes observed elements")
 
@@ -86,7 +86,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
     def test_the_registered_predicate_is_the_existence_form(self) -> None:
         registry = gate.load_json(gate.Lint(), REGISTRY)
         self.assertEqual(
-            remove_write(registry)["result_projection"]["match"],
+            remove_write(registry)["state_projection"]["match"],
             {"element_field": "verification_method", "present": True},
         )
 
@@ -94,7 +94,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_the_equality_spelling_validates(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"] = {
+            remove_write(registry)["state_projection"]["match"] = {
                 "element_field": "key_id",
                 "source": "payload.key_id",
             }
@@ -105,7 +105,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_present_false_is_refused(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"]["present"] = False
+            remove_write(registry)["state_projection"]["match"]["present"] = False
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -118,7 +118,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
             with self.subTest(value=value):
 
                 def mutate(registry: dict, value=value) -> None:
-                    remove_write(registry)["result_projection"]["match"]["present"] = value
+                    remove_write(registry)["state_projection"]["match"]["present"] = value
 
                 reported = self._newly_reported(mutate)
                 self.assertTrue(
@@ -129,7 +129,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_both_sources_at_once_are_refused(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"]["source"] = "payload.key_id"
+            remove_write(registry)["state_projection"]["match"]["source"] = "payload.key_id"
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -137,7 +137,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_naming_neither_source_is_refused(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"] = {
+            remove_write(registry)["state_projection"]["match"] = {
                 "element_field": "verification_method"
             }
 
@@ -147,7 +147,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_an_unknown_match_member_is_refused(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"]["absent"] = True
+            remove_write(registry)["state_projection"]["match"]["absent"] = True
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -155,7 +155,7 @@ class KeyedSetMatchPredicateTest(unittest.TestCase):
 
     def test_the_element_field_must_be_a_named_path(self) -> None:
         def mutate(registry: dict) -> None:
-            remove_write(registry)["result_projection"]["match"]["element_field"] = "items[0]"
+            remove_write(registry)["state_projection"]["match"]["element_field"] = "items[0]"
 
         reported = self._newly_reported(mutate)
         self.assertTrue(

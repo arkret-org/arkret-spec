@@ -31,7 +31,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 140 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 229 | `artifacts/registry/schema-registry.json` |
+| Schema | 230 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 48 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 225 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 59 | `artifacts/profiles/conformance-profiles.json` |
@@ -128,3 +128,5 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - 用 CI 自动校验 Markdown 示例、OpenAPI、registry、schema 与 fixture 一致性
 - 从 OpenAPI / JSON Schema 生成 SDK 类型与 contract tests
 - 对宽泛 payload schema 提供 reference validator 中的语义校验，MUST NOT 只凭 JSON Schema 宣称完全互操作
+
+发布前 MUST 冻结协议类型、字段、枚举与编码合同：名称、类型、必填性、缺省和 null 语义、范围、单位、集合顺序与唯一性、扩展槽及签名覆盖范围均属于 v1 稳定边界。`protocol-member-contract.json` 固化完整 schema 断言、registry 与 OpenAPI；发布标签存在后不得刷新候选快照来覆盖已发布合同。

@@ -258,7 +258,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "ak.did.binding_evidence.v1"
+          "const": "ak.did.binding_evidence.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/evidence_receipt/properties/kind",
+            "owner": "did-binding-contracts.schema.json#/$defs/evidence_receipt/properties/kind",
+            "values": [
+              "ak.did.binding_evidence.v1"
+            ]
+          }
         },
         "method": {
           "$ref": "#/$defs/method_token"
@@ -288,7 +296,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "webvh_log"
+          "const": "webvh_log",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/webvh_log_evidence/properties/kind",
+            "owner": "did-binding-contracts.schema.json#/$defs/webvh_log_evidence/properties/kind",
+            "values": [
+              "webvh_log"
+            ]
+          }
         },
         "history_head": {
           "type": "string",
@@ -336,7 +352,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "ak.did.resolver_policy.v1"
+          "const": "ak.did.resolver_policy.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/properties/kind",
+            "owner": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/properties/kind",
+            "values": [
+              "ak.did.resolver_policy.v1"
+            ]
+          }
         },
         "policy_profile": {
           "type": "string",
@@ -358,7 +382,16 @@
           "enum": [
             "fail_closed",
             "allow_cached_on_error"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/properties/fail_mode",
+            "owner": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/properties/fail_mode",
+            "values": [
+              "fail_closed",
+              "allow_cached_on_error"
+            ]
+          }
         },
         "trust_roots": {
           "type": "array",
@@ -380,14 +413,30 @@
           "if": {
             "properties": {
               "policy_profile": {
-                "const": "ak.did_resolver_policy_profile.base.v1"
+                "const": "ak.did_resolver_policy_profile.base.v1",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/allOf/0/if/properties/policy_profile",
+                  "owner": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/allOf/0/if/properties/policy_profile",
+                  "values": [
+                    "ak.did_resolver_policy_profile.base.v1"
+                  ]
+                }
               }
             }
           },
           "then": {
             "properties": {
               "profile_policy": {
-                "const": {}
+                "const": {},
+                "x-arkret-value-ownership": {
+                  "class": "structured_literal",
+                  "authority": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/allOf/0/then/properties/profile_policy",
+                  "owner": "did-binding-contracts.schema.json#/$defs/resolver_policy_snapshot/allOf/0/then/properties/profile_policy",
+                  "values": [
+                    {}
+                  ]
+                }
               }
             }
           }
@@ -445,7 +494,17 @@
             "pinned",
             "method_unsupported",
             "not_surfaced"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/limited_trust/properties/history_head_status",
+            "owner": "did-binding-contracts.schema.json#/$defs/limited_trust/properties/history_head_status",
+            "values": [
+              "pinned",
+              "method_unsupported",
+              "not_surfaced"
+            ]
+          }
         },
         "version_id_status": {
           "type": "string",
@@ -453,7 +512,17 @@
             "pinned",
             "method_unsupported",
             "not_surfaced"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/limited_trust/properties/version_id_status",
+            "owner": "did-binding-contracts.schema.json#/$defs/limited_trust/properties/version_id_status",
+            "values": [
+              "pinned",
+              "method_unsupported",
+              "not_surfaced"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -481,7 +550,17 @@
             "low",
             "medium",
             "high"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/freshness_profile/properties/risk_tier",
+            "owner": "did-binding-contracts.schema.json#/$defs/freshness_profile/properties/risk_tier",
+            "values": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
         },
         "did_method_selector": {
           "type": "array",
@@ -521,7 +600,17 @@
             "accepted_without_network",
             "accepted_and_background_refresh",
             "synchronous_refresh_or_fail_closed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "did-binding-contracts.schema.json#/$defs/freshness_profile/properties/stale_behavior",
+            "owner": "did-binding-contracts.schema.json#/$defs/freshness_profile/properties/stale_behavior",
+            "values": [
+              "accepted_without_network",
+              "accepted_and_background_refresh",
+              "synchronous_refresh_or_fail_closed"
+            ]
+          }
         }
       },
       "additionalProperties": false

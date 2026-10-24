@@ -97,7 +97,7 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
 
     def test_directory_resolution_uses_public_metadata_entry(self) -> None:
         directory = self.documents["directory"]["$defs"]
-        self.assertEqual(directory["directory_realm_resolution_outcome"], {"$ref": "#/$defs/public_realm_directory_entry"})
+        self.assertEqual(directory["directory_realm_resolution_response_body"].get("$ref"), "#/$defs/public_realm_directory_entry")
         self.assertNotIn("realm_preview", directory)
         self.assertNotIn("directory_target_resolution_outcome", directory)
 
@@ -111,7 +111,7 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
 
 
     def test_directory_search_cap_is_current_public_contract(self) -> None:
-        result = self.documents["directory"]["$defs"]["directory_realm_search_outcome"]
+        result = self.documents["directory"]["$defs"]["directory_realm_search_response_body"]
         self.assertEqual(result["properties"]["realms"]["maxItems"], 100)
         self.assertEqual(result["properties"]["realms"]["items"], {"$ref": "#/$defs/public_realm_directory_entry"})
         self.assertFalse(result["additionalProperties"])

@@ -1,4 +1,4 @@
-"""A typed current result lifecycle axis must have a machine behind it.
+"""A current state lifecycle axis must have a machine behind it.
 
 `check_fsm_state_reachability` has been running since before the
 authority-commit clean break. The break renamed everything it reads:
@@ -11,7 +11,7 @@ loop then iterated an empty dict, and the gate returned without a word -- while
 lifecycle transitions have their source of truth in `transition_contracts`.
 
 That is worse than having no gate: `check` recorded "nobody looked" as "the
-check passed". So the gate now reads `result_writes[]`, and an absent contract
+check passed". So the gate now reads `state_writes[]`, and an absent contract
 block is a failure rather than an early return.
 
 Declaring the machines exposed the second half. Three families were written by
@@ -57,8 +57,8 @@ def row_of(registry: dict, kind: str) -> dict:
 
 
 def write_of(registry: dict, kind: str, family: str) -> dict:
-    for write in row_of(registry, kind)["result_writes"]:
-        if write["result_family"] == family:
+    for write in row_of(registry, kind)["state_writes"]:
+        if write["state_family"] == family:
             return write
     raise AssertionError(f"{kind} declares no write of {family}")
 
@@ -99,9 +99,9 @@ class FsmTransitionContractGateTest(unittest.TestCase):
         contracts = registry["event_kind_registry"]["transition_contracts"]
         written: set[str] = set()
         for row in registry["event_kind_registry"]["event_kinds"]:
-            for write in row.get("result_writes") or ():
-                if write["result_projection"]["kind"] == "transition":
-                    written.add(write["result_family"])
+            for write in row.get("state_writes") or ():
+                if write["state_projection"]["kind"] == "transition":
+                    written.add(write["state_family"])
         self.assertEqual(written, set(contracts))
         self.assertEqual(sorted(contracts), sorted(FSM_FAMILIES))
 
@@ -110,11 +110,11 @@ class FsmTransitionContractGateTest(unittest.TestCase):
         registry = gate.load_json(gate.Lint(), CONTRACT_REGISTRY)
         contracts = registry["event_kind_registry"]["transition_contracts"]
         offenders = [
-            (row["event_kind"], write["result_family"])
+            (row["event_kind"], write["state_family"])
             for row in registry["event_kind_registry"]["event_kinds"]
-            for write in row.get("result_writes") or ()
-            if write["result_family"] in contracts
-            and write["result_projection"]["kind"] != "transition"
+            for write in row.get("state_writes") or ()
+            if write["state_family"] in contracts
+            and write["state_projection"]["kind"] != "transition"
         ]
         self.assertEqual(offenders, [])
 
@@ -129,7 +129,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
         }
         for kind, to_state in edges:
             write = write_of(registry, kind, "agent_status")
-            projection = write["result_projection"]
+            projection = write["state_projection"]
             self.assertEqual(projection["kind"], "transition")
             self.assertEqual(projection["to"], {"const": to_state})
             # The prestate is read from the payload rather than restated here:
@@ -168,7 +168,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
     def test_a_whole_value_write_to_an_fsm_family_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.realm.history_access", "realm_history_access")
-            write["result_projection"] = {
+            write["state_projection"] = {
                 "kind": "set",
                 "value": {"field": "payload.to"},
             }
@@ -192,7 +192,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
         # second state.
         self.assertEqual(len(reported), 3, reported)
         self.assertTrue(
-            any("no such typed current result family" in error for error in reported),
+            any("no such current state family" in error for error in reported),
             reported,
         )
 
@@ -200,7 +200,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
 
     def test_an_allowed_edge_with_no_writer_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            del row_of(registry, "ak.self.agent.resume")["result_writes"]
+            del row_of(registry, "ak.self.agent.resume")["state_writes"]
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -209,8 +209,8 @@ class FsmTransitionContractGateTest(unittest.TestCase):
 
     def test_a_state_no_write_can_reach_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            writes = row_of(registry, "ak.realm.create")["result_writes"]
-            writes[:] = [w for w in writes if w["result_family"] != "agent_status"]
+            writes = row_of(registry, "ak.realm.create")["state_writes"]
+            writes[:] = [w for w in writes if w["state_family"] != "agent_status"]
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 2, reported)
@@ -232,7 +232,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
     def test_a_write_to_a_state_the_machine_never_declares_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.self.agent.pause", "agent_status")
-            write["result_projection"]["to"] = {"const": "retired"}
+            write["state_projection"]["to"] = {"const": "retired"}
 
         reported = self._newly_reported(mutate)
         # The undeclared target, plus the edge and the state that pause was the
@@ -243,7 +243,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
     def test_a_const_edge_outside_the_table_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.call.state", "call_recording_state")
-            write["result_projection"]["from"] = {"const": "stopped"}
+            write["state_projection"]["from"] = {"const": "stopped"}
 
         reported = self._newly_reported(mutate)
         self.assertTrue(
@@ -306,7 +306,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
     def _write(self, registry: dict) -> dict:
         for row in registry["event_kinds"]:
             if row["event_kind"] == "ak.self.agent.deactivate":
-                return row["result_writes"][0]
+                return row["state_writes"][0]
         raise AssertionError("ak.self.agent.deactivate is not registered")
 
     def test_the_live_registry_is_clean(self) -> None:
@@ -314,7 +314,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
 
     def test_an_endpoint_with_no_source_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            self._write(registry)["result_projection"]["from"] = {}
+            self._write(registry)["state_projection"]["from"] = {}
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -322,7 +322,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
 
     def test_an_endpoint_with_both_sources_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            self._write(registry)["result_projection"]["from"] = {
+            self._write(registry)["state_projection"]["from"] = {
                 "const": "active",
                 "field": "payload.previous_status",
             }
@@ -333,7 +333,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
 
     def test_an_unwalkable_field_path_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            self._write(registry)["result_projection"]["from"] = {
+            self._write(registry)["state_projection"]["from"] = {
                 "field": "payload.previous_status[0]"
             }
 
@@ -343,7 +343,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
 
     def test_an_unknown_projection_member_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            self._write(registry)["result_projection"]["transition_contract"] = "agent_status"
+            self._write(registry)["state_projection"]["transition_contract"] = "agent_status"
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -353,7 +353,7 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
 class FsmTemplateIdiomTest(unittest.TestCase):
     """The third entry idiom, which no registered contract uses.
 
-    `sync/current-results.md` section 2.1 says a transition contract declares
+    `sync/current-state.md` section 2.1 says a transition contract declares
     exactly one of `initial_state` / `initial_states` / `template`, and the
     registry rule repeats it. Nothing has ever declared a template: the
     `transition_templates` block has been absent for the whole life of the

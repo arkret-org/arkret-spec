@@ -11,7 +11,7 @@
       "$ref": "#/$defs/erasure_receipt_submit_request_body"
     },
     {
-      "$ref": "#/$defs/erasure_receipt_submit_outcome"
+      "$ref": "#/$defs/erasure_receipt_submit_response_body"
     },
     {
       "$ref": "#/$defs/erasure_receipt_resource"
@@ -92,7 +92,16 @@
           "enum": [
             "accepted",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_acceptance/properties/status",
+            "owner": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_acceptance/properties/status",
+            "values": [
+              "accepted",
+              "duplicate"
+            ]
+          }
         },
         "receipt_id": {
           "$ref": "#/$defs/receipt_id"
@@ -115,7 +124,7 @@
       },
       "additionalProperties": false
     },
-    "erasure_receipt_submit_outcome": {
+    "erasure_receipt_submit_response_body": {
       "oneOf": [
         {
           "$ref": "#/$defs/erasure_receipt_acceptance"
@@ -129,7 +138,15 @@
           ],
           "properties": {
             "status": {
-              "const": "rejected"
+              "const": "rejected",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body/oneOf/1/properties/status",
+                "owner": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body/oneOf/1/properties/status",
+                "values": [
+                  "rejected"
+                ]
+              }
             },
             "receipt_id": {
               "$ref": "#/$defs/receipt_id"
@@ -143,12 +160,26 @@
                 "erasure_receipt_stub_digest_mismatch",
                 "duplicate_conflict",
                 "unauthorized"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body/oneOf/1/properties/reason_code",
+                "owner": "erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body/oneOf/1/properties/reason_code",
+                "values": [
+                  "erasure_receipt_authority_invalid",
+                  "erasure_receipt_proof_invalid",
+                  "erasure_receipt_stub_binding_mismatch",
+                  "erasure_receipt_stub_digest_mismatch",
+                  "duplicate_conflict",
+                  "unauthorized"
+                ]
+              }
             }
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "erasure_receipt_resource": {
       "type": "object",

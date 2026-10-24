@@ -370,7 +370,7 @@ backfill 重放，以及 canonical bytes／digest／签名校验。字节比较�
 推广成任意对象都接受扩展。通用 `critical_extensions` carrier 在 current-v1 为 reserved，不属于本向量输入；其重新激活
 必须与具体 schema、typed model、criticality 判定和 canonical-preservation 向量同批落地。
 
-`ak.vector.encoding.result_selector_uri.v1` MUST 证明：canonical MIMI room URI 是 typed current result 的
+`ak.vector.encoding.state_selector_uri.v1` MUST 证明：canonical MIMI room URI 是 current state 的
 subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配的备用 room 标识符一律拒绝。
 
 `ak.event_proof.v1` 的 transcript KAT 由 `ak.vector.encoding.signature_binding_payload.v1` 系列与
@@ -403,7 +403,7 @@ MUST 被 `view.schema.json` 拒绝。
 自引用以 `realm_link_self_reference` 拒绝。
 
 `ak.vector.relation.primary_domain_cas.v1` MUST 证明：每个直接写 Relation shape 只有一个
-`primary_conflict_domain` current-result subject；create/update/tombstone 都携 signed domain 与领域
+`primary_conflict_domain` current-state subject；create/update/tombstone 都携 signed domain 与领域
 `expected_revision`，domain 不匹配、stale revision、错误 RelationId 与 active domain 上的重复 create 都零写入拒绝。
 两个离线作者从同一 revision 竞争时至多一个取得 RealmCommit，反向提交顺序同样成立；exact replay 返回原 Commit。
 tombstone 后携其 revision 可创建新 event-derived RelationId。`relation_kind/from_ref/to_ref` create-lock，改变身份必须

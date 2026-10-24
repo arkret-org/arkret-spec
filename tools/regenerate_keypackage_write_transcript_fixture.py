@@ -98,7 +98,7 @@ def rebuild(document: dict) -> tuple[dict, list[str]]:
             case.get("canonical_jcs"),
             case.get("signing_input_base64url"),
             case.get("signature"),
-            receipt.get("signature", {}).get("sig"),
+            receipt.get("signature", {}).get("signature"),
         )
         after = (canonical, b64u(signing_input), signature, signature)
         if before != after:
@@ -106,7 +106,7 @@ def rebuild(document: dict) -> tuple[dict, list[str]]:
         case["canonical_jcs"] = canonical
         case["signing_input_base64url"] = b64u(signing_input)
         case["signature"] = signature
-        receipt["signature"]["sig"] = signature
+        receipt["signature"]["signature"] = signature
     return document, changed
 
 

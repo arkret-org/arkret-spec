@@ -213,7 +213,7 @@ def check_agent_session_content(lint: Lint) -> None:
         if case.get('expected') != actual:
             lint.fail(fixture_path, f"Agent session content decision drift: {case.get('name')}: {actual}")
     schemas = load_json(lint, ARTIFACTS / 'schemas/service-operation-dtos.schema.json')['$defs']
-    refresh = schemas['AgentSessionGrantRefreshRequest']
+    refresh = schemas['AgentSessionGrantRefreshRequestBody']
     if refresh.get('additionalProperties') is not False or {'requested_scope', 'agent_scope_request'} & set(refresh.get('properties', {})):
         lint.fail(registry_path, 'Agent refresh must remain a closed non-expanding rotation request')
     refs = schemas['SessionGrantIntrospectGrant']['properties']['scope_details']['properties']['capability_grant_refs']

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-23T13:01:46+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -20,8 +20,8 @@
   ],
   "principal_resolution_contract": {
     "version": "2026-08-30.1",
-    "result_selector": "ak:result:identity_resolution:null",
-    "result_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+    "state_selector": "ak:result:identity_resolution:null",
+    "resolution_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
     "profile_write_policy": {
       "create_forbidden_members": [
         "id",
@@ -52,7 +52,7 @@
       },
       "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
       "required_precondition": {
-        "typed current result": "ak:result:identity_resolution:null",
+        "current state": "ak:result:identity_resolution:null",
         "op": "expected_revision",
         "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
         "cardinality": 1
@@ -88,7 +88,7 @@
         "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
         "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
         "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
-        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-typed current result values; the segment never exceeds request history_depth items and never skips an intermediate Event",
+        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-current state values; the segment never exceeds request history_depth items and never skips an intermediate Event",
         "history_complete is true exactly when the segment reaches principal_genesis_event or the exclusive requested ancestor. Otherwise Present exactly when history_complete is false. Resolve payload.expected_revision of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown.",
         "accepted_commit.realm_id == principal_control_realm_id and accepted_commit recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
         "the registered resolution reducer applied to current_resolution_event yields the response's current resolution projection and project(did) == principal_id",

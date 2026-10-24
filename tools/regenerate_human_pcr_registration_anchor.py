@@ -238,7 +238,7 @@ def build_anchor() -> dict[str, Any]:
         "registration_did_operation": {
             "did": DID,
             "did_method": "webvh",
-            "seq": 1,
+            "sequence": 1,
             "operation": published_entry,
         },
         "log_entries": [published_entry],

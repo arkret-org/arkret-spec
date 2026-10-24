@@ -554,7 +554,7 @@ self advisory 的 Actor/context 不承载此授权证据，MUST NOT 以当前 ad
 处理；它与每条 stream 自己从 0 严格递增的 `seq` 相互独立。`frame_kind` 是 closed 三值：
 
 - `keyframe`：携带截至当前的完整 `text`、固定 `format=plain|markdown` 与 `truncated`；
-- `delta`：只携带非空 `text_append`，并要求 `base_seq` 等于 producer 上一正文帧的 `seq`；
+- `delta`：只携带非空 `text_append`，并要求 `base_sequence` 等于 producer 上一正文帧的 `seq`；
 - `abort`：只携带低敏 `reason_code=generation_cancelled|generation_failed|superseded`。
 
 `seq=0` MUST 是 keyframe。format 在同一 stream 内不得改变；delta 只能追加有效 UTF-8，不支持
@@ -600,7 +600,7 @@ receiver 对同一 `(sender_actor_id, verified sender endpoint domain, message_i
    MUST 冻结该 Message preview、记录安全诊断并等待 final，不得按到达时间选 winner；
 3. keyframe 仅在 `seq > last_content_seq` 时直接替换 preview；`highest_observed_seq` 只用于
    诊断，不得阻止稍后到达但仍更新的 keyframe；
-4. delta 仅在 `seq > last_content_seq && base_seq == last_content_seq` 时追加；否则忽略正文并
+4. delta 仅在 `seq > last_content_seq && base_sequence == last_content_seq` 时追加；否则忽略正文并
    等待 keyframe，不得清空已经认证的前缀；
 5. 当前 attempt/stream 的 abort 终止该 attempt；未激活更大 attempt 的 abort 不影响当前
    preview；

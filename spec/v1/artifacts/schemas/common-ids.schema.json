@@ -98,7 +98,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "account"
+              "const": "account",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "common-ids.schema.json#/$defs/actor_id/oneOf/0/properties/kind",
+                "owner": "common-ids.schema.json#/$defs/actor_id/oneOf/0/properties/kind",
+                "values": [
+                  "account"
+                ]
+              }
             },
             "account_id": {
               "$ref": "#/$defs/account_id"
@@ -114,7 +122,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "service"
+              "const": "service",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "common-ids.schema.json#/$defs/actor_id/oneOf/1/properties/kind",
+                "owner": "common-ids.schema.json#/$defs/actor_id/oneOf/1/properties/kind",
+                "values": [
+                  "service"
+                ]
+              }
             },
             "service_id": {
               "$ref": "#/$defs/did_core_id"
@@ -130,7 +146,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "common-ids.schema.json#/$defs/actor_id/oneOf/2/properties/kind",
+                "owner": "common-ids.schema.json#/$defs/actor_id/oneOf/2/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             },
             "realm_actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
@@ -239,7 +263,15 @@
         {
           "properties": {
             "kind": {
-              "const": "realm"
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "common-ids.schema.json#/$defs/realm_actor/allOf/1/properties/kind",
+                "owner": "common-ids.schema.json#/$defs/realm_actor/allOf/1/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
             }
           },
           "required": [

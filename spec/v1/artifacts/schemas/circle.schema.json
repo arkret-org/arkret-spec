@@ -22,7 +22,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.circle.v1"
+      "const": "ak.schema.circle.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "circle.schema.json#/properties/schema",
+        "owner": "circle.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.circle.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -49,7 +57,16 @@
         "members",
         "realm_members"
       ],
-      "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_ids. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
+      "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_ids. 'realm_members' exposes directory metadata only and does NOT grant event or history access.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "circle.schema.json#/properties/directory_visibility",
+        "owner": "circle.schema.json#/properties/directory_visibility",
+        "values": [
+          "members",
+          "realm_members"
+        ]
+      }
     },
     "join_rule": {
       "type": "string",
@@ -58,7 +75,17 @@
         "knock",
         "public"
       ],
-      "description": "public permits parent-Realm members to self-join; invite requires an authorized administrator using ak.circle.member.add.others with the required same-unit audit. v1 has no Circle invitation or acceptance workflow. All joins bind the exact current parent membership revision."
+      "description": "public permits parent-Realm members to self-join; invite requires an authorized administrator using ak.circle.member.add.others with the required same-unit audit. v1 has no Circle invitation or acceptance workflow. All joins bind the exact current parent membership revision.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "circle.schema.json#/properties/join_rule",
+        "owner": "circle.schema.json#/properties/join_rule",
+        "values": [
+          "invite",
+          "knock",
+          "public"
+        ]
+      }
     },
     "history_access": {
       "type": "string",
@@ -66,7 +93,16 @@
         "since_join",
         "all_history_for_current_members"
       ],
-      "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join."
+      "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "circle.schema.json#/properties/history_access",
+        "owner": "circle.schema.json#/properties/history_access",
+        "values": [
+          "since_join",
+          "all_history_for_current_members"
+        ]
+      }
     },
     "agent_participation": {
       "type": "object",
@@ -92,7 +128,17 @@
         "archived",
         "tombstoned"
       ],
-      "description": "Circle lifecycle state. v1 defines active, archived, and tombstoned only; Circle has no independent freeze or destroy state because parent Realm freeze/destroy applies at the Realm boundary."
+      "description": "Circle lifecycle state. v1 defines active, archived, and tombstoned only; Circle has no independent freeze or destroy state because parent Realm freeze/destroy applies at the Realm boundary.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "circle.schema.json#/properties/state",
+        "owner": "circle.schema.json#/properties/state",
+        "values": [
+          "active",
+          "archived",
+          "tombstoned"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp"
@@ -118,7 +164,16 @@
             "enum": [
               "archived",
               "tombstoned"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "circle.schema.json#/allOf/0/if/properties/state",
+              "owner": "circle.schema.json#/allOf/0/if/properties/state",
+              "values": [
+                "archived",
+                "tombstoned"
+              ]
+            }
           }
         },
         "required": [
@@ -167,7 +222,31 @@
             "pink",
             "gray_high_contrast"
           ],
-          "description": "Color token from the spec-controlled palette. Clients MUST map token -> theme color (light/dark/high-contrast) consistently across devices; clients MUST NOT reassign tokens."
+          "description": "Color token from the spec-controlled palette. Clients MUST map token -> theme color (light/dark/high-contrast) consistently across devices; clients MUST NOT reassign tokens.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle.schema.json#/$defs/display/properties/color_token",
+            "owner": "circle.schema.json#/$defs/display/properties/color_token",
+            "values": [
+              "slate",
+              "red",
+              "orange",
+              "amber",
+              "yellow",
+              "lime",
+              "green",
+              "emerald",
+              "teal",
+              "cyan",
+              "sky",
+              "blue",
+              "indigo",
+              "violet",
+              "fuchsia",
+              "pink",
+              "gray_high_contrast"
+            ]
+          }
         },
         "symbol": {
           "type": "object",
@@ -200,7 +279,7 @@
                 "diamond",
                 "flame",
                 "leaf",
-                "authority commit",
+                "seal",
                 "compass",
                 "atom",
                 "bolt",
@@ -217,7 +296,41 @@
                 "scale",
                 "hourglass",
                 "spark"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "circle.schema.json#/$defs/display/properties/symbol/properties/glyph",
+                "owner": "circle.schema.json#/$defs/display/properties/symbol/properties/glyph",
+                "values": [
+                  "lock",
+                  "shield",
+                  "eye",
+                  "eye_off",
+                  "user_shield",
+                  "fingerprint",
+                  "key",
+                  "diamond",
+                  "flame",
+                  "leaf",
+                  "seal",
+                  "compass",
+                  "atom",
+                  "bolt",
+                  "moon",
+                  "sun",
+                  "star",
+                  "globe",
+                  "satellite",
+                  "ring",
+                  "chain",
+                  "tag",
+                  "flag",
+                  "scroll",
+                  "scale",
+                  "hourglass",
+                  "spark"
+                ]
+              }
             }
           },
           "additionalProperties": false

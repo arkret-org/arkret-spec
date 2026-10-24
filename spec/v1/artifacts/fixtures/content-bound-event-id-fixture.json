@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -162,7 +162,7 @@
         "registration_anchor": {
           "fixture": "pcr-genesis-fixture.json",
           "pointer": "/principal_registration_anchor_evidence/anchor",
-          "anchor_canonical_json_sha256": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+          "anchor_canonical_json_sha256": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
           "resolved_verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
           "note": "initial_resolution.did, version_id and method_history_head are the values that anchor's own terminal entry derives, and the producer proof is made by that entry's parameters.updateKeys[0]. A create Event keeping a device DID URL here cannot be the registration_anchor branch, because the branch's verifier reads the method from the anchor and requires equality."
         }

@@ -36,7 +36,7 @@ from .core import (
     VALUE_PROJECTION_DERIVATIONS,
     VALUE_PROJECTION_IDENTITY_SUBJECTS,
     json,
-    load_json,
+    load_contract_json as load_json,
     load_yaml,
     markdown_files,
     raw_artifact_files,
@@ -417,7 +417,7 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
         or (
             value == "item.key_id"
             and "ak.agent.key.authorize" in ref
-            and ("cell_writes[0]" in ref or "result_writes[0]" in ref)
+            and ("cell_writes[0]" in ref or "state_writes[0]" in ref)
         )
     ):
         return
@@ -781,7 +781,7 @@ def check_mimi_admission_guards(lint: Lint) -> None:
     if rejected.get("producer_path_id") != observer.get("producer_path_id") or rejected.get("expected_reason_code") != "mimi_observer_write_forbidden":
         lint.fail(fixture_path, "MIMI observer rejection case is not bound to its producer")
     effect_counts = rejected.get("expected_effect_counts") or {}
-    required_effects = {"constructed_events", "accepted_events", "realm_commits", "typed_current_results", "outbox_rows", "receipts", "fanout_deliveries"}
+    required_effects = {"constructed_events", "accepted_events", "realm_commits", "current_states", "outbox_rows", "receipts", "fanout_deliveries"}
     if not required_effects.issubset(effect_counts) or any(effect_counts.get(name) != 0 for name in required_effects):
         lint.fail(fixture_path, "MIMI observer rejection must assert zero write and fanout effects")
     for case_id in ("verified_group_info_group_id_mismatch", "room_binding_group_id_mismatch", "current_scope_derived_group_id_mismatch"):
@@ -871,7 +871,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(event_path, f"{kind} has unknown wire_scope {wire_scope!r}")
         # Every removed typed-state member is caught on the row here and
         # nowhere else. The clean break replaced `cell_writes[]` with
-        # `result_writes[]`, whose grammar is closed in
+        # `state_writes[]`, whose grammar is closed in
         # proof_context_schemas.check_result_write_contracts; everything this
         # loop used to do past this point walked the old array, so it had been
         # iterating an absent key on all 147 rows and saying nothing.
@@ -944,23 +944,23 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         if not isinstance(resolved, (dict, bool)):
                             lint.fail(schema_path, f"{schema_id} fragment must resolve to an object or boolean schema")
         if (
-            file_ref.endswith("typed-current-result.schema.json")
+            file_ref.endswith("current-state.schema.json")
             and isinstance(fragment, str)
             and fragment
         ):
-            # This registry lists wire schemas.  A typed current result's VALUE
+            # This registry lists wire schemas.  A current state's VALUE
             # is a reducer output whose only registered read path is the
-            # `value_schema_ref` pointer on that family's `result_writes[]`
+            # `value_schema_ref` pointer on that family's `state_writes[]`
             # rows, so an id of its own would make one value shape look like a
             # signed wire object and invite binding by id instead of by the
             # write contract.  A whole-document row is still fine -- that is
-            # `ak.schema.result_projection.v1` -- which is why this rejects a
+            # `ak.schema.current_state.v1` -- which is why this rejects a
             # fragment rather than the file.
             lint.fail(
                 schema_path,
-                f"{schema_id} registers one typed current result value as a schema id; a value shape "
-                "is named only by the value_schema_ref JSON Pointer on its family's result_writes[] "
-                "rows (zh/sync/current-results.md section 1)",
+                f"{schema_id} registers one current state value as a schema id; a value shape "
+                "is named only by the value_schema_ref JSON Pointer on its family's state_writes[] "
+                "rows (zh/sync/current-state.md section 1)",
             )
         if isinstance(fragment, str) or fragment is None:
             effective_fragment = fragment or ""
@@ -4708,7 +4708,7 @@ def check_pcr_governance_policy(lint: Lint) -> None:
         "required_evidence": ["accepted_agent_control_genesis", "accepted_controller_provision", "full_agent_controller_account_binding"],
         "governor": "account_station",
         "provenance_mutable": False,
-        "governance_generation": 0,
+        "governance_generation": "0",
         "rejected_event_kinds": ["ak.realm.governance_station.change"],
         "rejected_stages": ["freeze", "handoff_export", "handoff_import", "acceptance", "activation", "remote_proxy", "remote_publication", "foreign_current_authority"],
         "same_station_endpoint_key_deployment_update": "preserve_governance_generation",

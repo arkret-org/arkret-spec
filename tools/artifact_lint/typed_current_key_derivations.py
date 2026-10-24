@@ -1,6 +1,6 @@
 """Close family-specific typed-current composite-key derivations.
 
-Decision 0079 keeps ``result_selector.kind = composite`` as a closed, ordered
+Decision 0079 keeps ``state_selector.kind = composite`` as a closed, ordered
 family descriptor while forbidding the old generic ``composite_subject`` API.
 This gate pins the registered active families, their generated API metadata,
 their selector sources and their domain-separated KATs.  The digest is only a
@@ -72,7 +72,7 @@ _FAMILIES = {
 
 _ROW_KEYS = {
     "derivation_id",
-    "result_family",
+    "state_family",
     "api_name",
     "parameters",
     "domain",
@@ -114,7 +114,7 @@ def _fail(lint: Lint, message: str) -> None:
 
 
 def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
-    family = expected["result_family"]
+    family = expected["state_family"]
     if not isinstance(row, dict):
         _fail(lint, f"family {family!r} must be an object")
         return
@@ -231,11 +231,11 @@ def _check_selector_alignment(lint: Lint, registry: dict[str, Any], rows_by_fami
     for event in registry.get("event_kinds") or ():
         if not isinstance(event, dict):
             continue
-        for write in event.get("result_writes") or ():
+        for write in event.get("state_writes") or ():
             if not isinstance(write, dict):
                 continue
-            family = write.get("result_family")
-            selector = write.get("result_selector")
+            family = write.get("state_family")
+            selector = write.get("state_selector")
             if family == "call_mute_override":
                 call_mute_selectors.append(selector)
             if family not in _FAMILIES:
@@ -297,7 +297,7 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
         "registered_active_families": len(_FAMILIES),
         "excluded_per_leg_mute": {
             "observed_component_order": ["call_id", "actor_id", "device_id"],
-            "active_result_family": "call_mute_override",
+            "active_state_family": "call_mute_override",
             "active_component_order": ["payload.call_id"],
             "disposition": "no_compatibility_api_fail_closed",
         },
@@ -311,15 +311,15 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
         return
     rows_by_family: dict[str, Any] = {}
     for row in rows:
-        family = row.get("result_family") if isinstance(row, dict) else None
+        family = row.get("state_family") if isinstance(row, dict) else None
         if family == "call_mute_override":
             _fail(lint, "the legacy per-leg mute caller must not gain a compatibility derivation")
         if not isinstance(family, str) or family not in _FAMILIES or family in rows_by_family:
-            _fail(lint, f"families contains unknown or duplicate result_family {family!r}")
+            _fail(lint, f"families contains unknown or duplicate state_family {family!r}")
             continue
         rows_by_family[family] = row
         expected = dict(_FAMILIES[family])
-        expected["result_family"] = family
+        expected["state_family"] = family
         _check_family_row(lint, row, expected)
     if set(rows_by_family) != set(_FAMILIES):
         _fail(lint, f"families must be exactly {sorted(_FAMILIES)}")

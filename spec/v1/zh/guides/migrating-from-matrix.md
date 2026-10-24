@@ -239,12 +239,12 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 替代设计：
 
-- 协议事实由普通 Event 或 state-changing Event 的 `kind + payload` 表达；typed current result target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
-- `result_id` 是显式 canonical typed current result，例如 `member_state:<actor-did>`。
-- 每个 typed current result family 在 registry 中声明 `execution`、`domain reducer` 与 `value_shape`；普通 `current-value projection` 的当前值是该 stream 上最后一个被接受的写入，次序只由 `stream_position` 给出，安全写入使用 RealmCommit 的唯一确认顺序。
-- Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit typed current result id 与 projected value。
+- 协议事实由普通 Event 或 state-changing Event 的 `kind + payload` 表达；current state target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
+- `result_id` 是显式 canonical current state，例如 `member_state:<actor-did>`。
+- 每个 current state family 在 registry 中声明 `execution`、`domain reducer` 与 `value_shape`；普通 `current-value projection` 的当前值是该 stream 上最后一个被接受的写入，次序只由 `stream_position` 给出，安全写入使用 RealmCommit 的唯一确认顺序。
+- Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit current state id 与 projected value。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 typed current result id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 RealmCommit 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 current state id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 RealmCommit 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `ak.realm.policy.set` 这种聚合 kind
 
@@ -259,18 +259,18 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 - 普通数据采用 typed current 当前值（`current-value projection`）、OR-set、日志或分片计数器；当前值只由该 stream 上最后一个被接受的写入给出，需要防覆盖时用 `expected_revision` compare-and-set。接收站独立验证，未知撤销允许传播窗口。
 - 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
 - RealmCommit 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
-- 普通 typed current 的当前值由该 stream 上最后一个被接受的写入给出，需要防覆盖时由 `expected_revision` compare-and-set 保护；安全状态不做无序 join，也不存在任意 typed current result reset。
+- 普通 typed current 的当前值由该 stream 上最后一个被接受的写入给出，需要防覆盖时由 `expected_revision` compare-and-set 保护；安全状态不做无序 join，也不存在任意 current state reset。
 
-### 6.4 领域 current result
+### 6.4 领域 current state
 
-Matrix state event 没有显式的领域 current result。Arkret v1 为每个可查询领域声明：
+Matrix state event 没有显式的领域 current state。Arkret v1 为每个可查询领域声明：
 
 - closed `selector.kind` 与稳定领域身份字段；
 - 完整 typed value schema；
 - 最后修改它的 `{commit_id, stream_position}` revision；
 - 写入需要并发保护时使用的 typed `expected_revision`。
 
-Receiver 不识别 selector kind 或 value branch 时 fail closed。扩展领域必须通过 schema/profile 显式 opt-in，不得退化为通用状态键或客户端自定义求值（规范见 [`sync/current-results.md`](../sync/current-results.md) 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
+Receiver 不识别 selector kind 或 value branch 时 fail closed。扩展领域必须通过 schema/profile 显式 opt-in，不得退化为通用状态键或客户端自定义求值（规范见 [`sync/current-state.md`](../sync/current-state.md) 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
 
 ### 6.5 E2EE Realm 的 MLS Governance Binding
 
@@ -285,7 +285,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引
 
 Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.replace` 是 holder principal control Realm 中的 Event，写入 按完整 peer ActorId 选择的唯一 permissions current（原签整份替换，empty 保留 revision），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
 
-**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Event on consent typed current result 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
+**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Event on consent current state 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
 ## 7. Matrix 仍然更强的地方
 
@@ -303,7 +303,7 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 - [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS key-access revision binding：`governance_binding.key_access_revision` 与 current winning group-state projection
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_kind` 域隔离，社交恢复
-- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent typed current result（commit-ordered projection 安全集合）
+- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent current state（commit-ordered projection 安全集合）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
 - [`identity/identity-did.md`](../identity/identity-did.md)

@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-21",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit.v1"
@@ -155,7 +155,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "governance_generation": 1,
+      "governance_generation": "1",
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -176,7 +176,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "governance_generation": 1,
+      "governance_generation": "1",
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -198,7 +198,7 @@
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
-      "governance_generation": 1,
+      "governance_generation": "1",
       "candidate": {
         "stream_position": 3,
         "commit_id": "ak:realm_commit:AYQKipHPvq4eyxdL2jAHJA_4Xug2oSL4XuHFbmYIRFEd",
@@ -219,7 +219,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "governance_generation": 1,
+      "governance_generation": "1",
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -243,7 +243,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "governance_generation": 1,
+      "governance_generation": "1",
       "stream_position": 1
     },
     "observed_commits": [
@@ -271,8 +271,8 @@
     "name": "old_station_write_after_planned_handoff_is_rejected",
     "vector_id": "ak.vector.authority_commit.post_handoff_write_rejected.v1",
     "handoff": {
-      "from_generation": 1,
-      "to_generation": 2,
+      "from_generation": "1",
+      "to_generation": "2",
       "acceptance_signed": true,
       "final_stream_heads_imported": true
     },
@@ -367,7 +367,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -462,7 +462,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -515,7 +515,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -568,7 +568,7 @@
           "stream": "circle_side",
           "stream_position": 0,
           "previous_commit_ref": null,
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -619,7 +619,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -748,7 +748,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -765,7 +765,7 @@
           "stream": "realm_main",
           "stream_position": 3,
           "previous_commit_ref": "position_2",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         }
       ],
@@ -815,7 +815,7 @@
           "stream": "realm_main",
           "stream_position": 0,
           "previous_commit_ref": null,
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -825,7 +825,7 @@
           "stream": "realm_main",
           "stream_position": 1,
           "previous_commit_ref": "position_0",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         }
       ],
@@ -963,7 +963,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {
@@ -973,7 +973,7 @@
           "stream": "realm_main",
           "stream_position": 3,
           "previous_commit_ref": "position_2",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         }
       ],
@@ -1069,7 +1069,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "invalid"
         },
         {
@@ -1123,7 +1123,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 2,
+          "governance_generation": "2",
           "signature": "valid_under_generation_1_key"
         },
         {
@@ -1218,7 +1218,7 @@
           "stream": "realm_main",
           "stream_position": 2,
           "previous_commit_ref": "position_1",
-          "governance_generation": 1,
+          "governance_generation": "1",
           "signature": "valid"
         },
         {

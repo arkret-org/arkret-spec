@@ -1,6 +1,6 @@
 """Mutation tests for the registered-family / normative-list gate.
 
-`zh/sync/current-results.md` section 2 says "v1 登记的 selector kind 为" and then
+`zh/sync/current-state.md` section 2 says "v1 登记的 selector kind 为" and then
 enumerates them. That is a closure claim an implementer acts on: an unlisted
 selector is one it MUST reject. So the list is not documentation of the
 registry, it is a second copy of it -- and the copy rotted the first time a
@@ -28,7 +28,7 @@ def errors_for(prose: str | None = None, families: list[str] | None = None) -> l
     lint = gate.Lint()
     original_read = Path.read_text
     original_is_file = Path.is_file
-    original_families = gate._registered_result_families
+    original_families = gate._registered_state_families
 
     if prose is not None:
         def read_text(self, *args, **kwargs):  # type: ignore[no-untyped-def]
@@ -44,13 +44,13 @@ def errors_for(prose: str | None = None, families: list[str] | None = None) -> l
         Path.read_text = read_text  # type: ignore[method-assign]
         Path.is_file = is_file  # type: ignore[method-assign]
     if families is not None:
-        gate._registered_result_families = lambda _lint: set(families)  # type: ignore[assignment]
+        gate._registered_state_families = lambda _lint: set(families)  # type: ignore[assignment]
     try:
         gate.check_registered_families_are_listed_in_prose(lint)
     finally:
         Path.read_text = original_read  # type: ignore[method-assign]
         Path.is_file = original_is_file  # type: ignore[method-assign]
-        gate._registered_result_families = original_families  # type: ignore[assignment]
+        gate._registered_state_families = original_families  # type: ignore[assignment]
     return lint.errors
 
 
@@ -66,8 +66,8 @@ class ProseSelectorListTest(unittest.TestCase):
             )
         )
         registered = {
-            row["result_kind"]
-            for row in registry["current_result_registry"]["result_kinds"]
+            row["state_kind"]
+            for row in registry["current_state_registry"]["state_kinds"]
         }
         text = gate.CURRENT_RESULTS_PROSE.read_text(encoding="utf-8")
         section = text.split(gate.CURRENT_RESULTS_PROSE_HEADING)[1].split("\n## ")[0]

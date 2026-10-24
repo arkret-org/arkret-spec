@@ -1,12 +1,12 @@
 {
-  "fixture_id": "ak.fixture.exact_current_results_read.v1",
-  "version": "2026-10-04.1",
-  "suite": "exact_current_results_read",
+  "fixture_id": "ak.fixture.exact_current_state_read.v1",
+  "version": "2026-10-24.1",
+  "suite": "exact_current_state_read",
   "fixture_kind": "schema_only",
-  "spec_anchor": "spec/v1/zh/sync/current-results.md",
+  "spec_anchor": "spec/v1/zh/sync/current-state.md",
   "source_refs": [
-    "spec/v1/artifacts/schemas/exact-current-results-read.schema.json",
-    "spec/v1/zh/sync/current-results.md",
+    "spec/v1/artifacts/schemas/exact-current-state-read.schema.json",
+    "spec/v1/zh/sync/current-state.md",
     "spec/v1/zh/sync/service-surface.md",
     "spec/v1/zh/conformance/realm-state-snapshot-schema.md"
   ],
@@ -20,7 +20,7 @@
     ]
   },
   "description": "Closed exact-current read cases for Relation primary-domain and moderation-target selectors. All outcomes bind one Realm, governing generation and effective stream head; invalid cases must fail before a caller can treat local state as current authority. Agent mode exact reads cover both current values and affirmative never-written without a guessed-ID enumeration right.",
-  "schema_ref": "schemas/exact-current-results-read.schema.json",
+  "schema_ref": "schemas/exact-current-state-read.schema.json",
   "request": {
     "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
     "selector": {
@@ -45,7 +45,7 @@
       "value": {
         "status": "present",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -109,7 +109,7 @@
       "value": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -140,7 +140,7 @@
       "value": {
         "status": "present",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -182,13 +182,13 @@
   "schema_validation_cases": [
     {
       "name": "moderation_never_written_is_not_a_schema_outcome",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "expect_valid": false,
       "first_expected_error": "contains:not valid under any of the given schemas",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -205,7 +205,7 @@
     },
     {
       "name": "agent_mode_exact_request",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
       "expect_valid": true,
       "instance": {
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
@@ -220,12 +220,12 @@
     },
     {
       "name": "agent_mode_present",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "expect_valid": true,
       "instance": {
         "status": "present",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -262,12 +262,12 @@
     },
     {
       "name": "agent_mode_never_written",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "expect_valid": true,
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -287,7 +287,7 @@
     },
     {
       "name": "agent_mode_partial_account_rejected",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
       "expect_valid": false,
       "instance": {
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
@@ -302,12 +302,12 @@
     },
     {
       "name": "agent_mode_null_current_rejected",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "expect_valid": false,
       "instance": {
         "status": "present",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -345,12 +345,12 @@
     },
     {
       "name": "agent_mode_private_selection_rejected",
-      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
       "expect_valid": false,
       "instance": {
         "status": "present",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "effective_stream_head": {
           "stream_ref": {
             "kind": "realm",

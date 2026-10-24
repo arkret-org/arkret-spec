@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-09-29.1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -32,8 +32,8 @@
           "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -42,7 +42,6 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
@@ -52,12 +51,13 @@
                   "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
                 ]
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "aeS1eDbOt0PAKXoTaiQHLEZiTwEfUMB58dnsfyIQ5B-Hb7FLZ5g9hjGSpJ2OUrHPJrm15SqXVzSLR7dTvsMTCQ",
+          "signature": "X8zHM0hUOjOQIIOqsgBVGKwRQodDuYURG0eN9CAB8Ml5iDLSGutJ8sIFWoMZ78GcvH_nUNPpOamkmGkn9k2vBw",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -76,8 +76,8 @@
           "uri": "urn:arkret:sdk:test",
           "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
-        "spec_revision": "0000000000000000000000000000000000000000",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "0000000000000000000000000000000000000000",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -86,7 +86,6 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
@@ -96,12 +95,13 @@
                   "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
                 ]
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "1SKinbOrg5Nnj3Owh69V9zoY2I3aT3UocpII0ZGxfebSoHhAjfyd_rXJZevVVxLYsFDZ76uqsHntFDzFkIdBAA",
+          "signature": "iIUkxXd6adYISZwW_snJu0uYjY0Iy-O-fUxXZutFA7jq_Hicb3PiSaJ0QjRZdSLpMHqzmLSgl0hCuR09d0kVDQ",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -120,8 +120,8 @@
           "uri": "urn:arkret:sdk:test",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "1111111111111111111111111111111111111111",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -130,18 +130,18 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
                 "evidence_ref": "ci://run/1"
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "yksSbs73a610v_Yk8aav2ctCaFIIEBwcB8MTByE4qgipypSQIFf2Cr3BOj-LTPi1TtqjMLVBF8AFkFu5wRlODA",
+          "signature": "eGXKQTV50JjkbRbaHSBtqPi9OYnlaGJS87kxP6cOmutT79hYmqPzssFVSTY2VCwNWchvX8yDHDNYga_OzwF2AA",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -163,8 +163,8 @@
           "uri": "urn:arkret:sdk:test",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "1111111111111111111111111111111111111111",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -173,7 +173,6 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
@@ -183,7 +182,8 @@
                   "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
                 ]
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
@@ -206,8 +206,8 @@
           "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -216,19 +216,19 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
                 "evidence_ref": "ci://arkret-rust-sdk/run/1",
                 "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "mJNmrUC2SJt5l1gayv6wYCM6ZPeN0hbSTQDWkiiZiM8Ac7_wUqg9VZic1euXn_2bzQMD98MOwsN9en6v7wXPCA",
+          "signature": "i9raTqJelx-M5I9f-JvlRB8Aj8UhtM5Bq0i-9ksTSbH8-dWQFmqjq_nk6PzhxuWwBvJOjCqUsS-KFPSHMa9HAg",
           "signature_algorithm": "Ed25519"
         }
       },
@@ -247,8 +247,8 @@
           "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:2734014eddd328ba1a4d1714f9e70fdd6d13c811535f056e2298179c1f62576c",
+        "specification_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:1c42dca0bbaeba786b7bb5f546b3e0f8a46d640263ae46162395d3374235d9ef",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -257,7 +257,6 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "code_audit",
@@ -267,12 +266,13 @@
                   "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
                 ]
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "Yzarq9FOplYbnZOQnbe1krszuuxLp2UIAmREa7cEAq6W3BjyNqhsnXdWKLP9O0_kBIhENWgJbxMcOOkOjzBZBg",
+          "signature": "oFAsKXwtjEanX0vjNFOP-Qbx0SxwRK1VkwBBxu8E69-VR4DccXy4FJVta72uQnIJ_lBZsDGuJb-c6hiqCqSUCw",
           "signature_algorithm": "Ed25519"
         }
       },
@@ -290,7 +290,7 @@
           "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
-        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "specification_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
         "contract_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
@@ -300,7 +300,6 @@
         "clause_claims": [
           {
             "clause_id": "AK-SDK-001",
-            "result": "pass",
             "evidence": [
               {
                 "kind": "vector_result",
@@ -310,12 +309,13 @@
                   "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
                 ]
               }
-            ]
+            ],
+            "verdict": "pass"
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "nv9g2RJPvm5ecztnaXacPxIc4qQVShNFJ3jDwMIQlmY6V4zr79G_EagT9Rg-qkmiqxLOOsG4rYvRUiDY_jU8Bg",
+          "signature": "sijRahjPXbPx_cIwax2F8Plv7m2SBpWQRxjsQOxERNqcjRQe_W52WTTPNLhBnxjMXdLZAMIIQ9oCGJ8jsh11Dw",
           "signature_algorithm": "Ed25519"
         }
       },

@@ -622,7 +622,7 @@ def check_agent_initial_proof() -> list[str]:
         for path in schemas.glob("*.json")
     )
     validator = jsonschema.Draft202012Validator(
-        {"$ref": CLAIMS_SCHEMA_PATH.as_uri() + "#/$defs/AgentSessionGrantRequest"},
+        {"$ref": CLAIMS_SCHEMA_PATH.as_uri() + "#/$defs/AgentSessionGrantRequestBody"},
         registry=registry,
     )
     errors = [f"agent request schema: {e.message}" for e in validator.iter_errors(request)]

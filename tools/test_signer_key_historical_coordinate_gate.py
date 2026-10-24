@@ -133,7 +133,7 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
     def test_historical_device_cannot_return_key_only(self) -> None:
         def mutate(docs: dict) -> None:
-            self.defs(docs)["historical_account_device_outcome"]["properties"]["key"]["$ref"] = "#/$defs/public_key_only"
+            self.defs(docs)["historical_account_device_signer_key_resolution"]["properties"]["key"]["$ref"] = "#/$defs/public_key_only"
 
         self.assert_red(mutate, "complete query_signing_key")
 
@@ -151,7 +151,7 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
     def test_scan_reuses_stream_row(self) -> None:
         def mutate(docs: dict) -> None:
-            docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["stream_scan_outcome"]["properties"]["committed_events"]["items"]["$ref"] = "#/$defs/committed_event_ref"
+            docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["stream_scan_response_body"]["properties"]["committed_events"]["items"]["$ref"] = "#/$defs/committed_event_ref"
 
         self.assert_red(mutate, "per-stream scan")
 
@@ -305,7 +305,7 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
     def test_peer_fact_metadata_cannot_enter_self_scan(self) -> None:
         def mutate(docs):
             defs = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]
-            defs["stream_scan_outcome"]["properties"]["producer_signer_facts"] = {"type": "array"}
+            defs["stream_scan_response_body"]["properties"]["producer_signer_facts"] = {"type": "array"}
         self.assert_red(mutate, "self scan must not acquire")
 
     def test_invite_cannot_omit_original_fact_carrier(self) -> None:

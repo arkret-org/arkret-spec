@@ -27,10 +27,26 @@
       ],
       "properties": {
         "kty": {
-          "const": "OKP"
+          "const": "OKP",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8037.html#section-2",
+            "owner": "websocket-dpop-proof.schema.json#/$defs/public_jwk/properties/kty",
+            "values": [
+              "OKP"
+            ]
+          }
         },
         "crv": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "websocket-dpop-proof.schema.json#/$defs/public_jwk/properties/crv",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "x": {
           "type": "string",
@@ -48,10 +64,26 @@
       ],
       "properties": {
         "typ": {
-          "const": "dpop+jwt"
+          "const": "dpop+jwt",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc9449.html#section-4.2",
+            "owner": "websocket-dpop-proof.schema.json#/$defs/protected_header/properties/typ",
+            "values": [
+              "dpop+jwt"
+            ]
+          }
         },
         "alg": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "websocket-dpop-proof.schema.json#/$defs/protected_header/properties/alg",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "jwk": {
           "$ref": "#/$defs/public_jwk"
@@ -75,7 +107,15 @@
           "pattern": "^[A-Za-z0-9_-]{16,128}$"
         },
         "htm": {
-          "const": "ARKRET-WEBSOCKET-AUTH"
+          "const": "ARKRET-WEBSOCKET-AUTH",
+          "x-arkret-value-ownership": {
+            "class": "selector_grammar",
+            "authority": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
+            "owner": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
+            "values": [
+              "ARKRET-WEBSOCKET-AUTH"
+            ]
+          }
         },
         "htu": {
           "type": "string",

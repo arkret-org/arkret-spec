@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-10-22.1",
+  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -643,12 +643,12 @@
       "assertions": [
         "ak.invite.create atomically writes invite_lifecycle and the invite_live_target slot while ak.invite.accept atomically writes invite_lifecycle, member_state join and the invite_live_target release",
         "the membership FSM has no invite state and exact invite acceptance uses the registered leave to join edge",
-        "a rejected or revoked or expired invite changes only invite_lifecycle and leaves the member typed current result byte-identical",
+        "a rejected or revoked or expired invite changes only invite_lifecycle and leaves the member current state byte-identical",
         "the 3PID create and revoke branches produce no member_state projection; claim produces only a subject-bound membership proposal",
         "a direct member ban from leave is evaluated independently by the membership FSM",
         "ak.invite.cancel is valid only for a stored direct invitee binding; token and 3PID invites require the high-risk ak.invite.revoke path",
         "a direct cancel requires signed payload.invitee_account_id to equal the stored invitee binding",
-        "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen typed current result",
+        "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen current state",
         "a third-party ak.invite.revoke writes only invite_lifecycle because its payload carries no invitee_account_id",
         "private delivery failure, timeout or retry exhaustion derives zero shared writes; accepted and revoked require their own signed authorization Events",
         "revoked is irreversible after capability regain; current gates reject new claims before cleanup confirmation"
@@ -681,9 +681,9 @@
       },
       "assertions": [
         "the only source of truth for directed invite live uniqueness is invite_live_target whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
-        "ak.invite.create carries expected_revision null for that typed current result and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no typed current result write",
+        "ak.invite.create carries expected_revision null for that current state and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no current state write",
         "the rejection details are closed to reason_code, invite_id and create_event_id and MUST NOT be reported as cas_conflict",
-        "two concurrent directed creates contend on the same typed current result so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
+        "two concurrent directed creates contend on the same current state so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
         "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
         "reaching expires_at does not release the slot; only a registered Event does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
         "a third-party invite whose revoke payload carries a forged invitee_account_id fails stored_field_matches_payload with reducer_projection_failed and releases no slot",
@@ -774,7 +774,7 @@
       },
       "assertions": [
         "expiry compares the signed claim event created_at against the invite expires_at and never uses receiver-local now",
-        "all clock variants and the backfill replay produce identical outcome and identical invite typed current result value",
+        "all clock variants and the backfill replay produce identical outcome and identical invite current state value",
         "the rejected claim writes no shared effect",
         "pending to expired must come from a separate accepted ak.invite.revoke Event"
       ]
@@ -807,7 +807,7 @@
       },
       "assertions": [
         "the verifier independently rebuilds the complete challenge transcript before signature verification",
-        "new_device_pubkey canonical bytes and digest remain identical across stage, resolve and gate",
+        "new_device_public_key canonical bytes and digest remain identical across stage, resolve and gate",
         "stage accepts only the canonical PublicKey shape and rejects a target proof minted before server challenge material exists",
         "the gate request requires one still-pending staged request and rejects every client-supplied substitute transcript",
         "stage resolve and status remain account-less and expose neither principal binding nor sibling targets",
@@ -923,7 +923,7 @@
       "assertions": [
         "the stage response and the stored record carry no principal and no AccountId, and the record state is staged",
         "a pairing code is unique across the whole live pending set of the service, and a second stage call mints a distinct request and a distinct code",
-        "finalize recomputes the challenge transcript from the service's own durable stage, verifies the candidate signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId the presented account handoff is bound to",
+        "finalize recomputes the challenge transcript from the service's own durable stage, verifies the candidate signature with the staged new_device_public_key, and requires target_proof.account_id to equal the AccountId the presented account handoff is bound to",
         "finalize moves the record from staged to ready_for_claim one way; no run returns to staged and no run reaches authorized without passing through it",
         "a successful finalize moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so the account never holds two approvable records at once",
         "the supersession key is the AccountId alone: reusing the candidate key (a refreshed pairing page) and minting a fresh candidate key (a different new device) retire the earlier record identically",
@@ -945,7 +945,7 @@
         "the first nine counted failures leave staged or ready_for_claim unchanged, while the tenth count, pending-to-expired transition, code consumption and bounded tombstone are one durable transaction",
         "a failed counter transaction rolls back both the increment and pending-state transition, so no partial abuse-control or business write is observable",
         "byte-identical replay of a successful finalize or terminal pair_device result never counts, and authorized or durable pair_device terminal outcomes are never rewritten by later failures",
-        "counting or lockout never changes the existing not_found, proof_invalid or duplicate_conflict surface, reveals the count, authors an Event, grants authority, writes a typed current result or records a success outcome"
+        "counting or lockout never changes the existing not_found, proof_invalid or duplicate_conflict surface, reveals the count, authors an Event, grants authority, writes a current state or records a success outcome"
       ]
     },
     {

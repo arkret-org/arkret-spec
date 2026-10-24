@@ -1,7 +1,7 @@
 """Mutation tests for the account-status replica classification decision table.
 
 The gap this table closes is a silent one: section 3.1 named the durable head as
-the baseline for every branch except `same seq + same id`, so an implementation
+the baseline for every branch except `same sequence + same id`, so an implementation
 could classify a resubmitted lower-sequence record against a retained history
 row and answer `duplicate` where the rest of the ecosystem answers
 `failed_precondition` + `account_status_record_stale`. Each case below
@@ -66,7 +66,7 @@ class AccountStatusReplicaDecisionTableTest(unittest.TestCase):
     def test_history_row_baseline_is_rejected(self) -> None:
         table = self._mutate()
         self._row(table, "stale")["condition"] = (
-            "submitted.status_seq < head.status_seq && "
+            "submitted.status_sequence < head.status_sequence && "
             "submitted.account_status_record_id != history_row.account_status_record_id"
         )
         errors = self._run(table)
@@ -75,7 +75,7 @@ class AccountStatusReplicaDecisionTableTest(unittest.TestCase):
     def test_duplicate_not_conditioned_on_head_is_rejected(self) -> None:
         table = self._mutate()
         self._row(table, "duplicate")["condition"] = (
-            "submitted.status_seq == submitted.status_seq"
+            "submitted.status_sequence == submitted.status_sequence"
         )
         errors = self._run(table)
         self.assertTrue(
@@ -138,7 +138,7 @@ class AccountStatusReplicaDecisionTableTest(unittest.TestCase):
 
     def test_head_absent_row_comparing_against_head_is_rejected(self) -> None:
         table = self._mutate()
-        self._row(table, "genesis_admission")["condition"] = "submitted.status_seq == head.status_seq"
+        self._row(table, "genesis_admission")["condition"] = "submitted.status_sequence == head.status_sequence"
         errors = self._run(table)
         self.assertTrue(
             any("compares against head fields while head_state is 'absent'" in error for error in errors),
@@ -178,7 +178,7 @@ class AccountStatusStaleErrorDescriptionTest(unittest.TestCase):
         for row in codes["reason_codes"]:
             if row.get("code") == "account_status_record_stale":
                 row["description"] = (
-                    "A lower status_seq than the durable replica head. "
+                    "A lower status_sequence than the durable replica head. "
                     "See registry/account-status-replica-decision-table.json."
                 )
         errors = self._run(codes)

@@ -67,11 +67,11 @@ def evaluate_read(value: dict) -> str:
         return "revision_unavailable"
     status = "current" if row is not None else "never_written"
     response = value["response"]
-    selector = response.get("selector") if response.get("status") == "never_written" else response.get("result", {}).get("selector")
+    selector = response.get("selector") if response.get("status") == "never_written" else response.get("current_state", {}).get("selector")
     wanted_selector = {"kind": "strand_watch", "strand_id": request["strand_id"], "watcher_actor_id": actor}
     if (
         response.get("realm_id") != request["realm_id"]
-        or response.get("governance_generation") != value["generation"]
+        or int(response.get("governance_generation", "-1")) != value["generation"]
         or response.get("status") != status
         or selector != wanted_selector
         or response.get("stream_head") != value["confirmed_head"]
@@ -79,7 +79,7 @@ def evaluate_read(value: dict) -> str:
     ):
         return "revision_unavailable"
     if row is not None:
-        result = response.get("result", {})
+        result = response.get("current_state", {})
         revision = result.get("revision", {})
         head = value["confirmed_head"]
         if (

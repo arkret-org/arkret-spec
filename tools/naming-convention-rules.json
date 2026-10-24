@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -93,24 +93,6 @@
           "basis": "internal_structure",
           "reason": "Names the closed `error.details` member it populates, so the type tracks the field rather than inventing a wrapper role. Renaming the type without renaming that member would break the one-name-per-semantic rule in the other direction.",
           "anchor": "spec/v1/zh/sync/service-http-binding.md"
-        },
-        {
-          "id": "agent-human-approval-error-details",
-          "file": "agent-operations.schema.json",
-          "pointer": "/$defs/agent_human_approval_error_details",
-          "name": "agent_human_approval_error_details",
-          "basis": "internal_structure",
-          "reason": "Same closed `error.details` member, for the session-grant human-approval branch.",
-          "anchor": "spec/v1/zh/sync/service-http-binding.md"
-        },
-        {
-          "id": "poll-response-body-domain-subject",
-          "file": "content-block-poll.schema.json",
-          "pointer": "/$defs/poll_response_body",
-          "name": "poll_response_body",
-          "basis": "domain_subject",
-          "reason": "A poll response is a domain object a participant authors; this is its content body, not an HTTP ResponseBody. The rejected role is the transport one.",
-          "anchor": "spec/v1/zh/models/strand-and-message.md"
         },
         {
           "id": "rsvp-response-domain-subject",
@@ -465,7 +447,6 @@
   "rejected_wrapper_words": [
     "Candidate",
     "Item",
-    "ResponseBody",
     "Response",
     "Wrapper",
     "Info",
@@ -511,11 +492,6 @@
     {
       "rule_id": "NC-TYPE-001",
       "candidate": "HttpProofBundle",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-TYPE-001",
-      "candidate": "IdentityLogListOutcome",
       "expected": "accept"
     },
     {
@@ -601,6 +577,11 @@
     {
       "rule_id": "NC-FIELDCASE-001",
       "candidate": "$op",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "candidate": "SessionGrantResponseBody",
       "expected": "accept"
     }
   ]

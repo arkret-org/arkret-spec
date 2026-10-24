@@ -1,6 +1,6 @@
 """Check explicit owned-Agent authority, current ceilings and management gates."""
 import json
-from .core import ARTIFACTS, Lint, load_json, schema_validator
+from .core import ARTIFACTS, Lint, load_contract_json as load_json, schema_validator
 
 INVARIANTS = {
     'default_self_service': True, 'explicit_confirmation': True,
@@ -97,7 +97,7 @@ def check_owned_agent_authority(lint: Lint) -> None:
     condition = payload.get('if', {}).get('properties', {}).get('value', {})
     if condition.get('properties') != {'schema': {'const': 'ak.schema.policy.v1'}, 'policy_kind': {'enum': ['agent', 'applet']}} or set(condition.get('required', [])) != {'schema', 'policy_kind'}:
         lint.fail(path, 'Agent Policy CAS family discriminator drift')
-    if payload.get('properties', {}).get('expected_revision', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './typed-current-result.schema.json#/$defs/revision'}]:
+    if payload.get('properties', {}).get('expected_revision', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './current-state.schema.json#/$defs/revision'}]:
         lint.fail(path, 'Agent Policy CAS must use the nullable exact typed current revision')
     ref = grant['$defs']['owned_agent_authority_ref']
     fields = {'kind', 'realm_id', 'controller_account_id', 'controller_join_event_id', 'agent_join_event_id'}

@@ -23,10 +23,10 @@
       "$ref": "#/$defs/circle_member_delete_request_body"
     },
     {
-      "$ref": "#/$defs/circle_membership_outcome"
+      "$ref": "#/$defs/circle_membership_response_body"
     },
     {
-      "$ref": "#/$defs/circle_scope_rotate_outcome"
+      "$ref": "#/$defs/circle_scope_rotate_response_body"
     }
   ],
   "$defs": {
@@ -42,7 +42,17 @@
         "active",
         "archived",
         "tombstoned"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "circle-operations.schema.json#/$defs/circle_state",
+        "owner": "circle-operations.schema.json#/$defs/circle_state",
+        "values": [
+          "active",
+          "archived",
+          "tombstoned"
+        ]
+      }
     },
     "circle_view": {
       "type": "object",
@@ -89,7 +99,16 @@
           "enum": [
             "members",
             "realm_members"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle-operations.schema.json#/$defs/circle_view/properties/directory_visibility",
+            "owner": "circle-operations.schema.json#/$defs/circle_view/properties/directory_visibility",
+            "values": [
+              "members",
+              "realm_members"
+            ]
+          }
         },
         "join_rule": {
           "type": "string",
@@ -97,14 +116,33 @@
             "invite",
             "knock",
             "public"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle-operations.schema.json#/$defs/circle_view/properties/join_rule",
+            "owner": "circle-operations.schema.json#/$defs/circle_view/properties/join_rule",
+            "values": [
+              "invite",
+              "knock",
+              "public"
+            ]
+          }
         },
         "history_access": {
           "type": "string",
           "enum": [
             "since_join",
             "all_history_for_current_members"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle-operations.schema.json#/$defs/circle_view/properties/history_access",
+            "owner": "circle-operations.schema.json#/$defs/circle_view/properties/history_access",
+            "values": [
+              "since_join",
+              "all_history_for_current_members"
+            ]
+          }
         },
         "mls_group_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
@@ -160,7 +198,15 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "visibility": {
-          "const": "realm_members"
+          "const": "realm_members",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle-operations.schema.json#/$defs/circle_preview/properties/visibility",
+            "owner": "circle-operations.schema.json#/$defs/circle_preview/properties/visibility",
+            "values": [
+              "realm_members"
+            ]
+          }
         },
         "display": {
           "type": "object",
@@ -190,7 +236,23 @@
             "32-63",
             "64-127",
             "128+"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "version_text",
+            "authority": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
+            "owner": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
+            "values": [
+              "0",
+              "1",
+              "2-3",
+              "4-7",
+              "8-15",
+              "16-31",
+              "32-63",
+              "64-127",
+              "128+"
+            ]
+          }
         },
         "join_rule": {
           "type": "string",
@@ -198,7 +260,17 @@
             "invite",
             "knock",
             "public"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "circle-operations.schema.json#/$defs/circle_preview/properties/join_rule",
+            "owner": "circle-operations.schema.json#/$defs/circle_preview/properties/join_rule",
+            "values": [
+              "invite",
+              "knock",
+              "public"
+            ]
+          }
         },
         "opaque_commitment": {
           "type": "string",
@@ -234,7 +306,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.circle.create"
+                      "const": "ak.circle.create",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "circle-operations.schema.json#/$defs/circle_create_request_body/properties/create_event/allOf/1/properties/event/properties/kind",
+                        "owner": "circle-operations.schema.json#/$defs/circle_create_request_body/properties/create_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.circle.create"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -289,7 +369,15 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.circle.member.state"
+                      "const": "ak.circle.member.state",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "circle-operations.schema.json#/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event/properties/kind",
+                        "owner": "circle-operations.schema.json#/$defs/circle_member_request_body/properties/member_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.circle.member.state"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -325,12 +413,28 @@
                 "event": {
                   "properties": {
                     "kind": {
-                      "const": "ak.circle.member.state"
+                      "const": "ak.circle.member.state",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "circle-operations.schema.json#/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/kind",
+                        "owner": "circle-operations.schema.json#/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.circle.member.state"
+                        ]
+                      }
                     },
                     "payload": {
                       "properties": {
                         "membership": {
-                          "const": "leave"
+                          "const": "leave",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "circle-operations.schema.json#/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/payload/properties/membership",
+                            "owner": "circle-operations.schema.json#/$defs/circle_member_delete_request_body/properties/member_event/allOf/1/properties/event/properties/payload/properties/membership",
+                            "values": [
+                              "leave"
+                            ]
+                          }
                         },
                         "expected_membership": {
                           "$ref": "./event-payload.schema.json#/$defs/membership_state"
@@ -361,7 +465,7 @@
       },
       "additionalProperties": false
     },
-    "circle_membership_outcome": {
+    "circle_membership_response_body": {
       "type": "object",
       "required": [
         "circle_id",
@@ -379,9 +483,10 @@
           "$ref": "./event-payload.schema.json#/$defs/membership_state"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "circle_scope_rotate_outcome": {
+    "circle_scope_rotate_response_body": {
       "type": "object",
       "required": [
         "circle_id"
@@ -398,7 +503,8 @@
           "description": "Reducer-emitted reason code on Ignored / Rejected, or unsupported-feature note while MLS scope rotation is not wired end-to-end."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

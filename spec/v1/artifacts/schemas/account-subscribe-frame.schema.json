@@ -18,7 +18,21 @@
         "dropped",
         "resync_required",
         "unauthorized"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "account-subscribe-frame.schema.json#/properties/kind",
+        "owner": "account-subscribe-frame.schema.json#/properties/kind",
+        "values": [
+          "delta",
+          "catchup_complete",
+          "checkpoint",
+          "heartbeat",
+          "dropped",
+          "resync_required",
+          "unauthorized"
+        ]
+      }
     },
     "cursor": {
       "$ref": "#/$defs/cursor_value",
@@ -235,7 +249,16 @@
           "enum": [
             "consumed",
             "expired"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/properties/state",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/properties/state",
+            "values": [
+              "consumed",
+              "expired"
+            ]
+          }
         },
         "consumption": {
           "$ref": "./agent-draft-private.schema.json#/$defs/pending_intent_consumption"
@@ -251,7 +274,15 @@
         {
           "properties": {
             "state": {
-              "const": "consumed"
+              "const": "consumed",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/oneOf/0/properties/state",
+                "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/oneOf/0/properties/state",
+                "values": [
+                  "consumed"
+                ]
+              }
             }
           },
           "required": [
@@ -267,7 +298,15 @@
         {
           "properties": {
             "state": {
-              "const": "expired"
+              "const": "expired",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/oneOf/1/properties/state",
+                "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal/oneOf/1/properties/state",
+                "values": [
+                  "expired"
+                ]
+              }
             }
           },
           "required": [
@@ -313,7 +352,15 @@
       ],
       "properties": {
         "action": {
-          "const": "upsert"
+          "const": "upsert",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_upsert/properties/action",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_upsert/properties/action",
+            "values": [
+              "upsert"
+            ]
+          }
         },
         "value": {
           "$ref": "./agent-draft-private.schema.json#/$defs/agent_draft_pending_intent"
@@ -329,7 +376,15 @@
       ],
       "properties": {
         "action": {
-          "const": "remove"
+          "const": "remove",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_remove/properties/action",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_remove/properties/action",
+            "values": [
+              "remove"
+            ]
+          }
         },
         "value": {
           "$ref": "#/$defs/agent_draft_pending_intent_removal"
@@ -346,7 +401,15 @@
       ],
       "properties": {
         "mode": {
-          "const": "delta"
+          "const": "delta",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_delta_container/properties/mode",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_delta_container/properties/mode",
+            "values": [
+              "delta"
+            ]
+          }
         },
         "projection_position": {
           "type": "integer",
@@ -375,7 +438,15 @@
       ],
       "properties": {
         "mode": {
-          "const": "baseline"
+          "const": "baseline",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_baseline_container/properties/mode",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_baseline_container/properties/mode",
+            "values": [
+              "baseline"
+            ]
+          }
         },
         "snapshot_cut_position": {
           "type": "integer",
@@ -451,7 +522,16 @@
           "enum": [
             "upsert",
             "remove"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/notification_delta/properties/action",
+            "owner": "account-subscribe-frame.schema.json#/$defs/notification_delta/properties/action",
+            "values": [
+              "upsert",
+              "remove"
+            ]
+          }
         },
         "data": {
           "anyOf": [
@@ -479,7 +559,15 @@
                 "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "action": {
-                "const": "upsert"
+                "const": "upsert",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/0/if/properties/action",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/0/if/properties/action",
+                  "values": [
+                    "upsert"
+                  ]
+                }
               }
             },
             "required": [
@@ -506,7 +594,15 @@
                 "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "action": {
-                "const": "remove"
+                "const": "remove",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/1/if/properties/action",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/1/if/properties/action",
+                  "values": [
+                    "remove"
+                  ]
+                }
               }
             },
             "required": [
@@ -530,7 +626,15 @@
                 "pattern": "^ak:notification_projection:[A-Za-z0-9_-]{44}$"
               },
               "action": {
-                "const": "upsert"
+                "const": "upsert",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/2/if/properties/action",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/2/if/properties/action",
+                  "values": [
+                    "upsert"
+                  ]
+                }
               }
             },
             "required": [
@@ -557,7 +661,15 @@
                 "pattern": "^ak:notification_projection:[A-Za-z0-9_-]{44}$"
               },
               "action": {
-                "const": "remove"
+                "const": "remove",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/3/if/properties/action",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/notification_delta/allOf/3/if/properties/action",
+                  "values": [
+                    "remove"
+                  ]
+                }
               }
             },
             "required": [
@@ -618,7 +730,19 @@
             "renewed",
             "deactivated",
             "superseded"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_removal_data/properties/reason",
+            "owner": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_removal_data/properties/reason",
+            "values": [
+              "approved",
+              "expired",
+              "renewed",
+              "deactivated",
+              "superseded"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -637,7 +761,18 @@
             "access_revoked",
             "expired",
             "superseded"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/ordinary_notification_removal_data/properties/reason",
+            "owner": "account-subscribe-frame.schema.json#/$defs/ordinary_notification_removal_data/properties/reason",
+            "values": [
+              "source_removed",
+              "access_revoked",
+              "expired",
+              "superseded"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -672,19 +807,49 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["delivery_kind", "device_message"],
+          "required": [
+            "delivery_kind",
+            "device_message"
+          ],
           "properties": {
-            "delivery_kind": { "const": "device_message" },
-            "device_message": { "$ref": "./device-message.schema.json" }
+            "delivery_kind": {
+              "const": "device_message",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/recipient_delivery/oneOf/0/properties/delivery_kind",
+                "owner": "account-subscribe-frame.schema.json#/$defs/recipient_delivery/oneOf/0/properties/delivery_kind",
+                "values": [
+                  "device_message"
+                ]
+              }
+            },
+            "device_message": {
+              "$ref": "./device-message.schema.json"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["delivery_kind", "mls_welcome"],
+          "required": [
+            "delivery_kind",
+            "mls_welcome"
+          ],
           "properties": {
-            "delivery_kind": { "const": "mls_welcome" },
-            "mls_welcome": { "$ref": "./mls-welcome-delivery.schema.json" }
+            "delivery_kind": {
+              "const": "mls_welcome",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/recipient_delivery/oneOf/1/properties/delivery_kind",
+                "owner": "account-subscribe-frame.schema.json#/$defs/recipient_delivery/oneOf/1/properties/delivery_kind",
+                "values": [
+                  "mls_welcome"
+                ]
+              }
+            },
+            "mls_welcome": {
+              "$ref": "./mls-welcome-delivery.schema.json"
+            }
           },
           "additionalProperties": false
         }
@@ -703,7 +868,7 @@
             "$ref": "#/$defs/recipient_delivery"
           }
         },
-        "ack_token": {
+        "acknowledgement_token": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
@@ -719,7 +884,7 @@
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor_value",
-          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.read.list.v1?after=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.ack.v1."
+          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.read.list.v1?after=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `acknowledgement_token` passed to ak.self.device_messages.command.ack.v1."
         }
       },
       "allOf": [
@@ -733,7 +898,7 @@
           },
           "then": {
             "required": [
-              "ack_token"
+              "acknowledgement_token"
             ]
           }
         },
@@ -741,7 +906,15 @@
           "if": {
             "properties": {
               "limited": {
-                "const": true
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/recipient_delivery_container/allOf/1/if/properties/limited",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/recipient_delivery_container/allOf/1/if/properties/limited",
+                  "values": [
+                    true
+                  ]
+                }
               }
             },
             "required": [
@@ -823,9 +996,8 @@
               "description": "The authority-signed realm-state-snapshot whose per-stream slice carries this basis. The client verifies that snapshot's signature and generation and reads the slice for this stream_ref; a slice missing the security or MLS context this stream needs means preview_only for this stream and no other."
             },
             "governance_generation": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Station tenure the anchor and snapshot slice are bound to. A client MUST resolve this historical generation and its Station through a fresh verified genesis-to-current authority bundle; an unknown generation or Station is invalid. The snapshot_ref names the exact signed object from this tenure, not a substitute current head."
+              "description": "Station tenure the anchor and snapshot slice are bound to. A client MUST resolve this historical generation and its Station through a fresh verified genesis-to-current authority bundle; an unknown generation or Station is invalid. The snapshot_ref names the exact signed object from this tenure, not a substitute current head.",
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
             },
             "accepted_dependency_refs": {
               "type": "array",
@@ -852,8 +1024,7 @@
               ],
               "properties": {
                 "epoch": {
-                  "type": "integer",
-                  "minimum": 0
+                  "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
                 },
                 "key_ref": {
                   "type": "string",
@@ -893,7 +1064,7 @@
           "$ref": "#/$defs/state_at_window_start"
         },
         "current": {
-          "$ref": "./account-current-result.schema.json#/$defs/current"
+          "$ref": "./account-state-view.schema.json#/$defs/current"
         },
         "account_data": {
           "$ref": "#/$defs/event_container"
@@ -932,7 +1103,22 @@
                   "failed_plane",
                   "rejected_commit",
                   "fork_quarantine"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/realm_sync_entry/properties/event_states/items/properties/event_state",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/realm_sync_entry/properties/event_states/items/properties/event_state",
+                  "values": [
+                    "data_local",
+                    "data_observed",
+                    "control_pending",
+                    "control_committed",
+                    "failed_precondition",
+                    "failed_plane",
+                    "rejected_commit",
+                    "fork_quarantine"
+                  ]
+                }
               },
               "event_state_reason_code": {
                 "type": "string",
@@ -956,7 +1142,19 @@
                 "temporarily_unavailable",
                 "not_found",
                 "witness_disagreement"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/realm_sync_entry/properties/unavailable/properties/error_code",
+                "owner": "account-subscribe-frame.schema.json#/$defs/realm_sync_entry/properties/unavailable/properties/error_code",
+                "values": [
+                  "revision_unavailable",
+                  "limit_exceeded",
+                  "temporarily_unavailable",
+                  "not_found",
+                  "witness_disagreement"
+                ]
+              }
             }
           },
           "required": [
@@ -1115,7 +1313,15 @@
               "enum": [
                 "direct_conversation"
               ],
-              "description": "Projection-only strong Realm role, emitted only after the server validates the registered Realm profile and discriminator."
+              "description": "Projection-only strong Realm role, emitted only after the server validates the registered Realm profile and discriminator.",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "account-subscribe-frame.schema.json#/$defs/state_at_window_start/properties/realm_metadata/properties/collaboration_role",
+                "owner": "account-subscribe-frame.schema.json#/$defs/state_at_window_start/properties/realm_metadata/properties/collaboration_role",
+                "values": [
+                  "direct_conversation"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1128,12 +1334,14 @@
       "properties": {
         "joined_member_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "invited_member_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "Count of caller-private pending Invite inbox entries associated with this Realm. This is not derived from ak.member.state, does not imply membership, and MUST NOT create roster rows."
+          "description": "Count of caller-private pending Invite inbox entries associated with this Realm. This is not derived from ak.member.state, does not imply membership, and MUST NOT create roster rows.",
+          "x-arkret-member-role": "count"
         },
         "hero_ids": {
           "type": "array",
@@ -1151,11 +1359,13 @@
       "properties": {
         "notification_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "highlight_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         }
       },
       "additionalProperties": false
@@ -1202,7 +1412,16 @@
             "join",
             "knock"
           ],
-          "description": "Effective membership rows visible in the roster. Invite lifecycle records are not membership and MUST NOT appear here."
+          "description": "Effective membership rows visible in the roster. Invite lifecycle records are not membership and MUST NOT appear here.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/member_roster_entry/properties/membership",
+            "owner": "account-subscribe-frame.schema.json#/$defs/member_roster_entry/properties/membership",
+            "values": [
+              "join",
+              "knock"
+            ]
+          }
         },
         "subject_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -1402,7 +1621,7 @@
       "additionalProperties": false,
       "description": "An absent or empty realm_ids collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. stream_refs belongs to selected Realms: absent keeps the bounded first screen, while present makes the selected set the window. Event-kind and Strand display filtering is client-side only and MUST NOT interrupt Commit continuity."
     },
-    "realm_list_request": {
+    "realm_list_parameters": {
       "type": "object",
       "properties": {
         "after": {
@@ -1416,9 +1635,10 @@
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "parameters"
     },
-    "account_subscribe_request": {
+    "account_subscribe_parameters": {
       "type": "object",
       "properties": {
         "after": {
@@ -1431,8 +1651,8 @@
         "filter": {
           "$ref": "#/$defs/account_filter"
         },
-        "realm_list": {
-          "$ref": "#/$defs/realm_list_request"
+        "realm_list_parameters": {
+          "$ref": "#/$defs/realm_list_parameters"
         },
         "replace_filter": {
           "type": "boolean",
@@ -1446,7 +1666,15 @@
           "if": {
             "properties": {
               "replace_filter": {
-                "const": true
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "account-subscribe-frame.schema.json#/$defs/account_subscribe_parameters/allOf/0/if/properties/replace_filter",
+                  "owner": "account-subscribe-frame.schema.json#/$defs/account_subscribe_parameters/allOf/0/if/properties/replace_filter",
+                  "values": [
+                    true
+                  ]
+                }
               }
             },
             "required": [
@@ -1460,19 +1688,46 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "parameters"
     },
     "account_revision_stale_problem": {
       "description": "Registered pre-NDJSON RFC 9457 recovery carrier for ak.self.account.stream.subscribe.v1 only. After session, live cursor and current disclosure validation, a recoverable verified serving prefix is behind an accepted head bound to after. continuation_cursor MUST echo that exact after byte for byte. No checkpoint installation, baseline reset, new authority, private state deletion or delivery ACK follows from this refusal; only ordinary verified Account frames can advance the cut. Unknown, forked, irrecoverable or unavailable authority is not this producer condition. See client-sync section 12.3.2.",
       "allOf": [
-        { "$ref": "./http-problem-details.schema.json" },
+        {
+          "$ref": "./http-problem-details.schema.json"
+        },
         {
           "type": "object",
-          "required": ["continuation_cursor"],
+          "required": [
+            "continuation_cursor"
+          ],
           "properties": {
-            "type": { "const": "https://arkret.org/problems/revision_stale" },
-            "status": { "const": 409 },
-            "continuation_cursor": { "$ref": "#/$defs/cursor_value" }
+            "type": {
+              "const": "https://arkret.org/problems/revision_stale",
+              "x-arkret-value-ownership": {
+                "class": "uri",
+                "authority": "account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem/allOf/1/properties/type",
+                "owner": "account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem/allOf/1/properties/type",
+                "values": [
+                  "https://arkret.org/problems/revision_stale"
+                ]
+              }
+            },
+            "status": {
+              "const": 409,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem/allOf/1/properties/status",
+                "owner": "account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem/allOf/1/properties/status",
+                "values": [
+                  409
+                ]
+              }
+            },
+            "continuation_cursor": {
+              "$ref": "#/$defs/cursor_value"
+            }
           }
         }
       ]
@@ -1498,7 +1753,16 @@
           "enum": [
             "join",
             "knock"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
+            "owner": "account-subscribe-frame.schema.json#/$defs/realm_list_row/properties/membership",
+            "values": [
+              "join",
+              "knock"
+            ]
+          }
         },
         "title": {
           "type": "string",
@@ -1627,7 +1891,19 @@
               "device_lists",
               "notifications",
               "agent_draft_pending_intents"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "account-subscribe-frame.schema.json#/$defs/account_baseline_segment/properties/channels/items",
+              "owner": "account-subscribe-frame.schema.json#/$defs/account_baseline_segment/properties/channels/items",
+              "values": [
+                "account_data_events",
+                "station_cas",
+                "device_lists",
+                "notifications",
+                "agent_draft_pending_intents"
+              ]
+            }
           },
           "minItems": 1
         },
@@ -1644,7 +1920,19 @@
               "device_lists",
               "notifications",
               "agent_draft_pending_intents"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "account-subscribe-frame.schema.json#/$defs/account_baseline_segment/properties/completed_channels/items",
+              "owner": "account-subscribe-frame.schema.json#/$defs/account_baseline_segment/properties/completed_channels/items",
+              "values": [
+                "account_data_events",
+                "station_cas",
+                "device_lists",
+                "notifications",
+                "agent_draft_pending_intents"
+              ]
+            }
           }
         }
       },
@@ -1667,7 +1955,7 @@
           "maximum": 9007199254740991
         },
         "coverage": {
-          "$ref": "./account-current-result.schema.json#/$defs/coverage"
+          "$ref": "./account-state-view.schema.json#/$defs/coverage"
         },
         "complete": {
           "type": "boolean"
@@ -1705,7 +1993,15 @@
       "description": "Account aggregate data frame.",
       "properties": {
         "kind": {
-          "const": "delta"
+          "const": "delta",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/0/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/0/properties/kind",
+            "values": [
+              "delta"
+            ]
+          }
         }
       },
       "required": [
@@ -1720,7 +2016,15 @@
       "description": "This bounded catchup round completed. Per-channel and Realm baseline completion is declared separately.",
       "properties": {
         "kind": {
-          "const": "catchup_complete"
+          "const": "catchup_complete",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/1/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/1/properties/kind",
+            "values": [
+              "catchup_complete"
+            ]
+          }
         }
       },
       "required": [
@@ -1742,7 +2046,15 @@
       "description": "Cursor-only checkpoint advancement; no data fields are allowed.",
       "properties": {
         "kind": {
-          "const": "checkpoint"
+          "const": "checkpoint",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/2/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/2/properties/kind",
+            "values": [
+              "checkpoint"
+            ]
+          }
         }
       },
       "required": [
@@ -1764,7 +2076,15 @@
       "description": "Account stream gap signal; cursor is the account catch-up start. No data fields are allowed. `reconnect_after_ms` MAY be present to enforce a server-directed reconnect holdoff.",
       "properties": {
         "kind": {
-          "const": "dropped"
+          "const": "dropped",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/3/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/3/properties/kind",
+            "values": [
+              "dropped"
+            ]
+          }
         }
       },
       "required": [
@@ -1779,7 +2099,15 @@
       "description": "Keepalive frame; cursor and data fields are forbidden.",
       "properties": {
         "kind": {
-          "const": "heartbeat"
+          "const": "heartbeat",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/4/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/4/properties/kind",
+            "values": [
+              "heartbeat"
+            ]
+          }
         }
       },
       "required": [
@@ -1793,7 +2121,15 @@
       "description": "Hard reset signal; cursor and data fields are forbidden. `reconnect_after_ms` MAY be present to enforce a server-directed reconnect holdoff.",
       "properties": {
         "kind": {
-          "const": "resync_required"
+          "const": "resync_required",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/5/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/5/properties/kind",
+            "values": [
+              "resync_required"
+            ]
+          }
         }
       },
       "required": [
@@ -1807,7 +2143,15 @@
       "description": "Authorization-loss signal; cursor and data fields are forbidden.",
       "properties": {
         "kind": {
-          "const": "unauthorized"
+          "const": "unauthorized",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "account-subscribe-frame.schema.json#/oneOf/6/properties/kind",
+            "owner": "account-subscribe-frame.schema.json#/oneOf/6/properties/kind",
+            "values": [
+              "unauthorized"
+            ]
+          }
         }
       },
       "required": [

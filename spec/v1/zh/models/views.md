@@ -121,11 +121,11 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；看板、表格、日历、甘特、队列、矩阵都由该配置表达。 |
-| `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
-| `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
-| `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
-| `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。命名说明：`composite` 是 response family（§2.2 五大 kind 之一），其 v1 唯一 typed config 是 `DashboardConfig`，故配置字段名取 `dashboard`（与 §4 表中 composite 的唯一 renderer `dashboard` 对齐）；composite 的非 dashboard 形态须由 profile-defined `custom` renderer 承载，v1 core 不再为 composite 引入第二个 typed config 字段。 | 仪表盘 widget 配置。 |
+| `collection` | conditional | `CollectionConfiguration` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；看板、表格、日历、甘特、队列、矩阵都由该配置表达。 |
+| `timeline` | conditional | `TimelineConfiguration` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
+| `graph` | conditional | `GraphConfiguration` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
+| `document` | conditional | `DocumentConfiguration` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
+| `dashboard` | conditional | `DashboardConfiguration` | `kind="composite"` 时 MUST 设置。命名说明：`composite` 是 response family（§2.2 五大 kind 之一），其 v1 唯一 typed config 是 `DashboardConfiguration`，故配置字段名取 `dashboard`（与 §4 表中 composite 的唯一 renderer `dashboard` 对齐）；composite 的非 dashboard 形态须由 profile-defined `custom` renderer 承载，v1 core 不再为 composite 引入第二个 typed config 字段。 | 仪表盘 widget 配置。 |
 | `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `ActorId` |  | 最近更新者。 |
@@ -134,13 +134,13 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 **成员来源（normative）**：上表是**物化对象**的形状，不是作者可写面。
 每个成员的来源由 [`../authz/capabilities.md` §10](../authz/capabilities.md) 与
 [`common-fields.md` §3.3](./common-fields.md) 的封闭词表给出，并逐条登记在
-[`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `result_writes[]` 与
+[`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `state_writes[]` 与
 [`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 的
 `value_member_maintenance` 里：
 
 | 成员 | 来源 | 说明 |
 | --- | --- | --- |
-| `id` | subject 派生 | 由 create Event 自身的 `event_id` retype 得到，MUST NOT 存入 typed current result，也 MUST NOT 出现在任何载荷里。 |
+| `id` | subject 派生 | 由 create Event 自身的 `event_id` retype 得到，MUST NOT 存入 current state，也 MUST NOT 出现在任何载荷里。 |
 | `schema` / `realm_id` / `created_by` / `created_at` | create-locked reducer 派生 | create 时分别由 `object_schema_identifier` / `object_realm_binding` / `object_create_actor` / `object_create_time` 产出；update 与 reconcile MUST 逐字保留，MUST NOT 重新派生，作者载荷 MUST NOT 声明它们。 |
 | `state` | create 派生 + 单一转换承载者 | create 由 `object_initial_state` 产出 `active`；只有 `ak.view.update` 可以写它（registry 中唯一一条 `universal_exemptions`），reconcile MUST 保留。 |
 | `state_changed_at` | 条件性 reducer 派生 | 仅在 `ak.view.update` 被接受为一次真实 state 转换时由 `object_state_transition_time` 产出。 |
@@ -156,7 +156,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 `ak.views.private.<view_id>` 加密 account data 保存；其 plaintext value 仍按
 `ak.schema.view.v1` 校验。`ak.view.create` / `ak.view.update` reducer MUST 拒绝
 `visibility="private"`（`schema_violation`, `reason_code="private_view_requires_account_data"`），
-不得把 title、query 或 layout 写入共享 Realm typed current result。查询共享 View 的 operation MUST 只返回
+不得把 title、query 或 layout 写入共享 Realm current state。查询共享 View 的 operation MUST 只返回
 `visibility="shared"`；private View 只经 holder 的 account-data surface 同步。可执行覆盖见
 [`../conformance/conformance-vectors.md` §5.11](../conformance/conformance-vectors.md) 的
 `ak.vector.account_data.private_view_inbox_binding.v1`。
@@ -167,19 +167,19 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 typed current result family** `view`（`current-value projection`）。
+三个 kind 写**同一个 current state family** `view`（`current-value projection`）。
 同一个 View 的三种写入按其所属 stream 的 authority-commit 接纳顺序，依次作用于**唯一**已提交当前值；
 当前值就是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出。
 不存在并行的权威分支，也不存在需要在多个候选之间挑选的 current source。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
-update / reconcile 用 `payload.view_id`，两者归一到同一个 typed current result。
+update / reconcile 用 `payload.view_id`，两者归一到同一个 current state。
 
 三个 kind 各自绑定**一个**闭合载荷；载荷之间互不通用，schema 层即拒绝跨 kind 的形状：
 
 | kind | subject | 写入 | payload（闭合） | 作者可写面 |
 | --- | --- | --- | --- | --- |
 | `ak.view.create` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | `view_create_payload` = `{object}` | `view_definition`，其余成员按 §3.1 由 reducer 产出 |
-| `ak.view.update` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | `view_update_payload` = `{view_id, patch, expected_state_digest?}` | `result_projection.allowed_paths[]` 登记的 13 个成员 |
+| `ak.view.update` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | `view_update_payload` = `{view_id, patch, expected_state_digest?}` | `state_projection.allowed_paths[]` 登记的 13 个成员 |
 | `ak.view.reconcile` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `view_reconcile_payload` = `{view_id, definition}` | `view_definition`，identity / 创建元数据 / `state` 按 `retained_members[]` 保留 |
 
 `allowed_paths[]` 不是第三份成员清单：它是 `reducer-managed-path-registry.json` 已固定禁集的**补集**——
@@ -188,17 +188,17 @@ View 声明的 21 个成员减去该对象的有效禁集，其中 `state` 由�
 
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
-权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 typed current result 上，
+权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 current state 上，
 而 typed current 当前值合同禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
 
 由此产生三条约束：
 
-- **update / reconcile MUST NOT 创造不存在的 View。**在本次写入被接纳的位置上，目标 typed current result
+- **update / reconcile MUST NOT 创造不存在的 View。**在本次写入被接纳的位置上，目标 current state
   没有由已登记 create 写入产生的真实对象基值时 MUST 拒绝，MUST NOT 把 `null` 或空对象当作隐式初始化，
   也不得存储任何部分效果。
-- **三条写入采用同一 canonical 对象值口径。**typed current result 中 MUST NOT 保存可自报的 `id`，
+- **三条写入采用同一 canonical 对象值口径。**current state 中 MUST NOT 保存可自报的 `id`，
   读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
-  否则 create 与 reconcile 会在同一个 typed current result 里留下两种值形状。
+  否则 create 与 reconcile 会在同一个 current state 里留下两种值形状。
 - **reconcile 的 whole-value `set` 作用于其被接纳位置上的当前值。**
   它替换的是作者定义区域，不是整个物化对象：identity、Realm、schema、创建元数据与 `state`
   由 `retained_members[]` 从冻结前态逐字保留，更新元数据由 `derived_members[]` 从本次 Event 派生。
@@ -214,7 +214,7 @@ View 首次出现时携带 object snapshot；update 携带增量 patch，无法�
 一个带 `anyOf` 三分支、且没有 `event_kind` 判别式的共享载荷做不到这一点：
 它在每个 kind 上都接受全部三种形状——`ak.view.update` 可以携带一个不受约束的 definition 对象，
 `ak.view.create` 可以携带 `{view_id, patch}`，而 `{definition}` 分支连 `view_id` 都不要求，
-`view_id` 却是 typed current result subject，缺失即无法定址。
+`view_id` 却是 current state subject，缺失即无法定址。
 因此三个 kind 各自绑定上表的闭合载荷；`definition` MUST 是
 `view.schema.json#/$defs/view_definition` 这一作者定义区域，MUST NOT 是物化对象 schema。
 
@@ -231,21 +231,21 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
 因此"保留"在 v1 是 schema 与 registry 双重封闭的，不再依赖实现自觉。
 其完整 `definition` 要通过与 create / update **相同**的 schema、scope 与内容授权校验。
 
-### 3.3 `CollectionConfig`
+### 3.3 `CollectionConfiguration`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `item_object_kinds` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
 | `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_kinds`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
 | `item_render` | no | `enum(card, row, tile, compact, badge, message)` | 仅为共享 presentation hint；缺省时 renderer 按终端形态与可用能力推导，不改变投影结果。看板式展示 SHOULD 为 `card`。 | 建议展示面。 |
-| `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
+| `item_order_by` | yes | `array<SortSpecification>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
 | `count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 集合级计数策略。 |
 | `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
 
 **排序通道唯一（normative）**：View 只有两条排序通道，且互不重叠——`query.order_by` 决定**取哪些对象、按什么顺序取**，`collection.item_order_by` 决定 collection 内 item 的**展示稳定序**。v1 **没有**顶层 `sort`：它与 `query.order_by` 形态完全同构、作用面重叠，却没有定义优先级，两者同时出现时结果未定义。需要改排序的实现 MUST 改这两个字段之一。
 
-`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入独立的 actor-private account data 偏好或仅保存在本地。`CollectionConfig` 与 `CollectionGrouping` 保留开放配置扩展，但通过 `propertyNames` 明确禁止 `selection_policy`、`page_size` 与 `wip_limit_enforcement` 三个键；这些键在任一配置对象的直接成员位置出现时 MUST 返回 `schema_violation`，不得因值为 `null`、`false` 或名称位于开放扩展区而放行。create object、materialized View 与 update 后的完整 View MUST 应用同一校验；私有 View 使用同一 schema 时也不得把独立偏好混入这两个配置对象。合法自定义配置扩展保持可用，不把开放配置整体收紧为 closed object。
+`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfiguration` 字段；客户端 MUST 存入独立的 actor-private account data 偏好或仅保存在本地。`CollectionConfiguration` 与 `CollectionGrouping` 保留开放配置扩展，但通过 `propertyNames` 明确禁止 `selection_policy`、`page_size` 与 `wip_limit_enforcement` 三个键；这些键在任一配置对象的直接成员位置出现时 MUST 返回 `schema_violation`，不得因值为 `null`、`false` 或名称位于开放扩展区而放行。create object、materialized View 与 update 后的完整 View MUST 应用同一校验；私有 View 使用同一 schema 时也不得把独立偏好混入这两个配置对象。合法自定义配置扩展保持可用，不把开放配置整体收紧为 closed object。
 
 ### 3.4 `CollectionGrouping`
 
@@ -325,7 +325,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
 
 > `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
-`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision checkpoint 与 authority-commit typed current result heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
+`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision checkpoint 与 authority-commit current state heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
 
 ## 5. Query Model
 
@@ -398,8 +398,8 @@ MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access polic
 | 看板 | Board Space | 标准 Space 对象；授权、历史、E2EE 与 policy 仍解析到其 home Realm。 |
 | 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `strand` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
-| 卡片属于列 | 派生 `contains` projection | 真源是 `strand_position:<board_space_id>:<strand_id>` position typed current result；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
-| 列属于看板 | 派生 `contains` projection | 真源是 `space_parent:<list_space_id>` parent typed current result；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
+| 卡片属于列 | 派生 `contains` projection | 真源是 `strand_position:<board_space_id>:<strand_id>` position current state；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
+| 列属于看板 | 派生 `contains` projection | 真源是 `space_parent:<list_space_id>` parent current state；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
 | 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Strand；access 完全继承 Strand 的 effective scope（由 `Strand.scope_circle_id` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
 
 ### 6.2 Board 不显示全 Realm 数据
@@ -416,7 +416,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 
 Board 展示由客户端按 §6.2 从已授权对象图本地派生，不登记独立的 v1 wire response 类型，也不要求服务端提供 View projection HTTP 入口。
 
-单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations` 与 `comments` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史做校验。可选 `checkpoint` 仅在 Station 能提供与这些已接纳来源绑定的真实 state digest 时返回，不得仅根据 stream heads 构造摘要。
+单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_view`，用于返回授权可见的 `document`、`versions`、`relations` 与 `comments` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史做校验。可选 `checkpoint` 仅在 Station 能提供与这些已接纳来源绑定的真实 state digest 时返回，不得仅根据 stream heads 构造摘要。
 
 该读取面 MUST NOT 解密、聚合或投影加密 Signal；`ak.presence.v1` 的在线状态不是文档坐标。客户端只能按已经登记的 Signal payload 契约本地派生授权可见的临时状态。当前 v1 没有登记文档协作光标 payload，本读取面不提供也不宣称支持文档光标。
 

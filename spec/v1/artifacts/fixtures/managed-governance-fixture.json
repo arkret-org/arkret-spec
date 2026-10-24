@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-10-19.1",
+  "version": "2026-10-24.1",
   "suite": "ak.suite.managed_governance.v1",
   "runner": {
     "kind": "named_suite",
@@ -135,7 +135,7 @@
     },
     "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"arkret-operation\" \"arkret-managed-device\" \"destination-service-id\");created=1791504000;expires=1791504060;keyid=\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\";alg=\"ed25519\"",
     "signature_base_utf8": "\"@method\": GET\n\"@target-uri\": https://station.example/_arkret/self/device_messages\n\"@authority\": station.example\n\"arkret-operation\": ak.self.device_messages.read.list.v1\n\"arkret-managed-device\": eyJhY3Rvcl9pZCI6eyJraW5kIjoicmVhbG0iLCJyZWFsbV9hY3Rvcl9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZWJvdCIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifX0sImFwcGxldF9pZCI6ImFrOmFwcGxldDowMTkwNDEwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMTEiLCJhdXRob3JpemF0aW9uX2V2ZW50X2lkIjoiYWs6ZXZlbnQ6QVFzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0xDd3NMQ3dzTEN3c0wiLCJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5MDQxMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDEyIiwiZWZmZWN0aXZlX3Njb3BlIjp7ImtpbmQiOiJyZWFsbSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVFvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0tDZ29LQ2dvS0Nnb0sifSwibm9uY2UiOiJBQUVDQXdRRkJnY0lDUW9MREEwT0R3In0\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturestation\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"arkret-operation\" \"arkret-managed-device\" \"destination-service-id\");created=1791504000;expires=1791504060;keyid=\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\";alg=\"ed25519\"",
-    "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+    "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
     "signature_b64u": "JDzQxfYqnG6SrEFVvAaSS7pwICAbwkHJZLORXpmeMM1ElAHfbqCACCmh9Ons4EubrIy9Hc_QquxV0pht9TEBAQ",
     "test_seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
   },

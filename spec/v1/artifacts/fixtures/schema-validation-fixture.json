@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-26.1",
+  "version": "2026-10-24.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -31,7 +31,7 @@
           "ak.profile.station.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
             "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
@@ -147,7 +147,7 @@
     },
     {
       "name": "device_messages_send_outcome_unknown_row_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody",
       "expect_valid": true,
       "instance": {
         "delivered": {
@@ -170,7 +170,7 @@
     },
     {
       "name": "device_messages_send_outcome_unknown_row_rejects_reason_code",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody",
       "expect_valid": false,
       "first_expected_error": "contains:'reason_code' was unexpected",
       "instance": {
@@ -195,7 +195,7 @@
     },
     {
       "name": "actor_private_submit_push_route_outcome_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": true,
       "instance": {
         "event_kind": "ak.device.push_route",
@@ -205,7 +205,7 @@
     },
     {
       "name": "actor_private_submit_push_route_outcome_requires_revision",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": false,
       "instance": {
         "event_kind": "ak.device.push_route",
@@ -215,7 +215,7 @@
     },
     {
       "name": "actor_private_submit_agent_outcome_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": true,
       "instance": {
         "event_kind": "ak.agent.draft.propose",
@@ -224,7 +224,7 @@
     },
     {
       "name": "actor_private_submit_agent_outcome_rejects_revision",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": false,
       "instance": {
         "event_kind": "ak.agent.action_request",
@@ -235,7 +235,7 @@
     },
     {
       "name": "actor_private_submit_outcome_rejects_dedicated_kind",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": false,
       "instance": {
         "event_kind": "ak.read_cursor.advance",
@@ -275,8 +275,8 @@
       "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
       "expect_valid": true,
       "instance": {
-        "group_info_bytes_b64": "AAEAAQ",
-        "ratchet_tree_bytes_b64": "AQIDBA"
+        "group_info_base64url": "AAEAAQ",
+        "ratchet_tree_base64url": "AQIDBA"
       }
     },
     {
@@ -285,8 +285,8 @@
       "expect_valid": false,
       "first_expected_error": "contains:'group_info_ref' was unexpected",
       "instance": {
-        "group_info_bytes_b64": "AAEAAQ",
-        "ratchet_tree_bytes_b64": "AQIDBA",
+        "group_info_base64url": "AAEAAQ",
+        "ratchet_tree_base64url": "AQIDBA",
         "group_info_ref": "ak:blob:sha256:0000000000000000000000000000000000000000000000000000000000000000"
       }
     },
@@ -296,8 +296,8 @@
       "expect_valid": false,
       "first_expected_error": "contains:does not match",
       "instance": {
-        "group_info_bytes_b64": "AAEAAQ==",
-        "ratchet_tree_bytes_b64": "AQIDBA"
+        "group_info_base64url": "AAEAAQ==",
+        "ratchet_tree_base64url": "AQIDBA"
       }
     }
   ]

@@ -16,7 +16,7 @@
     "namespaces",
     "requested_scopes",
     "endpoint_policy",
-    "webhook_auth",
+    "webhook_signature_policy",
     "receive_events",
     "receive_signals",
     "rate_limited",
@@ -31,7 +31,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.applet_package.v1"
+      "const": "ak.schema.applet_package.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "applet-package.schema.json#/properties/schema",
+        "owner": "applet-package.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.applet_package.v1"
+        ]
+      }
     },
     "package_id": {
       "type": "string",
@@ -66,7 +74,15 @@
       "minItems": 1,
       "uniqueItems": true,
       "contains": {
-        "const": "ak.profile.applet_service.v1"
+        "const": "ak.profile.applet_service.v1",
+        "x-arkret-value-ownership": {
+          "class": "namespaced_symbol",
+          "authority": "applet-package.schema.json#/properties/claimed_profiles/contains",
+          "owner": "applet-package.schema.json#/properties/claimed_profiles/contains",
+          "values": [
+            "ak.profile.applet_service.v1"
+          ]
+        }
       }
     },
     "protocols": {
@@ -81,8 +97,8 @@
     "endpoint_policy": {
       "$ref": "#/$defs/endpoint_policy"
     },
-    "webhook_auth": {
-      "$ref": "#/$defs/webhook_auth"
+    "webhook_signature_policy": {
+      "$ref": "#/$defs/webhook_signature_policy"
     },
     "receive_events": {
       "type": "boolean"
@@ -196,7 +212,16 @@
       "enum": [
         "ed25519",
         "ecdsa-p256-sha256"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "external_literal",
+        "authority": "https://www.rfc-editor.org/rfc/rfc9421.html#section-3.3.3",
+        "owner": "applet-package.schema.json#/$defs/http_message_signature_algorithm",
+        "values": [
+          "ed25519",
+          "ecdsa-p256-sha256"
+        ]
+      }
     },
     "detached_proof": {
       "type": "object",
@@ -213,7 +238,15 @@
           "type": "string",
           "enum": [
             "detached_jws"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-package.schema.json#/$defs/detached_proof/properties/kind",
+            "owner": "applet-package.schema.json#/$defs/detached_proof/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -250,7 +283,7 @@
       },
       "additionalProperties": false
     },
-    "webhook_auth": {
+    "webhook_signature_policy": {
       "description": "HTTP message signature verification policy for transaction push. key_ref is the Applet service DID URL used to verify the app/bridge->arkret inbound HTTP message signature. Verifiers MUST take its bare controller did, validate it with the registered method adapter, and require project(did) to equal service_id (did_core_id); direct DID/core-id string comparison is forbidden. The key is bound to the effective registration_epoch. accepted_signature_algorithms pins the acceptable RFC 9421 signature algorithms.",
       "required": [
         "key_ref",
@@ -277,7 +310,15 @@
           "type": "string",
           "enum": [
             "http_message_signature"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-package.schema.json#/$defs/webhook_signature_policy/properties/kind",
+            "owner": "applet-package.schema.json#/$defs/webhook_signature_policy/properties/kind",
+            "values": [
+              "http_message_signature"
+            ]
+          }
         }
       },
       "patternProperties": {
@@ -301,19 +342,42 @@
             "PUT",
             "PATCH",
             "DELETE"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc9110.html#section-9",
+            "owner": "applet-package.schema.json#/$defs/endpoint_entry/properties/method",
+            "values": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
         },
         "path": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "auth": {
+        "authentication_kind": {
           "type": "string",
           "enum": [
             "none",
             "webhook_signature",
             "bearer",
             "mtls"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "applet-package.schema.json#/$defs/endpoint_entry/properties/authentication_kind",
+            "owner": "applet-package.schema.json#/$defs/endpoint_entry/properties/authentication_kind",
+            "values": [
+              "none",
+              "webhook_signature",
+              "bearer",
+              "mtls"
+            ]
+          }
         },
         "description": {
           "$ref": "string-profiles.schema.json#/$defs/short_text",
@@ -349,9 +413,10 @@
       "type": "object",
       "description": "Service-side resource hints derived into the registration manifest.",
       "properties": {
-        "max_transaction_events": {
+        "max_transaction_event_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count"
         },
         "max_payload_bytes": {
           "type": "integer",

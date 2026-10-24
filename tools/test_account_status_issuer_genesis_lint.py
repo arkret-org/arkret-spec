@@ -140,7 +140,7 @@ class AccountStatusIssuerGenesisLintTest(unittest.TestCase):
             dict(base["basis"], account_status_record_id="ak:event:"+"A"*44),
             dict(base["basis"], status_record_digest="blake3:"+"b"*64),
             dict(base["basis"], status_record_digest=None),
-            dict(base["basis"], status_seq=2),
+            dict(base["basis"], status_sequence=2),
             dict(base["basis"], account_id=cases[2]["private_current_record"]["account_id"]),
             dict(base["basis"], principal_control_realm_id=cases[2]["private_current_record"]["principal_control_realm_id"]),
             dict(base["basis"], record=cases[2]["private_current_record"]),

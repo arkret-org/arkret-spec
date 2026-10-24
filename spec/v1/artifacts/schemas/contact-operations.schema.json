@@ -5,43 +5,43 @@
   "description": "Closed request/response DTO bundle for the Contact lifecycle: request, respond, reject, scope replacement, tombstone, the portable Contact round evidence bundle, acceptance receipts and the peer Contact carrier, plus the contact-list projection.",
   "anyOf": [
     {
-      "$ref": "#/$defs/contact_request_request_body"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_request_request_body"
     },
     {
-      "$ref": "#/$defs/contact_request_outcome"
+      "$ref": "#/$defs/contact_request_response_body"
     },
     {
-      "$ref": "#/$defs/contact_respond_request_body"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_respond_request_body"
     },
     {
-      "$ref": "#/$defs/contact_respond_outcome"
+      "$ref": "#/$defs/contact_respond_response_body"
     },
     {
-      "$ref": "#/$defs/contact_reject_request_body"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_reject_request_body"
     },
     {
-      "$ref": "#/$defs/contact_reject_outcome"
+      "$ref": "#/$defs/contact_reject_response_body"
     },
     {
-      "$ref": "#/$defs/contact_list"
+      "$ref": "#/$defs/contact_page"
     },
     {
-      "$ref": "#/$defs/contact_tombstone_request_body"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_tombstone_request_body"
     },
     {
       "$ref": "#/$defs/contact_tombstone"
     },
     {
-      "$ref": "#/$defs/contact_scope_update_request_body"
+      "$ref": "./contact-operations.schema.json#/$defs/contact_scope_update_request_body"
     },
     {
-      "$ref": "#/$defs/contact_scope_update_outcome"
+      "$ref": "#/$defs/contact_scope_update_response_body"
     },
     {
-      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request"
+      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request_body"
     },
     {
-      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
+      "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body"
     }
   ],
   "$defs": {
@@ -51,7 +51,7 @@
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
-    "contact_accept_request": {
+    "contact_accept_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -66,7 +66,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/0/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -81,7 +89,15 @@
               "$ref": "#/$defs/event_id"
             },
             "action": {
-              "const": "accept"
+              "const": "accept",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/0/properties/action",
+                "owner": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/0/properties/action",
+                "values": [
+                  "accept"
+                ]
+              }
             },
             "granted_to_peer_scopes": {
               "$ref": "#/$defs/contact_scopes"
@@ -100,7 +116,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/1/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -119,7 +143,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.accepted"
+                      "const": "ak.contact.accepted",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_accept_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.accepted"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -131,7 +163,8 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "contact_address": {
       "type": "object",
@@ -150,7 +183,7 @@
         },
         "route_assistance": {
           "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
-          "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member typed current result or authority state; they do not extend any token/receipt TTL or authorize delivery."
+          "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member current state or authority state; they do not extend any token/receipt TTL or authorize delivery."
         }
       },
       "additionalProperties": false
@@ -196,7 +229,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "normal"
+              "const": "normal",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_round/oneOf/0/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_round/oneOf/0/properties/kind",
+                "values": [
+                  "normal"
+                ]
+              }
             },
             "sorted_pair_member_ids": {
               "type": "array",
@@ -226,7 +267,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "glare"
+              "const": "glare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_round/oneOf/1/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_round/oneOf/1/properties/kind",
+                "values": [
+                  "glare"
+                ]
+              }
             },
             "sorted_pair_member_ids": {
               "type": "array",
@@ -354,7 +403,15 @@
               "contact_round": {
                 "properties": {
                   "kind": {
-                    "const": "glare"
+                    "const": "glare",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/contact_round_evidence_bundle/allOf/0/if/properties/contact_round/properties/kind",
+                      "owner": "contact-operations.schema.json#/$defs/contact_round_evidence_bundle/allOf/0/if/properties/contact_round/properties/kind",
+                      "values": [
+                        "glare"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -422,7 +479,7 @@
         "version",
         "scope_instances",
         "issued_at",
-        "fresh_until",
+        "cache_expires_at",
         "signature"
       ],
       "properties": {
@@ -467,8 +524,9 @@
         "issued_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "fresh_until": {
-          "$ref": "#/$defs/timestamp"
+        "cache_expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -487,7 +545,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "locator_ref"
+              "const": "locator_ref",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/0/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/0/properties/kind",
+                "values": [
+                  "locator_ref"
+                ]
+              }
             },
             "principal_locator": {
               "$ref": "./principal-locator.schema.json"
@@ -505,7 +571,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "shared_realm"
+              "const": "shared_realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/1/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/1/properties/kind",
+                "values": [
+                  "shared_realm"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./principal-operations.schema.json#/$defs/realm_id"
@@ -528,7 +602,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "handle_claim"
+              "const": "handle_claim",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/2/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/2/properties/kind",
+                "values": [
+                  "handle_claim"
+                ]
+              }
             },
             "handle": {
               "$ref": "./string-profiles.schema.json#/$defs/canonical_handle"
@@ -552,7 +634,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "same_station"
+              "const": "same_station",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/3/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/3/properties/kind",
+                "values": [
+                  "same_station"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -564,7 +654,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "explicit_address"
+              "const": "explicit_address",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/4/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/4/properties/kind",
+                "values": [
+                  "explicit_address"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -632,7 +730,15 @@
           "if": {
             "properties": {
               "version": {
-                "const": 1
+                "const": 1,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "contact-operations.schema.json#/$defs/contact_lineage/allOf/0/if/properties/version",
+                  "owner": "contact-operations.schema.json#/$defs/contact_lineage/allOf/0/if/properties/version",
+                  "values": [
+                    1
+                  ]
+                }
               }
             },
             "required": [
@@ -654,7 +760,7 @@
         }
       ]
     },
-    "contact_list": {
+    "contact_page": {
       "type": "object",
       "required": [
         "contacts",
@@ -677,7 +783,8 @@
       "additionalProperties": false,
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.requested"
-      ]
+      ],
+      "x-arkret-name-role": "page"
     },
     "contact_list_row": {
       "type": "object",
@@ -744,7 +851,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "accepted"
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/0/if/properties/state",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             },
             "required": [
@@ -768,7 +883,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "pending_incoming"
+                "const": "pending_incoming",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/1/if/properties/state",
+                  "values": [
+                    "pending_incoming"
+                  ]
+                }
               }
             },
             "required": [
@@ -797,12 +920,28 @@
           "then": {
             "properties": {
               "state": {
-                "const": "accepted"
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
+                  "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/state",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               },
               "peer": {
                 "properties": {
                   "kind": {
-                    "const": "human"
+                    "const": "human",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
+                      "owner": "contact-operations.schema.json#/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind",
+                      "values": [
+                        "human"
+                      ]
+                    }
                   }
                 }
               }
@@ -834,13 +973,13 @@
       "additionalProperties": false,
       "description": "Server-provided exact next operation cursor: same contact_round_id, version=current lifetime holder direction version+1 and predecessor_event_ref=own exact current operation head. Copy verbatim; do not derive from list summary refs. Accepted rows carry it; pending/terminal rows do not. Normal requester and glare heads are their original requests, without synthetic accepted Events."
     },
-    "contact_operation_outcome": {
+    "contact_operation_response_body": {
       "oneOf": [
         {
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reservation_handle",
             "expires_at",
@@ -848,10 +987,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/0/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/0/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "request"
+            "operation_kind": {
+              "const": "request",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/0/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/0/properties/operation_kind",
+                "values": [
+                  "request"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -872,7 +1027,7 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reservation_handle",
             "expires_at",
@@ -880,10 +1035,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/1/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/1/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "response"
+            "operation_kind": {
+              "const": "response",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/1/properties/operation_kind",
+                "values": [
+                  "response"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -904,7 +1075,7 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reservation_handle",
             "expires_at",
@@ -912,10 +1083,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/2/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/2/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "reject"
+            "operation_kind": {
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/2/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/2/properties/operation_kind",
+                "values": [
+                  "reject"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -936,7 +1123,7 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reservation_handle",
             "expires_at",
@@ -944,10 +1131,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/3/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/3/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "scope_update"
+            "operation_kind": {
+              "const": "scope_update",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/3/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/3/properties/operation_kind",
+                "values": [
+                  "scope_update"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -968,7 +1171,7 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reservation_handle",
             "expires_at",
@@ -976,10 +1179,26 @@
           ],
           "properties": {
             "status": {
-              "const": "prepared"
+              "const": "prepared",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/4/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/4/properties/status",
+                "values": [
+                  "prepared"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "tombstone"
+            "operation_kind": {
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/4/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/4/properties/operation_kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1000,16 +1219,32 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "request_acceptance_receipt"
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/5/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/5/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "request"
+            "operation_kind": {
+              "const": "request",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/5/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/5/properties/operation_kind",
+                "values": [
+                  "request"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1024,7 +1259,7 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "normal_response_acceptance_receipt",
             "lineage",
@@ -1032,10 +1267,26 @@
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/6/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/6/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "response"
+            "operation_kind": {
+              "const": "response",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/6/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/6/properties/operation_kind",
+                "values": [
+                  "response"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1056,16 +1307,32 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reject_acceptance_receipt"
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/7/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/7/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "reject"
+            "operation_kind": {
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/7/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/7/properties/operation_kind",
+                "values": [
+                  "reject"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1080,17 +1347,33 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "lineage",
             "current_proof"
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/8/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/8/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "scope_update"
+            "operation_kind": {
+              "const": "scope_update",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/8/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/8/properties/operation_kind",
+                "values": [
+                  "scope_update"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1108,17 +1391,33 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "lineage",
             "current_proof"
           ],
           "properties": {
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/9/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/9/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
-            "result_kind": {
-              "const": "tombstone"
+            "operation_kind": {
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/9/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/9/properties/operation_kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1136,22 +1435,42 @@
           "type": "object",
           "required": [
             "status",
-            "result_kind",
+            "operation_kind",
             "operation_id",
             "reason"
           ],
           "properties": {
             "status": {
-              "const": "failed"
+              "const": "failed",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/status",
+                "values": [
+                  "failed"
+                ]
+              }
             },
-            "result_kind": {
+            "operation_kind": {
               "enum": [
                 "request",
                 "response",
                 "reject",
                 "scope_update",
                 "tombstone"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/operation_kind",
+                "values": [
+                  "request",
+                  "response",
+                  "reject",
+                  "scope_update",
+                  "tombstone"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1164,14 +1483,27 @@
                 "contact_lineage_conflict",
                 "contact_terminal",
                 "contact_scope_stale"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/reason",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_response_body/oneOf/10/properties/reason",
+                "values": [
+                  "contact_idempotency_conflict",
+                  "contact_round_conflict",
+                  "contact_lineage_conflict",
+                  "contact_terminal",
+                  "contact_scope_stale"
+                ]
+              }
             }
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "contact_operation_request": {
+    "contact_request_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -1185,7 +1517,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/0/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1219,7 +1559,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/1/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1238,7 +1586,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.requested"
+                      "const": "ak.contact.requested",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_request_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.requested"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1250,7 +1606,8 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "contact_peer": {
       "oneOf": [
@@ -1262,7 +1619,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "human"
+              "const": "human",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_peer/oneOf/0/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_peer/oneOf/0/properties/kind",
+                "values": [
+                  "human"
+                ]
+              }
             },
             "account_id": {
               "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -1279,7 +1644,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "agent"
+              "const": "agent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_peer/oneOf/1/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_peer/oneOf/1/properties/kind",
+                "values": [
+                  "agent"
+                ]
+              }
             },
             "actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -1292,25 +1665,34 @@
         }
       ]
     },
-    "contact_reject_outcome": {
+    "contact_reject_response_body": {
       "allOf": [
         {
-          "$ref": "#/$defs/contact_operation_outcome"
+          "$ref": "#/$defs/contact_operation_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind"
+            "operation_kind"
           ],
           "properties": {
-            "result_kind": {
-              "const": "reject"
+            "operation_kind": {
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_reject_response_body/allOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_reject_response_body/allOf/1/properties/operation_kind",
+                "values": [
+                  "reject"
+                ]
+              }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "contact_reject_request": {
+    "contact_reject_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -1324,7 +1706,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/0/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1339,7 +1729,15 @@
               "$ref": "#/$defs/event_id"
             },
             "action": {
-              "const": "reject"
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/0/properties/action",
+                "owner": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/0/properties/action",
+                "values": [
+                  "reject"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1355,7 +1753,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/1/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1374,7 +1780,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.rejected"
+                      "const": "ak.contact.rejected",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_reject_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.rejected"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1386,55 +1800,66 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "contact_reject_request_body": {
-      "$ref": "#/$defs/contact_reject_request"
-    },
-    "contact_request_outcome": {
+    "contact_request_response_body": {
       "allOf": [
         {
-          "$ref": "#/$defs/contact_operation_outcome"
+          "$ref": "#/$defs/contact_operation_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind"
+            "operation_kind"
           ],
           "properties": {
-            "result_kind": {
-              "const": "request"
+            "operation_kind": {
+              "const": "request",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_request_response_body/allOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_request_response_body/allOf/1/properties/operation_kind",
+                "values": [
+                  "request"
+                ]
+              }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "contact_request_request_body": {
-      "$ref": "#/$defs/contact_operation_request"
-    },
-    "contact_respond_outcome": {
+    "contact_respond_response_body": {
       "allOf": [
         {
-          "$ref": "#/$defs/contact_operation_outcome"
+          "$ref": "#/$defs/contact_operation_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind"
+            "operation_kind"
           ],
           "properties": {
-            "result_kind": {
-              "const": "response"
+            "operation_kind": {
+              "const": "response",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_respond_response_body/allOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_respond_response_body/allOf/1/properties/operation_kind",
+                "values": [
+                  "response"
+                ]
+              }
             }
           }
         }
-      ]
-    },
-    "contact_respond_request": {
-      "$ref": "#/$defs/contact_accept_request"
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "contact_respond_request_body": {
-      "$ref": "#/$defs/contact_respond_request"
+      "$ref": "#/$defs/contact_accept_request_body",
+      "x-arkret-name-role": "request_body"
     },
     "contact_scope": {
       "type": "string",
@@ -1444,25 +1869,46 @@
         "voice_call",
         "video_call",
         "presence"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "contact-operations.schema.json#/$defs/contact_scope",
+        "owner": "contact-operations.schema.json#/$defs/contact_scope",
+        "values": [
+          "invite",
+          "direct_message",
+          "voice_call",
+          "video_call",
+          "presence"
+        ]
+      }
     },
-    "contact_scope_update_outcome": {
+    "contact_scope_update_response_body": {
       "allOf": [
         {
-          "$ref": "#/$defs/contact_operation_outcome"
+          "$ref": "#/$defs/contact_operation_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind"
+            "operation_kind"
           ],
           "properties": {
-            "result_kind": {
-              "const": "scope_update"
+            "operation_kind": {
+              "const": "scope_update",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_scope_update_response_body/allOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_scope_update_response_body/allOf/1/properties/operation_kind",
+                "values": [
+                  "scope_update"
+                ]
+              }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "contact_scope_update_payload": {
       "type": "object",
@@ -1484,7 +1930,15 @@
           "$ref": "./principal-operations.schema.json#/$defs/digest"
         },
         "schema": {
-          "const": "ak.schema.contact_scope_update.v1"
+          "const": "ak.schema.contact_scope_update.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "contact-operations.schema.json#/$defs/contact_scope_update_payload/properties/schema",
+            "owner": "contact-operations.schema.json#/$defs/contact_scope_update_payload/properties/schema",
+            "values": [
+              "ak.schema.contact_scope_update.v1"
+            ]
+          }
         },
         "peer": {
           "$ref": "#/$defs/contact_peer"
@@ -1508,7 +1962,7 @@
       "additionalProperties": false,
       "description": "Holder full-set replacement in a nonterminal established round. version advances the holder lifetime direction, retained scope instances retain their grant Event. Empty scopes remain accepted; pure narrowing does not wait for remote freshness."
     },
-    "contact_scope_update_request": {
+    "contact_scope_update_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -1524,7 +1978,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/0/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1562,7 +2024,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/1/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1581,7 +2051,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.scope.update"
+                      "const": "ak.contact.scope.update",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_scope_update_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.scope.update"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1593,10 +2071,8 @@
           },
           "additionalProperties": false
         }
-      ]
-    },
-    "contact_scope_update_request_body": {
-      "$ref": "#/$defs/contact_scope_update_request"
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "contact_scopes": {
       "type": "array",
@@ -1614,30 +2090,52 @@
         "rejected",
         "expired",
         "tombstoned"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "contact-operations.schema.json#/$defs/contact_state",
+        "owner": "contact-operations.schema.json#/$defs/contact_state",
+        "values": [
+          "pending_outgoing",
+          "pending_incoming",
+          "accepted",
+          "rejected",
+          "expired",
+          "tombstoned"
+        ]
+      }
     },
     "contact_tombstone": {
-      "$ref": "#/$defs/contact_tombstone_outcome"
+      "$ref": "#/$defs/contact_tombstone_response_body"
     },
-    "contact_tombstone_outcome": {
+    "contact_tombstone_response_body": {
       "allOf": [
         {
-          "$ref": "#/$defs/contact_operation_outcome"
+          "$ref": "#/$defs/contact_operation_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind"
+            "operation_kind"
           ],
           "properties": {
-            "result_kind": {
-              "const": "tombstone"
+            "operation_kind": {
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_tombstone_response_body/allOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_tombstone_response_body/allOf/1/properties/operation_kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "contact_tombstone_request": {
+    "contact_tombstone_request_body": {
       "oneOf": [
         {
           "type": "object",
@@ -1653,7 +2151,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "prepare"
+              "const": "prepare",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/0/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/0/properties/phase",
+                "values": [
+                  "prepare"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1692,7 +2198,15 @@
           ],
           "properties": {
             "phase": {
-              "const": "commit"
+              "const": "commit",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/1/properties/phase",
+                "owner": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/1/properties/phase",
+                "values": [
+                  "commit"
+                ]
+              }
             },
             "operation_id": {
               "$ref": "./principal-operations.schema.json#/$defs/operation_id"
@@ -1711,7 +2225,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstone"
+                      "const": "ak.contact.tombstone",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_tombstone_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.tombstone"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -1723,20 +2245,18 @@
           },
           "additionalProperties": false
         }
-      ]
-    },
-    "contact_tombstone_request_body": {
-      "$ref": "#/$defs/contact_tombstone_request"
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "cursor": {
-      "$ref": "./authz-operations.schema.json#/$defs/cursor"
+      "$ref": "./authorization-operations.schema.json#/$defs/cursor"
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "direct_conversation_summary": {
       "type": "object",
-      "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_outcome; there is no durable creation operation, draft or reservation.",
+      "description": "Contact-list projection of an already materialized stable Direct Conversation. Coordinates and binding identity are immutable; state only says whether the same conversation is currently sendable. Creation progress is exposed only by direct_conversation_resolve_response_body; there is no durable creation operation, draft or reservation.",
       "required": [
         "realm_id",
         "main_strand_id",
@@ -1758,7 +2278,16 @@
           "enum": [
             "found",
             "suspended"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/direct_conversation_summary/properties/state",
+            "owner": "contact-operations.schema.json#/$defs/direct_conversation_summary/properties/state",
+            "values": [
+              "found",
+              "suspended"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -1896,7 +2425,15 @@
           "if": {
             "properties": {
               "version": {
-                "const": 1
+                "const": 1,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "contact-operations.schema.json#/$defs/normal_response_acceptance_receipt/allOf/0/if/properties/version",
+                  "owner": "contact-operations.schema.json#/$defs/normal_response_acceptance_receipt/allOf/0/if/properties/version",
+                  "values": [
+                    1
+                  ]
+                }
               }
             },
             "required": [
@@ -1930,7 +2467,16 @@
               "enum": [
                 "accepted",
                 "duplicate"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_authoritative_mirror_receipt/allOf/1/properties/outcome",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_authoritative_mirror_receipt/allOf/1/properties/outcome",
+                "values": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
             }
           },
           "required": [
@@ -1954,14 +2500,31 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.peer_contact.control_receipt.v1"
+          "const": "ak.peer_contact.control_receipt.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/domain",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/domain",
+            "values": [
+              "ak.peer_contact.control_receipt.v1"
+            ]
+          }
         },
         "request_kind": {
           "type": "string",
           "enum": [
             "current_refresh",
             "glare_finalize"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/request_kind",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/request_kind",
+            "values": [
+              "current_refresh",
+              "glare_finalize"
+            ]
+          }
         },
         "request_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
@@ -1972,11 +2535,21 @@
             "accepted",
             "duplicate",
             "deferred"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/outcome",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/properties/outcome",
+            "values": [
+              "accepted",
+              "duplicate",
+              "deferred"
+            ]
+          }
         },
-        "result_digest": {
+        "control_material_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
-          "description": "H('ak.peer-contact.control-result.v1',{request_digest,result_kind,glare_concurrency_attestation?,current_proof?,material?}) over the exact closed successful result."
+          "description": "H('ak.peer-contact.control-result.v1',{request_digest,state_kind,glare_concurrency_attestation?,current_proof?,material?}) over the exact closed successful result."
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1999,7 +2572,16 @@
                 "enum": [
                   "accepted",
                   "duplicate"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/allOf/0/if/properties/outcome",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_control_receipt/allOf/0/if/properties/outcome",
+                  "values": [
+                    "accepted",
+                    "duplicate"
+                  ]
+                }
               }
             },
             "required": [
@@ -2008,13 +2590,13 @@
           },
           "then": {
             "required": [
-              "result_digest"
+              "control_material_digest"
             ]
           },
           "else": {
             "not": {
               "required": [
-                "result_digest"
+                "control_material_digest"
               ]
             }
           }
@@ -2024,15 +2606,15 @@
       "description": "The recipient signs every field except signature. This receipt is only for current_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt.",
       "x-arkret-signature-domain": "ak.peer_contact.control_receipt.v1"
     },
-    "peer_contact_event_submit_outcome": {
+    "peer_contact_event_submit_response_body": {
       "type": "object",
       "required": [
-        "result_kind",
+        "operation_kind",
         "status",
         "mirror_receipt"
       ],
       "properties": {
-        "result_kind": {
+        "operation_kind": {
           "type": "string",
           "enum": [
             "request",
@@ -2040,7 +2622,19 @@
             "reject",
             "scope_update",
             "tombstone"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/properties/operation_kind",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/properties/operation_kind",
+            "values": [
+              "request",
+              "response",
+              "reject",
+              "scope_update",
+              "tombstone"
+            ]
+          }
         },
         "status": {
           "type": "string",
@@ -2048,7 +2642,17 @@
             "accepted",
             "duplicate",
             "deferred"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/properties/status",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/properties/status",
+            "values": [
+              "accepted",
+              "duplicate",
+              "deferred"
+            ]
+          }
         },
         "mirror_receipt": {
           "$ref": "#/$defs/peer_contact_mirror_receipt"
@@ -2066,7 +2670,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "accepted"
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/0/if/properties/status",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/0/if/properties/status",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             },
             "required": [
@@ -2078,7 +2690,15 @@
               "mirror_receipt": {
                 "properties": {
                   "outcome": {
-                    "const": "accepted"
+                    "const": "accepted",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/0/then/properties/mirror_receipt/properties/outcome",
+                      "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/0/then/properties/mirror_receipt/properties/outcome",
+                      "values": [
+                        "accepted"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -2097,7 +2717,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "duplicate"
+                "const": "duplicate",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/1/if/properties/status",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/1/if/properties/status",
+                  "values": [
+                    "duplicate"
+                  ]
+                }
               }
             },
             "required": [
@@ -2109,7 +2737,15 @@
               "mirror_receipt": {
                 "properties": {
                   "outcome": {
-                    "const": "duplicate"
+                    "const": "duplicate",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/1/then/properties/mirror_receipt/properties/outcome",
+                      "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/1/then/properties/mirror_receipt/properties/outcome",
+                      "values": [
+                        "duplicate"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -2128,7 +2764,15 @@
           "if": {
             "properties": {
               "status": {
-                "const": "deferred"
+                "const": "deferred",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/2/if/properties/status",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/2/if/properties/status",
+                  "values": [
+                    "deferred"
+                  ]
+                }
               }
             },
             "required": [
@@ -2140,7 +2784,15 @@
               "mirror_receipt": {
                 "properties": {
                   "outcome": {
-                    "const": "deferred"
+                    "const": "deferred",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/2/then/properties/mirror_receipt/properties/outcome",
+                      "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/2/then/properties/mirror_receipt/properties/outcome",
+                      "values": [
+                        "deferred"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -2158,12 +2810,20 @@
         {
           "if": {
             "properties": {
-              "result_kind": {
-                "const": "reject"
+              "operation_kind": {
+                "const": "reject",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/3/if/properties/operation_kind",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/3/if/properties/operation_kind",
+                  "values": [
+                    "reject"
+                  ]
+                }
               }
             },
             "required": [
-              "result_kind"
+              "operation_kind"
             ]
           },
           "then": {
@@ -2177,21 +2837,39 @@
         {
           "if": {
             "properties": {
-              "result_kind": {
+              "operation_kind": {
                 "enum": [
                   "scope_update",
                   "tombstone"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/4/if/properties/operation_kind",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/4/if/properties/operation_kind",
+                  "values": [
+                    "scope_update",
+                    "tombstone"
+                  ]
+                }
               },
               "status": {
                 "enum": [
                   "accepted",
                   "duplicate"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/4/if/properties/status",
+                  "owner": "contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body/allOf/4/if/properties/status",
+                  "values": [
+                    "accepted",
+                    "duplicate"
+                  ]
+                }
               }
             },
             "required": [
-              "result_kind",
+              "operation_kind",
               "status"
             ]
           },
@@ -2203,7 +2881,8 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Only the five signed Contact Event request kinds use this branch. The receipt event coordinates and result_kind must match the submitted Event exactly. Request/response may return a current proof; accepted or duplicate scope/tombstone must return one; reject and deferred never do."
+      "description": "Only the five signed Contact Event request kinds use this branch. The receipt event coordinates and state_kind must match the submitted Event exactly. Request/response may return a current proof; accepted or duplicate scope/tombstone must return one; reject and deferred never do.",
+      "x-arkret-name-role": "response_body"
     },
     "peer_contact_mirror_receipt": {
       "type": "object",
@@ -2219,7 +2898,15 @@
       ],
       "properties": {
         "domain": {
-          "const": "ak.peer_contact.mirror_receipt.v1"
+          "const": "ak.peer_contact.mirror_receipt.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_mirror_receipt/properties/domain",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_mirror_receipt/properties/domain",
+            "values": [
+              "ak.peer_contact.mirror_receipt.v1"
+            ]
+          }
         },
         "request_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
@@ -2234,7 +2921,17 @@
             "accepted",
             "duplicate",
             "deferred"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "contact-operations.schema.json#/$defs/peer_contact_mirror_receipt/properties/outcome",
+            "owner": "contact-operations.schema.json#/$defs/peer_contact_mirror_receipt/properties/outcome",
+            "values": [
+              "accepted",
+              "duplicate",
+              "deferred"
+            ]
+          }
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id"
@@ -2252,28 +2949,45 @@
       "additionalProperties": false,
       "x-arkret-signature-domain": "ak.peer_contact.mirror_receipt.v1"
     },
-    "peer_contact_submit_outcome": {
+    "peer_contact_submit_response_body": {
       "oneOf": [
         {
-          "$ref": "#/$defs/peer_contact_event_submit_outcome"
+          "$ref": "#/$defs/peer_contact_event_submit_response_body"
         },
         {
           "type": "object",
           "required": [
-            "result_kind",
+            "operation_kind",
             "status",
             "control_receipt",
             "material"
           ],
           "properties": {
-            "result_kind": {
-              "const": "current_refresh"
+            "operation_kind": {
+              "const": "current_refresh",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/1/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/1/properties/operation_kind",
+                "values": [
+                  "current_refresh"
+                ]
+              }
             },
             "status": {
               "enum": [
                 "accepted",
                 "duplicate"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/1/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/1/properties/status",
+                "values": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
             },
             "control_receipt": {
               "$ref": "#/$defs/peer_contact_control_receipt"
@@ -2287,17 +3001,33 @@
         {
           "type": "object",
           "required": [
-            "result_kind",
+            "operation_kind",
             "status",
             "control_receipt",
             "glare_concurrency_attestation"
           ],
           "properties": {
-            "result_kind": {
-              "const": "glare_finalize"
+            "operation_kind": {
+              "const": "glare_finalize",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/operation_kind",
+                "values": [
+                  "glare_finalize"
+                ]
+              }
             },
             "status": {
-              "const": "accepted"
+              "const": "accepted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/status",
+                "values": [
+                  "accepted"
+                ]
+              }
             },
             "control_receipt": {
               "allOf": [
@@ -2307,10 +3037,26 @@
                 {
                   "properties": {
                     "request_kind": {
-                      "const": "glare_finalize"
+                      "const": "glare_finalize",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/control_receipt/allOf/1/properties/request_kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/control_receipt/allOf/1/properties/request_kind",
+                        "values": [
+                          "glare_finalize"
+                        ]
+                      }
                     },
                     "outcome": {
-                      "const": "accepted"
+                      "const": "accepted",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/control_receipt/allOf/1/properties/outcome",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/2/properties/control_receipt/allOf/1/properties/outcome",
+                        "values": [
+                          "accepted"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2332,17 +3078,33 @@
         {
           "type": "object",
           "required": [
-            "result_kind",
+            "operation_kind",
             "status",
             "control_receipt",
             "glare_concurrency_attestation"
           ],
           "properties": {
-            "result_kind": {
-              "const": "glare_finalize"
+            "operation_kind": {
+              "const": "glare_finalize",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/operation_kind",
+                "values": [
+                  "glare_finalize"
+                ]
+              }
             },
             "status": {
-              "const": "duplicate"
+              "const": "duplicate",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/status",
+                "values": [
+                  "duplicate"
+                ]
+              }
             },
             "control_receipt": {
               "allOf": [
@@ -2352,10 +3114,26 @@
                 {
                   "properties": {
                     "request_kind": {
-                      "const": "glare_finalize"
+                      "const": "glare_finalize",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/control_receipt/allOf/1/properties/request_kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/control_receipt/allOf/1/properties/request_kind",
+                        "values": [
+                          "glare_finalize"
+                        ]
+                      }
                     },
                     "outcome": {
-                      "const": "duplicate"
+                      "const": "duplicate",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/control_receipt/allOf/1/properties/outcome",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/3/properties/control_receipt/allOf/1/properties/outcome",
+                        "values": [
+                          "duplicate"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2377,20 +3155,44 @@
         {
           "type": "object",
           "required": [
-            "result_kind",
+            "operation_kind",
             "status",
             "request_kind",
             "control_receipt"
           ],
           "properties": {
-            "result_kind": {
-              "const": "control_deferred"
+            "operation_kind": {
+              "const": "control_deferred",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/operation_kind",
+                "values": [
+                  "control_deferred"
+                ]
+              }
             },
             "status": {
-              "const": "deferred"
+              "const": "deferred",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/status",
+                "values": [
+                  "deferred"
+                ]
+              }
             },
             "request_kind": {
-              "const": "current_refresh"
+              "const": "current_refresh",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/request_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/request_kind",
+                "values": [
+                  "current_refresh"
+                ]
+              }
             },
             "control_receipt": {
               "allOf": [
@@ -2400,10 +3202,26 @@
                 {
                   "properties": {
                     "request_kind": {
-                      "const": "current_refresh"
+                      "const": "current_refresh",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/control_receipt/allOf/1/properties/request_kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/control_receipt/allOf/1/properties/request_kind",
+                        "values": [
+                          "current_refresh"
+                        ]
+                      }
                     },
                     "outcome": {
-                      "const": "deferred"
+                      "const": "deferred",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/control_receipt/allOf/1/properties/outcome",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/4/properties/control_receipt/allOf/1/properties/outcome",
+                        "values": [
+                          "deferred"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2423,20 +3241,44 @@
         {
           "type": "object",
           "required": [
-            "result_kind",
+            "operation_kind",
             "status",
             "request_kind",
             "control_receipt"
           ],
           "properties": {
-            "result_kind": {
-              "const": "control_deferred"
+            "operation_kind": {
+              "const": "control_deferred",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/operation_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/operation_kind",
+                "values": [
+                  "control_deferred"
+                ]
+              }
             },
             "status": {
-              "const": "deferred"
+              "const": "deferred",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/status",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/status",
+                "values": [
+                  "deferred"
+                ]
+              }
             },
             "request_kind": {
-              "const": "glare_finalize"
+              "const": "glare_finalize",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/request_kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/request_kind",
+                "values": [
+                  "glare_finalize"
+                ]
+              }
             },
             "control_receipt": {
               "allOf": [
@@ -2446,10 +3288,26 @@
                 {
                   "properties": {
                     "request_kind": {
-                      "const": "glare_finalize"
+                      "const": "glare_finalize",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/control_receipt/allOf/1/properties/request_kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/control_receipt/allOf/1/properties/request_kind",
+                        "values": [
+                          "glare_finalize"
+                        ]
+                      }
                     },
                     "outcome": {
-                      "const": "deferred"
+                      "const": "deferred",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/control_receipt/allOf/1/properties/outcome",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_response_body/oneOf/5/properties/control_receipt/allOf/1/properties/outcome",
+                        "values": [
+                          "deferred"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2466,9 +3324,10 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
-    "peer_contact_submit_request": {
+    "peer_contact_submit_request_body": {
       "description": "Closed Contact-only peer carrier. Each Event branch carries existing source Station attestation of a truly RealmCommit-committed Contact projection; pending admission cannot produce an authorizing receipt or receipted outbox. The original holder producer remains independently authenticated. No private PCR bootstrap, RealmCommit or new confirmation field is carried.",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.accepted",
@@ -2490,7 +3349,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "request"
+              "const": "request",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/properties/kind",
+                "values": [
+                  "request"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -2503,7 +3370,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.requested"
+                      "const": "ak.contact.requested",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.requested"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2551,7 +3426,15 @@
                               "holder": {
                                 "properties": {
                                   "kind": {
-                                    "const": "agent"
+                                    "const": "agent",
+                                    "x-arkret-value-ownership": {
+                                      "class": "owned_symbol",
+                                      "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/allOf/0/then/allOf/0/properties/request_receipt/properties/core/properties/holder/properties/kind",
+                                      "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/0/allOf/0/then/allOf/0/properties/request_receipt/properties/core/properties/holder/properties/kind",
+                                      "values": [
+                                        "agent"
+                                      ]
+                                    }
                                   }
                                 },
                                 "required": [
@@ -2637,7 +3520,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "response"
+              "const": "response",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/properties/kind",
+                "values": [
+                  "response"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -2650,7 +3541,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.accepted"
+                      "const": "ak.contact.accepted",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.accepted"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2697,7 +3596,15 @@
                                   "peer": {
                                     "properties": {
                                       "kind": {
-                                        "const": "agent"
+                                        "const": "agent",
+                                        "x-arkret-value-ownership": {
+                                          "class": "owned_symbol",
+                                          "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/allOf/0/then/allOf/0/properties/response_receipt/properties/request_receipt/properties/core/properties/peer/properties/kind",
+                                          "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/1/allOf/0/then/allOf/0/properties/response_receipt/properties/request_receipt/properties/core/properties/peer/properties/kind",
+                                          "values": [
+                                            "agent"
+                                          ]
+                                        }
                                       }
                                     },
                                     "required": [
@@ -2774,7 +3681,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "reject"
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/properties/kind",
+                "values": [
+                  "reject"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -2787,7 +3702,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.rejected"
+                      "const": "ak.contact.rejected",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.rejected"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2831,7 +3754,15 @@
                                   "peer": {
                                     "properties": {
                                       "kind": {
-                                        "const": "agent"
+                                        "const": "agent",
+                                        "x-arkret-value-ownership": {
+                                          "class": "owned_symbol",
+                                          "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/allOf/0/then/allOf/0/properties/reject_receipt/properties/request_receipt/properties/core/properties/peer/properties/kind",
+                                          "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/2/allOf/0/then/allOf/0/properties/reject_receipt/properties/request_receipt/properties/core/properties/peer/properties/kind",
+                                          "values": [
+                                            "agent"
+                                          ]
+                                        }
                                       }
                                     },
                                     "required": [
@@ -2909,7 +3840,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "scope_update"
+              "const": "scope_update",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/properties/kind",
+                "values": [
+                  "scope_update"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -2922,7 +3861,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.scope.update"
+                      "const": "ak.contact.scope.update",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.scope.update"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -2965,7 +3912,15 @@
                           "issuer": {
                             "properties": {
                               "kind": {
-                                "const": "agent"
+                                "const": "agent",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/allOf/0/then/allOf/0/properties/lineage/properties/issuer/properties/kind",
+                                  "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/3/allOf/0/then/allOf/0/properties/lineage/properties/issuer/properties/kind",
+                                  "values": [
+                                    "agent"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -3033,7 +3988,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "tombstone"
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/properties/kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -3046,7 +4009,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstone"
+                      "const": "ak.contact.tombstone",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.tombstone"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3089,7 +4060,15 @@
                           "issuer": {
                             "properties": {
                               "kind": {
-                                "const": "agent"
+                                "const": "agent",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/allOf/0/then/allOf/0/properties/lineage/properties/issuer/properties/kind",
+                                  "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/4/allOf/0/then/allOf/0/properties/lineage/properties/issuer/properties/kind",
+                                  "values": [
+                                    "agent"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -3158,7 +4137,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "current_refresh"
+              "const": "current_refresh",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/5/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/5/properties/kind",
+                "values": [
+                  "current_refresh"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -3207,7 +4194,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "glare_finalize"
+              "const": "glare_finalize",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/6/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/6/properties/kind",
+                "values": [
+                  "glare_finalize"
+                ]
+              }
             },
             "idempotency_key": {
               "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
@@ -3223,7 +4218,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "glare"
+                      "const": "glare",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/6/properties/contact_round/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/peer_contact_submit_request_body/oneOf/6/properties/contact_round/allOf/1/properties/kind",
+                        "values": [
+                          "glare"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3253,7 +4256,8 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "reject_acceptance_receipt": {
       "type": "object",
@@ -3309,7 +4313,15 @@
           "if": {
             "properties": {
               "version": {
-                "const": 1
+                "const": 1,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "contact-operations.schema.json#/$defs/reject_acceptance_receipt/allOf/0/if/properties/version",
+                  "owner": "contact-operations.schema.json#/$defs/reject_acceptance_receipt/allOf/0/if/properties/version",
+                  "values": [
+                    1
+                  ]
+                }
               }
             },
             "required": [
@@ -3408,7 +4420,15 @@
           "if": {
             "properties": {
               "version": {
-                "const": 1
+                "const": 1,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "contact-operations.schema.json#/$defs/request_acceptance_receipt_core/allOf/0/if/properties/version",
+                  "owner": "contact-operations.schema.json#/$defs/request_acceptance_receipt_core/allOf/0/if/properties/version",
+                  "values": [
+                    1
+                  ]
+                }
               }
             },
             "required": [
@@ -3453,18 +4473,19 @@
       "type": "object",
       "required": [
         "verification_method",
-        "public_key_b64u"
+        "public_key_base64url"
       ],
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "minLength": 43,
           "maxLength": 43,
-          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event."
+          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event.",
+          "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false,
@@ -3474,19 +4495,20 @@
       "type": "object",
       "required": [
         "verification_method",
-        "public_key_b64u",
+        "public_key_base64url",
         "delegated_actor_did"
       ],
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "public_key_b64u": {
+        "public_key_base64url": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "minLength": 43,
           "maxLength": 43,
-          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event."
+          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event.",
+          "x-arkret-member-role": "binary_encoding"
         },
         "delegated_actor_did": {
           "$ref": "./common-ids.schema.json#/$defs/did",
@@ -3556,7 +4578,15 @@
               "contact_round": {
                 "properties": {
                   "kind": {
-                    "const": "glare"
+                    "const": "glare",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "contact-operations.schema.json#/$defs/contact_round_basis/allOf/0/if/properties/contact_round/properties/kind",
+                      "owner": "contact-operations.schema.json#/$defs/contact_round_basis/allOf/0/if/properties/contact_round/properties/kind",
+                      "values": [
+                        "glare"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -3660,7 +4690,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "request"
+              "const": "request",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/0/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/0/properties/kind",
+                "values": [
+                  "request"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3670,7 +4708,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.requested"
+                      "const": "ak.contact.requested",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/0/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/0/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.requested"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3694,7 +4740,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "response"
+              "const": "response",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/1/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/1/properties/kind",
+                "values": [
+                  "response"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3704,7 +4758,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.accepted"
+                      "const": "ak.contact.accepted",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/1/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.accepted"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3728,7 +4790,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "reject"
+              "const": "reject",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/2/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/2/properties/kind",
+                "values": [
+                  "reject"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3738,7 +4808,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.rejected"
+                      "const": "ak.contact.rejected",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/2/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/2/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.rejected"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3762,7 +4840,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "scope_update"
+              "const": "scope_update",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/3/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/3/properties/kind",
+                "values": [
+                  "scope_update"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3772,7 +4858,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.scope.update"
+                      "const": "ak.contact.scope.update",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/3/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/3/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.scope.update"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3796,7 +4890,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "tombstone"
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/4/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/4/properties/kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3806,7 +4908,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstone"
+                      "const": "ak.contact.tombstone",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/4/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_operation_evidence/oneOf/4/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.tombstone"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3843,7 +4953,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "tombstone"
+              "const": "tombstone",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "contact-operations.schema.json#/$defs/contact_round_closure/properties/operation/properties/kind",
+                "owner": "contact-operations.schema.json#/$defs/contact_round_closure/properties/operation/properties/kind",
+                "values": [
+                  "tombstone"
+                ]
+              }
             },
             "signed_event": {
               "allOf": [
@@ -3853,7 +4971,15 @@
                 {
                   "properties": {
                     "kind": {
-                      "const": "ak.contact.tombstone"
+                      "const": "ak.contact.tombstone",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "contact-operations.schema.json#/$defs/contact_round_closure/properties/operation/properties/signed_event/allOf/1/properties/kind",
+                        "owner": "contact-operations.schema.json#/$defs/contact_round_closure/properties/operation/properties/signed_event/allOf/1/properties/kind",
+                        "values": [
+                          "ak.contact.tombstone"
+                        ]
+                      }
                     }
                   },
                   "required": [

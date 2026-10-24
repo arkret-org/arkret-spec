@@ -36,7 +36,15 @@
           "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "adapter_version": {
-          "const": "did:webvh:1.0"
+          "const": "did:webvh:1.0",
+          "x-arkret-value-ownership": {
+            "class": "uri",
+            "authority": "registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft/properties/adapter_version",
+            "owner": "registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft/properties/adapter_version",
+            "values": [
+              "did:webvh:1.0"
+            ]
+          }
         },
         "method_history_head": {
           "type": "string",
@@ -82,7 +90,15 @@
           "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "adapter_version": {
-          "const": "did:webvh:1.0"
+          "const": "did:webvh:1.0",
+          "x-arkret-value-ownership": {
+            "class": "uri",
+            "authority": "registration-did-evidence.schema.json#/$defs/registration_did_evidence/properties/adapter_version",
+            "owner": "registration-did-evidence.schema.json#/$defs/registration_did_evidence/properties/adapter_version",
+            "values": [
+              "did:webvh:1.0"
+            ]
+          }
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -132,7 +148,15 @@
           "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "adapter_version": {
-          "const": "did:webvh:1.0"
+          "const": "did:webvh:1.0",
+          "x-arkret-value-ownership": {
+            "class": "uri",
+            "authority": "registration-did-evidence.schema.json#/$defs/published_registration_did_evidence/properties/adapter_version",
+            "owner": "registration-did-evidence.schema.json#/$defs/published_registration_did_evidence/properties/adapter_version",
+            "values": [
+              "did:webvh:1.0"
+            ]
+          }
         },
         "validated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

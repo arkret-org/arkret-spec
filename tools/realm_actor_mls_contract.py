@@ -16,9 +16,9 @@ def b64(value):
 
 def sign(value, seed, kid, domain):
     key = Ed25519PrivateKey.from_private_bytes(bytes([seed]) * 32)
-    value["signature"] = {"kid": kid, "signature_algorithm": "Ed25519", "sig": ""}
-    value["signature"]["sig"] = b64(key.sign(signing_bytes(value, domain)))
-    return {"verification_method": kid, "public_key_b64u": b64(key.public_key().public_bytes_raw())}
+    value["signature"] = {"kid": kid, "signature_algorithm": "Ed25519", "signature": ""}
+    value["signature"]["signature"] = b64(key.sign(signing_bytes(value, domain)))
+    return {"verification_method": kid, "public_key_base64url": b64(key.public_key().public_bytes_raw())}
 
 def handoff_fixture():
     template = json.loads((ART / "fixtures/mls-roster-client-roles-fixture.json").read_text(encoding="utf-8"))["signature_binding_kat"]

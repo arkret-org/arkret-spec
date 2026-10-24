@@ -52,7 +52,15 @@
           "description": "Canonical case-sensitive IANA zone name; aliases and the token local are forbidden by semantic validation."
         },
         "tzdb_version": {
-          "const": "2025b"
+          "const": "2025b",
+          "x-arkret-value-ownership": {
+            "class": "version_text",
+            "authority": "dnd-schedule.schema.json#/$defs/schedule/properties/tzdb_version",
+            "owner": "dnd-schedule.schema.json#/$defs/schedule/properties/tzdb_version",
+            "values": [
+              "2025b"
+            ]
+          }
         },
         "all_day": {
           "type": "boolean"
@@ -70,7 +78,15 @@
           "if": {
             "properties": {
               "all_day": {
-                "const": true
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "dnd-schedule.schema.json#/$defs/schedule/allOf/0/if/properties/all_day",
+                  "owner": "dnd-schedule.schema.json#/$defs/schedule/allOf/0/if/properties/all_day",
+                  "values": [
+                    true
+                  ]
+                }
               }
             },
             "required": [

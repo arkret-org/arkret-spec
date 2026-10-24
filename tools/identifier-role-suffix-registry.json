@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -181,7 +181,7 @@
       "reason": "complete registered signer-evidence role for a service"
     },
     {
-      "field": "media_service_decrypts",
+      "field": "media_service_decryption_allowed",
       "role_stem": "media_service",
       "reason": "media_service is the registered E2EE media-processing protocol role"
     },
@@ -457,7 +457,7 @@
     },
     {
       "file": "account-operations.schema.json",
-      "pointer": "/$defs/did_binding_challenge_outcome/properties/origin",
+      "pointer": "/$defs/did_binding_challenge_response_body/properties/origin",
       "reason": "complete Web Origin role defined by scheme, host and port"
     },
     {
@@ -843,12 +843,12 @@
       "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
     },
     {
-      "file": "typed-current-result.schema.json",
+      "file": "current-state.schema.json",
       "pointer": "/$defs/device_authorization_value/properties/authorized_by",
       "terminal_categories": [
         "mixed[did_core_id,typed_object_id]"
       ],
-      "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization typed current result (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
+      "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization current state (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
     },
     {
       "file": "common-ids.schema.json",
@@ -867,7 +867,7 @@
       "reason": "Exact projection of the common device authorization byline; the realm_managed_delegation discriminator narrows it to the controller principal."
     },
     {
-      "file": "typed-current-result.schema.json",
+      "file": "current-state.schema.json",
       "pointer": "/$defs/realm_actor_device_authorization_value/properties/authorized_by",
       "terminal_categories": [
         "did_core_id"
@@ -875,5 +875,5 @@
       "reason": "Exact accepted realm delegation byline projected without renaming the signed payload field."
     }
   ],
-  "generated_at": "2026-10-22T07:50:48+08:00"
+  "generated_at": "2026-10-24T14:22:45+08:00"
 }

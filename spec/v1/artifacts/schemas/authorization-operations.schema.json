@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/authz-operations.schema.json",
+  "$id": "https://arkret.org/v1/schemas/authorization-operations.schema.json",
   "title": "Arkret Authorization Operation DTOs",
   "description": "Closed response DTOs for authorization query operations that need operation-specific list envelopes.",
   "anyOf": [
     {
-      "$ref": "#/$defs/authz_invite_list"
+      "$ref": "#/$defs/authorization_invite_page"
     }
   ],
   "$defs": {
@@ -13,7 +13,7 @@
       "type": "string",
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
-    "authz_invite_list": {
+    "authorization_invite_page": {
       "type": "object",
       "required": [
         "invites",
@@ -33,7 +33,8 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "page"
     }
   }
 }

@@ -13,7 +13,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.service_identity_bundle.v1"
+      "const": "ak.schema.service_identity_bundle.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "service-identity-bundle.schema.json#/properties/schema",
+        "owner": "service-identity-bundle.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.service_identity_bundle.v1"
+        ]
+      }
     },
     "identity": {
       "type": "object",

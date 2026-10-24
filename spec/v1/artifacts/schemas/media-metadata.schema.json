@@ -87,7 +87,18 @@
               "realm_bound",
               "actor_private",
               "device_bound"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "media-metadata.schema.json#/properties/thumbnails/items/properties/visibility",
+              "owner": "media-metadata.schema.json#/properties/thumbnails/items/properties/visibility",
+              "values": [
+                "public",
+                "realm_bound",
+                "actor_private",
+                "device_bound"
+              ]
+            }
           },
           "derivation_profile": {
             "type": "string",
@@ -114,7 +125,18 @@
             "realm_bound",
             "actor_private",
             "device_bound"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "media-metadata.schema.json#/properties/access/properties/visibility",
+            "owner": "media-metadata.schema.json#/properties/access/properties/visibility",
+            "values": [
+              "public",
+              "realm_bound",
+              "actor_private",
+              "device_bound"
+            ]
+          }
         },
         "range_supported": {
           "type": "boolean"

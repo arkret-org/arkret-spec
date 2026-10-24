@@ -74,7 +74,7 @@ RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收
 
 ## 8. 查询响应证据
 
-Own Station 返回 typed current result 和 source committed ref。Directory 只发布当前治理 Station 直接签写的 closed public Realm metadata，不提供 source-ref callback 或通用历史解析面。
+Own Station 返回 current state 和 source committed ref。Directory 只发布当前治理 Station 直接签写的 closed public Realm metadata，不提供 source-ref callback 或通用历史解析面。
 
 ## 9. 冲突与收敛
 
@@ -110,4 +110,4 @@ v1用单治理Station和逐scope线性Commit stream换取简单顺序、即时�
 - [service-http-binding.md](./service-http-binding.md)
 - [federation.md](./federation.md)
 - [client-sync.md](./client-sync.md)
-- [current-results.md](./current-results.md)
+- [current-state.md](./current-state.md)

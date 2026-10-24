@@ -1,10 +1,10 @@
-"""A typed current result key must exist in the payload it is derived from.
+"""A current state key must exist in the payload it is derived from.
 
-`check_composite_subject_terminal_types` reads every `result_selector` in the
+`check_composite_subject_terminal_types` reads every `state_selector` in the
 Event kind registry and resolves each endpoint against the payload class the
 Envelope dispatch selects for that kind. Until 2026-09-18 it read
 `cell_writes[].cell_subject`. The authority-commit clean break had renamed the
-array to `result_writes[]` and the member to `result_selector`, so the row loop
+array to `state_writes[]` and the member to `state_selector`, so the row loop
 iterated an absent key on every row, the gate returned with nothing to say, and
 `check` recorded that as a pass.
 
@@ -55,13 +55,13 @@ def row_of(registry: dict, kind: str) -> dict:
 
 
 def write_of(registry: dict, kind: str, family: str) -> dict:
-    for write in row_of(registry, kind).get("result_writes") or ():
-        if write["result_family"] == family:
+    for write in row_of(registry, kind).get("state_writes") or ():
+        if write["state_family"] == family:
             return write
     raise AssertionError(f"{kind} declares no write of {family}")
 
 
-class ResultSelectorEndpointGateTest(unittest.TestCase):
+class StateSelectorEndpointGateTest(unittest.TestCase):
     def _run(self, mutate=None) -> list[str]:
         original_load_json = gate.load_json
         documents = {}
@@ -102,7 +102,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
         for family, expected in CAPTURE_ROWS.items():
             write = write_of(registry, "ak.call.state", family)
             self.assertEqual(
-                write["result_selector"]["components"],
+                write["state_selector"]["components"],
                 ["payload.call_id", expected],
                 family,
             )
@@ -115,7 +115,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
         for family in ("call_recording_state", "call_transcript_state"):
             write = write_of(registry, "ak.call.recording.start", family)
             self.assertEqual(
-                write["result_selector"]["components"],
+                write["state_selector"]["components"],
                 ["payload.call_id", "payload.recording_id"],
                 family,
             )
@@ -128,17 +128,17 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             for row in registry["event_kinds"]:
-                if "result_writes" in row:
-                    row["cell_writes"] = row.pop("result_writes")
+                if "state_writes" in row:
+                    row["cell_writes"] = row.pop("state_writes")
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("inspected no result_writes[] entry", reported[0])
+        self.assertIn("inspected no state_writes[] entry", reported[0])
 
     def test_the_historical_defect_is_reported_if_it_returns(self) -> None:
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.call.state", "call_recording_state")
-            write["result_selector"]["components"] = [
+            write["state_selector"]["components"] = [
                 "payload.call_id",
                 "payload.recording_id",
             ]
@@ -155,7 +155,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.call.state", "call_recording_state")
-            write["result_selector"]["components"] = [
+            write["state_selector"]["components"] = [
                 "payload.call_id",
                 "payload.recording_transition",
             ]
@@ -173,8 +173,8 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.capability.revoke", "capability_grant")
-            assert write["result_selector"]["kind"].startswith("id:")
-            write["result_selector"]["field"] = "payload.not_a_field"
+            assert write["state_selector"]["kind"].startswith("id:")
+            write["state_selector"]["field"] = "payload.not_a_field"
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -189,7 +189,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"] = {
+            write["state_selector"] = {
                 "kind": "canonical_json",
                 "field": "payload.member_id",
             }
@@ -205,7 +205,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"]["components"] = [
+            write["state_selector"]["components"] = [
                 {"kind": "canonical_json", "field": "payload.realm_id"}
             ]
 
@@ -220,7 +220,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"]["components"] = [
+            write["state_selector"]["components"] = [
                 {"kind": "canonical_json", "field": "envelope.event_id"}
             ]
 
@@ -240,7 +240,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"] = {
+            write["state_selector"] = {
                 "kind": "coalesce",
                 "fields": ["payload.not_here", "payload.nor_here"],
             }
@@ -252,7 +252,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
     def test_a_coalesce_selector_passes_on_one_resolvable_candidate(self) -> None:
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"] = {
+            write["state_selector"] = {
                 "kind": "coalesce",
                 "fields": ["payload.not_here", "payload.realm_id"],
             }
@@ -270,7 +270,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.member.state", "member_state")
-            write["result_selector"]["components"] = [
+            write["state_selector"]["components"] = [
                 {"kind": "string_set_digest", "field": "payload.gate_proofs"}
             ]
 
@@ -284,8 +284,8 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             for row in registry["event_kinds"]:
-                for write in row.get("result_writes") or ():
-                    selector = write.get("result_selector")
+                for write in row.get("state_writes") or ():
+                    selector = write.get("state_selector")
                     if isinstance(selector, dict) and selector.get("kind") == "typed_pair":
                         selector["components"][0]["field"] = "payload.not_a_field"
                         return

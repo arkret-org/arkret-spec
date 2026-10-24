@@ -19,7 +19,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.agent_requested_scope_disclosure.v1"
+      "const": "ak.schema.agent_requested_scope_disclosure.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-requested-scope-disclosure.schema.json#/properties/schema",
+        "owner": "agent-requested-scope-disclosure.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_requested_scope_disclosure.v1"
+        ]
+      }
     },
     "request_id": {
       "type": "string",

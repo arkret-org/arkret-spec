@@ -1,9 +1,9 @@
-"""Two writes of one Event must not land on the same typed current result.
+"""Two writes of one Event must not land on the same current state.
 
 `check_registries` used to carry this rule, plus the same-row agreement between
 an `any_field_present` condition and a `coalesce` subject. Both walked
 `cell_writes[]`, and the authority-commit clean break renamed the array to
-`result_writes[]`, so both went down with the rest of that loop: every row took
+`state_writes[]`, so both went down with the rest of that loop: every row took
 the `continue` above it and nothing past that point ever ran again.
 
 `check_result_write_contracts` closed the per-write grammar during the break but
@@ -53,12 +53,12 @@ def any_covered_row(registry: dict, *, exclude: str = "") -> dict:
     the property itself.
     """
     for row in registry["event_kinds"]:
-        writes = row.get("result_writes")
+        writes = row.get("state_writes")
         if row["event_kind"] == exclude or not writes:
             continue
         targets = [
             json.dumps(
-                [write.get("result_family"), write.get("result_selector")],
+                [write.get("state_family"), write.get("state_selector")],
                 sort_keys=True,
             )
             for write in writes
@@ -68,7 +68,7 @@ def any_covered_row(registry: dict, *, exclude: str = "") -> dict:
     raise AssertionError("no covered Event kind with distinct write targets")
 
 
-class ResultWriteTargetUniquenessTest(unittest.TestCase):
+class StateWriteTargetUniquenessTest(unittest.TestCase):
     def _run(self, mutate=None) -> list[str]:
         original_load_json = gate.load_json
         documents = {}
@@ -105,23 +105,23 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             for row in registry["event_kinds"]:
-                if "result_writes" in row:
-                    row["cell_writes"] = row.pop("result_writes")
+                if "state_writes" in row:
+                    row["cell_writes"] = row.pop("state_writes")
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("inspected no result_writes[] entry", reported[0])
+        self.assertIn("inspected no state_writes[] entry", reported[0])
 
     # ---- the duplicate-target rule ---------------------------------------
 
     def test_a_repeated_target_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             row = any_covered_row(registry)
-            row["result_writes"].append(copy.deepcopy(row["result_writes"][0]))
+            row["state_writes"].append(copy.deepcopy(row["state_writes"][0]))
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("addresses the same (result_family, result_selector)", reported[0])
+        self.assertIn("addresses the same (state_family, state_selector)", reported[0])
 
     def test_a_different_family_on_one_selector_is_not_a_duplicate(self) -> None:
         """The target is the pair, not the key: one Event routinely writes two
@@ -129,9 +129,9 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             row = any_covered_row(registry)
-            clone = copy.deepcopy(row["result_writes"][0])
-            clone["result_family"] = "realm_genesis"
-            row["result_writes"].append(clone)
+            clone = copy.deepcopy(row["state_writes"][0])
+            clone["state_family"] = "realm_genesis"
+            row["state_writes"].append(clone)
 
         self.assertEqual(self._newly_reported(mutate), [])
 
@@ -139,8 +139,8 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         """`ak.agent.key.authorize` is the live shape: key-management.md 3.6.1
         requires the remove and the add to be one atomic Event."""
         registry = gate.load_json(gate.Lint(), REGISTRY)
-        writes = row_of(registry, "ak.agent.key.authorize")["result_writes"]
-        kinds = [write["result_projection"]["kind"] for write in writes]
+        writes = row_of(registry, "ak.agent.key.authorize")["state_writes"]
+        kinds = [write["state_projection"]["kind"] for write in writes]
         self.assertIn("keyed_set_add", kinds)
         self.assertTrue(
             {"keyed_set_remove_observed", "keyed_set_remove_dots"} & set(kinds), kinds
@@ -152,11 +152,11 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         indistinguishable ops on one result."""
 
         def mutate(registry: dict) -> None:
-            writes = row_of(registry, "ak.agent.key.authorize")["result_writes"]
+            writes = row_of(registry, "ak.agent.key.authorize")["state_writes"]
             add = next(
                 write
                 for write in writes
-                if write["result_projection"]["kind"] == "keyed_set_add"
+                if write["state_projection"]["kind"] == "keyed_set_add"
             )
             clone = copy.deepcopy(add)
             writes.append(clone)
@@ -164,7 +164,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         reported = self._newly_reported(mutate)
         self.assertTrue(
             any(
-                "addresses the same (result_family, result_selector)" in error
+                "addresses the same (state_family, state_selector)" in error
                 for error in reported
             ),
             reported,
@@ -176,11 +176,11 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             row = any_covered_row(registry)
-            first = row["result_writes"][0]
+            first = row["state_writes"][0]
             clone = copy.deepcopy(first)
             first["condition"] = {"kind": "field_present", "field": "payload.probe"}
             clone["condition"] = {"kind": "field_absent", "field": "payload.probe"}
-            row["result_writes"].append(clone)
+            row["state_writes"].append(clone)
 
         self.assertEqual(self._newly_reported(mutate), [])
 
@@ -190,11 +190,11 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             row = any_covered_row(registry)
-            first = row["result_writes"][0]
+            first = row["state_writes"][0]
             clone = copy.deepcopy(first)
             first["condition"] = {"kind": "field_present", "field": "payload.probe"}
             clone["condition"] = {"kind": "field_present", "field": "payload.other"}
-            row["result_writes"].append(clone)
+            row["state_writes"].append(clone)
 
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
@@ -208,9 +208,9 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = any_covered_row(registry)[
-                "result_writes"
+                "state_writes"
             ][0]
-            write["result_selector"] = {
+            write["state_selector"] = {
                 "kind": "coalesce",
                 "fields": ["payload.a", "payload.b"],
             }
@@ -226,9 +226,9 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
     def test_an_agreeing_coalesce_selector_passes(self) -> None:
         def mutate(registry: dict) -> None:
             write = any_covered_row(registry)[
-                "result_writes"
+                "state_writes"
             ][0]
-            write["result_selector"] = {
+            write["state_selector"] = {
                 "kind": "coalesce",
                 "fields": ["payload.a", "payload.b"],
             }
@@ -246,7 +246,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
         def mutate(registry: dict) -> None:
             write = any_covered_row(registry)[
-                "result_writes"
+                "state_writes"
             ][0]
             write["condition"] = {
                 "kind": "any_field_present",

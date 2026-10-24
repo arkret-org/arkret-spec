@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 6,
+  "version": 7,
   "kind": "reason_code_producer_baseline",
   "source_of_truth": false,
   "generated_from": [
@@ -69,7 +69,7 @@
       "code": "cardinality_violation",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "标准 Relation 基数由单治理 Station 在 primary_conflict_domain typed current result 上执行 expected_revision CAS；stale 写零副作用拒绝。协议不提供关系数量限制配置。"
+      "why": "标准 Relation 基数由单治理 Station 在 primary_conflict_domain current state 上执行 expected_revision CAS；stale 写零副作用拒绝。协议不提供关系数量限制配置。"
     },
     {
       "code": "claim_rate_limited",
@@ -177,7 +177,7 @@
       "code": "plane_cross_write",
       "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
       "registry_version": "2026-09-16.11",
-      "why": "It encodes a removed data-plane / control-plane effect split. zh/authz/event-auth-state-resolution.md section 4, which the description cites as its source, no longer contains such a rule, and no typed current result family is classified by plane. A reducer projection that targets the wrong family now fails as reducer_projection_failed against the registered result contract."
+      "why": "It encodes a removed data-plane / control-plane effect split. zh/authz/event-auth-state-resolution.md section 4, which the description cites as its source, no longer contains such a rule, and no current state family is classified by plane. A reducer projection that targets the wrong family now fails as reducer_projection_failed against the registered result contract."
     },
     {
       "code": "recovery_session_terminal",

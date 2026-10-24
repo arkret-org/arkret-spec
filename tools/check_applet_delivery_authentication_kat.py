@@ -45,7 +45,7 @@ FORBIDDEN_MEMBERS = {
     "signature",
     "signature_bytes",
     "signature_input",
-    "webhook_auth",
+    "webhook_signature_policy",
     "request_digest",
     "domain",
     "profile",

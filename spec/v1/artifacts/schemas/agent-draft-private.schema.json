@@ -25,7 +25,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.agent_draft_content_handoff_plaintext.v1"
+          "const": "ak.schema.agent_draft_content_handoff_plaintext.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_content_handoff_plaintext/properties/schema",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_content_handoff_plaintext/properties/schema",
+            "values": [
+              "ak.schema.agent_draft_content_handoff_plaintext.v1"
+            ]
+          }
         },
         "draft_id": {
           "allOf": [
@@ -72,7 +80,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.agent_draft.v1"
+          "const": "ak.schema.agent_draft.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_account_data_value/properties/schema",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_account_data_value/properties/schema",
+            "values": [
+              "ak.schema.agent_draft.v1"
+            ]
+          }
         },
         "draft_id": {
           "allOf": [
@@ -109,7 +125,18 @@
             "approved",
             "published",
             "rejected"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_account_data_value/properties/workflow_state",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_account_data_value/properties/workflow_state",
+            "values": [
+              "proposed",
+              "approved",
+              "published",
+              "rejected"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
@@ -158,7 +185,15 @@
       ],
       "properties": {
         "scheme": {
-          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/content_handoff/properties/scheme",
+            "owner": "agent-draft-private.schema.json#/$defs/content_handoff/properties/scheme",
+            "values": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1"
+            ]
+          }
         },
         "recipients": {
           "type": "array",
@@ -187,7 +222,15 @@
           "$ref": "#/$defs/agent_draft_account_data_key"
         },
         "accepted_revision": {
-          "const": 1
+          "const": 1,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "agent-draft-private.schema.json#/$defs/pending_intent_consumption/properties/accepted_revision",
+            "owner": "agent-draft-private.schema.json#/$defs/pending_intent_consumption/properties/accepted_revision",
+            "values": [
+              1
+            ]
+          }
         },
         "consumed_at": {
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
@@ -225,7 +268,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.agent_draft_pending_intent.v1"
+          "const": "ak.schema.agent_draft_pending_intent.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/schema",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/schema",
+            "values": [
+              "ak.schema.agent_draft_pending_intent.v1"
+            ]
+          }
         },
         "controller_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -268,7 +319,15 @@
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
         },
         "state": {
-          "const": "available"
+          "const": "available",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/state",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/state",
+            "values": [
+              "available"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -292,7 +351,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.agent_draft_pending_intent.v1"
+          "const": "ak.schema.agent_draft_pending_intent.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/schema",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/schema",
+            "values": [
+              "ak.schema.agent_draft_pending_intent.v1"
+            ]
+          }
         },
         "controller_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -336,7 +403,16 @@
           "enum": [
             "consumed",
             "expired"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/state",
+            "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/state",
+            "values": [
+              "consumed",
+              "expired"
+            ]
+          }
         },
         "consumption": {
           "$ref": "#/$defs/pending_intent_consumption"
@@ -349,7 +425,15 @@
         {
           "properties": {
             "state": {
-              "const": "consumed"
+              "const": "consumed",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/oneOf/0/properties/state",
+                "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/oneOf/0/properties/state",
+                "values": [
+                  "consumed"
+                ]
+              }
             }
           },
           "required": [
@@ -365,7 +449,15 @@
         {
           "properties": {
             "state": {
-              "const": "expired"
+              "const": "expired",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/oneOf/1/properties/state",
+                "owner": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/oneOf/1/properties/state",
+                "values": [
+                  "expired"
+                ]
+              }
             }
           },
           "required": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.1",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-15T21:21:00+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "normative_source": "zh/authz/owned-agent-authority.md",
   "source_kind": "owned_agent",
   "grant_event_kind": "ak.capability.grant",
@@ -9,7 +9,7 @@
   "policy_event_kind": "ak.policy.set",
   "policy_kind": "agent",
   "rule_kind": "agent",
-  "exact_read_operation": "ak.self.current_results.read.exact.v1",
+  "exact_read_operation": "ak.self.current_state.read.exact.v1",
   "supported_actions": [
     "ak.event.read",
     "ak.message.create",
@@ -116,7 +116,7 @@
   },
   "session_human_approval_contract": {
     "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
-    "request_schema": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest",
+    "request_schema": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequestBody",
     "evidence_member": "approval_evidence_refs",
     "evidence_event_kind": "ak.capability.grant",
     "trigger": "only_missing_explicit_owned_agent_grant_with_all_other_current_gates_satisfied",

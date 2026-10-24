@@ -20,7 +20,25 @@
         "moderation",
         "system"
       ],
-      "description": "Closed notification_kind subset of the ordinary source-Event branch. invite has its own private Invite delivery carrier and agent belongs to the account-artifact branch, so neither participates in the deterministic projection preimage."
+      "description": "Closed notification_kind subset of the ordinary source-Event branch. invite has its own private Invite delivery carrier and agent belongs to the account-artifact branch, so neither participates in the deterministic projection preimage.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "notification.schema.json#/$defs/ordinary_notification_kind",
+        "owner": "notification.schema.json#/$defs/ordinary_notification_kind",
+        "values": [
+          "message",
+          "mention",
+          "reply",
+          "assignment",
+          "schedule",
+          "reaction",
+          "policy",
+          "call",
+          "applet",
+          "moderation",
+          "system"
+        ]
+      }
     },
     "projection_preimage": {
       "type": "object",
@@ -124,7 +142,15 @@
       ]
     },
     "schema": {
-      "const": "ak.schema.notification.v1"
+      "const": "ak.schema.notification.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "notification.schema.json#/properties/schema",
+        "owner": "notification.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.notification.v1"
+        ]
+      }
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -144,7 +170,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "agent_runtime_approval"
+          "const": "agent_runtime_approval",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "notification.schema.json#/properties/source_account_artifact/properties/kind",
+            "owner": "notification.schema.json#/properties/source_account_artifact/properties/kind",
+            "values": [
+              "agent_runtime_approval"
+            ]
+          }
         },
         "id": {
           "type": "string",
@@ -186,7 +220,27 @@
         "agent",
         "moderation",
         "system"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "notification.schema.json#/properties/notification_kind",
+        "owner": "notification.schema.json#/properties/notification_kind",
+        "values": [
+          "message",
+          "mention",
+          "reply",
+          "assignment",
+          "schedule",
+          "invite",
+          "reaction",
+          "policy",
+          "call",
+          "applet",
+          "agent",
+          "moderation",
+          "system"
+        ]
+      }
     },
     "priority": {
       "type": "string",
@@ -195,7 +249,18 @@
         "normal",
         "high",
         "urgent"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "notification.schema.json#/properties/priority",
+        "owner": "notification.schema.json#/properties/priority",
+        "values": [
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]
+      }
     },
     "state": {
       "type": "string",
@@ -204,7 +269,18 @@
         "read",
         "dismissed",
         "archived"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "notification.schema.json#/properties/state",
+        "owner": "notification.schema.json#/properties/state",
+        "values": [
+          "unread",
+          "read",
+          "dismissed",
+          "archived"
+        ]
+      }
     },
     "preview": {
       "type": "object",
@@ -253,7 +329,15 @@
       ],
       "properties": {
         "notification_kind": {
-          "const": "agent"
+          "const": "agent",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "notification.schema.json#/oneOf/1/properties/notification_kind",
+            "owner": "notification.schema.json#/oneOf/1/properties/notification_kind",
+            "values": [
+              "agent"
+            ]
+          }
         },
         "id": {
           "type": "string",

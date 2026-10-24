@@ -16,7 +16,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.actor_profile.v1"
+      "const": "ak.schema.actor_profile.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "actor-profile.schema.json#/properties/schema",
+        "owner": "actor-profile.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.actor_profile.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -35,7 +43,21 @@
         "service",
         "integration"
       ],
-      "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
+      "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "actor-profile.schema.json#/properties/actor_kind",
+        "owner": "actor-profile.schema.json#/properties/actor_kind",
+        "values": [
+          "user",
+          "organization",
+          "team",
+          "agent",
+          "bot",
+          "service",
+          "integration"
+        ]
+      }
     },
     "display_name": {
       "$ref": "string-profiles.schema.json#/$defs/display_text_128"
@@ -46,7 +68,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Projection hint for a controller-scoped Agent label backed by the current agent_selector_claim typed current result written by ak.agent.provision. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
+      "description": "Projection hint for a controller-scoped Agent label backed by the current agent_selector_claim current state written by ak.agent.provision. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
     },
     "avatar_blob_ref": {
       "type": "string",
@@ -60,12 +82,12 @@
     },
     "resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection",
-      "description": "Read-only current principal did projection derived from the PCR identity resolution typed current result. It is not writable through Actor Profile create/update patches and is not an authorization root."
+      "description": "Read-only current principal did projection derived from the PCR identity resolution current state. It is not writable through Actor Profile create/update patches and is not an authorization root."
     },
     "profile_fields": {
       "type": "object",
       "properties": {
-        "bio": {
+        "biography": {
           "type": "string",
           "maxLength": 256
         },
@@ -121,7 +143,21 @@
             "service",
             "integration"
           ],
-          "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
+          "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "actor-profile.schema.json#/$defs/actor_profile_definition/properties/actor_kind",
+            "owner": "actor-profile.schema.json#/$defs/actor_profile_definition/properties/actor_kind",
+            "values": [
+              "user",
+              "organization",
+              "team",
+              "agent",
+              "bot",
+              "service",
+              "integration"
+            ]
+          }
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_128"
@@ -132,7 +168,7 @@
         },
         "agent_slug": {
           "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-          "description": "Projection hint for a controller-scoped Agent label backed by the current agent_selector_claim typed current result written by ak.agent.provision. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
+          "description": "Projection hint for a controller-scoped Agent label backed by the current agent_selector_claim current state written by ak.agent.provision. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
         },
         "avatar_blob_ref": {
           "type": "string",
@@ -147,7 +183,7 @@
         "profile_fields": {
           "type": "object",
           "properties": {
-            "bio": {
+            "biography": {
               "type": "string",
               "maxLength": 256
             },
@@ -175,7 +211,15 @@
           "then": {
             "properties": {
               "actor_kind": {
-                "const": "agent"
+                "const": "agent",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "actor-profile.schema.json#/$defs/actor_profile_definition/allOf/0/then/properties/actor_kind",
+                  "owner": "actor-profile.schema.json#/$defs/actor_profile_definition/allOf/0/then/properties/actor_kind",
+                  "values": [
+                    "agent"
+                  ]
+                }
               }
             }
           }
@@ -226,7 +270,16 @@
               "enum": [
                 "bot",
                 "integration"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "actor-profile.schema.json#/$defs/actor_profile_definition/oneOf/1/properties/actor_kind",
+                "owner": "actor-profile.schema.json#/$defs/actor_profile_definition/oneOf/1/properties/actor_kind",
+                "values": [
+                  "bot",
+                  "integration"
+                ]
+              }
             }
           }
         }
@@ -246,7 +299,16 @@
           "enum": [
             "private",
             "public"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "actor-profile.schema.json#/$defs/applet_interaction/properties/mode",
+            "owner": "actor-profile.schema.json#/$defs/applet_interaction/properties/mode",
+            "values": [
+              "private",
+              "public"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -262,7 +324,15 @@
       "then": {
         "properties": {
           "actor_kind": {
-            "const": "agent"
+            "const": "agent",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "actor-profile.schema.json#/allOf/0/then/properties/actor_kind",
+              "owner": "actor-profile.schema.json#/allOf/0/then/properties/actor_kind",
+              "values": [
+                "agent"
+              ]
+            }
           }
         }
       }
@@ -313,7 +383,16 @@
           "enum": [
             "bot",
             "integration"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "actor-profile.schema.json#/oneOf/1/properties/actor_kind",
+            "owner": "actor-profile.schema.json#/oneOf/1/properties/actor_kind",
+            "values": [
+              "bot",
+              "integration"
+            ]
+          }
         }
       }
     }

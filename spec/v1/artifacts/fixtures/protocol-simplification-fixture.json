@@ -1,6 +1,6 @@
 {
   "suite": "protocol_simplification",
-  "version": "2026-10-21.2",
+  "version": "2026-10-24.1",
   "fixture_kind": "semantic",
   "profile": "ak.profile.station.v1",
   "runner": {
@@ -16,7 +16,7 @@
   "machine_contracts": [
     "registry/contract-registry.json",
     "schemas/event-payload.schema.json",
-    "schemas/typed-current-result.schema.json",
+    "schemas/current-state.schema.json",
     "schemas/consent-operations.schema.json",
     "schemas/mimi-operations.schema.json",
     "schemas/message-authoring.schema.json"
@@ -682,7 +682,7 @@
     },
     {
       "name": "current_exact_peer",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_consent",
       "instance": {
         "selector": {
           "kind": "consent",
@@ -725,7 +725,7 @@
     },
     {
       "name": "empty_current_keeps_revision",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_consent",
       "instance": {
         "selector": {
           "kind": "consent",
@@ -753,7 +753,7 @@
     },
     {
       "name": "no_id_current_selector",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_consent",
       "instance": {
         "selector": {
           "kind": "consent",
@@ -883,7 +883,7 @@
     },
     {
       "name": "single_binding_value",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/direct_conversation_binding_value",
       "instance": {
         "binding_event_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
         "binding": {
@@ -922,7 +922,7 @@
     },
     {
       "name": "endorsement_array_removed",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/direct_conversation_binding_value",
       "instance": {
         "endorsements": [
           {
@@ -1106,7 +1106,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "current",
       "expected": true
@@ -1116,7 +1116,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "deployment_update",
       "expected": true
@@ -1126,7 +1126,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "change_admission",
       "expected": false
@@ -1136,7 +1136,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "activation",
       "expected": false
@@ -1146,7 +1146,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "C",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "current",
       "expected": false
@@ -1156,7 +1156,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 1,
+      "current_generation": "1",
       "transitions": 0,
       "operation": "current",
       "expected": false
@@ -1166,7 +1166,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "C",
-      "current_generation": 1,
+      "current_generation": "1",
       "transitions": 1,
       "operation": "current",
       "expected": false
@@ -1176,7 +1176,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "C",
-      "current_generation": 1,
+      "current_generation": "1",
       "transitions": 1,
       "operation": "current",
       "expected": false,
@@ -1187,7 +1187,7 @@
       "genesis_purpose": "direct_conversation",
       "genesis_station": "A",
       "current_station": "A",
-      "current_generation": 0,
+      "current_generation": "0",
       "transitions": 0,
       "operation": "historical_read",
       "expected": true
@@ -1197,7 +1197,7 @@
       "genesis_purpose": "collaboration",
       "genesis_station": "A",
       "current_station": "C",
-      "current_generation": 1,
+      "current_generation": "1",
       "transitions": 1,
       "operation": "activation",
       "expected": true

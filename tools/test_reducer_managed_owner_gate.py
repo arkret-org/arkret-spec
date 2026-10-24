@@ -2,15 +2,15 @@
 
 `reducer-managed-path-registry.json` bans a patch path because some other
 authority owns the write. `_check_owner` validates that authority: an
-`event_kind` owner must be an active Event kind, and a `result_family` owner must
-be a family `current-result-registry.json` registers.
+`event_kind` owner must be an active Event kind, and a `state_family` owner must
+be a family `current-state-registry.json` registers.
 
 The second half had never run. `_declared_cell_families` walked
 `event_kinds[].cell_writes[].cell_family`, a pair the authority-commit clean
-break renamed to `result_writes[].result_family`, so it returned the empty set on
+break renamed to `state_writes[].state_family`, so it returned the empty set on
 every run -- and the guard read `and cell_families and owner not in
 cell_families`, which short-circuits on an empty set. Three of the four live
-`result_family` owners turned out not to exist:
+`state_family` owners turned out not to exist:
 
 * `space_metadata` is nowhere in `spec/v1/zh/`; the `scope_circle_id` row it
   owned is `create_locked` and its real owner is `ak.space.create`, matching
@@ -116,12 +116,12 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         registering both families. The loop stays because it is what checks a
         re-opened entry against both registries."""
         registry = gate.load_json(gate.Lint(), REGISTRY)
-        families = gate._registered_result_families(gate.Lint())
+        families = gate._registered_state_families(gate.Lint())
         baselined = gate._baselined_unregistered_owners(gate.Lint())
         self.assertEqual(sorted(baselined), [])
         for owner, row in baselined.items():
             cited = path_row(registry, row["object_kind"], row["path"])
-            self.assertEqual(cited["owner_kind"], "result_family")
+            self.assertEqual(cited["owner_kind"], "state_family")
             self.assertEqual(cited["owner"], owner)
             self.assertNotIn(owner, families)
 
@@ -133,7 +133,7 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         'every owner is fine'."""
 
         def mutate(families: dict) -> None:
-            families["result_kinds"] = []
+            families["state_kinds"] = []
 
         reported = self._newly_reported({FAMILIES: mutate})
         self.assertTrue(
@@ -144,13 +144,13 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
     def test_the_historical_defect_is_reported_if_it_returns(self) -> None:
         def mutate(registry: dict) -> None:
             row = path_row(registry, "space", "scope_circle_id")
-            row["owner_kind"] = "result_family"
+            row["owner_kind"] = "state_family"
             row["owner"] = "space_metadata"
 
         reported = self._newly_reported({REGISTRY: mutate})
         self.assertEqual(len(reported), 1, reported)
         self.assertIn(
-            "current-result-registry.json does not register: 'space_metadata'",
+            "current-state-registry.json does not register: 'space_metadata'",
             reported[0],
         )
 
@@ -166,7 +166,7 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         reported = self._newly_reported({REGISTRY: mutate})
         self.assertEqual(len(reported), 1, reported)
         self.assertIn(
-            "current-result-registry.json does not register: 'space_parent_successor'",
+            "current-state-registry.json does not register: 'space_parent_successor'",
             reported[0],
         )
 

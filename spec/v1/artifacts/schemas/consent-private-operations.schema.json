@@ -5,16 +5,16 @@
   "description": "Only for verified transferable non-Human PCRs with a separated governor under the PCR profile pcr_governance_policy. Human uses owning-Station native acceptance/read/notification and rejects these cross-Station operations without effects. This schema grants no new holder-session eligibility. Closed holder-hosting-Station proxy to the current PCR authority. Never a generic RPC, arbitrary account-data write or cached permission. Every command preserves its original authorization and atomically executes its private effects at the PCR authority.",
   "oneOf": [
     {
-      "$ref": "#/$defs/proxy_request"
+      "$ref": "#/$defs/proxy_request_body"
     },
     {
-      "$ref": "#/$defs/proxy_outcome"
+      "$ref": "#/$defs/proxy_response_body"
     },
     {
-      "$ref": "#/$defs/effects_publish_request"
+      "$ref": "#/$defs/effects_publish_request_body"
     },
     {
-      "$ref": "#/$defs/effects_publish_outcome"
+      "$ref": "#/$defs/effects_publish_response_body"
     }
   ],
   "$defs": {
@@ -27,7 +27,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "holder_session"
+          "const": "holder_session",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/holder_session_context/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/holder_session_context/properties/kind",
+            "values": [
+              "holder_session"
+            ]
+          }
         },
         "actor_id": {
           "allOf": [
@@ -37,7 +45,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "account"
+                  "const": "account",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "consent-private-operations.schema.json#/$defs/holder_session_context/properties/actor_id/allOf/1/properties/kind",
+                    "owner": "consent-private-operations.schema.json#/$defs/holder_session_context/properties/actor_id/allOf/1/properties/kind",
+                    "values": [
+                      "account"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -60,7 +76,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "station"
+          "const": "station",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/station_context/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/station_context/properties/kind",
+            "values": [
+              "station"
+            ]
+          }
         },
         "actor_id": {
           "allOf": [
@@ -70,7 +94,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "service"
+                  "const": "service",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "consent-private-operations.schema.json#/$defs/station_context/properties/actor_id/allOf/1/properties/kind",
+                    "owner": "consent-private-operations.schema.json#/$defs/station_context/properties/actor_id/allOf/1/properties/kind",
+                    "values": [
+                      "service"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -104,27 +136,28 @@
         }
       ]
     },
-    "command_outcome": {
+    "command_response_body": {
       "oneOf": [
         {
-          "$ref": "#/$defs/list_outcome"
+          "$ref": "#/$defs/list_response_body"
         },
         {
-          "$ref": "#/$defs/version_outcome"
+          "$ref": "#/$defs/version_response_body"
         },
         {
-          "$ref": "#/$defs/effects_outcome"
+          "$ref": "#/$defs/effects_response_body"
         },
         {
-          "$ref": "#/$defs/invite_policy_outcome"
+          "$ref": "#/$defs/invite_policy_response_body"
         },
         {
-          "$ref": "#/$defs/invite_delivery_outcome"
+          "$ref": "#/$defs/invite_delivery_response_body"
         },
         {
-          "$ref": "#/$defs/request_outcome"
+          "$ref": "#/$defs/request_response_body"
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "list_command": {
       "type": "object",
@@ -134,7 +167,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "list"
+          "const": "list",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/list_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/list_command/properties/kind",
+            "values": [
+              "list"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -153,7 +194,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "version"
+          "const": "version",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/version_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/version_command/properties/kind",
+            "values": [
+              "version"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -187,7 +236,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "effects"
+          "const": "effects",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/effects_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/effects_command/properties/kind",
+            "values": [
+              "effects"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -206,7 +263,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "invite_policy"
+          "const": "invite_policy",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/invite_policy_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/invite_policy_command/properties/kind",
+            "values": [
+              "invite_policy"
+            ]
+          }
         },
         "body": {
           "$ref": "./invite-receive-policy.schema.json"
@@ -222,7 +287,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "invite_delivery"
+          "const": "invite_delivery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/invite_delivery_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/invite_delivery_command/properties/kind",
+            "values": [
+              "invite_delivery"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -251,7 +324,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "request"
+          "const": "request",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/request_command/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/request_command/properties/kind",
+            "values": [
+              "request"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -272,7 +353,7 @@
       },
       "additionalProperties": false
     },
-    "list_outcome": {
+    "list_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -280,15 +361,24 @@
       ],
       "properties": {
         "kind": {
-          "const": "list"
+          "const": "list",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/list_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/list_response_body/properties/kind",
+            "values": [
+              "list"
+            ]
+          }
         },
         "body": {
           "$ref": "./consent-operations.schema.json#/$defs/consent_list"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "version_outcome": {
+    "version_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -296,15 +386,24 @@
       ],
       "properties": {
         "kind": {
-          "const": "version"
+          "const": "version",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/version_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/version_response_body/properties/kind",
+            "values": [
+              "version"
+            ]
+          }
         },
         "body": {
           "$ref": "./consent-operations.schema.json#/$defs/consent_view"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "effects_outcome": {
+    "effects_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -312,7 +411,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "effects"
+          "const": "effects",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/kind",
+            "values": [
+              "effects"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -332,9 +439,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/holder_quarantine/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/holder_quarantine/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./holder-quarantine.schema.json"
@@ -357,9 +475,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/invite_delivery/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/invite_delivery/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./invite-delivery.schema.json"
@@ -382,9 +511,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/invite_receive_policy/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_response_body/properties/body/properties/invite_receive_policy/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./invite-receive-policy.schema.json"
@@ -401,9 +541,10 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "invite_policy_outcome": {
+    "invite_policy_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -411,7 +552,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "invite_policy"
+          "const": "invite_policy",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/invite_policy_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/invite_policy_response_body/properties/kind",
+            "values": [
+              "invite_policy"
+            ]
+          }
         },
         "body": {
           "type": "object",
@@ -421,9 +570,20 @@
           ],
           "properties": {
             "revision": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 18446744073709551615
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+              "not": {
+                "enum": [
+                  "0"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "consent-private-operations.schema.json#/$defs/invite_policy_response_body/properties/body/properties/revision/not",
+                  "owner": "consent-private-operations.schema.json#/$defs/invite_policy_response_body/properties/body/properties/revision/not",
+                  "values": [
+                    "0"
+                  ]
+                }
+              }
             },
             "content": {
               "$ref": "./invite-receive-policy.schema.json"
@@ -432,9 +592,10 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "invite_delivery_outcome": {
+    "invite_delivery_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -442,15 +603,24 @@
       ],
       "properties": {
         "kind": {
-          "const": "invite_delivery"
+          "const": "invite_delivery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/invite_delivery_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/invite_delivery_response_body/properties/kind",
+            "values": [
+              "invite_delivery"
+            ]
+          }
         },
         "body": {
-          "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
+          "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_response_body"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "request_outcome": {
+    "request_response_body": {
       "type": "object",
       "required": [
         "kind",
@@ -458,15 +628,24 @@
       ],
       "properties": {
         "kind": {
-          "const": "request"
+          "const": "request",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/request_response_body/properties/kind",
+            "owner": "consent-private-operations.schema.json#/$defs/request_response_body/properties/kind",
+            "values": [
+              "request"
+            ]
+          }
         },
         "body": {
-          "$ref": "./consent-operations.schema.json#/$defs/consent_request_outcome"
+          "$ref": "./consent-operations.schema.json#/$defs/consent_request_response_body"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "proxy_request": {
+    "proxy_request_body": {
       "type": "object",
       "required": [
         "holder_account_id",
@@ -485,9 +664,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "nonce": {
           "type": "string",
@@ -523,7 +700,18 @@
                       "version",
                       "effects",
                       "invite_policy"
-                    ]
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/if/properties/command/properties/kind",
+                      "owner": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/if/properties/command/properties/kind",
+                      "values": [
+                        "list",
+                        "version",
+                        "effects",
+                        "invite_policy"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -540,7 +728,15 @@
               "context": {
                 "properties": {
                   "kind": {
-                    "const": "holder_session"
+                    "const": "holder_session",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/then/properties/context/properties/kind",
+                      "owner": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/then/properties/context/properties/kind",
+                      "values": [
+                        "holder_session"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -554,7 +750,15 @@
               "context": {
                 "properties": {
                   "kind": {
-                    "const": "station"
+                    "const": "station",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/else/properties/context/properties/kind",
+                      "owner": "consent-private-operations.schema.json#/$defs/proxy_request_body/allOf/0/else/properties/context/properties/kind",
+                      "values": [
+                        "station"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -564,9 +768,10 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "proxy_outcome": {
+    "proxy_response_body": {
       "type": "object",
       "required": [
         "request_digest",
@@ -575,7 +780,7 @@
         "effective_stream_head",
         "evaluated_at",
         "expires_at",
-        "outcome"
+        "response_body"
       ],
       "properties": {
         "request_digest": {
@@ -586,9 +791,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "effective_stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
@@ -599,13 +802,14 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "outcome": {
-          "$ref": "#/$defs/command_outcome"
+        "response_body": {
+          "$ref": "#/$defs/command_response_body"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "effects_publish_request": {
+    "effects_publish_request_body": {
       "type": "object",
       "required": [
         "holder_account_id",
@@ -625,9 +829,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "nonce": {
           "type": "string",
@@ -660,9 +862,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/holder_quarantine/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/holder_quarantine/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./holder-quarantine.schema.json"
@@ -685,9 +898,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/invite_delivery/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/invite_delivery/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./invite-delivery.schema.json"
@@ -710,9 +934,20 @@
                   ],
                   "properties": {
                     "revision": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 18446744073709551615
+                      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal",
+                      "not": {
+                        "enum": [
+                          "0"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "decimal_text",
+                          "authority": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/invite_receive_policy/oneOf/0/properties/revision/not",
+                          "owner": "consent-private-operations.schema.json#/$defs/effects_publish_request_body/properties/effects/properties/invite_receive_policy/oneOf/0/properties/revision/not",
+                          "values": [
+                            "0"
+                          ]
+                        }
+                      }
                     },
                     "content": {
                       "$ref": "./invite-receive-policy.schema.json"
@@ -730,9 +965,10 @@
         }
       },
       "additionalProperties": false,
-      "description": "Only the independently verified current PCR authority publishes accepted private effects to the exact holder hosting Station; this is a display and wakeup projection, never a private CAS command."
+      "description": "Only the independently verified current PCR authority publishes accepted private effects to the exact holder hosting Station; this is a display and wakeup projection, never a private CAS command.",
+      "x-arkret-name-role": "request_body"
     },
-    "effects_publish_outcome": {
+    "effects_publish_response_body": {
       "type": "object",
       "required": [
         "request_digest",
@@ -748,10 +984,20 @@
           "enum": [
             "applied",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "consent-private-operations.schema.json#/$defs/effects_publish_response_body/properties/status",
+            "owner": "consent-private-operations.schema.json#/$defs/effects_publish_response_body/properties/status",
+            "values": [
+              "applied",
+              "duplicate"
+            ]
+          }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   },
   "x-arkret-pcr-outward-event-kinds": [

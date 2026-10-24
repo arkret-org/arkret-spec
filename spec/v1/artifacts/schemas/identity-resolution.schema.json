@@ -14,7 +14,7 @@
       "$ref": "#/$defs/authenticated_service_resolution"
     },
     {
-      "$ref": "#/$defs/current_principal_outcome"
+      "$ref": "#/$defs/current_principal_response_body"
     }
   ],
   "$defs": {
@@ -97,7 +97,15 @@
       ],
       "properties": {
         "evidence_kind": {
-          "const": "webvh_log"
+          "const": "webvh_log",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "identity-resolution.schema.json#/$defs/webvh_method_history_evidence/properties/evidence_kind",
+            "owner": "identity-resolution.schema.json#/$defs/webvh_method_history_evidence/properties/evidence_kind",
+            "values": [
+              "webvh_log"
+            ]
+          }
         },
         "boundary": {
           "$ref": "#/$defs/method_evidence_boundary"
@@ -136,7 +144,15 @@
       ],
       "properties": {
         "evidence_kind": {
-          "const": "did_web_document"
+          "const": "did_web_document",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "identity-resolution.schema.json#/$defs/did_web_method_history_evidence/properties/evidence_kind",
+            "owner": "identity-resolution.schema.json#/$defs/did_web_method_history_evidence/properties/evidence_kind",
+            "values": [
+              "did_web_document"
+            ]
+          }
         },
         "boundary": {
           "$ref": "#/$defs/method_evidence_boundary"
@@ -158,7 +174,15 @@
       ],
       "properties": {
         "evidence_kind": {
-          "const": "did_key_expansion"
+          "const": "did_key_expansion",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "identity-resolution.schema.json#/$defs/did_key_method_history_evidence/properties/evidence_kind",
+            "owner": "identity-resolution.schema.json#/$defs/did_key_method_history_evidence/properties/evidence_kind",
+            "values": [
+              "did_key_expansion"
+            ]
+          }
         },
         "boundary": {
           "$ref": "#/$defs/method_evidence_boundary"
@@ -261,7 +285,7 @@
       ],
       "properties": {
         "expected_revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "next": {
           "$ref": "#/$defs/resolution_commitment"
@@ -284,7 +308,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.realm.create"
+              "const": "ak.realm.create",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/kind",
+                "owner": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.realm.create"
+                ]
+              }
             },
             "scope_ref": {
               "type": "object",
@@ -293,7 +325,15 @@
               ],
               "properties": {
                 "kind": {
-                  "const": "realm_genesis"
+                  "const": "realm_genesis",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/scope_ref/properties/kind",
+                    "owner": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/scope_ref/properties/kind",
+                    "values": [
+                      "realm_genesis"
+                    ]
+                  }
                 }
               }
             },
@@ -314,7 +354,16 @@
                       "enum": [
                         "principal_control",
                         "agent_control"
-                      ]
+                      ],
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/payload/properties/object/properties/purpose",
+                        "owner": "identity-resolution.schema.json#/$defs/principal_genesis_event/allOf/1/properties/payload/properties/object/properties/purpose",
+                        "values": [
+                          "principal_control",
+                          "agent_control"
+                        ]
+                      }
                     },
                     "initial_resolution": {
                       "$ref": "#/$defs/resolution_commitment"
@@ -340,7 +389,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.identity.resolution.update"
+              "const": "ak.identity.resolution.update",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "identity-resolution.schema.json#/$defs/resolution_update_event/allOf/1/properties/kind",
+                "owner": "identity-resolution.schema.json#/$defs/resolution_update_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.identity.resolution.update"
+                ]
+              }
             }
           }
         }
@@ -359,7 +416,7 @@
     },
     "principal_resolution_projection_attestation_core": {
       "type": "object",
-      "description": "Station assertion that resolution_projection is the current accepted value of this account's singleton resolution typed current result. It carries no PCR realm id, Event, receipt or RealmCommit: the public consumer verifies the account pair, the projection and the bounded method history, not the account's internal control stream.",
+      "description": "Station assertion that resolution_projection is the current accepted value of this account's singleton resolution current state. It carries no PCR realm id, Event, receipt or RealmCommit: the public consumer verifies the account pair, the projection and the bounded method history, not the account's internal control stream.",
       "required": [
         "account_id",
         "resolution_projection",
@@ -423,7 +480,7 @@
         },
         "resolution_projection": {
           "$ref": "#/$defs/resolution_projection",
-          "description": "Current accepted value of the singleton resolution typed current result. resolution_event_ref is an opaque head coordinate for staleness comparison; it is not a handle for fetching that Event through any public surface."
+          "description": "Current accepted value of the singleton resolution current state. resolution_event_ref is an opaque head coordinate for staleness comparison; it is not a handle for fetching that Event through any public surface."
         },
         "method_history_evidence": {
           "$ref": "#/$defs/method_history_evidence",
@@ -435,7 +492,7 @@
       },
       "additionalProperties": false
     },
-    "principal_resolution_audit_request": {
+    "principal_resolution_audit_request_body": {
       "type": "object",
       "description": "Authorized request for account-internal resolution audit evidence. Authorization is the current holder session bound to the exact AccountId. Recovery actors first finish the existing recovery transaction and become the current holder; v1 does not create a second audit authorization path. Caller-declared intent is never authorization. Unknown account, wrong AccountId and unauthorized caller are externally indistinguishable and share the anti-enumeration outcome.",
       "required": [
@@ -458,7 +515,8 @@
           "description": "Known ancestor already held by the caller. The disclosed segment stops exclusively at it, so only the unknown suffix is returned. It MUST be the genesis Event or an accepted ak.identity.resolution.update in this account's current lineage; a ref outside that lineage is param_invalid with reason resolution_history_ancestor_unknown. Supplying it with history_depth 0 is param_invalid, because depth 0 discloses no predecessor and the cursor could not apply."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "principal_resolution_audit_evidence": {
       "type": "object",
@@ -541,7 +599,15 @@
           "if": {
             "properties": {
               "history_complete": {
-                "const": false
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence/allOf/0/if/properties/history_complete",
+                  "owner": "identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence/allOf/0/if/properties/history_complete",
+                  "values": [
+                    false
+                  ]
+                }
               }
             },
             "required": [
@@ -703,7 +769,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 65536
     },
-    "current_principal_outcome": {
+    "current_principal_response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -726,7 +792,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 65536
+      "x-arkret-max-canonical-bytes": 65536,
+      "x-arkret-name-role": "response_body"
     },
     "founding_device_authorize_event": {
       "allOf": [
@@ -740,7 +807,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "ak.device.authorize"
+              "const": "ak.device.authorize",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "identity-resolution.schema.json#/$defs/founding_device_authorize_event/allOf/1/properties/kind",
+                "owner": "identity-resolution.schema.json#/$defs/founding_device_authorize_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.device.authorize"
+                ]
+              }
             }
           }
         }

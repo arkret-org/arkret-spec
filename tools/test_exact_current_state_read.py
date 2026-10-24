@@ -8,12 +8,12 @@ from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
-SCHEMA = ARTIFACTS / "schemas" / "exact-current-results-read.schema.json"
-FIXTURE = ARTIFACTS / "fixtures" / "exact-current-results-read-fixture.json"
+SCHEMA = ARTIFACTS / "schemas" / "exact-current-state-read.schema.json"
+FIXTURE = ARTIFACTS / "fixtures" / "exact-current-state-read-fixture.json"
 REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
 
 
-class ExactCurrentResultsReadTest(unittest.TestCase):
+class ExactCurrentStateReadTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
@@ -40,14 +40,14 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
         self.assertEqual([], list(validator.iter_errors(value)))
 
     def test_request_and_outcomes_match_closed_schema(self):
-        self.validate_fragment("exact_current_results_read_request", self.fixture["request"])
+        self.validate_fragment("exact_current_state_read_request_body", self.fixture["request"])
         for case in self.fixture["valid_outcomes"]:
-            self.validate_fragment("exact_current_results_read_outcome", case["value"])
+            self.validate_fragment("exact_current_state_read_response_body", case["value"])
 
     def test_selector_union_rejects_unknown_kind_and_extra_fields(self):
         request = json.loads(json.dumps(self.fixture["request"]))
         request["selector"]["kind"] = "strand"
-        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_results_read_request"}
+        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_state_read_request_body"}
         validator = Draft202012Validator(
             definition,
             registry=self.resource_registry,
@@ -59,7 +59,7 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
         self.assertTrue(list(validator.iter_errors(request)))
 
     def test_moderation_never_written_is_not_a_schema_outcome(self):
-        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_results_read_outcome"}
+        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_state_read_response_body"}
         validator = Draft202012Validator(
             definition,
             registry=self.resource_registry,
@@ -77,14 +77,14 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
         operation = next(
             row
             for row in self.registry["operation_registry"]["operations"]
-            if row["operation_id"] == "ak.self.current_results.read.exact.v1"
+            if row["operation_id"] == "ak.self.current_state.read.exact.v1"
         )
         self.assertEqual(
-            "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+            "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
             operation["request_schema_ref"],
         )
         self.assertEqual(
-            "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+            "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
             operation["response_schema_ref"],
         )
         self.assertEqual("none", operation["durable_effect"]["kind"])

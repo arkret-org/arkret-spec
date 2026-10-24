@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.actor_private_events.submit.v1"
   },
-  "version": "2026-09-26.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.actor_private_events.submit.v1"
@@ -14,7 +14,7 @@
     "registry/contract-registry.json",
     "registry/operations-error-mapping.json",
     "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
-    "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome"
+    "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody"
   ],
   "description": "Executable evidence for ak.vector.actor_private_events.submit.v1 (zh/models/actor-private-effects.md section 2.1, decisions 0110 and 0114). Every case starts from an empty Station and runs its variants in order. A variant authors one Event of event_kind whose payload is the named schema_validation_cases instance with payload_mutations applied, signs it as signer (an Account on world.local_station_id unless signer_station says otherwise) and submits it on operation_id; a retry variant resubmits an earlier variant's Event, either as identical canonical bytes or re-signed over the same content so that event_id is unchanged and the bytes differ. private_writes counts committed private transactions (value projection plus exact-retry ledger row); realm_commits counts RealmCommits produced. A rejected variant MUST leave every private register and ledger exactly as before, and a replay MUST return the outcome recorded for outcome_of.",
   "world": {
@@ -876,7 +876,7 @@
     },
     {
       "name": "push_route_outcome_valid",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": true,
       "instance": {
         "event_kind": "ak.device.push_route",
@@ -886,7 +886,7 @@
     },
     {
       "name": "agent_outcome_carrying_realm_commit_rejected",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
       "expect_valid": false,
       "instance": {
         "event_kind": "ak.agent.action_request",

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "categories": [
     "registration_or_binding",
     "resolution_or_did_document",
@@ -24,7 +24,7 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "account-operations.schema.json#/$defs/did_binding_challenge_outcome/properties/did/$ref",
+      "pointer": "account-operations.schema.json#/$defs/did_binding_challenge_response_body/properties/did/$ref",
       "category": "registration_or_binding"
     },
     {
@@ -136,7 +136,7 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "principal-operations.schema.json#/$defs/pcr_genesis_submit_request/properties/did/$ref",
+      "pointer": "principal-operations.schema.json#/$defs/pcr_genesis_submit_request_body/properties/did/$ref",
       "category": "registration_or_binding"
     },
     {
@@ -156,7 +156,7 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponseBody/properties/did/$ref",
       "category": "did_method_log_or_evidence"
     },
     {
@@ -164,7 +164,7 @@
       "category": "did_method_log_or_evidence"
     },
     {
-      "pointer": "service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome/properties/did/$ref",
+      "pointer": "service-operation-dtos.schema.json#/$defs/IdentityLogListResponseBody/properties/did/$ref",
       "category": "did_method_log_or_evidence"
     },
     {

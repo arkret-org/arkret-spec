@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-24.1",
+  "version": "2026-10-24.2",
   "suite": "mls_governance_binding_closure",
   "runner": {
     "kind": "named_suite",
@@ -113,9 +113,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
           "expected": {
@@ -131,9 +131,9 @@
               "circle_id": "ak:circle:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a3646b696e6466636972636c65687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a3569636972636c655f69647836616b3a636972636c653a416351616a71614b467679446f4d707170536c42764d683064346768655a73565068624861546c7158746b56736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
           "expected": {
@@ -149,9 +149,9 @@
               "sidecar_id": "ak:sidecar:AZUfzdx1qBOtCsg2CGmS3QLP7vlDe_kxRx0pxdxefWTa"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17,
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17",
             "participant_authority_digest": "sha256:4232feac803ded777277d73b9057e9fb14aa02201f68eea9b7153b6ed45e7f34",
             "authority_stream_head": [
               "ak:event:AY5VsuTYPJiGLdHZnS7EOuEwtGW-tT2VMf0xUn3dw257",
@@ -172,9 +172,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": null,
-            "previous_epoch": 0,
-            "next_epoch": 0,
-            "key_access_revision": 0
+            "previous_epoch": "0",
+            "next_epoch": "0",
+            "key_access_revision": "0"
           },
           "encoded_map_hex": "a56a6e6578745f65706f6368006e70726576696f75735f65706f6368006f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e0074626173655f67726f75705f73746174655f726566f6",
           "expected": {
@@ -345,9 +345,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": null,
-            "previous_epoch": 0,
-            "next_epoch": 0,
-            "key_access_revision": 0
+            "previous_epoch": "0",
+            "next_epoch": "0",
+            "key_access_revision": "0"
           },
           "encoded_map_hex": "a56a6e6578745f65706f6368006e70726576696f75735f65706f6368006f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e0074626173655f67726f75705f73746174655f726566f6",
           "expected": {
@@ -362,9 +362,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
           "expected": {
@@ -382,9 +382,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 43,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "43",
+            "key_access_revision": "17"
           },
           "expected": {
             "decision": "reject",
@@ -402,9 +402,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": null,
-            "previous_epoch": 0,
-            "next_epoch": 1,
-            "key_access_revision": 0
+            "previous_epoch": "0",
+            "next_epoch": "1",
+            "key_access_revision": "0"
           },
           "expected": {
             "decision": "reject",
@@ -422,9 +422,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 41,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "41",
+            "key_access_revision": "17"
           },
           "expected": {
             "decision": "reject",
@@ -442,9 +442,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "expected": {
             "decision": "reject",
@@ -479,9 +479,9 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         },
         "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-        "previous_epoch": 41,
-        "next_epoch": 42,
-        "key_access_revision": 17
+        "previous_epoch": "41",
+        "next_epoch": "42",
+        "key_access_revision": "17"
       },
       "samples": [
         {
@@ -492,9 +492,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "expected": {
             "decision": "accept"
@@ -508,9 +508,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AbhX3-n_FG8scl_4zkFai8VRhqvIwjOeWHvA8D3mQ9V7",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 17
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "17"
           },
           "expected": {
             "decision": "reject",
@@ -525,9 +525,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 18
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "18"
           },
           "expected": {
             "decision": "reject",
@@ -542,9 +542,9 @@
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
             },
             "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-            "previous_epoch": 41,
-            "next_epoch": 42,
-            "key_access_revision": 16
+            "previous_epoch": "41",
+            "next_epoch": "42",
+            "key_access_revision": "16"
           },
           "expected": {
             "decision": "reject",
@@ -565,9 +565,9 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         },
         "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
-        "previous_epoch": 41,
-        "next_epoch": 42,
-        "key_access_revision": 17
+        "previous_epoch": "41",
+        "next_epoch": "42",
+        "key_access_revision": "17"
       },
       "current_public_state": {
         "current_key_access_revision": 18
@@ -605,9 +605,9 @@
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
           },
           "base_group_state_ref": null,
-          "previous_epoch": 0,
-          "next_epoch": 0,
-          "key_access_revision": 0
+          "previous_epoch": "0",
+          "next_epoch": "0",
+          "key_access_revision": "0"
         }
       },
       "rejection_samples": [
@@ -651,9 +651,9 @@
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
               },
               "base_group_state_ref": null,
-              "previous_epoch": 0,
-              "next_epoch": 0,
-              "key_access_revision": 0
+              "previous_epoch": "0",
+              "next_epoch": "0",
+              "key_access_revision": "0"
             }
           },
           "expected": {
@@ -682,9 +682,9 @@
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
               },
               "base_group_state_ref": null,
-              "previous_epoch": 0,
-              "next_epoch": 0,
-              "key_access_revision": 0
+              "previous_epoch": "0",
+              "next_epoch": "0",
+              "key_access_revision": "0"
             }
           },
           "expected": {
@@ -709,9 +709,9 @@
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
               },
               "base_group_state_ref": null,
-              "previous_epoch": 0,
-              "next_epoch": 0,
-              "key_access_revision": 0
+              "previous_epoch": "0",
+              "next_epoch": "0",
+              "key_access_revision": "0"
             }
           },
           "expected": {

@@ -44,7 +44,7 @@ Schema id: `ak.schema.read_cursor.v1`
 
 ### 2.3 行为规则
 
-- Read Cursor **不是可原地更新的对象**：它没有 revision / compare-and-set（对照 [account-data.md §5](./account-data.md) 的可变 typed current result），一次「更新」就是 author 并提交一条新的 `ak.read_cursor.advance`。因此本对象 MUST NOT 携带 `updated_at`：该次更新的时间就是那条 Event 信封的 `created_at`，在 payload 里重述一遍只会制造第二份同源时间且不受签名约束。需要更新时间的派生视图（`read_marker_outcome`、跨设备 actor-private read cursor 更新）MUST 取胜出 advance 的信封 `created_at`。
+- Read Cursor **不是可原地更新的对象**：它没有 revision / compare-and-set（对照 [account-data.md §5](./account-data.md) 的可变 current state），一次「更新」就是 author 并提交一条新的 `ak.read_cursor.advance`。因此本对象 MUST NOT 携带 `updated_at`：该次更新的时间就是那条 Event 信封的 `created_at`，在 payload 里重述一遍只会制造第二份同源时间且不受签名约束。需要更新时间的派生视图（`read_marker_response_body`、跨设备 actor-private read cursor 更新）MUST 取胜出 advance 的信封 `created_at`。
 - 本对象**没有 typed ID**。身份是 `(actor_id, realm_id, read_scope)` 三元组；`ak.read_cursor.advance` 在 event-kind-registry 中登记为 `id_source=not_an_object_id`，id-kind-registry 中不存在 `read_cursor` typed ID kind，也不存在任何按 id 寻址的读面（[`../authz/resource-selector-grammar.md` §3.1](../authz/resource-selector-grammar.md) 的 selector 只接受 `read_cursor:<realm>:*`）。携带 `id` 的 payload MUST 以 `schema_violation` 拒绝。
 - 跨设备下发的 `ak.read_cursor.update` device message 的 content 是 `ak.schema.read_cursor_update.v1`（[`device-message.schema.json#/$defs/read_cursor_update_content`](../../artifacts/schemas/device-message.schema.json)）：它是当前胜出 advance 的**派生投影**，携带派生的 `updated_at`，MUST NOT 声明自己是 `ak.schema.read_cursor.v1`。
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [strand-and-message.md §9.6](./strand-and-message.md)）。
@@ -174,7 +174,7 @@ selection 由 Account Authority 持有，寻址键是 `(agent_id, target_scope)`
 **MUST NOT** 经 `ak.account_data.set` 写入：那会给同一记录造出第二套 CAS 计数器
 （account-data 的 `expected_server_revision` 与本记录的 `expected_version`），两者无法互相推导。记录内容是
 closed `{target_scope, selection, version}`，`selection` 五位恰为
-`{reply_message, reaction_add, reaction_remove, accept_third_party_mention, act_on_behalf}`，
+`{message_creation_allowed, reaction_addition_allowed, reaction_removal_allowed, third_party_mention_delivery_allowed, acting_on_behalf_allowed}`，
 `target_scope` 只允许 realm / circle / strand 的 closed XOR。首次写 `expected_version=0`，每次接受严格 +1。
 它不授予 capability、不写 Realm Event、不复制 ceiling/effective；target 在实际动作时将当前 selection 与
 本地 current ceiling、普通 capability 和 lifecycle 求交。

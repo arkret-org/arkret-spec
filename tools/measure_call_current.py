@@ -27,7 +27,7 @@ def measure():
         ev = event({'call_id': call_id, axis + '_delta': delta}, position)
         core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': position,
                 'previous_commit_ref': previous, 'event_ref': ev['event_id'],
-                'governance_generation': 1, 'authority_ref': create['event_id'], 'committed_at': ev['created_at']}
+                'governance_generation': "1", 'authority_ref': create['event_id'], 'committed_at': ev['created_at']}
         commit = {'commit_id': typed_id('realm_commit', core), **core}
         signature, _ = make_signature('ak.realm_commit_signature.v1', commit, OLD_VM, KEY_A_SEED)
         commit['signature'] = signature
@@ -77,7 +77,7 @@ def measure():
     root = Path(__file__).resolve().parents[1]
     sources = {}
     for path in [Path(__file__), root / 'tools/generate_call_current_fixture.py',
-                 root / 'spec/v1/artifacts/schemas/typed-current-result.schema.json',
+                 root / 'spec/v1/artifacts/schemas/current-state.schema.json',
                  root.parent / 'arkret-rust-sdk/crates/models-collaboration/src/events_payloads/generated/call_contracts.rs']:
         sources[str(path.relative_to(root.parent))] = hashlib.sha256(path.read_bytes()).hexdigest()
     return {

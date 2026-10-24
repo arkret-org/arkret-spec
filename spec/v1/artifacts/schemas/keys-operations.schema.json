@@ -8,31 +8,31 @@
       "$ref": "#/$defs/keys_upload_request_body"
     },
     {
-      "$ref": "#/$defs/keys_upload_outcome"
+      "$ref": "#/$defs/keys_upload_response_body"
     },
     {
       "$ref": "#/$defs/keys_query_request_body"
     },
     {
-      "$ref": "#/$defs/keys_query_outcome"
+      "$ref": "#/$defs/keys_query_response_body"
     },
     {
       "$ref": "#/$defs/peer_keys_query_request_body"
     },
     {
-      "$ref": "#/$defs/peer_keys_query_outcome"
+      "$ref": "#/$defs/peer_keys_query_response_body"
     },
     {
       "$ref": "#/$defs/keys_claim_request_body"
     },
     {
-      "$ref": "#/$defs/keys_claim_outcome"
+      "$ref": "#/$defs/keys_claim_response_body"
     },
     {
-      "$ref": "#/$defs/keys_backups_replace_outcome"
+      "$ref": "#/$defs/keys_backups_replace_response_body"
     },
     {
-      "$ref": "#/$defs/keys_backups_list"
+      "$ref": "#/$defs/keys_backups_page"
     },
     {
       "$ref": "#/$defs/keys_backups_issue_delete_challenge_request_body"
@@ -67,7 +67,7 @@
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
     "cursor": {
-      "$ref": "./authz-operations.schema.json#/$defs/cursor"
+      "$ref": "./authorization-operations.schema.json#/$defs/cursor"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -218,7 +218,15 @@
         },
         "device_status": {
           "const": "active",
-          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
+          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/device_projection_attestation_core/properties/device_status",
+            "owner": "keys-operations.schema.json#/$defs/device_projection_attestation_core/properties/device_status",
+            "values": [
+              "active"
+            ]
+          }
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp",
@@ -300,7 +308,15 @@
         },
         "device_status": {
           "const": "active",
-          "description": "This surface projects usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the projected status is constant rather than a disclosure channel."
+          "description": "This surface projects usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the projected status is constant rather than a disclosure channel.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/verified_device_projection/properties/device_status",
+            "owner": "keys-operations.schema.json#/$defs/verified_device_projection/properties/device_status",
+            "values": [
+              "active"
+            ]
+          }
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp",
@@ -339,7 +355,7 @@
     },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(account_id, device_id) entry in keys_query_outcome, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(account_id, device_id) entry in keys_query_response_body, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "signer_evidence_ref",
         "algorithms",
@@ -399,7 +415,7 @@
     },
     "peer_query_device_record": {
       "type": "object",
-      "description": "Per-(account_id, device_id) entry in peer_keys_query_outcome, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(account_id, device_id) entry in peer_keys_query_response_body, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "signer_evidence_ref",
         "algorithms",
@@ -603,7 +619,16 @@
           "enum": [
             "device_result_unavailable",
             "device_directory_unavailable"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/query_failure/properties/reason_code",
+            "owner": "keys-operations.schema.json#/$defs/query_failure/properties/reason_code",
+            "values": [
+              "device_result_unavailable",
+              "device_directory_unavailable"
+            ]
+          }
         },
         "retry_after_ms": {
           "type": "integer",
@@ -624,7 +649,7 @@
         "backup_kind",
         "backup_version",
         "series_id",
-        "series_seq",
+        "series_sequence",
         "created_at",
         "ciphertext_digest",
         "encryption"
@@ -648,7 +673,7 @@
         "series_id": {
           "$ref": "#/$defs/backup_series_id"
         },
-        "series_seq": {
+        "series_sequence": {
           "type": "integer",
           "minimum": 0
         },
@@ -697,7 +722,17 @@
                 "passphrase_kdf",
                 "recovery_public_key",
                 "secret_storage_key"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/backup_metadata/properties/encryption/properties/recipient_method",
+                "owner": "keys-operations.schema.json#/$defs/backup_metadata/properties/encryption/properties/recipient_method",
+                "values": [
+                  "passphrase_kdf",
+                  "recovery_public_key",
+                  "secret_storage_key"
+                ]
+              }
             },
             "recipient_key_ref": {
               "type": "string"
@@ -734,7 +769,7 @@
       },
       "additionalProperties": false
     },
-    "keys_upload_outcome": {
+    "keys_upload_response_body": {
       "type": "object",
       "required": [
         "one_time_key_counts"
@@ -747,7 +782,8 @@
           "$ref": "#/$defs/algorithm_key_records"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "keys_query_request_body": {
       "type": "object",
@@ -765,7 +801,7 @@
       },
       "additionalProperties": false
     },
-    "keys_query_outcome": {
+    "keys_query_response_body": {
       "type": "object",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.device.authorize",
@@ -791,7 +827,8 @@
           "description": "Current identity-root generation fence by exact AccountId. Fenced accounts or mismatched device generations expose no usable signing/HPKE/prekey material."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "peer_keys_query_purpose": {
       "type": "string",
@@ -800,7 +837,17 @@
         "e2ee_message_encryption",
         "mls_group_admission",
         "call_media"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "keys-operations.schema.json#/$defs/peer_keys_query_purpose",
+        "owner": "keys-operations.schema.json#/$defs/peer_keys_query_purpose",
+        "values": [
+          "e2ee_message_encryption",
+          "mls_group_admission",
+          "call_media"
+        ]
+      }
     },
     "peer_keys_relationship_basis": {
       "description": "Closed relationship the requester asserts. The destination re-derives it from its own accepted state; a caller assertion never authorizes by itself. The contact branch deliberately carries no realm_id: a legitimate Contact needs no shared Realm.",
@@ -813,7 +860,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "realm_membership"
+              "const": "realm_membership",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/peer_keys_relationship_basis/oneOf/0/properties/kind",
+                "owner": "keys-operations.schema.json#/$defs/peer_keys_relationship_basis/oneOf/0/properties/kind",
+                "values": [
+                  "realm_membership"
+                ]
+              }
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -828,7 +883,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "contact"
+              "const": "contact",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/peer_keys_relationship_basis/oneOf/1/properties/kind",
+                "owner": "keys-operations.schema.json#/$defs/peer_keys_relationship_basis/oneOf/1/properties/kind",
+                "values": [
+                  "contact"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -901,12 +964,28 @@
           "then": {
             "properties": {
               "purpose": {
-                "const": "mls_group_admission"
+                "const": "mls_group_admission",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/0/then/properties/purpose",
+                  "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/0/then/properties/purpose",
+                  "values": [
+                    "mls_group_admission"
+                  ]
+                }
               },
               "relationship_basis": {
                 "properties": {
                   "kind": {
-                    "const": "realm_membership"
+                    "const": "realm_membership",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis/properties/kind",
+                      "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis/properties/kind",
+                      "values": [
+                        "realm_membership"
+                      ]
+                    }
                   }
                 }
               }
@@ -915,7 +994,7 @@
         }
       ]
     },
-    "peer_keys_query_outcome": {
+    "peer_keys_query_response_body": {
       "type": "object",
       "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing query_device_record. Echo request_id and the complete mutually exclusive requester branch exactly.",
       "required": [
@@ -970,7 +1049,8 @@
             ]
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "response_body"
     },
     "keys_claim_request_body": {
       "type": "object",
@@ -984,7 +1064,7 @@
       },
       "additionalProperties": false
     },
-    "keys_claim_outcome": {
+    "keys_claim_response_body": {
       "type": "object",
       "required": [
         "one_time_keys"
@@ -1000,9 +1080,10 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "keys_backups_replace_outcome": {
+    "keys_backups_replace_response_body": {
       "type": "object",
       "required": [
         "status",
@@ -1015,7 +1096,16 @@
           "enum": [
             "accepted",
             "duplicate"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/properties/status",
+            "owner": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/properties/status",
+            "values": [
+              "accepted",
+              "duplicate"
+            ]
+          }
         },
         "backup_id": {
           "$ref": "#/$defs/backup_id"
@@ -1024,9 +1114,10 @@
           "$ref": "#/$defs/digest"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "keys_backups_list": {
+    "keys_backups_page": {
       "type": "object",
       "required": [
         "backups",
@@ -1052,7 +1143,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Bounded Account Station metadata page with the current accepted secret_storage backup-class pointer, independent of list filters. key-management.md section 7.6.1 fixes cursor and unknown-state semantics."
+      "description": "Bounded Account Station metadata page with the current accepted secret_storage backup-class pointer, independent of list filters. key-management.md section 7.6.1 fixes cursor and unknown-state semantics.",
+      "x-arkret-name-role": "page"
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
@@ -1112,7 +1204,15 @@
           "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
         },
         "operation": {
-          "const": "ak.self.keys.backups.resource.delete.v1"
+          "const": "ak.self.keys.backups.resource.delete.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keys-operations.schema.json#/$defs/keys_backups_delete_challenge/properties/operation",
+            "owner": "keys-operations.schema.json#/$defs/keys_backups_delete_challenge/properties/operation",
+            "values": [
+              "ak.self.keys.backups.resource.delete.v1"
+            ]
+          }
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -1179,7 +1279,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.backup_series_erase_confirmation.v1"
+          "const": "ak.schema.backup_series_erase_confirmation.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keys-operations.schema.json#/$defs/backup_series_erase_confirmation/properties/schema",
+            "owner": "keys-operations.schema.json#/$defs/backup_series_erase_confirmation/properties/schema",
+            "values": [
+              "ak.schema.backup_series_erase_confirmation.v1"
+            ]
+          }
         },
         "transaction_id": {
           "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
@@ -1211,7 +1319,15 @@
           ],
           "properties": {
             "state": {
-              "const": "absent"
+              "const": "absent",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/backup_active_series_pointer/oneOf/0/properties/state",
+                "owner": "keys-operations.schema.json#/$defs/backup_active_series_pointer/oneOf/0/properties/state",
+                "values": [
+                  "absent"
+                ]
+              }
             }
           },
           "additionalProperties": false
@@ -1225,7 +1341,15 @@
           ],
           "properties": {
             "state": {
-              "const": "active"
+              "const": "active",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/backup_active_series_pointer/oneOf/1/properties/state",
+                "owner": "keys-operations.schema.json#/$defs/backup_active_series_pointer/oneOf/1/properties/state",
+                "values": [
+                  "active"
+                ]
+              }
             },
             "active_series_id": {
               "$ref": "#/$defs/backup_series_id"
@@ -1313,7 +1437,15 @@
           "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
         },
         "operation": {
-          "const": "ak.self.keys.backups.command.unlock.v1"
+          "const": "ak.self.keys.backups.command.unlock.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keys-operations.schema.json#/$defs/keys_backups_unlock_challenge/properties/operation",
+            "owner": "keys-operations.schema.json#/$defs/keys_backups_unlock_challenge/properties/operation",
+            "values": [
+              "ak.self.keys.backups.command.unlock.v1"
+            ]
+          }
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -1381,11 +1513,10 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "revision": {
-          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+          "$ref": "./current-state.schema.json#/$defs/revision"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1432,7 +1563,15 @@
         },
         "device_status": {
           "const": "active",
-          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
+          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/forward_device_projection_attestation_core/properties/device_status",
+            "owner": "keys-operations.schema.json#/$defs/forward_device_projection_attestation_core/properties/device_status",
+            "values": [
+              "active"
+            ]
+          }
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp",

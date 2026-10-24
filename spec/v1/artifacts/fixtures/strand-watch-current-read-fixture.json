@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.state.v1",
-  "version": "2026-10-14.1",
+  "version": "2026-10-24.1",
   "suite": "strand_watch_current_read",
   "runner": {
     "kind": "named_suite",
@@ -116,11 +116,11 @@
     },
     {
       "name": "peer_handoff_generation_four_never_written",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -145,11 +145,11 @@
     },
     {
       "name": "peer_written_clear_current_with_revision",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -158,7 +158,7 @@
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
-        "result": {
+        "current_state": {
           "selector": {
             "kind": "strand_watch",
             "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -185,11 +185,11 @@
     },
     {
       "name": "peer_whole_value_includes_public_flag",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -198,7 +198,7 @@
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
-        "result": {
+        "current_state": {
           "selector": {
             "kind": "strand_watch",
             "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -298,11 +298,11 @@
     },
     {
       "name": "never_written_cannot_carry_value",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -325,15 +325,15 @@
         "value": null
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'value': None} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'value': None} is not valid under any of the given schemas"
     },
     {
       "name": "never_written_cannot_carry_revision",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -359,15 +359,15 @@
         }
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}} is not valid under any of the given schemas"
     },
     {
       "name": "no_omission_proof_wire_extension",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -390,15 +390,15 @@
         "omission_proof": "invented"
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'omission_proof': 'invented'} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'omission_proof': 'invented'} is not valid under any of the given schemas"
     },
     {
       "name": "written_null_requires_revision",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -407,7 +407,7 @@
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
-        "result": {
+        "current_state": {
           "selector": {
             "kind": "strand_watch",
             "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -427,15 +427,15 @@
         }
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'result': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'source_stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'value': None}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'current_state': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'source_stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'value': None}} is not valid under any of the given schemas"
     },
     {
       "name": "current_requires_source_stream",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -444,7 +444,7 @@
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
-        "result": {
+        "current_state": {
           "selector": {
             "kind": "strand_watch",
             "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -464,15 +464,15 @@
         }
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'result': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}, 'value': None}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'current_state': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}, 'value': None}} is not valid under any of the given schemas"
     },
     {
       "name": "mutually_exclusive_presence_branches",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "realm",
@@ -494,15 +494,15 @@
         }
       },
       "expect_valid": false,
-      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}} is not valid under any of the given schemas"
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}} is not valid under any of the given schemas"
     },
     {
       "name": "peer_authorized_circle_never_written",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "circle",
@@ -528,11 +528,11 @@
     },
     {
       "name": "peer_authorized_circle_clear_current",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "governance_generation": 4,
+        "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
             "kind": "circle",
@@ -542,7 +542,7 @@
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
-        "result": {
+        "current_state": {
           "selector": {
             "kind": "strand_watch",
             "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -623,7 +623,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -632,7 +632,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -665,7 +665,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 9,
+          "governance_generation": "9",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -697,7 +697,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 0,
+          "governance_generation": "0",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -818,7 +818,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -856,7 +856,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -900,7 +900,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "circle",
@@ -947,7 +947,7 @@
         "response": {
           "status": "never_written",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "circle",
@@ -1095,7 +1095,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1104,7 +1104,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1130,7 +1130,7 @@
         "confirmed_response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1139,7 +1139,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1213,7 +1213,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1222,7 +1222,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1248,7 +1248,7 @@
         "confirmed_response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1257,7 +1257,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1331,7 +1331,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 3,
+          "governance_generation": "3",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1340,7 +1340,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1366,7 +1366,7 @@
         "confirmed_response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1375,7 +1375,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1449,7 +1449,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1458,7 +1458,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1484,7 +1484,7 @@
         "confirmed_response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1493,7 +1493,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1567,7 +1567,7 @@
         "response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1576,7 +1576,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1602,7 +1602,7 @@
         "confirmed_response": {
           "status": "current",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "governance_generation": 4,
+          "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
               "kind": "realm",
@@ -1611,7 +1611,7 @@
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
           },
-          "result": {
+          "current_state": {
             "selector": {
               "kind": "strand_watch",
               "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
@@ -1731,7 +1731,7 @@
     "response": {
       "status": "never_written",
       "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-      "governance_generation": 4,
+      "governance_generation": "4",
       "stream_head": {
         "stream_ref": {
           "kind": "realm",

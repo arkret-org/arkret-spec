@@ -14,7 +14,7 @@
       "$ref": "#/$defs/account_data_list"
     },
     {
-      "$ref": "#/$defs/account_data_delete_outcome"
+      "$ref": "#/$defs/account_data_delete_response_body"
     },
     {
       "$ref": "#/$defs/account_data_cas_conflict_details"
@@ -63,7 +63,7 @@
     },
     "account_data_replace_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private typed current result subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_server_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete.v1, which enforces the registered deletion_mode.",
+      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private current state subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_server_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete.v1, which enforces the registered deletion_mode.",
       "required": [
         "set_event"
       ],
@@ -87,7 +87,15 @@
                   ],
                   "properties": {
                     "kind": {
-                      "const": "ak.account_data.set"
+                      "const": "ak.account_data.set",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "account-data-operations.schema.json#/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/kind",
+                        "owner": "account-data-operations.schema.json#/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.account_data.set"
+                        ]
+                      }
                     },
                     "payload": {
                       "type": "object",
@@ -132,7 +140,15 @@
                   ],
                   "properties": {
                     "kind": {
-                      "const": "ak.account_data.set"
+                      "const": "ak.account_data.set",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "account-data-operations.schema.json#/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event/properties/kind",
+                        "owner": "account-data-operations.schema.json#/$defs/account_data_delete_request_body/properties/set_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.account_data.set"
+                        ]
+                      }
                     },
                     "payload": {
                       "type": "object",
@@ -164,7 +180,7 @@
       },
       "additionalProperties": false
     },
-    "account_data_delete_outcome": {
+    "account_data_delete_response_body": {
       "type": "object",
       "required": [
         "account_data_key",
@@ -179,7 +195,8 @@
           "description": "Revision of the stored tombstone (expected_server_revision + 1). Recreating the key requires this value as the next expected_server_revision."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_data_cas_conflict_details": {
       "type": "object",

@@ -17,7 +17,7 @@ updated: 2026-09-20
 
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。
 
-账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 typed current result 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
+账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 current state 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
 
 `ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>` 的首次创建还有一个不改变上述唯一
 counter 的 source gate：两个 component 分别是完整 canonical `agent_id` / `draft_id` 在独立注册 domain 下的
@@ -71,7 +71,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 - 每次被接受的写入（包括 tombstone 写入）存储 `expected_server_revision + 1`。
 - `revision` 是**高水位**：MUST NOT 回退。即使 tombstone 已被 GC，服务端仍 MUST 保留该 key 的最后 `revision`。
 
-`holder_event` writer 的 `ak.account_data.set` payload MUST 携带 `expected_server_revision`。只有 registry row 的 `holder_self_operations` 显式包含相应操作时，`ak.self.account_data.resource.replace.v1` / `.delete` 才可用于该 key；其 request body 只承载一个 signed `ak.account_data.set` Event，`expected_server_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。`station_cas` writer 从其受限内部投递事务携带同名 `expected_server_revision`，不得构造 holder Event，也不得经 self PUT/DELETE surface 暴露为客户端可写。创建一个从未写入的 key 使用 `expected_server_revision=0`。该整数是 account-private `server_revision_cas` 的唯一名称；shared Realm typed current result 的 `expected_revision{commit_id, stream_position}` 是另一合同，二者不得互换、别名、双写或在验签后改名。
+`holder_event` writer 的 `ak.account_data.set` payload MUST 携带 `expected_server_revision`。只有 registry row 的 `holder_self_operations` 显式包含相应操作时，`ak.self.account_data.resource.replace.v1` / `.delete` 才可用于该 key；其 request body 只承载一个 signed `ak.account_data.set` Event，`expected_server_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。`station_cas` writer 从其受限内部投递事务携带同名 `expected_server_revision`，不得构造 holder Event，也不得经 self PUT/DELETE surface 暴露为客户端可写。创建一个从未写入的 key 使用 `expected_server_revision=0`。该整数是 account-private `server_revision_cas` 的唯一名称；shared Realm current state 的 `expected_revision{commit_id, stream_position}` 是另一合同，二者不得互换、别名、双写或在验签后改名。
 
 服务端 MUST 在同一 key 上原子地比较并写入：`expected_server_revision` 不等于当前 `revision` 时 MUST 以 `cas_conflict` 拒绝，MUST NOT 存储任何内容、MUST NOT 推进 `revision`，也 MUST NOT 向其它设备 fanout。因此设备 A 的旧字节级 retry 在设备 B 的新写之后必然失败，而不是把 key 整体退回旧值。
 

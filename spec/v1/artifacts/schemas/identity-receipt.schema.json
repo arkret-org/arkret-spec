@@ -12,7 +12,7 @@
     "schema",
     "receipt_id",
     "subject_did",
-    "seq",
+    "sequence",
     "accepted_entry_digest",
     "registry_id",
     "witness_role",
@@ -22,7 +22,15 @@
   "properties": {
     "schema": {
       "const": "ak.schema.identity_receipt.v1",
-      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators distinguish identity registry receipts from other receipt envelopes (e.g. audit-ryw-receipt, event-batch-receipt)."
+      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators distinguish identity registry receipts from other receipt envelopes (e.g. audit-ryw-receipt, event-batch-receipt).",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "identity-receipt.schema.json#/properties/schema",
+        "owner": "identity-receipt.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.identity_receipt.v1"
+        ]
+      }
     },
     "receipt_id": {
       "type": "string",
@@ -32,7 +40,7 @@
       "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "Method-native bare DID whose exact accepted log entry at seq is committed by accepted_entry_digest. This identifies method history, not an Arkret business principal."
     },
-    "seq": {
+    "sequence": {
       "type": "integer",
       "minimum": 0
     },
@@ -52,7 +60,17 @@
         "witness",
         "replica"
       ],
-      "description": "Issuer's role in the DID registry consensus group. Required so verifiers can apply role-specific freshness / quorum rules; an absent role would force the verifier to guess writer vs replica semantics."
+      "description": "Issuer's role in the DID registry consensus group. Required so verifiers can apply role-specific freshness / quorum rules; an absent role would force the verifier to guess writer vs replica semantics.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "identity-receipt.schema.json#/properties/witness_role",
+        "owner": "identity-receipt.schema.json#/properties/witness_role",
+        "values": [
+          "writer",
+          "witness",
+          "replica"
+        ]
+      }
     },
     "audience": {
       "type": "string",

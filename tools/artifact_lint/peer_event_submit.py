@@ -183,12 +183,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     if "EventAdmissionSubmission" not in dto_defs or "EventCommitSubmission" in dto_defs:
         _fail(lint, DTO_SCHEMA, "EventAdmissionSubmission must be the sole admission-submission type with no old alias")
     required_defs = {
-        "self_submit_request",
-        "self_submit_outcome",
-        "peer_submit_request",
-        "peer_submit_outcome",
+        "self_submit_request_body",
+        "self_submit_response_body",
+        "peer_submit_request_body",
+        "peer_submit_response_body",
         "committed_event_submission",
-        "peer_committed_replication_outcome_record",
+        "committed_event_replication_outcome",
         "direct_conversation_founding_unit_submission",
         "direct_conversation_founding_federation_submission",
         "direct_conversation_founding_acceptance_outcome",
@@ -202,19 +202,19 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         _fail(lint, SCHEMA, f"missing canonical definitions: {missing_defs}")
         return
 
-    peer = defs["peer_submit_request"]
+    peer = defs["peer_submit_request_body"]
     branch = peer.get("properties", {}).get("branch", {}) if isinstance(peer, dict) else {}
     if branch.get("enum") != ["authority_forward", "committed_replication", "registered_atomic_unit"]:
-        _fail(lint, SCHEMA, "peer_submit_request branch enum must be the exact closed three-value list")
+        _fail(lint, SCHEMA, "peer_submit_request_body branch enum must be the exact closed three-value list")
     if peer.get("additionalProperties") is not False or _required(peer) != {"branch"}:
-        _fail(lint, SCHEMA, "peer_submit_request must be closed with branch as its common required field")
+        _fail(lint, SCHEMA, "peer_submit_request_body must be closed with branch as its common required field")
     branches = peer.get("oneOf") if isinstance(peer, dict) else None
     if not isinstance(branches, list) or len(branches) != 5:
-        _fail(lint, SCHEMA, "peer_submit_request must have three authority-forward alternatives plus replication and atomic-unit alternatives")
+        _fail(lint, SCHEMA, "peer_submit_request_body must have three authority-forward alternatives plus replication and atomic-unit alternatives")
     else:
         constants = [item.get("properties", {}).get("branch", {}).get("const") for item in branches if isinstance(item, dict)]
         if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
-            _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
+            _fail(lint, SCHEMA, "peer_submit_request_body alternatives drift from the registered branch partition")
         allowed_fields = (
             {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
@@ -230,17 +230,17 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 if len(_required(candidate)) == 1
             }
             if forbidden != all_branch_fields - allowed:
-                _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
+                _fail(lint, SCHEMA, f"peer_submit_request_body alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
     if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
-        _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
+        _fail(lint, SCHEMA, "peer_submit_request_body properties must be the exact branch field set")
     if "producer_managed_provenance" in peer_properties or "forward_managed_actor_provenance" in defs:
         _fail(lint, SCHEMA, "Realm actor must use its owning governor's control state, not foreign Account provenance")
     if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
         _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
     genesis_material = defs.get("mls_genesis_material", {})
-    if genesis_material.get("additionalProperties") is not False or _required(genesis_material) != {"group_info_bytes_b64", "ratchet_tree_bytes_b64"} or set(genesis_material.get("properties", {})) != {"group_info_bytes_b64", "ratchet_tree_bytes_b64"}:
+    if genesis_material.get("additionalProperties") is not False or _required(genesis_material) != {"group_info_base64url", "ratchet_tree_base64url"} or set(genesis_material.get("properties", {})) != {"group_info_base64url", "ratchet_tree_base64url"}:
         _fail(lint, SCHEMA, "mls_genesis_material must be exactly the two raw Blob byte members with no ref or digest echo")
     if isinstance(branches, list) and branches:
         genesis_rule = branches[0]
@@ -301,18 +301,18 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     if _ref_name(committed.get("properties", {}).get("event_submission")) != "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission":
         _fail(lint, SCHEMA, "committed_event_submission.event_submission must use the canonical admission submission")
 
-    replication_outcome = defs["peer_committed_replication_outcome"]
+    replication_outcome = defs["peer_committed_replication_response_body"]
     outcome_properties = replication_outcome.get("properties", {})
     if set(outcome_properties) != {"branch", "replication_outcomes"}:
         _fail(lint, SCHEMA, "replication outcome properties must be exactly branch and replication_outcomes")
     outcomes = outcome_properties.get("replication_outcomes", {})
     if _required(replication_outcome) != {"branch", "replication_outcomes"}:
         _fail(lint, SCHEMA, "replication outcome must require only branch and replication_outcomes")
-    if outcomes.get("minItems") != 1 or outcomes.get("maxItems") != 100 or _ref_name(outcomes.get("items")) != "#/$defs/peer_committed_replication_outcome_record":
+    if outcomes.get("minItems") != 1 or outcomes.get("maxItems") != 100 or _ref_name(outcomes.get("items")) != "#/$defs/committed_event_replication_outcome":
         _fail(lint, SCHEMA, "replication outcome must return 1..100 same-order typed replication_outcomes")
     if "results" in outcome_properties or "peer_committed_replication_record" in defs:
         _fail(lint, SCHEMA, "deleted generic results/record names must not return")
-    result_branches = defs.get("peer_committed_replication_outcome_record", {}).get("oneOf", [])
+    result_branches = defs.get("committed_event_replication_outcome", {}).get("oneOf", [])
     statuses: list[Any] = []
     for index, item in enumerate(result_branches if isinstance(result_branches, list) else []):
         properties = item.get("properties", {}) if isinstance(item, dict) else {}
@@ -379,9 +379,9 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     if not isinstance(self_row, dict) or not isinstance(peer_row, dict):
         _fail(lint, CONTRACT, "self or peer submit operation row is missing")
     else:
-        if self_row.get("request_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request" or self_row.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome":
+        if self_row.get("request_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body" or self_row.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body":
             _fail(lint, CONTRACT, "self submit must use endpoint-specific request/outcome refs")
-        if peer_row.get("request_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request" or peer_row.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome":
+        if peer_row.get("request_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body" or peer_row.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body":
             _fail(lint, CONTRACT, "peer submit must use endpoint-specific request/outcome refs")
         effect = peer_row.get("durable_effect", {})
         effect_branches = effect.get("effect_branches", []) if isinstance(effect, dict) else []
@@ -631,10 +631,10 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
 
     openapi = read_text(OPENAPI) if OPENAPI.is_file() else ""
     for marker in (
-        "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
-        "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
-        "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
-        "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
+        "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
+        "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body",
+        "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
+        "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body",
         "../schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem",
         "application/problem+json",
     ):

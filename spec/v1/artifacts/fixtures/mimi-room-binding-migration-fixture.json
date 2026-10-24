@@ -1,6 +1,6 @@
 {
   "fixture_id": "ak.fixture.mimi.room_binding_migration.v1",
-  "version": 2,
+  "version": 3,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mimi.room_binding_migration.v1"
@@ -11,7 +11,7 @@
   "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md §4.2",
   "basis": {
     "previous_accepted": "accepted ak.mimi.room_binding Event and its covering RealmCommit for one canonical mimi_room_uri",
-    "current_migrating": "immediately succeeding accepted migrating Event and its covering RealmCommit, pinned as the typed current result source",
+    "current_migrating": "immediately succeeding accepted migrating Event and its covering RealmCommit, pinned as the current state source",
     "candidate_topology_fields": [
       "hub_provider_id",
       "follower_provider_ids",
@@ -88,6 +88,6 @@
   "rejected_effect_counts": {
     "accepted_events": 0,
     "realm_commits": 0,
-    "typed_current_results": 0
+    "current_states": 0
   }
 }

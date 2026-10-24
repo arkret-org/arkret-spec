@@ -13,7 +13,7 @@ sidebar:
 ## 1. 权威来源
 
 治理 Station 按目标 stream 的 RealmCommit 顺序接纳 Event，并在同一事务内更新该领域的当前结果。客户端 MUST
-把 Station 返回的 typed current result 作为共享状态的当前权威视图；Event timeline 用于审计与内容读取，不要求客户端
+把 Station 返回的 current state 作为共享状态的当前权威视图；Event timeline 用于审计与内容读取，不要求客户端
 重放 Event 来恢复共享状态。
 
 Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前结果响应携带本次视图所覆盖 stream 的
@@ -21,18 +21,18 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 `previous_commit_ref` 串联同一 stream。
 
 机器合同为
-[current-result-registry](../../artifacts/registry/current-result-registry.json)、
-[typed-current-result schema](../../artifacts/schemas/typed-current-result.schema.json) 与
-[account-current-result schema](../../artifacts/schemas/account-current-result.schema.json)。实现 MUST NOT 发明协议级通用状态键、
+[current-state-registry](../../artifacts/registry/current-state-registry.json)、
+[current-state schema](../../artifacts/schemas/current-state.schema.json) 与
+[account-current-state schema](../../artifacts/schemas/account-state-view.schema.json)。实现 MUST NOT 发明协议级通用状态键、
 通用合并算法或客户端求值规则。
 
-**value 形状的唯一命名方式（normative）**：typed current result 的 value 形状由该 family 的
-`result_writes[].value_schema_ref` 以 JSON Pointer 指向 `typed-current-result.schema.json`
+**value 形状的唯一命名方式（normative）**：current state 的 value 形状由该 family 的
+`state_writes[].value_schema_ref` 以 JSON Pointer 指向 `current-state.schema.json`
 的一个 `$defs` 成员，**MUST NOT** 另外获得自己的 `ak.schema.*` id。
 `schema-registry.json` 登记的是 **wire schema**——被签名、被传输、被 `payload.schema` 或 DTO
-`$ref` 按 id 引用的对象；typed current result 的 value 不是其中任何一种，它是 reducer 的输出，
+`$ref` 按 id 引用的对象；current state 的 value 不是其中任何一种，它是 reducer 的输出，
 唯一的读取路径就是那条指针。给某个 value 单独发一个 schema id，会让它看起来像 wire schema，
-并诱导实现按 id 绑定而绕过登记的写入合同。`ak.schema.result_projection.v1` 仍然登记，
+并诱导实现按 id 绑定而绕过登记的写入合同。`ak.schema.current_state.v1` 仍然登记，
 因为那是该**文件整体**的 id；`realm_authority_root_value` 曾是唯一带独立 id 的 value 例外，该 id 已撤销；
 它的写入方本来就只引用指针，所以除那个 id 之外没有任何东西被移除。
 
@@ -104,7 +104,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `view`：以 `view_id` 选择一个 View，由 `ak.view.create`、`ak.view.update`、`ak.view.reconcile`
   三个 kind 写同一个 family（[`../models/views.md` §3.2](../models/views.md) 对此为 normative）；
   `create` 与 `reconcile` 整体置换，`update` 对冻结前态 `apply_patch`；
-  自报的 `id` 不进值内——subject 已经是它；三个写者的 `result_writes[]` 均已登记，
+  自报的 `id` 不进值内——subject 已经是它；三个写者的 `state_writes[]` 均已登记，
   `ak.view.update` 的 `allowed_paths` 与 `state_changed_at` / `updated_by` / `updated_at`
   三个 reducer 派生成员在 registry 内逐项封闭；写者清单以 views.md §3.2 为准；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
@@ -118,7 +118,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 `parent_membership` admission 同时把 current `realm_policy_bundle`、目标 Realm 内每个 source 对应的 active
 `realm_link{link_kind="join_gate_from"}`、source/target current authority tenure 与 source `member_state` 当作权威事务输入。
 它们必须在 governing Station 的同一原子接纳事务中锁定、读取并重验；进程内 projection、replica、snapshot、历史 Event、
-Directory 或 caller proof 都不是 current result。全部 source 依赖必须可验证，随后至少一个 source 的 exact current
+Directory 或 caller proof 都不是 current state。全部 source 依赖必须可验证，随后至少一个 source 的 exact current
 membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../governance/join-policy.md)）。
 - `actor_profile`：以 `actor_profile_id` 选择一个全局 Actor Profile，由 `ak.profile.create` 与 `ak.profile.update` 共写
   （[`../discovery/profiles-presence.md` §2.3](../discovery/profiles-presence.md) 对此为 normative）；create 整体置换作者区域并派生 `schema` / `realm_id` / `created_at` / `updated_by` / `updated_at`，
@@ -165,7 +165,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
   [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
   需要给 producer 取得该 exact revision 时，只能调用
-  `ak.self.current_results.read.exact.v1`：它以 closed `primary_conflict_domain`、moderation `target_ref` 或
+  `ak.self.current_states.read.exact.v1`：它以 closed `primary_conflict_domain`、moderation `target_ref` 或
   `agent_interaction{agent_account_id}`
   读取一个 selector，并在同一 durable cut 返回当前治理任期、effective stream head 与 selector-identical
   `present` entry／获授权 `never_written`。`never_written` 为 Relation create 的 null CAS 以及 Agent mode
@@ -191,7 +191,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   它由 `ak.space.create` 与 `ak.space.update` 顶层 `child_scope_policy` 成员上的专用非 patch 写维护（见 [`../models/circle.md` §7.1](../models/circle.md)）；
 - `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
 - `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
-- `realm_authority_root`：singleton，值为 `typed-current-result.schema.json` 的封闭 `realm_authority_root_value`（由各写入方的 `value_schema_ref` 以 JSON Pointer 指向；它没有、也 MUST NOT 有自己的 `ak.schema.*` id，见上节末段与 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
+- `realm_authority_root`：singleton，值为 `current-state.schema.json` 的封闭 `realm_authority_root_value`（由各写入方的 `value_schema_ref` 以 JSON Pointer 指向；它没有、也 MUST NOT 有自己的 `ak.schema.*` id，见上节末段与 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
 - `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；
 - `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值；
 - `agent_provisioning`：以 `agent_id` 选择一条 Agent provisioning 事实，值为四个 create-locked 成员 `{controller_principal_id, principal_control_realm_id, controller_authorization_ref, requested_scope_digest}`；它是 `commit-ordered projection`，由 `ak.agent.provision` 的四个原子投影之一写入，subject 是 Agent DID 而**不是**完整 account ActorId（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
@@ -203,7 +203,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `identity_accountability`：以 `(issuer principal, subject principal, 归一化 exact scope set)` 选择一条问责背书；第三个分量按 `ak.accountability_scope_set.v1` 摘要，因此 wire 上的单个字符串与它的单元素数组落在同一个 subject；它有两个写入方（独立的 `ak.identity.accountability_grant` 与 `ak.agent.provision` 的原子问责投影），见 [`../models/actor.md` §3.3.1](../models/actor.md)；
 - `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
 
-  自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_results.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
+  自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_states.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
   三条 `ak.pin.*` 各加一条断言，roster、remove-wins 与冲突视图都是读侧折叠（见 [`../models/pins.md` §4.1](../models/pins.md)）；
 - `direct_conversation_binding`：以 pair_key 选择唯一 Realm 内一次不可变确认，value 为原 binding_event_ref 与完整 binding payload；无 set／dot／去重／代表引用，见 [Contact §8.3](../identity/contact-and-direct-conversation.md)。founding admission 仍负责唯一创建；
@@ -225,14 +225,14 @@ selector 的身份字段来自已接纳 Event 的 typed payload，不得由调�
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。
 
 `revision` 是 closed `{commit_id, stream_position}`。`commit_id` MUST 指向最后改变该结果的 RealmCommit，
-`stream_position` MUST 等于该 commit 在所属 stream 的位置。每份 closed typed current result 还 MUST 携带
+`stream_position` MUST 等于该 commit 在所属 stream 的位置。每份 closed current state 还 MUST 携带
 `source_stream_ref`，逐字等于该 covering Commit 的 `stream_ref`；此成员是来源坐标的必填部分，不能由 selector、
 值或相同数字位置推测。`source_stream_ref` 不属于二元 `CurrentRevision`，既有 `expected_revision` CAS 仍逐字段比较
 `{commit_id, stream_position}`。时间戳、到达顺序与 EventId 均不得替代 revision。
 
 领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
-逐字段相等时接纳；不相等返回 `failed_precondition` 且零写入。v1 的 Problem 响应不携带通用 typed current result：
-`detail`、`reason_detail`、未登记的 `current`／`current_result` 或任意扩展 bag 均不得冒充机器可读前态。
+逐字段相等时接纳；不相等返回 `failed_precondition` 且零写入。v1 的 Problem 响应不携带通用 current state：
+`detail`、`reason_detail`、未登记的 `current`／`current_state` 或任意扩展 bag 均不得冒充机器可读前态。
 调用者需要重写时，只能通过该 selector **已有且获授权**的 current 读取操作或 §3 的可见当前结果重新取得前态，
 核对 Realm、完整 selector、governance generation、stream head 与 revision，并重新确认后签发新 Event；
 没有已登记读取路径、读取未授权或结果缺席时必须停止，不能从错误字符串、旧缓存或 snapshot 缺项猜测 current，
@@ -242,7 +242,7 @@ selector 的身份字段来自已接纳 Event 的 typed payload，不得由调�
 **`expected_state_digest` 的摘要输入（normative）**：以 `expected_state_digest` 声明前态的 kind（`actor_profile`、
 Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单值 family）一律使用同一算法：
 `expected_state_digest = "sha256:" || lowercase_hex(SHA-256(RFC8785_JCS(v)))`，其中 `v` 是接纳事务冻结的该
-typed current result 的**完整当前 value**，逐字等于其 `value_schema_ref` 下的物化值（含 reducer 派生成员，
+current state 的**完整当前 value**，逐字等于其 `value_schema_ref` 下的物化值（含 reducer 派生成员，
 不含 `revision`、`source_stream_ref` 或 selector），摘要输入**不加** domain 前缀。不相等时以不带 `reason_code`
 的 `failed_precondition` 零写入拒绝，除非该 kind 的正文另行登记了专用 reason。keyed-set family 的前态是读侧
 fold，`v` 取 **fold 的结果值**，算法不变：
@@ -279,7 +279,7 @@ fold，`v` 取 **fold 的结果值**，算法不变：
 1. **`transition_contracts` 轴 + `transition` 投影**：result value 只承载状态名本身（`invite_lifecycle`
    即此形），该 family 的其它事实各自另立 family。
 2. **封闭 reducer 派生成员**：status 是 value body 内与其它字段同层的一个成员，由
-   `result_writes[].derived_members[].derivation` 中一个封闭派生名物化，MUST NOT 由 producer 自填；
+   `state_writes[].derived_members[].derivation` 中一个封闭派生名物化，MUST NOT 由 producer 自填；
    该 family MUST NOT 出现在 `transition_contracts` 中（`capability_grant`、`consent` 即此形）。
 3. **有界的作者状态路径**：status 是 value body 内的一个成员，由作者在已登记的
    `apply_patch` `allowed_paths[]` 内直接写入；该 family MUST NOT 出现在 `transition_contracts` 中，
@@ -310,12 +310,12 @@ MUST NOT 拆成两份各自独立的权威副本。`capability_grant` 与 `conse
 
 ### 2.2 消费清单（normative）
 
-写入方向已经封闭：每个 family MUST 至少有一个 Event kind 在 `result_writes[]` 里写它，这条由
-`check_every_result_family_has_a_writer` 强制。读取方向此前既无门禁也无记录——一个 family 可以有写者、
+写入方向已经封闭：每个 family MUST 至少有一个 Event kind 在 `state_writes[]` 里写它，这条由
+`check_every_state_family_has_a_writer` 强制。读取方向此前既无门禁也无记录——一个 family 可以有写者、
 有投影、有 schema，却没有任何一节正文把判断条件挂在它的当前值上。这种 family 在注册表里与真正被消费的
 family 完全无法区分，正文读起来像是「该状态存在」，而实际上没有任何行为依赖它。
 
-因此 `current-result-registry.json` 的每一行 MUST 携带 `consumption`，三个成员都 MUST 给出：
+因此 `current-state-registry.json` 的每一行 MUST 携带 `consumption`，三个成员都 MUST 给出：
 
 - `class`：取自该文件 `consumption_classes` 的封闭词表，见下；
 - `consumed_by[]`：读取该 family **当前值**的正文小节引用，形如 `<page>.md §N`，
@@ -371,7 +371,7 @@ MUST NOT 随投影缓存重建而清除。
 的 exact current read；它在同一治理任期和 effective stream head 下明确区分未写入与写后清空。
 该精确响应也只是一时观察，不豁免提交时的当前授权与 CAS 再验证。
 
-Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_results.read.exact.v1` 已登记 policy selector，
+Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_states.read.exact.v1` 已登记 policy selector，
 仅当前 scope 有 `ak.policy.set` 权限者可得原 typed row 或权威 never_written；不凭省略推断初次 null，
 不枚举其他 Policy，read permission 不代替写入时的 current CAS 和审批校验。
 

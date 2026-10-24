@@ -110,17 +110,17 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     key = definitions.get("query_signing_key")
     required = key.get("required") if isinstance(key, dict) else None
     properties = key.get("properties") if isinstance(key, dict) else None
-    if required != ["public_key_b64u", "authorization_ref", "revision", "governance_generation"]:
+    if required != ["public_key_base64url", "authorization_ref", "revision", "governance_generation"]:
         lint.fail(SCHEMA, "query_signing_key must require key bytes, independent authorization ref, revision and generation")
     if not isinstance(properties, dict) or properties.get("authorization_ref", {}).get("$ref") != COMMITTED_REF:
         lint.fail(SCHEMA, "query_signing_key authorization_ref must be a committed_event_ref")
     revision = properties.get("revision") if isinstance(properties, dict) else None
     if not isinstance(revision, dict) or revision.get("required") != ["commit_id", "stream_position"] or revision.get("additionalProperties") is not False:
         lint.fail(SCHEMA, "query_signing_key revision must be the closed current commit coordinate")
-    if not isinstance(properties, dict) or properties.get("governance_generation", {}).get("minimum") != 0:
+    if not isinstance(properties, dict) or properties.get("governance_generation", {}).get("$ref") != "./decimal-integers.schema.json#/$defs/uint64_decimal":
         lint.fail(SCHEMA, "query_signing_key must bind a non-negative governance_generation")
 
-    for name in ("historical_account_device_outcome", "historical_agent_outcome"):
+    for name in ("historical_account_device_signer_key_resolution", "historical_agent_signer_key_resolution"):
         outcome = definitions.get(name)
         ref = outcome.get("properties", {}).get("key", {}).get("$ref") if isinstance(outcome, dict) else None
         if ref != "#/$defs/query_signing_key":
@@ -133,7 +133,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     committed = authority_defs.get("committed_event_ref")
     if not isinstance(committed, dict) or committed.get("required") != ["event_id", "commit_id", "stream_ref", "stream_position"]:
         lint.fail(AUTHORITY_SCHEMA, "committed_event_ref must remain the closed four-coordinate reference")
-    scan = authority_defs.get("stream_scan_outcome")
+    scan = authority_defs.get("stream_scan_response_body")
     scan_items = scan.get("properties", {}).get("committed_events", {}).get("items", {}).get("$ref") if isinstance(scan, dict) else None
     if scan_items != "#/$defs/stream_row":
         lint.fail(AUTHORITY_SCHEMA, "per-stream scan must continue to carry canonical stream_row values")
@@ -174,7 +174,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     else:
         if fixture.get("carrier_sources") != [
             "account_subscribe.realm_sync_entry.committed_events",
-            "ak.self.committed_event.read.scan.v1.stream_scan_outcome.committed_events",
+            "ak.self.committed_event.read.scan.v1.stream_scan_response_body.committed_events",
         ]:
             lint.fail(FIXTURE, "fixture must retain exactly the two existing stream_row carrier sources")
         if fixture.get("construction_sources") != fixture.get("carrier_sources", []) + ["self_submit.frozen_signed_request_and_bound_accepted_outcome"]:
@@ -201,7 +201,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
 
     prose = {
         SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性", "本次 self 提交原件", "self 提交的 Human PCR 历史公钥", "同事务事实", "MUST NOT 推进"),
-        SYNC_PROSE: ("realm_sync_entry.committed_events[]", "stream_scan_outcome.committed_events[]", "不得新增"),
+        SYNC_PROSE: ("realm_sync_entry.committed_events[]", "stream_scan_response_body.committed_events[]", "不得新增"),
         VECTOR_PROSE: (VECTOR_ID, "authorization_ref", "current-query 降级"),
     }
     for path, markers in prose.items():
@@ -224,10 +224,10 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
         lint.fail(AUTHORITY_SCHEMA, "Account Device fact must remain minimal, required and closed in exact field order")
     if fact.get("properties", {}).get("key", {}).get("$ref") != "./signer-key-operations.schema.json#/$defs/query_signing_key":
         lint.fail(AUTHORITY_SCHEMA, "Account Device fact must reuse complete original query_signing_key")
-    peer = defs.get("peer_stream_scan_outcome", {})
+    peer = defs.get("peer_stream_scan_response_body", {})
     if list(peer.get("properties", {})) != ["committed_events", "readable_floor", "truncated", "producer_signer_facts"] or "producer_signer_facts" not in peer.get("required", []) or peer.get("additionalProperties") is not False:
         lint.fail(AUTHORITY_SCHEMA, "peer scan must carry required closed original fact entries")
-    if "producer_signer_facts" in defs.get("stream_scan_outcome", {}).get("properties", {}):
+    if "producer_signer_facts" in defs.get("stream_scan_response_body", {}).get("properties", {}):
         lint.fail(AUTHORITY_SCHEMA, "self scan must not acquire peer fact metadata")
     commit = load_json(lint, ARTIFACTS / "schemas" / "realm-commit.schema.json")
     fields = list(commit.get("properties", {}))
@@ -242,7 +242,7 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     if rule.get("managed_device_source") != "accepted_managed_provision_and_exact_pcr_device_authorization_with_original_four_coordinates_revision_and_generation":
         lint.fail(CONTRACT, "managed Device source must retain exact accepted provenance and original coordinates")
     op = _find(contract.get("operation_registry", {}).get("operations"), "operation_id", "ak.peer.committed_event.read.scan.v1")
-    if not isinstance(op, dict) or op.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome":
+    if not isinstance(op, dict) or op.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body":
         lint.fail(CONTRACT, "peer operation must select its fact-bearing scan response")
     fixture = load_json(lint, FIXTURE).get("foreign_human_historical_signer_delivery", {})
     if fixture.get("contract") != rule or fixture.get("source_times", {}).get("accepted_at") != "original_authorization_commit.committed_at":
@@ -320,11 +320,11 @@ def _foreign_human_transcript_errors(transcript: dict) -> list[str]:
         check(signature['signature_algorithm']=='Ed25519', 'detached_algorithm')
         check(signature['signed_digest']==sha(host), 'complete_unsigned_digest')
         envelope={key:signature[key] for key in ['context','signature_algorithm','verification_method','signed_digest','created_at']}
-        Ed25519PublicKey.from_public_bytes(raw(public)).verify(raw(signature['sig']),(context+'\n').encode()+jcs(envelope))
+        Ed25519PublicKey.from_public_bytes(raw(public)).verify(raw(signature['signature']),(context+'\n').encode()+jcs(envelope))
     import json
     try:
         kat=load_json(Lint(),ARTIFACTS/'fixtures'/'detached-object-signature-kat-fixture.json')
-        keys={key['test_key_ref']:key['public_key_b64u'] for key in kat['test_keys']}
+        keys={key['test_key_ref']:key['public_key_base64url'] for key in kat['test_keys']}
         human=keys['rfc8032_test_1_ed25519_key'];station=keys['conformance_ed25519_fixture_key']
         check(transcript['keys']['human_public_key_b64u']==human,'published_human_key')
         check(transcript['keys']['origin_governor_public_key_b64u']==station,'published_station_key')
@@ -346,7 +346,7 @@ def _foreign_human_transcript_errors(transcript: dict) -> list[str]:
         check(fact['verification_method']==proof['verification_method'] and fact['device_id']==proof['verification_method'].split('#')[1],'fact_device_method')
         check(core['account_id']==fact['actor']['account_id'] and core['device_id']==fact['device_id'],'origin_account_device')
         check(base58btc_decode(core['device_signing_key_did'].split(':')[-1][1:])==b'\xed\x01'+raw(human),'origin_actual_key')
-        check(fact['key']['public_key_b64u']==human,'fact_actual_key')
+        check(fact['key']['public_key_base64url']==human,'fact_actual_key')
         check(auth['authorization_ref']['event_id']==core['device_authorize_event_id'],'origin_authorizer_event')
         check(auth['event_id']==event['event_id'] and auth['verification_method']==proof['verification_method'],'origin_exact_event_method')
         check(auth['forward_body_digest']==sha({'branch':'authority_forward','event_submission':{'event':event}}),'origin_exact_forward_body')

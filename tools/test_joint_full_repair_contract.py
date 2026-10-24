@@ -115,16 +115,16 @@ class JointFullRepairContractTest(unittest.TestCase):
         schema = load('schemas/key-backup.schema.json')
         validator = Draft202012Validator(schema['properties']['encryption']['properties']['kdf'])
         kdf = {'name': 'argon2id', 'salt': 'A' * 22,
-               'params': {'memory_kib': 65536, 'iterations': 3, 'parallelism': 1}}
+               'parameters': {'memory_kib': 65536, 'iterations': 3, 'parallelism': 1}}
         self.assertTrue(validator.is_valid(kdf))
-        kdf['params']['digest_algorithm'] = None
+        kdf['parameters']['digest_algorithm'] = None
         self.assertFalse(validator.is_valid(kdf))
         kdf = {'name': 'pbkdf2', 'salt': 'A' * 22, 'degraded_profile_reason': 'restricted runtime',
-               'params': {'iterations': 600000, 'digest_algorithm': 'sha256'}}
+               'parameters': {'iterations': 600000, 'digest_algorithm': 'sha256'}}
         self.assertTrue(validator.is_valid(kdf))
-        kdf['params']['digest_algorithm'] = None
+        kdf['parameters']['digest_algorithm'] = None
         self.assertFalse(validator.is_valid(kdf))
-        kdf['params'].pop('digest_algorithm')
+        kdf['parameters'].pop('digest_algorithm')
         self.assertFalse(validator.is_valid(kdf))
 
 

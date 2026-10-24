@@ -149,7 +149,7 @@ TRUST_DOMAIN_PATTERN = r"^ak:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$"
 
 GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
 
-GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
+GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResponseBody"
 
 
 REGISTRY_PLANES = {"data", "control", "conditional"}
@@ -236,7 +236,7 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "requires_frank_verification": "franking_proof_verification_required",
     "retention_until": "retention_expires_at",
     "queue_item_id": "id",
-    "series_sequence": "series_seq",
+    "series_seq": "series_sequence",
     "profileRef": "profile_ref",
     "featureRef": "feature_ref",
     "eventRef": "event_ref",
@@ -269,7 +269,7 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "new_did_document_hash": "new_document_digest",
     "old_did_document_canonical_hash": "old_document_digest",
     "head_event_hash": "head_event_digest",
-    "prev_event_hash": "prev_event_digest",
+    "prev_event_hash": "previous_event_digest",
     "audit_policy_version_hash": "audit_policy_version_digest",
     "code_hash": "code_digest",
     "sha256_hash": "sha256_digest",
@@ -501,7 +501,7 @@ CELL_WRITE_DERIVATIONS = {
     # author may patch it and `object_initial_state` only ever produces the
     # initial value -- which left every `ak.<kind>.archive` / `.restore` /
     # `.tombstone` kind with nothing it could legally declare, and all eleven of
-    # them sat at `result_writes: []` while the five object families they close
+    # them sat at `state_writes: []` while the five object families they close
     # could not be registered at all. `object_lifecycle_state` is that missing
     # producer: on an accepted lifecycle Event it yields the state
     # zh/models/common-fields.md section 5.2 maps the kind to -- archive ->
@@ -616,7 +616,7 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # list. "The handler writes no Event" is true of every entry — accept_local_operations
 # persists nothing unless persist_before_projection is set — so it proves nothing on
 # its own. A downgrade additionally MUST show the state change reaches no replicated
-# typed current result, i.e. no peer has to converge on the change.
+# current state, i.e. no peer has to converge on the change.
 # The report that opened this ratchet has been closed and deleted; the rule above is
 # the whole of it, so do not look for a task file to re-read.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}
@@ -1035,7 +1035,7 @@ _SUPPLY_CLIENT_LOCAL_RE = re.compile(
     r"^payload_bytes$|^ciphertext|plaintext|^password|^locale$|^timezone$|"
     r"^limit$|^cursor$|^page|^filter|^query$|^purpose$|^kind$|^mode$|^scope$|"
     r"_proof$|^proof$|proof_kind|proof_jwt|^code$|code_verifier|redirect_uri|"
-    r"blinded|^introduction_evidence$|^auth_data$|^proofPurpose$|^proofValue$|^verificationMethod$|"
+    r"blinded|^introduction_evidence$|^signature_proof$|^proofPurpose$|^proofValue$|^verificationMethod$|"
     r"^cryptosuite$|^argument_digest$|recovery_secret)",
     re.I,
 )
@@ -1057,7 +1057,7 @@ _SUPPLY_CAS_ECHO_RE = re.compile(
 # so the caller authors the bytes and no read surface owes them to it.
 # join-policy.md 7 applicant/reviewer receipts; the recovery terminal receipt
 # is signed by the replacement device's accepted device key (recovery-receipt
-# .schema.json auth_data forbids service keys) and that same device is the
+# .schema.json signature_proof forbids service keys) and that same device is the
 # issue_recovery_completion_grant caller. The security-rotation local commit is
 # likewise authored from the returned transaction coordinates plus client-local
 # device/time state and authenticated by the enclosing client_step_attestation;
@@ -1070,7 +1070,7 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "cancel_receipt",
         "AcceptedDevicePossessionProof",
         "AgentSessionRefreshProof",
-        "AgentSessionGrantRequest",
+        "AgentSessionGrantRequestBody",
         "keypackages_claim_service_binding",
         # The compensation executor assembles this closed transport-only
         # carrier from its own signed delegation plus the terminal failure
@@ -1092,7 +1092,7 @@ _SUPPLY_PAYLOAD_SUPPLY_FILES = ("payload", "event-envelope.schema.json")
 
 
 # ---------------------------------------------------------------------------
-# sync/current-results.md 2.1: FSM state reachability
+# sync/current-state.md 2.1: FSM state reachability
 # ---------------------------------------------------------------------------
 
 _FSM_CONTRACT_KEYS = frozenset(
@@ -1217,6 +1217,24 @@ def load_json(lint: Lint, path: Path) -> Any:
     except Exception as exc:  # pragma: no cover - exact parser errors vary
         lint.fail(path, f"invalid JSON: {exc}")
         return None
+
+
+def schema_assertions(node: Any) -> Any:
+    """View schema assertions independently of separately checked naming metadata.
+
+    Only the three naming-audit annotations are omitted. Every validation,
+    canonicalization, signature, presence and other extension keyword remains.
+    """
+    annotations = {"x-arkret-name-role", "x-arkret-member-role", "x-arkret-value-ownership"}
+    if isinstance(node, dict):
+        return {key:schema_assertions(value) for key,value in node.items() if key not in annotations}
+    if isinstance(node, list):
+        return [schema_assertions(value) for value in node]
+    return node
+
+
+def load_contract_json(lint: Lint, path: Path) -> Any:
+    return schema_assertions(load_json(lint,path))
 
 
 
@@ -1569,7 +1587,7 @@ def load_json_schema_for_uri(uri: str) -> Any:
     if not uri.startswith(prefix):
         raise ValueError(f"unsupported remote schema URI {uri}")
     path = ARTIFACTS / "schemas" / uri[len(prefix):]
-    return parse_json_file(path.resolve())
+    return schema_assertions(parse_json_file(path.resolve()))
 
 
 
@@ -1609,6 +1627,7 @@ def schema_validator(schema_path: Path, fragment: str) -> Any:
         if schema_path.suffix.lower() in {".yaml", ".yml"}
         else parse_json_file(schema_path)
     )
+    schema_document = schema_assertions(schema_document)
     schema = resolve_json_pointer(schema_document, fragment)
     if not isinstance(schema, dict):
         raise TypeError("schema_ref fragment is not an object schema")

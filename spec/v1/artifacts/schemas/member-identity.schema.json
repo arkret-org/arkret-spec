@@ -15,7 +15,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.member_identity.v1"
+      "const": "ak.schema.member_identity.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "member-identity.schema.json#/properties/schema",
+        "owner": "member-identity.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.member_identity.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -67,7 +75,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "member-identity.schema.json#/properties/proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "payload_digest": {
           "$ref": "#/$defs/digest",

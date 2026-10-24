@@ -32,7 +32,7 @@ requester 的 actor_id 必须是当次真实认证请求人（安装／调用人
 
 Agent／Applet 管理 Policy 的 `ak.policy.set` payload **MUST** 携精确 nullable `expected_revision`。
 首次 `null` 只来自完整权威无记录证明；更新须命中当前 revision，Policy id 禁止换成另一族逃避 CAS。
-写入者通过 `ak.self.current_results.read.exact.v1` 的 `selector={kind:policy,policy_id}` 读取同 cut Policy typed current；
+写入者通过 `ak.self.current_state.read.exact.v1` 的 `selector={kind:policy,policy_id}` 读取同 cut Policy typed current；
 仅当前有本 scope `ak.policy.set` 权限者可读 Agent／Applet Policy。真正不存在返回 exact `never_written`，无权或隐藏返回 not_found；不提供 Policy 枚举。
 写入者须有该 scope 当前 `ak.policy.set` 权限；用户例外不是成员自行修改管理员 Policy 的入口。
 
@@ -149,7 +149,7 @@ Service通过 `ak.self.applet.authority.read.material.v1` 用自己的 Service�
 结果每个grant与请求、registration、scope、Realm/current generation、revision及effective head **MUST**一致；
 Station接纳child仍重读权威current，不信任Service缓存allow。完整审计也不把私有parent原文写入共享Event。
 
-该响应 MUST 携封闭 `current_binding`，与 current_results 使用同一只读 MVCC cut、Realm／governance_generation 和相应来源 stream heads。`status=active` 恰携 `registration_ref: CommittedEventRef`、`registration_epoch: Hash`、`service_id: DidCoreId`，指向本请求 Service 在 exact Applet／scope 的当前有效安装登记；`status=inactive` 禁带这三个成员，只表示本请求 Service 在该范围没有有效安装，不披露其他 Service 的替代安装。active 必须展开 registration 实例、epoch、实际 grants、scope、membership／controller 等有效安装依赖，不能只检查登记行存在或单个 grant 的状态；治理或依赖未知时整体失败，不能返回 inactive。
+该响应 MUST 携封闭 `current_binding`，与 current_states 使用同一只读 MVCC cut、Realm／governance_generation 和相应来源 stream heads。`status=active` 恰携 `registration_ref: CommittedEventRef`、`registration_epoch: Hash`、`service_id: DidCoreId`，指向本请求 Service 在 exact Applet／scope 的当前有效安装登记；`status=inactive` 禁带这三个成员，只表示本请求 Service 在该范围没有有效安装，不披露其他 Service 的替代安装。active 必须展开 registration 实例、epoch、实际 grants、scope、membership／controller 等有效安装依赖，不能只检查登记行存在或单个 grant 的状态；治理或依赖未知时整体失败，不能返回 inactive。
 
 原 `registration` 与 `grant_events` 永远保持请求 grant 的原 accepted 来源，不改为当前登记。历史读取资格依据原 Service／Applet／scope／grant 的绑定验证，不因最新安装被卸载或换成其他 Service 而要求有效业务安装；读取仍仅限原有私有来源，不允许枚举替代者。`current_binding` 不授予业务权限，不阻止合法历史创建确认或独立恢复，也不得缓存为之后业务操作的持续 allow。
 

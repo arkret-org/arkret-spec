@@ -77,7 +77,7 @@ state       = reduce(profile, prior_state, signed_fact)
 ```
 
 producer MUST NOT 携带 `effects[]`、`conflict_keys_digest`，也 MUST NOT 任意选择可从
-accepted governance basis 求出的 capability 引用。typed current result family、subject derivation、state model
+accepted governance basis 求出的 capability 引用。current state family、subject derivation、state model
 与 projection 是 reducer contract 的内部声明，不是 wire 上的第二份事实。
 
 每个 reducer contract MUST 是由 schema-validated `kind + payload`、签名 envelope 字段、
@@ -148,7 +148,7 @@ Event projection MAY 物化名为 `effective_scope` 的只读字段，但它 MUS
 Strand projection 派生 Circle scope 后发现不等，必须拒绝；server 不需要也不得解密
 `strand_id` 来替 sender 修正 scope。
 
-反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 typed current result。该 manifest 必须被拒绝，
+反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 current state。该 manifest 必须被拒绝，
 因为它重新引入 producer reducer DSL。
 
 Realm 受管主体私有控制使用 `{"kind":"realm_control","realm_id":RealmId}`，共享所属 Realm 治理任期，独立排序；不是业务 effective scope，普通成员读取不包含它，见 [Realm Bot／Ghost](../extensions/realm-actors.md)。

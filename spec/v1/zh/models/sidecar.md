@@ -144,7 +144,7 @@ desired_agent_ids(S, F) =
   ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
-其中 `F` 是读取或 admission 使用的 accepted authority-committed current results。`active_authorized_owned_agents` 来自 canonical
+其中 `F` 是读取或 admission 使用的 accepted authority-committed current state。`active_authorized_owned_agents` 来自 canonical
 Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
 participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
 truth。完整 MLS 目标 roster 是 `S.controller_account_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
@@ -188,7 +188,7 @@ resource-scoped capability、Agent participation selection 与 action policy 继
 
 ## 6. 原生 MLS 绑定
 
-Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership typed current result。
+Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership current state。
 不存在 controller-global Sidecar MLS group：不同 `sidecar_id` 的 Add/Remove/Update、Welcome、epoch、future
 epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidecar 复用或传播。
 
@@ -272,7 +272,7 @@ Sidecar 没有可用的 controller authority。
 
 ## 8. Private view 与显式发布
 
-`ak.agent.sidecar.exchange.control` 写 `agent_sidecar_exchange_controls` typed current result：subject 是
+`ak.agent.sidecar.exchange.control` 写 `agent_sidecar_exchange_controls` current state：subject 是
 `(payload.sidecar_id, canonical_json(payload.source_context_ref))`，value 是以 canonical Event dot 标记的
 完整 encrypted control carrier 集合。`exchange_id` 只存在于
 `ak.schema.agent_sidecar_exchange_control.v1` 认证密文明文中，MUST NOT 为了寻址复制到外层 payload 或
@@ -352,7 +352,7 @@ exact MLS group state，然后在同一耐久事务安装相互一致的私密�
 只能在该事务耐久完成后推进。派生投影 MAY 为非耐久缓存，但只能从完整安装且仍获授权的 cut
 重建并发布到 UI，不得展示事务中的候选中间态。任一验证失败或依赖缺失时 MUST NOT 安装部分 current／投影或宣称最新
 历史完整，MUST NOT 用另一个 Realm／Sidecar／generation 的 head、较新的 current 或部分事件凑齐该 cut。
-遵循 [`client-sync.md` §5](../sync/client-sync.md) 与 [`current-results.md` §3–§5](../sync/current-results.md)。
+遵循 [`client-sync.md` §5](../sync/client-sync.md) 与 [`current-state.md` §3–§5](../sync/current-state.md)。
 
 已接纳回复及其验证依赖可取得时，consumer MUST 自动补齐并重新验证，然后更新原讨论中的私密投影，
 不等待下一条用户消息或手动刷新。断线、cursor 失效或客户端重启后 MUST 自动恢复同一已接纳历史与

@@ -21,11 +21,19 @@
       ],
       "properties": {
         "anchor_kind": {
-          "const": "webvh_registration"
+          "const": "webvh_registration",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "principal-registration-anchor.schema.json#/$defs/webvh_registration_anchor/properties/anchor_kind",
+            "owner": "principal-registration-anchor.schema.json#/$defs/webvh_registration_anchor/properties/anchor_kind",
+            "values": [
+              "webvh_registration"
+            ]
+          }
         },
         "registration_did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
-          "description": "Exact registration-time did:webvh operation wrapper. For identity_creation it matches the registry-accepted operation; for published_identity it wraps the existing verified native terminal entry as frozen primary material and MUST NOT be submitted to a registry or treated as a registry receipt. did_method MUST equal webvh, did MUST be the canonical did:webvh identifier this anchor establishes and is the anchor's only copy of that DID, seq when present MUST equal the version number of the terminal entry, and operation MUST be canonically equal to the last log_entries element. prev_event_digest MUST be absent: inside an anchor the predecessor is carried as the preceding log_entries elements, so a digest of it would be a mirror of material already present. The wrapper therefore states an invariant rather than offering a second, independently choosable copy of the registration entry."
+          "description": "Exact registration-time did:webvh operation wrapper. For identity_creation it matches the registry-accepted operation; for published_identity it wraps the existing verified native terminal entry as frozen primary material and MUST NOT be submitted to a registry or treated as a registry receipt. did_method MUST equal webvh, did MUST be the canonical did:webvh identifier this anchor establishes and is the anchor's only copy of that DID, seq when present MUST equal the version number of the terminal entry, and operation MUST be canonically equal to the last log_entries element. previous_event_digest MUST be absent: inside an anchor the predecessor is carried as the preceding log_entries elements, so a digest of it would be a mirror of material already present. The wrapper therefore states an invariant rather than offering a second, independently choosable copy of the registration entry."
         },
         "log_entries": {
           "type": "array",

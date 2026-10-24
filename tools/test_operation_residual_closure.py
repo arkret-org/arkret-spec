@@ -77,7 +77,7 @@ class OperationResidualClosureTest(unittest.TestCase):
             endpoint["requestBody"]["content"]["application/json"]["schema"]["$ref"],
         )
         self.assertEqual(
-            "#/components/schemas/EventDeliveryStatusOutcome",
+            "#/components/schemas/EventDeliveryStatusResponseBody",
             endpoint["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
         )
 
@@ -120,7 +120,7 @@ class OperationResidualClosureTest(unittest.TestCase):
     def test_delivery_status_dtos_are_closed(self) -> None:
         defs = load("schemas/service-operation-dtos.schema.json")["$defs"]
         request = defs["EventDeliveryStatusRequestBody"]
-        outcome = defs["EventDeliveryStatusOutcome"]
+        outcome = defs["EventDeliveryStatusResponseBody"]
         target = defs["EventDeliveryTargetStatus"]
         self.assertFalse(request["additionalProperties"])
         self.assertEqual(["event_id", "targets"], outcome["required"])

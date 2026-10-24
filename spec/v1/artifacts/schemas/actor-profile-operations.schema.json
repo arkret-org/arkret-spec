@@ -4,7 +4,7 @@
   "title": "Arkret Actor Profile Operations",
   "description": "Authorized anti-enumeration display view of a co-member global Actor Profile, served by the authenticated own Station. The profile Event and its covering RealmCommit are accepted provenance, not a complete projection proof. The operation grants no identity, capability or membership authority.",
   "$defs": {
-    "resolve_request": {
+    "resolve_request_body": {
       "type": "object",
       "description": "Resolves current global Actor Profiles for actors the caller currently shares realm_id with. The caller MUST be an effective joined member of realm_id and every returned actor MUST also be one at evaluation time; realm_id is the authorization basis, not a display hint.",
       "required": [
@@ -26,7 +26,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "profile_event": {
       "allOf": [
@@ -43,7 +44,16 @@
               "enum": [
                 "ak.profile.create",
                 "ak.profile.update"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "actor-profile-operations.schema.json#/$defs/profile_event/allOf/1/properties/kind",
+                "owner": "actor-profile-operations.schema.json#/$defs/profile_event/allOf/1/properties/kind",
+                "values": [
+                  "ak.profile.create",
+                  "ak.profile.update"
+                ]
+              }
             }
           }
         }
@@ -93,12 +103,20 @@
         "reason": {
           "enum": [
             "profile_unavailable"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "actor-profile-operations.schema.json#/$defs/resolve_failure/properties/reason",
+            "owner": "actor-profile-operations.schema.json#/$defs/resolve_failure/properties/reason",
+            "values": [
+              "profile_unavailable"
+            ]
+          }
         }
       },
       "additionalProperties": false
     },
-    "resolve_outcome": {
+    "resolve_response_body": {
       "type": "object",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.profile.create",
@@ -124,15 +142,16 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "account_status_projection": {
       "type": "object",
-      "description": "Optional AccountStatusRecord projection served beside the profile. The durable Actor Profile object used to carry a status member, which was unwritable by construction: zh/identity/account-lifecycle.md section 3 keeps AccountStatusRecord out of every authority stream, RealmCommit, Control Proposal and reducer, so no registered result_writes[] row could ever produce it and no author could be allowed to. It is a read-side projection and lives here. The Station MUST have verified the exact record it is projecting -- the same account_id, the record's own proof, and the status_seq against its durable monotonic replica head -- and MUST omit this member entirely when it holds no verified record. Omission means unknown. A caller MUST NOT read a missing member as active, and MUST NOT cache a status across a profile revision: the record changes on the Account Authority's clock, not on the profile's.",
+      "description": "Optional AccountStatusRecord projection served beside the profile. The durable Actor Profile object used to carry a status member, which was unwritable by construction: zh/identity/account-lifecycle.md section 3 keeps AccountStatusRecord out of every authority stream, RealmCommit, Control Proposal and reducer, so no registered state_writes[] row could ever produce it and no author could be allowed to. It is a read-side projection and lives here. The Station MUST have verified the exact record it is projecting -- the same account_id, the record's own proof, and the status_sequence against its durable monotonic replica head -- and MUST omit this member entirely when it holds no verified record. Omission means unknown. A caller MUST NOT read a missing member as active, and MUST NOT cache a status across a profile revision: the record changes on the Account Authority's clock, not on the profile's.",
       "required": [
         "account_id",
         "status",
-        "status_seq",
+        "status_sequence",
         "account_status_record_id"
       ],
       "properties": {
@@ -149,12 +168,25 @@
             "deactivated",
             "erasure_pending"
           ],
-          "description": "The closed AccountStatusRecord lifecycle value of zh/identity/account-lifecycle.md section 3. Implementations MAY coarsen or withhold the projection, but MUST NOT invent a value."
+          "description": "The closed AccountStatusRecord lifecycle value of zh/identity/account-lifecycle.md section 3. Implementations MAY coarsen or withhold the projection, but MUST NOT invent a value.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "actor-profile-operations.schema.json#/$defs/account_status_projection/properties/status",
+            "owner": "actor-profile-operations.schema.json#/$defs/account_status_projection/properties/status",
+            "values": [
+              "active",
+              "soft_logged_out",
+              "locked",
+              "suspended",
+              "deactivated",
+              "erasure_pending"
+            ]
+          }
         },
-        "status_seq": {
+        "status_sequence": {
           "type": "integer",
           "minimum": 1,
-          "description": "status_seq of the exact record projected, so the caller can order and re-check it."
+          "description": "status_sequence of the exact record projected, so the caller can order and re-check it."
         },
         "account_status_record_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"

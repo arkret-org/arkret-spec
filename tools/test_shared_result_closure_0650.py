@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import proof_context_schemas as writes_gate
-from tools.artifact_lint import result_effect_ownership as owner_gate
+from tools.artifact_lint import effect_ownership as owner_gate
 
 
 TARGETS = {
@@ -49,7 +49,7 @@ class SharedResultClosure0650Test(unittest.TestCase):
         owner_gate.load_json = load_json
         try:
             lint = owner_gate.Lint()
-            owner_gate.check_result_effect_ownership(lint)
+            owner_gate.check_effect_ownership(lint)
             return lint.errors
         finally:
             owner_gate.load_json = original
@@ -67,7 +67,7 @@ class SharedResultClosure0650Test(unittest.TestCase):
             if Path(path).resolve() == writes_gate.EVENT_KIND_REGISTRY.resolve():
                 return document
             if Path(path).resolve() == writes_gate.CURRENT_RESULT_REGISTRY.resolve():
-                return contract["current_result_registry"]
+                return contract["current_state_registry"]
             return original(lint, path)
 
         writes_gate.load_json = load_json
@@ -83,33 +83,33 @@ class SharedResultClosure0650Test(unittest.TestCase):
         for kind, family in TARGETS.items():
             with self.subTest(kind=kind):
                 row = row_of(contract, kind)
-                self.assertEqual(row["result_effect_ownership"], {"kind": "typed_result_writer"})
-                self.assertEqual([write["result_family"] for write in row["result_writes"]], [family])
+                self.assertEqual(row["effect_ownership"], {"kind": "typed_state_writer"})
+                self.assertEqual([write["state_family"] for write in row["state_writes"]], [family])
 
     def test_each_target_loses_ownership_if_its_single_write_is_removed(self) -> None:
         baseline = set(self._owner_errors())
         for kind in TARGETS:
             with self.subTest(kind=kind):
-                errors = self._owner_errors(lambda d, k=kind: row_of(d, k).pop("result_writes"))
+                errors = self._owner_errors(lambda d, k=kind: row_of(d, k).pop("state_writes"))
                 new = set(errors) - baseline
-                self.assertTrue(any("non-empty result_writes" in error for error in new), new)
+                self.assertTrue(any("non-empty state_writes" in error for error in new), new)
 
     def test_sidecar_selector_never_exposes_plaintext_exchange_identity(self) -> None:
         contract = owner_gate.load_json(owner_gate.Lint(), owner_gate.CONTRACT_REGISTRY)
-        write = row_of(contract, "ak.agent.sidecar.exchange.control")["result_writes"][0]
-        serialized = repr(write["result_selector"])
+        write = row_of(contract, "ak.agent.sidecar.exchange.control")["state_writes"][0]
+        serialized = repr(write["state_selector"])
         self.assertNotIn("exchange_id", serialized)
         self.assertNotIn("encrypted_payload", serialized)
-        self.assertEqual(write["result_projection"]["kind"], "keyed_set_add")
+        self.assertEqual(write["state_projection"]["kind"], "keyed_set_add")
 
     def test_all_new_families_resolve_to_closed_result_defs(self) -> None:
         contract = owner_gate.load_json(owner_gate.Lint(), owner_gate.CONTRACT_REGISTRY)
         registered = {
-            row["result_kind"]: row["schema_ref"]
-            for row in contract["current_result_registry"]["result_kinds"]
+            row["state_kind"]: row["schema_ref"]
+            for row in contract["current_state_registry"]["state_kinds"]
         }
         schema = writes_gate.load_json(
-            writes_gate.Lint(), ROOT / "spec/v1/artifacts/schemas/typed-current-result.schema.json"
+            writes_gate.Lint(), ROOT / "spec/v1/artifacts/schemas/current-state.schema.json"
         )
         for family in sorted(set(TARGETS.values()) - {"call_state"}):
             with self.subTest(family=family):

@@ -19,7 +19,7 @@ class TypedCurrentRootTests(unittest.TestCase):
         registry = Registry().with_resources(
             (document["$id"], Resource.from_contents(document)) for document in documents)
         cls.current = Draft202012Validator(
-            {"$ref": BASE + "typed-current-result.schema.json"}, registry=registry)
+            {"$ref": BASE + "current-state.schema.json"}, registry=registry)
 
     def row(self, kind, field, value):
         return {

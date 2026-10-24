@@ -39,7 +39,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "recovery_unlock"
+          "const": "recovery_unlock",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "high-risk-authority-proof.schema.json#/$defs/recovery_unlock_proof/properties/kind",
+            "owner": "high-risk-authority-proof.schema.json#/$defs/recovery_unlock_proof/properties/kind",
+            "values": [
+              "recovery_unlock"
+            ]
+          }
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
@@ -77,7 +85,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "device_quorum"
+          "const": "device_quorum",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "high-risk-authority-proof.schema.json#/$defs/device_quorum_proof/properties/kind",
+            "owner": "high-risk-authority-proof.schema.json#/$defs/device_quorum_proof/properties/kind",
+            "values": [
+              "device_quorum"
+            ]
+          }
         },
         "threshold": {
           "type": "integer",
@@ -106,7 +122,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "trusted_recovery_service"
+          "const": "trusted_recovery_service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "high-risk-authority-proof.schema.json#/$defs/trusted_recovery_service_proof/properties/kind",
+            "owner": "high-risk-authority-proof.schema.json#/$defs/trusted_recovery_service_proof/properties/kind",
+            "values": [
+              "trusted_recovery_service"
+            ]
+          }
         },
         "service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"

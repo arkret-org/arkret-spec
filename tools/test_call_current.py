@@ -99,7 +99,7 @@ class CallCurrentTest(unittest.TestCase):
             def mutated(lint, path):
                 value = copy.deepcopy(original(lint, path))
                 if path.name == 'contract-registry.json':
-                    value['current_result_registry']['call_current_contract'][key] = True
+                    value['current_state_registry']['call_current_contract'][key] = True
                 return value
             with self.subTest(key=key), patch.object(gate, 'load_json', mutated):
                 lint = gate.Lint()

@@ -28,7 +28,7 @@ class SelfSignerResultTests(unittest.TestCase):
 
     def key(self):
         return {
-            "public_key_b64u": "A" * 43,
+            "public_key_base64url": "A" * 43,
             "authorization_ref": self.committed_ref(
                 "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g", 7
             ),
@@ -36,7 +36,7 @@ class SelfSignerResultTests(unittest.TestCase):
                 "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
                 "stream_position": 15,
             },
-            "governance_generation": 4,
+            "governance_generation": "4",
         }
 
     def request(self, mode="current_admission", sender="agent"):
@@ -79,7 +79,7 @@ class SelfSignerResultTests(unittest.TestCase):
     def test_historical_device_requires_independent_authorization_and_revision(self):
         selector = self.request("historical_event", "account_device")["queries"][0]
         result = {"selector": selector, "status": "resolved", "key": self.key(), "accepted_at": "2026-09-10T00:00:00.000Z"}
-        validator = self.validator("historical_account_device_outcome")
+        validator = self.validator("historical_account_device_signer_key_resolution")
         validator.validate(result)
         self.assertNotEqual(result["key"]["authorization_ref"], selector["committed_event_ref"])
         for field in ["authorization_ref", "revision", "governance_generation"]:
@@ -92,7 +92,7 @@ class SelfSignerResultTests(unittest.TestCase):
     def test_historical_agent_retains_independent_authorization_coordinate(self):
         selector = self.request("historical_event")["queries"][0]
         result = {"selector": selector, "status": "resolved", "key": self.key(), "accepted_at": "2026-09-10T00:00:00.000Z"}
-        validator = self.validator("historical_agent_outcome")
+        validator = self.validator("historical_agent_signer_key_resolution")
         validator.validate(result)
         del result["key"]["authorization_ref"]
         self.assertFalse(validator.is_valid(result))
@@ -110,20 +110,20 @@ class SelfSignerResultTests(unittest.TestCase):
 
     def test_human_current_is_key_only_and_cannot_cross_branches(self):
         selector = self.request("current_admission", "account_device")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43}}
-        self.validator("current_outcome").validate(result)
+        result = {"selector": selector, "status": "resolved", "key": {"public_key_base64url": "A" * 43}}
+        self.validator("current_signer_key_resolution").validate(result)
         for field, value in self.key().items():
-            if field == "public_key_b64u":
+            if field == "public_key_base64url":
                 continue
             changed = copy.deepcopy(result)
             changed["key"][field] = value
-            self.assertFalse(self.validator("current_outcome").is_valid(changed))
+            self.assertFalse(self.validator("current_signer_key_resolution").is_valid(changed))
         for mode, sender in [("current_admission", "agent"), ("historical_event", "agent"), ("historical_event", "account_device")]:
             changed = copy.deepcopy(result)
             changed["selector"] = self.request(mode, sender)["queries"][0]
             if mode == "historical_event":
                 changed["accepted_at"] = "2026-09-10T00:00:00.000Z"
-            fragment = "current_outcome" if mode == "current_admission" else "historical_" + sender + "_outcome"
+            fragment = "current_signer_key_resolution" if mode == "current_admission" else "historical_" + sender + "_signer_key_resolution"
             self.assertFalse(self.validator(fragment).is_valid(changed))
 
     def test_contact_endpoint_is_closed_and_only_for_accepted_humans(self):

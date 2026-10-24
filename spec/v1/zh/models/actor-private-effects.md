@@ -33,7 +33,7 @@ updated: 2026-09-25
 六种效果都由所选完整 `AccountId` 的 `station_id` 承载在 account-private store。选择
 `AccountId` 的字段来源因 Event 而异，必须读取各 branch 的 `storage_owner.account_id_source`，不得
 把当前接收 Station、裸 principal DID、Realm governance Station 或调用端 origin 当作 owner。
-成功写入可以向该账号的已授权设备同步，但 **MUST NOT** 写 Realm typed current result、推进 Realm
+成功写入可以向该账号的已授权设备同步，但 **MUST NOT** 写 Realm current state、推进 Realm
 reducer checkpoint、进入 federation payload，或以 RealmCommit 作为其私有状态的 CAS head。
 
 ## 2. 共同事务规则
@@ -63,7 +63,7 @@ payload 或以服务身份代签：
 上表第三行四个 kind 之一。服务 MUST 按本章 §2 顺序验证：已认证 caller 就是 Event 的实际签名 actor；按该 kind 的
 `storage_owner.account_id_source` 选出的 AccountId 其 `station_id` MUST 等于本服务，否则 `param_invalid` 零写入；
 随后在一个私有事务内求值 `concurrency`、写入 `value_projection` 与 exact-retry ledger。响应是 closed
-`ActorPrivateEventSubmitOutcome`：`ak.device.push_route` 返回 `{event_kind, accepted_event_id, revision}`，其余三个
+`ActorPrivateEventSubmitResponseBody`：`ak.device.push_route` 返回 `{event_kind, accepted_event_id, revision}`，其余三个
 kind 返回 `{event_kind, accepted_event_id}`；exact retry 返回首次保存的同一 outcome。该 operation 不产生 RealmCommit、
 不进入任何 commit stream，也不返回 RealmCommit。
 
@@ -202,7 +202,7 @@ envelope `created_at`；后者只投影为 read-marker / device-message 的 `upd
 一致性向量 `ak.vector.agent.draft_pending_intent.v1` 必须覆盖 create、exact replay、冲突、controller-only
 读取、HPKE handoff、到期、消费、CAS rollback、失败恢复、禁止 plaintext/account-data 冒充与禁止 shared reducer。
 
-`tools/artifact_lint:result_effect_ownership` 必须拒绝：未知或 inactive Event kind、漏 branch、重复或孤儿
-branch、`result_effect_ownership` 指向错误 service、错误 account owner source、shared/private scope
+`tools/artifact_lint:effect_ownership` 必须拒绝：未知或 inactive Event kind、漏 branch、重复或孤儿
+branch、`effect_ownership` 指向错误 service、错误 account owner source、shared/private scope
 混用、不可解析 value schema、未知 merge kind，以及任一结构字段缺失或开放。实现声称支持这些 Event
 前，必须能按 registry 逐字段重建同一 key、projection、write condition 与 rejection outcome。

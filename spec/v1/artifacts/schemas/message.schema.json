@@ -56,7 +56,15 @@
     {
       "properties": {
         "state": {
-          "const": "active"
+          "const": "active",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "message.schema.json#/oneOf/0/properties/state",
+            "owner": "message.schema.json#/oneOf/0/properties/state",
+            "values": [
+              "active"
+            ]
+          }
         }
       },
       "oneOf": [
@@ -85,7 +93,15 @@
     {
       "properties": {
         "state": {
-          "const": "redacted"
+          "const": "redacted",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "message.schema.json#/oneOf/1/properties/state",
+            "owner": "message.schema.json#/oneOf/1/properties/state",
+            "values": [
+              "redacted"
+            ]
+          }
         }
       },
       "required": [
@@ -115,7 +131,15 @@
       "description": "For ak.message.create, the reducer derives this value by retyping the creating Event.event_id's full 33-byte / 44-character token from ak:event: to ak:message:. It is not independently producer-chosen."
     },
     "schema": {
-      "const": "ak.schema.message.v1"
+      "const": "ak.schema.message.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "message.schema.json#/properties/schema",
+        "owner": "message.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.message.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -139,7 +163,15 @@
         {
           "properties": {
             "content_type": {
-              "const": "application/vnd.arkret.message+json"
+              "const": "application/vnd.arkret.message+json",
+              "x-arkret-value-ownership": {
+                "class": "media_type",
+                "authority": "message.schema.json#/properties/encrypted_content/allOf/1/properties/content_type",
+                "owner": "message.schema.json#/properties/encrypted_content/allOf/1/properties/content_type",
+                "values": [
+                  "application/vnd.arkret.message+json"
+                ]
+              }
             }
           }
         }
@@ -157,7 +189,15 @@
         {
           "properties": {
             "content_type": {
-              "const": "application/vnd.arkret.message-metadata+json"
+              "const": "application/vnd.arkret.message-metadata+json",
+              "x-arkret-value-ownership": {
+                "class": "media_type",
+                "authority": "message.schema.json#/properties/encrypted_metadata/allOf/1/properties/content_type",
+                "owner": "message.schema.json#/properties/encrypted_metadata/allOf/1/properties/content_type",
+                "values": [
+                  "application/vnd.arkret.message-metadata+json"
+                ]
+              }
             }
           }
         }
@@ -170,7 +210,16 @@
         "active",
         "redacted"
       ],
-      "description": "Top-level lifecycle state for messages. Messages do not have a separate deleted/tombstone state; retention or moderation removal uses ak.message.redact and state=redacted so the message slot and audit metadata remain stable."
+      "description": "Top-level lifecycle state for messages. Messages do not have a separate deleted/tombstone state; retention or moderation removal uses ak.message.redact and state=redacted so the message slot and audit metadata remain stable.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "message.schema.json#/properties/state",
+        "owner": "message.schema.json#/properties/state",
+        "values": [
+          "active",
+          "redacted"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -235,7 +284,17 @@
             "plain",
             "markdown",
             "prosemirror_json"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "message.schema.json#/$defs/content_block/properties/format",
+            "owner": "message.schema.json#/$defs/content_block/properties/format",
+            "values": [
+              "plain",
+              "markdown",
+              "prosemirror_json"
+            ]
+          }
         },
         "formatted_body": {
           "oneOf": [
@@ -324,7 +383,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ak.content.composite"
+                "const": "ak.content.composite",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "message.schema.json#/$defs/content_block/allOf/0/if/properties/kind",
+                  "owner": "message.schema.json#/$defs/content_block/allOf/0/if/properties/kind",
+                  "values": [
+                    "ak.content.composite"
+                  ]
+                }
               }
             },
             "required": [
@@ -341,7 +408,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ak.content.long_text"
+                "const": "ak.content.long_text",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "message.schema.json#/$defs/content_block/allOf/1/if/properties/kind",
+                  "owner": "message.schema.json#/$defs/content_block/allOf/1/if/properties/kind",
+                  "values": [
+                    "ak.content.long_text"
+                  ]
+                }
               }
             },
             "required": [
@@ -356,7 +431,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ak.content.text"
+                "const": "ak.content.text",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "message.schema.json#/$defs/content_block/allOf/2/if/properties/kind",
+                  "owner": "message.schema.json#/$defs/content_block/allOf/2/if/properties/kind",
+                  "values": [
+                    "ak.content.text"
+                  ]
+                }
               }
             },
             "required": [

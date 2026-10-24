@@ -14,7 +14,7 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
-    "issue_recovery_completion_grant_outcome": {
+    "issue_recovery_completion_grant_response_body": {
       "type": "object",
       "description": "Exact durable outcome for one completed recovery transaction. If the original account was deactivated, successful issuance also means the Account Authority atomically restored that same account and authored its deactivated-to-active successor; no replacement account or second PCR is created.",
       "required": [
@@ -27,15 +27,16 @@
           "$ref": "#/$defs/transaction_id"
         },
         "session_grant_outcome": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody"
         },
         "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
-    "issue_recovery_completion_grant_request": {
+    "recovery_completion_grant_request_body": {
       "type": "object",
       "description": "Closed request proving completed PCR recovery and the exact current replacement device generation. The Account Authority checks the committed re-anchor through its RealmCommit.",
       "required": [
@@ -44,7 +45,7 @@
         "terminal_receipt",
         "completion_attestation",
         "device_authorization_event_id",
-        "result_model_generation_ref",
+        "new_model_generation_ref",
         "initial_session",
         "canonical_request_digest"
       ],
@@ -64,7 +65,7 @@
         "device_authorization_event_id": {
           "$ref": "#/$defs/event_id"
         },
-        "result_model_generation_ref": {
+        "new_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
         "initial_session": {
@@ -76,7 +77,8 @@
           "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). The Bound AccountHandoff authorization and RFC 9449 HTTP DPoP proof authenticate the account and holder outside this closed business body."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "receipt_id": {
       "$ref": "./erasure-receipt-operations.schema.json#/$defs/receipt_id"
@@ -94,15 +96,23 @@
         "terminal_receipt_id",
         "terminal_receipt_digest",
         "replacement_device_id",
-        "result_model_generation_ref",
+        "new_model_generation_ref",
         "completed_at",
-        "auth_data",
+        "signature_proof",
         "reanchor_event_ref",
         "device_authorization_event_ref"
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.recovery_completion_attestation.v1"
+          "const": "ak.schema.recovery_completion_attestation.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "recovery-authority.schema.json#/$defs/recovery_completion_attestation/properties/schema",
+            "owner": "recovery-authority.schema.json#/$defs/recovery_completion_attestation/properties/schema",
+            "values": [
+              "ak.schema.recovery_completion_attestation.v1"
+            ]
+          }
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
@@ -129,14 +139,14 @@
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
-        "result_model_generation_ref": {
+        "new_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
         "completed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Server-side linearized commit time of the single atomic recovery commit. It MUST NOT be earlier than the terminal receipt completed_at, which is only an authoring time."
         },
-        "auth_data": {
+        "signature_proof": {
           "type": "object",
           "required": [
             "verification_method",
@@ -149,12 +159,20 @@
             },
             "signature_algorithm": {
               "type": "string",
-              "const": "Ed25519"
+              "const": "Ed25519",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+                "owner": "recovery-authority.schema.json#/$defs/recovery_completion_attestation/properties/signature_proof/properties/signature_algorithm",
+                "values": [
+                  "Ed25519"
+                ]
+              }
             },
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "Base64URL signature over the closed completion projection, including reanchor_event_ref, device_authorization_event_ref and result_model_generation_ref."
+              "description": "Base64URL signature over the closed completion projection, including reanchor_event_ref, device_authorization_event_ref and new_model_generation_ref."
             }
           },
           "additionalProperties": false
@@ -191,10 +209,10 @@
       "$ref": "#/$defs/recovery_completion_attestation"
     },
     {
-      "$ref": "#/$defs/issue_recovery_completion_grant_request"
+      "$ref": "#/$defs/recovery_completion_grant_request_body"
     },
     {
-      "$ref": "#/$defs/issue_recovery_completion_grant_outcome"
+      "$ref": "#/$defs/issue_recovery_completion_grant_response_body"
     }
   ]
 }

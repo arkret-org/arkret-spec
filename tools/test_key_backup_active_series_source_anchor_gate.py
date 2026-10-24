@@ -97,7 +97,7 @@ class KeyBackupActiveSeriesSourceAnchorGateTest(unittest.TestCase):
             registry = documents[gate.CONTRACT_REGISTRY.resolve()]["event_kind_registry"]["event_kinds"]
             row = gate._find(registry, "event_kind", gate.EVENT_KIND)
             row["payload"] = "Key backup active series selection."
-            row["result_writes"][0]["notes"] = "Active series selection."
+            row["state_writes"][0]["notes"] = "Active series selection."
 
         self.assert_red(mutate, "does not pin source_commit_ref")
 

@@ -198,7 +198,7 @@ Station
 └─ basic app view / inbox
 ```
 
-Account Authority 为什么**不能**成为可外挂的公开角色：账户注册与恢复、device enroll、claim attestation 与 session lifecycle 都必须和 exact Station-local `AccountId`、设备状态及 durable issuer ledger 共同裁决。Station 可在认证 TCB 内调用独立进程或外部标准 Authentication Method Provider，但 Arkret 客户端只从 Station 根级 Describe 的 `auth_metadata.account_authority.gate_account_base_url` 发现唯一入口；认证方法 provider 的 issuer/discovery metadata 不产生第二个 Arkret 服务身份。
+Account Authority 为什么**不能**成为可外挂的公开角色：账户注册与恢复、device enroll、claim attestation 与 session lifecycle 都必须和 exact Station-local `AccountId`、设备状态及 durable issuer ledger 共同裁决。Station 可在认证 TCB 内调用独立进程或外部标准 Authentication Method Provider，但 Arkret 客户端只从 Station 根级 Describe 的 `authentication_metadata.account_authority.gate_account_base_url` 发现唯一入口；认证方法 provider 的 issuer/discovery metadata 不产生第二个 Arkret 服务身份。
 
 Account Authority 与其所属 Station 之间的内部关系由明确部署配置和 verified durable binding 共同提供：配置给出 exact canonical HTTPS endpoint、双方 trust domain 与唯一 per-edge shared secret；所属 Station service identity 则只在首次从该 exact endpoint 完整验证 WebVH history、`AuthenticatedServiceResolution`、role-scoped Describe、service core/endpoint/freshness 后原子耐久固定，不要求管理员预先知道 service ID 或执行 bootstrap。后续启动必须匹配同一 service core 与不回退的 history floor；同一身份的 endpoint continuity 可经完整验证和 CAS 更新，不同 core/genesis 只能走具名、审计的显式 replace/revoke。per-edge shared secret 以 `Authorization: Bearer` 出示，只认证 binding 对应配置槽，不由 `Source-Service-ID`、调用方自报 internal 字段或响应内容建立或替换身份。配置缺失、冲突、shared secret 重复、验证失败或 rollback 一律 fail closed；MUST NOT 信任未验证 Describe、`stations[]` 首个元素、redirect 或网络错误时的候选。该关系生效后，内部消费者按已认证且完整性受保护的通道承接事实 owner 已完成验证的 exact 结果，并仍逐次检查本次完整 AccountId、audience、operation、intent、状态版本、有效期与自身业务权限。
 

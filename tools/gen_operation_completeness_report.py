@@ -24,7 +24,7 @@ also enforces registry/report operation-set equality.
   typed_schema          registry declares a request and/or response artifact
                         schema ref (the typed DTO contract is machine-readable).
   generic_binding       OpenAPI binds the governed generic OperationRequest /
-                        OperationResult envelope (profile-gated escape hatch).
+                        OperationResponseBody envelope (profile-gated escape hatch).
   streaming_frame_schema  success_shape_kind is event_stream (NDJSON frame
                         stream; the frame schema lives in a dedicated frame
                         schema, not a single request/response DTO).
@@ -55,7 +55,7 @@ OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 REPORT = ARTIFACTS / "reports" / "operation-completeness-report.json"
 
 GENERIC_REQUEST_REF = "#/components/schemas/OperationRequest"
-GENERIC_RESULT_REF = "#/components/schemas/OperationResult"
+GENERIC_RESULT_REF = "#/components/schemas/OperationResponseBody"
 
 try:
     import yaml
@@ -221,7 +221,7 @@ def classify(
     if isinstance(row.get("generic_binding"), dict):
         return (
             "generic_binding",
-            "OpenAPI binds the governed generic OperationRequest/OperationResult envelope.",
+            "OpenAPI binds the governed generic OperationRequest/OperationResponseBody envelope.",
         )
 
     if shape == "event_stream":
@@ -357,7 +357,7 @@ def build_report() -> dict[str, Any]:
         ),
         "completeness_class_definitions": {
             "typed_schema": "registry declares a request and/or response artifact schema ref.",
-            "generic_binding": "OpenAPI binds the governed generic OperationRequest/OperationResult envelope.",
+            "generic_binding": "OpenAPI binds the governed generic OperationRequest/OperationResponseBody envelope.",
             "streaming_frame_schema": "success_shape_kind=event_stream; frame contract in a dedicated frame schema.",
             "binary_or_redirect": "success_shape_kind=binary_stream/metadata_headers/redirect; no JSON DTO body by design.",
             "service_describe": "response is the shared ServiceDescribe contract.",

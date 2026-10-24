@@ -84,7 +84,7 @@ def check_error_code_closure(lint: Lint) -> None:
         "resync_required",
         # Direct Conversation resolver outcome state, not a reason code
         # (direct-conversation-operations.schema.json#/$defs/
-        # direct_conversation_resolve_outcome, contact-and-direct-conversation
+        # direct_conversation_resolve_response_body, contact-and-direct-conversation
         # .md §9.1). It ends in _required and appears on sentences about what
         # the resolver returns, so it would otherwise trip the heuristic.
         "creation_required",
@@ -1055,7 +1055,7 @@ def check_alg_registry(lint: Lint) -> None:
     if set(accepted_http_algorithms or []) != http_message_signature_algorithms:
         lint.fail(
             applet_path,
-            "webhook_auth.accepted_signature_algorithms must exactly match active "
+            "webhook_signature_policy.accepted_signature_algorithms must exactly match active "
             f"http_message_signature_algorithm mappings: {sorted(http_message_signature_algorithms)!r}",
         )
 
@@ -1161,7 +1161,7 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
     if "authoring_request_id" in json.dumps(authoring, sort_keys=True):
         lint.fail(authoring_path, "derived authoring_request_id must not exist")
 
-    outcome = json_pointer_get(authoring, "/$defs/author_outcome")
+    outcome = json_pointer_get(authoring, "/$defs/author_response_body")
     if not isinstance(outcome, dict) or outcome.get("required") != ["create_event"] or set(outcome.get("properties", {})) != {"create_event"} or outcome.get("additionalProperties") is not False:
         lint.fail(authoring_path, "Realm actor authoring must return exactly one original create_event")
     if json_pointer_get(authoring, "/$defs/managed_actor_bundle") is not None:

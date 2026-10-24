@@ -9,7 +9,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.realm_profile.v1"
+      "const": "ak.schema.realm_profile.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "realm-profile.schema.json#/properties/schema",
+        "owner": "realm-profile.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.realm_profile.v1"
+        ]
+      }
     },
     "title": {
       "$ref": "./string-profiles.schema.json#/$defs/display_text_256"

@@ -109,13 +109,13 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_branch_enum_is_closed(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["properties"]["branch"]["enum"].append("legacy_batch")
+            self.defs(documents)["peer_submit_request_body"]["properties"]["branch"]["enum"].append("legacy_batch")
 
         self.assert_red(mutate, "exact closed three-value list")
 
     def test_replication_is_bounded(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["properties"]["replications"]["maxItems"] = 101
+            self.defs(documents)["peer_submit_request_body"]["properties"]["replications"]["maxItems"] = 101
 
         self.assert_red(mutate, "bounded to 1..100")
 
@@ -127,7 +127,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_rejects_wire_witnesses(self) -> None:
         def mutate(documents: dict) -> None:
-            row = self.defs(documents)["peer_submit_request"]
+            row = self.defs(documents)["peer_submit_request_body"]
             row["properties"]["recipient_witnesses"] = {"type": "array"}
 
         self.assert_red(mutate, "deleted peer request field")
@@ -157,7 +157,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_genesis_material_presence_is_decided_by_event_kind(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][0]
+            branch = self.defs(documents)["peer_submit_request_body"]["oneOf"][0]
             del branch["else"]
 
         self.assert_red(mutate, "the Event kind alone must decide mls_genesis_material")
@@ -170,20 +170,20 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_outcome_record_rejects_optional_echo(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch = self.defs(documents)["committed_event_replication_outcome"]["oneOf"][0]
             branch["properties"]["source_echo"] = {"type": "string"}
 
         self.assert_red(mutate, "exact minimal set")
 
     def test_replication_rejects_processing_echo(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["properties"]["processing"] = {"const": "per_item"}
+            self.defs(documents)["peer_submit_request_body"]["properties"]["processing"] = {"const": "per_item"}
 
         self.assert_red(mutate, "deleted peer request field")
 
     def test_replication_branch_rejects_atomic_unit_field(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
+            branch = self.defs(documents)["peer_submit_request_body"]["oneOf"][3]
             branch["not"]["anyOf"] = [
                 item for item in branch["not"]["anyOf"] if item["required"] != ["unit"]
             ]
@@ -214,7 +214,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_branch_rejects_producer_device_evidence(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
+            branch = self.defs(documents)["peer_submit_request_body"]["oneOf"][3]
             branch["not"]["anyOf"] = [
                 item for item in branch["not"]["anyOf"] if item["required"] != ["producer_device_evidence"]
             ]
@@ -223,7 +223,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_producer_device_evidence_reuses_account_device_evidence(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["properties"]["producer_device_evidence"] = {
+            self.defs(documents)["peer_submit_request_body"]["properties"]["producer_device_evidence"] = {
                 "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
             }
 
@@ -250,7 +250,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_producer_device_evidence_is_not_schema_required(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["oneOf"][0]["required"].append("producer_device_evidence")
+            self.defs(documents)["peer_submit_request_body"]["oneOf"][0]["required"].append("producer_device_evidence")
 
         self.assert_red(mutate, "must not be schema-required")
 
@@ -280,28 +280,28 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_result_rejects_redundant_index(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch = self.defs(documents)["committed_event_replication_outcome"]["oneOf"][0]
             branch["properties"]["index"] = {"type": "integer"}
 
         self.assert_red(mutate, "redundant index or committed_ref")
 
     def test_replication_result_rejects_redundant_committed_ref(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch = self.defs(documents)["committed_event_replication_outcome"]["oneOf"][0]
             branch["properties"]["committed_ref"] = {"$ref": "#/$defs/committed_event_ref"}
 
         self.assert_red(mutate, "redundant index or committed_ref")
 
     def test_replication_rejects_generic_results_name(self) -> None:
         def mutate(documents: dict) -> None:
-            outcome = self.defs(documents)["peer_committed_replication_outcome"]
+            outcome = self.defs(documents)["peer_committed_replication_response_body"]
             outcome["properties"]["results"] = outcome["properties"].pop("replication_outcomes")
 
         self.assert_red(mutate, "deleted generic results/record names")
 
     def test_replication_cannot_restore_accepted_status(self) -> None:
         def mutate(documents: dict) -> None:
-            branches = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"]
+            branches = self.defs(documents)["committed_event_replication_outcome"]["oneOf"]
             branches[0]["properties"]["status"]["enum"][0] = "accepted"
 
         self.assert_red(mutate, "stored|duplicate|rejected")
@@ -489,7 +489,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_atomic_unit_registry_is_closed(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_registered_atomic_unit"]["oneOf"].append({"$ref": "#/$defs/submit_request"})
+            self.defs(documents)["peer_registered_atomic_unit"]["oneOf"].append({"$ref": "#/$defs/submit_request_body"})
 
         self.assert_red(mutate, "exactly founding, compensation and audit-paired source units")
 
@@ -501,7 +501,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_peer_registry_uses_endpoint_schema(self) -> None:
         def mutate(documents: dict) -> None:
-            self.operation(documents, "ak.peer.events.command.submit.v1")["request_schema_ref"] = "schemas/authority-commit-operations.schema.json#/$defs/submit_request"
+            self.operation(documents, "ak.peer.events.command.submit.v1")["request_schema_ref"] = "schemas/authority-commit-operations.schema.json#/$defs/submit_request_body"
 
         self.assert_red(mutate, "peer submit must use endpoint-specific")
 
@@ -587,7 +587,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
     def test_openapi_must_bind_peer_endpoint_union(self) -> None:
         def text_mutate(texts: dict) -> None:
             path = gate.OPENAPI.resolve()
-            texts[path] = texts[path].replace("#/$defs/peer_submit_request", "#/$defs/submit_request")
+            texts[path] = texts[path].replace("#/$defs/peer_submit_request_body", "#/$defs/submit_request_body")
 
         self.assert_red(marker="OpenAPI binding omits", text_mutate=text_mutate)
 
@@ -606,7 +606,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_realm_actor_cannot_restore_foreign_account_source(self):
         def mutate(documents):
-            self.defs(documents)["peer_submit_request"]["properties"]["producer_managed_provenance"] = {"type":"object"}
+            self.defs(documents)["peer_submit_request_body"]["properties"]["producer_managed_provenance"] = {"type":"object"}
         self.assert_red(mutate, "owning governor")
 
     def test_account_live_source_must_exclude_realm_devices(self):

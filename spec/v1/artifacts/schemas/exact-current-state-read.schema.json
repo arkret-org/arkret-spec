@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/exact-current-state-read.schema.json",
+  "title": "Arkret Exact current state Read",
+  "description": "Exact authorized Relation, moderation or Agent interaction current read at one governing-Station cut. It is non-enumerating and binds never-written to the exact selector. Includes the original issuer-only exact owned_agent capability_grant read, including ineffective and terminal rows; no never_written for grants. Also supports exact Agent/Applet Policy CAS reads by the authorized policy setter and exact Applet/Service registration CAS reads by a Realm administrator, including authoritative never_written. No enumeration or new permission.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/exact_current_state_read_request_body"
+    },
+    {
+      "$ref": "#/$defs/exact_current_state_read_response_body"
+    }
+  ],
+  "$defs": {
+    "exact_current_state_selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/relation_exact_current_selector"
+        },
+        {
+          "$ref": "#/$defs/moderation_state_exact_current_selector"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_agent_interaction/properties/selector"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_capability_grant/properties/selector"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_calendar_schedule_source/properties/selector"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_policy/properties/selector"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_applet_registration/properties/selector"
+        }
+      ]
+    },
+    "relation_exact_current_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "primary_conflict_domain"
+      ],
+      "properties": {
+        "kind": {
+          "const": "relation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "exact-current-state-read.schema.json#/$defs/relation_exact_current_selector/properties/kind",
+            "owner": "exact-current-state-read.schema.json#/$defs/relation_exact_current_selector/properties/kind",
+            "values": [
+              "relation"
+            ]
+          }
+        },
+        "primary_conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_state_exact_current_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "target_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "moderation_state",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "exact-current-state-read.schema.json#/$defs/moderation_state_exact_current_selector/properties/kind",
+            "owner": "exact-current-state-read.schema.json#/$defs/moderation_state_exact_current_selector/properties/kind",
+            "values": [
+              "moderation_state"
+            ]
+          }
+        },
+        "target_ref": {
+          "$ref": "./event-payload.schema.json#/$defs/object_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exact_current_state_read_request_body": {
+      "type": "object",
+      "description": "One exact, non-enumerating selector in one Realm. The caller cannot supply a revision, stream or governance Station.",
+      "required": [
+        "realm_id",
+        "selector"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "selector": {
+          "$ref": "#/$defs/exact_current_state_selector"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
+    },
+    "exact_current_state_entry": {
+      "oneOf": [
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_relation"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_moderation_state"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_agent_interaction"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_capability_grant"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_calendar_schedule_source"
+        },
+        {
+          "$ref": "./current-state.schema.json#/$defs/current_policy"
+        }
+      ]
+    },
+    "exact_current_state_read_response_body": {
+      "description": "One authorized same-cut answer. never_written is an affirmative Station result, never an inference from omission, timeout or invisibility.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/exact_current_state_present"
+        },
+        {
+          "$ref": "#/$defs/exact_current_state_never_written"
+        }
+      ],
+      "x-arkret-name-role": "response_body"
+    },
+    "exact_current_state_present": {
+      "type": "object",
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "entry"
+      ],
+      "properties": {
+        "status": {
+          "const": "present",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "exact-current-state-read.schema.json#/$defs/exact_current_state_present/properties/status",
+            "owner": "exact-current-state-read.schema.json#/$defs/exact_current_state_present/properties/status",
+            "values": [
+              "present"
+            ]
+          }
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "entry": {
+          "$ref": "#/$defs/exact_current_state_entry"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exact_current_state_never_written": {
+      "type": "object",
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "selector"
+      ],
+      "properties": {
+        "status": {
+          "const": "never_written",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "exact-current-state-read.schema.json#/$defs/exact_current_state_never_written/properties/status",
+            "owner": "exact-current-state-read.schema.json#/$defs/exact_current_state_never_written/properties/status",
+            "values": [
+              "never_written"
+            ]
+          }
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "selector": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/relation_exact_current_selector"
+            },
+            {
+              "$ref": "./current-state.schema.json#/$defs/current_agent_interaction/properties/selector"
+            },
+            {
+              "$ref": "./current-state.schema.json#/$defs/current_policy/properties/selector"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

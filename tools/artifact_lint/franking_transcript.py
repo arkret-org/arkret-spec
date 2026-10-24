@@ -17,7 +17,7 @@ VECTOR_ID = "ak.vector.moderation.franking_proof_transcript.v1"
 REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 FIXTURE = ARTIFACTS / "fixtures" / "franking-proof-transcript-fixture.json"
-CURRENT_SCHEMA = ARTIFACTS / "schemas" / "typed-current-result.schema.json"
+CURRENT_SCHEMA = ARTIFACTS / "schemas" / "current-state.schema.json"
 MODERATION_PROSE = SPEC_ROOT / "zh" / "governance" / "content-moderation.md"
 FIELDS = [
     "domain",
@@ -32,7 +32,7 @@ FIELDS = [
 
 def _check_current_installation(lint: Lint) -> None:
     current = load_json(lint, CURRENT_SCHEMA)
-    row = current.get("$defs", {}).get("moderation_franking_proof_result", {})
+    row = current.get("$defs", {}).get("current_moderation_franking_proof", {})
     properties = row.get("properties", {})
     selector = properties.get("selector", {})
     if (

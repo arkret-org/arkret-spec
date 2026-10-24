@@ -49,7 +49,7 @@ Schema id: `ak.schema.relation.v1`
 
 **生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
 
-**Relation 写入 payload（normative）**：`ak.relation.create`、`ak.relation.update` 与 `ak.relation.tombstone` 都携必填 `primary_conflict_domain`，它是 `relation` typed current result 的唯一 subject（Realm 取自 Event envelope）。Reducer MUST 按 `relation-kind-registry.json` 复算并验证该 domain：`tuple` 精确绑定 `(relation_kind, from_ref, to_ref)`，`from` 精确绑定 `(relation_kind, from_ref)`；Circle 不进入 key，派生 `truth_source` shape 不能直接写 Relation。调用方自报的 domain 与 payload／当前 Relation 不一致时 MUST `schema_violation` 且零写入。
+**Relation 写入 payload（normative）**：`ak.relation.create`、`ak.relation.update` 与 `ak.relation.tombstone` 都携必填 `primary_conflict_domain`，它是 `relation` current state 的唯一 subject（Realm 取自 Event envelope）。Reducer MUST 按 `relation-kind-registry.json` 复算并验证该 domain：`tuple` 精确绑定 `(relation_kind, from_ref, to_ref)`，`from` 精确绑定 `(relation_kind, from_ref)`；Circle 不进入 key，派生 `truth_source` shape 不能直接写 Relation。调用方自报的 domain 与 payload／当前 Relation 不一致时 MUST `schema_violation` 且零写入。
 
 `create.relation` MUST 是 closed `relation_definition`，且只可包含 `scope_circle_id`、`relation_kind`、`from_ref`、`to_ref`、`rank`、`fields`；其中后三个 identity 字段必填，`scope_circle_id`、`rank`、`fields` 可选。create-time rank 的唯一签名路径和唯一投影 consumer 是 `payload.relation.rank`；`payload.rank` 不存在并 MUST 以 `schema_violation` 拒绝。完整物化 Relation 的 `schema`、`realm_id`、`id`、`effective_scope`、`state`、`state_changed_at`、`created_by`、`created_at`、`updated_by`、`updated_at` 均由 Reducer 派生或维护，不得作为 authoring input 回流。
 
@@ -115,19 +115,19 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 的 parent `current-value projection` 的当前值就是该 stream 上最后一个被接受的 `ak.space.parent` 写入，只有该当前值且未形成跨 typed current result 环时才投影 active Board parent；环属于领域 `unresolved`，不得反向改写该当前值。**Truth source 是 typed current result `space_parent:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 typed current result 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Event，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
-| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的 position typed current result 的当前值由该 stream 上最后一个被接受的位置写入给出，且只向该当前值指向的 active List 投影。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 current-value projection typed current result `strand_position:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Event**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 的 parent `current-value projection` 的当前值就是该 stream 上最后一个被接受的 `ak.space.parent` 写入，只有该当前值且未形成跨 current state 环时才投影 active Board parent；环属于领域 `unresolved`，不得反向改写该当前值。**Truth source 是 current state `space_parent:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 current state 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Event，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的 position current state 的当前值由该 stream 上最后一个被接受的位置写入给出，且只向该当前值指向的 active List 投影。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 current-value projection current state `strand_position:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Event**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
 | `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` | 按完整 tuple 去重；普通包含记录不自动引入额外数量限制或级联规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；关系属性写在 `fields` 中，不改变去重键。`summarized_from` 与 `promoted_from_discussion` 按通用弱语义引用边处理。 |
 | `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> ActorId`（`from_ref=<strand_id>`, `to_ref=<ActorId object>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 分配仅为关系记录，不改变成员身份、角色或访问权限；应用层单负责人规则见 §5。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
-| `watches`：`ActorId -> strand` | **派生投影**（derived from typed current result, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是完整 ActorId object，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 current-value projection typed current result `strand_watch`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（reason=`relation_kind_watches_derived`；与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
+| `watches`：`ActorId -> strand` | **派生投影**（derived from current state, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是完整 ActorId object，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 current-value projection current state `strand_watch`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（reason=`relation_kind_watches_derived`；与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public authority commit Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public authority commit，而 non-member 不能从 public authority commit 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
-Relation MUST 按 §6 以 `(realm_id, primary_conflict_domain)` 的单一 typed current result 去重。两个离线设备基于同一 revision 并发写入时，治理 Station 的原子 CAS 至多接受一个；另一个 stale Event 零写入拒绝，不产生 RealmCommit，也不进入共享 current state。
+Relation MUST 按 §6 以 `(realm_id, primary_conflict_domain)` 的单一 current state 去重。两个离线设备基于同一 revision 并发写入时，治理 Station 的原子 CAS 至多接受一个；另一个 stale Event 零写入拒绝，不产生 RealmCommit，也不进入共享 current state。
 
 ## 4. 跨 Realm 引用
 
@@ -176,7 +176,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 - 在源 Realm 接收 Relation 时验证 `from_ref` / `to_ref` 的 typed prefix 与目标 Realm 一致性（`realm_id` 字段或 typed ref 解析）。
 - 不得把"源 Realm 写权限"误当成"目标 Realm 引用权限"——两者是**两次独立 capability check**。
-- 目标 Realm policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Realm 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `ReferenceProjectionState.locked`，并不得泄露目标 Realm 的存在性细节。reducer 仍把 Relation 视为 `active` 写入 canonical event log；`locked` 只由 projection 在读取时对目标 Realm policy 做最新评估后派生而成。当目标 Realm 解除 policy 阻塞时，projection 在下一次重新评估时自动把同一 Relation 显示为 `accessible`（含具体目标 metadata），**无需**额外发布 "Relation unlock" 事件；同理 lock 与 unlock 之间不引入 reducer-level 状态机或新的 typed current result 类型。源 Realm SHOULD 缓存最近一次目标 policy 评估结果，以减少跨 Realm 探测；缓存 TTL 由目标 Realm `discoverability` policy 与 projection 实现 trade-off，但 MUST 在 policy 显式变更时即时失效。
+- 目标 Realm policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Realm 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `ReferenceProjectionState.locked`，并不得泄露目标 Realm 的存在性细节。reducer 仍把 Relation 视为 `active` 写入 canonical event log；`locked` 只由 projection 在读取时对目标 Realm policy 做最新评估后派生而成。当目标 Realm 解除 policy 阻塞时，projection 在下一次重新评估时自动把同一 Relation 显示为 `accessible`（含具体目标 metadata），**无需**额外发布 "Relation unlock" 事件；同理 lock 与 unlock 之间不引入 reducer-level 状态机或新的 current state 类型。源 Realm SHOULD 缓存最近一次目标 policy 评估结果，以减少跨 Realm 探测；缓存 TTL 由目标 Realm `discoverability` policy 与 projection 实现 trade-off，但 MUST 在 policy 显式变更时即时失效。
 
 > **projection 态的收敛语义（normative 澄清）**：`ReferenceProjectionState`（`accessible` / `lazy_link` / `locked`）是 **reader-local 派生视图**，由各 reader 在读取时对目标 Realm policy 做最新评估（含各自缓存 TTL）得出，因此**不要求跨 reader 收敛**：在 policy 变更的传播窗口或不同缓存 TTL 下，两个 reader 对同一 Relation 同时派生出 `accessible` 与 `locked` 是**有意取舍**，不构成收敛缺口。Relation 的 canonical state 始终为 `active`（写入 canonical event log 的唯一权威态），不随 projection 态变化；本节的「不跨 reader 收敛」仅限投影/展示层，不影响任何 canonical state、授权或 winner 选择。
 
@@ -206,11 +206,11 @@ v1 不提供 Realm 级关系数量限制配置或注册机制。标准关系按 
 
 - `tuple`：`(realm_id, relation_kind, from_ref, to_ref)`；
 - `from`：`(realm_id, relation_kind, from_ref)`；
-- `truth_source`：没有可直接写 Relation，继续只读其原 typed current result。
+- `truth_source`：没有可直接写 Relation，继续只读其原 current state。
 
 Realm 来自已验证 Event envelope；Circle 只参与 scope 与授权，不进入 subject。不同 Actor 的 `assigned_to` 因完整 ActorId 不同而属于不同 tuple。payload 的 `primary_conflict_domain` 是封闭、签名的 selector，不是调用方可任选的 bucket；Reducer MUST 从 create definition 或 domain 当前值复算并逐字段相等验证。
 
-每个 `(realm_id, primary_conflict_domain)` 只有一个 `relation` typed current result，value 是完整 Relation 对象并保留 event-derived RelationId。不存在第二组裁决 family，也不存在候选 heads、16 条诊断上限、17-head recovery、分页修复材料或显式组裁决操作。
+每个 `(realm_id, primary_conflict_domain)` 只有一个 `relation` current state，value 是完整 Relation 对象并保留 event-derived RelationId。不存在第二组裁决 family，也不存在候选 heads、16 条诊断上限、17-head recovery、分页修复材料或显式组裁决操作。
 
 ### 6.2 Create / update / tombstone
 
@@ -234,7 +234,7 @@ D1 只删除冗余冲突修复面，不删除 Relation 领域本身：
 
 - 所有已接受 create/update/tombstone Event、RealmCommit、RelationId 与 tombstoned value 继续按既有 history/redaction policy 保留；
 - `confidential_discussion_of` 及其它 Circle-scoped Relation 仍按 §3.2 / §4 执行最小披露，subject 不含 Circle 不代表扩大可见性；
-- 派生 `contains` / `watches` 继续由其原 typed current result 投影，仍不得通过 Relation Event 直接写入；
+- 派生 `contains` / `watches` 继续由其原 current state 投影，仍不得通过 Relation Event 直接写入；
 - scope/capability、endpoint existence、cross-Realm reference disclosure 与不可逆 tombstone 规则不变。
 
 并发 conformance 由 `ak.vector.relation.primary_domain_cas.v1` 固化：相同 revision 的 create/update/tombstone 竞争至多一个成功；相反提交顺序都只按 governance Station 接纳顺序决定；stale retry 零写入；exact replay 返回原 Commit；tombstone 后携其 revision 可创建新 RelationId；derived edge 直接写入继续拒绝。

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/account-current-result.schema.json",
-  "title": "Arkret Account Current Result",
-  "description": "Account Station view of authority-committed typed current results selected by closed domain selectors.",
+  "$id": "https://arkret.org/v1/schemas/account-state-view.schema.json",
+  "title": "Arkret Account current state",
+  "description": "Account Station view of authority-committed typed current state selected by closed domain selectors.",
   "oneOf": [
     {
       "$ref": "#/$defs/current"
@@ -13,7 +13,7 @@
   ],
   "$defs": {
     "entry": {
-      "$ref": "./typed-current-result.schema.json"
+      "$ref": "./current-state.schema.json"
     },
     "current": {
       "type": "object",
@@ -28,9 +28,8 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "governance_generation": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Station tenure these entries and stream heads were read under."
+          "description": "Station tenure these entries and stream heads were read under.",
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "stream_heads": {
           "type": "array",

@@ -31,7 +31,22 @@
         "claim_based",
         "confidentiality"
       ],
-      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window â†’ temporal; container_move â†’ scope_limitation; rate_limiting + resource_limit â†’ quota; approval_workflow + accountability + device_session â†’ claim_based (with constraint_subkind); encryption_requirement + visibility_control â†’ confidentiality (with constraint_subkind). Use the optional 'constraint_subkind' field to indicate the original specialization where evaluation logic differs."
+      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window â†’ temporal; container_move â†’ scope_limitation; rate_limiting + resource_limit â†’ quota; approval_workflow + accountability + device_session â†’ claim_based (with constraint_subkind); encryption_requirement + visibility_control â†’ confidentiality (with constraint_subkind). Use the optional 'constraint_subkind' field to indicate the original specialization where evaluation logic differs.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/constraint_kind",
+        "owner": "grant-constraint.schema.json#/properties/constraint_kind",
+        "values": [
+          "temporal",
+          "field_access",
+          "kind_restriction",
+          "scope_limitation",
+          "authority_control",
+          "quota",
+          "claim_based",
+          "confidentiality"
+        ]
+      }
     },
     "effect": {
       "type": "string",
@@ -41,7 +56,18 @@
         "quarantine",
         "require_review"
       ],
-      "description": "Unknown predicates do not satisfy allow and do apply deny, quarantine and require_review. Proven nonmatches do not apply refusal effects; see constraint-schema section 15.0."
+      "description": "Unknown predicates do not satisfy allow and do apply deny, quarantine and require_review. Proven nonmatches do not apply refusal effects; see constraint-schema section 15.0.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/effect",
+        "owner": "grant-constraint.schema.json#/properties/effect",
+        "values": [
+          "allow",
+          "deny",
+          "quarantine",
+          "require_review"
+        ]
+      }
     },
     "evaluation_class": {
       "type": "string",
@@ -51,7 +77,18 @@
         "realm_state",
         "external"
       ],
-      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on the exact Realm authority revision (membership, policy_version, etc.); external = depends on data outside that authority state (claim revocation status, rate-limit counts, async approval). Each constraint_kind has a canonical evaluation_class declared in constraint-schema.md Â§2.3; implementations MAY tighten (e.g. grant_local â†’ stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on the exact Realm authority revision (membership, policy_version, etc.); external = depends on data outside that authority state (claim revocation status, rate-limit counts, async approval). Each constraint_kind has a canonical evaluation_class declared in constraint-schema.md Â§2.3; implementations MAY tighten (e.g. grant_local â†’ stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/evaluation_class",
+        "owner": "grant-constraint.schema.json#/properties/evaluation_class",
+        "values": [
+          "stateless",
+          "grant_local",
+          "realm_state",
+          "external"
+        ]
+      }
     },
     "constraint_subkind": {
       "type": "string",
@@ -69,7 +106,26 @@
         "redact_window",
         "session",
         "applet_authority"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/constraint_subkind",
+        "owner": "grant-constraint.schema.json#/properties/constraint_subkind",
+        "values": [
+          "claim",
+          "approval",
+          "accountability",
+          "rate",
+          "resource",
+          "encryption",
+          "visibility",
+          "window",
+          "edit_window",
+          "redact_window",
+          "session",
+          "applet_authority"
+        ]
+      }
     },
     "applies_to_actions": {
       "type": "array",
@@ -98,7 +154,18 @@
             "weekly",
             "monthly",
             "custom"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "grant-constraint.schema.json#/properties/recurrence/properties/frequency",
+            "owner": "grant-constraint.schema.json#/properties/recurrence/properties/frequency",
+            "values": [
+              "daily",
+              "weekly",
+              "monthly",
+              "custom"
+            ]
+          }
         },
         "days": {
           "type": "array",
@@ -112,7 +179,21 @@
               "fri",
               "sat",
               "sun"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/properties/recurrence/properties/days/items",
+              "owner": "grant-constraint.schema.json#/properties/recurrence/properties/days/items",
+              "values": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
           },
           "uniqueItems": true
         },
@@ -171,7 +252,8 @@
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "redact_after_window_allowed": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "permission"
     },
     "condition": {
       "type": "object",
@@ -193,7 +275,24 @@
             "object_is_encrypted",
             "always",
             "never"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "grant-constraint.schema.json#/properties/condition/properties/kind",
+            "owner": "grant-constraint.schema.json#/properties/condition/properties/kind",
+            "values": [
+              "object_is_owned_by_actor",
+              "actor_is_assignee",
+              "actor_is_responsible",
+              "actor_is_guardian",
+              "actor_is_controller",
+              "object_in_actor_container",
+              "object_is_unencrypted",
+              "object_is_encrypted",
+              "always",
+              "never"
+            ]
+          }
         }
       },
       "additionalProperties": true
@@ -235,7 +334,17 @@
         "redact",
         "hash",
         "omit"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/sensitive_handling",
+        "owner": "grant-constraint.schema.json#/properties/sensitive_handling",
+        "values": [
+          "redact",
+          "hash",
+          "omit"
+        ]
+      }
     },
     "allowed_object_kinds": {
       "type": "array",
@@ -291,7 +400,24 @@
           "notifiable",
           "documentable",
           "renderable"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "grant-constraint.schema.json#/properties/allowed_facets/items",
+          "owner": "grant-constraint.schema.json#/properties/allowed_facets/items",
+          "values": [
+            "container",
+            "replyable",
+            "schedulable",
+            "assignable",
+            "stateful",
+            "rankable",
+            "reviewable",
+            "notifiable",
+            "documentable",
+            "renderable"
+          ]
+        }
       },
       "uniqueItems": true
     },
@@ -310,7 +436,24 @@
           "notifiable",
           "documentable",
           "renderable"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "grant-constraint.schema.json#/properties/denied_facets/items",
+          "owner": "grant-constraint.schema.json#/properties/denied_facets/items",
+          "values": [
+            "container",
+            "replyable",
+            "schedulable",
+            "assignable",
+            "stateful",
+            "rankable",
+            "reviewable",
+            "notifiable",
+            "documentable",
+            "renderable"
+          ]
+        }
       },
       "uniqueItems": true
     },
@@ -419,9 +562,10 @@
         "pattern": "^ak:(space|strand|morph):[A-Za-z0-9_-]{44}$"
       }
     },
-    "wip_limit_override": {
+    "wip_limit_override_allowed": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-arkret-member-role": "permission"
     },
     "allowed_tracks": {
       "type": "array",
@@ -451,7 +595,17 @@
               "media_inline",
               "thumbnail",
               "download"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/properties/blob_presign_scope/properties/allowed_purposes/items",
+              "owner": "grant-constraint.schema.json#/properties/blob_presign_scope/properties/allowed_purposes/items",
+              "values": [
+                "media_inline",
+                "thumbnail",
+                "download"
+              ]
+            }
           },
           "minItems": 1,
           "uniqueItems": true
@@ -502,7 +656,8 @@
       }
     },
     "authority_regrant_allowed": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "permission"
     },
     "authority_scope": {
       "type": "string",
@@ -510,7 +665,17 @@
         "narrowing_only",
         "same_scope",
         "custom"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/authority_scope",
+        "owner": "grant-constraint.schema.json#/properties/authority_scope",
+        "values": [
+          "narrowing_only",
+          "same_scope",
+          "custom"
+        ]
+      }
     },
     "applet_id": {
       "$ref": "./common-ids.schema.json#/$defs/applet_id",
@@ -544,10 +709,11 @@
       "minimum": 0,
       "description": "Maximum artifact size in bytes for applet / agent / export operations."
     },
-    "max_operations": {
+    "max_operation_count": {
       "type": "integer",
       "minimum": 0,
-      "description": "Maximum number of distinct accepted idempotency identities in one UTC epoch-aligned fixed period. Enforcement is a linearizable check-and-reserve at one logical quota authority shared by every node in the enforcing service; per-node duplicated budgets and overshoot are forbidden."
+      "description": "Maximum number of distinct accepted idempotency identities in one UTC epoch-aligned fixed period. Enforcement is a linearizable check-and-reserve at one logical quota authority shared by every node in the enforcing service; per-node duplicated budgets and overshoot are forbidden.",
+      "x-arkret-member-role": "count"
     },
     "period": {
       "type": "string",
@@ -557,7 +723,7 @@
     "burst": {
       "type": "integer",
       "minimum": 0,
-      "description": "Optional token-bucket capacity at the same logical quota authority, capped by max_operations and refilled at max_operations/period. It never increases the fixed-window total budget."
+      "description": "Optional token-bucket capacity at the same logical quota authority, capped by max_operation_count and refilled at max_operation_count/period. It never increases the fixed-window total budget."
     },
     "constraint_scope": {
       "type": "string",
@@ -567,24 +733,45 @@
         "per_realm",
         "global"
       ],
-      "description": "Closed v1 quota counting scope. Unknown values are schema violations and MUST fail closed. Quota counters are actor-bound; the enum selects the additional slicing dimension: actor only, actor+space, actor+realm, or actor across all nodes/regions of the enforcing service's global quota domain. global is not an implicit federation-wide counter. Every node in the service domain MUST share one logical linearizable quota authority."
+      "description": "Closed v1 quota counting scope. Unknown values are schema violations and MUST fail closed. Quota counters are actor-bound; the enum selects the additional slicing dimension: actor only, actor+space, actor+realm, or actor across all nodes/regions of the enforcing service's global quota domain. global is not an implicit federation-wide counter. Every node in the service domain MUST share one logical linearizable quota authority.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/constraint_scope",
+        "owner": "grant-constraint.schema.json#/properties/constraint_scope",
+        "values": [
+          "per_actor",
+          "per_space",
+          "per_realm",
+          "global"
+        ]
+      }
     },
-    "max_resources": {
+    "max_resource_count": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "x-arkret-member-role": "count"
     },
     "resource_kind": {
       "type": "string"
     },
     "approval_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "approval_mode": {
       "type": "string",
       "enum": [
         "before_commit"
       ],
-      "description": "The only approval mode of v1. The approved write MUST NOT take effect before the approval evidence is verified and accepted in the same transaction (zh/authz/constraint-schema.md section 9.2.7). There is no second mode and no path that first materializes a proposal object and then approves that object."
+      "description": "The only approval mode of v1. The approved write MUST NOT take effect before the approval evidence is verified and accepted in the same transaction (zh/authz/constraint-schema.md section 9.2.7). There is no second mode and no path that first materializes a proposal object and then approves that object.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/approval_mode",
+        "owner": "grant-constraint.schema.json#/properties/approval_mode",
+        "values": [
+          "before_commit"
+        ]
+      }
     },
     "approval_actor_ids": {
       "type": "array",
@@ -601,7 +788,19 @@
         "realm_admin",
         "custom"
       ],
-      "description": "Responsibility classification of this grant explicit approval_actor_ids roster. It never creates a second dynamic roster or supplies action/scope capability. Missing explicit roster cannot satisfy approval."
+      "description": "Responsibility classification of this grant explicit approval_actor_ids roster. It never creates a second dynamic roster or supplies action/scope capability. Missing explicit roster cannot satisfy approval.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/approval_relation",
+        "owner": "grant-constraint.schema.json#/properties/approval_relation",
+        "values": [
+          "responsible",
+          "controller",
+          "guardian",
+          "realm_admin",
+          "custom"
+        ]
+      }
     },
     "timeout": {
       "type": "string",
@@ -615,7 +814,16 @@
           "enum": [
             "majority",
             "unanimous"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "grant-constraint.schema.json#/properties/approval_threshold/oneOf/0",
+            "owner": "grant-constraint.schema.json#/properties/approval_threshold/oneOf/0",
+            "values": [
+              "majority",
+              "unanimous"
+            ]
+          }
         },
         {
           "type": "integer",
@@ -626,13 +834,16 @@
       "description": "Closed executable vote threshold: majority means floor(N/2)+1, unanimous means N, and a positive integer is the exact quorum. N is the distinct eligible approver set at the accepting authority cut. Omission means unanimous. A missing or empty eligible set, or an integer greater than N, cannot satisfy approval. Repeated signatures by one approver count once. Parameterless quorum/custom strings are schema violations."
     },
     "accountability_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "guardian_approval_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "controller_approval_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "required_claims": {
       "type": "array",
@@ -705,7 +916,8 @@
       }
     },
     "claim_refresh_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "claim_max_age": {
       "type": "string",
@@ -718,15 +930,26 @@
         "enum": [
           "since_join",
           "all_history_for_current_members"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "grant-constraint.schema.json#/properties/allowed_history_access_values/items",
+          "owner": "grant-constraint.schema.json#/properties/allowed_history_access_values/items",
+          "values": [
+            "since_join",
+            "all_history_for_current_members"
+          ]
+        }
       },
       "uniqueItems": true
     },
     "redacted_history_allowed": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "permission"
     },
     "encryption_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "min_encryption_level": {
       "type": "string",
@@ -735,15 +958,27 @@
         "mls_rfc9420",
         "external"
       ],
-      "description": "confidentiality(constraint_subkind=encryption) static floor: the minimum content-encryption mechanism the grant requires. Pure static declaration evaluated as stateless unless cross-checked against the scope's current MLS activation state (see constraint-schema.md section 12)."
+      "description": "confidentiality(constraint_subkind=encryption) static floor: the minimum content-encryption mechanism the grant requires. Pure static declaration evaluated as stateless unless cross-checked against the scope's current MLS activation state (see constraint-schema.md section 12).",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "grant-constraint.schema.json#/properties/min_encryption_level",
+        "owner": "grant-constraint.schema.json#/properties/min_encryption_level",
+        "values": [
+          "none",
+          "mls_rfc9420",
+          "external"
+        ]
+      }
     },
     "plaintext_fallback_allowed": {
       "type": "boolean",
-      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext in a scope that has no accepted ak.mls.genesis. After activation the flag cannot restore plaintext; the write MUST be rejected with mls_activation_irreversible. See constraint-schema.md Â§12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext in a scope that has no accepted ak.mls.genesis. After activation the flag cannot restore plaintext; the write MUST be rejected with mls_activation_irreversible. See constraint-schema.md Â§12.",
+      "x-arkret-member-role": "permission"
     },
     "audit_trail_required": {
       "type": "boolean",
-      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md Â§12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md Â§12.",
+      "x-arkret-member-role": "obligation"
     },
     "key_rotation_period": {
       "type": "string",
@@ -754,7 +989,8 @@
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "key_backup_required": {
-      "type": "boolean"
+      "type": "boolean",
+      "x-arkret-member-role": "obligation"
     },
     "approved_key_issuer_ids": {
       "type": "array",
@@ -764,7 +1000,7 @@
     },
     "depends_on_moderation_state": {
       "type": "boolean",
-      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the moderation_state typed current result (see capabilities.md Â§18.1) and the grant's cache entry MUST be invalidated when that typed current result changes. Default false: ordinary grants (ak.strand.update / ak.message.create / organization membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md Â§18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / typed current result). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md Â§6 / constraint-schema.md."
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the moderation_state current state (see capabilities.md Â§18.1) and the grant's cache entry MUST be invalidated when that current state changes. Default false: ordinary grants (ak.strand.update / ak.message.create / organization membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md Â§18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / current state). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md Â§6 / constraint-schema.md."
     },
     "allowed_managed_actor_roles": {
       "type": "array",
@@ -774,7 +1010,16 @@
         "enum": [
           "bot",
           "ghost"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "grant-constraint.schema.json#/properties/allowed_managed_actor_roles/items",
+          "owner": "grant-constraint.schema.json#/properties/allowed_managed_actor_roles/items",
+          "values": [
+            "bot",
+            "ghost"
+          ]
+        }
       },
       "description": "Ordinary authority_control permits only these accepted roles of the Applet bound by the parent applet_authority constraint; no arbitrary third-party regrant."
     }
@@ -789,7 +1034,17 @@
               "claim_based",
               "confidentiality",
               "quota"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/0/if/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/0/if/properties/constraint_kind",
+              "values": [
+                "claim_based",
+                "confidentiality",
+                "quota"
+              ]
+            }
           }
         },
         "required": [
@@ -806,7 +1061,7 @@
       "$comment": "Rate quotas need an explicit counting scope; otherwise SDKs cannot derive a stable counter key.",
       "if": {
         "required": [
-          "max_operations"
+          "max_operation_count"
         ]
       },
       "then": {
@@ -820,7 +1075,15 @@
       "if": {
         "properties": {
           "constraint_subkind": {
-            "const": "applet_authority"
+            "const": "applet_authority",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/2/if/properties/constraint_subkind",
+              "owner": "grant-constraint.schema.json#/allOf/2/if/properties/constraint_subkind",
+              "values": [
+                "applet_authority"
+              ]
+            }
           }
         },
         "required": [
@@ -830,7 +1093,15 @@
       "then": {
         "properties": {
           "constraint_kind": {
-            "const": "authority_control"
+            "const": "authority_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/2/then/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/2/then/properties/constraint_kind",
+              "values": [
+                "authority_control"
+              ]
+            }
           }
         },
         "required": [
@@ -865,10 +1136,26 @@
       "then": {
         "properties": {
           "constraint_kind": {
-            "const": "authority_control"
+            "const": "authority_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/3/then/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/3/then/properties/constraint_kind",
+              "values": [
+                "authority_control"
+              ]
+            }
           },
           "constraint_subkind": {
-            "const": "applet_authority"
+            "const": "applet_authority",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/3/then/properties/constraint_subkind",
+              "owner": "grant-constraint.schema.json#/allOf/3/then/properties/constraint_subkind",
+              "values": [
+                "applet_authority"
+              ]
+            }
           }
         },
         "required": [
@@ -885,10 +1172,26 @@
       "if": {
         "properties": {
           "constraint_kind": {
-            "const": "quota"
+            "const": "quota",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/4/if/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/4/if/properties/constraint_kind",
+              "values": [
+                "quota"
+              ]
+            }
           },
           "constraint_subkind": {
-            "const": "rate"
+            "const": "rate",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/4/if/properties/constraint_subkind",
+              "owner": "grant-constraint.schema.json#/allOf/4/if/properties/constraint_subkind",
+              "values": [
+                "rate"
+              ]
+            }
           }
         },
         "required": [
@@ -898,7 +1201,7 @@
       },
       "then": {
         "required": [
-          "max_operations",
+          "max_operation_count",
           "period",
           "constraint_scope"
         ]
@@ -913,7 +1216,7 @@
       },
       "then": {
         "required": [
-          "max_operations",
+          "max_operation_count",
           "period"
         ]
       }
@@ -935,7 +1238,7 @@
       "$comment": "Cumulative resource-count quotas need an explicit counting scope.",
       "if": {
         "required": [
-          "max_resources"
+          "max_resource_count"
         ]
       },
       "then": {
@@ -949,7 +1252,15 @@
       "if": {
         "properties": {
           "constraint_kind": {
-            "const": "quota"
+            "const": "quota",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/8/if/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/8/if/properties/constraint_kind",
+              "values": [
+                "quota"
+              ]
+            }
           }
         },
         "required": [
@@ -979,7 +1290,15 @@
         "properties": {
           "applies_to_actions": {
             "contains": {
-              "const": "ak.message.revise.own"
+              "const": "ak.message.revise.own",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "grant-constraint.schema.json#/allOf/9/then/properties/applies_to_actions/contains",
+                "owner": "grant-constraint.schema.json#/allOf/9/then/properties/applies_to_actions/contains",
+                "values": [
+                  "ak.message.revise.own"
+                ]
+              }
             }
           }
         }
@@ -990,10 +1309,26 @@
       "if": {
         "properties": {
           "constraint_kind": {
-            "const": "temporal"
+            "const": "temporal",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/10/if/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/10/if/properties/constraint_kind",
+              "values": [
+                "temporal"
+              ]
+            }
           },
           "constraint_subkind": {
-            "const": "edit_window"
+            "const": "edit_window",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/10/if/properties/constraint_subkind",
+              "owner": "grant-constraint.schema.json#/allOf/10/if/properties/constraint_subkind",
+              "values": [
+                "edit_window"
+              ]
+            }
           }
         },
         "required": [
@@ -1021,7 +1356,15 @@
         "properties": {
           "applies_to_actions": {
             "contains": {
-              "const": "ak.message.redact.own"
+              "const": "ak.message.redact.own",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "grant-constraint.schema.json#/allOf/11/then/properties/applies_to_actions/contains",
+                "owner": "grant-constraint.schema.json#/allOf/11/then/properties/applies_to_actions/contains",
+                "values": [
+                  "ak.message.redact.own"
+                ]
+              }
             }
           }
         }
@@ -1032,10 +1375,26 @@
       "if": {
         "properties": {
           "constraint_kind": {
-            "const": "temporal"
+            "const": "temporal",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/12/if/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/12/if/properties/constraint_kind",
+              "values": [
+                "temporal"
+              ]
+            }
           },
           "constraint_subkind": {
-            "const": "redact_window"
+            "const": "redact_window",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/12/if/properties/constraint_subkind",
+              "owner": "grant-constraint.schema.json#/allOf/12/if/properties/constraint_subkind",
+              "values": [
+                "redact_window"
+              ]
+            }
           }
         },
         "required": [
@@ -1071,13 +1430,29 @@
       "then": {
         "properties": {
           "constraint_kind": {
-            "const": "authority_control"
+            "const": "authority_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "grant-constraint.schema.json#/allOf/14/then/properties/constraint_kind",
+              "owner": "grant-constraint.schema.json#/allOf/14/then/properties/constraint_kind",
+              "values": [
+                "authority_control"
+              ]
+            }
           }
         },
         "not": {
           "properties": {
             "constraint_subkind": {
-              "const": "applet_authority"
+              "const": "applet_authority",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "grant-constraint.schema.json#/allOf/14/then/not/properties/constraint_subkind",
+                "owner": "grant-constraint.schema.json#/allOf/14/then/not/properties/constraint_subkind",
+                "values": [
+                  "applet_authority"
+                ]
+              }
             }
           },
           "required": [

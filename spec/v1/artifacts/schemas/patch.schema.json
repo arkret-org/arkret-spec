@@ -37,7 +37,18 @@
               "unset",
               "add",
               "remove"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "patch.schema.json#/additionalProperties/oneOf/1/properties/$op",
+              "owner": "patch.schema.json#/additionalProperties/oneOf/1/properties/$op",
+              "values": [
+                "set",
+                "unset",
+                "add",
+                "remove"
+              ]
+            }
           },
           "value": {}
         },
@@ -47,7 +58,15 @@
             "if": {
               "properties": {
                 "$op": {
-                  "const": "unset"
+                  "const": "unset",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "patch.schema.json#/additionalProperties/oneOf/1/allOf/0/if/properties/$op",
+                    "owner": "patch.schema.json#/additionalProperties/oneOf/1/allOf/0/if/properties/$op",
+                    "values": [
+                      "unset"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -70,7 +89,17 @@
                     "set",
                     "add",
                     "remove"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "patch.schema.json#/additionalProperties/oneOf/1/allOf/1/if/properties/$op",
+                    "owner": "patch.schema.json#/additionalProperties/oneOf/1/allOf/1/if/properties/$op",
+                    "values": [
+                      "set",
+                      "add",
+                      "remove"
+                    ]
+                  }
                 }
               },
               "required": [

@@ -8,7 +8,7 @@
       "$ref": "#/$defs/read_cursor_advance_request_body"
     },
     {
-      "$ref": "#/$defs/read_marker_outcome"
+      "$ref": "#/$defs/read_marker_response_body"
     },
     {
       "$ref": "#/$defs/read_cursor_list"
@@ -44,7 +44,15 @@
                   ],
                   "properties": {
                     "kind": {
-                      "const": "ak.read_cursor.advance"
+                      "const": "ak.read_cursor.advance",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body/properties/advance_event/allOf/1/properties/event/properties/kind",
+                        "owner": "read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body/properties/advance_event/allOf/1/properties/event/properties/kind",
+                        "values": [
+                          "ak.read_cursor.advance"
+                        ]
+                      }
                     },
                     "payload": {
                       "$ref": "./read-cursor.schema.json"
@@ -58,7 +66,7 @@
       },
       "additionalProperties": false
     },
-    "read_marker_outcome": {
+    "read_marker_response_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -89,7 +97,8 @@
           "description": "Derived, not caller-supplied: the envelope created_at of the ak.read_cursor.advance Event that currently wins the causal-first merge for this (actor_id, realm_id, read_scope). The cursor object itself carries no updated_at."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "read_cursor_list": {
       "type": "object",
@@ -100,7 +109,7 @@
         "markers": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/read_marker_outcome"
+            "$ref": "#/$defs/read_marker_response_body"
           }
         }
       },

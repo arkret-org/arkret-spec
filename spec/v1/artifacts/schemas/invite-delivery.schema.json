@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
   "title": "Arkret Invite Delivery",
-  "description": "Actor-private plaintext account-data typed current result value containing delivered directed-invite references and untrusted authority-bundle locator hints. It is not part of Realm history and carries no bearer credential.",
+  "description": "Actor-private plaintext account-data current state value containing delivered directed-invite references and untrusted authority-bundle locator hints. It is not part of Realm history and carries no bearer credential.",
   "type": "object",
   "required": [
     "schema",
@@ -11,7 +11,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.invite_delivery.v1"
+      "const": "ak.schema.invite_delivery.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "invite-delivery.schema.json#/properties/schema",
+        "owner": "invite-delivery.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.invite_delivery.v1"
+        ]
+      }
     },
     "updated_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
@@ -62,7 +70,7 @@
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Instant the recipient Station accepted this delivery into the typed current result."
+          "description": "Instant the recipient Station accepted this delivery into the current state."
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

@@ -256,7 +256,7 @@ class AgentSessionContentTest(unittest.TestCase):
     def test_refresh_cannot_gain_scope_fields_and_reads_need_no_fake_ref(self):
         def mutate(name, doc):
             if name == 'service-operation-dtos.schema.json':
-                doc['$defs']['AgentSessionGrantRefreshRequest']['properties']['requested_scope'] = {'type': 'array'}
+                doc['$defs']['AgentSessionGrantRefreshRequestBody']['properties']['requested_scope'] = {'type': 'array'}
         self.assertTrue(self.run_gate(mutate))
         def mutate_refs(name, doc):
             if name == 'service-operation-dtos.schema.json':

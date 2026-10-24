@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-09-23.2",
+  "version": "2026-10-24.1",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -12,7 +12,7 @@
   "limits": {
     "hard_max_frame_bytes": 1048576,
     "fixture_advertised_max_frame_bytes": 4096,
-    "max_channels": 16,
+    "max_channel_count": 16,
     "authentication_deadline_ms": 5000,
     "replay_ledger_retention_seconds": 300
   },
@@ -24,7 +24,7 @@
         "kind": "websocket",
         "base_url": "wss://server.example/_arkret/ws",
         "max_frame_bytes": 4096,
-        "max_channels": 16
+        "max_channel_count": 16
       },
       "expect_valid": true,
       "expected_transport": "websocket"
@@ -45,7 +45,7 @@
       "name": "missing_limit_rejected",
       "remove_each": [
         "max_frame_bytes",
-        "max_channels"
+        "max_channel_count"
       ],
       "expect_valid": false,
       "expected_transport": "http_json"
@@ -70,7 +70,7 @@
           "ak.profile.binding.websocket.v1"
         ],
         "supported_features": [],
-        "auth_metadata": {
+        "authentication_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
             "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
@@ -111,7 +111,7 @@
             "kind": "websocket",
             "base_url": "wss://server.example/_arkret/ws",
             "max_frame_bytes": 4096,
-            "max_channels": 16
+            "max_channel_count": 16
           }
         ]
       },
@@ -287,7 +287,7 @@
     {
       "name": "welcome",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"auth_expires_at\":\"2026-07-29T00:15:00.000Z\",\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"heartbeat_interval_ms\":30000,\"kind\":\"welcome\",\"max_channel_pending_bytes\":16384,\"max_channel_pending_frames\":32,\"max_channels\":16,\"max_connection_pending_bytes\":65536,\"max_connection_pending_frames\":128,\"max_frame_bytes\":4096}",
+      "wire_utf8": "{\"authentication_expires_at\":\"2026-07-29T00:15:00.000Z\",\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"heartbeat_interval_ms\":30000,\"kind\":\"welcome\",\"max_channel_pending_bytes\":16384,\"max_channel_pending_frame_count\":32,\"max_channel_count\":16,\"max_connection_pending_bytes\":65536,\"max_connection_pending_frame_count\":128,\"max_frame_bytes\":4096}",
       "expect_valid": true
     },
     {
@@ -335,13 +335,13 @@
     {
       "name": "events_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"committed_event\",\"payload\":{\"commit\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"stream_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"stream_position\":0,\"previous_commit_ref\":null,\"event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"governance_generation\":1,\"authority_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"committed_at\":\"2026-09-20T00:00:00.000Z\",\"signature\":{\"context\":\"ak.realm_commit_signature.v1\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture\",\"signed_digest\":\"sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0\",\"created_at\":\"2026-09-20T00:00:00.000Z\",\"sig\":\"jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA\"}},\"event_disclosure\":{\"status\":\"withheld\"}},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"committed_event\",\"payload\":{\"commit\":{\"authority_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"committed_at\":\"2026-09-20T00:00:00.000Z\",\"event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"governance_generation\":\"1\",\"previous_commit_ref\":null,\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"signature\":{\"context\":\"ak.realm_commit_signature.v1\",\"created_at\":\"2026-09-20T00:00:00.000Z\",\"signature\":\"jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA\",\"signature_algorithm\":\"Ed25519\",\"signed_digest\":\"sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0\",\"verification_method\":\"did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture\"},\"stream_position\":0,\"stream_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}},\"event_disclosure\":{\"status\":\"withheld\"}},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}}",
       "expect_valid": true
     },
     {
       "name": "signal_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"delivery_authority\":{\"key\":{\"actor\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh\",\"public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"recipient_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"envelope\":{\"authority_commit_id\":\"ak:realm_commit:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:27fa7559bd09fb59725f88e4f4b2b05070b82ea8d89d4279f9d1a50e022ea639\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"sender_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"delivery_authority\":{\"key\":{\"actor\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh\",\"public_key_base64url\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"recipient_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"envelope\":{\"authority_commit_id\":\"ak:realm_commit:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":\"7\",\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:27fa7559bd09fb59725f88e4f4b2b05070b82ea8d89d4279f9d1a50e022ea639\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"sender_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
       "expect_valid": true
     },
     {
@@ -359,13 +359,13 @@
     {
       "name": "channel_error",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"error\":{\"code\":\"rate_limited\",\"message\":\"channel limit reached\",\"retry_after_ms\":1000},\"frame_scope\":\"channel\",\"kind\":\"error\"}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"error\":{\"error_code\":\"rate_limited\",\"message\":\"channel limit reached\",\"retry_after_ms\":1000},\"frame_scope\":\"channel\",\"kind\":\"error\"}",
       "expect_valid": true
     },
     {
       "name": "connection_error",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"error\":{\"code\":\"internal_error\",\"message\":\"connection state unavailable\"},\"frame_scope\":\"connection\",\"kind\":\"error\"}",
+      "wire_utf8": "{\"error\":{\"error_code\":\"internal_error\",\"message\":\"connection state unavailable\"},\"frame_scope\":\"connection\",\"kind\":\"error\"}",
       "expect_valid": true
     },
     {
@@ -401,7 +401,7 @@
     {
       "name": "connection_drain",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"frame_scope\":\"connection\",\"kind\":\"control\",\"payload\":{\"deadline\":\"2026-07-29T00:14:30.000Z\",\"kind\":\"drain\",\"reason\":\"service_restart\",\"reconnect_after_ms\":5000}}",
+      "wire_utf8": "{\"frame_scope\":\"connection\",\"kind\":\"control\",\"payload\":{\"close_at\":\"2026-07-29T00:14:30.000Z\",\"kind\":\"drain\",\"reason\":\"service_restart\",\"reconnect_after_ms\":5000}}",
       "expect_valid": true
     }
   ],
@@ -620,7 +620,7 @@
               "stream_position": 0,
               "previous_commit_ref": null,
               "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-              "governance_generation": 1,
+              "governance_generation": "1",
               "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
               "committed_at": "2026-09-20T00:00:00.000Z",
               "signature": {
@@ -629,7 +629,7 @@
                 "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
                 "signed_digest": "sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0",
                 "created_at": "2026-09-20T00:00:00.000Z",
-                "sig": "jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA"
+                "signature": "jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA"
               }
             },
             "event_disclosure": {

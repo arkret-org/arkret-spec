@@ -39,7 +39,15 @@
     },
     "identity_model": {
       "const": "pcr_policy",
-      "description": "The v1 base recovery model: an accepted PCR recovery policy directly authorizes the next device generation. Current DID control is not implicit."
+      "description": "The v1 base recovery model: an accepted PCR recovery policy directly authorizes the next device generation. Current DID control is not implicit.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-session.schema.json#/$defs/identity_model",
+        "owner": "recovery-session.schema.json#/$defs/identity_model",
+        "values": [
+          "pcr_policy"
+        ]
+      }
     },
     "pcr_generation_ref": {
       "$ref": "./recovery-authority.schema.json#/$defs/pcr_generation_ref"
@@ -55,7 +63,19 @@
         "completed",
         "rejected",
         "expired"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-session.schema.json#/$defs/session_state",
+        "owner": "recovery-session.schema.json#/$defs/session_state",
+        "values": [
+          "pending",
+          "verified",
+          "completed",
+          "rejected",
+          "expired"
+        ]
+      }
     },
     "proof_kind": {
       "type": "string",
@@ -64,7 +84,18 @@
         "recovery_unlock",
         "device_quorum",
         "trusted_recovery_service"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "recovery-session.schema.json#/$defs/proof_kind",
+        "owner": "recovery-session.schema.json#/$defs/proof_kind",
+        "values": [
+          "did_root",
+          "recovery_unlock",
+          "device_quorum",
+          "trusted_recovery_service"
+        ]
+      }
     },
     "proof_summary": {
       "type": "object",
@@ -109,7 +140,17 @@
           "type": "array",
           "const": [
             "ak.device.reanchor"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "structured_literal",
+            "authority": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions",
+            "owner": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions",
+            "values": [
+              [
+                "ak.device.reanchor"
+              ]
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -144,7 +185,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.recovery_session.v1"
+          "const": "ak.schema.recovery_session.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "recovery-session.schema.json#/$defs/recovery_session_state/properties/schema",
+            "owner": "recovery-session.schema.json#/$defs/recovery_session_state/properties/schema",
+            "values": [
+              "ak.schema.recovery_session.v1"
+            ]
+          }
         },
         "request_id": {
           "$ref": "#/$defs/request_id"
@@ -220,7 +269,18 @@
             "risk_policy",
             "superseded"
           ],
-          "description": "Closed enum. proof_failed: proof verification failures reached the server policy limit; operator_rejected: explicit operator/admin rejection; risk_policy: server risk policy rejection; superseded: replaced by a newer recovery session for the same principal/device."
+          "description": "Closed enum. proof_failed: proof verification failures reached the server policy limit; operator_rejected: explicit operator/admin rejection; risk_policy: server risk policy rejection; superseded: replaced by a newer recovery session for the same principal/device.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/recovery_session_state/properties/rejection_reason_code",
+            "owner": "recovery-session.schema.json#/$defs/recovery_session_state/properties/rejection_reason_code",
+            "values": [
+              "proof_failed",
+              "operator_rejected",
+              "risk_policy",
+              "superseded"
+            ]
+          }
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -242,7 +302,16 @@
                 "enum": [
                   "verified",
                   "completed"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-session.schema.json#/$defs/recovery_session_state/allOf/0/if/properties/state",
+                  "owner": "recovery-session.schema.json#/$defs/recovery_session_state/allOf/0/if/properties/state",
+                  "values": [
+                    "verified",
+                    "completed"
+                  ]
+                }
               }
             },
             "required": [
@@ -259,7 +328,15 @@
           "if": {
             "properties": {
               "state": {
-                "const": "rejected"
+                "const": "rejected",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-session.schema.json#/$defs/recovery_session_state/allOf/1/if/properties/state",
+                  "owner": "recovery-session.schema.json#/$defs/recovery_session_state/allOf/1/if/properties/state",
+                  "values": [
+                    "rejected"
+                  ]
+                }
               }
             },
             "required": [
@@ -326,7 +403,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "did_root"
+          "const": "did_root",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/did_root_proof/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/did_root_proof/properties/kind",
+            "values": [
+              "did_root"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge",
@@ -340,7 +425,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-session.schema.json#/$defs/did_root_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -360,7 +453,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "recovery_unlock"
+          "const": "recovery_unlock",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/recovery_unlock_proof/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/recovery_unlock_proof/properties/kind",
+            "values": [
+              "recovery_unlock"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -373,7 +474,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-session.schema.json#/$defs/recovery_unlock_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -392,7 +501,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "device_quorum"
+          "const": "device_quorum",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/device_quorum_proof/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/device_quorum_proof/properties/kind",
+            "values": [
+              "device_quorum"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -423,7 +540,15 @@
                 "type": "string",
                 "enum": [
                   "Ed25519"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "external_literal",
+                  "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+                  "owner": "recovery-session.schema.json#/$defs/device_quorum_proof/properties/signatures/items/properties/signature_algorithm",
+                  "values": [
+                    "Ed25519"
+                  ]
+                }
               },
               "signature": {
                 "type": "string",
@@ -449,7 +574,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "trusted_recovery_service"
+          "const": "trusted_recovery_service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof/properties/kind",
+            "values": [
+              "trusted_recovery_service"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -468,7 +601,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
@@ -503,7 +644,7 @@
       },
       "additionalProperties": false
     },
-    "recovery_session_proof_submit_outcome": {
+    "recovery_session_proof_submit_response_body": {
       "type": "object",
       "description": "Success outcome of ak.root.identity.recovery_session.command.submit_proof.v1. A 2xx reply means the proof verified and the session entered state=verified; a proof that does not verify is an error reply, so no state member is echoed.",
       "required": [
@@ -517,7 +658,8 @@
           "$ref": "#/$defs/proof_summary"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "did_root_transcript": {
       "type": "object",
@@ -543,10 +685,26 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.identity.recovery_proof.v1"
+          "const": "ak.identity.recovery_proof.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "recovery-session.schema.json#/$defs/did_root_transcript/properties/schema",
+            "owner": "recovery-session.schema.json#/$defs/did_root_transcript/properties/schema",
+            "values": [
+              "ak.identity.recovery_proof.v1"
+            ]
+          }
         },
         "kind": {
-          "const": "did_root"
+          "const": "did_root",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/did_root_transcript/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/did_root_transcript/properties/kind",
+            "values": [
+              "did_root"
+            ]
+          }
         },
         "request_id": {
           "$ref": "#/$defs/request_id"
@@ -614,7 +772,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "recovery_unlock"
+          "const": "recovery_unlock",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/recovery_unlock_proof_body/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/recovery_unlock_proof_body/properties/kind",
+            "values": [
+              "recovery_unlock"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -627,7 +793,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-session.schema.json#/$defs/recovery_unlock_proof_body/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -643,7 +817,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "device_quorum"
+          "const": "device_quorum",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/device_quorum_proof_body/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/device_quorum_proof_body/properties/kind",
+            "values": [
+              "device_quorum"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -673,7 +855,15 @@
                 "type": "string",
                 "enum": [
                   "Ed25519"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "external_literal",
+                  "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+                  "owner": "recovery-session.schema.json#/$defs/device_quorum_proof_body/properties/signatures/items/properties/signature_algorithm",
+                  "values": [
+                    "Ed25519"
+                  ]
+                }
               }
             },
             "additionalProperties": false
@@ -695,7 +885,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "trusted_recovery_service"
+          "const": "trusted_recovery_service",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof_body/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof_body/properties/kind",
+            "values": [
+              "trusted_recovery_service"
+            ]
+          }
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -714,7 +912,15 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "recovery-session.schema.json#/$defs/trusted_recovery_service_proof_body/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -745,7 +951,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.identity.recovery_proof.v1"
+          "const": "ak.identity.recovery_proof.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "recovery-session.schema.json#/$defs/generic_recovery_transcript/properties/schema",
+            "owner": "recovery-session.schema.json#/$defs/generic_recovery_transcript/properties/schema",
+            "values": [
+              "ak.identity.recovery_proof.v1"
+            ]
+          }
         },
         "kind": {
           "type": "string",
@@ -753,7 +967,17 @@
             "recovery_unlock",
             "device_quorum",
             "trusted_recovery_service"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "recovery-session.schema.json#/$defs/generic_recovery_transcript/properties/kind",
+            "owner": "recovery-session.schema.json#/$defs/generic_recovery_transcript/properties/kind",
+            "values": [
+              "recovery_unlock",
+              "device_quorum",
+              "trusted_recovery_service"
+            ]
+          }
         },
         "request_id": {
           "$ref": "#/$defs/request_id"
@@ -827,7 +1051,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "recovery_unlock"
+                "const": "recovery_unlock",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/0/if/properties/kind",
+                  "owner": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/0/if/properties/kind",
+                  "values": [
+                    "recovery_unlock"
+                  ]
+                }
               }
             },
             "required": [
@@ -846,7 +1078,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "device_quorum"
+                "const": "device_quorum",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/1/if/properties/kind",
+                  "owner": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/1/if/properties/kind",
+                  "values": [
+                    "device_quorum"
+                  ]
+                }
               }
             },
             "required": [
@@ -865,7 +1105,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "trusted_recovery_service"
+                "const": "trusted_recovery_service",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/2/if/properties/kind",
+                  "owner": "recovery-session.schema.json#/$defs/generic_recovery_transcript/allOf/2/if/properties/kind",
+                  "values": [
+                    "trusted_recovery_service"
+                  ]
+                }
               }
             },
             "required": [
@@ -901,7 +1149,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.identity.recovery_device_possession.v1"
+          "const": "ak.identity.recovery_device_possession.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "recovery-session.schema.json#/$defs/recovery_device_possession_transcript/properties/schema",
+            "owner": "recovery-session.schema.json#/$defs/recovery_device_possession_transcript/properties/schema",
+            "values": [
+              "ak.identity.recovery_device_possession.v1"
+            ]
+          }
         },
         "request_id": {
           "$ref": "#/$defs/request_id",

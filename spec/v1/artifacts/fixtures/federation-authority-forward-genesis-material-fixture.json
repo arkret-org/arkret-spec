@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.federation.authority_forward_genesis_material.v1"
   },
-  "version": "2026-09-26.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.federation.authority_forward_genesis_material.v1"
@@ -13,10 +13,10 @@
   "machine_contracts": [
     "registry/contract-registry.json",
     "registry/operations-error-mapping.json",
-    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
     "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
     "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
-    "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome"
+    "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody"
   ],
   "description": "Executable evidence for ak.vector.federation.authority_forward_genesis_material.v1 (zh/crypto-media/encryption-and-audit.md sections 5.1.1 and 5.1.2, zh/sync/federation.md section 4.1, decisions 0119 and 0123). The creator is a human device Account on the forwarding Station and a joined member of a Realm the governance Station governs, granted ak.mls.genesis. Unless a variant says otherwise the creator's epoch-0 group holds only its own leaf under the 0 -> 0 governance binding, both refs are sha256 content addresses of its exported GroupInfo and ratchet_tree, the forwarding Station holds both Blobs and forwards the Genesis through ak.peer.events.command.submit.v1 authority_forward with fresh producer_device_evidence and mls_genesis_material holding the exact bytes. carried, carried_mutation and carried_decoded_bytes replace what the forward carries; forwarded tells whether a request left the forwarding Station, realm_commits counts accepted Genesis Commits and public_blobs the Blobs the governance Station stores. Every case starts from fresh Stations and later variants continue from the state earlier ones left; a refused variant MUST leave both Stations exactly as before.",
   "world": {

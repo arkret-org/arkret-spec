@@ -19,10 +19,10 @@ STRIPPED={'approval_signatures'}
 def projection(request):return {k:v for k,v in request.items() if k not in STRIPPED}
 def decode(s):return base64.urlsafe_b64decode(s+'='*(-len(s)%4))
 def verify(domain,host,jws,key):
-    head,empty,sig=jws.split('.')
+    head,empty,signature=jws.split('.')
     if empty or decode(head)!=b'{"alg":"Ed25519"}':return False
     try:
-        Ed25519PublicKey.from_public_bytes(key).verify(decode(sig),(head+'.'+base64.urlsafe_b64encode(domain.encode()+b'\x00'+canonical(host)).rstrip(b'=').decode()).encode())
+        Ed25519PublicKey.from_public_bytes(key).verify(decode(signature),(head+'.'+base64.urlsafe_b64encode(domain.encode()+b'\x00'+canonical(host)).rstrip(b'=').decode()).encode())
         return True
     except (InvalidSignature,ValueError):return False
 
@@ -96,8 +96,8 @@ class AppletManagementSourceTests(unittest.TestCase):
         self.assertFalse(validator.is_valid({'status': 'unknown'}))
         self.assertFalse(validator.is_valid({'status': 'active'}))
         schema = json.loads((ART/'schemas/applet-authority-material.schema.json').read_text(encoding='utf-8'))
-        self.assertIn('current_binding', schema['$defs']['outcome']['required'])
-        self.assertIn('registration', schema['$defs']['outcome']['required'])
+        self.assertIn('current_binding', schema['$defs']['response_body']['required'])
+        self.assertIn('registration', schema['$defs']['response_body']['required'])
     def test_fixture_reconstruction_and_closed_coverage(self):
         self.assertEqual(self.f,build())
         self.assertEqual({c['acceptance_id'] for c in self.f['cases']},{'MR-'+str(i) for i in range(1,10)}|{'CR-'+str(i) for i in range(1,13)})
@@ -128,7 +128,7 @@ class AppletManagementSourceTests(unittest.TestCase):
     def test_registered_event_carrier_and_configuration_domains(self):
         d=json.loads((ART/'schemas/service-operation-dtos.schema.json').read_text(encoding='utf-8'))['$defs']['EventAdmissionSubmission']
         self.assertEqual(set(d['properties']), {'event','approval_signatures'})
-        p=json.loads((ART/'schemas/authority-commit-operations.schema.json').read_text(encoding='utf-8'))['$defs']['peer_submit_request']
+        p=json.loads((ART/'schemas/authority-commit-operations.schema.json').read_text(encoding='utf-8'))['$defs']['peer_submit_request_body']
         self.assertNotIn('producer_managed_provenance',p['properties'])
         domains=json.loads((ART/'registry/proof-context-registry.json').read_text(encoding='utf-8'))['domain_separations']
         for domain in ['ak.applet.configuration_command.v1','ak.applet.configuration_outcome.v1']:

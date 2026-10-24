@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-28.1",
+  "version": "2026-10-24.1",
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
@@ -227,7 +227,17 @@
         "timing_bucket": "circle_locked_v1",
         "error_code": "not_found",
         "list_behavior": "omit",
-        "preview_member_count_buckets": ["0", "1", "2-3", "4-7", "8-15", "16-31", "32-63", "64-127", "128+"],
+        "preview_member_count_buckets": [
+          "0",
+          "1",
+          "2-3",
+          "4-7",
+          "8-15",
+          "16-31",
+          "32-63",
+          "64-127",
+          "128+"
+        ],
         "opaque_commitment_encoding": "sha256_lower_hex_realm_and_circle_ids",
         "preview_keys": [
           "circle_id",

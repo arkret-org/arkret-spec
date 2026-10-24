@@ -15,7 +15,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.invite_delivery_request.v1"
+      "const": "ak.schema.invite_delivery_request.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "invite-delivery-request.schema.json#/properties/schema",
+        "owner": "invite-delivery-request.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.invite_delivery_request.v1"
+        ]
+      }
     },
     "invite_event": {
       "$ref": "./event-envelope.schema.json",
@@ -171,7 +179,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "locator_ref"
+          "const": "locator_ref",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/locator_ref_evidence/properties/kind",
+            "owner": "invite-delivery-request.schema.json#/$defs/locator_ref_evidence/properties/kind",
+            "values": [
+              "locator_ref"
+            ]
+          }
         },
         "principal_locator": {
           "$ref": "./principal-locator.schema.json"
@@ -187,7 +203,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "consent_grant"
+          "const": "consent_grant",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/consent_grant_evidence/properties/kind",
+            "owner": "invite-delivery-request.schema.json#/$defs/consent_grant_evidence/properties/kind",
+            "values": [
+              "consent_grant"
+            ]
+          }
         },
         "consent_grant_ref": {
           "$ref": "#/$defs/event_ref",
@@ -206,7 +230,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "shared_realm"
+          "const": "shared_realm",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/shared_realm_evidence/properties/kind",
+            "owner": "invite-delivery-request.schema.json#/$defs/shared_realm_evidence/properties/kind",
+            "values": [
+              "shared_realm"
+            ]
+          }
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -229,7 +261,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "handle_claim"
+          "const": "handle_claim",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/handle_claim_evidence/properties/kind",
+            "owner": "invite-delivery-request.schema.json#/$defs/handle_claim_evidence/properties/kind",
+            "values": [
+              "handle_claim"
+            ]
+          }
         },
         "handle": {
           "$ref": "#/$defs/handle",
@@ -256,12 +296,20 @@
       ],
       "properties": {
         "kind": {
-          "const": "explicit_address"
+          "const": "explicit_address",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/explicit_address_evidence/properties/kind",
+            "owner": "invite-delivery-request.schema.json#/$defs/explicit_address_evidence/properties/kind",
+            "values": [
+              "explicit_address"
+            ]
+          }
         }
       },
       "additionalProperties": false
     },
-    "invite_delivery_outcome": {
+    "invite_delivery_response_body": {
       "type": "object",
       "required": [
         "status"
@@ -274,7 +322,17 @@
             "duplicate",
             "deferred"
           ],
-          "description": "Generic receive status. It MUST NOT reveal whether the AccountId exists or whether policy quarantined/dropped the invite. A holder-quarantine outcome MUST be reported as deferred with no disclosed_outcome. Only a receiver policy disclosure level of outcome may add disclosed_outcome, and only with delivered|blocked."
+          "description": "Generic receive status. It MUST NOT reveal whether the AccountId exists or whether policy quarantined/dropped the invite. A holder-quarantine outcome MUST be reported as deferred with no disclosed_outcome. Only a receiver policy disclosure level of outcome may add disclosed_outcome, and only with delivered|blocked.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/invite_delivery_response_body/properties/status",
+            "owner": "invite-delivery-request.schema.json#/$defs/invite_delivery_response_body/properties/status",
+            "values": [
+              "accepted",
+              "duplicate",
+              "deferred"
+            ]
+          }
         },
         "disclosed_outcome": {
           "type": "string",
@@ -282,7 +340,16 @@
             "delivered",
             "blocked"
           ],
-          "description": "Optional graded-disclosure result, closed to delivered|blocked. Present ONLY when the subject's receive policy disclosure level for this introduction trust tier is 'outcome' and the subject did not block the issuer; omitted (opaque) otherwise. delivered: the invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy. A holder-quarantine outcome MUST NOT be disclosed: it reveals holder-private consent state (identity/consent-model.md 6.1.1) and MUST be reported as status='deferred' with no disclosed_outcome, in the same response and timing equivalence class as rate-limit silent drop, timeout drop, holder-not-found and holder policy deny."
+          "description": "Optional graded-disclosure result, closed to delivered|blocked. Present ONLY when the subject's receive policy disclosure level for this introduction trust tier is 'outcome' and the subject did not block the issuer; omitted (opaque) otherwise. delivered: the invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy. A holder-quarantine outcome MUST NOT be disclosed: it reveals holder-private consent state (identity/consent-model.md 6.1.1) and MUST be reported as status='deferred' with no disclosed_outcome, in the same response and timing equivalence class as rate-limit silent drop, timeout drop, holder-not-found and holder policy deny.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "invite-delivery-request.schema.json#/$defs/invite_delivery_response_body/properties/disclosed_outcome",
+            "owner": "invite-delivery-request.schema.json#/$defs/invite_delivery_response_body/properties/disclosed_outcome",
+            "values": [
+              "delivered",
+              "blocked"
+            ]
+          }
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"
@@ -292,7 +359,8 @@
           "minimum": 0
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

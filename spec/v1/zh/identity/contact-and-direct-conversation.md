@@ -136,11 +136,11 @@ normal version/predecessor 指 responder 本次已确认接受操作，观察与
 **Contact producer projection（normative）**：`request_acceptance_receipt_core`、
 `normal_response_acceptance_receipt`、`reject_acceptance_receipt` 与 `contact_lineage` 必须在各自原始
 `request_event_ref` / `response_event_ref` / `reject_event_ref` / `event_ref` 后携带 required
-`producer_signer` 的闭合 direct 分支为 `{verification_method, public_key_b64u}`，delegated 分支为
-`{verification_method, public_key_b64u, delegated_actor_did}`；没有新增 `kind` 标签。只有合法 Agent
+`producer_signer` 的闭合 direct 分支为 `{verification_method, public_key_base64url}`，delegated 分支为
+`{verification_method, public_key_base64url, delegated_actor_did}`；没有新增 `kind` 标签。只有合法 Agent
 controller-device 原 Event 含 `executed_by` 时 MUST 使用 delegated，human 与 Agent runtime 分支 MUST
 使用 direct 并禁止 `delegated_actor_did`。各分支都是原 source-signed core/transcript 的成员，
-按原 digest/signature 算法完整覆盖，不另加签名、签名 context 或 key digest。`public_key_b64u` 为 canonical
+按原 digest/signature 算法完整覆盖，不另加签名、签名 context 或 key digest。`public_key_base64url` 为 canonical
 unpadded base64url 的 Ed25519 raw32；算法固定为既有 Contact Event Ed25519 profile，不携带重复的
 algorithm/key-kind。source 只能冻结该确切已确认 Event 实际通过 producer 验证的 key 与 method，不能从
 稍后的当前设备目录替换旧 key，也不能用自己的 service key 代替。同一 Event 同时出现在 receipt、
@@ -195,7 +195,7 @@ commitment 与 receipt 的 `accepted_at` 一致。延后签名按该历史时点
 
 ### 2.4 peer carrier 与只读 current_refresh
 
-`ak.peer.contacts.command.submit.v1` 是唯一闭合 carrier：五类原 signed Event＋对应 receipt／lineage、glare_finalize，以及 current_refresh。它 **MUST NOT** 承载 Realm Event 或 DM binding。原件保持原 bytes，peer Message Signature 只认证传输。成功事件结果使用 Event mirror receipt；glare/current_refresh 使用 request-kind 绑定的 control receipt，不能伪造另一 Event mirror receipt。其 result_digest 为 `H("ak.peer-contact.control-result.v1",{request_digest,result_kind,glare_concurrency_attestation?,current_proof?,material?})`，覆盖实际返回的全部相应成员，省略的成员整体缺席。
+`ak.peer.contacts.command.submit.v1` 是唯一闭合 carrier：五类原 signed Event＋对应 receipt／lineage、glare_finalize，以及 current_refresh。它 **MUST NOT** 承载 Realm Event 或 DM binding。原件保持原 bytes，peer Message Signature 只认证传输。成功事件结果使用 Event mirror receipt；glare/current_refresh 使用 request-kind 绑定的 control receipt，不能伪造另一 Event mirror receipt。其 control_material_digest 为 `H("ak.peer-contact.control-result.v1",{request_digest,state_kind,glare_concurrency_attestation?,current_proof?,material?})`，覆盖实际返回的全部相应成员，省略的成员整体缺席。
 
 current_refresh 的身份、输入／输出、预算与安装合同见 §3.2。旧 proof_refresh、prior_mirror_receipt 前置、continuity_checkpoint 分支及其操作不再定义。request introduction_evidence 仍按 `H("ak.contact.introduction-evidence.v1", exact_introduction_evidence)` 匹配签入 Event 的 digest；缺件不生成可回应或授权投影。
 
@@ -222,7 +222,7 @@ profile 沿既有共享 Realm 授权查询，不因 Contact accepted 获得 PCR 
 ### 3.1 Contact 耐久效果的归属（normative）
 
 Contact 的 admission slot、contact round、每条完整 holder／peer／domain 的操作 current、已验证的对端 mirror 与列表折叠，
-全部是 **holder Station 的私有服务状态**，不是靠重放本 Realm 已提交 Event 得到的 Realm typed current result。
+全部是 **holder Station 的私有服务状态**，不是靠重放本 Realm 已提交 Event 得到的 Realm current state。
 理由是结构性的：§2 的 `contact_round_id` 由 source-signed acceptance receipt 的摘要决定，而该 receipt 的 core
 成员（`source_checkpoint`、`accepted_at`、`issuer_id`）没有一个进入 Event 流；glare 分支还需要
 对端的 request 与 receipt，而本节已规定 mirror **MUST NOT** 推进 reducer。
@@ -238,8 +238,8 @@ Contact 的 admission slot、contact round、每条完整 holder／peer／domain
 - 这些材料依旧 **MUST NOT** 进入接收方 canonical Event store，也 **MUST NOT** 推进 reducer、RealmCommit 或
   authority-commit checkpoint。
 - `glare_finalize` 与 `current_refresh` 没有 signed Event，它们是 carrier operation；实现 **MUST NOT** 为此新增
-  non-Event 的 Realm reducer producer，也不扩 `result_writes[]`。
-- 不得为提高登记覆盖率而给这五条 kind 造一个正文从未命名的 typed current result family。
+  non-Event 的 Realm reducer producer，也不扩 `state_writes[]`。
+- 不得为提高登记覆盖率而给这五条 kind 造一个正文从未命名的 current state family。
 
 ### 3.2 完整 current 取材和安全恢复（normative）
 
@@ -251,7 +251,7 @@ current_refresh 是只读分支，required 输入为 kind、fresh idempotency_ke
 
 完整请求与响应的 canonical JSON 各 **MUST NOT** 超过 2 MiB，历史实例最多5个；current scope 恰属于既有5值 enum，唯一按 scope 排序且不重复。超限使用现有 too_large 语义，缺件保持既有 deferred／暂不可用，不截断成可授权成功。无全轮枚举、continuity export、通用 snapshot 或第二恢复 authority。
 
-返回的 control receipt **MUST** 签本次 request_digest 和完整 material 的 result_digest。相同 key／请求返回第一次冻结结果，不能因此续期；需 fresh 查询用新 key。接收者验证身份／原件／所有绑定后，锁本地状态重核固定身份、方向进度和已知关闭，再原子安装；有效关闭可独立先保存，不能用等待中的旧响应覆盖本地撤回。
+返回的 control receipt **MUST** 签本次 request_digest 和完整 material 的 control_material_digest。相同 key／请求返回第一次冻结结果，不能因此续期；需 fresh 查询用新 key。接收者验证身份／原件／所有绑定后，锁本地状态重核固定身份、方向进度和已知关闭，再原子安装；有效关闭可独立先保存，不能用等待中的旧响应覆盖本地撤回。
 
 只披露已允许给 exact peer 的原事实／必要历史，不披露 quota、seen-source、policy 或私有 pending_incoming。无合法可披露事实时，目标不存在、policy deny、quota drop、隐藏待审均使用既有相同 opaque deferred bucket，不能探测接纳结果。曾成立关系的合法关闭／历史恢复不以今天仍 accepted 为前提。缺失记录不证明 never-written；不能从不完整备份重置 root、version、消费事实或 founding slot。
 
@@ -396,11 +396,11 @@ Realm role、exact two-member set、main Strand、`founding_unit_digest` 或 fou
 **MUST** 拒绝该 binding（reason `direct_conversation_binding_invalid`）。
 
 carrier 是 `ak.self.events.command.submit.v1` 的 endpoint-specific
-`self_submit_request` union 中显式登记的 `direct_conversation_founding_unit_submission`
+`self_submit_request_body` union 中显式登记的 `direct_conversation_founding_unit_submission`
 （`unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的
 `EventAdmissionSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current
 Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），
-并在 `self_submit_outcome` 中返回 `direct_conversation_founding_acceptance_outcome`。每条 Event 的实际 author
+并在 `self_submit_response_body` 中返回 `direct_conversation_founding_acceptance_outcome`。每条 Event 的实际 author
 `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有
 endpoint、复用普通 batch 分支或让服务端代签 producer Event；
 `ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
@@ -680,7 +680,7 @@ Chat／Topic 用户 metadata 使用同一 Realm group 下的完整 encrypted_met
 
 Direct Conversation 的普通单 Event 写入继续使用 `ak.self.events.command.submit.v1`，请求中的 signed Event 位于
 `/event`，拒绝继续使用既有
-`authority-commit-operations.schema.json#/$defs/submit_outcome` 的封闭
+`authority-commit-operations.schema.json#/$defs/submit_response_body` 的封闭
 `{status="rejected",reason_code}` 分支；本节不新增 endpoint、批次或第二种 problem carrier。唯一机读规则表是
 `contract-registry.json#operation_registry/direct_conversation_admission_mappings`。每条规则必须在签发
 RealmCommit 之前求值；命中时 Event、RealmCommit、typed current projection、outbox、成功幂等记录与其它 durable

@@ -9,14 +9,14 @@
     "backup_kind",
     "backup_version",
     "series_id",
-    "series_seq",
+    "series_sequence",
     "created_at",
     "encryption",
     "domain_separation",
     "contents",
     "ciphertext",
     "ciphertext_digest",
-    "auth_data"
+    "signature_proof"
   ],
   "properties": {
     "backup_id": {
@@ -34,7 +34,15 @@
       "type": "string",
       "enum": [
         "secret_storage"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "key-backup.schema.json#/properties/backup_kind",
+        "owner": "key-backup.schema.json#/properties/backup_kind",
+        "values": [
+          "secret_storage"
+        ]
+      }
     },
     "mixed_secret_storage": {
       "type": "boolean",
@@ -50,7 +58,7 @@
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable identifier for one immutable chain of backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during compromise rotation or migration; active series selection is outside this envelope and MUST come from the signed active-series record in identity/key-management.md §7.6. Receivers use (actor_id, backup_kind, series_id) to detect server-side rollback / withholding within the selected series."
     },
-    "series_seq": {
+    "series_sequence": {
       "type": "integer",
       "minimum": 0,
       "description": "0-based, strictly monotonically increasing sequence number within (actor_id, series_id). Genesis envelope of a series MUST set 0. Receivers MUST reject envelopes whose sequence does not strictly exceed the previously accepted sequence in the same series. This predecessor/CAS axis is independent of the optional source_commit_ref checkpoint."
@@ -65,15 +73,15 @@
           "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
-      "description": "backup_id of the immediate predecessor in the same series_id. MUST be absent for series_seq=0; MUST be present, non-null, and reference an existing predecessor for series_seq>0."
+      "description": "backup_id of the immediate predecessor in the same series_id. MUST be absent for series_sequence=0; MUST be present, non-null, and reference an existing predecessor for series_sequence>0."
     },
     "supersedes_digest": {
       "$ref": "#/$defs/digest",
-      "description": "Required when supersedes_id is non-null. Hash of the canonical_json of the predecessor envelope (excluding auth_data.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
+      "description": "Required when supersedes_id is non-null. Hash of the canonical_json of the predecessor envelope (excluding signature_proof.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
     },
     "source_commit_ref": {
       "type": "object",
-      "description": "The only canonical optional source checkpoint for genesis and successor authoring. Its exact wire and public builder shape is source_commit_ref{realm_commit_id: RealmCommitId, device_generation_ref: u64 >= 1}. Producers MUST authenticate this member under the envelope signature when present and MUST NOT accept or serialize source_ref, a nested/full CommittedEventRef, a string generation, Seal data, or a frontier digest. This checkpoint is independent of series_seq, supersedes_id, and supersedes_digest and never substitutes for the successor predecessor/CAS chain.",
+      "description": "The only canonical optional source checkpoint for genesis and successor authoring. Its exact wire and public builder shape is source_commit_ref{realm_commit_id: RealmCommitId, device_generation_ref: u64 >= 1}. Producers MUST authenticate this member under the envelope signature when present and MUST NOT accept or serialize source_ref, a nested/full CommittedEventRef, a string generation, Seal data, or a frontier digest. This checkpoint is independent of series_sequence, supersedes_id, and supersedes_digest and never substitutes for the successor predecessor/CAS chain.",
       "required": [
         "realm_commit_id",
         "device_generation_ref"
@@ -130,7 +138,17 @@
             "passphrase_kdf",
             "recovery_public_key",
             "secret_storage_key"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "key-backup.schema.json#/properties/encryption/properties/recipient_method",
+            "owner": "key-backup.schema.json#/properties/encryption/properties/recipient_method",
+            "values": [
+              "passphrase_kdf",
+              "recovery_public_key",
+              "secret_storage_key"
+            ]
+          }
         },
         "recipient_key_ref": {
           "type": "string",
@@ -143,7 +161,17 @@
             "ak.hpke_x25519_aead_aes256gcm.v1",
             "ak.hpke_p256_aead_aes256gcm.v1"
           ],
-          "description": "Registered active HPKE suite (KEM x KDF x AEAD per RFC 9180) selector; the value space is the active rows of artifacts/registry/hpke-suite-registry.json. Applies only to recipient_method=recovery_public_key. When absent it denotes the default-MUST row ak.hpke_x25519_aead_chacha20poly1305.v1. aead.name MUST equal the selected suite's AEAD. An unregistered or inactive suite MUST be rejected (unsupported_hpke_suite). Absent / ignored for the symmetric methods (passphrase_kdf / secret_storage_key)."
+          "description": "Registered active HPKE suite (KEM x KDF x AEAD per RFC 9180) selector; the value space is the active rows of artifacts/registry/hpke-suite-registry.json. Applies only to recipient_method=recovery_public_key. When absent it denotes the default-MUST row ak.hpke_x25519_aead_chacha20poly1305.v1. aead.name MUST equal the selected suite's AEAD. An unregistered or inactive suite MUST be rejected (unsupported_hpke_suite). Absent / ignored for the symmetric methods (passphrase_kdf / secret_storage_key).",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "key-backup.schema.json#/properties/encryption/properties/hpke_suite",
+            "owner": "key-backup.schema.json#/properties/encryption/properties/hpke_suite",
+            "values": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1",
+              "ak.hpke_x25519_aead_aes256gcm.v1",
+              "ak.hpke_p256_aead_aes256gcm.v1"
+            ]
+          }
         },
         "kdf": {
           "type": "object",
@@ -157,14 +185,23 @@
               "enum": [
                 "argon2id",
                 "pbkdf2"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "key-backup.schema.json#/properties/encryption/properties/kdf/properties/name",
+                "owner": "key-backup.schema.json#/properties/encryption/properties/kdf/properties/name",
+                "values": [
+                  "argon2id",
+                  "pbkdf2"
+                ]
+              }
             },
             "salt": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{22}$",
               "description": "Canonical unpadded base64url of exactly 16 KDF salt bytes; decoders MUST check the decoded length and canonical re-encoding."
             },
-            "params": {
+            "parameters": {
               "type": "object",
               "properties": {
                 "memory_kib": {
@@ -185,7 +222,17 @@
                     "sha256",
                     "sha384",
                     "sha512"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "key-backup.schema.json#/properties/encryption/properties/kdf/properties/parameters/properties/digest_algorithm",
+                    "owner": "key-backup.schema.json#/properties/encryption/properties/kdf/properties/parameters/properties/digest_algorithm",
+                    "values": [
+                      "sha256",
+                      "sha384",
+                      "sha512"
+                    ]
+                  }
                 }
               },
               "not": {
@@ -207,7 +254,15 @@
               "if": {
                 "properties": {
                   "name": {
-                    "const": "argon2id"
+                    "const": "argon2id",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/0/if/properties/name",
+                      "owner": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/0/if/properties/name",
+                      "values": [
+                        "argon2id"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -216,7 +271,7 @@
               },
               "then": {
                 "required": [
-                  "params"
+                  "parameters"
                 ],
                 "not": {
                   "required": [
@@ -224,7 +279,7 @@
                   ]
                 },
                 "properties": {
-                  "params": {
+                  "parameters": {
                     "required": [
                       "memory_kib",
                       "iterations",
@@ -257,7 +312,15 @@
               "if": {
                 "properties": {
                   "name": {
-                    "const": "pbkdf2"
+                    "const": "pbkdf2",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/1/if/properties/name",
+                      "owner": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/1/if/properties/name",
+                      "values": [
+                        "pbkdf2"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -266,11 +329,11 @@
               },
               "then": {
                 "required": [
-                  "params",
+                  "parameters",
                   "degraded_profile_reason"
                 ],
                 "properties": {
-                  "params": {
+                  "parameters": {
                     "required": [
                       "iterations",
                       "digest_algorithm"
@@ -300,7 +363,17 @@
                           "sha256",
                           "sha384",
                           "sha512"
-                        ]
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/1/then/properties/parameters/properties/digest_algorithm",
+                          "owner": "key-backup.schema.json#/properties/encryption/properties/kdf/allOf/1/then/properties/parameters/properties/digest_algorithm",
+                          "values": [
+                            "sha256",
+                            "sha384",
+                            "sha512"
+                          ]
+                        }
                       }
                     }
                   }
@@ -325,7 +398,17 @@
                 "xchacha20_poly1305",
                 "aes_256_gcm",
                 "chacha20_poly1305"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "key-backup.schema.json#/properties/encryption/properties/aead/properties/name",
+                "owner": "key-backup.schema.json#/properties/encryption/properties/aead/properties/name",
+                "values": [
+                  "xchacha20_poly1305",
+                  "aes_256_gcm",
+                  "chacha20_poly1305"
+                ]
+              }
             },
             "aead_profile": {
               "type": "string",
@@ -364,7 +447,15 @@
           "if": {
             "properties": {
               "recipient_method": {
-                "const": "passphrase_kdf"
+                "const": "passphrase_kdf",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup.schema.json#/properties/encryption/allOf/0/if/properties/recipient_method",
+                  "owner": "key-backup.schema.json#/properties/encryption/allOf/0/if/properties/recipient_method",
+                  "values": [
+                    "passphrase_kdf"
+                  ]
+                }
               }
             }
           },
@@ -381,7 +472,15 @@
                 ],
                 "properties": {
                   "name": {
-                    "const": "xchacha20_poly1305"
+                    "const": "xchacha20_poly1305",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "key-backup.schema.json#/properties/encryption/allOf/0/then/properties/aead/properties/name",
+                      "owner": "key-backup.schema.json#/properties/encryption/allOf/0/then/properties/aead/properties/name",
+                      "values": [
+                        "xchacha20_poly1305"
+                      ]
+                    }
                   },
                   "nonce": {
                     "pattern": "^[A-Za-z0-9_-]{32}$"
@@ -390,7 +489,15 @@
                     "pattern": "^[A-Za-z0-9_-]{22,128}$"
                   },
                   "aead_profile": {
-                    "const": "ak.aead.xchacha20_poly1305.v1"
+                    "const": "ak.aead.xchacha20_poly1305.v1",
+                    "x-arkret-value-ownership": {
+                      "class": "namespaced_symbol",
+                      "authority": "key-backup.schema.json#/properties/encryption/allOf/0/then/properties/aead/properties/aead_profile",
+                      "owner": "key-backup.schema.json#/properties/encryption/allOf/0/then/properties/aead/properties/aead_profile",
+                      "values": [
+                        "ak.aead.xchacha20_poly1305.v1"
+                      ]
+                    }
                   }
                 }
               },
@@ -404,7 +511,15 @@
           "if": {
             "properties": {
               "recipient_method": {
-                "const": "secret_storage_key"
+                "const": "secret_storage_key",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup.schema.json#/properties/encryption/allOf/1/if/properties/recipient_method",
+                  "owner": "key-backup.schema.json#/properties/encryption/allOf/1/if/properties/recipient_method",
+                  "values": [
+                    "secret_storage_key"
+                  ]
+                }
               }
             }
           },
@@ -430,7 +545,15 @@
           "if": {
             "properties": {
               "recipient_method": {
-                "const": "recovery_public_key"
+                "const": "recovery_public_key",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup.schema.json#/properties/encryption/allOf/2/if/properties/recipient_method",
+                  "owner": "key-backup.schema.json#/properties/encryption/allOf/2/if/properties/recipient_method",
+                  "values": [
+                    "recovery_public_key"
+                  ]
+                }
               }
             }
           },
@@ -514,7 +637,7 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "auth_data": {
+    "signature_proof": {
       "type": "object",
       "required": [
         "device_id",
@@ -537,12 +660,20 @@
           "enum": [
             "Ed25519"
           ],
-          "description": "Current-v1 raw signature algorithm name. Reserved ML-DSA-65 is not admitted until a future negotiated schema/profile activation."
+          "description": "Current-v1 raw signature algorithm name. Reserved ML-DSA-65 is not admitted until a future negotiated schema/profile activation.",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "key-backup.schema.json#/properties/signature_proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url-encoded signature over RFC 8785 JCS(envelope without auth_data.signature). Every present closed envelope member, including optional and x_* members, is authenticated; no wire field list selects the projection."
+          "description": "base64url-encoded signature over RFC 8785 JCS(envelope without signature_proof.signature). Every present closed envelope member, including optional and x_* members, is authenticated; no wire field list selects the projection."
         },
         "device_authorize_event_id": {
           "type": "string",
@@ -558,8 +689,9 @@
     "retention": {
       "type": "object",
       "properties": {
-        "delete_after": {
-          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
+        "deletion_eligible_at": {
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp",
+          "x-arkret-member-role": "instant"
         },
         "legal_hold": {
           "type": "boolean"
@@ -573,12 +705,28 @@
       "if": {
         "properties": {
           "mixed_secret_storage": {
-            "const": true
+            "const": true,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "key-backup.schema.json#/allOf/0/if/properties/mixed_secret_storage",
+              "owner": "key-backup.schema.json#/allOf/0/if/properties/mixed_secret_storage",
+              "values": [
+                true
+              ]
+            }
           },
           "encryption": {
             "properties": {
               "recipient_method": {
-                "const": "passphrase_kdf"
+                "const": "passphrase_kdf",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup.schema.json#/allOf/0/if/properties/encryption/properties/recipient_method",
+                  "owner": "key-backup.schema.json#/allOf/0/if/properties/encryption/properties/recipient_method",
+                  "values": [
+                    "passphrase_kdf"
+                  ]
+                }
               }
             },
             "required": [
@@ -598,9 +746,17 @@
               "kdf": {
                 "properties": {
                   "name": {
-                    "const": "argon2id"
+                    "const": "argon2id",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "key-backup.schema.json#/allOf/0/then/properties/encryption/properties/kdf/properties/name",
+                      "owner": "key-backup.schema.json#/allOf/0/then/properties/encryption/properties/kdf/properties/name",
+                      "values": [
+                        "argon2id"
+                      ]
+                    }
                   },
-                  "params": {
+                  "parameters": {
                     "required": [
                       "memory_kib",
                       "iterations",
@@ -624,7 +780,7 @@
                 },
                 "required": [
                   "name",
-                  "params"
+                  "parameters"
                 ]
               }
             }
@@ -635,12 +791,20 @@
     {
       "if": {
         "properties": {
-          "series_seq": {
-            "const": 0
+          "series_sequence": {
+            "const": 0,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "key-backup.schema.json#/allOf/1/if/properties/series_sequence",
+              "owner": "key-backup.schema.json#/allOf/1/if/properties/series_sequence",
+              "values": [
+                0
+              ]
+            }
           }
         },
         "required": [
-          "series_seq"
+          "series_sequence"
         ]
       },
       "then": {
@@ -665,13 +829,13 @@
     {
       "if": {
         "properties": {
-          "series_seq": {
+          "series_sequence": {
             "type": "integer",
             "minimum": 1
           }
         },
         "required": [
-          "series_seq"
+          "series_sequence"
         ]
       },
       "then": {

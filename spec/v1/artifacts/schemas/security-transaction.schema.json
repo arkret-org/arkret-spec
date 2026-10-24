@@ -24,7 +24,16 @@
       "enum": [
         "recovery",
         "security_rotation"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "security-transaction.schema.json#/properties/kind",
+        "owner": "security-transaction.schema.json#/properties/kind",
+        "values": [
+          "recovery",
+          "security_rotation"
+        ]
+      }
     },
     "account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -82,7 +91,15 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "recovery"
+            "const": "recovery",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "security-transaction.schema.json#/allOf/0/if/properties/kind",
+              "owner": "security-transaction.schema.json#/allOf/0/if/properties/kind",
+              "values": [
+                "recovery"
+              ]
+            }
           }
         },
         "required": [
@@ -146,12 +163,28 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "recovery"
+            "const": "recovery",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "security-transaction.schema.json#/allOf/1/if/properties/kind",
+              "owner": "security-transaction.schema.json#/allOf/1/if/properties/kind",
+              "values": [
+                "recovery"
+              ]
+            }
           },
           "terminal_outcome": {
             "properties": {
               "outcome": {
-                "const": "completed"
+                "const": "completed",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                  "values": [
+                    "completed"
+                  ]
+                }
               }
             },
             "required": [
@@ -179,12 +212,28 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "security_rotation"
+            "const": "security_rotation",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "security-transaction.schema.json#/allOf/2/if/properties/kind",
+              "owner": "security-transaction.schema.json#/allOf/2/if/properties/kind",
+              "values": [
+                "security_rotation"
+              ]
+            }
           },
           "terminal_outcome": {
             "properties": {
               "outcome": {
-                "const": "completed"
+                "const": "completed",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/2/if/properties/terminal_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/2/if/properties/terminal_outcome/properties/outcome",
+                  "values": [
+                    "completed"
+                  ]
+                }
               }
             },
             "required": [
@@ -217,8 +266,16 @@
           },
           "revoke_command_outcome": {
             "properties": {
-              "result": {
-                "const": "accepted"
+              "outcome": {
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/2/then/properties/revoke_command_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/2/then/properties/revoke_command_outcome/properties/outcome",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             }
           }
@@ -266,7 +323,16 @@
                 "enum": [
                   "aborted",
                   "expired"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/5/if/properties/terminal_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/5/if/properties/terminal_outcome/properties/outcome",
+                  "values": [
+                    "aborted",
+                    "expired"
+                  ]
+                }
               }
             },
             "required": [
@@ -279,8 +345,16 @@
         "properties": {
           "revoke_command_outcome": {
             "properties": {
-              "result": {
-                "const": "rejected"
+              "outcome": {
+                "const": "rejected",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/5/then/properties/revoke_command_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/5/then/properties/revoke_command_outcome/properties/outcome",
+                  "values": [
+                    "rejected"
+                  ]
+                }
               }
             }
           }
@@ -295,11 +369,19 @@
         "properties": {
           "revoke_command_outcome": {
             "required": [
-              "result"
+              "outcome"
             ],
             "properties": {
-              "result": {
-                "const": "accepted"
+              "outcome": {
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/6/if/properties/revoke_command_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/6/if/properties/revoke_command_outcome/properties/outcome",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             }
           }
@@ -335,7 +417,16 @@
                   "enum": [
                     "aborted",
                     "expired"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "security-transaction.schema.json#/allOf/6/else/then/properties/terminal_outcome/properties/outcome",
+                    "owner": "security-transaction.schema.json#/allOf/6/else/then/properties/terminal_outcome/properties/outcome",
+                    "values": [
+                      "aborted",
+                      "expired"
+                    ]
+                  }
                 }
               }
             }
@@ -351,7 +442,15 @@
         ],
         "properties": {
           "kind": {
-            "const": "security_rotation"
+            "const": "security_rotation",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "security-transaction.schema.json#/allOf/7/if/properties/kind",
+              "owner": "security-transaction.schema.json#/allOf/7/if/properties/kind",
+              "values": [
+                "security_rotation"
+              ]
+            }
           },
           "accepted_steps": {
             "minItems": 1
@@ -366,8 +465,16 @@
         "properties": {
           "revoke_command_outcome": {
             "properties": {
-              "result": {
-                "const": "accepted"
+              "outcome": {
+                "const": "accepted",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/allOf/7/then/properties/revoke_command_outcome/properties/outcome",
+                  "owner": "security-transaction.schema.json#/allOf/7/then/properties/revoke_command_outcome/properties/outcome",
+                  "values": [
+                    "accepted"
+                  ]
+                }
               }
             }
           }
@@ -382,7 +489,7 @@
       "required": [
         "proposal_event_id",
         "covering_commit_id",
-        "result",
+        "outcome",
         "decided_at"
       ],
       "properties": {
@@ -392,18 +499,29 @@
         "covering_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
-        "result": {
+        "outcome": {
           "type": "string",
           "enum": [
             "accepted",
             "rejected"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/revoke_command_outcome/properties/outcome",
+            "owner": "security-transaction.schema.json#/$defs/revoke_command_outcome/properties/outcome",
+            "values": [
+              "accepted",
+              "rejected"
+            ]
+          }
         },
         "decided_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "revoke_command"
     },
     "revoke_proposal": {
       "type": "object",
@@ -438,7 +556,15 @@
               ],
               "properties": {
                 "kind": {
-                  "const": "principal"
+                  "const": "principal",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "security-transaction.schema.json#/$defs/accepted_step/properties/acceptor/oneOf/0/properties/kind",
+                    "owner": "security-transaction.schema.json#/$defs/accepted_step/properties/acceptor/oneOf/0/properties/kind",
+                    "values": [
+                      "principal"
+                    ]
+                  }
                 },
                 "principal_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -454,7 +580,15 @@
               ],
               "properties": {
                 "kind": {
-                  "const": "device"
+                  "const": "device",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "security-transaction.schema.json#/$defs/accepted_step/properties/acceptor/oneOf/1/properties/kind",
+                    "owner": "security-transaction.schema.json#/$defs/accepted_step/properties/acceptor/oneOf/1/properties/kind",
+                    "values": [
+                      "device"
+                    ]
+                  }
                 },
                 "device_id": {
                   "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -505,7 +639,15 @@
           "type": "string",
           "enum": [
             "secret_storage"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/backup_rotation_binding/properties/backup_kind",
+            "owner": "security-transaction.schema.json#/$defs/backup_rotation_binding/properties/backup_kind",
+            "values": [
+              "secret_storage"
+            ]
+          }
         },
         "previous_series_id": {
           "$ref": "#/$defs/backup_series_id"
@@ -576,7 +718,7 @@
         "transaction_request_digest",
         "prepared_plan_digest",
         "artifact",
-        "auth_data"
+        "signature_proof"
       ],
       "properties": {
         "step": {
@@ -586,7 +728,16 @@
               "enum": [
                 "commit_recovery_unit",
                 "local_commit"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step/allOf/0",
+                "owner": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step/allOf/0",
+                "values": [
+                  "commit_recovery_unit",
+                  "local_commit"
+                ]
+              }
             },
             {
               "oneOf": [
@@ -630,7 +781,7 @@
             }
           ]
         },
-        "auth_data": {
+        "signature_proof": {
           "type": "object",
           "required": [
             "verification_method",
@@ -644,7 +795,15 @@
             },
             "signature_algorithm": {
               "type": "string",
-              "const": "Ed25519"
+              "const": "Ed25519",
+              "x-arkret-value-ownership": {
+                "class": "external_literal",
+                "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+                "owner": "security-transaction.schema.json#/$defs/client_step_attestation/properties/signature_proof/properties/signature_algorithm",
+                "values": [
+                  "Ed25519"
+                ]
+              }
             },
             "signature": {
               "type": "string",
@@ -660,7 +819,15 @@
           "if": {
             "properties": {
               "step": {
-                "const": "commit_recovery_unit"
+                "const": "commit_recovery_unit",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/$defs/client_step_attestation/allOf/0/if/properties/step",
+                  "owner": "security-transaction.schema.json#/$defs/client_step_attestation/allOf/0/if/properties/step",
+                  "values": [
+                    "commit_recovery_unit"
+                  ]
+                }
               }
             },
             "required": [
@@ -685,7 +852,7 @@
       ],
       "additionalProperties": false
     },
-    "continue_request": {
+    "security_transaction_continue_request_body": {
       "type": "object",
       "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step; its client artifact carries only the recovery receipt, while the governance Station issues the two PCR-stream RealmCommits inside the atomic admission.",
       "required": [
@@ -704,23 +871,26 @@
         "expected_accepted_step_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "CAS coordinate. It MUST equal the current accepted_steps length. The schema intentionally has no kind-blind maximum or {0,4} coupling; the service resolves the transaction resource, derives the next fixed step, and accepts only a terminal-ready index."
+          "description": "CAS coordinate. It MUST equal the current accepted_steps length. The schema intentionally has no kind-blind maximum or {0,4} coupling; the service resolves the transaction resource, derives the next fixed step, and accepts only a terminal-ready index.",
+          "x-arkret-member-role": "count"
         },
         "client_attestation": {
           "$ref": "#/$defs/client_step_attestation"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
-    "create_request": {
+    "security_transaction_create_request_body": {
       "oneOf": [
         {
-          "$ref": "#/$defs/recovery_create_request"
+          "$ref": "#/$defs/recovery_create_request_body"
         },
         {
-          "$ref": "#/$defs/security_rotation_create_request"
+          "$ref": "#/$defs/security_rotation_create_request_body"
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
     "pcr_generation_ref": {
       "$ref": "./recovery-authority.schema.json#/$defs/pcr_generation_ref"
@@ -758,7 +928,7 @@
     "realm_commit_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
     },
-    "recovery_create_request": {
+    "recovery_create_request_body": {
       "type": "object",
       "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events, the exact current PCR-stream predecessor and their ordered digests; it never supplies a finished prepared_plan or a RealmCommit. The Station derives the snapshots and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
       "required": [
@@ -774,7 +944,15 @@
         },
         "kind": {
           "type": "string",
-          "const": "recovery"
+          "const": "recovery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/recovery_create_request_body/properties/kind",
+            "owner": "security-transaction.schema.json#/$defs/recovery_create_request_body/properties/kind",
+            "values": [
+              "recovery"
+            ]
+          }
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -786,7 +964,8 @@
           "$ref": "#/$defs/pcr_policy_recovery_intent"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "pcr_policy_recovery_intent": {
       "type": "object",
@@ -795,7 +974,7 @@
         "recovery_session_id",
         "replacement_device_id",
         "previous_model_generation_ref",
-        "result_model_generation_ref",
+        "new_model_generation_ref",
         "terminal_receipt_id",
         "reanchor_unit",
         "reanchor_commit_intent"
@@ -810,7 +989,7 @@
         "previous_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
-        "result_model_generation_ref": {
+        "new_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
         "terminal_receipt_id": {
@@ -904,7 +1083,15 @@
               "terminal_outcome": {
                 "properties": {
                   "outcome": {
-                    "const": "completed"
+                    "const": "completed",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/pcr_policy_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/pcr_policy_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "values": [
+                        "completed"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -940,7 +1127,15 @@
       ],
       "properties": {
         "identity_model": {
-          "const": "pcr_policy"
+          "const": "pcr_policy",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/pcr_policy_recovery_binding/properties/identity_model",
+            "owner": "security-transaction.schema.json#/$defs/pcr_policy_recovery_binding/properties/identity_model",
+            "values": [
+              "pcr_policy"
+            ]
+          }
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
@@ -968,7 +1163,7 @@
         "recovery_session_snapshot_digest",
         "proof_digest",
         "previous_model_generation_ref",
-        "result_model_generation_ref",
+        "new_model_generation_ref",
         "reanchor_unit",
         "reanchor_commit_intent"
       ],
@@ -985,7 +1180,7 @@
         "previous_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
-        "result_model_generation_ref": {
+        "new_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
         },
         "reanchor_unit": {
@@ -1003,7 +1198,15 @@
       "description": "The enum array order is the canonical PCR-policy recovery step order addressed by accepted_steps indexes. PCR-policy recovery has a single client-attested step at index 0: the Station prepare transaction that freezes the plan belongs to create, not to the accepted-step ledger, so no coordinator-owned prefix precedes the terminal commit.",
       "enum": [
         "commit_recovery_unit"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "security-transaction.schema.json#/$defs/pcr_policy_recovery_step",
+        "owner": "security-transaction.schema.json#/$defs/pcr_policy_recovery_step",
+        "values": [
+          "commit_recovery_unit"
+        ]
+      }
     },
     "security_rotation_accepted_steps": {
       "type": "array",
@@ -1013,7 +1216,7 @@
       },
       "description": "Accepted prefix for the canonical rotation step order declared by security_rotation_step."
     },
-    "security_rotation_create_request": {
+    "security_rotation_create_request_body": {
       "type": "object",
       "required": [
         "transaction_id",
@@ -1029,7 +1232,15 @@
         },
         "kind": {
           "type": "string",
-          "const": "security_rotation"
+          "const": "security_rotation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/security_rotation_create_request_body/properties/kind",
+            "owner": "security-transaction.schema.json#/$defs/security_rotation_create_request_body/properties/kind",
+            "values": [
+              "security_rotation"
+            ]
+          }
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -1045,7 +1256,8 @@
           "$ref": "#/$defs/security_rotation_plan"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
     "security_rotation_local_commit": {
       "type": "object",
@@ -1061,7 +1273,15 @@
       ],
       "properties": {
         "schema": {
-          "const": "ak.schema.security_rotation_local_commit.v1"
+          "const": "ak.schema.security_rotation_local_commit.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "security-transaction.schema.json#/$defs/security_rotation_local_commit/properties/schema",
+            "owner": "security-transaction.schema.json#/$defs/security_rotation_local_commit/properties/schema",
+            "values": [
+              "ak.schema.security_rotation_local_commit.v1"
+            ]
+          }
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
@@ -1145,7 +1365,15 @@
               "terminal_outcome": {
                 "properties": {
                   "outcome": {
-                    "const": "completed"
+                    "const": "completed",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "values": [
+                        "completed"
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -1177,7 +1405,19 @@
         "switch_authoritative_pointer",
         "erase_old_material",
         "local_commit"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "security-transaction.schema.json#/$defs/security_rotation_step",
+        "owner": "security-transaction.schema.json#/$defs/security_rotation_step",
+        "values": [
+          "revoke",
+          "upload_new_material",
+          "switch_authoritative_pointer",
+          "erase_old_material",
+          "local_commit"
+        ]
+      }
     },
     "terminal_outcome": {
       "oneOf": [
@@ -1189,7 +1429,15 @@
           ],
           "properties": {
             "outcome": {
-              "const": "completed"
+              "const": "completed",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/0/properties/outcome",
+                "owner": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/0/properties/outcome",
+                "values": [
+                  "completed"
+                ]
+              }
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1211,7 +1459,15 @@
           ],
           "properties": {
             "outcome": {
-              "const": "aborted"
+              "const": "aborted",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/1/properties/outcome",
+                "owner": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/1/properties/outcome",
+                "values": [
+                  "aborted"
+                ]
+              }
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1231,7 +1487,15 @@
           ],
           "properties": {
             "outcome": {
-              "const": "expired"
+              "const": "expired",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/2/properties/outcome",
+                "owner": "security-transaction.schema.json#/$defs/terminal_outcome/oneOf/2/properties/outcome",
+                "values": [
+                  "expired"
+                ]
+              }
             },
             "completed_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -1243,7 +1507,9 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "x-arkret-name-role": "terminal_outcome",
+      "x-arkret-outcome-scope": "terminal"
     },
     "transaction_id": {
       "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"

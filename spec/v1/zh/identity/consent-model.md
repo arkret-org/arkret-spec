@@ -24,7 +24,7 @@ Consent 的唯一 subject 是 holder 的实际 inception PCR namespace 与完整
 
 每个 concrete scope 最多一项，permissions 按 `invite,voice_call,video_call,presence` 的固定次序排列，最多四项；每项携 `consent_scope` 及可选 `not_before,expires_at,constraints,evidence_ref,reason`，字段含义和 optional 成员存在性均被用户签名覆盖。重复 scope 或非规范次序 MUST 拒绝，不能排序后改写原件。省略 scope 即不许可，空集合是已确认的全部关闭，仍保留真实 revision／来源；不得删除或 GC 成从未写入。到期只影响实际 gate 求值，不写 clock-driven Event。
 
-current revision 与 value 同层，为封闭 `{commit_id,stream_position}`，见 [current-results](../sync/current-results.md)。self list/get 只供展示，get 按 exact peer 返回唯一 summary，不再接受 scope filter 或多匹配任选。summary 的 permission_scopes 包含所有已存条目；不能用这些不含完整窗口／约束的结果签替换。请求待审仍不是许可 current，缺项／空列表不证明从未写入。
+current revision 与 value 同层，为封闭 `{commit_id,stream_position}`，见 [current-state](../sync/current-state.md)。self list/get 只供展示，get 按 exact peer 返回唯一 summary，不再接受 scope filter 或多匹配任选。summary 的 permission_scopes 包含所有已存条目；不能用这些不含完整窗口／约束的结果签替换。请求待审仍不是许可 current，缺项／空列表不证明从未写入。
 
 ## 3. 唯一完整替换 Event
 
@@ -64,7 +64,7 @@ holder 可主动提供原 accepted replacement 的 `EventId` 作为 audience-bou
 
 ### 6.1 Invite gate
 
-holder Station在 invite delivery admission 查询 holder PCR 的 typed current result；目标 Realm治理 Station不读取 holder PCR 状态，producer 也不把查询结果写入目标 Event。
+holder Station在 invite delivery admission 查询 holder PCR 的 current state；目标 Realm治理 Station不读取 holder PCR 状态，producer 也不把查询结果写入目标 Event。
 
 `require_explicit_consent` policy 下，没有可验证 active Consent 的 delivery 必须静默丢弃。default policy 下可进入 holder-private quarantine 供 holder review；该 holder-private 数据以 account-data key `ak.account.holder_quarantine` 保存。对 requester 的响应必须保持 `status="deferred"` 且不披露 account existence、Consent 状态、送达或 quarantine 结果。
 
@@ -98,7 +98,7 @@ request 为 exact `holder_account_id,peer,audience_actor_id,nonce`，没有 cons
 
 current authority 在与替换／私有接受相同的 PCR 串行化边界内以一次一致性 cut 读取，返回实际 PCR、generation、effective stream head 和闭合 current 分支：
 
-- `present`：完整 `consent_result`，包括唯一 selector、source_stream_ref、exact revision 与全部 value。empty 也是此分支。
+- `present`：完整 `current_consent`，包括唯一 selector、source_stream_ref、exact revision 与全部 value。empty 也是此分支。
 - `never_written`：同 exact subject、同 cut 的明确从未写入声明；由 request_digest 绑定 holder／peer，以实际 PCR／generation／head 认证。不得伪造 Event、Commit 或 position 0 revision。
 
 present 必须返回所有尚未被显式移除的条目，包括过期、未来、不可求值约束和各项完整窗口／附属字段。不能筛出“当前有效”再交编辑，不能拼不同 cut 的逐 scope 结果。缺某 scope、空列表、超时、not_found、拒绝披露都不是 never_written。读取失败不能签替换；显式删除无效项须展示真实差异。

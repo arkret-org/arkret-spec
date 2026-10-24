@@ -29,15 +29,15 @@ def build_transcript():
  body=json.loads(source['digest_preimage_canonical_bytes_utf8']);body['created_at']=T;body['payload']['object']['created_at']=T;digest=sha(body);_,eid=derive(1,digest.split(':')[1])
  binding={'context':'ak.event_proof.v1','event_digest':digest,'actor_id':body['actor_id'],'verification_method':HUMAN_VM,'created_at':T}
  event=dict(body,event_id=eid,producer_proof={'kind':'detached_jws','verification_method':HUMAN_VM,'event_digest':digest,'created_at':T,'jws':jws(binding,KEY_B_SEED)})
- old=json.loads(FIXTURE.read_text())['positive_case']['resolved_key'];key=copy.deepcopy(old);key['public_key_b64u']=public_key(KEY_B_SEED)
+ old=json.loads(FIXTURE.read_text())['positive_case']['resolved_key'];key=copy.deepcopy(old);key['public_key_base64url']=public_key(KEY_B_SEED)
  fact={'event_id':eid,'actor':body['actor_id'],'device_id':DEVICE,'verification_method':HUMAN_VM,'key':key,'accepted_at':'2026-08-01T00:00:00.000Z'}
  request={'branch':'authority_forward','event_submission':{'event':event}}
  auth={'event_id':eid,'verification_method':HUMAN_VM,'destination_service_id':DEST,'forward_body_digest':sha(request),'authorization_ref':key['authorization_ref'],'revision':key['revision'],'governance_generation':key['governance_generation'],'accepted_at':fact['accepted_at']}
- core={'account_id':body['actor_id']['account_id'],'device_id':DEVICE,'device_signing_key_did':'did:key:z'+base58btc_encode(b'\xed\x01'+unb64u(key['public_key_b64u'])),'hpke_key':'conformance-public-hpke-fixture','device_authorize_event_id':key['authorization_ref']['event_id'],'authorized_generation_ref':2,'device_status':'active','attested_at':AT,'expires_at':'2026-09-20T00:05:00.000Z','authorization_window':{'not_before':'2026-08-01T00:00:00.000Z','expires_at':None},'event_authorization':auth}
+ core={'account_id':body['actor_id']['account_id'],'device_id':DEVICE,'device_signing_key_did':'did:key:z'+base58btc_encode(b'\xed\x01'+unb64u(key['public_key_base64url'])),'hpke_key':'conformance-public-hpke-fixture','device_authorize_event_id':key['authorization_ref']['event_id'],'authorized_generation_ref':2,'device_status':'active','attested_at':AT,'expires_at':'2026-09-20T00:05:00.000Z','authorization_window':{'not_before':'2026-08-01T00:00:00.000Z','expires_at':None},'event_authorization':auth}
  origin,ob=origin_signed(core);alt=copy.deepcopy(core);alt['event_authorization']['revision']['stream_position']+=1;alternate,ab=origin_signed(alt)
  af=copy.deepcopy(fact);af['key']['revision']=copy.deepcopy(alt['event_authorization']['revision'])
- u={'realm_id':body['realm_id'],'stream_ref':body['scope_ref'],'stream_position':1,'previous_commit_ref':old['revision']['commit_id'],'event_ref':eid,'governance_generation':1,'authority_ref':old['authorization_ref']['event_id'],'committed_at':'2026-09-20T00:00:00.000Z','producer_signer_fact_digest':sha(fact)}
- cid=typed_id('realm_commit',u);u=dict(commit_id=cid,**u);sig,derived=make_signature('ak.realm_commit_signature.v1',u,GOV_VM,KEY_A_SEED);commit=dict(u,signature=sig)
+ u={'realm_id':body['realm_id'],'stream_ref':body['scope_ref'],'stream_position':1,'previous_commit_ref':old['revision']['commit_id'],'event_ref':eid,'governance_generation':"1",'authority_ref':old['authorization_ref']['event_id'],'committed_at':'2026-09-20T00:00:00.000Z','producer_signer_fact_digest':sha(fact)}
+ cid=typed_id('realm_commit',u);u=dict(commit_id=cid,**u);signature,derived=make_signature('ak.realm_commit_signature.v1',u,GOV_VM,KEY_A_SEED);commit=dict(u,signature=signature)
  target={'event_id':eid,'commit_id':cid,'stream_ref':u['stream_ref'],'stream_position':u['stream_position']};entry={'target':target,'producer_signer_fact':fact}
  original_kat=json.loads((ROOT/'spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json').read_text())
  hu=copy.deepcopy(next(c['host_object'] for c in original_kat['cases'] if c['case_id']=='realm_authority_handoff_old'))

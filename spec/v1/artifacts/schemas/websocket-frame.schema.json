@@ -28,7 +28,17 @@
         "ak.self.account.stream.subscribe.v1",
         "ak.self.committed_event.stream.subscribe.v1",
         "ak.self.signal.stream.subscribe.v1"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "websocket-frame.schema.json#/$defs/operation_id",
+        "owner": "websocket-frame.schema.json#/$defs/operation_id",
+        "values": [
+          "ak.self.account.stream.subscribe.v1",
+          "ak.self.committed_event.stream.subscribe.v1",
+          "ak.self.signal.stream.subscribe.v1"
+        ]
+      }
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -42,7 +52,7 @@
     "account_open_parameters": {
       "oneOf": [
         {
-          "$ref": "./account-subscribe-frame.schema.json#/$defs/account_subscribe_request"
+          "$ref": "./account-subscribe-frame.schema.json#/$defs/account_subscribe_parameters"
         },
         {
           "type": "object",
@@ -59,8 +69,8 @@
             "wait_for": {
               "$ref": "#/$defs/cursor"
             },
-            "realm_list": {
-              "$ref": "./account-subscribe-frame.schema.json#/$defs/realm_list_request"
+            "realm_list_parameters": {
+              "$ref": "./account-subscribe-frame.schema.json#/$defs/realm_list_parameters"
             },
             "replace_filter": {
               "type": "boolean",
@@ -73,7 +83,15 @@
               "if": {
                 "properties": {
                   "replace_filter": {
-                    "const": true
+                    "const": true,
+                    "x-arkret-value-ownership": {
+                      "class": "numeric",
+                      "authority": "websocket-frame.schema.json#/$defs/account_open_parameters/oneOf/1/allOf/0/if/properties/replace_filter",
+                      "owner": "websocket-frame.schema.json#/$defs/account_open_parameters/oneOf/1/allOf/0/if/properties/replace_filter",
+                      "values": [
+                        true
+                      ]
+                    }
                   }
                 },
                 "required": [
@@ -151,7 +169,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "challenge"
+          "const": "challenge",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/challenge/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/challenge/properties/kind",
+            "values": [
+              "challenge"
+            ]
+          }
         },
         "connection_id": {
           "$ref": "#/$defs/connection_id"
@@ -175,7 +201,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "authenticate"
+          "const": "authenticate",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/authenticate/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/authenticate/properties/kind",
+            "values": [
+              "authenticate"
+            ]
+          }
         },
         "connection_id": {
           "$ref": "#/$defs/connection_id"
@@ -201,17 +235,25 @@
         "kind",
         "connection_id",
         "max_frame_bytes",
-        "max_channels",
+        "max_channel_count",
         "max_connection_pending_bytes",
         "max_channel_pending_bytes",
-        "max_connection_pending_frames",
-        "max_channel_pending_frames",
+        "max_connection_pending_frame_count",
+        "max_channel_pending_frame_count",
         "heartbeat_interval_ms",
-        "auth_expires_at"
+        "authentication_expires_at"
       ],
       "properties": {
         "kind": {
-          "const": "welcome"
+          "const": "welcome",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/welcome/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/welcome/properties/kind",
+            "values": [
+              "welcome"
+            ]
+          }
         },
         "connection_id": {
           "$ref": "#/$defs/connection_id"
@@ -221,10 +263,11 @@
           "minimum": 1024,
           "maximum": 1048576
         },
-        "max_channels": {
+        "max_channel_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 256
+          "maximum": 256,
+          "x-arkret-member-role": "count"
         },
         "max_connection_pending_bytes": {
           "type": "integer",
@@ -236,22 +279,24 @@
           "minimum": 1024,
           "maximum": 16777216
         },
-        "max_connection_pending_frames": {
+        "max_connection_pending_frame_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 65536
+          "maximum": 65536,
+          "x-arkret-member-role": "count"
         },
-        "max_channel_pending_frames": {
+        "max_channel_pending_frame_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 16384
+          "maximum": 16384,
+          "x-arkret-member-role": "count"
         },
         "heartbeat_interval_ms": {
           "type": "integer",
           "minimum": 1000,
           "maximum": 300000
         },
-        "auth_expires_at": {
+        "authentication_expires_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
@@ -280,13 +325,29 @@
       ],
       "properties": {
         "kind": {
-          "const": "open"
+          "const": "open",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_account/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/open_account/properties/kind",
+            "values": [
+              "open"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.account.stream.subscribe.v1"
+          "const": "ak.self.account.stream.subscribe.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_account/properties/operation_id",
+            "owner": "websocket-frame.schema.json#/$defs/open_account/properties/operation_id",
+            "values": [
+              "ak.self.account.stream.subscribe.v1"
+            ]
+          }
         },
         "parameters": {
           "$ref": "#/$defs/account_open_parameters"
@@ -304,13 +365,29 @@
       ],
       "properties": {
         "kind": {
-          "const": "open"
+          "const": "open",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_events/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/open_events/properties/kind",
+            "values": [
+              "open"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.committed_event.stream.subscribe.v1"
+          "const": "ak.self.committed_event.stream.subscribe.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_events/properties/operation_id",
+            "owner": "websocket-frame.schema.json#/$defs/open_events/properties/operation_id",
+            "values": [
+              "ak.self.committed_event.stream.subscribe.v1"
+            ]
+          }
         },
         "parameters": {
           "$ref": "#/$defs/events_open_parameters"
@@ -328,13 +405,29 @@
       ],
       "properties": {
         "kind": {
-          "const": "open"
+          "const": "open",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_signal/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/open_signal/properties/kind",
+            "values": [
+              "open"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
         },
         "operation_id": {
-          "const": "ak.self.signal.stream.subscribe.v1"
+          "const": "ak.self.signal.stream.subscribe.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/open_signal/properties/operation_id",
+            "owner": "websocket-frame.schema.json#/$defs/open_signal/properties/operation_id",
+            "values": [
+              "ak.self.signal.stream.subscribe.v1"
+            ]
+          }
         },
         "parameters": {
           "$ref": "#/$defs/signal_open_parameters"
@@ -351,7 +444,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "opened"
+          "const": "opened",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/opened/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/opened/properties/kind",
+            "values": [
+              "opened"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -371,7 +472,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "data"
+          "const": "data",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/data/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/data/properties/kind",
+            "values": [
+              "data"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -392,7 +501,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "delta"
+                  "const": "delta",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "websocket-frame.schema.json#/$defs/data_payload/oneOf/0/allOf/1/properties/kind",
+                    "owner": "websocket-frame.schema.json#/$defs/data_payload/oneOf/0/allOf/1/properties/kind",
+                    "values": [
+                      "delta"
+                    ]
+                  }
                 }
               }
             }
@@ -406,7 +523,15 @@
             {
               "properties": {
                 "kind": {
-                  "const": "committed_event"
+                  "const": "committed_event",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "websocket-frame.schema.json#/$defs/data_payload/oneOf/1/allOf/1/properties/kind",
+                    "owner": "websocket-frame.schema.json#/$defs/data_payload/oneOf/1/allOf/1/properties/kind",
+                    "values": [
+                      "committed_event"
+                    ]
+                  }
                 }
               }
             }
@@ -434,7 +559,20 @@
                     "dropped",
                     "resync_required",
                     "unauthorized"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "websocket-frame.schema.json#/$defs/channel_control_payload/anyOf/0/allOf/1/properties/kind",
+                    "owner": "websocket-frame.schema.json#/$defs/channel_control_payload/anyOf/0/allOf/1/properties/kind",
+                    "values": [
+                      "catchup_complete",
+                      "checkpoint",
+                      "heartbeat",
+                      "dropped",
+                      "resync_required",
+                      "unauthorized"
+                    ]
+                  }
                 }
               }
             }
@@ -456,7 +594,21 @@
                     "dropped",
                     "resync_required",
                     "unauthorized"
-                  ]
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "websocket-frame.schema.json#/$defs/channel_control_payload/anyOf/1/allOf/1/properties/kind",
+                    "owner": "websocket-frame.schema.json#/$defs/channel_control_payload/anyOf/1/allOf/1/properties/kind",
+                    "values": [
+                      "checkpoint",
+                      "heartbeat",
+                      "catchup_complete",
+                      "epoch_rotation",
+                      "dropped",
+                      "resync_required",
+                      "unauthorized"
+                    ]
+                  }
                 }
               }
             }
@@ -478,19 +630,28 @@
       "required": [
         "kind",
         "reconnect_after_ms",
-        "deadline"
+        "close_at"
       ],
       "properties": {
         "kind": {
-          "const": "drain"
+          "const": "drain",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/connection_drain_payload/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/connection_drain_payload/properties/kind",
+            "values": [
+              "drain"
+            ]
+          }
         },
         "reconnect_after_ms": {
           "type": "integer",
           "minimum": 0,
           "maximum": 300000
         },
-        "deadline": {
-          "$ref": "#/$defs/timestamp"
+        "close_at": {
+          "$ref": "#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         },
         "reason": {
           "type": "string",
@@ -520,10 +681,26 @@
       ],
       "properties": {
         "kind": {
-          "const": "control"
+          "const": "control",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/channel_control/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/channel_control/properties/kind",
+            "values": [
+              "control"
+            ]
+          }
         },
         "frame_scope": {
-          "const": "channel"
+          "const": "channel",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/channel_control/properties/frame_scope",
+            "owner": "websocket-frame.schema.json#/$defs/channel_control/properties/frame_scope",
+            "values": [
+              "channel"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -543,10 +720,26 @@
       ],
       "properties": {
         "kind": {
-          "const": "control"
+          "const": "control",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/connection_control/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/connection_control/properties/kind",
+            "values": [
+              "control"
+            ]
+          }
         },
         "frame_scope": {
-          "const": "connection"
+          "const": "connection",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/connection_control/properties/frame_scope",
+            "owner": "websocket-frame.schema.json#/$defs/connection_control/properties/frame_scope",
+            "values": [
+              "connection"
+            ]
+          }
         },
         "payload": {
           "$ref": "#/$defs/connection_drain_payload"
@@ -557,11 +750,11 @@
     "error_body": {
       "type": "object",
       "required": [
-        "code",
+        "error_code",
         "message"
       ],
       "properties": {
-        "code": {
+        "error_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,127}$",
           "description": "Must resolve to a registered code in error-code-registry.json codes[]. This closed transport error body is not the HTTP RFC 9457 Problem Details."
@@ -599,10 +792,26 @@
       ],
       "properties": {
         "kind": {
-          "const": "error"
+          "const": "error",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/channel_error/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/channel_error/properties/kind",
+            "values": [
+              "error"
+            ]
+          }
         },
         "frame_scope": {
-          "const": "channel"
+          "const": "channel",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/channel_error/properties/frame_scope",
+            "owner": "websocket-frame.schema.json#/$defs/channel_error/properties/frame_scope",
+            "values": [
+              "channel"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -622,10 +831,26 @@
       ],
       "properties": {
         "kind": {
-          "const": "error"
+          "const": "error",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/connection_error/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/connection_error/properties/kind",
+            "values": [
+              "error"
+            ]
+          }
         },
         "frame_scope": {
-          "const": "connection"
+          "const": "connection",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/connection_error/properties/frame_scope",
+            "owner": "websocket-frame.schema.json#/$defs/connection_error/properties/frame_scope",
+            "values": [
+              "connection"
+            ]
+          }
         },
         "error": {
           "$ref": "#/$defs/error_body"
@@ -642,7 +867,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "close"
+          "const": "close",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/close/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/close/properties/kind",
+            "values": [
+              "close"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -651,7 +884,16 @@
           "enum": [
             "client_request",
             "transport_switch"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/close/properties/reason",
+            "owner": "websocket-frame.schema.json#/$defs/close/properties/reason",
+            "values": [
+              "client_request",
+              "transport_switch"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -665,7 +907,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "closed"
+          "const": "closed",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/closed/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/closed/properties/kind",
+            "values": [
+              "closed"
+            ]
+          }
         },
         "channel_id": {
           "$ref": "#/$defs/channel_id"
@@ -677,7 +927,19 @@
             "error",
             "drain",
             "unauthorized"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/closed/properties/reason",
+            "owner": "websocket-frame.schema.json#/$defs/closed/properties/reason",
+            "values": [
+              "completed",
+              "client_request",
+              "error",
+              "drain",
+              "unauthorized"
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -691,7 +953,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "ping"
+          "const": "ping",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/ping/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/ping/properties/kind",
+            "values": [
+              "ping"
+            ]
+          }
         },
         "ping_id": {
           "type": "string",
@@ -711,7 +981,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "pong"
+          "const": "pong",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/pong/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/pong/properties/kind",
+            "values": [
+              "pong"
+            ]
+          }
         },
         "ping_id": {
           "type": "string",
@@ -731,7 +1009,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "reauth_required"
+          "const": "reauth_required",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/reauth_required/properties/kind",
+            "owner": "websocket-frame.schema.json#/$defs/reauth_required/properties/kind",
+            "values": [
+              "reauth_required"
+            ]
+          }
         },
         "connection_id": {
           "$ref": "#/$defs/connection_id"
@@ -743,7 +1029,15 @@
           "$ref": "#/$defs/timestamp"
         },
         "reason": {
-          "const": "grant_expiring"
+          "const": "grant_expiring",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "websocket-frame.schema.json#/$defs/reauth_required/properties/reason",
+            "owner": "websocket-frame.schema.json#/$defs/reauth_required/properties/reason",
+            "values": [
+              "grant_expiring"
+            ]
+          }
         }
       },
       "additionalProperties": false

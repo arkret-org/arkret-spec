@@ -8,7 +8,7 @@ see_also:
   - service-http-binding.md
   - authority-commit-log.md
   - federation.md
-  - current-results.md
+  - current-state.md
   - ../conformance/normative-language.md
 ---
 
@@ -36,7 +36,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 - 消费 Station验证 producer proof 自身一致、authority chain、commit signature 与逐 stream 连续性；外站 human 设备的授权以治理 Station 的 RealmCommit 为准（[`federation.md` §3](./federation.md)），本站托管账号的 producer 仍按本地 PCR 验签；
 - Directory、invite、cache 和 mirror 只提供 locator，不能产生或替代 authority。
 
-治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、typed current result root、actor chain 或 fixed reducer semantics。
+治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、current state root、actor chain 或 fixed reducer semantics。
 
 ### 2.3 接口必须天然支持幂等重试
 
@@ -215,7 +215,7 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 ### 5.2 snapshot 入口
 
-`ak.self.realm_state_snapshot.read.manifest_head.v1` 返回 current governance Station 签署的 closed typed snapshot。其 wire 成员是 `snapshot_id`、`realm_id`、`governance_generation`、每条获准 `visible_stream_heads[]`、内联 `current_state_entries[]`、`retention_and_history_floor`、`created_at` 与 `signature`；rows 是 typed current results，必须和 heads/floors 来自同一 durable cut 且只覆盖请求者可见范围。完整 canonical signed body 不得超过 8 MiB；治理 Station 必须按 [`scalability-constraints.md` §4.1](../conformance/scalability-constraints.md) 在写入 admission 时预检最大披露投影并拒绝会越界的状态。v1 不存在另一个 `sections`／`chunk_digests`、分页、state root 或 reducer replay program 字段。客户端从 current authority 取得 snapshot，再从各自 head 继续拉获准 tail；签名不证明未授权隐藏 stream 的存在或缺席。
+`ak.self.realm_state_snapshot.read.manifest_head.v1` 返回 current governance Station 签署的 closed typed snapshot。其 wire 成员是 `snapshot_id`、`realm_id`、`governance_generation`、每条获准 `visible_stream_heads[]`、内联 `current_state_entries[]`、`retention_and_history_floor`、`created_at` 与 `signature`；rows 是 typed current state，必须和 heads/floors 来自同一 durable cut 且只覆盖请求者可见范围。完整 canonical signed body 不得超过 8 MiB；治理 Station 必须按 [`scalability-constraints.md` §4.1](../conformance/scalability-constraints.md) 在写入 admission 时预检最大披露投影并拒绝会越界的状态。v1 不存在另一个 `sections`／`chunk_digests`、分页、state root 或 reducer replay program 字段。客户端从 current authority 取得 snapshot，再从各自 head 继续拉获准 tail；签名不证明未授权隐藏 stream 的存在或缺席。
 
 #### Snapshot exact read
 
@@ -223,14 +223,14 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 ### 5.3 Event / RealmCommit 状态与确定性 current
 
-Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。领域 current result 由治理 Station 按 commit 顺序执行对应 typed reducer 产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event 推测 current result。
+Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。领域 current state 由治理 Station 按 commit 顺序执行对应 typed reducer 产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event 推测 current state。
 
-`ak.self.current_results.read.exact.v1` 是 authenticated、非枚举的 exact-current 入口。请求只允许
+`ak.self.current_state.read.exact.v1` 是 authenticated、非枚举的 exact-current 入口。请求只允许
 `relation {primary_conflict_domain}`、`moderation_state {target_ref}` 与
 `agent_interaction {agent_account_id}` 三种封闭 selector；响应把
 `realm_id`、当前 `governance_generation`、该 selector 的 `effective_stream_head` 与同一 durable cut 的
-`present {entry}` 或 `never_written {selector}` 绑定。`entry` 必须是正式 `relation_result` 或
-`moderation_state_result` 或 `agent_interaction_result`，并携 exact `CurrentRevision`。Agent mode 的读取
+`present {entry}` 或 `never_written {selector}` 绑定。`entry` 必须是正式 `current_relation` 或
+`current_moderation_state` 或 `current_agent_interaction`，并携 exact `CurrentRevision`。Agent mode 的读取
 须已有获授权 exact Agent 身份来源，不能用 guessed AccountId 枚举私人参与。权限不足、不可见、外 Realm 与未知 selector
 统一返回 `not_found`，不得用 `never_written` 泄漏存在性；authority/current basis 暂时不可确认时返回
 `revision_unavailable`。snapshot omission、本地 raw Event 顺序、超时或旧 generation 都不证明 never-written。
@@ -260,7 +260,7 @@ Discussion 投影按 typed Strand/Message current 生成；跨 stream 引用不�
 
 ### 6.3 Inbox / Notification Projection
 
-通知是提示。客户端收到后仍从 own Station读取对应 Commit/current result。
+通知是提示。客户端收到后仍从 own Station读取对应 Commit/current state。
 
 ### 6.4 全文搜索
 

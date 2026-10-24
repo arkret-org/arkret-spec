@@ -22,7 +22,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.call_recording_artifact.v1"
+      "const": "ak.schema.call_recording_artifact.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "call-recording-artifact.schema.json#/properties/schema",
+        "owner": "call-recording-artifact.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.call_recording_artifact.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -146,10 +154,29 @@
             "mls_exporter_aead_aes_256_gcm",
             "mls_exporter_aead_xchacha20poly1305_stream",
             "mls_exporter_aead_aes_256_gcm_stream"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
+            "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
+            "values": [
+              "mls_exporter_aead_xchacha20poly1305",
+              "mls_exporter_aead_aes_256_gcm",
+              "mls_exporter_aead_xchacha20poly1305_stream",
+              "mls_exporter_aead_aes_256_gcm_stream"
+            ]
+          }
         },
         "exporter_label": {
-          "const": "ak.rtc-recording-key/v1"
+          "const": "ak.rtc-recording-key/v1",
+          "x-arkret-value-ownership": {
+            "class": "media_type",
+            "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
+            "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
+            "values": [
+              "ak.rtc-recording-key/v1"
+            ]
+          }
         },
         "context": {
           "type": "object",
@@ -205,7 +232,18 @@
             "manual",
             "realm_policy",
             "participant_erasure"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-recording-artifact.schema.json#/$defs/call_recording_retention/properties/deletion_trigger",
+            "owner": "call-recording-artifact.schema.json#/$defs/call_recording_retention/properties/deletion_trigger",
+            "values": [
+              "retention_expiry",
+              "manual",
+              "realm_policy",
+              "participant_erasure"
+            ]
+          }
         },
         "audit_lock": {
           "type": "boolean",
@@ -222,7 +260,7 @@
       "type": "object",
       "required": [
         "trigger",
-        "outcome",
+        "status",
         "requested_at"
       ],
       "properties": {
@@ -233,16 +271,38 @@
             "manual",
             "realm_policy",
             "participant_erasure"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/trigger",
+            "owner": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/trigger",
+            "values": [
+              "retention_expiry",
+              "manual",
+              "realm_policy",
+              "participant_erasure"
+            ]
+          }
         },
-        "outcome": {
+        "status": {
           "type": "string",
           "enum": [
             "pending",
             "completed",
             "blocked_by_legal_hold",
             "failed"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/status",
+            "owner": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/status",
+            "values": [
+              "pending",
+              "completed",
+              "blocked_by_legal_hold",
+              "failed"
+            ]
+          }
         },
         "requested_by": {
           "$ref": "#/$defs/did_core_id"
@@ -277,7 +337,22 @@
                 "policy_revoked",
                 "consent_withdrawn",
                 "integrity_failed"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/failure_reason_code/oneOf/0",
+                "owner": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/failure_reason_code/oneOf/0",
+                "values": [
+                  "media_negotiation_timeout",
+                  "permission_denied",
+                  "backend_unavailable",
+                  "media_source_unavailable",
+                  "storage_failed",
+                  "policy_revoked",
+                  "consent_withdrawn",
+                  "integrity_failed"
+                ]
+              }
             },
             {
               "type": "string",

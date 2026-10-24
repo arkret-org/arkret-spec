@@ -8,7 +8,7 @@
       "$ref": "#/$defs/blob_upload_request_body"
     },
     {
-      "$ref": "#/$defs/blob_upload_outcome"
+      "$ref": "#/$defs/blob_upload_response_body"
     }
   ],
   "$defs": {
@@ -36,7 +36,7 @@
       "required": [
         "kid",
         "signature_algorithm",
-        "sig"
+        "signature"
       ],
       "properties": {
         "kid": {
@@ -47,9 +47,17 @@
           "type": "string",
           "enum": [
             "Ed25519"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "blob-operations.schema.json#/$defs/signature/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
-        "sig": {
+        "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+={0,2}$"
         }
@@ -138,14 +146,22 @@
           "then": {
             "properties": {
               "media_type": {
-                "const": "application/octet-stream"
+                "const": "application/octet-stream",
+                "x-arkret-value-ownership": {
+                  "class": "media_type",
+                  "authority": "blob-operations.schema.json#/$defs/blob_upload_request_body/allOf/0/then/properties/media_type",
+                  "owner": "blob-operations.schema.json#/$defs/blob_upload_request_body/allOf/0/then/properties/media_type",
+                  "values": [
+                    "application/octet-stream"
+                  ]
+                }
               }
             }
           }
         }
       ]
     },
-    "blob_upload_outcome": {
+    "blob_upload_response_body": {
       "type": "object",
       "required": [
         "blob_ref",
@@ -166,7 +182,8 @@
           "$ref": "#/$defs/upload_receipt"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

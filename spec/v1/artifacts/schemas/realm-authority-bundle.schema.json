@@ -33,8 +33,7 @@
       }
     },
     "current_generation": {
-      "type": "integer",
-      "minimum": 0
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "current_service_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -93,8 +92,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "current_generation": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "current_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -158,7 +156,15 @@
                     ],
                     "properties": {
                       "purpose": {
-                        "const": "direct_conversation"
+                        "const": "direct_conversation",
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "realm-authority-bundle.schema.json#/allOf/0/if/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                          "owner": "realm-authority-bundle.schema.json#/allOf/0/if/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                          "values": [
+                            "direct_conversation"
+                          ]
+                        }
                       }
                     }
                   }
@@ -174,19 +180,43 @@
             "maxItems": 0
           },
           "current_generation": {
-            "const": 0
+            "const": "0",
+            "x-arkret-value-ownership": {
+              "class": "decimal_text",
+              "authority": "realm-authority-bundle.schema.json#/allOf/0/then/properties/current_generation",
+              "owner": "realm-authority-bundle.schema.json#/allOf/0/then/properties/current_generation",
+              "values": [
+                "0"
+              ]
+            }
           },
           "genesis_commit": {
             "properties": {
               "governance_generation": {
-                "const": 0
+                "const": "0",
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "realm-authority-bundle.schema.json#/allOf/0/then/properties/genesis_commit/properties/governance_generation",
+                  "owner": "realm-authority-bundle.schema.json#/allOf/0/then/properties/genesis_commit/properties/governance_generation",
+                  "values": [
+                    "0"
+                  ]
+                }
               }
             }
           },
           "current_assertion": {
             "properties": {
               "current_generation": {
-                "const": 0
+                "const": "0",
+                "x-arkret-value-ownership": {
+                  "class": "decimal_text",
+                  "authority": "realm-authority-bundle.schema.json#/allOf/0/then/properties/current_assertion/properties/current_generation",
+                  "owner": "realm-authority-bundle.schema.json#/allOf/0/then/properties/current_assertion/properties/current_generation",
+                  "values": [
+                    "0"
+                  ]
+                }
               },
               "last_handoff_ref": {
                 "type": "null"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T07:36:05+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -29,7 +29,7 @@
         "carrier_id": "event_admission_submission.approval_signatures",
         "carrier_class": "event_submission",
         "operation_id": "ak.self.events.command.submit.v1",
-        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
         "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission/properties/approval_signatures",
         "carrier_field": "approval_signatures",
         "evidence_schema_ref": "schemas/approval-signature.schema.json",
@@ -42,8 +42,8 @@
         "carrier_id": "applet_configuration.approval_signatures",
         "carrier_class": "non_event_operation",
         "operation_id": "ak.self.applet.configuration.command.submit.v1",
-        "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request",
-        "carrier_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request/properties/approval_signatures",
+        "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body",
+        "carrier_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body/properties/approval_signatures",
         "carrier_field": "approval_signatures",
         "evidence_schema_ref": "schemas/approval-signature.schema.json",
         "allowed_target_kinds": [
@@ -95,7 +95,7 @@
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
     "grant_authority_actions lists the action ids an issuer holding this action MAY sign a grant for (capabilities.md section 3.2 issuer upper bound). It is a separate namespace from target_event_kinds, which only expresses direct Event admission: several actions can map to one event kind, so an event-kind subset MUST NOT be used to satisfy an action-level grant authority question.",
     "coverage_rule and grant_authority_rule declare how target_event_kinds and grant_authority_actions are derived from the other rows. When a rule is present the materialized list is a cached projection: tools/artifact_pipeline.py generate rewrites it and check rejects any hand edit on either this registry or the generated view.",
-    "root_control_only=true marks an action that only the current controller of the Realm authority-root typed current result may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable.",
+    "root_control_only=true marks an action that only the current controller of the Realm authority-root current state may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable.",
     "approval_requirement_eligibility is the only v1 decision source for whether a grant approval constraint or ak.policy.action approval requirement may target an action. Every event_mapping_kind resolves through event_mapping_defaults; a non_event_surface action is ineligible unless one exact action_overrides row selects registered_operation_carrier and names a reachable carrier. Implementations MUST NOT infer eligibility from action spelling, risk tier, prose, or an invented action-to-operation mapping.",
     "A closed aggregate command MAY override the default Event approval carrier only through an explicitly registered operation carrier whose durable effect includes every action target Event kind; ordinary submission cannot split that aggregate."
   ],
@@ -636,7 +636,7 @@
       "risk_tier": "high",
       "required_constraints": [
         "expires_at",
-        "max_operations",
+        "max_operation_count",
         "period",
         "constraint_scope"
       ],
@@ -1380,7 +1380,7 @@
         "ak.view.update"
       ],
       "profile": null,
-      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the realm_authority_root typed current result (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
+      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the realm_authority_root current state (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
       "coverage_rule": {
         "exclude_self": true,
         "require_profile_null": true,
@@ -1439,7 +1439,7 @@
       ],
       "profile": null,
       "root_control_only": true,
-      "notes": "Rotates the controller binding of the Realm authority-root typed current result. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
+      "notes": "Rotates the controller binding of the Realm authority-root current state. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
       "event_mapping_kind": "same_name"
     },
     {

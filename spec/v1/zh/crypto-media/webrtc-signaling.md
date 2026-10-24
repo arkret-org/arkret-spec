@@ -83,7 +83,7 @@ v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signa
   "payload_sequence": 60,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "moderation",
-  "seq": 30,
+  "sequence": 30,
   "data": {
     "action": "kick",
     "target_actor_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","station_id":"ak:did_core:web:station.example"}},
@@ -121,9 +121,9 @@ v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signa
 
 | operation | HTTP | request / outcome |
 | --- | --- | --- |
-| `ak.self.call.invitation.command.send.v1` | `POST /_arkret/self/rtc/invitation` | `send_request_body` / `send_outcome` |
+| `ak.self.call.invitation.command.send.v1` | `POST /_arkret/self/rtc/invitation` | `send_request_body` / `send_response_body` |
 | `ak.peer.call.invitation.command.relay.v1` | `POST /_arkret/peer/rtc/invitation` | 同上 |
-| `ak.peer.call.invitation.read.admission.v1` | `POST /_arkret/peer/rtc/invitation-admission` | `admission_request_body` / `admission_outcome` |
+| `ak.peer.call.invitation.read.admission.v1` | `POST /_arkret/peer/rtc/invitation-admission` | `admission_request_body` / `admission_decision` |
 
 sender 向自身 Station 提交 exact `{invitation,envelope}`；认证主体 **MUST** 等于 inviter。Station 在校验 producer 与现有 call signaling 权限后，只向 holder hosting Station 作单跳 relay。peer relay 的来源 **MUST** 是已验证实际 inviter hosting Station；Agent 来源按现有受权托管关系解析。peer operations 的 RFC 9421 覆盖集、窗口、参数与 shared-ingress 条件只引用 `ak.http_signature.scenario.call_invitation.v1`。relay 不允许提交者指定另一来源、另一消费者或任意 audience。
 
@@ -142,7 +142,7 @@ holder hosting Station 只能向 **holder PCR 的当前 authority** 发起 `admi
 
 判定请求必须携带 exact invitation 与 envelope、stage、audience、subject actor／device 和 CSPRNG 至少 128 bit 的 nonce。每次实际放行须有新的 outstanding request，不能复用旧 nonce／旧 outcome。authority 在同一个 PCR serializable admission cut 读取 exact peer 唯一完整集合，只校验所需 concrete scope 条目的 `not_before <= cut_time < expires_at` 与 constraints；缺席时间端点无相应界。empty、never_written 或缺项均不授权，无 any／其它记录兜底。当前 v1 的 Consent constraints 无已登记非空子字段语义，只有缺席或空数组不收窄；任一非空约束数组 **MUST** 使该 scope 条目 不可授权，而不能跳过约束。不得寻找其它同 scope record 兜底。
 
-`admission_outcome` 只包含 `request_digest, admitted, authority_generation, evaluated_at, expires_at, proof`；request_digest 是完整 canonical 请求的 SHA-256。它不披露 Consent ID／revision／值／列表／PCR head／历史。签名输入为 `UTF8("ak.call.invitation.admission.v1") || 0x00 || RFC8785_JCS(outcome 去除 proof)`；key **MUST** 命中独立锚定的 holder 当前 PCR governance Station signing key，generation **MUST** 等于同一可信配置，表示实际 PCR 治理任期；Human 同 Station endpoint／key 轮换不推进它。窗口上限为 evaluated_at 后 30 秒且不晚于 invitation expiry；消费者必须核验 exact outstanding request digest、audience／subject／stage 和当前 generation。`admitted=false` 及不可验证 authority／outcome 均不放行，不向原 requester 转发判定。
+`admission_decision` 只包含 `request_digest, admitted, authority_generation, evaluated_at, expires_at, proof`；request_digest 是完整 canonical 请求的 SHA-256。它不披露 Consent ID／revision／值／列表／PCR head／历史。签名输入为 `UTF8("ak.call.invitation.admission.v1") || 0x00 || RFC8785_JCS(outcome 去除 proof)`；key **MUST** 命中独立锚定的 holder 当前 PCR governance Station signing key，generation **MUST** 等于同一可信配置，表示实际 PCR 治理任期；Human 同 Station endpoint／key 轮换不推进它。窗口上限为 evaluated_at 后 30 秒且不晚于 invitation expiry；消费者必须核验 exact outstanding request digest、audience／subject／stage 和当前 generation。`admitted=false` 及不可验证 authority／outcome 均不放行，不向原 requester 转发判定。
 
 只有通过 holder product cut 的 exact envelope 才能在自身受认证 live Signal stream 的 `delivery_authority.call_invitation` 携带闭合 `delivery_view`。它包含 exact invitation、该设备的 product request 与 outcome，**MUST** 绑定同 frame recipient、sender、scope 和 envelope；不扩展 generic envelope／peer Signal relay。push 只能由同 product gate 的内部交付动作产生，不携带公开可转用材料。没有该材料的普通 rail Invite 可以解密，但客户端 **MUST** 丢弃其响铃、push 与首次接触 token 产品路径；不得再查“Call 存在”后绕过材料要求。
 
@@ -182,13 +182,13 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
+请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_configuration_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
 首次获取、定时续期、ICE restart、冷恢复及新设备均 MUST 使用下表相同的五字段 closed body；MUST NOT 回传旧 TURN username、credential、pseudonym、participant_id 或私有恢复票据。每次调用都重新认证完整 ActorId（包括 Account 的 Station）与真实 DeviceId，验证当前设备有效性、Realm membership、适用 policy 和媒体服务绑定；旧响应或用户名的持有不构成上述认证。
 
 本 endpoint 是传输配置发现，允许在 Call 创建／accepted roster join 之前调用。`call_id` 在此仅限定本次凭据作用域，既不证明 Call 存在，也不建立或恢复 accepted leg。入会、媒体 token、已接受 participant 的续期和最终媒体交付仍 MUST 通过 §3b 及 [`media-service-binding.md` §3／§6](./media-service-binding.md) 的独立当前授权门；同一五字段请求的重复出现 MUST NOT 被解释为已入会或恢复成功。
 
-客户端调用 `ice_config_endpoint` 前 MUST 按 [`media-service-binding.md` §2.1](./media-service-binding.md) 消费自己 Station 的已验证媒体服务绑定结果，核对 `ak.realm.media_service` 的该 exact typed current result value 与结果 `route.service_id` 一致，且该 endpoint 的 origin 落在 `route.base_url` 之内。缺失、stale 或不一致时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential；ICE config 响应签名的 kid 也 MUST 命中同一结果的 `signing_keys`，否则 `token_issuer_unauthorised`。endpoint 变更不进入 `key_access_revision`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
+客户端调用 `ice_configuration_url` 前 MUST 按 [`media-service-binding.md` §2.1](./media-service-binding.md) 消费自己 Station 的已验证媒体服务绑定结果，核对 `ak.realm.media_service` 的该 exact current state value 与结果 `route.service_id` 一致，且该 endpoint 的 origin 落在 `route.base_url` 之内。缺失、stale 或不一致时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential；ICE config 响应签名的 kid 也 MUST 命中同一结果的 `signing_keys`，否则 `token_issuer_unauthorised`。endpoint 变更不进入 `key_access_revision`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
 
 **凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
@@ -203,7 +203,7 @@ Content-Type: application/json
 
 请求示例：
 
-```json schema=schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
+```json schema=schemas/media-operations.schema.json#/$defs/media_ice_configuration_request_body
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
@@ -219,7 +219,7 @@ Content-Type: application/json
 }
 ```
 
-响应字段（schema 见 [`ice-config-response.schema.json`](../../artifacts/schemas/ice-config-response.schema.json)，schema id `ak.schema.ice_config_response.v1`）：
+响应字段（schema 见 [`media-ice-configuration-response-body.schema.json`](../../artifacts/schemas/media-ice-configuration-response-body.schema.json)，schema id `ak.schema.media_ice_configuration_response_body.v1`）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
@@ -242,7 +242,7 @@ Content-Type: application/json
 
 响应示例：
 
-```json schema=schemas/ice-config-response.schema.json
+```json schema=schemas/media-ice-configuration-response-body.schema.json
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
@@ -280,7 +280,7 @@ Content-Type: application/json
   },
   "signature": {
     "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
-    "sig": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
+    "signature": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
     "signature_algorithm": "Ed25519"
   }
 }
@@ -387,7 +387,7 @@ Invite payload:
   "payload_sequence": 30,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "invite",
-  "seq": 12,
+  "sequence": 12,
   "data": {
     "lifetime_ms": 60000,
     "offer": {
@@ -410,7 +410,7 @@ Answer payload:
   "payload_sequence": 31,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "answer",
-  "seq": 13,
+  "sequence": 13,
   "data": {
     "answer": {
       "type": "answer",
@@ -431,7 +431,7 @@ Candidate payload:
   "payload_sequence": 32,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "candidate",
-  "seq": 14,
+  "sequence": 14,
   "data": {
     "candidates": [
       {
@@ -457,7 +457,7 @@ Candidate payload:
   "payload_sequence": 40,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "renegotiate",
-  "seq": 20,
+  "sequence": 20,
   "data": {
     "reason": "add_track",
     "ice_restart": false,
@@ -485,7 +485,7 @@ Candidate payload:
   "payload_sequence": 41,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "mute_state",
-  "seq": 21,
+  "sequence": 21,
   "data": {
     "audio_muted": true,
     "video_muted": false,
@@ -502,7 +502,7 @@ Candidate payload:
   "payload_sequence": 42,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "mute_state",
-  "seq": 22,
+  "sequence": 22,
   "data": {
     "audio_muted": true,
     "video_muted": true,
@@ -520,7 +520,7 @@ Candidate payload:
   "payload_sequence": 43,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "speaking",
-  "seq": 23,
+  "sequence": 23,
   "data": {
     "speaking": true,
     "audio_level": 0.42
@@ -553,7 +553,7 @@ Candidate payload:
   "payload_sequence": 50,
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "signal_kind": "media_state",
-  "seq": 7,
+  "sequence": 7,
   "data": {
     "screen": {
       "enabled": true,

@@ -8,7 +8,7 @@
       "$ref": "#/$defs/bot_preview_request_body"
     },
     {
-      "$ref": "#/$defs/bot_preview_outcome"
+      "$ref": "#/$defs/bot_preview_response_body"
     }
   ],
   "$defs": {
@@ -35,7 +35,7 @@
       },
       "additionalProperties": false
     },
-    "bot_preview_outcome": {
+    "bot_preview_response_body": {
       "type": "object",
       "required": [
         "authoring_request"
@@ -49,14 +49,23 @@
             {
               "properties": {
                 "purpose": {
-                  "const": "provision_bot"
+                  "const": "provision_bot",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "applet-bot-operations.schema.json#/$defs/bot_preview_response_body/properties/authoring_request/allOf/1/properties/purpose",
+                    "owner": "applet-bot-operations.schema.json#/$defs/bot_preview_response_body/properties/authoring_request/allOf/1/properties/purpose",
+                    "values": [
+                      "provision_bot"
+                    ]
+                  }
                 }
               }
             }
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

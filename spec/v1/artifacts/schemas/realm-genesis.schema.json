@@ -16,7 +16,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.realm_genesis.v1"
+      "const": "ak.schema.realm_genesis.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "realm-genesis.schema.json#/properties/schema",
+        "owner": "realm-genesis.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.realm_genesis.v1"
+        ]
+      }
     },
     "purpose": {
       "type": "string",
@@ -25,7 +33,18 @@
         "direct_conversation",
         "principal_control",
         "agent_control"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-genesis.schema.json#/properties/purpose",
+        "owner": "realm-genesis.schema.json#/properties/purpose",
+        "values": [
+          "collaboration",
+          "direct_conversation",
+          "principal_control",
+          "agent_control"
+        ]
+      }
     },
     "genesis_salt": {
       "type": "string",
@@ -66,7 +85,15 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "principal_control"
+            "const": "principal_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "realm-genesis.schema.json#/allOf/0/if/properties/purpose",
+              "owner": "realm-genesis.schema.json#/allOf/0/if/properties/purpose",
+              "values": [
+                "principal_control"
+              ]
+            }
           }
         },
         "required": [
@@ -94,7 +121,16 @@
             "enum": [
               "principal_control",
               "agent_control"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "realm-genesis.schema.json#/allOf/1/if/properties/purpose",
+              "owner": "realm-genesis.schema.json#/allOf/1/if/properties/purpose",
+              "values": [
+                "principal_control",
+                "agent_control"
+              ]
+            }
           }
         },
         "required": [
@@ -119,7 +155,15 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "principal_control"
+            "const": "principal_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "realm-genesis.schema.json#/allOf/2/if/properties/purpose",
+              "owner": "realm-genesis.schema.json#/allOf/2/if/properties/purpose",
+              "values": [
+                "principal_control"
+              ]
+            }
           }
         },
         "required": [
@@ -143,7 +187,15 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "agent_control"
+            "const": "agent_control",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "realm-genesis.schema.json#/allOf/3/if/properties/purpose",
+              "owner": "realm-genesis.schema.json#/allOf/3/if/properties/purpose",
+              "values": [
+                "agent_control"
+              ]
+            }
           }
         },
         "required": [
@@ -182,7 +234,15 @@
       ],
       "properties": {
         "descriptor_version": {
-          "const": 1
+          "const": 1,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/descriptor_version",
+            "owner": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/descriptor_version",
+            "values": [
+              1
+            ]
+          }
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -193,10 +253,26 @@
           "description": "did:key form of the founding device Ed25519 signing key. The descriptor carries the raw key inside the root-signed genesis payload, so it carries no key digest; the receipt pcr_genesis_scope.device_key_digest is SHA-256(UTF-8(canonical multikey)) over this value with the did:key: prefix removed."
         },
         "device_key_algorithm": {
-          "const": "Ed25519"
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
+            "owner": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_key_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
         },
         "device_key_purpose": {
-          "const": "event_signing_and_mls_identity"
+          "const": "event_signing_and_mls_identity",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_key_purpose",
+            "owner": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_key_purpose",
+            "values": [
+              "event_signing_and_mls_identity"
+            ]
+          }
         },
         "hpke_key": {
           "type": "string",
@@ -204,7 +280,15 @@
           "description": "Founding device X25519 HPKE public key as the canonical multibase base58btc multikey of the X25519 multicodec (0xec), always starting with z6LS. It is the same encoding discipline as device_public_key_did without the did:key: prefix and the same value the founding ak.device.authorize payload carries; the receipt pcr_genesis_scope.hpke_key_digest is SHA-256(UTF-8(this exact string))."
         },
         "hpke_key_algorithm": {
-          "const": "X25519"
+          "const": "X25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc7748.html#section-5",
+            "owner": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/hpke_key_algorithm",
+            "values": [
+              "X25519"
+            ]
+          }
         },
         "algorithms": {
           "type": "array",

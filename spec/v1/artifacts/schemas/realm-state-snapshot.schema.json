@@ -24,16 +24,24 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "governance_generation": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Station tenure this snapshot is bound to. Current /head MUST equal the fresh current authority generation. Exact historical by-ref MUST equal its requested basis generation and may precede current authority after a valid handoff; the consuming Account Station or independent auditor resolves that tenure and its exact signing-time service key from the fresh genesis-to-current chain. Unknown/future tenure, wrong signer, old tenure presented as current head, or rollback of saved current/checkpoints MUST be refused. Ordinary clients apply the bound own-Station consumption contract rather than independently resolving governance history."
+      "description": "Station tenure this snapshot is bound to. Current /head MUST equal the fresh current authority generation. Exact historical by-ref MUST equal its requested basis generation and may precede current authority after a valid handoff; the consuming Account Station or independent auditor resolves that tenure and its exact signing-time service key from the fresh genesis-to-current chain. Unknown/future tenure, wrong signer, old tenure presented as current head, or rollback of saved current/checkpoints MUST be refused. Ordinary clients apply the bound own-Station consumption contract rather than independently resolving governance history.",
+      "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
     },
     "purpose": {
       "enum": [
         "full_recovery",
         "stream_history"
       ],
-      "description": "Signed installation purpose. Only full_recovery can replace a Realm current baseline. stream_history is bound to one Account historical window and MUST NOT clear omitted selectors or advance current checkpoints."
+      "description": "Signed installation purpose. Only full_recovery can replace a Realm current baseline. stream_history is bound to one Account historical window and MUST NOT clear omitted selectors or advance current checkpoints.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-state-snapshot.schema.json#/properties/purpose",
+        "owner": "realm-state-snapshot.schema.json#/properties/purpose",
+        "values": [
+          "full_recovery",
+          "stream_history"
+        ]
+      }
     },
     "history_basis": {
       "$ref": "#/$defs/history_basis"
@@ -51,7 +59,7 @@
       "type": "array",
       "description": "Complete disclosable selector set within the signed coverage, read at the same cut as covered heads and floors. Omitted selectors outside stream_history coverage do not mean empty or deleted.",
       "items": {
-        "$ref": "./typed-current-result.schema.json"
+        "$ref": "./current-state.schema.json"
       }
     },
     "retention_and_history_floor": {
@@ -66,7 +74,16 @@
           "enum": [
             "since_join",
             "all_history_for_current_members"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "realm-state-snapshot.schema.json#/properties/retention_and_history_floor/properties/history_access",
+            "owner": "realm-state-snapshot.schema.json#/properties/retention_and_history_floor/properties/history_access",
+            "values": [
+              "since_join",
+              "all_history_for_current_members"
+            ]
+          }
         },
         "stream_floors": {
           "type": "array",
@@ -105,7 +122,15 @@
       "if": {
         "properties": {
           "purpose": {
-            "const": "stream_history"
+            "const": "stream_history",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "realm-state-snapshot.schema.json#/allOf/0/if/properties/purpose",
+              "owner": "realm-state-snapshot.schema.json#/allOf/0/if/properties/purpose",
+              "values": [
+                "stream_history"
+              ]
+            }
           }
         },
         "required": [

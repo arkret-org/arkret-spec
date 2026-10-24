@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.core_event_store.v1",
-  "version": "2026-09-19",
+  "version": "2026-10-24.1",
   "suite": "view_write_contract",
   "runner": {
     "kind": "named_suite",
@@ -154,7 +154,7 @@
           "title": "Quarterly plan"
         }
       },
-      "why": "view_id is the typed current result subject; without it the write cannot be addressed."
+      "why": "view_id is the current state subject; without it the write cannot be addressed."
     },
     {
       "name": "create_payload_accepts_the_author_definition",
@@ -400,7 +400,7 @@
     },
     {
       "name": "materialized_active_view_validates",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/view_value",
       "valid": true,
       "instance": {
         "schema": "ak.schema.view.v1",
@@ -448,7 +448,7 @@
     },
     {
       "name": "materialized_terminal_view_validates",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/view_value",
       "valid": true,
       "instance": {
         "schema": "ak.schema.view.v1",
@@ -497,7 +497,7 @@
     },
     {
       "name": "materialized_value_refuses_the_self_reportable_id",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/view_value",
       "valid": false,
       "instance": {
         "schema": "ak.schema.view.v1",
@@ -722,7 +722,7 @@
         "error": "schema_violation",
         "reason_code": "private_view_requires_account_data"
       },
-      "why": "visibility IS author-writable -- it is one of the 13 allowed_paths -- so this rejection cannot come from the patch surface. It is the separate normative rule of views.md section 3.1: a private View lives as encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer, so title, query and layout MUST NOT be left behind in the shared typed current result."
+      "why": "visibility IS author-writable -- it is one of the 13 allowed_paths -- so this rejection cannot come from the patch surface. It is the separate normative rule of views.md section 3.1: a private View lives as encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer, so title, query and layout MUST NOT be left behind in the shared current state."
     },
     {
       "name": "an_update_after_the_terminal_transition_is_refused",
@@ -828,7 +828,7 @@
         "stored_effect": "none",
         "historical_candidate_search": "forbidden"
       },
-      "why": "DIGEST_B may well equal an older accepted value of this same View. That is exactly the resolution the guard forbids: the current value is the last accepted write at the position this write is applied, per its own stream's order, and there is no parallel branch to choose among. current-results.md gives the code -- a pre-state that is not field-for-field equal returns failed_precondition -- and no reason code is registered because the generic code already says precisely what failed."
+      "why": "DIGEST_B may well equal an older accepted value of this same View. That is exactly the resolution the guard forbids: the current value is the last accepted write at the position this write is applied, per its own stream's order, and there is no parallel branch to choose among. current-state.md gives the code -- a pre-state that is not field-for-field equal returns failed_precondition -- and no reason code is registered because the generic code already says precisely what failed."
     },
     {
       "name": "an_exact_retry_of_an_accepted_update_produces_no_second_effect",
@@ -897,12 +897,12 @@
       },
       "expected": {
         "outcome": "admitted",
-        "result_family": "view",
-        "result_selector": "id:view",
+        "state_family": "view",
+        "state_selector": "id:view",
         "distinct_results": 1,
         "revision_advances_per_accepted_write": 1
       },
-      "why": "views.md section 3.2: the three kinds write the SAME typed current result family. If they held three authority chains, ak.view.update's apply_patch would land on a result nothing had ever written -- and the typed-current contract forbids papering over that with a registered initial_value."
+      "why": "views.md section 3.2: the three kinds write the SAME current state family. If they held three authority chains, ak.view.update's apply_patch would land on a result nothing had ever written -- and the typed-current contract forbids papering over that with a registered initial_value."
     }
   ]
 }

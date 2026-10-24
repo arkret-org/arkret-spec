@@ -5,14 +5,14 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.reaction.authority_order.v1"
   },
-  "version": "2026-09-28.1",
+  "version": "2026-10-24.1",
   "profile": "ak.profile.chat_mvp.v1",
   "covers_vectors": [
     "ak.vector.reaction.authority_order_join.v1"
   ],
   "machine_contracts": [
     "registry/event-kind-registry.json",
-    "registry/typed-current-result-registry.json"
+    "registry/current-state-registry.json"
   ],
   "description": "Reaction default view folds accepted add and remove assertions by verified Commit position on one authority stream, retaining every assertion for audit.",
   "cases": [

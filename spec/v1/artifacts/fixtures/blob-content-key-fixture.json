@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.blob_node.v1",
-  "version": "2026-10-14.2",
+  "version": "2026-10-24.1",
   "suite": "blob_content_key",
   "runner": {
     "kind": "named_suite",
@@ -20,13 +20,13 @@
           "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
         },
         "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
-        "epoch": 7,
+        "epoch": "7",
         "scheme": "ak.blob.stream_aead.v1",
         "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
         "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
       },
-      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
-      "content_key_hex": "68765ec975ef49519f1b9d343ea0aba771c5cb9a8a04a8490d9887de93736232",
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":\"7\",\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
+      "content_key_hex": "3bc2cc0e57918ac8eced2b2396ed6433abaf8c9b3d291934307ee111fa88f005",
       "separation_inputs": {
         "effective_scope": {
           "kind": "realm",
@@ -48,13 +48,13 @@
           "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
         },
         "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
-        "epoch": 7,
+        "epoch": "7",
         "scheme": "ak.blob.whole_file_aead.v1",
         "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
         "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
       },
-      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
-      "content_key_hex": "913b63192a30f149ba9bdd93f6f894a3a716f8fe1c8146bc0bc1b85043fd2305",
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":\"7\",\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
+      "content_key_hex": "6040ee4d3ca9cbfecb71b130af1cef2ce0eb96ec92fea9fda4d805279ddc5c26",
       "separation_inputs": {
         "effective_scope": {
           "kind": "realm",
@@ -76,13 +76,13 @@
           "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
         },
         "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
-        "epoch": 7,
+        "epoch": "7",
         "scheme": "ak.blob.stream_aead.v1",
         "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
         "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
       },
-      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
-      "content_key_hex": "ba2fe64f7ed41eea9093b91ac0fe82212ed527f58c826f68c6f01bca1b20df39",
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":\"7\",\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
+      "content_key_hex": "dfde4b4b8a71ffde8358f7e6396c85bd6cb429180fbfae32d8c5e7f317c30e01",
       "separation_inputs": {
         "effective_scope": {
           "kind": "realm",
@@ -104,13 +104,13 @@
           "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
         },
         "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
-        "epoch": 7,
+        "epoch": "7",
         "scheme": "ak.blob.whole_file_aead.v1",
         "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
         "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
       },
-      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
-      "content_key_hex": "c6f0f53c002b40ddca93573e787242b1111cbd5d255b68534799a0ae9d5fc0d5",
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":\"7\",\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
+      "content_key_hex": "2f06c52fbb3408152f1da7bf4d25caf28f31dcde3401d19ac0d75a6714fa6b90",
       "separation_inputs": {
         "effective_scope": {
           "kind": "realm",
@@ -157,10 +157,10 @@
       "assertions": [
         "An Event ref and equivalent proof hash resolved to the same verified winning group state produce the same key; the immutable wire key_ref remains AAD-bound."
       ],
-      "event_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.mls.commit\",\"payload\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"commit_bytes_b64\":\"Y29tbWl0\",\"covers_key_access_revision\":0,\"governance_binding\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"key_access_revision\":0,\"next_epoch\":1,\"previous_epoch\":0},\"next_epoch\":1,\"previous_epoch\":0},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}}",
-      "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
-      "proof_hash": "sha256:189240aba4354e61f1f6c53f27f26e1654caadd48744d2d0bd159f2750a93044",
-      "wrong_preimage_utf8": "{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"commit_bytes_b64\":\"Y29tbWl0\",\"covers_key_access_revision\":0,\"governance_binding\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"key_access_revision\":0,\"next_epoch\":1,\"previous_epoch\":0},\"next_epoch\":1,\"previous_epoch\":0}",
+      "event_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.mls.commit\",\"payload\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"commit_base64url\":\"Y29tbWl0\",\"covers_key_access_revision\":\"0\",\"governance_binding\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"key_access_revision\":\"0\",\"next_epoch\":\"1\",\"previous_epoch\":\"0\"},\"next_epoch\":\"1\",\"previous_epoch\":\"0\"},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}}",
+      "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
+      "proof_hash": "sha256:9c82a3f79d3c8f22c4bddc91e4199cb094c95406074be33a440d5f380e5630ee",
+      "wrong_preimage_utf8": "{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"commit_base64url\":\"Y29tbWl0\",\"covers_key_access_revision\":\"0\",\"governance_binding\":{\"base_group_state_ref\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"key_access_revision\":\"0\",\"next_epoch\":\"1\",\"previous_epoch\":\"0\"},\"next_epoch\":\"1\",\"previous_epoch\":\"0\"}",
       "resolution_obligations": [
         "authenticated accepted producer and winning state",
         "same effective_scope and immutable genesis",
@@ -168,12 +168,12 @@
         "reject ambiguous or nonwinning state before exporter"
       ],
       "notes": "Concrete Event/hash identity KAT using the cross-station MLS Event schema input. This KAT proves reference encoding, not live governance acceptance or checkpoint authorization.",
-      "wrong_proof_hash": "sha256:f76d3b7cdc669251daead635e65e2dfbfae1d739204a9f7272d73c258d9d5d04",
+      "wrong_proof_hash": "sha256:7cb2cc2e2384758ac0c0aa851421cbd198e121d7603147905bbc62efb3280e13",
       "resolution_cases": [
         {
           "name": "event_ref",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -181,7 +181,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -192,7 +192,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -207,7 +207,7 @@
         {
           "name": "equivalent_event_content_hash",
           "input": {
-            "group_state_ref": "sha256:189240aba4354e61f1f6c53f27f26e1654caadd48744d2d0bd159f2750a93044",
+            "group_state_ref": "sha256:9c82a3f79d3c8f22c4bddc91e4199cb094c95406074be33a440d5f380e5630ee",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -215,7 +215,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -226,7 +226,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -241,7 +241,7 @@
         {
           "name": "payload_digest_is_not_event_proof_hash",
           "input": {
-            "group_state_ref": "sha256:f76d3b7cdc669251daead635e65e2dfbfae1d739204a9f7272d73c258d9d5d04",
+            "group_state_ref": "sha256:7cb2cc2e2384758ac0c0aa851421cbd198e121d7603147905bbc62efb3280e13",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -249,7 +249,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -260,7 +260,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -283,7 +283,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -294,7 +294,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -309,7 +309,7 @@
         {
           "name": "wrong_scope",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
@@ -317,7 +317,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -328,7 +328,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -343,7 +343,7 @@
         {
           "name": "wrong_genesis",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -351,7 +351,7 @@
             "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -362,7 +362,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -377,7 +377,7 @@
         {
           "name": "nonwinning_state",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -385,7 +385,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -396,7 +396,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -411,7 +411,7 @@
         {
           "name": "ambiguous_witnesses",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -419,7 +419,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -429,7 +429,7 @@
                 "accepted_winner": true
               },
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -440,7 +440,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -455,7 +455,7 @@
         {
           "name": "unauthorized_history",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -463,7 +463,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -474,7 +474,7 @@
               }
             ],
             "checkpoint": {
-              "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+              "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
               "effective_scope": {
                 "kind": "realm",
                 "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -489,7 +489,7 @@
         {
           "name": "missing_checkpoint",
           "input": {
-            "group_state_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+            "group_state_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
             "effective_scope": {
               "kind": "realm",
               "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
@@ -497,7 +497,7 @@
             "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
             "authenticated_states": [
               {
-                "event_ref": "ak:event:ARiSQKukNU5h8fbFPyfybhZUyq3Uh0TS0L0VnydQqTBE",
+                "event_ref": "ak:event:AZyCo_edPI8ixL3ckeQZnLCUyVQGB0vjOkQNXzgOVjDu",
                 "effective_scope": {
                   "kind": "realm",
                   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"

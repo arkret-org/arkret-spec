@@ -1,19 +1,19 @@
 {
-  "version": "2026-10-22.1",
+  "version": "2026-10-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-22T07:36:05+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
+  "description": "Closed typed current-state families derived from authority-committed Events. Selectors are domain types, never alternate current state IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_state_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
   "consumption_classes": {
     "admission_input": "Reading the current value can change whether an Event or request is accepted or authorized.",
     "delivery_input": "Reading the current value shapes what a service surface returns or delivers, or what a conforming client must do, but never decides admission.",
     "record_only": "No v1 prose reads this value to decide anything; it exists as an audit or display record. This class MUST be declared explicitly -- a family nobody happens to mention is not thereby record_only."
   },
-  "result_kinds": [
+  "state_kinds": [
     {
-      "result_kind": "realm_authority_root",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_result",
+      "state_kind": "realm_authority_root",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_authority_root",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -24,8 +24,8 @@
       }
     },
     {
-      "result_kind": "realm_profile",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_profile_result",
+      "state_kind": "realm_profile",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_profile",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -35,8 +35,8 @@
       }
     },
     {
-      "result_kind": "member_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+      "state_kind": "member_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_member_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -48,8 +48,8 @@
       }
     },
     {
-      "result_kind": "strand",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_result",
+      "state_kind": "strand",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_strand",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -59,8 +59,8 @@
       }
     },
     {
-      "result_kind": "message_reactions",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_result",
+      "state_kind": "message_reactions",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_message_reactions",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -71,8 +71,8 @@
       }
     },
     {
-      "result_kind": "mls_group",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result",
+      "state_kind": "mls_group",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_mls_group",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -82,8 +82,8 @@
       }
     },
     {
-      "result_kind": "agent_key",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_result",
+      "state_kind": "agent_key",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_key",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -93,8 +93,8 @@
       }
     },
     {
-      "result_kind": "agent_status",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_status_result",
+      "state_kind": "agent_status",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_status",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -104,8 +104,8 @@
       }
     },
     {
-      "result_kind": "realm_genesis",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_genesis_result",
+      "state_kind": "realm_genesis",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_genesis",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -115,8 +115,8 @@
       }
     },
     {
-      "result_kind": "realm_history_access",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_history_access_result",
+      "state_kind": "realm_history_access",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_history_access",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -126,8 +126,8 @@
       }
     },
     {
-      "result_kind": "identity_resolution",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result",
+      "state_kind": "identity_resolution",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_identity_resolution",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -137,8 +137,8 @@
       }
     },
     {
-      "result_kind": "identity_accountability",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_accountability_result",
+      "state_kind": "identity_accountability",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_identity_accountability",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -148,8 +148,8 @@
       }
     },
     {
-      "result_kind": "capability_grant",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/capability_grant_result",
+      "state_kind": "capability_grant",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_capability_grant",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -159,8 +159,8 @@
       }
     },
     {
-      "result_kind": "call_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result",
+      "state_kind": "call_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -170,8 +170,8 @@
       }
     },
     {
-      "result_kind": "call_focus",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_focus_result",
+      "state_kind": "call_focus",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_focus",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -181,8 +181,8 @@
       }
     },
     {
-      "result_kind": "call_recording_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result",
+      "state_kind": "call_recording_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_recording_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -192,8 +192,8 @@
       }
     },
     {
-      "result_kind": "call_recording_artifact",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_artifact_result",
+      "state_kind": "call_recording_artifact",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_recording_artifact",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -203,8 +203,8 @@
       }
     },
     {
-      "result_kind": "call_transcript_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result",
+      "state_kind": "call_transcript_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_transcript_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -214,8 +214,8 @@
       }
     },
     {
-      "result_kind": "call_transcript_artifact",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_artifact_result",
+      "state_kind": "call_transcript_artifact",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_transcript_artifact",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -225,8 +225,8 @@
       }
     },
     {
-      "result_kind": "call_moderation",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_result",
+      "state_kind": "call_moderation",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_moderation",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -236,8 +236,8 @@
       }
     },
     {
-      "result_kind": "call_roster",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_result",
+      "state_kind": "call_roster",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_roster",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -247,8 +247,8 @@
       }
     },
     {
-      "result_kind": "call_mute_override",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result",
+      "state_kind": "call_mute_override",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_call_mute_override",
       "consumption": {
         "class": "record_only",
         "consumed_by": [],
@@ -256,8 +256,8 @@
       }
     },
     {
-      "result_kind": "realm_schema",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_schema_result",
+      "state_kind": "realm_schema",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_schema",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -267,8 +267,8 @@
       }
     },
     {
-      "result_kind": "realm_link",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_link_result",
+      "state_kind": "realm_link",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_link",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -279,8 +279,8 @@
       }
     },
     {
-      "result_kind": "realm_join_rule",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_join_rule_result",
+      "state_kind": "realm_join_rule",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_join_rule",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -290,8 +290,8 @@
       }
     },
     {
-      "result_kind": "realm_discovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_discovery_result",
+      "state_kind": "realm_discovery",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_discovery",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -301,8 +301,8 @@
       }
     },
     {
-      "result_kind": "realm_alias",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_alias_result",
+      "state_kind": "realm_alias",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_alias",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -312,8 +312,8 @@
       }
     },
     {
-      "result_kind": "realm_policy_bundle",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_bundle_result",
+      "state_kind": "realm_policy_bundle",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_policy_bundle",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -324,8 +324,8 @@
       }
     },
     {
-      "result_kind": "realm_asset_privacy_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_asset_privacy_policy_result",
+      "state_kind": "realm_asset_privacy_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_asset_privacy_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -335,8 +335,8 @@
       }
     },
     {
-      "result_kind": "realm_plaintext_visible_services",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_plaintext_visible_services_result",
+      "state_kind": "realm_plaintext_visible_services",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_plaintext_visible_services",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -346,8 +346,8 @@
       }
     },
     {
-      "result_kind": "realm_media_service",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_media_service_result",
+      "state_kind": "realm_media_service",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_media_service",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -357,8 +357,8 @@
       }
     },
     {
-      "result_kind": "scope_read_receipt_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
+      "state_kind": "scope_read_receipt_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_scope_read_receipt_policy",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -368,8 +368,8 @@
       }
     },
     {
-      "result_kind": "realm_preview_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_preview_policy_result",
+      "state_kind": "realm_preview_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_preview_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -379,8 +379,8 @@
       }
     },
     {
-      "result_kind": "realm_tombstone",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_tombstone_result",
+      "state_kind": "realm_tombstone",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_tombstone",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -390,8 +390,8 @@
       }
     },
     {
-      "result_kind": "realm_destroy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_destroy_result",
+      "state_kind": "realm_destroy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_destroy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -401,8 +401,8 @@
       }
     },
     {
-      "result_kind": "realm_set_default_strand",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_set_default_strand_result",
+      "state_kind": "realm_set_default_strand",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_set_default_strand",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -412,8 +412,8 @@
       }
     },
     {
-      "result_kind": "strand_position",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result",
+      "state_kind": "strand_position",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_strand_position",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -423,8 +423,8 @@
       }
     },
     {
-      "result_kind": "invite_lifecycle",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_result",
+      "state_kind": "invite_lifecycle",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_invite_lifecycle",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -434,8 +434,8 @@
       }
     },
     {
-      "result_kind": "invite_live_target",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_result",
+      "state_kind": "invite_live_target",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_invite_live_target",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -445,8 +445,8 @@
       }
     },
     {
-      "result_kind": "invite_directed_invitee",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_directed_invitee_result",
+      "state_kind": "invite_directed_invitee",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_invite_directed_invitee",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -456,8 +456,8 @@
       }
     },
     {
-      "result_kind": "pin",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/pin_result",
+      "state_kind": "pin",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_pin",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -467,8 +467,8 @@
       }
     },
     {
-      "result_kind": "space_parent",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_parent_result",
+      "state_kind": "space_parent",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_space_parent",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -478,8 +478,8 @@
       }
     },
     {
-      "result_kind": "space_child_scope_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_child_scope_policy_result",
+      "state_kind": "space_child_scope_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_space_child_scope_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -489,8 +489,8 @@
       }
     },
     {
-      "result_kind": "agent_provisioning",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_provisioning_result",
+      "state_kind": "agent_provisioning",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_provisioning",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -500,8 +500,8 @@
       }
     },
     {
-      "result_kind": "agent_pcr_genesis_declaration",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_result",
+      "state_kind": "agent_pcr_genesis_declaration",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_pcr_genesis_declaration",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -511,8 +511,8 @@
       }
     },
     {
-      "result_kind": "mimi_room_binding",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mimi_room_binding_result",
+      "state_kind": "mimi_room_binding",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_mimi_room_binding",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -522,8 +522,8 @@
       }
     },
     {
-      "result_kind": "moderation_franking_proof",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_franking_proof_result",
+      "state_kind": "moderation_franking_proof",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_franking_proof",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -533,8 +533,8 @@
       }
     },
     {
-      "result_kind": "moderation_report",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_report_result",
+      "state_kind": "moderation_report",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_report",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -544,8 +544,8 @@
       }
     },
     {
-      "result_kind": "agent_selector_claim",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_result",
+      "state_kind": "agent_selector_claim",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_selector_claim",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -555,8 +555,8 @@
       }
     },
     {
-      "result_kind": "consent",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+      "state_kind": "consent",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_consent",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -566,8 +566,8 @@
       }
     },
     {
-      "result_kind": "moderation_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_result",
+      "state_kind": "moderation_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -577,8 +577,8 @@
       }
     },
     {
-      "result_kind": "object_redaction",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_result",
+      "state_kind": "object_redaction",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_object_redaction",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -588,19 +588,19 @@
       }
     },
     {
-      "result_kind": "organization_moderation_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_result",
+      "state_kind": "organization_moderation_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_organization_moderation_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
           "governance/content-moderation.md §7"
         ],
-        "note": "Organization-level moderation policy is one global current result per Organization DID. Production writes and dependent cross-Realm reads fail closed until the unique authenticated policy authority Realm binding and verified source Commit carrier exist; no arrival-order winner is permitted."
+        "note": "Organization-level moderation policy is one global current state per Organization DID. Production writes and dependent cross-Realm reads fail closed until the unique authenticated policy authority Realm binding and verified source Commit carrier exist; no arrival-order winner is permitted."
       }
     },
     {
-      "result_kind": "view",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_result",
+      "state_kind": "view",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_view",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -610,8 +610,8 @@
       }
     },
     {
-      "result_kind": "policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_result",
+      "state_kind": "policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -621,8 +621,8 @@
       }
     },
     {
-      "result_kind": "policy_action",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_result",
+      "state_kind": "policy_action",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_policy_action",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -632,8 +632,8 @@
       }
     },
     {
-      "result_kind": "direct_conversation_binding",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_result",
+      "state_kind": "direct_conversation_binding",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_direct_conversation_binding",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -643,8 +643,8 @@
       }
     },
     {
-      "result_kind": "device_authorization",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_authorization_result",
+      "state_kind": "device_authorization",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_device_authorization",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -656,8 +656,8 @@
       }
     },
     {
-      "result_kind": "device_generation",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_result",
+      "state_kind": "device_generation",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_device_generation",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -669,8 +669,8 @@
       }
     },
     {
-      "result_kind": "device_revocation_proposals",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_revocation_proposals_result",
+      "state_kind": "device_revocation_proposals",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_device_revocation_proposals",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -681,8 +681,8 @@
       }
     },
     {
-      "result_kind": "circle",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_result",
+      "state_kind": "circle",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -693,8 +693,8 @@
       }
     },
     {
-      "result_kind": "morph",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/morph_result",
+      "state_kind": "morph",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_morph",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -705,8 +705,8 @@
       }
     },
     {
-      "result_kind": "relation",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_result",
+      "state_kind": "relation",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_relation",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -718,8 +718,8 @@
       }
     },
     {
-      "result_kind": "space",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_result",
+      "state_kind": "space",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_space",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -730,8 +730,8 @@
       }
     },
     {
-      "result_kind": "realm_archive",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_result",
+      "state_kind": "realm_archive",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_archive",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -741,8 +741,8 @@
       }
     },
     {
-      "result_kind": "realm_freeze",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_result",
+      "state_kind": "realm_freeze",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_freeze",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -752,8 +752,8 @@
       }
     },
     {
-      "result_kind": "actor_profile",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_profile_result",
+      "state_kind": "actor_profile",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_actor_profile",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -763,8 +763,8 @@
       }
     },
     {
-      "result_kind": "agent_action_approval",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_action_approval_result",
+      "state_kind": "agent_action_approval",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_action_approval",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -774,8 +774,8 @@
       }
     },
     {
-      "result_kind": "agent_sidecar_exchange_controls",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_sidecar_exchange_controls_result",
+      "state_kind": "agent_sidecar_exchange_controls",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_sidecar_exchange_controls",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -785,8 +785,8 @@
       }
     },
     {
-      "result_kind": "applet_discovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/applet_discovery_result",
+      "state_kind": "applet_discovery",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_applet_discovery",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -796,8 +796,8 @@
       }
     },
     {
-      "result_kind": "applet_registration",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/applet_registration_result",
+      "state_kind": "applet_registration",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_applet_registration",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -807,8 +807,8 @@
       }
     },
     {
-      "result_kind": "key_backup_active_series",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/key_backup_active_series_result",
+      "state_kind": "key_backup_active_series",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_key_backup_active_series",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -818,8 +818,8 @@
       }
     },
     {
-      "result_kind": "member_identity_updates",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_identity_updates_result",
+      "state_kind": "member_identity_updates",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_member_identity_updates",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -829,8 +829,8 @@
       }
     },
     {
-      "result_kind": "message_revision",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_revision_result",
+      "state_kind": "message_revision",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_message_revision",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -840,8 +840,8 @@
       }
     },
     {
-      "result_kind": "actor_profile_realm_override",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_profile_realm_override_result",
+      "state_kind": "actor_profile_realm_override",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_actor_profile_realm_override",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -851,8 +851,8 @@
       }
     },
     {
-      "result_kind": "realm_organization",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_organization_result",
+      "state_kind": "realm_organization",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_organization",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -862,8 +862,8 @@
       }
     },
     {
-      "result_kind": "circle_member_state",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "state_kind": "circle_member_state",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -875,8 +875,8 @@
       }
     },
     {
-      "result_kind": "realm_search_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_search_policy_result",
+      "state_kind": "realm_search_policy",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_search_policy",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -886,8 +886,8 @@
       }
     },
     {
-      "result_kind": "rsvp",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/rsvp_result",
+      "state_kind": "rsvp",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_rsvp",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -897,8 +897,8 @@
       }
     },
     {
-      "result_kind": "schema_definition",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/schema_definition_result",
+      "state_kind": "schema_definition",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_schema_definition",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -908,8 +908,8 @@
       }
     },
     {
-      "result_kind": "sidecar_context",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sidecar_context_result",
+      "state_kind": "sidecar_context",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_sidecar_context",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -919,8 +919,8 @@
       }
     },
     {
-      "result_kind": "sidecar",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sidecar_result",
+      "state_kind": "sidecar",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_sidecar",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -930,8 +930,8 @@
       }
     },
     {
-      "result_kind": "strand_watch",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_result",
+      "state_kind": "strand_watch",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_strand_watch",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -941,8 +941,8 @@
       }
     },
     {
-      "result_kind": "agent_interaction",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_interaction_result",
+      "state_kind": "agent_interaction",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_interaction",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -953,8 +953,8 @@
       }
     },
     {
-      "result_kind": "calendar_schedule_source",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_result",
+      "state_kind": "calendar_schedule_source",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_calendar_schedule_source",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -964,8 +964,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_identity",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_identity_result",
+      "state_kind": "realm_actor_identity",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_identity",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -975,8 +975,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_control",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_control_result",
+      "state_kind": "realm_actor_control",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_control",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -986,8 +986,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_manager",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_manager_result",
+      "state_kind": "realm_actor_manager",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_manager",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -997,8 +997,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_status",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_status_result",
+      "state_kind": "realm_actor_status",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_status",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -1008,8 +1008,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_device_generation",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_device_generation_result",
+      "state_kind": "realm_actor_device_generation",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_device_generation",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -1019,8 +1019,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_device_authorization",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_device_authorization_result",
+      "state_kind": "realm_actor_device_authorization",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_device_authorization",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -1030,8 +1030,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_device_revocation_proposals",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_device_revocation_proposals_result",
+      "state_kind": "realm_actor_device_revocation_proposals",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_device_revocation_proposals",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
@@ -1041,8 +1041,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_profile",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_profile_result",
+      "state_kind": "realm_actor_profile",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_profile",
       "consumption": {
         "class": "delivery_input",
         "consumed_by": [
@@ -1052,8 +1052,8 @@
       }
     },
     {
-      "result_kind": "realm_actor_recovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_result",
+      "state_kind": "realm_actor_recovery",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_recovery",
       "consumption": {
         "class": "admission_input",
         "consumed_by": [

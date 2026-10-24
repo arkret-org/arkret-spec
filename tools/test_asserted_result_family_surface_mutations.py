@@ -25,11 +25,11 @@ def row_of(document: dict, kind: str) -> dict:
     return next(row for row in document["event_kinds"] if row["event_kind"] == kind)
 
 
-class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
+class AssertedStateFamilySurfaceMutationTest(unittest.TestCase):
     def _assertion_errors(self, documents: dict[Path, str], families=()) -> list[str]:
         original_read = Path.read_text
-        original_sources = gate._asserted_result_family_sources
-        original_families = gate._registered_result_families
+        original_sources = gate._asserted_state_family_sources
+        original_families = gate._registered_state_families
         original_is_file = Path.is_file
         ledger = json.dumps({"unregistered_families": []})
 
@@ -49,17 +49,17 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
         cached_read_text.cache_clear()
         Path.read_text = read_text  # type: ignore[method-assign]
         Path.is_file = is_file  # type: ignore[method-assign]
-        gate._asserted_result_family_sources = lambda: sorted(documents)  # type: ignore[assignment]
-        gate._registered_result_families = lambda _lint: set(families)  # type: ignore[assignment]
+        gate._asserted_state_family_sources = lambda: sorted(documents)  # type: ignore[assignment]
+        gate._registered_state_families = lambda _lint: set(families)  # type: ignore[assignment]
         try:
             lint = gate.Lint()
-            gate.check_asserted_result_families_are_registered(lint)
+            gate.check_asserted_state_families_are_registered(lint)
             return lint.errors
         finally:
             Path.read_text = original_read  # type: ignore[method-assign]
             Path.is_file = original_is_file  # type: ignore[method-assign]
-            gate._asserted_result_family_sources = original_sources  # type: ignore[assignment]
-            gate._registered_result_families = original_families  # type: ignore[assignment]
+            gate._asserted_state_family_sources = original_sources  # type: ignore[assignment]
+            gate._registered_state_families = original_families  # type: ignore[assignment]
             parse_json_file.cache_clear()
             cached_read_text.cache_clear()
 
@@ -84,14 +84,14 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
     def test_other_artifact_single_word_family_is_reported(self) -> None:
         path = gate.ARTIFACTS / "registry" / "error-code-registry.json"
         errors = self._assertion_errors(
-            {path: '{"description":"The stable phantom typed current result family."}'}
+            {path: '{"description":"The stable phantom current state family."}'}
         )
         self.assertTrue(any("'phantom'" in error for error in errors), errors)
 
     def test_wrong_coalesce_subject_is_reported(self) -> None:
         def mutate(document: dict) -> None:
-            write = row_of(document, "ak.capability.revoke")["result_writes"][0]
-            write["result_selector"] = {
+            write = row_of(document, "ak.capability.revoke")["state_writes"][0]
+            write["state_selector"] = {
                 "kind": "coalesce",
                 "fields": ["payload.a", "payload.b"],
             }
@@ -108,15 +108,15 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
     def test_nonexistent_writer_citation_is_reported(self) -> None:
         path = gate.ARTIFACTS / "registry" / "error-code-registry.json"
         original_read = Path.read_text
-        original_sources = gate._asserted_result_family_sources
+        original_sources = gate._asserted_state_family_sources
 
         def read_text(target, *args, **kwargs):  # type: ignore[no-untyped-def]
             if target == path:
-                return '{"description":"See ak.no_such_kind.result_writes[]."}'
+                return '{"description":"See ak.no_such_kind.state_writes[]."}'
             return original_read(target, *args, **kwargs)
 
         Path.read_text = read_text  # type: ignore[method-assign]
-        gate._asserted_result_family_sources = lambda: [path]  # type: ignore[assignment]
+        gate._asserted_state_family_sources = lambda: [path]  # type: ignore[assignment]
         try:
             lint = gate.Lint()
             registry = gate.load_json(lint, gate.EVENT_KIND_REGISTRY)
@@ -124,13 +124,13 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
             errors = lint.errors
         finally:
             Path.read_text = original_read  # type: ignore[method-assign]
-            gate._asserted_result_family_sources = original_sources  # type: ignore[assignment]
-        self.assertTrue(any("ak.no_such_kind.result_writes[]" in error for error in errors), errors)
+            gate._asserted_state_family_sources = original_sources  # type: ignore[assignment]
+        self.assertTrue(any("ak.no_such_kind.state_writes[]" in error for error in errors), errors)
 
     def test_wrong_projected_member_is_reported(self) -> None:
         def mutate(document: dict) -> None:
-            write = row_of(document, "ak.capability.revoke")["result_writes"][0]
-            write["result_projection"]["value_projection"]["members"][0]["name"] = (
+            write = row_of(document, "ak.capability.revoke")["state_writes"][0]
+            write["state_projection"]["value_projection"]["members"][0]["name"] = (
                 "member_not_in_value_schema"
             )
 
@@ -148,7 +148,7 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
             {
                 path: (
                     '{"description":"A rejected Event does not produce phantom_family '
-                    'typed current result state."}'
+                    'current state state."}'
                 )
             }
         )
@@ -161,7 +161,7 @@ class AssertedResultFamilySurfaceMutationTest(unittest.TestCase):
             {
                 source: "{}",
                 generated: (
-                    '{"description":"Writes generated_only typed current result state."}'
+                    '{"description":"Writes generated_only current state state."}'
                 ),
             }
         )

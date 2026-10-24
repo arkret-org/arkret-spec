@@ -19,7 +19,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.erasure_receipt.v1"
+      "const": "ak.schema.erasure_receipt.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "erasure-receipt.schema.json#/properties/schema",
+        "owner": "erasure-receipt.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.erasure_receipt.v1"
+        ]
+      }
     },
     "receipt_id": {
       "type": "string",
@@ -45,7 +53,17 @@
         "completed",
         "partially_completed",
         "blocked_by_legal_hold"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "erasure-receipt.schema.json#/properties/outcome",
+        "owner": "erasure-receipt.schema.json#/properties/outcome",
+        "values": [
+          "completed",
+          "partially_completed",
+          "blocked_by_legal_hold"
+        ]
+      }
     },
     "erased_classes": {
       "type": "array",
@@ -61,7 +79,23 @@
           "search_index_entries",
           "derived_plaintext",
           "media_derivatives"
-        ]
+        ],
+        "x-arkret-value-ownership": {
+          "class": "owned_symbol",
+          "authority": "erasure-receipt.schema.json#/properties/erased_classes/items",
+          "owner": "erasure-receipt.schema.json#/properties/erased_classes/items",
+          "values": [
+            "canonical_payload_bytes",
+            "blob_bytes",
+            "projection_rows",
+            "account_private_state",
+            "push_routes",
+            "device_secrets",
+            "search_index_entries",
+            "derived_plaintext",
+            "media_derivatives"
+          ]
+        }
       },
       "uniqueItems": true
     },
@@ -124,7 +158,17 @@
         "complete",
         "incomplete"
       ],
-      "description": "Cross-Station erasure receipt fanout aggregate status tracked by the issuing server (models/realm-and-space.md §2.6.2). 'pending' = peers still within erasure_propagation_window_ms and not all acknowledged; 'complete' = every peer that ever held this Realm's content returned a receipt; 'incomplete' = at least one peer failed to acknowledge within erasure_propagation_window_ms. The issuing server MUST surface 'incomplete' to audit/UI and MUST NOT silently swallow it. Absent on receipts that do not drive fanout tracking."
+      "description": "Cross-Station erasure receipt fanout aggregate status tracked by the issuing server (models/realm-and-space.md §2.6.2). 'pending' = peers still within erasure_propagation_window_ms and not all acknowledged; 'complete' = every peer that ever held this Realm's content returned a receipt; 'incomplete' = at least one peer failed to acknowledge within erasure_propagation_window_ms. The issuing server MUST surface 'incomplete' to audit/UI and MUST NOT silently swallow it. Absent on receipts that do not drive fanout tracking.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "erasure-receipt.schema.json#/properties/fanout_status",
+        "owner": "erasure-receipt.schema.json#/properties/fanout_status",
+        "values": [
+          "pending",
+          "complete",
+          "incomplete"
+        ]
+      }
     },
     "peer_receipts": {
       "type": "array",
@@ -147,7 +191,18 @@
               "failed",
               "timed_out"
             ],
-            "description": "'pending' = awaiting this peer's feedback receipt; 'acknowledged' = peer returned a receipt (regardless of its outcome); 'failed' = peer reported a non-completed feedback outcome (partially_completed / blocked_by_legal_hold); 'timed_out' = no feedback within erasure_propagation_window_ms."
+            "description": "'pending' = awaiting this peer's feedback receipt; 'acknowledged' = peer returned a receipt (regardless of its outcome); 'failed' = peer reported a non-completed feedback outcome (partially_completed / blocked_by_legal_hold); 'timed_out' = no feedback within erasure_propagation_window_ms.",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "erasure-receipt.schema.json#/properties/peer_receipts/items/properties/status",
+              "owner": "erasure-receipt.schema.json#/properties/peer_receipts/items/properties/status",
+              "values": [
+                "pending",
+                "acknowledged",
+                "failed",
+                "timed_out"
+              ]
+            }
           },
           "receipt_id": {
             "type": "string",
@@ -168,7 +223,15 @@
       "if": {
         "properties": {
           "outcome": {
-            "const": "blocked_by_legal_hold"
+            "const": "blocked_by_legal_hold",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "erasure-receipt.schema.json#/allOf/0/if/properties/outcome",
+              "owner": "erasure-receipt.schema.json#/allOf/0/if/properties/outcome",
+              "values": [
+                "blocked_by_legal_hold"
+              ]
+            }
           }
         },
         "required": [

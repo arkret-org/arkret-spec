@@ -18,7 +18,15 @@
       "description": "Present on the materialised object. MUST be absent from the create Event payload: zh/models/common-fields.md derives it from the create Event's own event_id (retyped), so a payload-supplied id would be a second, forgeable truth."
     },
     "schema": {
-      "const": "ak.schema.space.v1"
+      "const": "ak.schema.space.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "space.schema.json#/properties/schema",
+        "owner": "space.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.space.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -86,7 +94,17 @@
             "warn",
             "reject",
             "require_review"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "space.schema.json#/properties/fields/properties/wip_limit_enforcement",
+            "owner": "space.schema.json#/properties/fields/properties/wip_limit_enforcement",
+            "values": [
+              "warn",
+              "reject",
+              "require_review"
+            ]
+          }
         }
       },
       "dependentRequired": {
@@ -115,7 +133,17 @@
         "archived",
         "tombstoned"
       ],
-      "description": "Space lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: ak.space.archive MUST come from state=='active' (else failed_precondition reason=space_not_active); ak.space.restore MUST come from state=='archived' (else failed_precondition reason=space_not_archived); ak.space.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=space_already_terminal for terminal source, space_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail; clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Event and on state_changed_at."
+      "description": "Space lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: ak.space.archive MUST come from state=='active' (else failed_precondition reason=space_not_active); ak.space.restore MUST come from state=='archived' (else failed_precondition reason=space_not_archived); ak.space.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=space_already_terminal for terminal source, space_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail; clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Event and on state_changed_at.",
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "space.schema.json#/properties/state",
+        "owner": "space.schema.json#/properties/state",
+        "values": [
+          "active",
+          "archived",
+          "tombstoned"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -142,7 +170,16 @@
             "enum": [
               "archived",
               "tombstoned"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "space.schema.json#/allOf/0/if/properties/state",
+              "owner": "space.schema.json#/allOf/0/if/properties/state",
+              "values": [
+                "archived",
+                "tombstoned"
+              ]
+            }
           }
         },
         "required": [
@@ -160,7 +197,15 @@
         "properties": {
           "kind": {
             "not": {
-              "const": "list"
+              "const": "list",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "space.schema.json#/allOf/1/if/properties/kind/not",
+                "owner": "space.schema.json#/allOf/1/if/properties/kind/not",
+                "values": [
+                  "list"
+                ]
+              }
             }
           }
         },
@@ -237,7 +282,17 @@
                   "wip_limit",
                   "wip_limit_enforcement",
                   "view_id"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "space.schema.json#/allOf/2/oneOf/1/properties/fields/propertyNames",
+                  "owner": "space.schema.json#/allOf/2/oneOf/1/properties/fields/propertyNames",
+                  "values": [
+                    "wip_limit",
+                    "wip_limit_enforcement",
+                    "view_id"
+                  ]
+                }
               }
             }
           }
@@ -262,7 +317,18 @@
             "require_e2ee",
             "require_same_scope",
             "require_scope_circle_id"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "space.schema.json#/$defs/child_scope_policy/properties/kind",
+            "owner": "space.schema.json#/$defs/child_scope_policy/properties/kind",
+            "values": [
+              "allow_any",
+              "require_e2ee",
+              "require_same_scope",
+              "require_scope_circle_id"
+            ]
+          }
         },
         "scope_circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
@@ -273,7 +339,15 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "require_scope_circle_id"
+                "const": "require_scope_circle_id",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "space.schema.json#/$defs/child_scope_policy/allOf/0/if/properties/kind",
+                  "owner": "space.schema.json#/$defs/child_scope_policy/allOf/0/if/properties/kind",
+                  "values": [
+                    "require_scope_circle_id"
+                  ]
+                }
               }
             },
             "required": [

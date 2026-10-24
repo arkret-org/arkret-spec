@@ -37,7 +37,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "reminder"
+          "const": "reminder",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "personal-productivity.schema.json#/$defs/reminder/properties/kind",
+            "owner": "personal-productivity.schema.json#/$defs/reminder/properties/kind",
+            "values": [
+              "reminder"
+            ]
+          }
         },
         "target_ref": {
           "$ref": "#/$defs/target_ref"
@@ -65,7 +73,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "scheduled_send"
+          "const": "scheduled_send",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "personal-productivity.schema.json#/$defs/scheduled_send/properties/kind",
+            "owner": "personal-productivity.schema.json#/$defs/scheduled_send/properties/kind",
+            "values": [
+              "scheduled_send"
+            ]
+          }
         },
         "scheduled_send_id": {
           "type": "string",
@@ -94,7 +110,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "snooze"
+          "const": "snooze",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "personal-productivity.schema.json#/$defs/snooze/properties/kind",
+            "owner": "personal-productivity.schema.json#/$defs/snooze/properties/kind",
+            "values": [
+              "snooze"
+            ]
+          }
         },
         "target_ref": {
           "$ref": "#/$defs/target_ref"
@@ -118,7 +142,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "saved_item"
+          "const": "saved_item",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "personal-productivity.schema.json#/$defs/saved_item/properties/kind",
+            "owner": "personal-productivity.schema.json#/$defs/saved_item/properties/kind",
+            "values": [
+              "saved_item"
+            ]
+          }
         },
         "collection_title": {
           "type": "string",

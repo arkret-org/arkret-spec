@@ -10,12 +10,20 @@
     "service_did_document",
     "accepted_signing_keys",
     "endpoint_policy",
-    "webhook_auth",
+    "webhook_signature_policy",
     "security_policy"
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.applet_registration_epoch_transcript.v1"
+      "const": "ak.schema.applet_registration_epoch_transcript.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "applet-registration-epoch-transcript.schema.json#/properties/schema",
+        "owner": "applet-registration-epoch-transcript.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.applet_registration_epoch_transcript.v1"
+        ]
+      }
     },
     "derived_registration": {
       "$ref": "#/$defs/derived_registration"
@@ -34,8 +42,8 @@
     "endpoint_policy": {
       "$ref": "./applet-package.schema.json#/$defs/endpoint_policy"
     },
-    "webhook_auth": {
-      "$ref": "./applet-package.schema.json#/$defs/webhook_auth"
+    "webhook_signature_policy": {
+      "$ref": "./applet-package.schema.json#/$defs/webhook_signature_policy"
     },
     "security_policy": {
       "$ref": "#/$defs/security_policy"
@@ -63,7 +71,8 @@
       "items": {
         "$ref": "#/$defs/non_empty_string"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "x-arkret-canonical-order": "Sort by canonical encoded element bytes; elements MUST be unique."
     },
     "derived_registration": {
       "type": "object",
@@ -83,7 +92,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "ak.applet.registration"
+          "const": "ak.applet.registration",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "applet-registration-epoch-transcript.schema.json#/$defs/derived_registration/properties/kind",
+            "owner": "applet-registration-epoch-transcript.schema.json#/$defs/derived_registration/properties/kind",
+            "values": [
+              "ak.applet.registration"
+            ]
+          }
         },
         "applet_id": {
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
@@ -169,8 +186,9 @@
             }
           ]
         },
-        "version_time": {
-          "$ref": "#/$defs/timestamp"
+        "version_created_at": {
+          "$ref": "#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         },
         "unversioned_refetch": {
           "type": "boolean"
@@ -183,10 +201,27 @@
               "enum": [
                 "did:webvh",
                 "did:key"
-              ]
+              ],
+              "x-arkret-value-ownership": {
+                "class": "uri",
+                "authority": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/0/properties/method",
+                "owner": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/0/properties/method",
+                "values": [
+                  "did:webvh",
+                  "did:key"
+                ]
+              }
             },
             "unversioned_refetch": {
-              "const": false
+              "const": false,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/0/properties/unversioned_refetch",
+                "owner": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/0/properties/unversioned_refetch",
+                "values": [
+                  false
+                ]
+              }
             }
           },
           "required": [
@@ -199,14 +234,30 @@
           "required": [
             "method",
             "unversioned_refetch",
-            "version_time"
+            "version_created_at"
           ],
           "properties": {
             "method": {
-              "const": "did:webvh"
+              "const": "did:webvh",
+              "x-arkret-value-ownership": {
+                "class": "uri",
+                "authority": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/1/properties/method",
+                "owner": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/1/properties/method",
+                "values": [
+                  "did:webvh"
+                ]
+              }
             },
             "unversioned_refetch": {
-              "const": false
+              "const": false,
+              "x-arkret-value-ownership": {
+                "class": "numeric",
+                "authority": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/1/properties/unversioned_refetch",
+                "owner": "applet-registration-epoch-transcript.schema.json#/$defs/did_method_version/oneOf/1/properties/unversioned_refetch",
+                "values": [
+                  false
+                ]
+              }
             }
           },
           "not": {

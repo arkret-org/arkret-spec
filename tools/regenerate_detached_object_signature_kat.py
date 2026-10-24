@@ -85,9 +85,9 @@ def make_signature(
     }
     prefix = (context + "\n").encode("utf-8")
     signature_input = prefix + jcs(envelope)
-    sig = b64u(Ed25519PrivateKey.from_private_bytes(seed).sign(signature_input))
+    signature = b64u(Ed25519PrivateKey.from_private_bytes(seed).sign(signature_input))
     carrier = dict(envelope)
-    carrier["sig"] = sig
+    carrier["signature"] = signature
     derived = {
         "unsigned_projection": copy.deepcopy(unsigned_projection),
         "unsigned_jcs_utf8_hex": unsigned_bytes.hex(),
@@ -95,8 +95,8 @@ def make_signature(
         "signature_envelope_without_sig": envelope,
         "prefix_bytes_hex": prefix.hex(),
         "signature_input_hex": signature_input.hex(),
-        "public_key_b64u": public_key(seed),
-        "expected_sig": sig,
+        "public_key_base64url": public_key(seed),
+        "expected_sig": signature,
     }
     return carrier, derived
 
@@ -106,7 +106,7 @@ def authority_basis(
     coordinate: dict,
     controller_did: str,
     verification_method: str,
-    public_key_b64u: str,
+    public_key_base64url: str,
     test_key_ref: str,
 ) -> dict:
     return {
@@ -114,7 +114,7 @@ def authority_basis(
         "coordinate": coordinate,
         "resolved_controller_did": controller_did,
         "authorized_verification_method": verification_method,
-        "public_key_b64u": public_key_b64u,
+        "public_key_base64url": public_key_base64url,
         "test_key_ref": test_key_ref,
     }
 
@@ -127,7 +127,7 @@ def build_fixture() -> dict:
         "stream_position": 0,
         "previous_commit_ref": None,
         "event_ref": EVENT_ID,
-        "governance_generation": 1,
+        "governance_generation": "1",
         "authority_ref": EVENT_ID,
         "committed_at": "2026-09-20T00:00:00.000Z",
     }
@@ -139,8 +139,8 @@ def build_fixture() -> dict:
     handoff_unsigned = {
         "handoff_id": HANDOFF_ID,
         "realm_id": REALM_ID,
-        "from_generation": 1,
-        "to_generation": 2,
+        "from_generation": "1",
+        "to_generation": "2",
         "from_service_id": OLD_SERVICE,
         "to_service_id": NEW_SERVICE,
         "final_stream_heads_digest": "sha256:" + "1" * 64,
@@ -168,7 +168,7 @@ def build_fixture() -> dict:
 
     assertion_unsigned = {
         "realm_id": REALM_ID,
-        "current_generation": 2,
+        "current_generation": "2",
         "current_service_id": NEW_SERVICE,
         "last_handoff_ref": HANDOFF_ID,
         "realm_stream_head": {
@@ -191,7 +191,7 @@ def build_fixture() -> dict:
         "purpose": "full_recovery",
         "snapshot_id": SNAPSHOT_ID,
         "realm_id": REALM_ID,
-        "governance_generation": 2,
+        "governance_generation": "2",
         "visible_stream_heads": [
             {
                 "stream_ref": {"kind": "realm", "realm_id": REALM_ID},
@@ -222,7 +222,7 @@ def build_fixture() -> dict:
             "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
         },
         "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
-        "ciphertext_b64": "AQIDBA",
+        "ciphertext_base64url": "AQIDBA",
     }
     welcome_sig, welcome_derived = make_signature(
         "ak.mls_welcome_delivery_signature.v1",
@@ -244,10 +244,10 @@ def build_fixture() -> dict:
             "test_key_ref": "conformance_ed25519_fixture_key",
             "authority_basis": authority_basis(
                 "governance_generation_current_station",
-                {"governance_generation": 1, "service_id": OLD_SERVICE},
+                {"governance_generation": "1", "service_id": OLD_SERVICE},
                 "did:webvh:z6mkfixturestationa:station-a.example",
                 OLD_VM,
-                commit_derived["public_key_b64u"],
+                commit_derived["public_key_base64url"],
                 "conformance_ed25519_fixture_key",
             ),
             "expected_result": "accept",
@@ -266,10 +266,10 @@ def build_fixture() -> dict:
             "test_key_ref": "conformance_ed25519_fixture_key",
             "authority_basis": authority_basis(
                 "handoff_old_current_at_frozen_cut",
-                {"generation": 1, "service_id": OLD_SERVICE},
+                {"generation": "1", "service_id": OLD_SERVICE},
                 "did:webvh:z6mkfixturestationa:station-a.example",
                 OLD_VM,
-                old_derived["public_key_b64u"],
+                old_derived["public_key_base64url"],
                 "conformance_ed25519_fixture_key",
             ),
             "expected_result": "accept",
@@ -288,10 +288,10 @@ def build_fixture() -> dict:
             "test_key_ref": "rfc8032_test_1_ed25519_key",
             "authority_basis": authority_basis(
                 "handoff_new_after_verified_import",
-                {"generation": 2, "service_id": NEW_SERVICE},
+                {"generation": "2", "service_id": NEW_SERVICE},
                 "did:webvh:z6mkfixturestationb:station-b.example",
                 NEW_VM,
-                new_derived["public_key_b64u"],
+                new_derived["public_key_base64url"],
                 "rfc8032_test_1_ed25519_key",
             ),
             "expected_result": "accept",
@@ -307,10 +307,10 @@ def build_fixture() -> dict:
             "test_key_ref": "rfc8032_test_1_ed25519_key",
             "authority_basis": authority_basis(
                 "verified_chain_current_station",
-                {"current_generation": 2, "current_service_id": NEW_SERVICE},
+                {"current_generation": "2", "current_service_id": NEW_SERVICE},
                 "did:webvh:z6mkfixturestationb:station-b.example",
                 NEW_VM,
-                assertion_derived["public_key_b64u"],
+                assertion_derived["public_key_base64url"],
                 "rfc8032_test_1_ed25519_key",
             ),
             "expected_result": "accept",
@@ -326,10 +326,10 @@ def build_fixture() -> dict:
             "test_key_ref": "rfc8032_test_1_ed25519_key",
             "authority_basis": authority_basis(
                 "current_bundle_generation_station",
-                {"governance_generation": 2, "service_id": NEW_SERVICE},
+                {"governance_generation": "2", "service_id": NEW_SERVICE},
                 "did:webvh:z6mkfixturestationb:station-b.example",
                 NEW_VM,
-                snapshot_derived["public_key_b64u"],
+                snapshot_derived["public_key_base64url"],
                 "rfc8032_test_1_ed25519_key",
             ),
             "expected_result": "accept",
@@ -354,7 +354,7 @@ def build_fixture() -> dict:
                 },
                 "did:webvh:z6mkfixturealice:alice.example",
                 PRODUCER_VM,
-                welcome_derived["public_key_b64u"],
+                welcome_derived["public_key_base64url"],
                 "conformance_ed25519_fixture_key",
             ),
             "expected_result": "accept",
@@ -367,7 +367,7 @@ def build_fixture() -> dict:
             "kind": "named_suite",
             "entrypoint": "ak.suite.detached_object_signature_transcripts.v1",
         },
-        "version": "2026-10-22.1",
+        "version": "2026-10-24.1",
         "schema": "arkret.detached-object-signature-kat-fixture.v1",
         "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
         "covers_vectors": ["ak.vector.detached_object_signature_transcripts.v1"],
@@ -402,13 +402,13 @@ def build_fixture() -> dict:
             {
                 "test_key_ref": "conformance_ed25519_fixture_key",
                 "private_seed_hex": KEY_A_SEED.hex(),
-                "public_key_b64u": public_key(KEY_A_SEED),
+                "public_key_base64url": public_key(KEY_A_SEED),
                 "production_use": "forbidden",
             },
             {
                 "test_key_ref": "rfc8032_test_1_ed25519_key",
                 "private_seed_hex": KEY_B_SEED.hex(),
-                "public_key_b64u": public_key(KEY_B_SEED),
+                "public_key_base64url": public_key(KEY_B_SEED),
                 "production_use": "forbidden",
             },
         ],

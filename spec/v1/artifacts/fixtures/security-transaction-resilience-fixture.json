@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-25.1",
+  "version": "2026-10-24.1",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -178,8 +178,8 @@
       "instance": {
         "proposal_event_id": "ak:event:AWKDhmQTc5zyfilaLwPF3xnhoZAjxSha7Z-6grioN9aW",
         "covering_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "result": "accepted",
-        "decided_at": "2026-09-24T02:03:00.000Z"
+        "decided_at": "2026-09-24T02:03:00.000Z",
+        "outcome": "accepted"
       }
     },
     {
@@ -189,9 +189,9 @@
       "instance": {
         "proposal_event_id": "ak:event:AWKDhmQTc5zyfilaLwPF3xnhoZAjxSha7Z-6grioN9aW",
         "covering_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "result": "rejected",
         "decided_at": "2026-09-24T02:03:00.000Z",
-        "signature": "invented"
+        "signature": "invented",
+        "outcome": "rejected"
       },
       "first_expected_error": "$: Additional properties are not allowed ('signature' was unexpected)"
     },

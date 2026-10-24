@@ -23,7 +23,15 @@
   ],
   "properties": {
     "schema": {
-      "const": "ak.schema.agent_sidecar_exchange_projection.v1"
+      "const": "ak.schema.agent_sidecar_exchange_projection.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-sidecar-exchange-projection.schema.json#/properties/schema",
+        "owner": "agent-sidecar-exchange-projection.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_sidecar_exchange_projection.v1"
+        ]
+      }
     },
     "controller_account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id"
@@ -86,7 +94,18 @@
         "responding",
         "complete",
         "failed"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-sidecar-exchange-projection.schema.json#/properties/status",
+        "owner": "agent-sidecar-exchange-projection.schema.json#/properties/status",
+        "values": [
+          "delivered",
+          "responding",
+          "complete",
+          "failed"
+        ]
+      }
     },
     "failure_reason_code": {
       "type": "string",
@@ -105,7 +124,15 @@
       "if": {
         "properties": {
           "status": {
-            "const": "failed"
+            "const": "failed",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-projection.schema.json#/allOf/0/if/properties/status",
+              "owner": "agent-sidecar-exchange-projection.schema.json#/allOf/0/if/properties/status",
+              "values": [
+                "failed"
+              ]
+            }
           }
         },
         "required": [
@@ -131,7 +158,16 @@
             "enum": [
               "responding",
               "complete"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-projection.schema.json#/allOf/1/if/properties/status",
+              "owner": "agent-sidecar-exchange-projection.schema.json#/allOf/1/if/properties/status",
+              "values": [
+                "responding",
+                "complete"
+              ]
+            }
           }
         },
         "required": [
@@ -155,7 +191,15 @@
       "if": {
         "properties": {
           "status": {
-            "const": "complete"
+            "const": "complete",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-projection.schema.json#/allOf/2/if/properties/status",
+              "owner": "agent-sidecar-exchange-projection.schema.json#/allOf/2/if/properties/status",
+              "values": [
+                "complete"
+              ]
+            }
           }
         },
         "required": [
@@ -172,7 +216,15 @@
       "if": {
         "properties": {
           "status": {
-            "const": "delivered"
+            "const": "delivered",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-projection.schema.json#/allOf/3/if/properties/status",
+              "owner": "agent-sidecar-exchange-projection.schema.json#/allOf/3/if/properties/status",
+              "values": [
+                "delivered"
+              ]
+            }
           }
         },
         "required": [
@@ -205,7 +257,15 @@
       "if": {
         "properties": {
           "status": {
-            "const": "responding"
+            "const": "responding",
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar-exchange-projection.schema.json#/allOf/4/if/properties/status",
+              "owner": "agent-sidecar-exchange-projection.schema.json#/allOf/4/if/properties/status",
+              "values": [
+                "responding"
+              ]
+            }
           }
         },
         "required": [

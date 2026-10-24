@@ -7,7 +7,7 @@ landing that map had no machine counterpart at all. `state` sits in
 `universal_forbidden_patch_paths` as `dedicated_event_owned`, so no patch may
 reach it; `object_initial_state` only makes the create value; and every one of
 the dedicated lifecycle kinds was a `reducer_input` row declaring
-`result_writes: []`. The terminal state of every object with a lifecycle was
+`state_writes: []`. The terminal state of every object with a lifecycle was
 therefore unreachable by any registered write -- the axis was owned by kinds
 that wrote nothing.
 
@@ -59,7 +59,7 @@ class ObjectLifecycleStateProducerTest(unittest.TestCase):
         cls.producers = {
             row["event_kind"]: write
             for row in cls.kinds
-            for write in row.get("result_writes") or ()
+            for write in row.get("state_writes") or ()
             for member in write.get("derived_members") or ()
             if member["derivation"] == LIFECYCLE_DERIVATION
         }
@@ -138,8 +138,8 @@ class ObjectLifecycleStateProducerTest(unittest.TestCase):
         for row in self.kinds:
             if row["event_kind"] in exempt:
                 continue
-            for write in row.get("result_writes") or ():
-                allowed = write.get("result_projection", {}).get("allowed_paths")
+            for write in row.get("state_writes") or ():
+                allowed = write.get("state_projection", {}).get("allowed_paths")
                 if allowed is None:
                     continue
                 self.assertNotIn(
@@ -151,7 +151,7 @@ class ObjectLifecycleStateProducerTest(unittest.TestCase):
         the state carrier and a content editor, and the prior-state guard of
         section 5.2 only covers the state."""
         for kind, write in self.producers.items():
-            projection = write["result_projection"]
+            projection = write["state_projection"]
             self.assertEqual(projection["kind"], "apply_patch", kind)
             self.assertEqual(projection["allowed_paths"], [], kind)
 

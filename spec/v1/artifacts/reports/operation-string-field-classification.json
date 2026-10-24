@@ -21,9 +21,9 @@
   "fields": [
     {
       "schema_file": "account-operations.schema.json",
-      "shape": "account_status_publication_outcome",
+      "shape": "account_status_publication_response_body",
       "field": "status",
-      "pointer": "#/$defs/account_status_publication_outcome/properties/status",
+      "pointer": "#/$defs/account_status_publication_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -93,9 +93,9 @@
     },
     {
       "schema_file": "agent-operations.schema.json",
-      "shape": "agent_human_approval_error_details",
+      "shape": "agent_human_approval_problem_extensions",
       "field": "reason_code",
-      "pointer": "#/$defs/agent_human_approval_error_details/properties/reason_code",
+      "pointer": "#/$defs/agent_human_approval_problem_extensions/properties/reason_code",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
@@ -109,41 +109,41 @@
     },
     {
       "schema_file": "agent-operations.schema.json",
-      "shape": "agent_provision_outcome",
+      "shape": "agent_provision_response_body",
       "field": "status",
-      "pointer": "#/$defs/agent_provision_outcome/properties/status",
+      "pointer": "#/$defs/agent_provision_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
     {
       "schema_file": "agent-operations.schema.json",
-      "shape": "agent_runtime_approval_outcome",
+      "shape": "agent_runtime_approval_response_body",
       "field": "status",
-      "pointer": "#/$defs/agent_runtime_approval_outcome/properties/status",
+      "pointer": "#/$defs/agent_runtime_approval_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
     {
       "schema_file": "agent-operations.schema.json",
-      "shape": "operation_status_outcome",
+      "shape": "operation_status_view",
       "field": "status",
-      "pointer": "#/$defs/operation_status_outcome/properties/status",
+      "pointer": "#/$defs/operation_status_view/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
     {
       "schema_file": "applet-configuration-operations.schema.json",
-      "shape": "execution_outcome",
+      "shape": "execution_response_body",
       "field": "status",
-      "pointer": "#/$defs/execution_outcome/properties/status",
+      "pointer": "#/$defs/execution_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
-      "shape": "applet_transaction_outcome",
+      "shape": "applet_transaction_response_body",
       "field": "status",
-      "pointer": "#/$defs/applet_transaction_outcome/properties/status",
+      "pointer": "#/$defs/applet_transaction_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -205,14 +205,6 @@
     },
     {
       "schema_file": "applet-install-operations.schema.json",
-      "shape": "applet_revoke_outcome",
-      "field": "status",
-      "pointer": "#/$defs/applet_revoke_outcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "applet-install-operations.schema.json",
       "shape": "applet_revoke_plan",
       "field": "reason_code",
       "pointer": "#/$defs/applet_revoke_plan/properties/reason_code",
@@ -234,6 +226,14 @@
       "pointer": "#/$defs/applet_revoke_request_body/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "applet-install-operations.schema.json",
+      "shape": "applet_revoke_response_body",
+      "field": "status",
+      "pointer": "#/$defs/applet_revoke_response_body/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "applet-install-operations.schema.json",
@@ -325,17 +325,17 @@
     },
     {
       "schema_file": "call-invitation-operations.schema.json",
-      "shape": "send_outcome",
+      "shape": "send_response_body",
       "field": "status",
-      "pointer": "#/$defs/send_outcome/properties/status",
+      "pointer": "#/$defs/send_response_body/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "consent-private-operations.schema.json",
-      "shape": "effects_publish_outcome",
+      "shape": "effects_publish_response_body",
       "field": "status",
-      "pointer": "#/$defs/effects_publish_outcome/properties/status",
+      "pointer": "#/$defs/effects_publish_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -349,9 +349,9 @@
     },
     {
       "schema_file": "contact-operations.schema.json",
-      "shape": "peer_contact_event_submit_outcome",
+      "shape": "peer_contact_event_submit_response_body",
       "field": "status",
-      "pointer": "#/$defs/peer_contact_event_submit_outcome/properties/status",
+      "pointer": "#/$defs/peer_contact_event_submit_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -405,9 +405,9 @@
     },
     {
       "schema_file": "keys-operations.schema.json",
-      "shape": "keys_backups_replace_outcome",
+      "shape": "keys_backups_replace_response_body",
       "field": "status",
-      "pointer": "#/$defs/keys_backups_replace_outcome/properties/status",
+      "pointer": "#/$defs/keys_backups_replace_response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -421,9 +421,9 @@
     },
     {
       "schema_file": "management-review-operations.schema.json",
-      "shape": "outcome",
+      "shape": "response_body",
       "field": "status",
-      "pointer": "#/$defs/outcome/properties/status",
+      "pointer": "#/$defs/response_body/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -445,9 +445,9 @@
     },
     {
       "schema_file": "push-operations.schema.json",
-      "shape": "push_notify_device_outcome",
+      "shape": "push_gateway_submission_outcome",
       "field": "reason_code",
-      "pointer": "#/$defs/push_notify_device_outcome/properties/reason_code",
+      "pointer": "#/$defs/push_gateway_submission_outcome/properties/reason_code",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -493,17 +493,17 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "AuthSessionLogoutRequestBody",
+      "shape": "AuthenticationSessionLogoutRequestBody",
       "field": "reason_code",
-      "pointer": "#/$defs/AuthSessionLogoutRequestBody/properties/reason_code",
+      "pointer": "#/$defs/AuthenticationSessionLogoutRequestBody/properties/reason_code",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "AuthzCheckOutcome",
+      "shape": "AuthorizationCheckResponseBody",
       "field": "reason_code",
-      "pointer": "#/$defs/AuthzCheckOutcome/properties/reason_code",
+      "pointer": "#/$defs/AuthorizationCheckResponseBody/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -525,9 +525,9 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DidOperationSubmitOutcome",
+      "shape": "DidOperationSubmitResponseBody",
       "field": "status",
-      "pointer": "#/$defs/DidOperationSubmitOutcome/properties/status",
+      "pointer": "#/$defs/DidOperationSubmitResponseBody/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -565,9 +565,9 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "SessionGrantIntrospectOutcome",
+      "shape": "SessionGrantIntrospectResponseBody",
       "field": "status",
-      "pointer": "#/$defs/SessionGrantIntrospectOutcome/properties/status",
+      "pointer": "#/$defs/SessionGrantIntrospectResponseBody/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -589,41 +589,41 @@
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_account_device_outcome",
+      "shape": "historical_account_device_signer_key_resolution",
       "field": "status",
-      "pointer": "#/$defs/historical_account_device_outcome/properties/status",
+      "pointer": "#/$defs/historical_account_device_signer_key_resolution/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_agent_outcome",
+      "shape": "historical_agent_signer_key_resolution",
       "field": "status",
-      "pointer": "#/$defs/historical_agent_outcome/properties/status",
+      "pointer": "#/$defs/historical_agent_signer_key_resolution/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_realm_device_outcome",
+      "shape": "historical_realm_device_signer_key_resolution",
       "field": "status",
-      "pointer": "#/$defs/historical_realm_device_outcome/properties/status",
+      "pointer": "#/$defs/historical_realm_device_signer_key_resolution/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_service_outcome",
+      "shape": "historical_service_signer_key_resolution",
       "field": "status",
-      "pointer": "#/$defs/historical_service_outcome/properties/status",
+      "pointer": "#/$defs/historical_service_signer_key_resolution/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "unavailable_outcome",
+      "shape": "unavailable_signer_key_resolution",
       "field": "status",
-      "pointer": "#/$defs/unavailable_outcome/properties/status",
+      "pointer": "#/$defs/unavailable_signer_key_resolution/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     }

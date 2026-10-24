@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-17.1",
+  "version": "2026-10-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-17T18:25:35.062326+08:00",
+  "generated_at": "2026-10-24T14:14:05+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -113,7 +113,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.applet_revoke_preview_outcome_revoke_plan_digest.v1",
       "ruling": "2026-09-02-1951 A3",
       "schema": "schemas/applet-install-operations.schema.json",
-      "path": "/$defs/applet_revoke_preview_outcome",
+      "path": "/$defs/applet_revoke_preview_response_body",
       "removed": "revoke_plan_digest",
       "source": {
         "field": "revoke_plan"
@@ -346,7 +346,7 @@
       "source": {
         "field": "account_id"
       },
-      "derivation": "coordinator_id := account_id.station_id; also removed from the auth_data fixed signing projection",
+      "derivation": "coordinator_id := account_id.station_id; also removed from the signature_proof fixed signing projection",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -535,7 +535,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.agent_provision_outcome_requested_scope_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/agent-operations.schema.json",
-      "path": "/$defs/agent_provision_outcome",
+      "path": "/$defs/agent_provision_response_body",
       "removed": "requested_scope_digest",
       "source": {
         "schema": "schemas/agent-operations.schema.json",
@@ -685,7 +685,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.did_binding_challenge_outcome_log_head_digest.v1",
       "ruling": "2026-09-12-1825 A13",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/did_binding_challenge_outcome",
+      "path": "/$defs/did_binding_challenge_response_body",
       "removed": "log_head_digest",
       "source": {
         "field": "did_version_id"
@@ -697,7 +697,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.pcr_genesis_submit_request_log_head_digest.v1",
       "ruling": "2026-09-12-1825 A13",
       "schema": "schemas/principal-operations.schema.json",
-      "path": "/$defs/pcr_genesis_submit_request",
+      "path": "/$defs/pcr_genesis_submit_request_body",
       "removed": "log_head_digest",
       "source": {
         "field": "did_version_id"
@@ -721,7 +721,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_account_subject.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "account_subject",
       "source": {
         "field": "request_id"
@@ -733,7 +733,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_principal_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "principal_id",
       "source": {
         "field": "request_id"
@@ -745,7 +745,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_did.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "did",
       "source": {
         "field": "request_id"
@@ -757,7 +757,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_operation_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "operation_digest",
       "source": {
         "field": "request_id"
@@ -769,7 +769,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_did_version_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "did_version_id",
       "source": {
         "field": "request_id"
@@ -781,7 +781,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_log_head_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "log_head_digest",
       "source": {
         "field": "request_id"
@@ -793,7 +793,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_control_key_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "control_key_digest",
       "source": {
         "field": "request_id"
@@ -805,7 +805,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_pcr_realm_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "pcr_realm_id",
       "source": {
         "field": "request_id"
@@ -817,7 +817,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_realm_create_payload_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "realm_create_payload_digest",
       "source": {
         "field": "request_id"
@@ -829,7 +829,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_founding_authorize_payload_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "founding_authorize_payload_digest",
       "source": {
         "field": "request_id"
@@ -841,7 +841,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_initial_session_request_digest.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "initial_session_request_digest",
       "source": {
         "field": "request_id"
@@ -853,7 +853,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_genesis_unit_kinds.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "genesis_unit_kinds",
       "source": {
         "field": "request_id"
@@ -865,7 +865,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_identity_creation_lease_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "identity_creation_lease_id",
       "source": {
         "field": "request_id"
@@ -877,7 +877,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_lease_fence.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "lease_fence",
       "source": {
         "field": "request_id"
@@ -889,7 +889,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_dpop_jkt.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "dpop_jkt",
       "source": {
         "field": "request_id"
@@ -901,7 +901,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_audience_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "audience_id",
       "source": {
         "field": "request_id"
@@ -913,7 +913,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_origin.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "origin",
       "source": {
         "field": "request_id"
@@ -925,7 +925,7 @@
       "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_trust_domain.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/account-operations.schema.json",
-      "path": "/$defs/identity_binding_challenge_outcome",
+      "path": "/$defs/identity_binding_challenge_response_body",
       "removed": "trust_domain",
       "source": {
         "field": "request_id"
@@ -1012,7 +1012,7 @@
       "path": "/$defs/query_signing_key",
       "removed": "actor",
       "source": {
-        "path": "/$defs/current_outcome",
+        "path": "/$defs/current_signer_key_resolution",
         "field": "selector"
       },
       "derivation": "Read actor from the enclosing complete selector; never correlate by result array position.",
@@ -1025,7 +1025,7 @@
       "path": "/$defs/query_signing_key",
       "removed": "verification_method",
       "source": {
-        "path": "/$defs/current_outcome",
+        "path": "/$defs/current_signer_key_resolution",
         "field": "selector"
       },
       "derivation": "Read verification_method from the enclosing complete selector; never correlate by result array position.",

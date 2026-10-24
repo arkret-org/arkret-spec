@@ -8,7 +8,7 @@
       "$ref": "#/$defs/push_register_device_request_body"
     },
     {
-      "$ref": "#/$defs/push_register_device_outcome"
+      "$ref": "#/$defs/push_register_device_response_body"
     },
     {
       "$ref": "#/$defs/push_unregister_device_request_body"
@@ -17,13 +17,13 @@
       "$ref": "#/$defs/push_registration_handoff_request_body"
     },
     {
-      "$ref": "#/$defs/push_registration_handoff_outcome"
+      "$ref": "#/$defs/push_registration_handoff_response_body"
     },
     {
       "$ref": "#/$defs/push_notify_request_body"
     },
     {
-      "$ref": "#/$defs/push_notify_outcome"
+      "$ref": "#/$defs/push_notify_response_body"
     }
   ],
   "$defs": {
@@ -170,7 +170,23 @@
             "reminder",
             "scheduled_send",
             "expiry_invalidation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/blind_notification/properties/wakeup_kind",
+            "owner": "push-operations.schema.json#/$defs/blind_notification/properties/wakeup_kind",
+            "values": [
+              "message",
+              "mention",
+              "assignment",
+              "schedule",
+              "reaction",
+              "call_invite",
+              "reminder",
+              "scheduled_send",
+              "expiry_invalidation"
+            ]
+          }
         },
         "push_hint": {
           "type": "string",
@@ -180,7 +196,18 @@
             "mention_self",
             "l10n_key"
           ],
-          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5."
+          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/blind_notification/properties/push_hint",
+            "owner": "push-operations.schema.json#/$defs/blind_notification/properties/push_hint",
+            "values": [
+              "new_message",
+              "incoming_call",
+              "mention_self",
+              "l10n_key"
+            ]
+          }
         },
         "push_hint_l10n_key": {
           "$ref": "#/$defs/non_empty_string",
@@ -268,7 +295,23 @@
             "reminder",
             "scheduled_send",
             "expiry_invalidation"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/visible_notification/properties/wakeup_kind",
+            "owner": "push-operations.schema.json#/$defs/visible_notification/properties/wakeup_kind",
+            "values": [
+              "message",
+              "mention",
+              "assignment",
+              "schedule",
+              "reaction",
+              "call_invite",
+              "reminder",
+              "scheduled_send",
+              "expiry_invalidation"
+            ]
+          }
         },
         "push_hint": {
           "type": "string",
@@ -278,7 +321,18 @@
             "mention_self",
             "l10n_key"
           ],
-          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5."
+          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/visible_notification/properties/push_hint",
+            "owner": "push-operations.schema.json#/$defs/visible_notification/properties/push_hint",
+            "values": [
+              "new_message",
+              "incoming_call",
+              "mention_self",
+              "l10n_key"
+            ]
+          }
         },
         "push_hint_l10n_key": {
           "$ref": "#/$defs/non_empty_string",
@@ -388,7 +442,7 @@
       "additionalProperties": false,
       "description": "Account Station self-service registration. The authenticated exact AccountId supplies registration scope and its station_id must equal the receiving Station service identity. A push_gateway role cannot accept this operation on its own authority."
     },
-    "push_register_device_outcome": {
+    "push_register_device_response_body": {
       "type": "object",
       "required": [
         "push_target_id",
@@ -407,7 +461,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "push_unregister_device_request_body": {
       "type": "object",
@@ -456,7 +511,15 @@
           "$ref": "#/$defs/device_id"
         },
         "state": {
-          "const": "active"
+          "const": "active",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/push_registration_handoff_active/properties/state",
+            "owner": "push-operations.schema.json#/$defs/push_registration_handoff_active/properties/state",
+            "values": [
+              "active"
+            ]
+          }
         },
         "push_key": {
           "$ref": "#/$defs/push_key",
@@ -509,7 +572,15 @@
           "$ref": "#/$defs/device_id"
         },
         "state": {
-          "const": "revoked"
+          "const": "revoked",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/push_registration_handoff_revoked/properties/state",
+            "owner": "push-operations.schema.json#/$defs/push_registration_handoff_revoked/properties/state",
+            "values": [
+              "revoked"
+            ]
+          }
         }
       },
       "additionalProperties": false,
@@ -555,7 +626,16 @@
           "enum": [
             "active",
             "revoked"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/push_registration_installation_receipt/properties/state",
+            "owner": "push-operations.schema.json#/$defs/push_registration_installation_receipt/properties/state",
+            "values": [
+              "active",
+              "revoked"
+            ]
+          }
         },
         "request_digest": {
           "type": "string",
@@ -579,7 +659,7 @@
       "additionalProperties": false,
       "description": "Gateway-signed durable confirmation that the exact active installation or terminal tombstone was committed in the authenticated source Station tenant before success. The receipt grants no Account authority and contains no provider token."
     },
-    "push_registration_handoff_outcome": {
+    "push_registration_handoff_response_body": {
       "type": "object",
       "required": [
         "receipt"
@@ -589,7 +669,8 @@
           "$ref": "#/$defs/push_registration_installation_receipt"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     },
     "push_notify_request_body": {
       "type": "object",
@@ -623,7 +704,7 @@
       },
       "additionalProperties": false
     },
-    "push_notify_device_outcome": {
+    "push_gateway_submission_outcome": {
       "type": "object",
       "description": "Gateway acceptance result for exactly one input device route. Identity is the (push_target_id, device_id) pair already carried by the request; no third route identifier exists. Provider delivery state, provider message ids, raw push tokens and token hashes MUST NOT appear here.",
       "required": [
@@ -641,7 +722,17 @@
             "duplicate",
             "rejected"
           ],
-          "description": "Closed gateway acceptance result. accepted = this request durably took the device route over. duplicate = an earlier request already took it over, or the operation explicitly requires a no-fanout acknowledgement, and this request produced no new delivery. A no-fanout acknowledgement does not assert provider acceptance, queueing or new durable route ownership. rejected = the gateway did not take it over. accepted and duplicate both mean the caller MUST NOT resend this device; only rejected may be resent, and only when retry_after_ms is present. See push-notifications.md §5.2."
+          "description": "Closed gateway acceptance result. accepted = this request durably took the device route over. duplicate = an earlier request already took it over, or the operation explicitly requires a no-fanout acknowledgement, and this request produced no new delivery. A no-fanout acknowledgement does not assert provider acceptance, queueing or new durable route ownership. rejected = the gateway did not take it over. accepted and duplicate both mean the caller MUST NOT resend this device; only rejected may be resent, and only when retry_after_ms is present. See push-notifications.md §5.2.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/properties/gateway_status",
+            "owner": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/properties/gateway_status",
+            "values": [
+              "accepted",
+              "duplicate",
+              "rejected"
+            ]
+          }
         },
         "reason_code": {
           "type": "string",
@@ -654,7 +745,21 @@
             "push_gateway_unreachable",
             "rate_limited"
           ],
-          "description": "Closed rejection reason, all registered in error-code-registry.json. The first four are target-level or policy rejections; push_token_unknown / push_token_invalid tell the caller to drop this device registration; the last two are the only caller-retryable reasons. REQUIRED when gateway_status=rejected and MUST be absent otherwise."
+          "description": "Closed rejection reason, all registered in error-code-registry.json. The first four are target-level or policy rejections; push_token_unknown / push_token_invalid tell the caller to drop this device registration; the last two are the only caller-retryable reasons. REQUIRED when gateway_status=rejected and MUST be absent otherwise.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/properties/reason_code",
+            "owner": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/properties/reason_code",
+            "values": [
+              "push_target_unknown",
+              "push_payload_too_large",
+              "unsupported_profile",
+              "push_token_unknown",
+              "push_token_invalid",
+              "push_gateway_unreachable",
+              "rate_limited"
+            ]
+          }
         },
         "retry_after_ms": {
           "type": "integer",
@@ -667,7 +772,15 @@
           "if": {
             "properties": {
               "gateway_status": {
-                "const": "rejected"
+                "const": "rejected",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/allOf/0/if/properties/gateway_status",
+                  "owner": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/allOf/0/if/properties/gateway_status",
+                  "values": [
+                    "rejected"
+                  ]
+                }
               }
             },
             "required": [
@@ -711,15 +824,26 @@
                 "enum": [
                   "push_gateway_unreachable",
                   "rate_limited"
-                ]
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/allOf/1/then/properties/reason_code",
+                  "owner": "push-operations.schema.json#/$defs/push_gateway_submission_outcome/allOf/1/then/properties/reason_code",
+                  "values": [
+                    "push_gateway_unreachable",
+                    "rate_limited"
+                  ]
+                }
               }
             }
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "attempt_outcome",
+      "x-arkret-outcome-scope": "push_gateway_submission"
     },
-    "push_notify_outcome": {
+    "push_notify_response_body": {
       "type": "object",
       "description": "Closed notify response. outcomes[] is conserved against notification.devices[]: every input device_id appears exactly once, no device_id appears twice, and no device_id appears that was not requested. A target-level failure is expanded into one same-reason rejected outcome per input device rather than collapsing into a second response shape, so the conservation invariant holds unconditionally. Counts, if a deployment surfaces them, are derived from outcomes[] and are never an independent truth source.",
       "required": [
@@ -735,12 +859,13 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/push_notify_device_outcome"
+            "$ref": "#/$defs/push_gateway_submission_outcome"
           },
           "description": "One entry per unique device_id in notification.devices[]. device_id MUST be unique across the array."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

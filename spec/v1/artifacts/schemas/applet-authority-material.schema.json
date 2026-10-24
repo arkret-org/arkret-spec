@@ -4,14 +4,14 @@
   "title": "Arkret Applet Authority Material",
   "oneOf": [
     {
-      "$ref": "#/$defs/request"
+      "$ref": "#/$defs/applet_authority_material_request_body"
     },
     {
-      "$ref": "#/$defs/outcome"
+      "$ref": "#/$defs/response_body"
     }
   ],
   "$defs": {
-    "request": {
+    "applet_authority_material_request_body": {
       "type": "object",
       "required": [
         "effective_scope",
@@ -32,9 +32,10 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 4194304
+      "x-arkret-max-canonical-bytes": 4194304,
+      "x-arkret-name-role": "request_body"
     },
-    "outcome": {
+    "response_body": {
       "type": "object",
       "required": [
         "applet_id",
@@ -42,7 +43,7 @@
         "effective_scope",
         "registration",
         "grant_events",
-        "current_results",
+        "current_states",
         "current_binding"
       ],
       "properties": {
@@ -66,10 +67,10 @@
           "minItems": 1,
           "maxItems": 64
         },
-        "current_results": {
+        "current_states": {
           "type": "array",
           "items": {
-            "$ref": "./exact-current-results-read.schema.json#/$defs/exact_current_result_present"
+            "$ref": "./exact-current-state-read.schema.json#/$defs/exact_current_state_present"
           },
           "minItems": 1,
           "maxItems": 256
@@ -79,7 +80,8 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 4194304
+      "x-arkret-max-canonical-bytes": 4194304,
+      "x-arkret-name-role": "response_body"
     },
     "current_binding": {
       "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read.",
@@ -94,7 +96,15 @@
           ],
           "properties": {
             "status": {
-              "const": "active"
+              "const": "active",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-authority-material.schema.json#/$defs/current_binding/oneOf/0/properties/status",
+                "owner": "applet-authority-material.schema.json#/$defs/current_binding/oneOf/0/properties/status",
+                "values": [
+                  "active"
+                ]
+              }
             },
             "registration_ref": {
               "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -115,7 +125,15 @@
           ],
           "properties": {
             "status": {
-              "const": "inactive"
+              "const": "inactive",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "applet-authority-material.schema.json#/$defs/current_binding/oneOf/1/properties/status",
+                "owner": "applet-authority-material.schema.json#/$defs/current_binding/oneOf/1/properties/status",
+                "values": [
+                  "inactive"
+                ]
+              }
             }
           },
           "additionalProperties": false

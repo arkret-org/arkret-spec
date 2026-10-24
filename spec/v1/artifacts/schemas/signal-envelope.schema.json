@@ -42,7 +42,17 @@
         "setup",
         "moderation",
         "session"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "signal-envelope.schema.json#/properties/signal_class",
+        "owner": "signal-envelope.schema.json#/properties/signal_class",
+        "values": [
+          "setup",
+          "moderation",
+          "session"
+        ]
+      }
     },
     "sent_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -65,7 +75,15 @@
       ],
       "properties": {
         "scheme": {
-          "const": "ak.signal_exporter_aead.v1"
+          "const": "ak.signal_exporter_aead.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "signal-envelope.schema.json#/properties/encrypted_payload/properties/scheme",
+            "owner": "signal-envelope.schema.json#/properties/encrypted_payload/properties/scheme",
+            "values": [
+              "ak.signal_exporter_aead.v1"
+            ]
+          }
         },
         "key_ref": {
           "type": "object",
@@ -91,15 +109,22 @@
         },
         "purpose": {
           "const": "ak.signal.v1",
-          "description": "AEAD purpose for this domain. It is a nonce-derivation and AAD input, so it keeps a Signal nonce from colliding with a content-encryption nonce under the same key and epoch."
+          "description": "AEAD purpose for this domain. It is a nonce-derivation and AAD input, so it keeps a Signal nonce from colliding with a content-encryption nonce under the same key and epoch.",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "signal-envelope.schema.json#/properties/encrypted_payload/properties/purpose",
+            "owner": "signal-envelope.schema.json#/properties/encrypted_payload/properties/purpose",
+            "values": [
+              "ak.signal.v1"
+            ]
+          }
         },
         "aead_profile": {
           "type": "string",
           "description": "canonical_id of an active row of artifacts/registry/mls-ciphersuite-registry.json. It MUST equal the ciphersuite the group at key_ref.group_state_ref actually negotiated; a reserved suite, an unregistered suite, or a mismatch MUST fail closed."
         },
         "epoch": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "nonce": {
           "type": "string",
@@ -151,7 +176,15 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "const": "detached_jws",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "signal-envelope.schema.json#/$defs/signal_proof/properties/kind",
+            "owner": "signal-envelope.schema.json#/$defs/signal_proof/properties/kind",
+            "values": [
+              "detached_jws"
+            ]
+          }
         },
         "verification_method": {
           "type": "string",
@@ -192,7 +225,15 @@
           "scope_ref": {
             "properties": {
               "kind": {
-                "const": "circle"
+                "const": "circle",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "signal-envelope.schema.json#/allOf/0/if/properties/scope_ref/properties/kind",
+                  "owner": "signal-envelope.schema.json#/allOf/0/if/properties/scope_ref/properties/kind",
+                  "values": [
+                    "circle"
+                  ]
+                }
               }
             },
             "required": [

@@ -4,16 +4,16 @@
   "title": "Arkret Management Review Operations",
   "oneOf": [
     {
-      "$ref": "#/$defs/request"
+      "$ref": "#/$defs/management_review_request_body"
     },
     {
-      "$ref": "#/$defs/decision"
+      "$ref": "#/$defs/management_review_decision_request_body"
     },
     {
-      "$ref": "#/$defs/lookup"
+      "$ref": "#/$defs/management_review_status_request_body"
     },
     {
-      "$ref": "#/$defs/outcome"
+      "$ref": "#/$defs/response_body"
     }
   ],
   "$defs": {
@@ -27,7 +27,15 @@
           ],
           "properties": {
             "kind": {
-              "const": "event"
+              "const": "event",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "management-review-operations.schema.json#/$defs/target/oneOf/0/properties/kind",
+                "owner": "management-review-operations.schema.json#/$defs/target/oneOf/0/properties/kind",
+                "values": [
+                  "event"
+                ]
+              }
             },
             "event": {
               "$ref": "./event-envelope.schema.json"
@@ -37,7 +45,7 @@
         }
       ]
     },
-    "request": {
+    "management_review_request_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -59,7 +67,18 @@
             "publish",
             "create_bot",
             "map_ghost"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/properties/management_operation",
+            "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/properties/management_operation",
+            "values": [
+              "join",
+              "publish",
+              "create_bot",
+              "map_ghost"
+            ]
+          }
         },
         "requester_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -91,7 +110,15 @@
           "if": {
             "properties": {
               "management_operation": {
-                "const": "join"
+                "const": "join",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/if/properties/management_operation",
+                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/if/properties/management_operation",
+                  "values": [
+                    "join"
+                  ]
+                }
               }
             },
             "required": [
@@ -103,7 +130,15 @@
               "target": {
                 "properties": {
                   "kind": {
-                    "const": "event"
+                    "const": "event",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/kind",
+                      "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/kind",
+                      "values": [
+                        "event"
+                      ]
+                    }
                   },
                   "event": {
                     "anyOf": [
@@ -112,19 +147,43 @@
                           "kind": {
                             "enum": [
                               "ak.member.state"
-                            ]
+                            ],
+                            "x-arkret-value-ownership": {
+                              "class": "namespaced_symbol",
+                              "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/0/properties/kind",
+                              "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/0/properties/kind",
+                              "values": [
+                                "ak.member.state"
+                              ]
+                            }
                           }
                         }
                       },
                       {
                         "properties": {
                           "kind": {
-                            "const": "ak.circle.member.state"
+                            "const": "ak.circle.member.state",
+                            "x-arkret-value-ownership": {
+                              "class": "namespaced_symbol",
+                              "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/kind",
+                              "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/kind",
+                              "values": [
+                                "ak.circle.member.state"
+                              ]
+                            }
                           },
                           "scope_ref": {
                             "properties": {
                               "kind": {
-                                "const": "circle"
+                                "const": "circle",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/scope_ref/properties/kind",
+                                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/scope_ref/properties/kind",
+                                  "values": [
+                                    "circle"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -135,7 +194,15 @@
                             "$ref": "./common-ids.schema.json#/$defs/actor_id",
                             "properties": {
                               "kind": {
-                                "const": "realm"
+                                "const": "realm",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/actor_id/properties/kind",
+                                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/actor_id/properties/kind",
+                                  "values": [
+                                    "realm"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -148,7 +215,15 @@
                           "payload": {
                             "properties": {
                               "membership": {
-                                "const": "join"
+                                "const": "join",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/payload/properties/membership",
+                                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event/anyOf/1/properties/payload/properties/membership",
+                                  "values": [
+                                    "join"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -180,7 +255,15 @@
           "if": {
             "properties": {
               "management_operation": {
-                "const": "publish"
+                "const": "publish",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/if/properties/management_operation",
+                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/if/properties/management_operation",
+                  "values": [
+                    "publish"
+                  ]
+                }
               }
             },
             "required": [
@@ -192,7 +275,15 @@
               "target": {
                 "properties": {
                   "kind": {
-                    "const": "event"
+                    "const": "event",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/then/properties/target/properties/kind",
+                      "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/then/properties/target/properties/kind",
+                      "values": [
+                        "event"
+                      ]
+                    }
                   },
                   "event": {
                     "properties": {
@@ -201,7 +292,17 @@
                           "ak.agent.interaction.set",
                           "ak.profile.create",
                           "ak.profile.update"
-                        ]
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/then/properties/target/properties/event/properties/kind",
+                          "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/1/then/properties/target/properties/event/properties/kind",
+                          "values": [
+                            "ak.agent.interaction.set",
+                            "ak.profile.create",
+                            "ak.profile.update"
+                          ]
+                        }
                       }
                     }
                   }
@@ -214,7 +315,15 @@
           "if": {
             "properties": {
               "management_operation": {
-                "const": "create_bot"
+                "const": "create_bot",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/if/properties/management_operation",
+                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/if/properties/management_operation",
+                  "values": [
+                    "create_bot"
+                  ]
+                }
               }
             },
             "required": [
@@ -228,12 +337,28 @@
                   "event": {
                     "properties": {
                       "kind": {
-                        "const": "ak.realm.actor.create"
+                        "const": "ak.realm.actor.create",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/then/properties/target/properties/event/properties/kind",
+                          "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/then/properties/target/properties/event/properties/kind",
+                          "values": [
+                            "ak.realm.actor.create"
+                          ]
+                        }
                       },
                       "payload": {
                         "properties": {
                           "actor_role": {
-                            "const": "bot"
+                            "const": "bot",
+                            "x-arkret-value-ownership": {
+                              "class": "owned_symbol",
+                              "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/then/properties/target/properties/event/properties/payload/properties/actor_role",
+                              "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/2/then/properties/target/properties/event/properties/payload/properties/actor_role",
+                              "values": [
+                                "bot"
+                              ]
+                            }
                           }
                         }
                       }
@@ -248,7 +373,15 @@
           "if": {
             "properties": {
               "management_operation": {
-                "const": "map_ghost"
+                "const": "map_ghost",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/if/properties/management_operation",
+                  "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/if/properties/management_operation",
+                  "values": [
+                    "map_ghost"
+                  ]
+                }
               }
             },
             "required": [
@@ -262,12 +395,28 @@
                   "event": {
                     "properties": {
                       "kind": {
-                        "const": "ak.realm.actor.create"
+                        "const": "ak.realm.actor.create",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/then/properties/target/properties/event/properties/kind",
+                          "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/then/properties/target/properties/event/properties/kind",
+                          "values": [
+                            "ak.realm.actor.create"
+                          ]
+                        }
                       },
                       "payload": {
                         "properties": {
                           "actor_role": {
-                            "const": "ghost"
+                            "const": "ghost",
+                            "x-arkret-value-ownership": {
+                              "class": "owned_symbol",
+                              "authority": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/then/properties/target/properties/event/properties/payload/properties/actor_role",
+                              "owner": "management-review-operations.schema.json#/$defs/management_review_request_body/allOf/3/then/properties/target/properties/event/properties/payload/properties/actor_role",
+                              "values": [
+                                "ghost"
+                              ]
+                            }
                           }
                         }
                       }
@@ -278,9 +427,10 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "lookup": {
+    "management_review_status_request_body": {
       "type": "object",
       "required": [
         "request_id"
@@ -290,9 +440,10 @@
           "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "request_body"
     },
-    "decision": {
+    "management_review_decision_request_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -304,14 +455,32 @@
           "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
         },
         "expected_status": {
-          "const": "pending"
+          "const": "pending",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/properties/expected_status",
+            "owner": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/properties/expected_status",
+            "values": [
+              "pending"
+            ]
+          }
         },
         "decision": {
           "enum": [
             "approve",
             "reject",
             "cancel"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/properties/decision",
+            "owner": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/properties/decision",
+            "values": [
+              "approve",
+              "reject",
+              "cancel"
+            ]
+          }
         },
         "approval_signatures": {
           "type": "array",
@@ -327,7 +496,15 @@
           "if": {
             "properties": {
               "decision": {
-                "const": "approve"
+                "const": "approve",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/allOf/0/if/properties/decision",
+                  "owner": "management-review-operations.schema.json#/$defs/management_review_decision_request_body/allOf/0/if/properties/decision",
+                  "values": [
+                    "approve"
+                  ]
+                }
               }
             },
             "required": [
@@ -347,9 +524,10 @@
             }
           }
         }
-      ]
+      ],
+      "x-arkret-name-role": "request_body"
     },
-    "outcome": {
+    "response_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -370,7 +548,21 @@
             "expired",
             "consumed",
             "superseded"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "management-review-operations.schema.json#/$defs/response_body/properties/status",
+            "owner": "management-review-operations.schema.json#/$defs/response_body/properties/status",
+            "values": [
+              "pending",
+              "approved",
+              "rejected",
+              "cancelled",
+              "expired",
+              "consumed",
+              "superseded"
+            ]
+          }
         },
         "target_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
@@ -386,7 +578,8 @@
           "minItems": 1
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-name-role": "response_body"
     }
   }
 }

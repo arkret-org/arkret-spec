@@ -17,7 +17,15 @@
       "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
     },
     "schema": {
-      "const": "ak.schema.agent_sidecar.v1"
+      "const": "ak.schema.agent_sidecar.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "agent-sidecar.schema.json#/properties/schema",
+        "owner": "agent-sidecar.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.agent_sidecar.v1"
+        ]
+      }
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -31,7 +39,17 @@
         "active",
         "suspended",
         "tombstoned"
-      ]
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "agent-sidecar.schema.json#/properties/state",
+        "owner": "agent-sidecar.schema.json#/properties/state",
+        "values": [
+          "active",
+          "suspended",
+          "tombstoned"
+        ]
+      }
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp"
@@ -51,7 +69,16 @@
             "enum": [
               "suspended",
               "tombstoned"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "agent-sidecar.schema.json#/allOf/0/if/properties/state",
+              "owner": "agent-sidecar.schema.json#/allOf/0/if/properties/state",
+              "values": [
+                "suspended",
+                "tombstoned"
+              ]
+            }
           }
         },
         "required": [

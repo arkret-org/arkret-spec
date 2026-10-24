@@ -27,7 +27,7 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000011", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"}
 
     def media_outcome(self):
-        return {**self.media_request(), "route": {"service_id": "ak:did_core:web:media.example", "service_kind": "media_service", "did": "did:web:media.example", "method_history_head": "sha256:" + "c" * 64, "version_id": "synthetic-jcs-sha256:" + "c" * 64, "resolution_event_ref": "did-web-document-sha256:" + "c" * 64, "base_url": "https://media.example/"}, "signing_keys": [{"verification_method": "did:web:media.example#key-1", "public_key_b64u": "d" * 42 + "A"}], "observed_at": "2026-09-10T00:00:00.000Z", "expires_at": "2026-09-10T00:05:00.000Z"}
+        return {**self.media_request(), "route": {"service_id": "ak:did_core:web:media.example", "service_kind": "media_service", "did": "did:web:media.example", "method_history_head": "sha256:" + "c" * 64, "version_id": "synthetic-jcs-sha256:" + "c" * 64, "resolution_event_ref": "did-web-document-sha256:" + "c" * 64, "base_url": "https://media.example/"}, "signing_keys": [{"verification_method": "did:web:media.example#key-1", "public_key_base64url": "d" * 42 + "A"}], "observed_at": "2026-09-10T00:00:00.000Z", "expires_at": "2026-09-10T00:05:00.000Z"}
 
     def assert_every_member_required(self, validator, instance):
         validator.validate(instance)
@@ -37,7 +37,7 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed), key)
 
     def test_media_request_carries_no_caller_supplied_service_identity(self):
-        validator = self.validator("media-service-binding-result.schema.json", "media_service_binding_request_body")
+        validator = self.validator("media-service-binding-operations.schema.json", "media_service_binding_request_body")
         self.assert_every_member_required(validator, self.media_request())
         for key in ["service_id", "did", "base_url", "candidate_origins", "method_history_evidence"]:
             changed = self.media_request()
@@ -45,13 +45,13 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed), key)
 
     def test_media_outcome_binds_route_keys_and_reuse_window(self):
-        validator = self.validator("media-service-binding-result.schema.json", "media_service_binding_outcome")
+        validator = self.validator("media-service-binding-operations.schema.json", "media_service_binding_response_body")
         self.assert_every_member_required(validator, self.media_outcome())
         for key in self.media_outcome()["route"]:
             changed = self.media_outcome()
             del changed["route"][key]
             self.assertFalse(validator.is_valid(changed), key)
-        for keys in ([], [{"verification_method": "did:web:media.example#key-%d" % index, "public_key_b64u": "d" * 42 + "A"} for index in range(17)]):
+        for keys in ([], [{"verification_method": "did:web:media.example#key-%d" % index, "public_key_base64url": "d" * 42 + "A"} for index in range(17)]):
             changed = self.media_outcome()
             changed["signing_keys"] = keys
             self.assertFalse(validator.is_valid(changed), len(keys))
@@ -67,7 +67,7 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed), key)
 
     def test_route_projection_rejects_unnormalized_entry_and_event_handle(self):
-        validator = self.validator("media-service-binding-result.schema.json", "media_service_binding_outcome")
+        validator = self.validator("media-service-binding-operations.schema.json", "media_service_binding_response_body")
         for base_url in ["https://media.example", "https://media.example/path", "http://media.example/", "https://media.example/?a=1"]:
             changed = self.media_outcome()
             changed["route"]["base_url"] = base_url

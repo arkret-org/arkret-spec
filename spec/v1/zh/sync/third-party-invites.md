@@ -51,7 +51,7 @@ updated: 2026-09-10
     "token_entropy_bits": 128,
     "verification_id": "ak:did_core:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt",
     "verification_public_key": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
-    "max_claims": 1
+    "max_claim_count": 1
   },
   "expires_at": "2026-05-05T00:00:00.000Z"
 }
@@ -126,7 +126,7 @@ forbidden: https://app.arkret.example/invite/<invite_token>                     
 ### 4.1 出示 Token 与绑定
 
 Bob 的客户端通过 `ak.open.third_party_invite.command.present_token.v1`（`POST /_arkret/open/third-party-invites/present`，request body 为 [`invite.schema.json#/$defs/third_party_invite_present_request_body`](../../artifacts/schemas/invite.schema.json)）将 `invite_token`、intended `realm_id`、要绑定的 `subject_account_id`、用于独立验证的完整 `subject_did` 与客户端生成的 `claim_nonce` 提交给 Alice 的身份验证服务；token 只能在 JSON body 中出现（§3.2）。这是 v1 唯一的出示面：验证服务无论是 Station、组织 IVS 还是第三方服务，都 MUST 以该 operation 接收出示，客户端 MUST NOT 依赖私有端点。该 operation 只承担出示，MUST NOT 被当作 §7 私有材料生命周期的替代品；二者边界见 §7.8。
-身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，随 `invite_id` 与 `token_commitment` 一起返回（response 为 [`invite.schema.json#/$defs/third_party_invite_present_outcome`](../../artifacts/schemas/invite.schema.json)）；`binding_proof` 的形态是 [`event-payload.schema.json#/$defs/invite_claim_binding_proof`](../../artifacts/schemas/event-payload.schema.json)，与 §4.2 claim payload 中的 `binding_proof` 是同一个定义。Bob 对 `subject_account_id` 的控制权由 §4.2 的 `subject_proof` 证明，出示请求不另带设备证明。该证明声明：
+身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，随 `invite_id` 与 `token_commitment` 一起返回（response 为 [`invite.schema.json#/$defs/third_party_invite_present_response_body`](../../artifacts/schemas/invite.schema.json)）；`binding_proof` 的形态是 [`event-payload.schema.json#/$defs/invite_claim_binding_proof`](../../artifacts/schemas/event-payload.schema.json)，与 §4.2 claim payload 中的 `binding_proof` 是同一个定义。Bob 对 `subject_account_id` 的控制权由 §4.2 的 `subject_proof` 证明，出示请求不另带设备证明。该证明声明：
 “持有该 Token 的人现在对应的稳定业务身份是 `ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z`”。
 
 **投递目标可审计（normative）**：由于验证服务是受信第三方（见 §2.1），其签发 `binding_proof` 时 MUST 在自身审计记录中记录该 token 在 §3.2 实际投递目标的 digest（例如 `delivery_target_digest = SHA-256(salt || canonical(3pid))`，使用与 `token_salt` 同级或独立的高熵 salt / pepper）。该 digest 不得写入公开持久化 Event（避免 3PID 枚举，与 §6 一致），但 MUST 进入验证服务的加密审计记录，使事后审计可以核对"该 token 是否被投递给 invite 声明的那个 3PID"。这样当验证服务被怀疑把 token 绑定到非声明 3PID（即把邀请重定向给攻击者）时，审计方可凭 invite 中声明的 3PID 重算 digest 与审计记录比对，检出该错配。
@@ -191,14 +191,14 @@ RealmCommit 对 claim 的纳入；claim 已经合法 committed 之后的变更�
 2. 在任何签名接受前重算过期前置条件。**判定时点是 canonical、签名覆盖的量，MUST NOT 使用 receiver 本地墙钟 `now`（normative）**：
    - 比较对象固定为该 `ak.invite.claim` Event 自身的签名 `created_at`（进入 canonical bytes 与 `event_digest`，对所有 receiver 唯一确定）与已接受 create Event 在该 claim authority-commit basis 上的 `expires_at`。`invite.expires_at <= claim_event.created_at` 时 MUST 以 `expired_invite_token` 拒绝本次 claim。
    - 若该 claim 已被 RealmCommit 覆盖，同一判定 MUST 得到相同结果；receiver MUST NOT 因为重放 / backfill 发生在更晚的本地时刻而改判。该命令还必须满足 authority-commit 对显式期限的可信存在时间区间检查，不能只靠作者回填 created_at 绕过过期。这遵守确认安全序列的确定性重放约束（[`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)）。
-   - **被拒绝的 claim MUST NOT 产生任何共享 projected write（normative）**：它不写 invite typed current result、不写 membership proposal、不推进任何 projection。invite 的 `pending -> expired` 是**独立的、已登记的、可签名且可被 RealmCommit 覆盖的 state-changing Event**（由授权 writer 提交的 `ak.invite.revoke`，携带 `reason_code` 表达 `expired`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 由被拒 claim 的处理路径顺带写出——那样的 transition 没有独立 accepted Event / event digest，无法被另一 receiver 从 canonical history 重放，等于把 receiver-local timer 提升成共享真相源。
-   - reducer 在读到 invite typed current result 已处于 `expired` 或任一终态时，按 step 1 的终态规则拒绝。token material / lookup pepper 的 zeroize 规则见 §6.1；zeroize 是**服务端本地清理义务**，不是共享 typed current result 状态，MUST NOT 反过来充当 invite state 的真源。
+   - **被拒绝的 claim MUST NOT 产生任何共享 projected write（normative）**：它不写 invite current state、不写 membership proposal、不推进任何 projection。invite 的 `pending -> expired` 是**独立的、已登记的、可签名且可被 RealmCommit 覆盖的 state-changing Event**（由授权 writer 提交的 `ak.invite.revoke`，携带 `reason_code` 表达 `expired`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 由被拒 claim 的处理路径顺带写出——那样的 transition 没有独立 accepted Event / event digest，无法被另一 receiver 从 canonical history 重放，等于把 receiver-local timer 提升成共享真相源。
+   - reducer 在读到 invite current state 已处于 `expired` 或任一终态时，按 step 1 的终态规则拒绝。token material / lookup pepper 的 zeroize 规则见 §6.1；zeroize 是**服务端本地清理义务**，不是共享 current state 状态，MUST NOT 反过来充当 invite state 的真源。
 3. 验证 `binding_proof` 必须由已接受 create Event 的 `third_party_invite.verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ak.invite.claim.binding_proof.v1` transcript，并绑定 `subject_account_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与上述 create Event 派生的 invite digest；`binding_proof.subject_account_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。binding proof 畸形、签名不可验证或未通过本节 policy 复校验时，内部审计 reason 为 `claim_invalid`（对外仍按 §6 不可枚举响应处理）。
-4. 从同一冻结 predecessor view 的 `realm_policy_bundle` typed current result 读取 `allowed_third_party_invite_verification_ids`，复校验 `binding_proof.verification_id` 在该集合中；字段缺失或空数组都是 deny-all。已接受 create Event 冻结的验证服务 DID 必须与 binding proof 一致，但创建时允许的 DID 不能重新授权一个在该 view 已被移除的 DID。该复校验必须在 reducer 内执行，不得因在线初检或验证服务已检查而跳过；不在集合中即拒绝，subject proof 有效也不能放行。依赖不全时 fail closed，不得退回 caller 旧 basis，亦不得用 receiver 当前 policy 推翻历史 RealmCommit。
+4. 从同一冻结 predecessor view 的 `realm_policy_bundle` current state 读取 `allowed_third_party_invite_verification_ids`，复校验 `binding_proof.verification_id` 在该集合中；字段缺失或空数组都是 deny-all。已接受 create Event 冻结的验证服务 DID 必须与 binding proof 一致，但创建时允许的 DID 不能重新授权一个在该 view 已被移除的 DID。该复校验必须在 reducer 内执行，不得因在线初检或验证服务已检查而跳过；不在集合中即拒绝，subject proof 有效也不能放行。依赖不全时 fail closed，不得退回 caller 旧 basis，亦不得用 receiver 当前 policy 推翻历史 RealmCommit。
 5. 验证 `subject_proof` 来自 `subject_account_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ak.invite.claim.subject_proof.v1\n") || canonical_json({subject_account_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"arkret.invite.claim", verification_id, binding_proof_digest})`，其中 `verification_id` 等于 `binding_proof.verification_id`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_id` / `binding_proof_digest` 的 subject proof MUST reject；`verification_id` 与 `binding_proof.verification_id` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
    **v1 subject method 边界（normative）**：本步“当前有效”指覆盖 claim 的 Realm authority cut 所对应的已认证 DID 历史，而不是 verifier 执行时的当前文档。历史 DID authority 调用点登记为 `ak.verifier.invite.claim_subject_at_commit.v1`（`accepted_at_history`，`freshness_profile_id=null`）。先按 subject Account 的 principal 取得并认证原生 DID 历史，投影的 core MUST 与 `subject_account_id.principal_id` 逐字相等；再按 [`identity-did.md` §3.4](../identity/identity-did.md) 选择直接声明的历史 method 或该历史 WebVH effective update key 的标准 did:key method。不得把后者的 bare did:key 投影当成 subject identity。若无法固定该历史状态或方法证据，MUST 以 `claim_invalid` 拒绝且零写入，不得退回 verifier 当前 DID head。`#ak:device:` PCR device method 即使当前有效、或与 Event producer 的 method 相同，也 MUST 以 `claim_invalid` 拒绝且零写入。不得用本地当前 PCR 查询、producer proof 或 caller 自报 key 补齐 subject 的历史授权。
    对仅携带 core 的远端 subject，可把 Event producer method 的标准 WebVH bare DID 作为不可信定位提示；提示必须独立通过完整历史与 SCID/core 检查；完整 Account 的 Station 绑定由已签 subject transcript 与已认证 Event producer Account pair 对齐验证。它不提供 subject authority，不得用该 PCR device key 或 producer signature 代替原生 root 控制证明；已有 accepted resolution 的已认证 locator 优先。
-6. 在同一 authority 提交事务中，以候选 claim Event 对照已有 accepted claim Event 与可从 committed Event 重建的耐久派生索引，检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim projection，均 MUST 以 `duplicate_conflict` 拒绝。v1 base wire 中 `third_party_invite.max_claims` MUST 恒为 `1`；任何大于 `1` 或缺失后被解释为多用 token 的写入 MUST `schema_violation` / `duplicate_conflict` fail closed。该检查必须与 `invite_lifecycle` 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
+6. 在同一 authority 提交事务中，以候选 claim Event 对照已有 accepted claim Event 与可从 committed Event 重建的耐久派生索引，检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim projection，均 MUST 以 `duplicate_conflict` 拒绝。v1 base wire 中 `third_party_invite.max_claim_count` MUST 恒为 `1`；任何大于 `1` 或缺失后被解释为多用 token 的写入 MUST `schema_violation` / `duplicate_conflict` fail closed。该检查必须与 `invite_lifecycle` 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
 7. 验证通过后，reducer MUST 在同一 authority 提交事务中接受唯一 `ak.invite.claim` Event/Commit、把 `invite_lifecycle` 从 `pending` 原子推进到 `claimed`，并更新可从该已接受 Event 重建的耐久派生索引。`claimed_by=subject_account_id`、`claim_event_ref`、`claim_nonce_digest`、`token_commitment`、`verification_id` 与 `claimed_at` 均从该 exact accepted claim Event 派生，不是 `invite_lifecycle` 的字段；随后该占位符邀请正式转变为针对 `subject_account_id` 的标准 `ak.invite.create` 或等价 membership proposal。`ak.invite.claim` 本身不直接绕过 Realm join policy 写入 `ak.member.state{membership="join"}`；最终 join 仍由 `subject_account_id` 通过 `ak.invite.accept` 或 profile 声明的等价 membership proposal 路径完成；reducer MUST 在同一 accepted authority cut 按 `invite_id` 解析唯一 accepted claim Event 的 exact ref 与 Commit，核对其 `subject_account_id` 与 accept/proposal 的 author 或 subject，不能仅凭 lifecycle 的 `claimed` 字符串放行。该核对不增添 accept payload 字段。
 
 验证服务 / 接收 Station sync surface SHOULD 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`，用于在进入 reducer 仲裁前降低重放成本；该服务侧 set 不是状态真源。已接受 claim 的 nonce 由上述同事务唯一性永久约束；被拒 claim 不产生共享 projected write，服务侧对被拒 nonce 的重放缓存只是私有反滥用状态，不得冒充 canonical accepted claim。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
@@ -225,7 +225,7 @@ RealmCommit 对 claim 的纳入；claim 已经合法 committed 之后的变更�
 
 ### 6.1 失败 / 异常清理状态机（normative）
 
-第三方邀请的 wire 状态机覆盖正常路径之外的失败 / 邀请者状态变化 / token 泄漏。各 invite typed current result 状态转换由 reducer 强制：
+第三方邀请的 wire 状态机覆盖正常路径之外的失败 / 邀请者状态变化 / token 泄漏。各 invite current state 状态转换由 reducer 强制：
 
 | 触发条件 | 状态转换 | 行为 |
 | --- | --- | --- |
@@ -266,11 +266,11 @@ Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可
 
 验证服务无论是邀请者所在 Station、组织的 Identity Verification Service 还是 Realm policy 授权的第三方（§2），都 MUST 以这四个已登记 operation 承载该生命周期，MUST NOT 用私有 HTTP 面、实现内部接线或部署本地约定替代其中任何一段。同一部署内部 MAY 直接执行这些步骤，但内部接线 MUST NOT 被当作独立验证服务所需互操作合同的替身。
 
-秘密方向是单向的：`invite_token`、`token_salt`、lookup pepper、每邀请临时私钥与私有投递目标 MUST 只存在于验证服务的私有状态与加密审计记录中。它们 MUST NOT 出现在任何 Realm Event、account-data typed current result、通知、`ServiceDescribe`、状态读取响应或普通日志中；邀请 Event author 得到的只有公开材料与不可枚举的 `provisioning_id`。反方向同样封闭：公开 `token_commitment` 与 `verification_public_key` 是单向承诺与公钥，MUST NOT 被用来推导、重建或"恢复"上述任何私有材料。
+秘密方向是单向的：`invite_token`、`token_salt`、lookup pepper、每邀请临时私钥与私有投递目标 MUST 只存在于验证服务的私有状态与加密审计记录中。它们 MUST NOT 出现在任何 Realm Event、account-data current state、通知、`ServiceDescribe`、状态读取响应或普通日志中；邀请 Event author 得到的只有公开材料与不可枚举的 `provisioning_id`。反方向同样封闭：公开 `token_commitment` 与 `verification_public_key` 是单向承诺与公钥，MUST NOT 被用来推导、重建或"恢复"上述任何私有材料。
 
 ### 7.2 预配 provisioning（normative）
 
-`ak.open.third_party_invite.command.provision.v1`（`POST /_arkret/open/third-party-invites/provision`，request body 为 [`invite.schema.json#/$defs/third_party_invite_provision_request_body`](../../artifacts/schemas/invite.schema.json)，response 为同文件的 `third_party_invite_provision_outcome`）是 v1 唯一的发行入口。
+`ak.open.third_party_invite.command.provision.v1`（`POST /_arkret/open/third-party-invites/provision`，request body 为 [`invite.schema.json#/$defs/third_party_invite_provision_request_body`](../../artifacts/schemas/invite.schema.json)，response 为同文件的 `third_party_invite_provision_response_body`）是 v1 唯一的发行入口。
 
 **认证与绑定**：请求 MUST 由发起邀请者签名，签名 transcript 为
 `utf8("ak.third_party_invite_provision_request_proof.v1\n") || canonical_json({audience, context:"ak.third_party_invite_provision_request_proof.v1", created_at, domain, issuer, operation_id:"ak.open.third_party_invite.command.provision.v1", payload_digest, verification_method})`，其中 `issuer` 等于 `inviter_account_id`，`payload_digest` 是去掉 `signature` 后完整 request body 的 canonical-JSON digest，`audience` 等于 `verification_id`。验证服务 MUST 校验：`signature.verification_method` 是 `inviter_account_id.principal_id` 的当前有效 verification method；`audience` 等于本服务 DID；`created_at` 落在不超过 300 秒的新鲜窗口内；同一 `(issuer, payload_digest, created_at)` 只被接受一次。出示面的开放访问属性 MUST NOT 套用到本入口：没有可验证签名的请求一律不生成任何材料。
@@ -319,7 +319,7 @@ Station 在签发前 MUST 在同一 current accepted serializable gate 中确认
 
 仅有 Event 哈希、Event 签名、HTTP 成功或调用者自报的 `invite_id` 与 `invite_digest` MUST NOT 代替接受证据。验证服务 MUST NOT 为激活要求任意治理读取权，也 MUST NOT 临时增加未登记 HTTP 接口。
 
-第 3 至第 7 步的细分原因只对已经用可验证 attestation 寻址到一份存在的预配记录的调用方可见；其余一切失败保持 §6 的统一不可枚举形态。激活成功本身不改变 Realm invite typed current result：typed current result 仍停留在 `pending`，直到 §4.3 的 claim 或授权 writer 的 `ak.invite.revoke` 推进它。
+第 3 至第 7 步的细分原因只对已经用可验证 attestation 寻址到一份存在的预配记录的调用方可见；其余一切失败保持 §6 的统一不可枚举形态。激活成功本身不改变 Realm invite current state：current state 仍停留在 `pending`，直到 §4.3 的 claim 或授权 writer 的 `ak.invite.revoke` 推进它。
 
 ### 7.6 投递与状态观察（normative）
 
@@ -327,13 +327,13 @@ Station 在签发前 MUST 在同一 current accepted serializable gate 中确认
 
 `ak.open.third_party_invite.read.provisioning_status.v1`（`POST /_arkret/open/third-party-invites/status`）是 v1 唯一的生命周期与投递观察面。`provisioning_id` 是全部查询凭证，MUST 只出现在 JSON body。响应 MUST NOT 携带 token、salt、pepper、临时私钥、`delivery_target_uri` 或任何 3PID 派生值，也 MUST NOT 透露被邀请人是否已打开邀请。未知句柄、属于其它邀请者的句柄与已删除记录 MUST 不可区分。
 
-`delivery_state` 为 `failed` 只表示服务已耗尽重试预算。共享授权保持不变；验证服务的私有投递循环 MUST NOT 直接改写 Realm invite typed current result。有效且未消费时可恢复原绑定投递；永久放弃及清理遵循 §6.1，若策略要求授权失效则另由有权 writer 提交 `target_state="revoked"`。已激活邀请被撤销、过期、邀请者失权或退出时，记录 MUST 进入 `revoked` 并停止投递与出示，材料清理沿用 §6.1。
+`delivery_state` 为 `failed` 只表示服务已耗尽重试预算。共享授权保持不变；验证服务的私有投递循环 MUST NOT 直接改写 Realm invite current state。有效且未消费时可恢复原绑定投递；永久放弃及清理遵循 §6.1，若策略要求授权失效则另由有权 writer 提交 `target_state="revoked"`。已激活邀请被撤销、过期、邀请者失权或退出时，记录 MUST 进入 `revoked` 并停止投递与出示，材料清理沿用 §6.1。
 
 ### 7.7 崩溃恢复、幂等与清理（normative）
 
 - **预配响应丢失**：同一认证主体、同一 `request_id` 与逐字相同的 canonical 意图 MUST 返回原公开材料与原 `provisioning_id`；同一 `request_id` 换目标、Realm、`verification_id`、模式或有效期 MUST 以 `duplicate_conflict` 拒绝，MUST NOT 生成第二套材料。
 - **Event 被拒、放弃或长期未接受**：预配记录在 `activation_expires_at` 之后 MUST 进入 `expired`，按 §6.1 在 24h 内 zeroize token 与 pepper 材料并从 active commitment 索引中移除。过期记录 MUST NOT 复活；其 `request_id` 在记录保留期内继续按上一条判定，保留期结束后同一 `request_id` MUST 被拒绝而不是静默铸造新材料。
-- **激活响应丢失、并发调用或进程重启**：绑定与投递意图持久化后，逐字相同的重试、并发重复请求与重启后重试 MUST 返回同一份 `third_party_invite_activation_outcome`，包含首次 `activated_at`。
+- **激活响应丢失、并发调用或进程重启**：绑定与投递意图持久化后，逐字相同的重试、并发重复请求与重启后重试 MUST 返回同一份 `third_party_invite_activation_response_body`，包含首次 `activated_at`。
 - **崩溃点**：在铸造材料与持久化预配记录之间崩溃时，调用方按 `request_id` 重试；服务 MUST 要么恢复出同一条记录，要么当作从未发生并铸造一次且仅一次的新材料，MUST NOT 留下无法寻址却仍可出示的孤儿材料。在持久化绑定与写入投递意图之间崩溃时，恢复后 MUST 先补齐投递意图再投递。
 - **状态读取是恢复入口**：调用方在任一响应丢失后 MUST 先读 §7.6 的状态，再决定重试预配还是重试激活；MUST NOT 直接重新预配来"修复"一份已激活的记录。
 - **清理**：终态（`consumed`、`expired`、`revoked`）后的 token、salt、pepper 与临时私钥 MUST 在 24h 内 zeroize，只保留不可枚举的加密审计记录。zeroize 是服务端本地清理义务，MUST NOT 反过来充当 Realm invite state 的真源（§4.3 step 2）。

@@ -170,8 +170,8 @@ class ProofContextObjectFamilySchemaTest(unittest.TestCase):
         self.assertIn("signs a wire object but names no schema", errors[0])
 
 
-class ResultWriteContractTest(unittest.TestCase):
-    """`result_writes[]` coverage is partial by design, so the danger is prose over-promising."""
+class StateWriteContractTest(unittest.TestCase):
+    """`state_writes[]` coverage is partial by design, so the danger is prose over-promising."""
 
     def run_gate(self, event_kinds: list[dict], prose: dict[str, str] | None = None) -> list[str]:
         with tempfile.TemporaryDirectory() as directory:
@@ -181,12 +181,12 @@ class ResultWriteContractTest(unittest.TestCase):
             (artifacts / "registry" / "event-kind-registry.json").write_text(
                 json.dumps({"event_kinds": event_kinds}), encoding="utf-8"
             )
-            (artifacts / "registry" / "current-result-registry.json").write_text(
+            (artifacts / "registry" / "current-state-registry.json").write_text(
                 json.dumps(
                     {
-                        "result_kinds": [
+                        "state_kinds": [
                             {
-                                "result_kind": "probe_result",
+                                "state_kind": "probe_result",
                                 "schema_ref": "schemas/probe.schema.json#/$defs/probe_result_result",
                             }
                         ]
@@ -211,7 +211,7 @@ class ResultWriteContractTest(unittest.TestCase):
                 mock.patch.object(
                     gate,
                     "CURRENT_RESULT_REGISTRY",
-                    artifacts / "registry" / "current-result-registry.json",
+                    artifacts / "registry" / "current-state-registry.json",
                 ),
             ):
                 gate.check_result_write_contracts(lint)
@@ -222,11 +222,11 @@ class ResultWriteContractTest(unittest.TestCase):
         row = {
             "event_kind": "ak.probe.write",
             "reducer_input": True,
-            "result_writes": [
+            "state_writes": [
                 {
-                    "result_family": "probe_result",
-                    "result_selector": None,
-                    "result_projection": {"kind": "set", "value": {"field": "payload.value"}},
+                    "state_family": "probe_result",
+                    "state_selector": None,
+                    "state_projection": {"kind": "set", "value": {"field": "payload.value"}},
                 }
             ],
         }
@@ -236,21 +236,21 @@ class ResultWriteContractTest(unittest.TestCase):
     def test_minimal_contract_passes(self) -> None:
         self.assertEqual(self.run_gate([self.kind()]), [])
 
-    def test_missing_result_selector_fails(self) -> None:
+    def test_missing_state_selector_fails(self) -> None:
         row = self.kind()
-        del row["result_writes"][0]["result_selector"]
+        del row["state_writes"][0]["state_selector"]
         errors = self.run_gate([row])
-        self.assertTrue(any("result_selector is required" in e for e in errors), errors)
+        self.assertTrue(any("state_selector is required" in e for e in errors), errors)
 
     def test_selector_kind_outside_the_closed_table_fails(self) -> None:
         row = self.kind()
-        row["result_writes"][0]["result_selector"] = {"kind": "canonical_json", "field": "payload.x"}
+        row["state_writes"][0]["state_selector"] = {"kind": "canonical_json", "field": "payload.x"}
         errors = self.run_gate([row])
         self.assertTrue(any("closed subject table" in e for e in errors), errors)
 
     def test_unregistered_derivation_fails(self) -> None:
         row = self.kind()
-        row["result_writes"][0]["derived_members"] = [
+        row["state_writes"][0]["derived_members"] = [
             {"name": "whatever", "derivation": "invented_derivation"}
         ]
         errors = self.run_gate([row])
@@ -263,23 +263,23 @@ class ResultWriteContractTest(unittest.TestCase):
     def test_prose_may_cite_a_declared_kind(self) -> None:
         errors = self.run_gate(
             [self.kind()],
-            prose={"probe.md": "see ak.probe.write.result_writes[] for the contract"},
+            prose={"probe.md": "see ak.probe.write.state_writes[] for the contract"},
         )
         self.assertEqual(errors, [])
 
     def test_prose_citing_an_undeclared_kind_fails(self) -> None:
         errors = self.run_gate(
             [self.kind()],
-            prose={"probe.md": "see ak.other.kind.result_writes[] for the contract"},
+            prose={"probe.md": "see ak.other.kind.state_writes[] for the contract"},
         )
         self.assertEqual(len(errors), 1, errors)
-        self.assertIn("declares no result_writes", errors[0])
+        self.assertIn("declares no state_writes", errors[0])
 
-    def test_unregistered_result_family_fails(self) -> None:
+    def test_unregistered_state_family_fails(self) -> None:
         row = self.kind()
-        row["result_writes"][0]["result_family"] = "ghost_family"
+        row["state_writes"][0]["state_family"] = "ghost_family"
         errors = self.run_gate([row])
-        self.assertTrue(any("not a registered result_kinds[] row" in e for e in errors), errors)
+        self.assertTrue(any("not a registered state_kinds[] row" in e for e in errors), errors)
 
     def test_result_kind_row_with_unresolvable_schema_ref_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -288,12 +288,12 @@ class ResultWriteContractTest(unittest.TestCase):
             (artifacts / "registry" / "event-kind-registry.json").write_text(
                 json.dumps({"event_kinds": []}), encoding="utf-8"
             )
-            (artifacts / "registry" / "current-result-registry.json").write_text(
+            (artifacts / "registry" / "current-state-registry.json").write_text(
                 json.dumps(
                     {
-                        "result_kinds": [
+                        "state_kinds": [
                             {
-                                "result_kind": "probe_result",
+                                "state_kind": "probe_result",
                                 "schema_ref": "schemas/probe.schema.json#/$defs/missing",
                             }
                         ]
@@ -314,7 +314,7 @@ class ResultWriteContractTest(unittest.TestCase):
                 mock.patch.object(
                     gate,
                     "CURRENT_RESULT_REGISTRY",
-                    artifacts / "registry" / "current-result-registry.json",
+                    artifacts / "registry" / "current-state-registry.json",
                 ),
             ):
                 gate.check_result_write_contracts(lint)

@@ -121,7 +121,17 @@
               "ak.profile.search.client_index.v1",
               "ak.profile.search.blind_index.v1",
               "ak.profile.search.forward_private.v1"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "search-service.schema.json#/$defs/search_policy/properties/enabled_profile_refs/items",
+              "owner": "search-service.schema.json#/$defs/search_policy/properties/enabled_profile_refs/items",
+              "values": [
+                "ak.profile.search.client_index.v1",
+                "ak.profile.search.blind_index.v1",
+                "ak.profile.search.forward_private.v1"
+              ]
+            }
           },
           "uniqueItems": true
         },
@@ -141,7 +151,18 @@
               "blind_tokens",
               "plaintext",
               "reversible_summary"
-            ]
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "search-service.schema.json#/$defs/search_policy/properties/data_classes/items",
+              "owner": "search-service.schema.json#/$defs/search_policy/properties/data_classes/items",
+              "values": [
+                "encrypted_index",
+                "blind_tokens",
+                "plaintext",
+                "reversible_summary"
+              ]
+            }
           },
           "uniqueItems": true
         },
@@ -154,7 +175,16 @@
           "enum": [
             "fail_closed",
             "drop_stale"
-          ]
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "search-service.schema.json#/$defs/search_policy/properties/revocation_behavior",
+            "owner": "search-service.schema.json#/$defs/search_policy/properties/revocation_behavior",
+            "values": [
+              "fail_closed",
+              "drop_stale"
+            ]
+          }
         },
         "leakage_class": {
           "type": "string",
@@ -164,7 +194,17 @@
             "access_hiding"
           ],
           "default": "deterministic_token",
-          "description": "Machine-readable search leakage class. ak.profile.search.blind_index.v1 uses deterministic_token; ak.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles."
+          "description": "Machine-readable search leakage class. ak.profile.search.blind_index.v1 uses deterministic_token; ak.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles.",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "search-service.schema.json#/$defs/search_policy/properties/leakage_class",
+            "owner": "search-service.schema.json#/$defs/search_policy/properties/leakage_class",
+            "values": [
+              "deterministic_token",
+              "forward_private",
+              "access_hiding"
+            ]
+          }
         },
         "token_rotation_cadence_ms": {
           "type": "integer",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-23.1",
+  "version": "2026-10-23.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-23T09:31:20+08:00",
+  "generated_at": "2026-10-23T13:01:46+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -81,7 +81,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
+        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_response_body",
         "schema_kind": "object",
         "required": [
           "status"
@@ -110,7 +110,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_response_body",
         "schema_kind": "object",
         "required": [
           "create_event"
@@ -135,7 +135,7 @@
           "protocol_version",
           "supported_profiles",
           "supported_features",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "verified_profiles",
@@ -154,7 +154,7 @@
           "profile_bindings",
           "supported_features",
           "calendar_tzdb_versions",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "receive_policy_constraints",
@@ -176,7 +176,7 @@
       "operation_id": "ak.edge.applet.read.ping.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
+        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_response_body",
         "schema_kind": "object",
         "required": [
           "applet_id",
@@ -234,7 +234,7 @@
       "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
+        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_lookup_response_body",
         "schema_kind": "object",
         "required": [
           "exists"
@@ -251,7 +251,7 @@
       "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
+        "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body",
         "schema_kind": "object",
         "required": [
           "exists"
@@ -335,7 +335,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_response_body",
         "schema_kind": "object",
         "required": [
           "receipt"
@@ -364,7 +364,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_response_body",
         "schema_kind": "object",
         "required": [
           "push_target_id",
@@ -400,7 +400,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
+        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_response_body",
         "schema_kind": "object",
         "required": [
           "push_target_id",
@@ -445,7 +445,7 @@
           "protocol_version",
           "supported_profiles",
           "supported_features",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "verified_profiles",
@@ -464,7 +464,7 @@
           "profile_bindings",
           "supported_features",
           "calendar_tzdb_versions",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "receive_policy_constraints",
@@ -497,21 +497,11 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "public_metadata",
-          "indexed_at",
-          "expires_at"
-        ],
-        "properties": [
-          "realm_id",
-          "public_metadata",
-          "indexed_at",
-          "expires_at"
-        ],
-        "closed": true
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_response_body",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       }
     },
     {
@@ -529,7 +519,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_response_body",
         "schema_kind": "object",
         "required": [
           "realms",
@@ -566,7 +556,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -606,7 +596,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_response_body",
         "schema_kind": "object",
         "required": [
           "device_pairing_request_id",
@@ -654,7 +644,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -724,7 +714,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -749,7 +739,7 @@
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request",
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body",
         "schema_kind": "object",
         "required": [
           "transaction_id",
@@ -757,7 +747,7 @@
           "terminal_receipt",
           "completion_attestation",
           "device_authorization_event_id",
-          "result_model_generation_ref",
+          "new_model_generation_ref",
           "initial_session",
           "canonical_request_digest"
         ],
@@ -767,14 +757,14 @@
           "terminal_receipt",
           "completion_attestation",
           "device_authorization_event_id",
-          "result_model_generation_ref",
+          "new_model_generation_ref",
           "initial_session",
           "canonical_request_digest"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome",
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_response_body",
         "schema_kind": "object",
         "required": [
           "transaction_id",
@@ -816,7 +806,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequestBody",
             "schema_kind": "object",
             "required": [
               "request_id",
@@ -835,7 +825,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequestBody",
             "schema_kind": "object",
             "required": [
               "principal_id",
@@ -858,7 +848,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequestBody",
             "schema_kind": "object",
             "required": [
               "credential_class",
@@ -879,7 +869,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody",
         "schema_kind": "object",
         "required": [
           "account_id",
@@ -915,7 +905,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutResponseBody",
         "schema_kind": "object",
         "required": [
           "revoked"
@@ -947,7 +937,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_response_body",
         "schema_kind": "object",
         "required": [
           "activation_state",
@@ -968,13 +958,13 @@
         "schema_kind": "object",
         "required": [
           "pairing_code",
-          "new_device_pubkey",
+          "new_device_public_key",
           "authorize_event",
           "device_pairing_request_id"
         ],
         "properties": [
           "pairing_code",
-          "new_device_pubkey",
+          "new_device_public_key",
           "authorize_event",
           "display_name",
           "device_metadata",
@@ -983,7 +973,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_response_body",
         "schema_kind": "object",
         "required": [
           "device_id",
@@ -1019,7 +1009,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequestBody",
             "schema_kind": "object",
             "required": [
               "grant_jwt",
@@ -1035,7 +1025,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequest",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequestBody",
             "schema_kind": "object",
             "required": [
               "grant_jwt",
@@ -1055,7 +1045,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponseBody",
         "schema_kind": "object",
         "required": [
           "account_id",
@@ -1112,7 +1102,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_response_body",
         "schema_kind": "object",
         "required": [
           "principal_id",
@@ -1153,7 +1143,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_request_erasure_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -1185,7 +1175,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_response_body",
         "schema_kind": "object",
         "required": [
           "revoked_count"
@@ -1214,7 +1204,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -1253,7 +1243,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_response_body",
         "schema_kind": "object",
         "required": [
           "device_pairing_request_id",
@@ -1317,7 +1307,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_response_body",
         "schema_kind": "object",
         "required": [
           "approval_request_id",
@@ -1386,7 +1376,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_response_body",
         "schema_kind": "object",
         "required": [
           "lifecycle",
@@ -1416,11 +1406,11 @@
         "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
         "schema_kind": "object",
         "required": [
-          "new_device_pubkey",
+          "new_device_public_key",
           "client_nonce"
         ],
         "properties": [
-          "new_device_pubkey",
+          "new_device_public_key",
           "client_nonce",
           "display_name",
           "device_metadata"
@@ -1428,7 +1418,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_response_body",
         "schema_kind": "object",
         "required": [
           "device_pairing_request_id",
@@ -1468,7 +1458,7 @@
           "arkret_base_url",
           "device_pairing_request_id",
           "pairing_code",
-          "new_device_pubkey",
+          "new_device_public_key",
           "client_nonce",
           "gate_audience_uri",
           "server_nonce",
@@ -1478,7 +1468,7 @@
           "arkret_base_url",
           "device_pairing_request_id",
           "pairing_code",
-          "new_device_pubkey",
+          "new_device_public_key",
           "client_nonce",
           "gate_audience_uri",
           "server_nonce",
@@ -1506,7 +1496,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_response_body",
         "schema_kind": "object",
         "required": [
           "state"
@@ -1597,7 +1587,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_response_body",
         "schema_kind": "object",
         "required": [
           "accepted"
@@ -1629,14 +1619,14 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_response_body",
         "schema_kind": "object",
         "required": [
           "download_ref"
         ],
         "properties": [
           "download_ref",
-          "headers",
+          "download_request_headers",
           "expires_at"
         ],
         "closed": true
@@ -1659,7 +1649,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body",
         "schema_kind": "object",
         "required": [
           "report_id"
@@ -1694,7 +1684,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_response_body",
         "schema_kind": "object",
         "required": [
           "consent_id"
@@ -1728,7 +1718,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_response_body",
         "schema_kind": "object",
         "required": [
           "delivery"
@@ -1766,7 +1756,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_response_body",
         "schema_kind": "object",
         "required": [
           "consent_id",
@@ -1804,7 +1794,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_response_body",
         "schema_kind": "object",
         "required": [
           "accepted"
@@ -1859,7 +1849,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -1884,7 +1874,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_response_body",
         "schema_kind": "object",
         "required": [
           "matches",
@@ -1913,7 +1903,7 @@
       "operation_id": "ak.open.realm_authority.read.bundle.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_bundle_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -1993,7 +1983,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_outcome",
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_response_body",
         "schema_kind": "object",
         "required": [
           "provisioning_id",
@@ -2033,7 +2023,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_outcome",
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_response_body",
         "schema_kind": "object",
         "required": [
           "invite_id",
@@ -2077,7 +2067,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome",
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body",
         "schema_kind": "object",
         "required": [
           "provisioning_id",
@@ -2113,7 +2103,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_outcome",
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body",
         "schema_kind": "object",
         "required": [
           "provisioning_id",
@@ -2151,23 +2141,23 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_publication_response_body",
         "schema_kind": "object",
         "required": [
           "status",
           "account_status_record_id",
-          "status_seq",
+          "status_sequence",
           "account_id",
           "propagation_state"
         ],
         "properties": [
           "status",
           "account_status_record_id",
-          "status_seq",
+          "status_sequence",
           "account_id",
           "current_account_status_record_id",
-          "current_status_seq",
-          "required_status_seq",
+          "current_status_sequence",
+          "required_status_sequence",
           "barrier_cursor",
           "propagation_state",
           "pending_destination_count",
@@ -2185,19 +2175,19 @@
         "required": [
           "account_authority_id",
           "account_id",
-          "from_status_seq",
+          "from_status_sequence",
           "limit"
         ],
         "properties": [
           "account_authority_id",
           "account_id",
-          "from_status_seq",
+          "from_status_sequence",
           "limit"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_status_resolve_response_body",
         "schema_kind": "object",
         "required": [
           "account_authority_id",
@@ -2210,7 +2200,7 @@
           "account_id",
           "records",
           "has_more",
-          "next_status_seq"
+          "next_status_sequence"
         ],
         "closed": true
       }
@@ -2219,7 +2209,7 @@
       "operation_id": "ak.peer.contacts.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
         "schema_kind": "oneOf",
         "required": [
           "kind",
@@ -2251,7 +2241,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2273,7 +2263,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2293,7 +2283,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2312,7 +2302,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2333,7 +2323,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2354,7 +2344,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2378,7 +2368,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request_body",
             "schema_kind": "object",
             "required": [
               "kind",
@@ -2405,14 +2395,14 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
         "schema_kind": "oneOf",
         "required": [
-          "result_kind",
+          "operation_kind",
           "status"
         ],
         "properties": [
-          "result_kind",
+          "operation_kind",
           "status",
           "mirror_receipt",
           "current_proof",
@@ -2425,15 +2415,15 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_event_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_event_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "mirror_receipt"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "mirror_receipt",
               "current_proof",
@@ -2442,16 +2432,16 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "material"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "material"
@@ -2459,16 +2449,16 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "glare_concurrency_attestation"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "glare_concurrency_attestation",
@@ -2477,16 +2467,16 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "glare_concurrency_attestation"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "control_receipt",
               "glare_concurrency_attestation",
@@ -2495,16 +2485,16 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "request_kind",
               "control_receipt"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "request_kind",
               "control_receipt",
@@ -2513,16 +2503,16 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_response_body",
             "schema_kind": "object",
             "required": [
-              "result_kind",
+              "operation_kind",
               "status",
               "request_kind",
               "control_receipt"
             ],
             "properties": [
-              "result_kind",
+              "operation_kind",
               "status",
               "request_kind",
               "control_receipt",
@@ -2548,7 +2538,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+        "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -2590,7 +2580,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
+            "schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_response_body",
             "schema_kind": "object",
             "required": [
               "status",
@@ -2626,7 +2616,7 @@
       "operation_id": "ak.peer.events.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
         "schema_kind": "oneOf",
         "required": [
           "branch"
@@ -2637,7 +2627,7 @@
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
             "schema_kind": null,
             "required": [
               "branch",
@@ -2649,7 +2639,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
             "schema_kind": null,
             "required": [
               "branch",
@@ -2661,7 +2651,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
             "schema_kind": null,
             "required": [
               "branch",
@@ -2674,7 +2664,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
             "schema_kind": null,
             "required": [
               "branch",
@@ -2686,7 +2676,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
             "schema_kind": null,
             "required": [
               "branch",
@@ -2700,33 +2690,34 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_response_body",
         "schema_kind": "oneOf",
         "required": [
           "branch"
         ],
         "properties": [
           "branch",
-          "outcome",
-          "replication_outcomes"
+          "response_body",
+          "replication_outcomes",
+          "outcome"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_authority_forward_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_authority_forward_response_body",
             "schema_kind": "object",
             "required": [
               "branch",
-              "outcome"
+              "response_body"
             ],
             "properties": [
               "branch",
-              "outcome"
+              "response_body"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_committed_replication_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_committed_replication_response_body",
             "schema_kind": "object",
             "required": [
               "branch",
@@ -2739,7 +2730,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_registered_atomic_unit_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_registered_atomic_unit_response_body",
             "schema_kind": "object",
             "required": [
               "branch",
@@ -2758,14 +2749,14 @@
       "operation_id": "ak.peer.committed_event.read.scan.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
             "schema_kind": null,
             "required": [
               "after_position"
@@ -2774,7 +2765,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
             "schema_kind": null,
             "required": [
               "before_position"
@@ -2785,7 +2776,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body",
         "schema_kind": "object",
         "required": [
           "committed_events",
@@ -2829,7 +2820,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body",
         "schema_kind": "object",
         "required": [
           "status"
@@ -2885,7 +2876,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -2909,7 +2900,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_response_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -2958,14 +2949,14 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
             "schema_kind": null,
             "required": [
               "requester_account_id"
@@ -2974,7 +2965,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_response_body",
             "schema_kind": null,
             "required": [
               "requester_actor_id"
@@ -2989,7 +2980,7 @@
       "operation_id": "ak.peer.mls.command.attest_add.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_request",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_add_authority_attest_request_body",
         "schema_kind": "object",
         "required": [
           "attestation",
@@ -3002,7 +2993,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_response_body",
         "schema_kind": "object",
         "required": [
           "status",
@@ -3046,7 +3037,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -3055,9 +3046,9 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_bytes_b64",
+          "group_info_base64url",
           "ratchet_tree_ref",
-          "ratchet_tree_bytes_b64"
+          "ratchet_tree_base64url"
         ],
         "properties": [
           "realm_id",
@@ -3066,9 +3057,9 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_bytes_b64",
+          "group_info_base64url",
           "ratchet_tree_ref",
-          "ratchet_tree_bytes_b64"
+          "ratchet_tree_base64url"
         ],
         "closed": true
       }
@@ -3077,7 +3068,7 @@
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_roster_authority_read_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -3101,7 +3092,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_response_body",
         "schema_kind": "object",
         "required": [
           "manifest",
@@ -3121,7 +3112,7 @@
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/realm_authority_handoff_request_body",
         "schema_kind": "object",
         "required": [
           "handoff",
@@ -3199,7 +3190,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -3236,7 +3227,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -3280,14 +3271,14 @@
         "properties": [
           "did",
           "did_method",
-          "seq",
-          "prev_event_digest",
+          "sequence",
+          "previous_event_digest",
           "operation"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponseBody",
         "schema_kind": "object",
         "required": [
           "status",
@@ -3299,7 +3290,7 @@
           "status",
           "did",
           "accepted_at",
-          "seq",
+          "sequence",
           "operation_ref",
           "receipts"
         ],
@@ -3328,7 +3319,7 @@
       "operation_id": "ak.root.identity.log.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListResponseBody",
         "schema_kind": "object",
         "required": [
           "did",
@@ -3377,7 +3368,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "registration_receipt",
@@ -3469,7 +3460,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "registration_receipt",
@@ -3498,7 +3489,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "registration_receipt",
@@ -3515,7 +3506,7 @@
       "operation_id": "ak.root.identity.organization_registration.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "registration_receipt",
@@ -3544,13 +3535,13 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponseBody",
         "schema_kind": "object",
         "required": [],
         "properties": [
           "did_document",
           "key_log_head",
-          "seq",
+          "sequence",
           "method_evidence",
           "receipts"
         ],
@@ -3561,7 +3552,7 @@
       "operation_id": "ak.root.identity.receipts.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListResponseBody",
         "schema_kind": "object",
         "required": [
           "receipts"
@@ -3577,14 +3568,14 @@
       "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
+        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
         "closed": false
       },
       "response": {
-        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
+        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_response_body",
         "schema_kind": "object",
         "required": [
           "policy_id",
@@ -3607,7 +3598,7 @@
       "operation_id": "ak.root.identity.recovery_policy.resource.get.v1",
       "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
+        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_status_view",
         "schema_kind": "object",
         "required": [
           "active_policy"
@@ -3616,7 +3607,7 @@
           "account_id",
           "active_policy",
           "recovery_policy_ref",
-          "as_of",
+          "evaluated_at",
           "authority_stream_head"
         ],
         "closed": true
@@ -3717,7 +3708,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_response_body",
         "schema_kind": "object",
         "required": [
           "recovery_session_id"
@@ -3801,7 +3792,7 @@
           "protocol_version",
           "supported_profiles",
           "supported_features",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "verified_profiles",
@@ -3820,7 +3811,7 @@
           "profile_bindings",
           "supported_features",
           "calendar_tzdb_versions",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "receive_policy_constraints",
@@ -3862,7 +3853,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "did_document",
@@ -3881,7 +3872,7 @@
       "operation_id": "ak.root.identity.service_registration.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationResponseBody",
         "schema_kind": "object",
         "required": [
           "did_document",
@@ -3914,7 +3905,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponseBody",
         "schema_kind": "object",
         "required": [
           "revoked"
@@ -3941,7 +3932,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_response_body",
         "schema_kind": "object",
         "required": [
           "profile",
@@ -3968,7 +3959,7 @@
           "protocol_version",
           "supported_profiles",
           "supported_features",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "verified_profiles",
@@ -3987,7 +3978,7 @@
           "profile_bindings",
           "supported_features",
           "calendar_tzdb_versions",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "receive_policy_constraints",
@@ -4157,7 +4148,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body",
         "schema_kind": "object",
         "required": [
           "account_data_key",
@@ -4238,7 +4229,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
         "schema_kind": "oneOf",
         "required": [
           "event_kind",
@@ -4252,7 +4243,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
             "schema_kind": "object",
             "required": [
               "event_kind",
@@ -4267,7 +4258,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody",
             "schema_kind": "object",
             "required": [
               "event_kind",
@@ -4286,7 +4277,7 @@
       "operation_id": "ak.self.actor_profile.read.resolve.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
+        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -4299,7 +4290,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
+        "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body",
         "schema_kind": "object",
         "required": [
           "profiles"
@@ -4327,7 +4318,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
         "schema_kind": "object",
         "required": [
           "status"
@@ -4354,7 +4345,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
         "schema_kind": "object",
         "required": [
           "status"
@@ -4406,7 +4397,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
@@ -4415,7 +4406,7 @@
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
             "schema_kind": null,
             "required": [
               "controller_realm_id",
@@ -4427,7 +4418,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
             "schema_kind": null,
             "required": [
               "principal_control_realm_id",
@@ -4439,7 +4430,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
             "schema_kind": null,
             "required": [
               "principal_control_realm_id",
@@ -4451,7 +4442,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_response_body",
             "schema_kind": null,
             "required": [
               "principal_control_realm_id",
@@ -4479,7 +4470,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_response_body",
         "schema_kind": "object",
         "required": [
           "agent_id",
@@ -4517,7 +4508,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/operation_status_view",
         "schema_kind": "object",
         "required": [
           "status"
@@ -4532,7 +4523,7 @@
       "operation_id": "ak.self.agent.participation.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_response_body",
         "schema_kind": "object",
         "required": [
           "agent_id",
@@ -4549,7 +4540,7 @@
       "operation_id": "ak.self.agent.participation.resource.replace.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_participation_replace_request_body",
         "schema_kind": "object",
         "required": [
           "target_scope",
@@ -4564,7 +4555,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_response_body",
         "schema_kind": "object",
         "required": [
           "agent_id",
@@ -4581,7 +4572,7 @@
       "operation_id": "ak.self.agent.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_page",
         "schema_kind": "object",
         "required": [
           "agents",
@@ -4616,7 +4607,7 @@
       "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -4637,7 +4628,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -4658,7 +4649,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -4679,7 +4670,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -4700,7 +4691,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+        "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -4723,7 +4714,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
             "schema_kind": "object",
             "required": [
               "status",
@@ -4746,7 +4737,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
             "schema_kind": "object",
             "required": [
               "status",
@@ -4769,7 +4760,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
+            "schema_ref": "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_response_body",
             "schema_kind": "object",
             "required": [
               "status",
@@ -4798,7 +4789,7 @@
       "operation_id": "ak.self.agent.sidecar.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_page",
         "schema_kind": "object",
         "required": [
           "sidecars"
@@ -4854,7 +4845,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_response_body",
         "schema_kind": "object",
         "required": [
           "install_id",
@@ -4910,7 +4901,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_response_body",
         "schema_kind": "object",
         "required": [
           "operation_id",
@@ -4947,16 +4938,11 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_outcome",
-        "schema_kind": "object",
-        "required": [
-          "authoring_request"
-        ],
-        "properties": [
-          "authoring_request",
-          "existing_managed_actor"
-        ],
-        "closed": true
+        "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_response_body",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       }
     },
     {
@@ -4976,7 +4962,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
+        "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_response_body",
         "schema_kind": "object",
         "required": [
           "plan"
@@ -5008,7 +4994,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
+        "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_response_body",
         "schema_kind": "object",
         "required": [
           "revoke_plan"
@@ -5023,7 +5009,7 @@
       "operation_id": "ak.self.authz.grants.read.effective.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EffectiveGrantSnapshot",
         "schema_kind": "object",
         "required": [
           "grants",
@@ -5042,7 +5028,7 @@
       "operation_id": "ak.self.authz.invites.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
+        "schema_ref": "schemas/authorization-operations.schema.json#/$defs/authorization_invite_page",
         "schema_kind": "object",
         "required": [
           "invites",
@@ -5060,7 +5046,7 @@
       "operation_id": "ak.self.authz.read.check.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationCheckRequestBody",
         "schema_kind": "object",
         "required": [
           "actor_id",
@@ -5075,7 +5061,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationCheckResponseBody",
         "schema_kind": "object",
         "required": [
           "decision"
@@ -5116,7 +5102,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponseBody",
         "schema_kind": "object",
         "required": [
           "url",
@@ -5153,7 +5139,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome",
+        "schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_response_body",
         "schema_kind": "object",
         "required": [
           "blob_ref",
@@ -5195,7 +5181,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -5284,7 +5270,7 @@
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body",
         "schema_kind": "object",
         "required": [
           "circle_id"
@@ -5312,7 +5298,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
         "schema_kind": "object",
         "required": [
           "circle_id",
@@ -5342,7 +5328,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
         "schema_kind": "object",
         "required": [
           "circle_id",
@@ -5522,7 +5508,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_response_body",
         "schema_kind": "object",
         "required": [
           "accepted_for_processing"
@@ -5573,7 +5559,7 @@
       "operation_id": "ak.self.contact.command.reject.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -5593,7 +5579,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5614,7 +5600,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5635,7 +5621,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_reject_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -5646,7 +5632,7 @@
       "operation_id": "ak.self.contact.command.request.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -5667,7 +5653,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5689,7 +5675,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_operation_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5710,7 +5696,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -5721,72 +5707,14 @@
       "operation_id": "ak.self.contact.command.respond.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
-        "schema_kind": "oneOf",
-        "required": [
-          "phase",
-          "operation_id",
-          "idempotency_key"
-        ],
-        "properties": [
-          "phase",
-          "operation_id",
-          "idempotency_key",
-          "peer",
-          "request_event_ref",
-          "action",
-          "granted_to_peer_scopes",
-          "reservation_handle",
-          "signed_event"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
-            "schema_kind": "object",
-            "required": [
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "peer",
-              "request_event_ref",
-              "action",
-              "granted_to_peer_scopes"
-            ],
-            "properties": [
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "peer",
-              "request_event_ref",
-              "action",
-              "granted_to_peer_scopes"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_accept_request",
-            "schema_kind": "object",
-            "required": [
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "reservation_handle",
-              "signed_event"
-            ],
-            "properties": [
-              "phase",
-              "operation_id",
-              "idempotency_key",
-              "reservation_handle",
-              "signed_event"
-            ],
-            "closed": true
-          }
-        ]
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -5797,7 +5725,7 @@
       "operation_id": "ak.self.contact.command.scope_update.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -5819,7 +5747,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5844,7 +5772,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5865,7 +5793,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_scope_update_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -5876,7 +5804,7 @@
       "operation_id": "ak.self.contact.command.tombstone.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
         "schema_kind": "oneOf",
         "required": [
           "phase",
@@ -5898,7 +5826,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5923,7 +5851,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+            "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
             "schema_kind": "object",
             "required": [
               "phase",
@@ -5944,7 +5872,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_response_body",
         "schema_kind": null,
         "required": [],
         "properties": [],
@@ -5955,7 +5883,7 @@
       "operation_id": "ak.self.contact.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_page",
         "schema_kind": "object",
         "required": [
           "contacts",
@@ -5986,7 +5914,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_outcome",
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/current_principal_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -6004,10 +5932,10 @@
       }
     },
     {
-      "operation_id": "ak.self.current_results.read.exact.v1",
+      "operation_id": "ak.self.current_state.read.exact.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+        "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -6020,7 +5948,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+        "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -6039,7 +5967,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_result_present",
+            "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_present",
             "schema_kind": "object",
             "required": [
               "status",
@@ -6058,7 +5986,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_result_never_written",
+            "schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_never_written",
             "schema_kind": "object",
             "required": [
               "status",
@@ -6083,18 +6011,18 @@
       "operation_id": "ak.self.device_messages.command.ack.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementRequestBody",
         "schema_kind": "object",
         "required": [
-          "ack_token"
+          "acknowledgement_token"
         ],
         "properties": [
-          "ack_token"
+          "acknowledgement_token"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementResponseBody",
         "schema_kind": "object",
         "required": [
           "pruned_count"
@@ -6120,7 +6048,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody",
         "schema_kind": "object",
         "required": [
           "delivered",
@@ -6137,7 +6065,7 @@
       "operation_id": "ak.self.device_messages.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponseBody",
         "schema_kind": "object",
         "required": [
           "deliveries",
@@ -6145,7 +6073,7 @@
         ],
         "properties": [
           "deliveries",
-          "ack_token",
+          "acknowledgement_token",
           "next_cursor",
           "has_more",
           "limited",
@@ -6158,7 +6086,7 @@
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request",
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
         "schema_kind": "object",
         "required": [
           "peer"
@@ -6169,7 +6097,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+        "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
         "schema_kind": "oneOf",
         "required": [
           "state"
@@ -6189,7 +6117,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state",
@@ -6202,7 +6130,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state",
@@ -6215,7 +6143,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state"
@@ -6227,7 +6155,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state",
@@ -6246,7 +6174,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state",
@@ -6263,7 +6191,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state",
@@ -6279,7 +6207,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body",
             "schema_kind": null,
             "required": [
               "state"
@@ -6297,7 +6225,7 @@
       "operation_id": "ak.self.events.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
@@ -6401,7 +6329,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body",
         "schema_kind": "oneOf",
         "required": [
           "status"
@@ -6416,7 +6344,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
             "schema_kind": "oneOf",
             "required": [
               "status"
@@ -6429,7 +6357,7 @@
             "closed": true,
             "variants": [
               {
-                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
                 "schema_kind": "object",
                 "required": [
                   "status",
@@ -6442,7 +6370,7 @@
                 "closed": true
               },
               {
-                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
                 "schema_kind": "object",
                 "required": [
                   "status",
@@ -6534,7 +6462,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusResponseBody",
         "schema_kind": "object",
         "required": [
           "event_id",
@@ -6551,14 +6479,14 @@
       "operation_id": "ak.self.committed_event.read.scan.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
             "schema_kind": null,
             "required": [
               "after_position"
@@ -6567,7 +6495,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
             "schema_kind": null,
             "required": [
               "before_position"
@@ -6578,7 +6506,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
         "schema_kind": "object",
         "required": [
           "committed_events",
@@ -6759,7 +6687,7 @@
       "operation_id": "ak.self.identity.read.resolution_audit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request",
+        "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request_body",
         "schema_kind": "object",
         "required": [
           "account_id"
@@ -6816,7 +6744,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_response_body",
         "schema_kind": "object",
         "required": [
           "locator_id",
@@ -6848,7 +6776,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome",
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_response_body",
         "schema_kind": "object",
         "required": [
           "locator_id",
@@ -6879,7 +6807,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_response_body",
         "schema_kind": "object",
         "required": [
           "locator_id",
@@ -7020,7 +6948,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body",
         "schema_kind": "object",
         "required": [
           "status"
@@ -7155,14 +7083,14 @@
           "backup_kind",
           "backup_version",
           "series_id",
-          "series_seq",
+          "series_sequence",
           "created_at",
           "encryption",
           "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
-          "auth_data"
+          "signature_proof"
         ],
         "properties": [
           "backup_id",
@@ -7172,7 +7100,7 @@
           "mixed_secret_storage",
           "backup_version",
           "series_id",
-          "series_seq",
+          "series_sequence",
           "supersedes_id",
           "supersedes_digest",
           "source_commit_ref",
@@ -7186,7 +7114,7 @@
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",
-          "auth_data",
+          "signature_proof",
           "retention"
         ],
         "closed": true
@@ -7196,7 +7124,7 @@
       "operation_id": "ak.self.keys.backups.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
         "schema_kind": "object",
         "required": [
           "backups",
@@ -7244,14 +7172,14 @@
           "backup_kind",
           "backup_version",
           "series_id",
-          "series_seq",
+          "series_sequence",
           "created_at",
           "encryption",
           "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
-          "auth_data"
+          "signature_proof"
         ],
         "properties": [
           "backup_id",
@@ -7261,7 +7189,7 @@
           "mixed_secret_storage",
           "backup_version",
           "series_id",
-          "series_seq",
+          "series_sequence",
           "supersedes_id",
           "supersedes_digest",
           "source_commit_ref",
@@ -7275,13 +7203,13 @@
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",
-          "auth_data",
+          "signature_proof",
           "retention"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body",
         "schema_kind": "object",
         "required": [
           "status",
@@ -7311,7 +7239,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_response_body",
         "schema_kind": "object",
         "required": [
           "one_time_keys"
@@ -7365,7 +7293,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -7399,7 +7327,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_response_body",
         "schema_kind": "object",
         "required": [
           "consume_receipt"
@@ -7430,7 +7358,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_response_body",
         "schema_kind": "object",
         "required": [
           "revoked"
@@ -7457,7 +7385,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_response_body",
         "schema_kind": "object",
         "required": [
           "claim_request_id",
@@ -7504,7 +7432,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome",
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_response_body",
         "schema_kind": "object",
         "required": [
           "accepted"
@@ -7533,7 +7461,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_response_body",
         "schema_kind": "object",
         "required": [
           "device_keys"
@@ -7565,7 +7493,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_response_body",
         "schema_kind": "object",
         "required": [
           "one_time_key_counts"
@@ -7581,7 +7509,7 @@
       "operation_id": "ak.self.media.read.ice_config.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
+        "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_configuration_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7600,7 +7528,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/ice-config-response.schema.json",
+        "schema_ref": "schemas/media-ice-configuration-response-body.schema.json",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7634,7 +7562,7 @@
       "operation_id": "ak.self.media_service_binding.read.resolve.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body",
+        "schema_ref": "schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_request_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -7647,7 +7575,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome",
+        "schema_ref": "schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -7683,7 +7611,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody",
         "schema_kind": "object",
         "required": [
           "report_id"
@@ -7699,18 +7627,18 @@
       "operation_id": "ak.self.morph.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MorphPage",
         "schema_kind": "object",
         "required": [
           "realm_id",
           "morphs",
-          "total",
+          "total_count",
           "has_more"
         ],
         "properties": [
           "realm_id",
           "morphs",
-          "total",
+          "total_count",
           "next_cursor",
           "has_more"
         ],
@@ -7721,7 +7649,7 @@
       "operation_id": "ak.self.morph.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
+        "schema_ref": "schemas/view.schema.json#/$defs/document_morph_view",
         "schema_kind": "object",
         "required": [
           "document",
@@ -7754,7 +7682,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
+        "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_response_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7794,7 +7722,7 @@
       "operation_id": "ak.self.mls.read.group_state_material.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7824,7 +7752,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7833,9 +7761,9 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_bytes_b64",
+          "group_info_base64url",
           "ratchet_tree_ref",
-          "ratchet_tree_bytes_b64"
+          "ratchet_tree_base64url"
         ],
         "properties": [
           "realm_id",
@@ -7844,9 +7772,9 @@
           "epoch",
           "group_state_event_id",
           "group_info_ref",
-          "group_info_bytes_b64",
+          "group_info_base64url",
           "ratchet_tree_ref",
-          "ratchet_tree_bytes_b64"
+          "ratchet_tree_base64url"
         ],
         "closed": true
       }
@@ -7855,7 +7783,7 @@
       "operation_id": "ak.self.mls.read.roster_authority.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7877,7 +7805,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_response_body",
         "schema_kind": "object",
         "required": [
           "roster",
@@ -7919,7 +7847,7 @@
       "operation_id": "ak.self.realm.read.streams.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list",
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_page",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -7979,7 +7907,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_prepare_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8011,7 +7939,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8132,7 +8060,7 @@
       "operation_id": "ak.self.security_transaction.command.continue.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+        "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_transaction_continue_request_body",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -8184,7 +8112,7 @@
       "operation_id": "ak.self.security_transaction.command.create.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+        "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_transaction_create_request_body",
         "schema_kind": "oneOf",
         "required": [
           "transaction_id",
@@ -8204,7 +8132,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_create_request",
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_create_request_body",
             "schema_kind": "object",
             "required": [
               "transaction_id",
@@ -8223,7 +8151,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_create_request",
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_create_request_body",
             "schema_kind": "object",
             "required": [
               "transaction_id",
@@ -8341,7 +8269,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitResponseBody",
         "schema_kind": "object",
         "required": [
           "accepted",
@@ -8461,14 +8389,14 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+        "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_response_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+            "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_response_body",
             "schema_kind": null,
             "required": [
               "recipient_account_id"
@@ -8477,7 +8405,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+            "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_response_body",
             "schema_kind": null,
             "required": [
               "recipient_actor_id"
@@ -8492,18 +8420,18 @@
       "operation_id": "ak.self.space.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SpacePage",
         "schema_kind": "object",
         "required": [
           "realm_id",
           "spaces",
-          "total",
+          "total_count",
           "has_more"
         ],
         "properties": [
           "realm_id",
           "spaces",
-          "total",
+          "total_count",
           "next_cursor",
           "has_more"
         ],
@@ -8514,18 +8442,18 @@
       "operation_id": "ak.self.strand.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandPage",
         "schema_kind": "object",
         "required": [
           "realm_id",
           "strands",
-          "total",
+          "total_count",
           "has_more"
         ],
         "properties": [
           "realm_id",
           "strands",
-          "total",
+          "total_count",
           "next_cursor",
           "has_more"
         ],
@@ -8551,7 +8479,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -8565,7 +8493,7 @@
           "governance_generation",
           "stream_head",
           "selector",
-          "result"
+          "current_state"
         ],
         "closed": true,
         "variants": [
@@ -8596,14 +8524,14 @@
               "realm_id",
               "governance_generation",
               "stream_head",
-              "result"
+              "current_state"
             ],
             "properties": [
               "status",
               "realm_id",
               "governance_generation",
               "stream_head",
-              "result"
+              "current_state"
             ],
             "closed": true
           }
@@ -8631,7 +8559,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome",
+        "schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_response_body",
         "schema_kind": "object",
         "required": [
           "acceptance_attestation"
@@ -8656,7 +8584,7 @@
           "protocol_version",
           "supported_profiles",
           "supported_features",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "verified_profiles",
@@ -8675,7 +8603,7 @@
           "profile_bindings",
           "supported_features",
           "calendar_tzdb_versions",
-          "auth_metadata",
+          "authentication_metadata",
           "limits",
           "plaintext_visibility",
           "receive_policy_constraints",
@@ -8713,7 +8641,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome",
+        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_response_body",
         "schema_kind": "object",
         "required": [
           "authoring_request"
@@ -8728,7 +8656,7 @@
       "operation_id": "ak.self.applet.authority.read.material.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/request",
+        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/applet_authority_material_request_body",
         "schema_kind": "object",
         "required": [
           "effective_scope",
@@ -8741,7 +8669,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "applet_id",
@@ -8749,7 +8677,7 @@
           "effective_scope",
           "registration",
           "grant_events",
-          "current_results",
+          "current_states",
           "current_binding"
         ],
         "properties": [
@@ -8758,7 +8686,7 @@
           "effective_scope",
           "registration",
           "grant_events",
-          "current_results",
+          "current_states",
           "current_binding"
         ],
         "closed": true
@@ -8768,7 +8696,7 @@
       "operation_id": "ak.self.management_review.command.request.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_request_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8788,7 +8716,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8810,7 +8738,7 @@
       "operation_id": "ak.self.management_review.command.decide.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/decision",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_decision_request_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8826,7 +8754,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8848,7 +8776,7 @@
       "operation_id": "ak.self.management_review.read.status.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/lookup",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/management_review_status_request_body",
         "schema_kind": "object",
         "required": [
           "request_id"
@@ -8859,7 +8787,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -8894,7 +8822,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_response_body",
         "schema_kind": "object",
         "required": [
           "status"
@@ -8922,7 +8850,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_response_body",
         "schema_kind": "object",
         "required": [
           "status"
@@ -8962,7 +8890,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_decision",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -9002,7 +8930,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
         "schema_kind": "oneOf",
         "required": [
           "status",
@@ -9016,7 +8944,7 @@
           "governance_generation",
           "stream_head",
           "selector",
-          "result"
+          "current_state"
         ],
         "closed": true,
         "variants": [
@@ -9047,14 +8975,14 @@
               "realm_id",
               "governance_generation",
               "stream_head",
-              "result"
+              "current_state"
             ],
             "properties": [
               "status",
               "realm_id",
               "governance_generation",
               "stream_head",
-              "result"
+              "current_state"
             ],
             "closed": true
           }
@@ -9082,7 +9010,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -9128,7 +9056,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_response_body",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -9157,7 +9085,7 @@
       "operation_id": "ak.self.strand.watch.command.audit_read.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
         "schema_kind": "object",
         "required": [
           "audit_submission"
@@ -9168,7 +9096,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
         "schema_kind": "object",
         "required": [
           "audit_commit",
@@ -9185,14 +9113,14 @@
       "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request_body",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [],
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request_body",
             "schema_kind": null,
             "required": [
               "producer_device_evidence"
@@ -9201,7 +9129,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request_body",
             "schema_kind": null,
             "required": [
               "producer_agent_evidence"
@@ -9212,7 +9140,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_response_body",
         "schema_kind": "object",
         "required": [
           "audit_commit",
@@ -9229,7 +9157,7 @@
       "operation_id": "ak.peer.consent.command.proxy.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request",
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request_body",
         "schema_kind": "object",
         "required": [
           "holder_account_id",
@@ -9252,7 +9180,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_outcome",
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_response_body",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -9261,7 +9189,7 @@
           "effective_stream_head",
           "evaluated_at",
           "expires_at",
-          "outcome"
+          "response_body"
         ],
         "properties": [
           "request_digest",
@@ -9270,7 +9198,7 @@
           "effective_stream_head",
           "evaluated_at",
           "expires_at",
-          "outcome"
+          "response_body"
         ],
         "closed": true
       }
@@ -9279,7 +9207,7 @@
       "operation_id": "ak.peer.consent.command.publish_effects.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request_body",
         "schema_kind": "object",
         "required": [
           "holder_account_id",
@@ -9304,7 +9232,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome",
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_response_body",
         "schema_kind": "object",
         "required": [
           "request_digest",
@@ -9321,7 +9249,7 @@
       "operation_id": "ak.self.applet.configuration.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_request_body",
         "schema_kind": "object",
         "required": [
           "command",
@@ -9335,7 +9263,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -9345,7 +9273,7 @@
         "properties": [
           "request_id",
           "intent_digest",
-          "source_outcome",
+          "source_response_body",
           "admission_status",
           "review_request_id"
         ],
@@ -9356,7 +9284,7 @@
       "operation_id": "ak.peer.applet.configuration.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_request",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/peer_applet_configuration_request_body",
         "schema_kind": "object",
         "required": [
           "requester_account_id",
@@ -9369,7 +9297,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -9379,7 +9307,7 @@
         "properties": [
           "request_id",
           "intent_digest",
-          "source_outcome",
+          "source_response_body",
           "admission_status",
           "review_request_id"
         ],
@@ -9390,7 +9318,7 @@
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_request",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/applet_configuration_execution_request_body",
         "schema_kind": "object",
         "required": [
           "command",
@@ -9413,7 +9341,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_outcome",
+        "schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_response_body",
         "schema_kind": "object",
         "required": [
           "request_id",
@@ -9441,7 +9369,7 @@
       "operation_id": "ak.self.realm_actor.read.material.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
         "schema_kind": "oneOf",
         "required": [
           "actor_id",
@@ -9459,7 +9387,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
             "schema_kind": "object",
             "required": [
               "actor_id",
@@ -9476,7 +9404,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
             "schema_kind": "object",
             "required": [
               "actor_id",
@@ -9493,7 +9421,7 @@
             "closed": true
           },
           {
-            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/request",
+            "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_request_body",
             "schema_kind": "object",
             "required": [
               "actor_id",
@@ -9512,7 +9440,7 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -9526,7 +9454,7 @@
           "control_stream_head",
           "issued_at",
           "expires_at",
-          "result",
+          "material",
           "signature"
         ],
         "properties": [
@@ -9541,7 +9469,7 @@
           "control_stream_head",
           "issued_at",
           "expires_at",
-          "result",
+          "material",
           "signature"
         ],
         "closed": true
@@ -9551,7 +9479,7 @@
       "operation_id": "ak.peer.realm_actor.read.material.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_request",
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/peer_realm_actor_material_request_body",
         "schema_kind": "object",
         "required": [
           "requester_account_id",
@@ -9564,7 +9492,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/outcome",
+        "schema_ref": "schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -9578,7 +9506,7 @@
           "control_stream_head",
           "issued_at",
           "expires_at",
-          "result",
+          "material",
           "signature"
         ],
         "properties": [
@@ -9593,7 +9521,7 @@
           "control_stream_head",
           "issued_at",
           "expires_at",
-          "result",
+          "material",
           "signature"
         ],
         "closed": true
