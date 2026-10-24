@@ -76,6 +76,10 @@ def compare(expected: dict, actual: dict) -> list[str]:
 
 
 def published_v1_tags(root: Path) -> list[str]:
+    history = subprocess.run(['git', 'rev-parse', '--is-shallow-repository'], cwd=root,
+                             capture_output=True, text=True, encoding='utf-8', check=True)
+    if history.stdout.strip() != 'false':
+        raise ValueError('public member freeze requires full Git history and tags (fetch-depth: 0)')
     result = subprocess.run(['git', 'tag', '--list', 'v1.*'], cwd=root,
                             capture_output=True, text=True, encoding='utf-8', check=True)
     return sorted(tag for tag in result.stdout.splitlines()
@@ -83,12 +87,16 @@ def published_v1_tags(root: Path) -> list[str]:
 
 
 def check(root: Path = ROOT) -> list[str]:
+    try:
+        tags = published_v1_tags(root)
+    except ValueError as error:
+        return [str(error)]
     path=root/REFERENCE
     if not path.is_file():
         return ['public member contract is missing']
     expected=json.loads(path.read_text(encoding='utf-8'))
     errors=compare(expected,derive(root))
-    for tag in published_v1_tags(root):
+    for tag in tags:
         result = subprocess.run(['git', 'show', tag + ':' + REFERENCE], cwd=root,
                                 capture_output=True, text=True, encoding='utf-8')
         if result.returncode:

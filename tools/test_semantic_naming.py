@@ -12,6 +12,12 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_normative_ci_fetches_release_tags_and_full_history(self):
+        root = Path(__file__).resolve().parents[1]
+        for name in ('artifact-lint.yml', 'release-gate.yml'):
+            workflow = (root / '.github/workflows' / name).read_text(encoding='utf-8')
+            self.assertIn('uses: actions/checkout@v4\n        with:\n          fetch-depth: 0', workflow)
+
     def test_canonical_body_alias_cannot_reintroduce_an_equivalent_second_name(self):
         alias = {'$ref': './canonical.schema.json#/$defs/receipt', 'x-arkret-name-role': 'response_body'}
         self.assertTrue(canonical_body_alias_errors('issue_response_body', alias))
@@ -57,6 +63,10 @@ class SemanticNamingTests(unittest.TestCase):
             for command in commands:
                 subprocess.run(['git', *command], cwd=root, check=True, capture_output=True)
             self.assertEqual(check(root), [])
+            shallow = root / 'shallow'
+            subprocess.run(['git', 'clone', '--depth', '1', root.as_uri(), str(shallow)],
+                           check=True, capture_output=True)
+            self.assertTrue(any('full Git history and tags' in error for error in check(shallow)))
             schema.write_text(json.dumps({'type': 'object', 'properties': {'renamed': {'type': 'string'}}}), encoding='utf-8')
             reference.write_text(json.dumps(derive(root)), encoding='utf-8')
             self.assertTrue(any('v1.2.3 is immutable' in error for error in check(root)))
