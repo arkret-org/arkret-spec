@@ -283,7 +283,7 @@ current/event 的 head 必非 null。outcome 可在主体创建前恢复完整 l
 旧任期 Event 保留原签 Event／Commit，外层由当前治理方签，不能改写历史任期。
 
 current.entries 与请求 selector 一一同序、无遗漏无额外；每项为
-`{status:"present",row:TypedCurrentRow,source_ref:CommittedEventRef}` 或
+`{status:"present",row:CurrentState,source_ref:CommittedEventRef}` 或
 `{status:"never_written",selector}`。source_ref MUST 是同一读取事务中产生该 selector 当前值的真实
 原 accepted Event／Commit：stream_ref 逐字等于 row.source_stream_ref，且为目标 Realm 的 realm_control；
 commit_id／stream_position 逐字等于 row.revision，位置不得超过 control_stream_head。
@@ -291,7 +291,7 @@ commit_id／stream_position 逐字等于 row.revision，位置不得超过 contr
 不得猜 EventId、用控制流 head 替代或返回 never_written。多个初始化 selector 可以引用同一个 create，
 各项来源不必等于最新 head。source_ref 纳入既有整份材料签名与请求者、nonce、摘要、任期和窗口绑定；
 需要原件时，调用者使用原 event 分支以该完整引用读取并验签。该字段仅扩展私有 current entry，
-不扩展通用 TypedCurrentRow、公共读取、Device 披露或恢复资格，不新增接口、权限或审批。
+不扩展通用 CurrentState、公共读取、Device 披露或恢复资格，不新增接口、权限或审批。
 只有尚未授权 Device、从未有 revoke proposal、尚未创建 Profile 可 never_written；已撤销／fenced 行保留。
 identity／control／manager／双 status／generation／recovery 创建后必有，缺项 fail closed。
 event 返回原 event、commit、producer_signer_fact，逐项校原 target 与签名；不声称提供全流证明。

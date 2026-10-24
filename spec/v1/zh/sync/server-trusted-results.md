@@ -23,7 +23,7 @@ v1 保留三类可被 Account Station 转达的权威结果：
 
 - `RealmCommit`：证明 exact Event 已在某一 Realm/Circle/Sidecar stream 的唯一 position 被接纳；
 - `RealmStateSnapshot`：由其指定 authority generation 当时的治理 Station 签名确认同 cut 的内联 typed current rows、调用者获准 stream heads 与 history floors；当前 `/head` 必须属于当前任期，exact 历史 by-ref 可属于链内旧任期；
-- `TypedCurrentRow`：返回封闭 selector 的 current value 及最后影响它的 Commit revision。
+- `CurrentState`：返回封闭 selector 的 current value 及最后影响它的 Commit revision。
 
 服务不得返回一个既无 RealmCommit 又无 typed snapshot/current signature 绑定的 `accepted=true`。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.1",
+  "version": "2026-10-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-24T14:14:05+08:00",
+  "generated_at": "2026-10-24T16:52:58+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3305,7 +3305,7 @@
       "applies_to_fixtures": [
         "mimi-admission-guards-fixture.json"
       ],
-      "description": "The submit_message observer-role guard rejects before Event construction and every durable or external effect. Verified GroupInfo, current room binding and the sole group-id derivation from current accepted MlsGroupCurrent.effective_scope must agree; each mismatch has zero projection writes.",
+      "description": "The submit_message observer-role guard rejects before Event construction and every durable or external effect. Verified GroupInfo, current room binding and the sole group-id derivation from current accepted MlsGroupValue.effective_scope must agree; each mismatch has zero projection writes.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-admission-guards-fixture.json"
       ]

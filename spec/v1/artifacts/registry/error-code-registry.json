@@ -1,6 +1,7 @@
 {
-  "version": "2026-10-24.2",
-  "generated_at": "2026-10-24T14:46:12+08:00",
+  "version": "2026-10-24.3",
+  "generated_at": "2026-10-24T16:57:30+08:00",
+  "source_of_truth": true,
   "codes": [
     {
       "code": "json_invalid",
@@ -4309,7 +4310,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI facade found a governance binding, but its authenticated GroupInfo/GroupContext group id, room-binding group id, group id derived from current accepted MlsGroupCurrent.effective_scope, fixed binding fields, provider DID or target Realm/Strand do not agree. Receiver MUST quarantine or reject with zero projection writes. See zh/extensions/mimi-interop.md §4.1.",
+      "description": "A MIMI facade found a governance binding, but its authenticated GroupInfo/GroupContext group id, room-binding group id, group id derived from current accepted MlsGroupValue.effective_scope, fixed binding fields, provider DID or target Realm/Strand do not agree. Receiver MUST quarantine or reject with zero projection writes. See zh/extensions/mimi-interop.md §4.1.",
       "status": "active"
     },
     {

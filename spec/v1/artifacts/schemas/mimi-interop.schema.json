@@ -413,7 +413,7 @@
             },
             "mls_group_id": {
               "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
-              "description": "For E2EE projection this value MUST equal the authenticated RFC 9420 GroupInfo/GroupContext group id and the sole group id derived from the current accepted MlsGroupCurrent.effective_scope. The five-field governance binding has no mls_group_id member; see zh/extensions/mimi-interop.md §4 and zh/models/realm-and-space.md §2.2."
+              "description": "For E2EE projection this value MUST equal the authenticated RFC 9420 GroupInfo/GroupContext group id and the sole group id derived from the current accepted MlsGroupValue.effective_scope. The five-field governance binding has no mls_group_id member; see zh/extensions/mimi-interop.md §4 and zh/models/realm-and-space.md §2.2."
             },
             "content_profile": {
               "type": "string",

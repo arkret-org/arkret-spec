@@ -77,9 +77,18 @@ def member_role_errors(name: str, node: dict) -> list[str]:
 
 
 def canonical_body_alias_errors(name: str, node: dict) -> list[str]:
-    annotations = {'$ref', 'title', 'description', '$comment', 'x-arkret-name-role'}
+    annotations = {'title', 'description', '$comment', 'x-arkret-name-role'}
+    def transparent_reference(shape):
+        assertions = {key: value for key, value in shape.items() if key not in annotations}
+        if set(assertions) == {'$ref'}:
+            return isinstance(assertions['$ref'], str)
+        for operator in ('allOf', 'anyOf', 'oneOf'):
+            branches = assertions.get(operator)
+            if set(assertions) == {operator} and isinstance(branches, list) and len(branches) == 1 and isinstance(branches[0], dict):
+                return transparent_reference(branches[0])
+        return False
     normalized = snake(name) if name[:1].isupper() else name
-    if normalized.endswith(('_request_body', '_response_body')) and '$ref' in node and not (set(node) - annotations):
+    if normalized.endswith(('_request_body', '_response_body')) and transparent_reference(node):
         return ['use the canonical referenced type directly instead of a duplicate Body alias']
     return []
 
@@ -124,7 +133,19 @@ def capture_member_reference_errors(text: str) -> list[str]:
     return errors
 
 
+def retired_contract_reference_errors(text: str) -> list[str]:
+    replacements = {'MlsGroupCurrent': 'MlsGroupValue', 'TypedCurrentRow': 'CurrentState',
+                    'AccountCurrentView': 'AccountStateView'}
+    return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
+            if re.search(r'\b' + old + r'\b', text)]
+
+
 def check_semantic_naming(lint: Lint) -> None:
+    text_paths = sorted((ROOT / 'spec/v1/zh').rglob('*.md'))
+    text_paths += sorted(ARTIFACTS.rglob('*.json'))
+    for path in text_paths:
+        for error in retired_contract_reference_errors(path.read_text(encoding='utf-8')):
+            lint.fail(path, error)
     for relative in ('crypto-media/call-state.md', 'crypto-media/bindings/livekit.md'):
         path = ROOT / 'spec/v1/zh' / relative
         for error in capture_member_reference_errors(path.read_text(encoding='utf-8')):

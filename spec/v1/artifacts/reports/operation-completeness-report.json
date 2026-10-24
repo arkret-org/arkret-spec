@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-24.2",
+  "version": "2026-10-24.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-24T15:53:32+08:00",
+  "generated_at": "2026-10-24T16:52:58+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"

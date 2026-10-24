@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-24.1",
-  "generated_at": "2026-10-24T15:53:32+08:00",
+  "version": "2026-10-24.2",
+  "generated_at": "2026-10-24T16:49:37+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -193,7 +193,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
-      "sha256": "sha256:62cacd33250c13177a7c7a37902bdc619b446ae2da57e2919dd2b1f0704670fb"
+      "sha256": "sha256:f41f9f06498c6a80f7550a8de06631c7b93cf633f02636ade91e922e62878a01"
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
@@ -213,7 +213,7 @@
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",
-      "sha256": "sha256:03ac1800198666e1e9370cb8bd522679496ccc937d333780fbd069c77394e03d"
+      "sha256": "sha256:5eb33c88de30bd6e86d06dd0d22f877c5fcd698947420b25b131a22b19928055"
     },
     {
       "operation_id": "ak.open.realm_authority.read.bundle.v1",

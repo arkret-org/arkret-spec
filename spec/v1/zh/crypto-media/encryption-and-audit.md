@@ -418,7 +418,7 @@ membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
 每个 scope 的 public current state 是：
 
 ```text
-MlsGroupCurrent {
+MlsGroupValue {
   effective_scope
   genesis_event_ref
   cipher_suite
