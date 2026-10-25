@@ -54,7 +54,7 @@ class OperationErrorMappingAliasTest(unittest.TestCase):
                 self.assertTrue(any("cursor recovery errors missing" in error for error in errors), errors)
 
     def test_explicit_non_enumerating_not_found_cannot_be_omitted(self) -> None:
-        for identifier in ("ak.open.agent_pairing.read.runtime_key_request_status.v1", "ak.open.identity.read.resolution.v1", "ak.peer.strand.watch.read.current.v1"):
+        for identifier in ("ak.open.agent_pairing.read.runtime_key_request_status.v1", "ak.open.identity.read.resolution.v1", "ak.peer.strand.watch.read.current.v1", "ak.edge.applet.third_party_users.read.list.v1", "ak.self.realm_actor.read.material.v1"):
             with self.subTest(operation=identifier):
                 def mutate(mapping: dict) -> None:
                     row = next(row for row in mapping["operations"] if row["operation_id"] == identifier)

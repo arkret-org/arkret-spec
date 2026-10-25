@@ -671,14 +671,16 @@ GET /_arkret/edge/applet/protocols/{protocol}
 ### 7.7 Third-Party Lookup
 
 ```text
-GET /_arkret/edge/applet/third_party/users?protocol=slack&team=T123&user=U123
+GET /_arkret/edge/applet/third_party/users?applet_id=ak%3Aapplet%3A01904100-0000-7000-8000-000000000001&realm_id=ak%3Arealm%3AAcDBmaLJmexYp8de9kbZez_sjHqo3WTTKGdS8F_Tamb6&protocol=slack&instance_id=T123&external_id=U123
 ```
 
 ```text
-GET /_arkret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=C456
+GET /_arkret/edge/applet/third_party/locations?protocol=slack&external_id=C456
 ```
 
 用于把外部用户或 location 映射到 Arkret actor / portal Realm。
+
+用户查询 MUST 逐项绑定 §7 operation 目录的完整 Realm／Applet／external tuple。已认证来源缺少精确披露资格、旧 manager 或不可见目标 MUST 使用相同 `not_found` 外观；不得用 `exists=false` 代替权限失败。只有合格精确查询确认无映射时才返回 `exists=false`。原生材料缺失仍返回 unavailable，不伪造缺失结论或空成功。
 
 ## 8. Applet 写入 Arkret
 

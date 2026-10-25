@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-25.1",
-      "generated_at": "2026-10-25T06:36:16+08:00",
-      "content_digest": "sha256:75c82302517f3508b71c39da37ddcb26a911e4ff752f32a83ba18bab52978d59"
+      "version": "2026-10-25.2",
+      "generated_at": "2026-10-25T17:16:52+08:00",
+      "content_digest": "sha256:e5ef3e715963c210a01c4b687ab4759ce3c234ca0b3bb22d9ad3a64ec9a95f04"
     },
     {
       "path": "spec/v1/artifacts/registry/current-state-registry.json",
@@ -237,21 +237,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-25.3",
-      "generated_at": "2026-10-25T06:36:18+08:00",
-      "content_digest": "sha256:79a142d7a22d71448c99a72f2919f4e2cedb5097bd776a65004669f927be56e7"
+      "version": "2026-10-25.4",
+      "generated_at": "2026-10-25T06:36:19+08:00",
+      "content_digest": "sha256:4b6d8cbd1c93efbe774f397bb8e986aeb04f0947dd2c6679f288293047273c78"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-25.1",
-      "generated_at": "2026-10-25T06:40:18+08:00",
-      "content_digest": "sha256:b21c45e0675634b0c77663d2562a1479508beddcfd4dafda265724dab1e2a53a"
+      "version": "2026-10-25.2",
+      "generated_at": "2026-10-25T17:16:52+08:00",
+      "content_digest": "sha256:e518759a1a06b07ca2aefdd60d3150eca86550b99ff99d57c6d4d29c66b4eda7"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-10-25.2",
-      "generated_at": "2026-10-25T13:44:06+08:00",
-      "content_digest": "sha256:0ec5572e9c898fa26745e8b256449c907b3de9aa360e6b8365e3199b8f9240ed"
+      "version": "2026-10-25.3",
+      "generated_at": "2026-10-25T17:16:52+08:00",
+      "content_digest": "sha256:2b531415aca60f357f32b37d1e46fc672edfe4f24bc78903d0ff1a03d70c1de1"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",

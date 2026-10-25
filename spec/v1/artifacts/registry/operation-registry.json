@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-25.1",
+  "version": "2026-10-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-25T06:40:18+08:00",
+  "generated_at": "2026-10-25T17:16:52+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -668,7 +668,7 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body",
-      "notes": "Exact private Ghost lookup keyed by applet_id, realm_id, protocol, instance_id and external_id; query shape is schemas/applet-edge-operations.schema.json#/$defs/third_party_user_query. Source Service must be the verified current governor of that Realm, with the exact Applet installation and disclosure right. Returned Realm actor must match the same tuple and owning Realm; Applet response is not authority to create or rebind it. No wildcard, cross-Realm lookup or list enumeration."
+      "notes": "Exact private Ghost lookup keyed by applet_id, realm_id, protocol, instance_id and external_id; query shape is schemas/applet-edge-operations.schema.json#/$defs/third_party_user_query. Source Service must be the verified current governor of that Realm, with the exact Applet installation and disclosure right. Returned Realm actor must match the same tuple and owning Realm; Applet response is not authority to create or rebind it. No wildcard, cross-Realm lookup or list enumeration. Authenticated sources without exact disclosure rights and obsolete managers receive uniform not_found, never exists=false. Only qualified genuine absence may return exists=false; unavailable native material remains unavailable."
     },
     {
       "operation_id": "ak.edge.push.command.apply_registration.v1",
@@ -4522,7 +4522,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. Real Accounts use their own Account Station, with exact audit authority; foreign governance is reached only through ak.peer.realm_actor.read.material.v1 and final local credential delivery validation.",
+      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. Real Accounts use their own Account Station, with exact audit authority; foreign governance is reached only through ak.peer.realm_actor.read.material.v1 and final local credential delivery validation. Unknown or invisible targets and authenticated callers without exact disclosure/audit rights return uniform not_found. Credential and signature failures retain their universal errors; missing native originals remain unavailable rather than an empty success.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
