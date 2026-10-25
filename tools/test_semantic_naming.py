@@ -40,6 +40,25 @@ class SemanticNamingTests(unittest.TestCase):
             check_fixture_schema_references(lint, owner, {"expected": {"extensions_schema_ref": ref}})
             self.assertTrue(lint.errors, ref)
 
+    def test_http_failure_response_cannot_claim_an_empty_or_legacy_body(self):
+        from .artifact_lint.semantic_naming import http_problem_response_errors
+        base = {'paths': {'/_arkret/self/signal/subscribe': {'get': {'responses': {
+            '200': {'description': 'stream'}, '403': {'description': 'denied'}}}}}}
+        self.assertTrue(http_problem_response_errors(base))
+        content = {'application/problem+json': {'schema': {'$ref': '#/components/schemas/Problem'}}}
+        valid = copy.deepcopy(base)
+        valid['paths']['/_arkret/self/signal/subscribe']['get']['responses']['403']['content'] = content
+        self.assertEqual(http_problem_response_errors(valid), [])
+        invalid = copy.deepcopy(valid)
+        invalid['paths']['/_arkret/self/signal/subscribe']['get']['responses']['403']['content']['application/json'] = content['application/problem+json']
+        self.assertTrue(http_problem_response_errors(invalid))
+        linked = copy.deepcopy(base)
+        linked['components'] = {'responses': {'Denied': {'description': 'denied'}}}
+        linked['paths']['/_arkret/self/signal/subscribe']['get']['responses']['403'] = {'$ref': '#/components/responses/Denied'}
+        self.assertTrue(http_problem_response_errors(linked))
+        linked['components']['responses']['Denied']['content'] = content
+        self.assertEqual(http_problem_response_errors(linked), [])
+
     def test_unknown_role_annotations_cannot_silently_disable_constraints(self):
         for role in ('snaphot', 'made_up_view', None, ['view']):
             self.assertTrue(type_role_errors('OwnerView', {'x-arkret-name-role': role}), role)

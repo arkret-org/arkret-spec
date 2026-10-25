@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:17111b0454ab3d1451db3ba67492d07221f9178539c709f5ae26954302ef3d73",
+  "contract_digest": "sha256:0f8dbbfeec6c54df1b8cb9890609c1065bc4ff8d1c7942873113a0b33be6f0fe",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -113370,7 +113370,14 @@
               }
             },
             "400": {
-              "description": "param_missing when a shared multi-role binding requires service_kind; param_invalid for an illegal or unavailable role."
+              "description": "param_missing when a shared multi-role binding requires service_kind; param_invalid for an illegal or unavailable role.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "404": {
               "$ref": "#/components/responses/NotFound"
@@ -114776,7 +114783,14 @@
               }
             },
             "404": {
-              "description": "`not_found` — no such accepted Event, or the caller may not know it exists."
+              "description": "`not_found` — no such accepted Event, or the caller may not know it exists.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -116101,13 +116115,34 @@
               "description": "Opaque request takeover result. It does not reveal whether any\nRealm, scope, sender, binding or recipient exists and does not\npromise delivery. Successful responses have no body.\n"
             },
             "400": {
-              "description": "Malformed or cross-Realm relay request."
+              "description": "Malformed or cross-Realm relay request.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "403": {
-              "description": "Unified minimally disclosing outer peer authentication, trust-domain,\ndestination-endpoint or request-policy rejection. Per-envelope\nsender/member binding and delivery-policy failures are silently\ndropped behind the opaque 200 outcome.\n"
+              "description": "Unified minimally disclosing outer peer authentication, trust-domain,\ndestination-endpoint or request-policy rejection. Per-envelope\nsender/member binding and delivery-policy failures are silently\ndropped behind the opaque 200 outcome.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "413": {
-              "description": "Canonical request body exceeds 1 MiB."
+              "description": "Canonical request body exceeds 1 MiB.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -116171,10 +116206,24 @@
               }
             },
             "400": {
-              "description": "`param_invalid` or `schema_violation` — malformed envelope, expired\nsignal, or TTL/body above the hard ceiling.\n"
+              "description": "`param_invalid` or `schema_violation` — malformed envelope, expired\nsignal, or TTL/body above the hard ceiling.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "403": {
-              "description": "`capability_denied` or `policy_violation` — caller cannot send the\ndeclared signal_class in the signed scope.\n"
+              "description": "`capability_denied` or `policy_violation` — caller cannot send the\ndeclared signal_class in the signed scope.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -116227,7 +116276,14 @@
               }
             },
             "403": {
-              "description": "`capability_denied` or `policy_violation` — the authenticated device\nhas no eligible encrypted Signal scope.\n"
+              "description": "`capability_denied` or `policy_violation` — the authenticated device\nhas no eligible encrypted Signal scope.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -116285,13 +116341,34 @@
               }
             },
             "403": {
-              "description": "`capability_denied` — actor lacks `ak.call.join` or\nrequested `desired_media` exceeds granted sub-capabilities; or\n`token_issuer_unauthorised` when the issuing DID is not registered\nin `ak.realm.media_service.service_id`.\n"
+              "description": "`capability_denied` — actor lacks `ak.call.join` or\nrequested `desired_media` exceeds granted sub-capabilities; or\n`token_issuer_unauthorised` when the issuing DID is not registered\nin `ak.realm.media_service.service_id`.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "409": {
-              "description": "`focus_mismatch` — requested `focus_id` differs from the\nalready-committed `ak.call.state.session_focus`; clients MUST\nre-target the established focus rather than retrying; or\n`mls_governance_binding_stale` — the current MLS group has not yet\ncovered its current key_access_revision; or\n`media_plaintext_service_not_authorised` for SFUs negotiating\ndecryption role without `plaintext_visible_services` entry.\n"
+              "description": "`focus_mismatch` — requested `focus_id` differs from the\nalready-committed `ak.call.state.session_focus`; clients MUST\nre-target the established focus rather than retrying; or\n`mls_governance_binding_stale` — the current MLS group has not yet\ncovered its current key_access_revision; or\n`media_plaintext_service_not_authorised` for SFUs negotiating\ndecryption role without `plaintext_visible_services` entry.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "422": {
-              "description": "`unknown_focus_type` — `focus_id` resolves to a `foci[]` entry\nwhose `type` is unsupported by this token issuer; or\n`media_service_foci_required` when `ak.realm.media_service` does\nnot declare explicit media foci.\n"
+              "description": "`unknown_focus_type` — `focus_id` resolves to a `foci[]` entry\nwhose `type` is unsupported by this token issuer; or\n`media_service_foci_required` when `ak.realm.media_service` does\nnot declare explicit media foci.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -118518,10 +118595,24 @@
               }
             },
             "403": {
-              "description": "`capability_denied` — caller lacks `ak.self.blob.command.presign.v1` for this\nblob or this purpose; or the grant's TTL constraint forbids the\nrequested `max_age_seconds`; or the target is a routing-unlinkable\nRealm-owned blob for which bearer presign is forbidden by\nmedia-and-blob.md §5.4.4.1.\n"
+              "description": "`capability_denied` — caller lacks `ak.self.blob.command.presign.v1` for this\nblob or this purpose; or the grant's TTL constraint forbids the\nrequested `max_age_seconds`; or the target is a routing-unlinkable\nRealm-owned blob for which bearer presign is forbidden by\nmedia-and-blob.md §5.4.4.1.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             },
             "404": {
-              "description": "`not_found` — blob does not exist or is not visible to the\ncaller. MUST NOT differentiate between non-existence and lack of\nvisibility.\n"
+              "description": "`not_found` — blob does not exist or is not visible to the\ncaller. MUST NOT differentiate between non-existence and lack of\nvisibility.\n",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           }
         }
@@ -125852,7 +125943,14 @@
               }
             },
             "409": {
-              "description": "Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)"
+              "description": "Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           },
           "requestBody": {
@@ -126590,7 +126688,14 @@
               }
             },
             "404": {
-              "description": "Indistinguishable not_found for Human PCR and unknown or unavailable public authority material."
+              "description": "Indistinguishable not_found for Human PCR and unknown or unavailable public authority material.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
             }
           },
           "security": []

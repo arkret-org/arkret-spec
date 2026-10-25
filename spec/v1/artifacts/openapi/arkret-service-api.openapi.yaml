@@ -1409,6 +1409,10 @@ paths:
         '400':
           description: param_missing when a shared multi-role binding requires service_kind; param_invalid for an
             illegal or unavailable role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '404':
           $ref: '#/components/responses/NotFound'
         '405':
@@ -2303,6 +2307,10 @@ paths:
                 $ref: '#/components/schemas/EventDeliveryStatusResponseBody'
         '404':
           description: '`not_found` — no such accepted Event, or the caller may not know it exists.'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/committed-events/subscribe:
     get:
       operationId: ak.self.committed_event.stream.subscribe
@@ -3375,6 +3383,10 @@ paths:
             '
         '400':
           description: Malformed or cross-Realm relay request.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '403':
           description: 'Unified minimally disclosing outer peer authentication, trust-domain,
 
@@ -3385,8 +3397,16 @@ paths:
             dropped behind the opaque 200 outcome.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '413':
           description: Canonical request body exceeds 1 MiB.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/signal:
     post:
       operationId: ak.self.signal.command.send
@@ -3442,12 +3462,20 @@ paths:
             signal, or TTL/body above the hard ceiling.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '403':
           description: '`capability_denied` or `policy_violation` — caller cannot send the
 
             declared signal_class in the signed scope.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/signal/subscribe:
     get:
       operationId: ak.self.signal.stream.subscribe
@@ -3496,6 +3524,10 @@ paths:
             has no eligible encrypted Signal scope.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/rtc/token:
     post:
       operationId: ak.self.call.media.exchange.issue_token
@@ -3569,6 +3601,10 @@ paths:
             in `ak.realm.media_service.service_id`.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '409':
           description: '`focus_mismatch` — requested `focus_id` differs from the
 
@@ -3585,6 +3621,10 @@ paths:
             decryption role without `plaintext_visible_services` entry.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '422':
           description: '`unknown_focus_type` — `focus_id` resolves to a `foci[]` entry
 
@@ -3595,6 +3635,10 @@ paths:
             not declare explicit media foci.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/account/viewer:
     get:
       operationId: ak.self.account.read.viewer
@@ -5313,6 +5357,10 @@ paths:
             media-and-blob.md §5.4.4.1.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '404':
           description: '`not_found` — blob does not exist or is not visible to the
 
@@ -5321,6 +5369,10 @@ paths:
             visibility.
 
             '
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/edge/push/registrations:apply:
     post:
       operationId: ak.edge.push.command.apply_registration
@@ -10931,6 +10983,10 @@ paths:
         '409':
           description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid,
             etc.)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       requestBody:
         required: true
         content:
@@ -11442,6 +11498,10 @@ paths:
                 $ref: ../schemas/realm-authority-bundle.schema.json
         '404':
           description: Indistinguishable not_found for Human PCR and unknown or unavailable public authority material.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       security: []
   /_arkret/peer/streams/scan:
     post:

@@ -243,6 +243,37 @@ def retired_contract_reference_errors(text: str) -> list[str]:
             if re.search(r'\b' + old + r'\b', text)]
 
 
+def http_problem_response_errors(document: dict) -> list[str]:
+    errors = []
+    methods = {'get', 'post', 'put', 'patch', 'delete', 'query', 'options'}
+    for path, item in document.get('paths', {}).items():
+        if not isinstance(item, dict):
+            continue
+        for method, operation in item.items():
+            if method not in methods or not isinstance(operation, dict):
+                continue
+            for status, response in operation.get('responses', {}).items():
+                if str(status) != 'default' and not (str(status).isdigit() and 400 <= int(status) < 600):
+                    continue
+                seen = set()
+                try:
+                    while isinstance(response, dict) and '$ref' in response:
+                        ref = response['$ref']
+                        if not isinstance(ref, str) or ref in seen or not ref.startswith('#/'):
+                            raise ValueError('unresolved or cyclic response reference')
+                        seen.add(ref)
+                        response = resolve_json_pointer(document, ref)
+                except (KeyError, IndexError, ValueError, TypeError):
+                    errors.append(f'{method.upper()} {path} {status}: failure response reference does not resolve')
+                    continue
+                content = response.get('content', {}) if isinstance(response, dict) else {}
+                media = content.get('application/problem+json', {}) if isinstance(content, dict) else {}
+                if (not isinstance(content, dict) or set(content) != {'application/problem+json'}
+                        or not isinstance(media, dict) or not isinstance(media.get('schema'), dict) or not media['schema']):
+                    errors.append(f'{method.upper()} {path} {status}: HTTP failures must declare only application/problem+json with a nonempty schema')
+    return errors
+
+
 def check_semantic_naming(lint: Lint) -> None:
     try:
         from tools.public_type_duplicates import check as check_duplicates
@@ -267,6 +298,8 @@ def check_semantic_naming(lint: Lint) -> None:
         if not isinstance(document,dict):
             continue
         if path.suffix == '.yaml':
+            for error in http_problem_response_errors(document):
+                lint.fail(path, error)
             for error in openapi_component_alias_errors(document.get('components', {}).get('schemas', {})):
                 lint.fail(path, error)
         def role_shape(node, seen=None, context_path=path, context_document=document):
