@@ -53,6 +53,20 @@ class OperationErrorMappingAliasTest(unittest.TestCase):
                 errors = self.run_gate(mutate)
                 self.assertTrue(any("cursor recovery errors missing" in error for error in errors), errors)
 
+    def test_explicit_non_enumerating_not_found_cannot_be_omitted(self) -> None:
+        for identifier in ("ak.open.agent_pairing.read.runtime_key_request_status.v1", "ak.open.identity.read.resolution.v1", "ak.peer.strand.watch.read.current.v1"):
+            with self.subTest(operation=identifier):
+                def mutate(mapping: dict) -> None:
+                    row = next(row for row in mapping["operations"] if row["operation_id"] == identifier)
+                    row["operation_specific"].remove("not_found")
+                self.assertTrue(any("explicit domain error mapping missing" in error for error in self.run_gate(mutate)))
+
+    def test_explicit_revision_unavailable_cannot_be_omitted(self) -> None:
+        def mutate(mapping: dict) -> None:
+            row = next(row for row in mapping["operations"] if row["operation_id"] == "ak.peer.strand.watch.read.current.v1")
+            row["operation_specific"].remove("revision_unavailable")
+        self.assertTrue(any("explicit domain error mapping missing: revision_unavailable" in error for error in self.run_gate(mutate)))
+
     def test_retired_alias_is_rejected(self) -> None:
         def mutate(mapping: dict) -> None:
             row = next(

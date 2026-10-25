@@ -372,6 +372,14 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
             for row in op_registry.get("operations", [])
             if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
         }
+        registry_notes = {row["operation_id"]: row.get("notes", "") for row in op_registry.get("operations", []) if isinstance(row, dict) and "operation_id" in row}
+        for row in operations:
+            if not isinstance(row, dict):
+                continue
+            prose = registry_notes.get(row.get("operation_id"), "") + " " + row.get("description", "")
+            for required_code in ("not_found", "revision_unavailable"):
+                if re.search(rf"(?<![a-z_]){required_code}(?![a-z_])", prose) and required_code not in row.get("operation_specific", []):
+                    lint.fail(mapping_path, f"explicit domain error mapping missing: {required_code} for {row.get('operation_id')}")
         registry_ids = set(registry_http)
         mapping_counts: dict[str, int] = {}
         for row in operations:

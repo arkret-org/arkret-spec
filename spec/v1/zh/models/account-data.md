@@ -73,7 +73,7 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id
 
 `holder_event` writer 的 `ak.account_data.set` payload MUST 携带 `expected_server_revision`。只有 registry row 的 `holder_self_operations` 显式包含相应操作时，`ak.self.account_data.resource.replace.v1` / `.delete` 才可用于该 key；其 request body 只承载一个 signed `ak.account_data.set` Event，`expected_server_revision` 因此始终取自该 Event 的 payload，没有并行的 query 参数入口。`station_cas` writer 从其受限内部投递事务携带同名 `expected_server_revision`，不得构造 holder Event，也不得经 self PUT/DELETE surface 暴露为客户端可写。创建一个从未写入的 key 使用 `expected_server_revision=0`。该整数是 account-private `server_revision_cas` 的唯一名称；shared Realm current state 的 `expected_revision{commit_id, stream_position}` 是另一合同，二者不得互换、别名、双写或在验签后改名。
 
-服务端 MUST 在同一 key 上原子地比较并写入：`expected_server_revision` 不等于当前 `revision` 时 MUST 以 `cas_conflict` 拒绝，MUST NOT 存储任何内容、MUST NOT 推进 `revision`，也 MUST NOT 向其它设备 fanout。因此设备 A 的旧字节级 retry 在设备 B 的新写之后必然失败，而不是把 key 整体退回旧值。
+服务端 MUST 先按 [actor-private-effects.md §2](actor-private-effects.md#2-共同事务规则) 与 canonical `exact_retry` 合同处理已接受 Event 的精确重试：相同 Event ID 与相同 canonical Event bytes MUST 返回首次保存的 revision 和 outcome，MUST NOT 重写当前值、推进 revision 或重复 fanout；即使另一设备已接受后继写入，也不得把旧 outcome 重新应用到当前值。未命中该已接受 Event outcome 的新写入，MUST 在同一 key 上原子地比较并写入：`expected_server_revision` 不等于当前 `revision` 时 MUST 以 `cas_conflict` 拒绝，MUST NOT 存储任何内容、MUST NOT 推进 `revision`，也 MUST NOT 向其它设备 fanout。因此携带过期 revision 的不同 Event 必然失败；旧 Event 的精确重试只返回原 outcome，不会把 key 整体退回旧值。
 
 ### 5.2 冲突响应与客户端重试
 

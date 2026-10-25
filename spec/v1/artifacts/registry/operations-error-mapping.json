@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-10-25.1",
+  "version": "2026-10-25.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-10-25T06:36:16+08:00",
+  "generated_at": "2026-10-25T13:44:06+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -35,8 +35,10 @@
     {
       "operation_id": "ak.edge.applet.actor.read.resolve.v1",
       "http_alias": "GET /_arkret/edge/applet/actors/{actor_id}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract.",
       "codes": []
     },
     {
@@ -193,7 +195,8 @@
       "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
       "http_alias": "POST /_arkret/gate/account/device-pairing/finalizations",
       "operation_specific": [
-        "proof_invalid"
+        "proof_invalid",
+        "not_found"
       ],
       "description": "Unknown device_pairing_request_id, a pairing_code mismatch, an expired record and a record that is no longer staged MUST all return the same not_found, so this authenticated surface stays as unenumerable as the anonymous resolve. A schema-valid target proof that fails Ed25519 decoding, signature verification, transcript reconstruction, or whose signed account_id is not byte-equal to the AccountId the presented account handoff is bound to, returns failed_precondition with reason_code proof_invalid. Missing required members remain schema_violation. The same request id replayed with different canonical content returns duplicate_conflict and MUST NOT re-attach a proof. After an id locates a retained record, code/account/transcript/signature/proof/state failures count against its private ten-failure budget without changing any of those public errors; an unknown id and a byte-identical successful retry do not count, and the tenth failure atomically expires a pending record.",
       "codes": []
@@ -381,8 +384,10 @@
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
       "http_alias": "POST /_arkret/gate/account/device-pairing/code-claims",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. An unknown code, a wrong code, an expired record, a record belonging to another AccountId, a record that is not yet finalized and an already consumed record MUST all return the same not_found; an error shape MUST NOT reveal whether a code exists, which account it belongs to or which device it describes. Exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited. A code that locates no exact retained request creates no per-request counter row; after an exact lookup succeeds, account/gate/proof/staged-material/state failures count privately, and the tenth atomically expires and consumes the pending request while the reply remains the same not_found.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. An unknown code, a wrong code, an expired record, a record belonging to another AccountId, a record that is not yet finalized and an already consumed record MUST all return the same not_found; an error shape MUST NOT reveal whether a code exists, which account it belongs to or which device it describes. Exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited. A code that locates no exact retained request creates no per-request counter row; after an exact lookup succeeds, account/gate/proof/staged-material/state failures count privately, and the tenth atomically expires and consumes the pending request while the reply remains the same not_found.",
       "codes": []
     },
     {
@@ -396,23 +401,28 @@
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "operation_specific": [
-        "agent_runtime_request_conflict"
+        "agent_runtime_request_conflict",
+        "not_found"
       ],
-      "description": "A same-binding retry is idempotent and retains the approval_request_id and notification id. A different stable ak.agent.runtime_key_binding.v1 digest on the same open pairing_request_id returns HTTP 409 agent_runtime_request_conflict and MUST NOT replace the pending request.",
+      "description": "A same-binding retry is idempotent and retains the approval_request_id and notification id. A different stable ak.agent.runtime_key_binding.v1 digest on the same open pairing_request_id returns HTTP 409 agent_runtime_request_conflict and MUST NOT replace the pending request. Unknown, expired, invalidated or mismatched pairing credentials use uniform not_found; no candidate is created.",
       "codes": []
     },
     {
       "operation_id": "ak.open.agent_pairing.read.resolve.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/resolve",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Unknown, expired, invalidated or mismatched body-only token uses uniform not_found.",
       "codes": []
     },
     {
       "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status.v1",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract.",
       "codes": []
     },
     {
@@ -425,22 +435,28 @@
     {
       "operation_id": "ak.open.device_pairing.read.resolve.v1",
       "http_alias": "POST /_arkret/open/device-pairing/resolve",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Unknown id, pairing_code mismatch, expiry, or a non-pending record MUST all return an indistinguishable not_found.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Unknown id, pairing_code mismatch, expiry, or a non-pending record MUST all return an indistinguishable not_found.",
       "codes": []
     },
     {
       "operation_id": "ak.open.device_pairing.read.status.v1",
       "http_alias": "POST /_arkret/open/device-pairing/requests/status",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. A record miss and a pairing_code mismatch MUST be indistinguishable (both not_found).",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. A record miss and a pairing_code mismatch MUST be indistinguishable (both not_found).",
       "codes": []
     },
     {
       "operation_id": "ak.open.identity.read.resolution.v1",
       "http_alias": "GET /_arkret/open/principals/{principal_id}/resolution",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. An unknown or non-public principal returns not_found; the response itself is evidence and never an authorization decision.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. An unknown or non-public principal returns not_found; the response itself is evidence and never an authorization decision.",
       "codes": []
     },
     {
@@ -592,7 +608,8 @@
         "third_party_invite_acceptance_stale",
         "third_party_invite_material_mismatch",
         "third_party_invite_provisioning_already_bound",
-        "third_party_invite_provisioning_expired"
+        "third_party_invite_provisioning_expired",
+        "not_found"
       ],
       "description": "These sub-reasons are returned only to a caller that already addressed an existing provisioning record with a verifiable Station acceptance attestation; third_party_invite_provisioning_already_bound is carried by duplicate_conflict and the rest by failed_precondition. An unknown or foreign provisioning_id stays the uniform non-enumerable not_found of third-party-invites.md section 6.",
       "codes": []
@@ -617,8 +634,10 @@
     {
       "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
       "http_alias": "POST /_arkret/open/third-party-invites/status",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. An unknown provisioning_id, a record belonging to another inviter and a deleted record MUST be indistinguishable (all not_found).",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. An unknown provisioning_id, a record belonging to another inviter and a deleted record MUST be indistinguishable (all not_found).",
       "codes": []
     },
     {
@@ -783,7 +802,8 @@
         "digest_mismatch",
         "state_mismatch",
         "limit_exceeded",
-        "revision_unavailable"
+        "revision_unavailable",
+        "not_found"
       ],
       "description": "Replication-only reads retain dependency_missing, digest_mismatch, state_mismatch and limit_exceeded. With caller_actor_id, unauthorized and unknown selectors are uniformly not_found, while authorized missing or inconsistent historical material is uniformly revision_unavailable; the operation never returns partial material.",
       "codes": []
@@ -793,7 +813,8 @@
       "http_alias": "POST /_arkret/peer/mls/roster-authority/query",
       "operation_specific": [
         "revision_unavailable",
-        "cursor_invalid"
+        "cursor_invalid",
+        "not_found"
       ],
       "description": "Unknown and unauthorized selectors share the universal not_found; incomplete or inconsistent history is uniformly revision_unavailable after authorization. A cursor from another caller, head or cut is invalid.",
       "codes": []
@@ -1131,7 +1152,9 @@
     {
       "operation_id": "ak.self.actor_profile.read.resolve.v1",
       "http_alias": "POST /_arkret/self/actor-profiles/query",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found"
+      ],
       "description": "No operation-specific error codes. Per-actor outcomes are carried in the response failures array with the single value profile_unavailable; unknown actor, missing profile, non-member actor and unauthorized caller are indistinguishable. A caller that is not an effective joined member of realm_id receives not_found for the whole request.",
       "codes": []
     },
@@ -1209,9 +1232,10 @@
       "operation_id": "ak.self.agent.participation.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [
-        "cas_conflict"
+        "cas_conflict",
+        "not_found"
       ],
-      "description": "expected_version must equal the Account Authority's current version for the exact agent/scope slot. First write uses zero; a mismatch returns cas_conflict and performs no write.",
+      "description": "expected_version must equal the Account Authority's current version for the exact agent/scope slot. First write uses zero; a mismatch returns cas_conflict and performs no write. An unknown or invisible Agent or target scope returns not_found without writing a selection.",
       "codes": []
     },
     {
@@ -1478,8 +1502,10 @@
     {
       "operation_id": "ak.self.circle.resource.get.v1",
       "http_alias": "GET /_arkret/self/circles/{circle_id}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract.",
       "codes": []
     },
     {
@@ -1630,8 +1656,11 @@
     {
       "operation_id": "ak.self.current_state.read.exact.v1",
       "http_alias": "POST /_arkret/self/current-state/exact",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Unauthorized, invisible, foreign and unknown selectors collapse to not_found and never return never_written; an unresolved current governing basis uses revision_unavailable. Invalid closed selectors use schema_violation, request overflow uses payload_too_large and response overflow uses limit_exceeded.",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Unauthorized, invisible, foreign and unknown selectors collapse to not_found and never return never_written; an unresolved current governing basis uses revision_unavailable. Invalid closed selectors use schema_violation, request overflow uses payload_too_large and response overflow uses limit_exceeded.",
       "codes": []
     },
     {
@@ -1713,7 +1742,8 @@
       "operation_id": "ak.self.identity.read.resolution_audit.v1",
       "http_alias": "POST /_arkret/self/identity/resolution-audit/query",
       "operation_specific": [
-        "param_invalid"
+        "param_invalid",
+        "not_found"
       ],
       "description": "param_invalid covers history_depth outside the closed range 0..256, after_resolution_event_ref supplied with history_depth 0, and reason resolution_history_ancestor_unknown when the cursor is not in this account's current resolution lineage. Unknown account, wrong authority pair and unauthorized caller share not_found so the surface cannot be used to enumerate accounts.",
       "codes": []
@@ -1950,7 +1980,8 @@
       "operation_id": "ak.self.mls.read.group_state_material.v1",
       "http_alias": "POST /_arkret/self/mls/group-state-material/query",
       "operation_specific": [
-        "revision_unavailable"
+        "revision_unavailable",
+        "not_found"
       ],
       "description": "The authenticated exact Actor must be current and target-cut authorized. Unknown and unauthorized selectors are not_found; authorized missing or inconsistent public material is uniformly revision_unavailable and never partial.",
       "codes": []
@@ -1960,7 +1991,8 @@
       "http_alias": "POST /_arkret/self/mls/roster-authority/query",
       "operation_specific": [
         "revision_unavailable",
-        "cursor_invalid"
+        "cursor_invalid",
+        "not_found"
       ],
       "description": "The exact authenticated Actor must be current and target-cut authorized. Unknown and unauthorized selectors share the universal not_found; incomplete signed history is uniformly revision_unavailable.",
       "codes": []
@@ -2020,7 +2052,8 @@
       "operation_specific": [
         "invalid_cursor",
         "cursor_expired",
-        "cursor_integrity_invalid"
+        "cursor_integrity_invalid",
+        "not_found"
       ],
       "description": "A Realm the caller may not see shares the universal non-enumerating not_found with a nonexistent Realm. A cursor from another Realm, another caller or a generation this Station no longer serves is cursor_integrity_invalid and the client restarts the enumeration; losing permission mid-enumeration is not an error, the affected rows simply stop appearing.",
       "codes": []
@@ -2028,8 +2061,10 @@
     {
       "operation_id": "ak.self.realm.resource.get.v1",
       "http_alias": "GET /_arkret/self/realms/{realm_id}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract.",
       "codes": []
     },
     {
@@ -2166,15 +2201,21 @@
     {
       "operation_id": "ak.self.strand.watch.read.current.v1",
       "http_alias": "POST /_arkret/self/strands/watch/current",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Foreign actor, invisible Circle scope and unknown Strand collapse to not_found; an unresolved current governing basis uses revision_unavailable, never a guessed never_written response.",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Foreign actor, invisible Circle scope and unknown Strand collapse to not_found; an unresolved current governing basis uses revision_unavailable, never a guessed never_written response.",
       "codes": []
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
       "http_alias": "POST /_arkret/self/third-party-invites/acceptance-attestation",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Not visible, not authored by the caller and not pending all return the uniform not_found of third-party-invites.md section 6; a current accepted basis the Station cannot confirm inside the Realm revocation freshness window returns revision_unavailable.",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Not visible, not authored by the caller and not pending all return the uniform not_found of third-party-invites.md section 6; a current accepted basis the Station cannot confirm inside the Realm revocation freshness window returns revision_unavailable.",
       "codes": []
     },
     {
@@ -2187,7 +2228,10 @@
     {
       "operation_id": "ak.peer.strand.watch.read.current.v1",
       "http_alias": "POST /_arkret/peer/strands/watch/current",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
       "description": "No new operation-specific codes. Authenticated wrong source, service/foreign actor, invisible scope and unknown selector share not_found; unconfirmed tenure/head/provenance, incomplete handoff and unavailable remote verification use revision_unavailable. Ordinary signature/authentication and byte-budget failures retain the universal error surface. Never translate unavailable into never_written.",
       "codes": []
     },
@@ -2206,28 +2250,38 @@
     {
       "operation_id": "ak.self.strand.watch.command.audit_read.v1",
       "http_alias": "POST /_arkret/self/strands/watch/audit-read",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
       "description": "Universal auth/budget/schema failures remain. Invisible or unauthorized target is not_found; missing current/import/replay basis is revision_unavailable; malformed pairing/CAS is failed_precondition; changed bytes or reused audit identity is duplicate_conflict. No reserved reason or private result is emitted.",
       "codes": []
     },
     {
       "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
       "http_alias": "POST /_arkret/peer/strands/watch/audit-read",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
       "description": "Universal auth/budget/schema failures remain. Invisible or unauthorized target is not_found; missing current/import/replay basis is revision_unavailable; malformed pairing/CAS is failed_precondition; changed bytes or reused audit identity is duplicate_conflict. No reserved reason or private result is emitted.",
       "codes": []
     },
     {
       "operation_id": "ak.peer.consent.command.proxy.v1",
       "http_alias": "POST /_arkret/peer/consent/proxy",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found"
+      ],
       "codes": [],
       "description": "Unknown or unauthorized holder uses non-enumerating not_found. Frozen, incomplete or stale authority is temporarily_unavailable; altered nonce bytes or private CAS conflicts use existing conflict/failed_precondition. Canonical schema/auth/body-budget failures remain universal. Station admission branches preserve their original opaque outcomes."
     },
     {
       "operation_id": "ak.peer.consent.command.publish_effects.v1",
       "http_alias": "POST /_arkret/peer/consent/effects",
-      "operation_specific": [],
+      "operation_specific": [
+        "not_found"
+      ],
       "codes": [],
       "description": "Unknown or unauthorized holder/source is non-enumerating not_found. Frozen, unavailable or stale current authority/head is temporarily_unavailable; altered nonce, same-revision content fork and stale private revision use existing conflict/failed_precondition. No refusal mutates the projection or wakes a device. Canonical schema/auth/body-budget failures remain universal."
     },
@@ -2274,7 +2328,8 @@
         "failed_precondition",
         "identity_method_evidence_invalid",
         "dependency_missing",
-        "duplicate_conflict"
+        "duplicate_conflict",
+        "not_found"
       ],
       "description": "Exact Account audit material through its authenticated source Station. Hidden/unknown/unauthorized targets collapse to not_found; unresolved authority or incomplete private import fails unavailable.",
       "codes": []

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-25.1",
+  "version": "2026-10-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-25T06:47:33+08:00",
+  "generated_at": "2026-10-25T13:44:06+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -259,11 +259,12 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:eb8df39391f28e3d5614e55dd961af46b263782d0ce7240064b5938b71e43a31",
-      "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
+      "section_digest": "sha256:9381d195d17196af9b698d92c3029f551bf28d98c9459c36e0765181d4fbff4e",
+      "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations. An exact retry of an accepted Event returns its original outcome with zero writes, including after a later accepted write; a different Event with a stale revision MUST fail with cas_conflict. The revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.account_data.cas_convergence.v1"
+        "ak.vector.account_data.cas_convergence.v1",
+        "ak.vector.actor_private_events.submit.v1"
       ]
     },
     {
