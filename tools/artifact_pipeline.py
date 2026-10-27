@@ -1297,7 +1297,8 @@ def run_long_text_schema_test() -> int:
         [sys.executable, "-m", "unittest", "tools.test_long_text_schema",
          "tools.test_private_transfer_and_view_schema",
          "tools.test_encrypted_envelope_schema",
-         "tools.test_agent_pairing_bootstrap_schema"], cwd=ROOT
+         "tools.test_agent_pairing_bootstrap_schema",
+         "tools.test_erasure_reference_schema"], cwd=ROOT
     )
     return result.returncode
 

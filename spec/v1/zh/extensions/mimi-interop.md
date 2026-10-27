@@ -269,13 +269,31 @@ MIMI facade 至少定义以下 canonical operation：
 | `ak.open.mimi.read.provider_directory.v1` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
 | `ak.open.mimi.exchange.request_key_material.v1` | `POST /_arkret/open/mimi/key-material` | 现有 KeyPackage claim 的 MIMI 适配入口，复用原生请求、领取账本和带状态结果（§6）。 |
 | `ak.open.mimi.command.update_room.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
-| `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | 向接收方现有获权读取路径提交短期刷新提示。 |
 | `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
 | `ak.open.mimi.command.request_consent.v1` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.replace` Event。 |
 | `ak.open.mimi.read.identifiers.v1` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
 | `ak.open.mimi.command.report_abuse.v1` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `ak.open.mimi.command.proxy_download.v1` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
+
+**notify 的真实接收边界（normative）**：`notify` 是 provider 的短期刷新提示，不是新的
+Arkret Event、Signal 或客户端可直接渲染的消息。接收方 MUST 验证逐次来源签名、path room 的当前
+accepted binding，以及 authenticated source 是该 binding 的 hub 或接收方自己的 provider。
+`origin_provider_id`、`notification.kind`、`fanout_ref` 与 `delivery_hint` 最多是已认证 provider
+转交的提示，MUST NOT 代替 Actor／完整 Account、原 Event／Commit 或任何读取权限。
+`routing.mimi_room_uri` 若出现 MUST 逐字绑定目标 room；显式 `target_provider_ids` 必须只选择本次
+真实接收方，不能把未获权的其它 provider 当作已经 fanout 的目标。
+
+接收方 MUST 把提示交给真实 live-read 消费路径，由该路径重新检查订阅者当前会话、完整 Account
+及 scope 授权，再从已接纳 canonical log 读取其原有 Event／Commit。提示本身 MUST NOT 推进
+canonical head、补造 timeline 数据、把 provider 当作用户签名者，或进入 encrypted-only Signal rail。
+`accepted=true` 仅表示本次提示已进入真实本地消费队列或有界跨进程 relay 队列，不表示消息已送达
+用户、用户已读或任何持久业务终局。没有消费／relay 队列，或队列已满／停止时 MUST NOT 声称 queued
+或返回 `accepted=true`；可返回 `accepted=false` 与 `retry_after_ms`。验收 MUST 同时验证实际获权
+消费者处理了提示、原 canonical 数据不变；仅有 ACK、audit 或发送计数不构成投递证据。
+对 committed-event subscription，成功刷新后可发出已有 `checkpoint` 帧，仍绑定该连接原有 cursor，
+不携提示 payload、不声称 head 已推进；原生验收须读取该同一获权连接的实际刷新帧。
 
 `update_room` 以请求中的语义判别器 `update.kind` 选择封闭效果分支；`update.kind` MUST 与
 decoded opaque payload 内的 `kind` 逐字相同，二者不一致必须在读取 room/binding 私有状态前

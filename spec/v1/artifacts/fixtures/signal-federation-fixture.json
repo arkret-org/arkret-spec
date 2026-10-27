@@ -1,6 +1,6 @@
 {
   "suite": "signal_peer_relay",
-  "version": "2026-10-03.1",
+  "version": "2026-10-26.1",
   "profile": "ak.profile.signal_peer_relay.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -39,12 +39,11 @@
       },
       "expected": {
         "decision": "accept",
-        "response": {
-          "accepted": true
-        },
         "durable_event_written": false,
         "realm_stream_head_advanced": false,
-        "envelope_rewritten": false
+        "envelope_rewritten": false,
+        "response_status": 204,
+        "response_body": ""
       }
     },
     {
@@ -70,16 +69,17 @@
       "expected": {
         "decision": "accept_all_requests_and_silently_drop_ineligible_items",
         "responses_byte_identical": true,
-        "response": {
-          "accepted": true
-        },
         "forbidden_response_fields": [
+          "accepted",
+          "rejected",
           "accepted_count",
           "rejected_count",
           "results",
           "recipient_count",
           "reason_code"
-        ]
+        ],
+        "response_status": 204,
+        "response_body": ""
       }
     },
     {
@@ -110,10 +110,9 @@
       },
       "expected": {
         "decision": "silently_drop_item",
-        "response": {
-          "accepted": true
-        },
-        "signals_dispatched": 0
+        "signals_dispatched": 0,
+        "response_status": 204,
+        "response_body": ""
       }
     },
     {
@@ -281,9 +280,8 @@
         "decision": "relay_unchanged",
         "remote_directory_queries": 0,
         "producer_signature_verifications": 0,
-        "response": {
-          "accepted": true
-        }
+        "response_status": 204,
+        "response_body": ""
       }
     },
     {

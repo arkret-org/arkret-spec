@@ -91,6 +91,13 @@ Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC 
    unpadded base64url 写入 `signature`。它是 Arkret raw detached signature，不是 JWS，验证方不得接受缺少
    `signature_algorithm`、使用 JOSE `alg` 成员或遗漏任一登记绑定字段的替代形态。
 
+   `registration_did_evidence_draft.control_proof` MUST 使用
+   [`principal-operations.schema.json#/$defs/signature`](../../artifacts/schemas/principal-operations.schema.json)
+   的统一 detached JWS carrier。其 `jws` MUST 签署按
+   [`encoding.md` §6.0.2](../conformance/encoding.md#602-proof-binding-object-的统一构造normative)
+   和 `ak.registration_did_evidence_control_proof.v1` registry 行构造的 canonical binding object；
+   context 在 JSON 成员中承载，MUST NOT 再前置 domain 字节或把裸 Ed25519 签名字节写入 `jws`。
+
 **challenge 与执行权独立（normative）**：客户端 MUST 完成本地材料准备与必要用户确认后再申请 challenge。签发只冻结/核对 reservation，MUST NOT 修改 lease expiry 或消费 renewal 额度；新的成功签发按 §6.1 独立预算计数。取得共享事务锁并重读当前 handoff、账号与 live holder/lease/fence 后，用服务端权威当前时间的 canonical 值 t 签发 `issued_at=t, expires_at=t+TTL`，其中 `0 < TTL <= 300 seconds`；MUST NOT 截到签发 handoff 或 lease 的截止时间。锁等待期间到期仍必须拒绝。register 在首次外部副作用前分别检查当前 handoff/账号有效、live lease 的 holder/id/fence、challenge 自身窗口及未失效状态、全部冻结材料绑定；这些条件同时成立才可继续。续租不延长原 challenge，challenge 不延长执行权。
 
 同账号、holder、lease id/fence、reservation 与全部 proof 绑定未变时，新的合法 handoff 或 same-holder renewal MUST 允许复用仍有效的原 challenge/proof，不得仅因 bearer/callback 改变而要求新签发或重签。过期后重新 acquisition 或 takeover 改变 fence 时旧 proof 不可复用，不得原地恢复旧 fence。丢响应且持有原请求时客户端 MUST 优先 exact replay；replay 不重算时间窗、不重复计数、不绕过当前授权或已替换/消费/过期状态。已提交 register 的 canonical outcome replay 与已冻结 saga 内部恢复沿用原合同，不能因证明后来到期重做外部副作用。
@@ -529,6 +536,8 @@ to-device queue），其失败与重试沿用 `deactivation_partial` 语义。Re
 Account Authority 不新增第二条私有 peer erase command。它发布 `erasure_pending` record 后只追踪上述确定性 execution，并通过既有 erasure receipt submit/get 轨道取得结果。Account Authority 只有在验证 receipt package、issuer proof、subject/scope、closed trigger 的 `account_status_record_id` 逐字等于本次 record，以及现行 `AccountId {principal_id,station_id}` 全部一致后，才可把物理擦除标为完成；收到 account-status `accepted`、HTTP 2xx、空返回或 connector 本地 no-op 都不构成完成证据。
 
 擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `ak.schema.erasure_receipt.v1` payload，并可通过 `ak.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 closed `trigger`、`subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`；retained stub 必须逐字绑定同一个 trigger。账号物理擦除时 trigger MUST 是 exact `erasure_pending` AccountStatusRecord id；其他擦除类型绑定各自授权 Event 的 event 分支。`proofs[]` MUST 至少包含 1 条，且其中至少一条由 `issuer` 当前有效的 verification method 签名；空 `proofs[]` MUST 触发下文 fail-closed 校验（等同 `proofs[]` 校验失败）。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留 typed trigger/reference 结构、冗余 digest 一致性、receipt/stub binding，以及连接仍存在的 signature、redaction authorization 与 legal-hold evidence 所需最小字段，MUST NOT 保留已擦除明文或裸明文 digest。原 canonical bytes 已擦除时，stub 与 receipt 均不能独立重算或证明其 hash preimage。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
+
+`subject.kind="principal"` 的 `subject_ref` 使用 canonical `DidCoreId`。`scope.target_refs[]` 中引用 principal 时 MUST 使用同一个 `DidCoreId` 词法；MUST NOT 将其改为裸 DID 作为 principal 的第二拼写。receipt 与 retained stub 复用同一引用合同，不能因通用引用字段遗漏 principal 分支而改变身份表示。通用引用中的 digest MUST 复用完整已登记 digest 定义（SHA-256／BLAKE3），不得只容纳某一种算法。receipt 与 stub 中合法的字段缺席、显式空数组及显式 null MUST 保留原有 presence；不得在重序列化后改变原件的 canonical bytes。`outcome=blocked_by_legal_hold` 时 `legal_hold_ref` MUST 是非 null 的 policy 或 digest 引用，null 不构成 legal-hold 依据。
 
 **Legal hold 阻塞终态（normative）**：erasure 与 legal hold 并存时，擦除流程有一个稳定终态：`ak.schema.erasure_receipt.v1` 的 `outcome` 枚举含 `blocked_by_legal_hold`（与 `completed` / `partially_completed` 并列；schema 真源见 [`erasure-receipt.schema.json`](../../artifacts/schemas/erasure-receipt.schema.json)，该 outcome 下 `legal_hold_ref` 为必填）。语义约束：
 

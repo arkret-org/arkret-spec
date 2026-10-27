@@ -1057,7 +1057,7 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 
 **两阶段是裁决结果，不是可选项。** `prepare` 由 registry 签发并记住 single-use challenge，
 绑定 `purpose` / `audience` / `origin` / `trust_domain` / `nonce` / `organization_id: did_core_id` /
-`organization_did` / `requested_scopes` / `local_admin_subject` 与 ≤300 秒窗口；registry 在签发前 MUST 独立验证
+`organization_did` / `requested_scopes` / `local_admin_subject_id` 与 ≤300 秒窗口；registry 在签发前 MUST 独立验证
 `organization_did` 并要求 `project(organization_did) == organization_id`，首次使用即消费；`ensure` 才提交 proof。
 若把 challenge 折叠进 ensure，challenge 就由调用方自报，接收方既无法确定 freshness
 也无法保证单次消费。`prepare` 刻意不幂等：每次调用铸新 nonce。
@@ -1070,13 +1070,13 @@ service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 se
 
 **proof MUST 绑定受益管理员。** control proof 的签名 transcript 是
 `canonical_json({context:'ak.organization_registration_control_proof.v1', challenge_id,
-organization_id, organization_did, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
+organization_id, organization_did, local_admin_subject_id, version_id, log_head_digest, verification_method, created_at})`。
 其中 `organization_id` 是稳定 `did_core_id`，`organization_did` 是当前 published Organization DID；`ensure.organization_did` MUST
 逐字等于 challenge 所载值，且 verifier MUST 独立要求 `project(organization_did) == organization_id`。
-`local_admin_subject` 必须同时出现在 challenge 与 proof 中，且 `ensure` MUST 拒绝与所引用 challenge
+`local_admin_subject_id` 必须同时出现在 challenge 与 proof 中，且 `ensure` MUST 拒绝与所引用 challenge
 不一致的值（`organization_registration_challenge_invalid`）。
 **只绑定 organization 与 version 的 proof 不说明谁受益**：任何拿到该 proof 的人都能提交 `ensure`
-把自己填进 `local_admin_subject`，从而取得该组织的管理 scope。这是必须在合同层堵死的转交攻击，
+把自己填进 `local_admin_subject_id`，从而取得该组织的管理 scope。这是必须在合同层堵死的转交攻击，
 不能留给实现自行加固。
 
 **registration generation 让终态与幂等共存。** `organization_id` 是稳定 key，
@@ -1085,7 +1085,7 @@ organization_id, organization_did, local_admin_subject, version_id, log_head_dig
 - 重放当前 generation 中已成功消费 challenge 的 byte-identical 同一请求 → 从 challenge
   consumption ledger 返回既有 receipt，`created=false`；相同 challenge 的不同请求不是幂等重试；
 - `revoke` 结束第 N 代；此后的 `ensure` 开启第 N+1 代（`created=true`），既不复活 N，也不与 N 冲突；
-- 改变 `local_admin_subject` 或 scope 集合的 `ensure` 同样开启新 generation——所授予的委派已不是
+- 改变 `local_admin_subject_id` 或 scope 集合的 `ensure` 同样开启新 generation——所授予的委派已不是
   前一份 receipt 所证明的那一个；
 - 任一 `ensure` 开启 N+1 时，registry MUST 在同一原子事务内先把仍为 current 的 N
   终止为 `revoked`（reason `organization_registration_superseded`），再以单调 CAS 推进
@@ -1103,7 +1103,7 @@ organization_id, organization_did, local_admin_subject, version_id, log_head_dig
 
 1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
    `{organization_id, organization_did, registration_generation, version_id, log_head_digest, control_proof_kind,
-   control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
+   control_key_digest, local_admin_subject_id, delegated_scopes, status, issued_at, expires_at,
    issuer_id}`；`registration_receipt_id = "ak:organization_registration_receipt:" ||
    hex(SHA-256(canonical_json(receipt_claims)))`。
 2. `document` 是加入 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；

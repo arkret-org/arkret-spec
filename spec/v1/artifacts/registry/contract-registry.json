@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-25.2",
+  "version": "2026-10-27",
   "source_of_truth": true,
-  "generated_at": "2026-10-25T17:16:52+08:00",
+  "generated_at": "2026-10-27T03:26:08+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -14787,7 +14787,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": ""
+        "notes": "Authenticated provider refresh hint only. Require the current accepted room binding and its hub or local receiver source; routing cannot select an unrelated room or provider. accepted=true requires insertion into an actual local consumer or bounded cross-process relay queue, not an audit entry or a configured-but-full queue. Existing live readers independently recheck their current session, complete Account and scope before reading canonical originals. The hint never creates an Event, Signal, message delivery claim or durable business outcome; origin_provider_id, kind, fanout_ref and delivery_hint cannot authorize reads. No accepted queue means accepted=false with optional retry_after_ms. Native acceptance must observe an authorized consumer and unchanged canonical originals, not merely a successful response."
       },
       {
         "operation_id": "ak.open.mimi.command.proxy_download.v1",
@@ -18369,8 +18369,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-25.2",
-    "generated_at": "2026-10-25T17:16:52+08:00",
+    "version": "2026-10-27",
+    "generated_at": "2026-10-27T03:26:08+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

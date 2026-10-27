@@ -637,8 +637,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "21e09da57a1d2dbc50ae8a8d16b87df92a431816dbb8e0f32495d23e3d3ef983",
-      "version": "2026-10-03.1"
+      "sha256": "d71f6dbf07e2d09929a0f06fab9054d35304e26400413e70924178560246093b",
+      "version": "2026-10-26.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",

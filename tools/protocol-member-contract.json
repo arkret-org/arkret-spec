@@ -9,7 +9,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:7fb0b24639881e1ab5c5ca1dce2c5384a534a13b73e000e182051a63fc6d3414",
+  "contract_digest": "sha256:3a719817b56d3de5d7bddfb2733042e3579aa440e8a495f663e6efc44628f244",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -44519,7 +44519,14 @@
             "then": {
               "required": [
                 "legal_hold_ref"
-              ]
+              ],
+              "properties": {
+                "legal_hold_ref": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              }
             }
           }
         ],
@@ -44584,17 +44591,10 @@
             },
             "uniqueItems": true
           },
-          "commit_inclusion": {
-            "type": "object",
-            "properties": {
-              "commit_ref": {
-                "$ref": "#/$defs/subject_ref"
-              },
-              "source_commit_ref": {
-                "$ref": "#/$defs/digest"
-              }
-            },
-            "additionalProperties": false
+          "committed_event_ref": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+            "description": "Optional exact reference to the accepted Event named by an event subject. Its event_id MUST equal subject.subject_ref. It MUST be absent for every other subject kind. All four coordinates MUST come from the actual accepted RealmCommit. This is retained linkage, not a standalone inclusion proof; verifying acceptance requires the original RealmCommit and its authority closure.",
+            "x-arkret-preimage-commitment": "fixed_event"
           },
           "redaction_authorization_ref": {
             "$ref": "#/$defs/subject_ref"
@@ -44656,8 +44656,17 @@
             },
             "then": {
               "not": {
-                "required": [
-                  "event_digest"
+                "anyOf": [
+                  {
+                    "required": [
+                      "event_digest"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "committed_event_ref"
+                    ]
+                  }
                 ]
               }
             }
@@ -44952,8 +44961,19 @@
             "$ref": "./call-recording-artifact.schema.json#/$defs/policy_id"
           },
           "subject_ref": {
-            "type": "string",
-            "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(?:sha256|blake3):[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+            "description": "A canonical principal target is a did_core_id, matching principal_subject.subject_ref. Other registered resource references retain their existing grammar; a bare DID is not a principal alias.",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/did_core_id"
+              },
+              {
+                "$ref": "#/$defs/digest"
+              },
+              {
+                "type": "string",
+                "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(?:sha256|blake3):[0-9a-f]{64})$"
+              }
+            ]
           }
         }
       }
@@ -111467,7 +111487,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:7ab2612d87ba76f97b10d65f82d30c4ba0a33117098f94d13148f7fc4bfc74f4"
+      "digest": "sha256:634496526e6b645934be9272cd439acec70f15f68b4dd09dfb62ea89bcfc0396"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
