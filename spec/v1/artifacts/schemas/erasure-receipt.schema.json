@@ -243,14 +243,7 @@
       "then": {
         "required": [
           "legal_hold_ref"
-        ],
-        "properties": {
-          "legal_hold_ref": {
-            "not": {
-              "type": "null"
-            }
-          }
-        }
+        ]
       }
     }
   ],

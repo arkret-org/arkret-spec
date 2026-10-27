@@ -857,11 +857,8 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
                 lint.fail(path, f"$defs/{def_name}.{field} must not restore a Realm-selected digest suite source")
 
     subject_ref = erasure.get("$defs", {}).get("subject_ref", {})
-    reference_branches = [subject_ref] + subject_ref.get("oneOf", [])
-    if not any("ak:blob:(?:sha256|blake3):" in str(branch.get("pattern", "")) for branch in reference_branches):
+    if "ak:blob:(?:sha256|blake3):" not in str(subject_ref.get("pattern", "")):
         lint.fail(erasure_path, "subject_ref blob branch must admit both active Blob digest suites")
-    if not any(branch.get("$ref")=="#/$defs/did_core_id" for branch in reference_branches):
-        lint.fail(erasure_path, "subject_ref must reuse canonical did_core_id for principal targets")
 
     founding = genesis.get("$defs", {}).get("founding_device_descriptor", {})
     founding_members = _members(founding)

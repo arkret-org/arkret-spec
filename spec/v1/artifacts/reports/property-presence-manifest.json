@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10297,
+    "total_properties": 10298,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2433,
+      "optional": 2435,
       "optional_defaulted": 47,
-      "required": 7298,
+      "required": 7297,
       "required_nullable": 312,
       "tristate": 207
     },
@@ -6780,7 +6780,6 @@
       ],
       "properties": {
         "/allOf/0/if/properties/outcome": "required",
-        "/allOf/0/then/properties/legal_hold_ref": "required",
         "/properties/completed_at": "required",
         "/properties/erased_classes": "required",
         "/properties/fanout_status": "optional",
@@ -6837,7 +6836,9 @@
         "/$defs/trigger/oneOf/1/properties/kind": "required",
         "/allOf/0/if/not/properties/subject": "required_nullable",
         "/allOf/0/if/not/properties/subject/properties/kind": "required",
-        "/properties/committed_event_ref": "optional",
+        "/properties/commit_inclusion": "optional",
+        "/properties/commit_inclusion/properties/commit_ref": "optional",
+        "/properties/commit_inclusion/properties/source_commit_ref": "optional",
         "/properties/completed_at": "required",
         "/properties/event_digest": "optional",
         "/properties/legal_hold_ref": "tristate",
