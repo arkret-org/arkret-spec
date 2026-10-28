@@ -57,8 +57,6 @@ def check_protocol_time_tolerance_closure(lint: Lint) -> None:
     if not isinstance(registry, dict):
         lint.fail(CONTRACT, f"missing {REGISTRY_KEY}")
         return
-    if registry.get("source_of_truth") is not True:
-        lint.fail(CONTRACT, f"{REGISTRY_KEY}.source_of_truth must be true")
 
     tolerance_rows = registry.get("tolerances")
     if not isinstance(tolerance_rows, list) or not tolerance_rows:

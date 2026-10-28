@@ -347,85 +347,57 @@ Realm grant、policy 或 revoke 不构成目标 Realm reducer 输入。完整边
 
 ## 5. Invite
 
-### 5.1 概念
+Invite 是针对一个完整 AccountId 的定向邀请。它不携带可转发的入组秘密；用户自行分享的 Realm 邀请链接是独立对象，见 [Realm 邀请链接](../sync/realm-invite-links.md)。
 
-Invite 是加入引导对象，**不等于 capability grant**。接受 invite 后，相关 capability grant 才进入有效集合。
+### 5.1 身份与字段
 
-### 5.2 Schema 与字段
+`id` MUST 从唯一已接纳 `ak.invite.create` Event 的 token 派生为 InviteId，不得由调用者生成。`realm_id` 是该 Event 的 Realm；`schema` 为 `ak.schema.invite.v1`。
 
-Schema id: `ak.schema.invite.v1`
+| 字段 | 必填 | 类型 | 语义 |
+| --- | --- | --- | --- |
+| `id` | yes | InviteId | 创建 Event 派生的不可变身份。 |
+| `schema` | yes | schema id | 当前 v1 Invite 合同。 |
+| `realm_id` | yes | RealmId | 邀请的 Realm。 |
+| `inviter_account_id` | yes | AccountId | 创建者的完整账号。 |
+| `invitee_account_id` | yes | AccountId | 不可变的唯一被邀请账号，含 principal_id 与 station_id。 |
+| `introduction_evidence_digest` | yes | hash | 私有引介材料的摘要；raw locator token 不进入共享历史。 |
+| `capability_grant_refs` | no | GrantId[] | 另行已授权的 grant 引用；邀请本身不授予管理能力。 |
+| `state` | yes | enum | pending、accepted、rejected、revoked、expired。 |
+| `expires_at` | yes | timestamp | 硬有效期，canonical UTC。 |
+| `created_at` | yes | timestamp | 创建原件时间。 |
+| `updated_by` | no | ActorId | 最近一次状态更新的 producer。 |
+| `updated_at` | no | timestamp | 最近一次状态更新时间。 |
 
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `id` | yes | `id:invite` |  | Invite ID。 |
-| `schema` | yes | `ak.schema.invite.v1` |  | Schema ID。 |
-| `realm_id` | yes | `id:realm` |  | 目标 Realm。 |
-| `inviter_account_id` | yes | `AccountId` | 必须持有 invite capability。 | 邀请者。 |
-| `invitee_account_id` | no | `AccountId` | 3PID 邀请可为空。 | 被邀请 exact AccountId。 |
-| `introduction_evidence_digest` | conditional | hash | 直接账号邀请中若出现 `invitee_account_id` 且不是 `third_party_invite` 分支，则 MUST 出现；不得包含 raw locator token。 | 私有 `introduction_evidence` 的审计摘要。 |
-| `third_party_invite` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
-| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 关联授权。 |
-| `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed)` | Invite 的流程对象状态。按 [`common-fields.md` §5](./common-fields.md) 的所有权判据，该轴由 Arkret Event 封闭推进，故用 `state` 而非 `status`；它不是通用对象的 §5.1 lifecycle 轴，不参与 archive / restore / tombstone 模板。 | 邀请状态。 |
-| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `ActorId` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
-| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
+精确字段顺序、可空性和扩展边界以 `invite.schema.json` 为准。MUST NOT 嵌入 join-rule 快照、投递凭据或另一条目标绑定；准入读取当前 Realm 治理权威及创建原件的已接纳依据。
 
-> `inviter_account_id` / `invitee_account_id` 以既定 governance 角色名词为 stem，AccountId 字段使用 `_account_id` 表示后缀；角色名词总索引见 [`common-fields.md` §4.3](./common-fields.md#43-角色名词登记索引)。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。
+### 5.2 创建与投递
 
-### 5.3 行为规则
+`ak.invite.create` 的 producer 必须在当前 Realm cut 上具有该操作的邀请权限。其 payload 只包含 invitee_account_id、introduction_evidence_digest、expires_at 及合法 `x_*` 扩展，不包含 invite_id。创建原件与其 RealmCommit 是邀请的权威来源。
 
-- Invite MUST 携带 `expires_at`。默认有效期 SHOULD be no greater than 7 天，高安全 Realm SHOULD be no greater than 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
-- **直接账号邀请的 live 去重由 slot current state 承载（normative）**：同一 Realm 内，每个 `invitee_account_id` 至多有一个 live 直接 invite。该唯一性的唯一真相源是 current state family
-  `invite_live_target`——`commit-ordered projection`、`execution="security"`（未写入初始态恒为 `null`，见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)），`state_selector` 是单分量 composite `[canonical_json(payload.invitee_account_id)]`。**subject 不含 `realm_id`**：current state 本来就由 Event envelope 的 `realm_id` 定位，把它写进 subject 段被 [`../conformance/encoding.md` §4](../conformance/encoding.md) 明禁。slot 的 value 是 `{create_event_id}` 或 `null`，**只承载占位者身份**（占用它的那条 `ak.invite.create` 的 `envelope.event_id`，逐字 `ak:event:` 形态）；invite 的流程状态唯一由 `invite_lifecycle` 承载，MUST NOT 在 slot 内复制一份会漂移的副本——理由与本节删除 `join_rule_snapshot` 时给出的完全相同。**「格子被占用」本身即等价于「存在 live 直接 invite」**，不需要第二条状态轴。
-  - 直接邀请的 live 集合是 `{pending}`。`claimed` **不属于**该集合：它只用于 3PID 流程（见本节 state 转换条），直接 DID invite 永远到不了 `claimed`。
-  - `ak.invite.create` MUST 在同一个 Event 内原子写三条 current state：`invite_lifecycle`（`(initial) -> pending`）、`invite_directed_invitee`（create-locked 写入 `{invitee_account_id}`，是本 slot 的反向索引，见下方释放写两条）与该 slot（`set {create_event_id}`）。`invite_id` 是稳定领域身份；治理 Station 在提交位置验证该 ID 尚未存在。后续每一条 state-changing Event MUST 在 payload 里声明它读到的前态 `previous_state`（与 `agent_deactivate_payload.previous_status` 同一惯用法），reducer 在接纳事务内拿它与冻结前态比较，因此一条按 `pending` 编写的 Event 不能落在已变成 `claimed` 的 invite 上；`previous_state` 是**声明的前态**，不是生产者侧的顺序或因果依据。冻结前态已是终态时按下方终态条返回 `invite_already_terminal`；冻结前态是非终态但不等于声明值时，reducer MUST 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝（与 [`common-fields.md` §5.2](./common-fields.md) 的同态／非法前态拒绝同一惯用法），MUST NOT 改写为 `cas_conflict`，也不另立专用 reason：客户端的唯一恢复动作都是重读 `invite_lifecycle` 后按新前态重新编写。
-  - 两条并发 create 争用同一 `commit-ordered projection` 槽位。命令按唯一安全日志顺序执行，reducer 在提交位置读该槽位的冻结前态；至多一个占槽成功，另一个得到持久拒绝结果。数据库唯一索引只是实现保护，不能替代协议状态。
-  - **重复 create 的唯一结果是无效重复**：命中已占用的 slot 时，reducer MUST 以 `failed_precondition` + `reason_code="invite_live_target_occupied"` 原子拒绝。该 Event **不被接受**、不进 canonical history、不产生任何 current state write、投影或通知。closed Problem 扩展片段 是 [`invite.schema.json#/$defs/invite_live_target_occupied_problem_extensions`](../../artifacts/schemas/service-operation-dtos.schema.json)，即 `{reason_code, invite_id, create_event_id}`；提交者必须先持有 invite capability 才会走到这一步，回显占用者不构成额外披露。MUST NOT 把它旁路成 `cas_conflict`（[`../sync/service-http-binding.md` §3.1.4](../sync/service-http-binding.md) 明禁把 state-changing Event 的 precondition 失败改写为 `cas_conflict`）。**不存在「语义幂等重投」分支**：`invite_id` 是 `retype(create_event.event_id)`，第二条 Event 天然算不出第一条的 id；`idempotent_replay="same_event_identity_replay_noop"` 只覆盖同一 Event 的重投；把它当成幂等成功会让一条已进 history 的 Event 携带零 registered write，与「每个 kind MUST 派生恰好一条匹配 write」直接冲突。
-  - **客户端语义（normative）**：收到 `invite_live_target_occupied` 后 MUST 读取已有 Invite。占用者为 `pending`；有效且未消费时，以原 `invite_id` 为稳定幂等键恢复 private delivery，复用冻结目标与原期限，不重签公开 Invite。永久放弃或策略决定失效时，由有权 writer 提交 `revoked` 或 `expired` 后才能另建邀请。投递失败、响应不明或预算耗尽本身不释放 slot。
-  - **liveness 只看 current state，不看墙钟（normative）**：slot 被占用即 live，直到一条已登记的 Event 释放它。`expires_at` 到达**不会**自动释放格子，它只是授权 writer 提交 `ak.invite.revoke(target_state="expired")` 的理由。receiver MUST NOT 用本地时间比较合成「该 invite 已不再 live」。
-  - 3PID invite 不占用该 slot（`ak.invite.third_party` 不写它）。已 `claimed` 的 3PID invite 是否阻塞对同一 AccountId 的后续直接邀请，属 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) 的职责，v1 不在本 slot 内表达。3PID invite 的去重与 claim 规则仍由该文件定义。
-- 接受 invite 后，相关 capability grant 才进入有效集合。
-- **准入基准是 create Event 自身的治理 basis（normative）**：Invite **MUST NOT** 物化 join rule / join-policy 的
-  副本。`ak.invite.create` 是这次治理决定的发生点，它的 authority-commit basis 已唯一确定创建时刻的
-  `default_join_rule` 与 join-policy facet；Invite id 是 `retype(create_event.event_id)`
-  （[`common-fields.md` §6.0](./common-fields.md)），因此由 Invite id 反查该 Event 并从其 basis 重放规则是
-  规范定义的 canonical projection，不是实现私有扫描。reducer **MUST** 在准入 `ak.invite.create` 时按该
-  basis 判定；claim / accept 阶段 **MUST NOT** 拿"当前"policy 或某份物化副本重判一次——两者都会引入邀请后
-  规则混淆，而副本还会额外漂移。Invite 对象 MUST NOT 携带 join rule snapshot 或私有 locator。
-- **private delivery material MUST NOT 物化到 Invite（normative）**：`invite_token`、
-  `introduction_evidence`、receive-policy 状态与任何 transport material **MUST NOT** 出现在 Invite 对象上。
-  Invite 上唯一合法的私有投递痕迹是 `introduction_evidence_digest`（摘要，不含 raw locator token）；
-  不得保存 endpoint、resolution 或 route mirror。
-- `ak.invite.cancel` 使用 `invite_cancel_payload`（`invite_id`、`previous_state`、与持久化目标逐字节相等的 `invitee_account_id`、`target_state`、可选 `reason_code` 与 `reason`）引用**普通定向 DID invite**。若 actor 是该 invite 的 `invitee_account_id`，它表示被邀请者拒绝，reducer MUST 将 live direct invite 从 `pending`/`claimed` 推进到 `rejected`；若 actor 是 `inviter_account_id` 或持有 `ak.invite.cancel` / Realm 管理权限的 actor，它表示取消尚未接受的普通定向 invite，reducer MUST 推进到 `revoked`。
-  **授权来源（normative）**：被邀请者的拒绝与接受、邀请人自己的取消都以 invite 自身的已接纳绑定为唯一授权来源，**不**要求、也不读取 capability grant——被邀请者在接受前通常不是成员、不持有任何 grant。逐分支判定：`target_state=rejected` 仅当 `envelope.actor_id` 的 account 分量逐字节等于 stored `invite_directed_invitee`；`target_state=revoked` 仅当 actor 的 account 分量等于该 invite 的 create Event actor（`inviter_account_id`）且 actor 在同一冻结 cut 上仍是 `join` 成员，或 actor 经同 cut capability 求值持有匹配 `ak.invite.cancel` 的 grant。邀请人已离开时的清理走 `ak.invite.revoke(target_state="revoked")`。不满足所选分支时 MUST 以 `capability_denied` 零写入拒绝。`ak.invite.accept` 同理：唯一授权来源是 actor 为该 invite 的被邀请者（定向 invite 为 stored `invite_directed_invitee`，3PID invite 为已 claim 的 subject），`ak.invite.accept` 在 capability action registry 中登记为 `subject_only`，不可授予、不经 grant 求值；actor 不是被邀请者按下文以 `failed_precondition` 拒绝。`ak.invite.cancel` 的 reducer 在应用任何投影前 MUST 从 `invite_directed_invitee` 前态确认 `invitee_account_id` 存在；目标为第三方/token invite 或前态没有该记录时 MUST 原子拒绝 `failed_precondition`（`reason_code="invite_kind_requires_revoke"`），不得仅凭请求伪造的 `invitee_account_id` 进入低风险 cancel 路径。`ak.invite.accept` 对 3PID invite 则在同一 accepted authority cut 解析唯一 accepted `ak.invite.claim` Event/Commit 的 exact ref，以其中 `subject_account_id` 校验 author；纯状态 `invite_lifecycle="claimed"` 不足以证明 subject。`ak.invite.revoke` 保留给第三方/token invite、高风险撤销路径，以及**除 `accepted` / `rejected` 以外的全部终态推进**，使用独立的 `invite_revoke_payload` 引用目标 invite 并清除可认领 token material。它承载的具体终态由该 Event 的 registered FSM projection `to` 决定，取值范围就是 `invite_revoke_payload.target_state` 的 enum（`{revoked, expired}`）。转换原因由 Event kind 与 `target_state` 唯一表达；payload 可选的 `reason_code` 只是补充诊断（见下方 state 转换条）。把这些终态集中到一个已注册 kind 上，是为了让每条终态转换都有**可签名、可被 RealmCommit 覆盖**的载体：本地计时器与反滥用策略本身不是共享真相源，它们只能促使授权 writer 提交这条 Event；receiver 不得按本地墙钟合成 lifecycle 或 member write。
-- Invite state 转换的真源分两层。**边集本身**由 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.transition_contracts.invite_lifecycle` 单独承载：六个状态、`initial_state="pending"`、四个终态与九条允许边，并由 `check_fsm_state_reachability` 证明每条边都有登记的写、每个状态都可达、终态没有出边。本节 **MUST NOT** 再抄一份边集——两处各存一份必然漂移。3PID 邀请（邮箱、手机号等）的认领、失败和异常清理流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) §6.1。本节只定义转换表无法承载的**触发条件与语义**：
-  - `accepted` 需要真实 invitee 的合法 accept，`rejected` 需要显式拒绝；`expired` 保留可信时间与真实清理 Event。邀请者撤销、失去 capability、离开以及反滥用最终无效化统一确认 `revoked`；原因仅进入受控诊断／审计，不形成平行原因状态机。current capability、成员与反滥用门在清理确认前也 MUST 拒绝不合格的新 claim／accept；历史已确认结果不被后来的 current 改判，已确认 revoked 不因重新获权或入组恢复。
-  - **投递与共享授权分轴（normative）**：发送中、可重试、响应不明、bounce 与最终失败只使用现有 private delivery／provisioning status／outbox。MUST NOT 为这些观察提交共享生命周期转换、授予 membership 或释放 slot。可恢复投递复用冻结 invite、目标、activation 与原 signed expiry；超时可能已发出，必须区别响应不明与明确失败。重试有界、失败对原邀请者可见；即使物理邮件重复，业务消费仍一次。token、3PID、盐、pepper 和临时私钥不得进入公开 Event、日志或 account-data。
-  - `claimed` 仅用于 3PID 流程，且不是终态：被认领（subject 已绑定，见 [`third-party-invites.md`](../sync/third-party-invites.md) §6.1）后 invite 沿用与 `pending` 相同的生命周期规则，`expires_at` 对 claimed invite 持续生效，认领后迟迟不 accept 的 invite 照常过期；`claimed -> claimed` 不合法（token 已原子用尽）。
-  - 进入非 `pending` 状态的原因由承载 kind 与 `target_state` 唯一表达（`rejected` 是被邀请者拒绝，`revoked` 是统一撤销，`expired` 是到期确认），`invite_cancel_payload` 与 `invite_revoke_payload` 的 `reason_code` 是**可选**补充诊断，reducer 不据它判定转换合法性；携带且跨服务或联邦边界时 MUST 是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的 reason code。协议不在 payload 中引用触发事件或 policy revision。
-- **终态由转换表承载（normative）**：`accepted`、`rejected`、`revoked`、`expired` 是 `transition_contracts.invite_lifecycle.terminal_states` 的四项，`pending`、`claimed` 是非终态。命中终态后，该 invite 上任何后续 state-changing Event MUST 以 `failed_precondition` + `reason_code="invite_already_terminal"` 拒绝，且 MUST NOT 派生任何投影。终态性只由 `terminal_states` 与 `allowed_transitions` 共同承载：实现 MUST NOT 从某状态"恰好无出边"反推终态属性，也 MUST NOT 以本行的复述为准——复述只为免于跳出正文，与 registry 不一致时以 registry 为准。
-- **Invite lifecycle 与 Realm membership 是两个状态轴（normative）**：membership FSM 只有 `join` / `knock` / `leave` / `ban`，不存在 membership `invite` 状态。canonical registered write set 是：
+私有投递独立按 [邀请寻址](../sync/invite-addressing.md)工作；失败、重试、路由变更或邮件投递都不是邀请生命周期状态，也不产生额外共享成员写入。个人 PrincipalLocator 只提供引介，不替代 Realm 邀请权限。
 
-  | invite_lifecycle 转换 | 承载 wire event kind | registered current state write |
-  | --- | --- | --- |
-  | `(initial) -> pending` | `ak.invite.create` / `ak.invite.third_party` | direct create 原子写 `invite_lifecycle`、`invite_directed_invitee`（`set {invitee_account_id}`）与 `invite_live_target`（占格，`set {create_event_id}`）；3PID create 只写 `invite_lifecycle` |
-  | `pending -> claimed` | `ak.invite.claim` | 只写 `invite_lifecycle`；subject-bound membership proposal 不是 current state，3PID invite 不占 slot |
-  | `pending` / `claimed -> accepted` | `ak.invite.accept` | 同一 state-changing Event 原子写 `invite_lifecycle -> accepted`、`canonical_json(envelope.actor_id)` 的 member `leave -> join`，以及（携带 `invitee_account_id` 时）`invite_live_target` 释放 |
-  | `-> rejected` / direct `-> revoked` | `ak.invite.cancel` | 原子写 `invite_lifecycle` 与 `invite_live_target` 释放（该 payload 的 `invitee_account_id` 必填，故释放写无条件） |
-  | `-> revoked` / `expired` | `ak.invite.revoke` | 原子写 `invite_lifecycle`，并在携带 `invitee_account_id` 时释放 `invite_live_target` |
+### 5.3 生命周期与原子性
 
-  **slot 释放写的封闭形态（normative）**：释放写的 `state_projection` 恒为 `set null`，且**不携带任何 revision 前置条件**。`expected_revision` 在 v1 里是 shared-face current state 的 `{commit_id, stream_position}` CAS（见 [`../sync/current-state.md`](../sync/current-state.md)），拿 `create_event_id` 当它的值是范畴错误。「一个已被后续邀请重新占用的格子被旧 Event 释放」由两条已登记的前置条件封死，两者都不是 revision：**(a)** 释放写只挂在离开 live 状态的那条 lifecycle 边上，而这些边的落点全在 `terminal_states` 内，此后该 invite 上的任何 state-changing Event 都被 `invite_already_terminal` 拒绝，所以同一条 invite 不可能释放两次；**(b)** 一条 invite 只能释放**自己**的格子，因为同一 Event 必须满足 `invite_directed_invitee` 的 `stored_field_matches_payload` 前态要求（见下一条）。释放写是一次**有身份的真实写入**，不是把 current state 删回「从未写过」：它的 head 保留在状态承诺里（[`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md) 的 `commit-ordered projection` leaf 规则），因此「首次空格」与「释放后的空格」业务读取同为 `null`，但在协议状态里可区分。`invite_id` 与 `create_event_id` 是同一 33-octet token 的两种前缀写法（[`common-fields.md` §6.0](./common-fields.md)），但 slot value 逐字是 `ak:event:` 形态，两种写法在 wire 上永不可互换。之所以不让 slot 存 `invite_id`，是因为 registry 的 projection 词汇里**没有 retype 投影**：整值 `state_projection.value` 只能是 `field` 或 `envelope_field` 之一；`value_projection` 的成员来源封闭为 `literal` / `field` / `envelope_field` / `select` / `derivation` / `digest_of` / `normalized_string_set`，其中 `select` 只在已登记的分支之间挑一条 field path 且 `transform` 唯一取值是 `base64url_utf8`，`derivation` 是一个封闭的具名集合。七种来源没有一种能把同一个 token 从一种 typed id 前缀换成另一种，因此 `invite_id` 无法从签名 Event 直接派生。
+唯一非终态是 pending；四个终态为 accepted、rejected、revoked、expired。允许边仅为 pending 到上述四种终态。后续任何状态变更 MUST 以 `invite_already_terminal` 拒绝；精确已接纳 Event 的重试只返回原结果，不重复写入。
 
-  **释放写的可派生性与 3PID 隔离（normative）**：`invite_live_target` 的 subject 只能由 `payload.invitee_account_id` 派生——`envelope.actor_id` 是 ActorId，而 projection 语法明禁在投影内拼装、改名或裁剪字段，AccountId→ActorId 的转换不可表达。因此 `ak.invite.accept` 与 `ak.invite.revoke` 的 payload 各带一个 optional `invitee_account_id`，其释放写以 `condition:{field_present}` 登记；`ak.invite.cancel` 的该字段本来就必填，故释放写无条件。但 slot 以 account 为键，payload 省略该字段时**没有任何 subject 被求值**，因此这道检查不可能挂在 slot 上；它挂在反向索引 `invite_directed_invitee` 上——该 family 以 `invite_id` 为键，只由 direct `ak.invite.create` 写入一次（create-locked），`ak.invite.third_party` 从不写它，所以 3PID invite 的 stored invitee 是**缺失**而不是 `null`。三个释放 kind 都以无条件 `pre_state_requirements` 把 payload 钉死在该 stored 记录上，谓词为 `stored_field_matches_payload`（两边同时缺失，或同时存在且逐字节相等），不匹配时 MUST `failed_precondition` + `reason_code="invite_directed_invitee_mismatch"`。direct 不能省略目标而永久占格，3PID 不能伪造目标释放别人的 slot。终态事务还必须验证 slot 的 `create_event_id` 是该 invite 的原 create，旧邀请不得清除后继占格。
+- `ak.invite.accept`：仅被邀请完整账号本人接受，payload.invitee_account_id MUST 等于 envelope.actor_id 的 account 分量，并等于 stored target。接受时必须尚未过期、成员前态为 leave，ban 不可绕过。普通 Realm、当前 join-policy、主体资格及 MLS 等独立边界继续适用。Applet-managed Bot／Ghost 按现有 Applet 规则验证精确执行者及目标，不扩大账号授权。
+- `ak.invite.cancel`：target_state 为 rejected 时只有被邀请人可拒绝；target_state 为 revoked 时由当前仍有相应资格的创建者或有权管理者撤销。invitee_account_id 与 previous_state 均必填。
+- `ak.invite.revoke`：由当前具备该操作权限的 producer 执行，target_state 只为 revoked／expired。invitee_account_id 与 previous_state 均必填。
+- `previous_state` 必须为 pending，接纳时与锁定的 lifecycle 精确比较。过期的准入拒绝不能凭空生成 expired Event；状态推进仍需要合法原签 Event 与 RealmCommit。
 
-  `ak.invite.accept` 的 `payload.invitee_account_id` **MUST** 同时等于 `envelope.actor_id` 的 account 分量：接受邀请的只能是被邀请人本人（本节 state 转换条）。该字段的用途只是让 slot subject 可从签名 Event 派生，MUST NOT 被当成「代他人接受」的入口；payload 与 actor 不一致时 MUST 以 `failed_precondition` 拒绝。
+三个 typed-current family 在同一个 Realm 事务内工作：
 
-  **slot 是可复用寄存器，不是 singleton-once-set（normative）**：释放写把 value 显式 `set null`，因此下一条 `ak.invite.create` 的占格写会再次在空槽前态上成立。实现 MUST NOT 把 `null` 当作只读哨兵或「已终结」标记而拒绝写入。可复用与 singleton-once-set 的差别**只在于本 family 登记了释放写**；该区别 MUST 由登记的写集判断，不由任何哨兵值承载。
+1. `invite_lifecycle` 以 InviteId 为键；创建写 pending，终态事件只推进上述合法边。
+2. `invite_directed_invitee` 以 InviteId 为键；只由创建 Event 写一次不可变目标。所有后续变更都必须将 signed target 与该记录逐字比较；缺失或不匹配不得释放任何 slot。
+3. `invite_live_target` 以 canonical_json(完整 invitee_account_id) 为键，只保存占位的 `{create_event_id}` 或 JSON null。同一 Realm 的一个完整账号最多持有一个 pending Invite；同 principal 异 Station 是不同 slot。
 
-  `ak.invite.cancel` 的 `invitee_account_id` 同时是 direct-invite kind 与 exact target binding 的 admission requirement，不是 member projection 的输入。缺失 stored direct invitee 时 MUST `invite_kind_requires_revoke`；payload 不等于 stored `invitee_account_id` 时 MUST `invite_directed_invitee_mismatch`（该字段在 cancel payload 里必填，故没有缺失分支，登记的谓词是 `stored_field_equals_payload`）。`ak.invite.revoke` 不要求或写入 member state。cancel / revoke 之后 member current state 保持原值且不得合成一次 `leave` write。
+创建必须在空槽上占位；占位冲突 MUST 原子拒绝为 failed_precondition、reason_code=invite_live_target_occupied，不得改写为 cas_conflict 或把第二次 create 当作精确重试。slot 的占用本身表示 live 状态，不增加第二状态轴。
 
-  3PID create / revoke 同样只推进纯状态 `invite_lifecycle`，不触碰 `invite_live_target`。公开冻结材料从唯一已接受的 `ak.invite.third_party` create Event/Commit 读取；claim 原子写 claimed lifecycle 与 subject-bound membership proposal，并从唯一已接受的 `ak.invite.claim` Event/Commit 派生 subject、nonce、commitment、verification 与时间字段，可重建派生索引不是第二真相源，但 proposal 不是 member current state；后续只有 `ak.invite.accept` 才把已验证 subject 的 member 从 `leave` 推进到 `join`。任一 Event 产生登记外的 member write MUST 以 `reducer_projection_failed` 原子拒绝。
+接受／拒绝／撤销／到期的终态事务必须确认 slot 仍指向本邀请的创建 Event，然后显式 set null。释放后保留该 current head；它是可复用寄存器，不是 singleton-once-set，下一次合法 create 可以重新占位。旧邀请永远不能释放后继邀请的 slot。
+
+slot 保存逐字 `ak:event:` create_event_id；InviteId 与 EventId 虽共享 token，前缀不同，wire 上不可互换。不能把 create_event_id 当 expected_revision；shared-face CAS 的 expected_revision 始终为 `{commit_id, stream_position}`。签名 payload 的 invitee_account_id 是 slot subject 的唯一可派生来源；不能在 projection 中裁剪 ActorId 或隐式改名。
+
+接受还必须在相同事务中完成成员 leave→join；其它终态只改邀请并释放 slot，MUST NOT 合成成员 leave。Event、RealmCommit、全部登记 current 写和必要 outbox 要么一起成功，要么零写入。任何登记外成员写 MUST 以 reducer_projection_failed 原子拒绝。权限、额度或状态检查不得依赖 reducer 缓存或复制表作为权威。
 
 ## 6. 规范性引用
 
@@ -435,5 +407,5 @@ Schema id: `ak.schema.invite.v1`
 - Moderation policy：[`../governance/content-moderation.md`](../governance/content-moderation.md)。
 - Realm-Realm 继承：[`realm-links.md`](./realm-links.md)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
-- 3PID 邀请：[`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
+- Realm 邀请链接：[`../sync/realm-invite-links.md`](../sync/realm-invite-links.md)。
 - Schemas：`artifacts/schemas/policy.schema.json`、`artifacts/schemas/capability-grant.schema.json`、`artifacts/schemas/invite.schema.json`。

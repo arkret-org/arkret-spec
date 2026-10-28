@@ -1,6 +1,4 @@
 {
-  "version": 1,
-  "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#31-字段--对象适用性矩阵normative-reference",
   "headers": [
     "字段",

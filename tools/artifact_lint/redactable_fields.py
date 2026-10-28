@@ -167,8 +167,6 @@ def check_redactable_field_registry(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(REGISTRY_PATH, "source_of_truth must be true")
     if not isinstance(data.get("description"), str) or not data["description"].strip():
         lint.fail(REGISTRY_PATH, "description must be a non-empty string")
     rules = data.get("registry_rules")
@@ -495,8 +493,6 @@ def check_reducer_managed_path_registry(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
     if not isinstance(data.get("description"), str) or not data["description"].strip():
         lint.fail(path, "description must be a non-empty string")
     rules = data.get("registry_rules")

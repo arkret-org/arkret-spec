@@ -1,11 +1,8 @@
 {
-  "suite": "webrtc_media_plaintext_downgrade",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.webrtc.media_plaintext_downgrade.v1"
   },
-  "version": "2026-09-19",
   "profile": "ak.profile.webrtc_media.v1",
   "covers_vectors": [
     "ak.vector.webrtc.media_plaintext_downgrade.v1"

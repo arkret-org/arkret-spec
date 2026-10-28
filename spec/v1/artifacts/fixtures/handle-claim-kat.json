@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "suite": "handle_claim_closed_transcripts",
   "runner": {
     "kind": "known_answer_tests",
     "entrypoint": "ak.suite.handle_claim.closed_transcripts.v1"

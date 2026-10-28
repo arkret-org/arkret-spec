@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.agent_runtime.v1",
-  "version": "2026-10-24.1",
-  "suite": "keypackage_write_transcripts",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.keypackage_write_transcripts.v1"

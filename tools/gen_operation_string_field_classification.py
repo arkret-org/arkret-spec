@@ -187,8 +187,7 @@ def build_report() -> dict[str, Any]:
 
     rows.sort(key=lambda row: (row["schema_file"], row["pointer"]))
     return {
-        "schema": "arkret.operation-string-field-classification.v1",
-        "source_of_truth": False,
+
         "generated_by": "tools/gen_operation_string_field_classification.py",
         "generated_from": [
             "spec/v1/artifacts/schemas/*operations.schema.json",

@@ -93,8 +93,8 @@ def _registry_value(path: str) -> Any:
 
 def check_schema_root_reachability(lint: Lint) -> None:
     registry = load_json(lint, ROOT_REGISTRY)
-    if not isinstance(registry, dict) or registry.get("source_of_truth") is not True:
-        lint.fail(ROOT_REGISTRY, "schema root registry must be a source_of_truth object")
+    if not isinstance(registry, dict):
+        lint.fail(ROOT_REGISTRY, "schema root registry must be an object")
         return
     documents = {
         path.name: load_json(lint, path)

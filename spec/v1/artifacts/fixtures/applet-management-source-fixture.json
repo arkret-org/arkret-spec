@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "suite": "applet_management_source",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.applet.management_source.v1",

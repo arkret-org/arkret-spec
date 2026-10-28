@@ -1,11 +1,8 @@
 {
-  "suite": "calendar_notification_dispatch_conformance",
-  "fixture_kind": "schema_and_semantic",
   "profile": "ak.profile.calendar_notification_dispatch.v1",
   "covers_vectors": [
     "ak.vector.calendar.notification.v1"
   ],
-  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#10-schedule-notification",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",

@@ -246,26 +246,10 @@ def check_prose_field_tables(lint: Lint) -> None:
     if not isinstance(operations, list):
         lint.fail(OPERATION_REGISTRY_PATH, "operation registry must declare an operations array")
     elif isinstance(exemptions, dict):
-        if set(exemptions) != {
-            "version",
-            "source_of_truth",
-            "generated_at",
-            "description",
-            "operations",
-        }:
+        if set(exemptions) != {"description", "operations"}:
             lint.fail(
                 OPERATION_NOTE_EXEMPTIONS_PATH,
-                "operation note field exemptions have an open or incomplete shape",
-            )
-        if (
-            not isinstance(exemptions.get("version"), int)
-            or isinstance(exemptions.get("version"), bool)
-            or exemptions["version"] < 1
-            or exemptions.get("source_of_truth") is not False
-        ):
-            lint.fail(
-                OPERATION_NOTE_EXEMPTIONS_PATH,
-                "operation note field exemptions must have a positive integer version and be a non-authoritative lint inventory",
+                "operation note field exemptions must contain only description and operations",
             )
         for error in operation_note_field_drift(operations, documents, exemptions):
             lint.fail(OPERATION_NOTE_EXEMPTIONS_PATH, error)

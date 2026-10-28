@@ -1,7 +1,5 @@
 {
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-10-24.1",
-  "suite": "capability_relinquish_authoring",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.capability.relinquish_authoring.v1"

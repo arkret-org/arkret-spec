@@ -1,11 +1,8 @@
 {
-  "suite": "call_force_mute_v1_boundary",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.call.force_mute_v1_boundary.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.webrtc_media.v1",
   "covers_vectors": [
     "ak.vector.call.force_mute_v1_boundary.v1"

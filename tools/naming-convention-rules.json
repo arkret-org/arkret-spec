@@ -1,6 +1,4 @@
 {
-  "version": 8,
-  "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
   "canonical_lexeme_registry": "spec/v1/artifacts/registry/canonical-lexeme-registry.json",

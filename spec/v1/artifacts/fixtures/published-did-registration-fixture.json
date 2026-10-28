@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "suite": "published_did_registration",
-  "fixture_kind": "schema_only",
   "generated_by": "tools/generate_published_did_registration_fixture.py",
   "covers_vectors": [
     "ak.vector.identity.published_did_registration.v1"

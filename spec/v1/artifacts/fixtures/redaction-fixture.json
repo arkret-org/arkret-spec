@@ -1,10 +1,8 @@
 {
-  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.events.redaction.v1"
   },
-  "suite": "redaction",
   "schema_validation_cases": [
     {
       "name": "strand_redacted_with_plaintext_content_rejected",

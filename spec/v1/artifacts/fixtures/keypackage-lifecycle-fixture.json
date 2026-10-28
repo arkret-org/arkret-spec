@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-10-24.2",
-  "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.keypackage_lifecycle.v1"

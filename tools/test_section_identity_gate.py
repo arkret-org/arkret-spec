@@ -56,7 +56,6 @@ OTHER_PAGE = """# 另一页
 """
 
 LEDGER = {
-    "version": "probe",
     "sections": [
         {
             "page": "probe.md",
@@ -68,10 +67,9 @@ LEDGER = {
     ],
 }
 
-RATCHET: dict = {"version": "probe", "anchors": []}
+RATCHET: dict = {"anchors": []}
 
 ARTIFACT = {
-    "version": "probe",
     "rows": [{"source_anchor": "spec/v1/zh/probe.md#1-第一节"}],
 }
 

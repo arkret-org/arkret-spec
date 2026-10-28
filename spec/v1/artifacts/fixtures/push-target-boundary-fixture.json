@@ -1,5 +1,4 @@
 {
-  "version": "2026-10-24.1",
   "description": "Test-only HMAC context KATs and closed Describe probes. Public fixed secrets are not deployment material. These checks do not prove deployed secret independence, provider unlinkability, registration durability or live delivery. Existing push lifecycle fixtures retain ownership of CAS, handoff and replay.",
   "runner": {
     "kind": "known_answer_tests",

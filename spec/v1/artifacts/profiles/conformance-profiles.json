@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-24.2",
-  "generated_at": "2026-10-24T15:53:32+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2005,10 +2003,8 @@
       "rejected_event_kinds": [
         "ak.invite.accept",
         "ak.invite.cancel",
-        "ak.invite.claim",
         "ak.invite.create",
         "ak.invite.revoke",
-        "ak.invite.third_party",
         "ak.space.parent",
         "ak.strand.move",
         "ak.strand.reorder",
@@ -3313,8 +3309,6 @@
         "ak.message.create",
         "ak.invite.create",
         "ak.invite.accept",
-        "ak.invite.third_party",
-        "ak.invite.claim",
         "ak.invite.revoke",
         "ak.device.revoke",
         "ak.capability.grant",
@@ -3357,7 +3351,6 @@
           "supported_operation_bundles",
           "supported_profiles",
           "plaintext_visibility_classes",
-          "invite_claim_reducer_state_machine",
           "authentication_metadata.account_authority",
           "authentication_metadata.methods",
           "authentication_metadata.did_binding_methods"
@@ -3365,20 +3358,10 @@
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       },
       "additional_requirements": {
-        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by an internal authentication component, verification service, Station transport ingress, or client projection caches.",
-        "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ak.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
-        "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_id against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
-        "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
-        "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
-        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
         "account_authority_surface_must": "The Station MUST publish exactly one authentication_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
         "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, governance-Station authority, or Event proof.",
         "account_status_publication_must": "The Station Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit, and outbox; genesis is status_sequence=1 active and every successor is a current-head CAS. It exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery and publishes exact record bytes through ak.peer.account_status.command.submit.v1 without maintaining a second status truth.",
-        "third_party_invite_provisioning_material_custody_must": "The verification service MUST generate and durably hold the invite token, the per-invite 256-bit token_salt or lookup pepper and the per-invite ephemeral signing key inside ak.open.third_party_invite.command.provision.v1, and MUST return only the public third_party_invite object, the effective expires_at, the activation deadline and an opaque provisioning_id. Returning the token, salt, pepper, ephemeral private key or the private delivery target, deriving any of them from token_commitment or verification_public_key, or treating a successful provisioning as a pending Realm Invite or as invite permission is forbidden.",
-        "third_party_invite_activation_acceptance_attestation_must": "ak.open.third_party_invite.command.activate.v1 MUST bind a provisioned record to an invite only on a Station-signed ThirdPartyInviteAcceptanceAttestation whose signature, audience, exact verification_id, pending invite_state and revocation freshness all verify, and whose author, Realm, expiry and complete public material equal the frozen provisioning record member for member. A caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT substitute. One provisioning record binds to exactly one invite for its whole life; a second attestation naming a different invite, Realm or author is duplicate_conflict and MUST NOT rebind, rotate the ephemeral key or reissue the token.",
-        "third_party_invite_lifecycle_recovery_must": "Provisioning MUST be idempotent on request_id with byte-identical canonical intent and MUST fail duplicate_conflict on a reused request_id with any different intent; activation MUST return the same immutable binding for a byte-identical retry, a concurrent duplicate and a retry after a process restart; the binding and the out-of-band delivery intent MUST be committed atomically before success is returned; and an unactivated record MUST expire at activation_expires_at, zeroize its material on the third-party-invites.md section 6.1 schedule and never be revived.",
-        "third_party_invite_handoff_bundle_advertisement_must": "A deployment MUST advertise ak.operation_bundle.station.third_party_invite_handoff.v1 only when every registered member operation is reachable at its registered path and a complete closed loop runs for both offline_token and lookup, from ak.open.third_party_invite.command.provision.v1 through Event authoring and acceptance, ak.self.third_party_invite.read.acceptance_attestation.v1, ak.open.third_party_invite.command.activate.v1 and real out-of-band delivery to a successful ak.open.third_party_invite.command.present_token.v1 binding_proof, using registered operations only. An implementation-private HTTP surface, an /_arkret/_conformance/* endpoint, database or keystore seeding of the token, salt, pepper or ephemeral private key, and a success branch that exists only in a test build MUST NOT be counted; route existence, negative-case coverage and schema validation alone are not support.",
         "push_registration_role_must": "Push is optional. A Station advertising ak.operation_bundle.station.push.v1 MUST provide register_device and unregister_device for the authenticated exact AccountId whose station_id is that service. The Station role does not provide notify; a co-located gateway has a separate push_gateway role-scoped describe and bundle claim."
       },
       "mls_roster_verification": {

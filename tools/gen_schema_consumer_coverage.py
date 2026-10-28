@@ -53,6 +53,7 @@ REFERENCE_RE = re.compile(
 )
 REF_TOKEN_RE = re.compile(r'"\$ref"\s*:\s*"([^"]+)"')
 DECLARED_WIRE_BINDING_KINDS = {
+    "client_fragment",
     "account_data_plaintext",
     "account_data_storage",
     "dynamic_schema_ref",
@@ -360,8 +361,7 @@ def build_report() -> dict[str, Any]:
             consumer_counts[consumer] = consumer_counts.get(consumer, 0) + 1
 
     return {
-        "schema": "arkret.schema-consumer-coverage.v1",
-        "source_of_truth": False,
+
         "generated_by": "tools/gen_schema_consumer_coverage.py",
         "generated_from": [
             "spec/v1/artifacts/registry/schema-registry.json",
@@ -382,7 +382,7 @@ def build_report() -> dict[str, Any]:
             "outbound": "bound as an operation response body.",
             "schema_reference": "referenced by another schema document, so it is a structural component; local self-reference is not a consumer.",
             "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
-            "declared_wire": "explicit machine-readable runtime, dynamic, nested-value or alias binding declared by the canonical schema registry.",
+            "declared_wire": "explicit machine-readable runtime, dynamic, nested-value, alias or local client-fragment binding declared by the canonical schema registry; a fragment binding does not expose HTTP request/response bodies.",
             "prose_only": "explicitly declared as having no whole-object v1 wire admission surface.",
             "vectors": "required by a conformance profile or vector group, or referenced by a fixture.",
             "prose": "named by the normative text, which is where a runtime-dispatched contract is defined.",

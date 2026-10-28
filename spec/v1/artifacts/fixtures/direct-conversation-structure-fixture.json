@@ -1,5 +1,4 @@
 {
-  "schema": "ak.fixture.direct_conversation_structure.v1",
   "description": "Executed flat Topic, whole-field CAS and encrypted metadata schema vectors. They do not attest live device, authority or MLS acceptance.",
   "vector_id": "ak.vector.direct_conversation.chat_topic_structure.v1",
   "cases": [
@@ -429,7 +428,6 @@
       "expect_valid": false
     }
   ],
-  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.chat_topic_structure.v1"

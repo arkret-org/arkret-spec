@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-21.1",
-  "suite": "canonical_json_digest_known_answers",
   "description": "Byte-exact known-answer cases for every canonical-JSON digest domain that was previously registered without a KAT.",
   "runner": {
     "kind": "known_answer_tests"

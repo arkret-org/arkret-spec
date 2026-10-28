@@ -4079,7 +4079,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|realm_invite_link|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -4954,56 +4954,23 @@
       },
       "additionalProperties": false
     },
-    "invite_third_party_create_payload": {
-      "type": "object",
-      "required": [
-        "third_party_invite",
-        "expires_at"
-      ],
-      "properties": {
-        "third_party_invite": {
-          "$ref": "./invite.schema.json#/$defs/third_party_invite",
-          "description": "Third-party invite genesis material. The Invite id is derived from this Event's event_id and MUST NOT be carried in the payload."
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "patternProperties": {
-        "^x_[a-z][a-z0-9_]{0,63}$": true
-      },
-      "additionalProperties": false
-    },
     "invite_accept_payload": {
       "type": "object",
       "required": [
         "invite_id",
-        "previous_state"
+        "previous_state",
+        "invitee_account_id"
       ],
       "properties": {
         "invite_id": {
           "$ref": "#/$defs/invite_id"
         },
         "previous_state": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "claimed"
-          ],
-          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one.",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/invite_accept_payload/properties/previous_state",
-            "owner": "event-payload.schema.json#/$defs/invite_accept_payload/properties/previous_state",
-            "values": [
-              "pending",
-              "claimed"
-            ]
-          }
+          "$ref": "#/$defs/invite_previous_state"
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; admission compares it byte-for-byte with the stored value. It is the only signed source from which the invite_live_target slot subject can be derived, because the reducer projection grammar cannot convert the envelope ActorId into an AccountId."
+          "description": "Exact directed invite account; MUST equal stored invite_directed_invitee. Acceptance also MUST equal the Event account actor."
         }
       },
       "patternProperties": {
@@ -5024,21 +4991,7 @@
           "$ref": "#/$defs/invite_id"
         },
         "previous_state": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "claimed"
-          ],
-          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one.",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/invite_cancel_payload/properties/previous_state",
-            "owner": "event-payload.schema.json#/$defs/invite_cancel_payload/properties/previous_state",
-            "values": [
-              "pending",
-              "claimed"
-            ]
-          }
+          "$ref": "#/$defs/invite_previous_state"
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -5079,6 +5032,7 @@
       "required": [
         "invite_id",
         "previous_state",
+        "invitee_account_id",
         "target_state"
       ],
       "properties": {
@@ -5086,25 +5040,11 @@
           "$ref": "#/$defs/invite_id"
         },
         "previous_state": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "claimed"
-          ],
-          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one.",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/invite_revoke_payload/properties/previous_state",
-            "owner": "event-payload.schema.json#/$defs/invite_revoke_payload/properties/previous_state",
-            "values": [
-              "pending",
-              "claimed"
-            ]
-          }
+          "$ref": "#/$defs/invite_previous_state"
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Present exactly when invite_directed_invitee stores one; absent for third-party invites. The unconditional stored_field_matches_payload requirement protects both directions."
+          "description": "Exact directed invite account; MUST equal stored invite_directed_invitee. Acceptance also MUST equal the Event account actor."
         },
         "target_state": {
           "type": "string",
@@ -5130,144 +5070,6 @@
         },
         "reason": {
           "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x_[a-z][a-z0-9_]{0,63}$": true
-      },
-      "additionalProperties": false
-    },
-    "invite_claim_binding_proof": {
-      "type": "object",
-      "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_id allowlist before accepting a claimed transition.",
-      "$comment": "A malformed or unverifiable binding proof is recorded with the authorized audit reason claim_invalid; external responses stay non-enumerable (see zh/sync/third-party-invites.md §4.3 / §6).",
-      "required": [
-        "verification_id",
-        "verification_method",
-        "subject_account_id",
-        "realm_id",
-        "audience",
-        "claim_nonce",
-        "expires_at",
-        "signature"
-      ],
-      "properties": {
-        "verification_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
-        },
-        "subject_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact account being bound by the verification service. MUST equal the payload top-level subject_account_id."
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Realm bound into the verification-service proof. MUST equal the Event envelope realm_id."
-        },
-        "audience": {
-          "const": "arkret.invite.claim",
-          "x-arkret-value-ownership": {
-            "class": "selector_grammar",
-            "authority": "event-payload.schema.json#/$defs/invite_claim_binding_proof/properties/audience",
-            "owner": "event-payload.schema.json#/$defs/invite_claim_binding_proof/properties/audience",
-            "values": [
-              "arkret.invite.claim"
-            ]
-          }
-        },
-        "claim_nonce": {
-          "type": "string",
-          "minLength": 16,
-          "maxLength": 128,
-          "description": "Nonce bound into the verification-service proof. MUST equal the payload top-level claim_nonce."
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite current state expires_at."
-        },
-        "signature": {
-          "$ref": "#/$defs/signature_material",
-          "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_account_id, token_commitment, verification_id}); unsigned_binding_proof is this object without signature."
-        }
-      },
-      "additionalProperties": false
-    },
-    "invite_claim_payload": {
-      "type": "object",
-      "required": [
-        "invite_id",
-        "subject_account_id",
-        "token_commitment",
-        "claim_nonce",
-        "binding_proof",
-        "subject_proof"
-      ],
-      "properties": {
-        "invite_id": {
-          "$ref": "#/$defs/invite_id"
-        },
-        "subject_account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact account being bound by an ak.invite.claim payload. It MUST match the account carried by binding_proof and the subject proof author; neither component may be inferred."
-        },
-        "token_commitment": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "Reducer-matched salted commitment for the pending ak.invite.third_party record. Raw invite tokens, URL fragments, SMS codes, or plaintext 3PID values MUST NOT appear on wire."
-        },
-        "claim_nonce": {
-          "type": "string",
-          "minLength": 16,
-          "maxLength": 128,
-          "description": "One-time nonce scoped to (invite_id, token_commitment). Reducers MUST reject nonce replay while preserving non-enumerable external responses."
-        },
-        "binding_proof": {
-          "$ref": "#/$defs/invite_claim_binding_proof"
-        },
-        "subject_proof": {
-          "type": "object",
-          "description": "Account holder proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_account_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_id, and binding_proof_digest of the complete signed binding_proof object.",
-          "required": [
-            "verification_method",
-            "signature_algorithm",
-            "transcript_digest",
-            "signature"
-          ],
-          "properties": {
-            "verification_method": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "Subject method selected through authenticated principal DID history at the covering claim Commit time, including the exact effective native WebVH updateKeys did:key method defined by identity-did.md section 3.4. The key DID is not projected as the subject; PCR device methods and current-head fallback are forbidden."
-            },
-            "signature_algorithm": {
-              "type": "string",
-              "enum": [
-                "Ed25519"
-              ],
-              "x-arkret-value-ownership": {
-                "class": "external_literal",
-                "authority": "https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1",
-                "owner": "event-payload.schema.json#/$defs/invite_claim_payload/properties/subject_proof/properties/signature_algorithm",
-                "values": [
-                  "Ed25519"
-                ]
-              }
-            },
-            "transcript_digest": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$",
-              "description": "Digest of the canonical ak.invite.claim.subject_proof.v1 transcript."
-            },
-            "signature": {
-              "$ref": "#/$defs/non_empty_string"
-            }
-          },
-          "additionalProperties": false
         }
       },
       "patternProperties": {
@@ -7667,7 +7469,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|realm_invite_link|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",
@@ -9496,14 +9298,8 @@
           },
           "additionalProperties": false
         },
-        "allowed_third_party_invite_verification_ids": {
-          "type": "array",
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle current state on a fresh basis before accepting ak.invite.claim."
+        "invite_link_limits": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/limits"
         }
       },
       "additionalProperties": false
@@ -11948,6 +11744,20 @@
           "additionalProperties": false
         }
       ]
+    },
+    "invite_previous_state": {
+      "type": "string",
+      "enum": [
+        "pending"
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "event-payload.schema.json#/$defs/invite_previous_state",
+        "owner": "event-payload.schema.json#/$defs/invite_previous_state",
+        "values": [
+          "pending"
+        ]
+      }
     }
   },
   "x-arkret-public-handshake-contract": {

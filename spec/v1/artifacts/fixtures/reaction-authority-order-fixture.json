@@ -1,11 +1,8 @@
 {
-  "suite": "reaction_authority_order",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.reaction.authority_order.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.chat_mvp.v1",
   "covers_vectors": [
     "ak.vector.reaction.authority_order_join.v1"

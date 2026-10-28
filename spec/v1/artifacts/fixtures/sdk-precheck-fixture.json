@@ -1,11 +1,8 @@
 {
-  "suite": "sdk_precheck",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sdk.precheck.v1"
   },
-  "version": "2026-09-20.2",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",

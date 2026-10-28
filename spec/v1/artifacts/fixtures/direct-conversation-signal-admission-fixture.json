@@ -1,7 +1,5 @@
 {
-  "fixture_id": "ak.fixture.direct_conversation.signal_admission.v1",
   "vector_id": "ak.vector.direct_conversation.signal_admission.v1",
-  "version": 2,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.signal_admission.v1"

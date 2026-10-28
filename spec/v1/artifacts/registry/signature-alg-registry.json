@@ -1,6 +1,4 @@
 {
-  "version": "2026-09-20.1",
-  "source_of_truth": true,
   "description": "Canonical signature algorithm vocabulary and explicit per-standard mappings for v1 JOSE, Arkret raw signatures, and RFC 9421 HTTP Message Signatures.",
   "registry_rules": [
     "A JWS protected header MUST use the standard JOSE member alg and its value MUST equal the active row's jose_algorithm. Arkret MUST NOT rename members inside a JOSE object.",

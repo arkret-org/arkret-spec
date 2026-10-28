@@ -1,5 +1,4 @@
 {
-  "version": "2026-09-19.1",
   "generated_by": "tools/regenerate_resolution_commitments.py",
   "description": "Adapter evidence for every fixture resolution commitment covered by tools/resolution-commitment-pointer-registry.json.",
   "runner": {

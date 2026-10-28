@@ -1,6 +1,7 @@
 """Artifact lint phase 5: prose."""
 
 from __future__ import annotations
+from .core import registry_source_role
 
 from .core import (
     ARTIFACTS,
@@ -112,8 +113,6 @@ def check_naming_predicates(lint: Lint) -> None:
     rules_data = load_json(lint, NAMING_RULES_PATH)
     if not isinstance(rules_data, dict):
         return
-    if rules_data.get("source_of_truth") is not False:
-        lint.fail(NAMING_RULES_PATH, "naming rules are a derived predicate table, not a truth source")
     if rules_data.get("baseline") != []:
         lint.fail(NAMING_RULES_PATH, "naming convention baseline must be empty at closure")
     if rules_data.get("evidence_material_audit") != "tools/evidence-material-audit.json":
@@ -170,10 +169,6 @@ def check_naming_predicates(lint: Lint) -> None:
     lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
     matched_lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
     if isinstance(lexeme_registry, dict):
-        if lexeme_registry.get("source_of_truth") is not True:
-            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical lexeme registry must be a truth source")
-        if lexeme_registry.get("kind") != "canonical_lexeme_registry":
-            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical lexeme registry has the wrong kind")
         terms = lexeme_registry.get("canonical_terms")
         if not isinstance(terms, list) or not terms:
             lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical_terms must be a non-empty array")
@@ -290,11 +285,6 @@ def check_naming_predicates(lint: Lint) -> None:
 
     evidence_audit = load_json(lint, EVIDENCE_MATERIAL_AUDIT_PATH)
     if isinstance(evidence_audit, dict):
-        if evidence_audit.get("source_of_truth") is not False:
-            lint.fail(
-                EVIDENCE_MATERIAL_AUDIT_PATH,
-                "the evidence audit is derived from schemas and registries, not a truth source",
-            )
         registrations = evidence_audit.get("registrations")
         expected_evidence_keys: dict[tuple[str, str], int] = {}
         if not isinstance(registrations, list):
@@ -388,13 +378,6 @@ def check_naming_predicates(lint: Lint) -> None:
                 f"evidence adjudication drift: unregistered={missing}, stale={stale}, "
                 f"count_drift={count_drift}",
             )
-        actual_occurrence_count = sum(actual_evidence_keys.values())
-        if evidence_audit.get("audited_occurrence_count") != actual_occurrence_count:
-            lint.fail(
-                EVIDENCE_MATERIAL_AUDIT_PATH,
-                "audited_occurrence_count does not match the registered schema/registry key count",
-            )
-
     # ------------------------------------------------------------------
     # Exact-path exception index. A naming exception is only meaningful for
     # the schema location its external anchor actually covers; a name-only
@@ -449,8 +432,6 @@ def check_naming_predicates(lint: Lint) -> None:
     debt_data = load_json(lint, NAMING_DEBT_PATH)
     debt_index: dict[str, dict[tuple[str, str, str], dict]] = {}
     if isinstance(debt_data, dict):
-        if debt_data.get("source_of_truth") is not False:
-            lint.fail(NAMING_DEBT_PATH, "debt baseline is a transient ledger, not a truth source")
         entries = debt_data.get("entries")
         grouped: dict[str, list] = {}
         if isinstance(entries, list):
@@ -900,8 +881,6 @@ def check_profile_dependency_graph(lint: Lint) -> None:
         lint.fail(graph_path, "generated profile graph nodes drift from profile_requirements")
     if actual_edges != expected_edges:
         lint.fail(graph_path, "generated profile graph edges drift from profile_requirements")
-    if graph.get("source_of_truth") is not False:
-        lint.fail(graph_path, "generated profile graph must not claim source_of_truth")
 
 
 
@@ -2552,7 +2531,7 @@ def check_artifact_prose_section_refs(lint: Lint) -> None:
             document = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             continue
-        if isinstance(document, dict) and document.get("source_of_truth") is False:
+        if registry_source_role(path) == "generated":
             continue  # generated view; attribute to its source of truth instead
         artifact_rel = path.relative_to(ARTIFACTS).as_posix()
         for pointer, text in _artifact_json_strings(document):

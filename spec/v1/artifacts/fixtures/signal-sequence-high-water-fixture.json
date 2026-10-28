@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.full_client.v1",
-  "version": "2026-08-08",
-  "suite": "signal_sequence_high_water",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signal.sequence_high_water.v1"

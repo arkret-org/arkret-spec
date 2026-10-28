@@ -1,6 +1,4 @@
 {
-  "suite": "long_text_content",
-  "version": "2026-07-28",
   "profile": "ak.profile.chat_mvp.v1",
   "runner": {
     "kind": "generated_limit_cases",

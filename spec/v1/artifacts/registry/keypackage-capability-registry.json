@@ -1,6 +1,4 @@
 {
-  "version": "2026-08-25",
-  "source_of_truth": true,
   "value_set_evolution": "open",
   "description": "Canonical open registry for application content and policy capability identifiers advertised by Arkret MLS KeyPackages and selected as an MLS group capability floor.",
   "registry_rules": {

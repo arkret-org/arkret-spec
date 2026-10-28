@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-23.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-23T10:19:20+08:00",
   "description": "Closed coverage of every fixture resolution_commitment value. A pointer containing :: enters canonical JSON stored in the string selected by the left-hand RFC 6901 pointer.",
   "rules": [
     "Every fixture object shaped as {did, method_history_head, version_id}, including one embedded in a canonical JSON string, MUST have exactly one row.",

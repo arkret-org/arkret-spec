@@ -1,8 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 11,
-  "kind": "forbidden_model_terms",
-  "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
   "rejection_levels": {
     "hard_reject": "MUST NOT appear in current normative prose, current SDK / service code identifiers, or current UI copy describing v1 core model.",

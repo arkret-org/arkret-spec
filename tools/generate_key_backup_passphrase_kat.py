@@ -4,6 +4,7 @@ Requires argon2-cffi and PyNaCl. This generator uses Python crypto libraries
 independently of the Rust producer and Cotest runner.
 """
 
+import argparse
 import base64
 import hashlib
 import hmac
@@ -34,7 +35,10 @@ def subkey(root: bytes, info: str) -> bytes:
     return hmac.new(prk, info.encode("utf-8") + b"\x01", hashlib.sha256).digest()
 
 
-def main() -> None:
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="verify the independent KAT without writing artifacts")
+    args = parser.parse_args()
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     passphrase = "correct horse battery staple"
     salt = bytes(range(16))
@@ -138,12 +142,20 @@ def main() -> None:
             "Wrong passphrase, modified parameters, commitment, nonce or AAD are rejected",
         ],
     }
+    if args.check:
+        actual = [row for row in fixture["cases"] if row.get("vector_id") == VECTOR_ID]
+        if actual != [case]:
+            print("passphrase key-backup KAT drift; regenerate with tools/generate_key_backup_passphrase_kat.py")
+            return 1
+        print("passphrase key-backup KAT: independent KDF, keys, nonce, plaintext and ciphertext exact")
+        return 0
     fixture["cases"] = [row for row in fixture["cases"] if row.get("vector_id") != VECTOR_ID]
     fixture["cases"].append(case)
-    fixture["version"] = "2026-09-24.4"
+    fixture["generated_by"] = "tools/generate_key_backup_passphrase_kat.py"
     FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     subprocess.run(["node", "tools/regenerate_key_backup_hardening_kat.mjs"], cwd=ROOT, check=True)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

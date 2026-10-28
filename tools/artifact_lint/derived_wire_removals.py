@@ -37,17 +37,12 @@ from .schemas import CONTENT_ADDRESSED_REF_MIRROR_REMOVALS
 
 LOCK_PATH = ARTIFACTS / "registry" / "derived-wire-field-removal-lock.json"
 
-LOCK_KIND = "derived_wire_field_removals"
-
-MACHINE_GATE = "tools/artifact_lint:derived_wire_field_removals"
-
 ROW_KEYS = ("lock_id", "ruling", "schema", "path", "removed", "source", "derivation", "spec_anchor")
 
 SOURCE_KEYS = frozenset({"schema", "path", "field"})
 
 LOCK_ID_RE = re.compile(r"^ak\.lock\.derived_wire_field_removal\.[a-z0-9_]+\.v1$")
 
-VERSION_RE = re.compile(r"^\d{4}-\d{2}-\d{2}\.\d+$")
 
 
 def _mirror_lock_triples() -> set[tuple[str, str, str]]:
@@ -79,22 +74,10 @@ def load_derived_wire_field_removals(
     data = load_json(lint, lock_path)
     if not isinstance(data, dict):
         return []
-    if data.get("source_of_truth") is not True:
-        lint.fail(lock_path, "source_of_truth must be true; the lock is hand-adjudicated, not generated")
-    if not isinstance(data.get("version"), str) or not VERSION_RE.match(data["version"]):
-        lint.fail(lock_path, "version must look like YYYY-MM-DD.N")
-    if data.get("lock_kind") != LOCK_KIND:
-        lint.fail(lock_path, f"lock_kind must be {LOCK_KIND}")
     rules = data.get("registry_rules")
     if not isinstance(rules, dict):
         lint.fail(lock_path, "registry_rules must be an object")
         rules = {}
-    if rules.get("machine_gate") != MACHINE_GATE:
-        lint.fail(lock_path, f"registry_rules.machine_gate must be {MACHINE_GATE}")
-    if list(rules.get("row_keys") or []) != list(ROW_KEYS):
-        lint.fail(lock_path, f"registry_rules.row_keys must be exactly {list(ROW_KEYS)}")
-    if "CONTENT_ADDRESSED_REF_MIRROR_REMOVALS" not in str(rules.get("division_of_labor", "")):
-        lint.fail(lock_path, "registry_rules.division_of_labor must name CONTENT_ADDRESSED_REF_MIRROR_REMOVALS as the 4.0.1 owner")
     rows = data.get("removals")
     if not isinstance(rows, list) or not rows:
         lint.fail(lock_path, "removals must be a non-empty list")

@@ -1,6 +1,4 @@
 {
-  "suite": "signal_message_stream",
-  "version": "2026-10-14",
   "profile": "ak.profile.signal_message_stream.v1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",

@@ -29,7 +29,6 @@ from tools.artifact_lint.reason_code_producers import (
 REMOVED_ROW = {
     "code": "gone_code",
     "ruling": "2026-09-04-1752 workflow profile stage transition",
-    "registry_version": "2026-09-04.2",
     "why": "no producer path could ever exist",
 }
 
@@ -48,7 +47,7 @@ def reserved(code: str) -> dict:
 
 
 def registry_with(*rows: dict) -> dict:
-    return {"version": "2026-09-04.2", "codes": [], "reason_codes": list(rows)}
+    return {"codes": [], "reason_codes": list(rows)}
 
 
 def run(
@@ -210,7 +209,6 @@ class ReasonCodeProducerLintTest(unittest.TestCase):
     def test_removed_reason_carrier_must_be_active_and_referenced(self) -> None:
         removed = {**REMOVED_ROW, "carried_by_code": "carrier_code"}
         registry = {
-            "version": "2026-09-04.2",
             "codes": [reserved("carrier_code")],
             "reason_codes": [active("bound_code")],
         }

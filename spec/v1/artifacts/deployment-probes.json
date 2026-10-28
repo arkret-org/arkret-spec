@@ -1,7 +1,4 @@
 {
-  "version": "2026-06-19",
-  "source_of_truth": true,
-  "schema": "arkret.deployment_probes.v1",
   "description": "Machine-readable deployment probes for transport- and operator-posture requirements that are not object-model conformance vectors.",
   "probes": [
     {

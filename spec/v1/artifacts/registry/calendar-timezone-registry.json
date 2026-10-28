@@ -1,9 +1,4 @@
 {
-  "version": "2026-09-19.2",
-  "source_of_truth": false,
-  "generated_at": "2026-09-19T19:22:39+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A calendar schedule MUST carry a signed tzdb_version naming one release row below. Receivers resolve timezone and every derived instant with that release, never with their locally installed release.",
     "Release rows are append-only and each row is frozen once published, including its own required_normalizations table, because historical schedules signed that row. Withdrawing a release is expressed by setting status=inactive, never by deleting or rewriting the row.",
@@ -134,6 +129,5 @@
         }
       ]
     }
-  ],
-  "metadata_authority": "contract_registry_section"
+  ]
 }

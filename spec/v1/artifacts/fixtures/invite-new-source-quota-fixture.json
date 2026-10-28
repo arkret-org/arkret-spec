@@ -1,11 +1,8 @@
 {
-  "suite": "invite_new_source_quota",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.invite.new_source_quota.v1"
   },
-  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.invite.new_source_quota_holder_admission.v1",
     "ak.vector.invite.new_source_quota_effective_bounds.v1"

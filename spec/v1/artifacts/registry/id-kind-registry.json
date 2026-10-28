@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
   "wire_form_generation": {
     "producer_allocated": "ak:<kind>:<uuidv7>",
@@ -535,12 +530,11 @@
       "category": "authz",
       "status": "active",
       "wire_form": "ak:invite:<44-char-event-token>",
-      "description": "Invite object ID derived from either directed ak.invite.create or third-party ak.invite.third_party genesis.",
+      "description": "Directed Invite object ID derived only from the accepted ak.invite.create Event.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [
-        "ak.invite.create",
-        "ak.invite.third_party"
+        "ak.invite.create"
       ]
     },
     {
@@ -855,6 +849,18 @@
       "genesis_event_kinds": [
         "ak.view.create"
       ]
+    },
+    {
+      "kind": "realm_invite_link",
+      "category": "authz",
+      "status": "active",
+      "wire_form": "ak:realm_invite_link:<44-char-event-token>",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.realm_invite_link.create"
+      ],
+      "description": "Client-shared Realm invitation authorization ID derived only from the accepted ak.realm_invite_link.create Event."
     }
   ],
   "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -907,7 +913,6 @@
       "updated_at"
     ]
   },
-  "metadata_authority": "contract_registry_section",
   "composite_identity_contract": {
     "account_id": {
       "schema_ref": "schemas/common-ids.schema.json#/$defs/account_id",

@@ -1,11 +1,8 @@
 {
-  "suite": "mls_cross_station_welcome_replication",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.cross_station_welcome_replication.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.cross_station_welcome_replication.v1"

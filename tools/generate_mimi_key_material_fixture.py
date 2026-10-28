@@ -137,8 +137,8 @@ def build():
     ):
         decisions.append({'name': 'reject_' + field, 'overrides': {field: value}, 'expect_valid': False})
     return {
-        'version': '2026-10-24.1', 'profile': 'ak.profile.mimi_interop.v1',
-        'suite': 'mimi_key_material_claim', 'operation_id': OP,
+         'profile': 'ak.profile.mimi_interop.v1',
+         'operation_id': OP,
         'runner': {'kind': 'json_schema_and_semantic_cases', 'command': 'python -B -m unittest tools.test_mimi_key_material_claim_contract'},
         'generated_by': 'tools/generate_mimi_key_material_fixture.py',
         'description': 'Native closed carriers, real participant/receipt Ed25519 signatures and adapter boundary mutations. Authority facts are synthetic inputs; this fixture is not live provider, MLS processing, database atomicity or product acceptance evidence.',

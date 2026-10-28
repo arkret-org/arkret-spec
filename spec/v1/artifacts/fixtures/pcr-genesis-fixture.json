@@ -1,6 +1,4 @@
 {
-  "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 14,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"

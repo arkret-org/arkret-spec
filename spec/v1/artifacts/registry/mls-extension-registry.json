@@ -1,7 +1,4 @@
 {
-  "version": "2026-09-24.1",
-  "generated_at": "2026-09-24T23:25:52+08:00",
-  "source_of_truth": true,
   "description": "Canonical fixed MLS extension contract for Arkret v1 groups.",
   "private_use_range": {
     "low": "0xF000",

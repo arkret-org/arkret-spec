@@ -1,7 +1,4 @@
 {
-  "suite": "protocol_simplification",
-  "version": "2026-10-25.2",
-  "fixture_kind": "semantic",
   "profile": "ak.profile.station.v1",
   "runner": {
     "kind": "named_suite",

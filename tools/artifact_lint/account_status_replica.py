@@ -76,8 +76,6 @@ def check_account_status_replica_decision_table(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(TABLE_PATH, "source_of_truth must be true")
     if not isinstance(data.get("description"), str) or not data["description"].strip():
         lint.fail(TABLE_PATH, "description must be a non-empty string")
     if data.get("comparison_baseline") != BASELINE:

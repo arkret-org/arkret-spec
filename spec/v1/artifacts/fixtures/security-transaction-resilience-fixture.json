@@ -1,7 +1,5 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-10-24.1",
-  "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.security_transaction.resilience.v1"

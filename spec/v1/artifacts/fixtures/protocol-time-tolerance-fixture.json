@@ -1,8 +1,6 @@
 {
-  "suite": "protocol_time_tolerance",
   "profile": "ak.vector_group.protocol_edge_cases.v1",
   "vector_id": "ak.vector.protocol.time_tolerance_boundaries.v1",
-  "version": "2026-09-19",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.time_tolerance.v1"

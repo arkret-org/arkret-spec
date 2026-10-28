@@ -23,8 +23,7 @@ def contract_shape(node):
 
 def registry_contract_shape(node):
     if isinstance(node, dict):
-        metadata_owner = node.get("source_of_truth") is True or "metadata_authority" in node
-        ignored = ANNOTATIONS | ({"version", "generated_at"} if metadata_owner else set())
+        ignored = ANNOTATIONS
         return {key: registry_contract_shape(value) for key, value in node.items() if key not in ignored}
     if isinstance(node, list):
         return [registry_contract_shape(value) for value in node]
@@ -45,15 +44,17 @@ def derive(root: Path = ROOT) -> dict:
         # null/absent, open slots, branch order and signature-binding annotations.
         schemas.append({"file":path.name,"contract":contract_shape(document)})
     registries = []
+    manifest = json.loads((artifacts / "registry/registry-manifest.json").read_text(encoding="utf-8"))
+    canonical = {row["file"] for row in manifest["registries"] if row["source_role"] == "canonical"}
+    canonical.add("registry/registry-manifest.json")
     for path in sorted((artifacts / "registry").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
-        if document.get("source_of_truth") is True:
+        if path.relative_to(artifacts).as_posix() in canonical:
             registries.append({"file":path.name,"digest":digest(registry_contract_shape(document))})
     import yaml
     openapi = yaml.safe_load((artifacts/"openapi/arkret-service-api.openapi.yaml").read_text(encoding="utf-8"))
     payload = {"encoding_profile_digest":digest((root / "spec/v1/zh/conformance/encoding.md").read_text(encoding="utf-8")),"schemas":schemas,"canonical_registries":registries,"openapi":contract_shape(openapi)}
-    return {"format_version":1,"kind":"protocol_member_contract","source_of_truth":False,
-            "generated_from":["spec/v1/artifacts/schemas", "spec/v1/artifacts/registry", "spec/v1/artifacts/openapi"],
+    return {"generated_from":["spec/v1/artifacts/schemas", "spec/v1/artifacts/registry", "spec/v1/artifacts/openapi"],
             "generated_by":"tools/protocol_member_contract.py --refresh-candidate",
             "description":"Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
             "contract_digest":digest(payload),**payload}

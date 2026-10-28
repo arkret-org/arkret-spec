@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-24T14:14:05+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -18,7 +15,8 @@
     "private_key_seed",
     "keygen_seed_b64u",
     "source_private_seed_b64u",
-    "private_seed_hex"
+    "private_seed_hex",
+    "secret_seed"
   ],
   "public_key_encodings": {
     "ed25519_rfc8032_public_key": {
@@ -57,7 +55,8 @@
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
         "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json"
       ],
       "recomputation": {
         "fixture": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -407,20 +406,6 @@
       ]
     },
     {
-      "value": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/zh/sync/third-party-invites.md"
-      ]
-    },
-    {
-      "value": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/zh/sync/third-party-invites.md"
-      ]
-    },
-    {
       "value": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
       "role": "deployment_like_example",
       "sources": [
@@ -474,13 +459,6 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/zh/extensions/applet-integration.md"
-      ]
-    },
-    {
-      "value": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/zh/sync/third-party-invites.md"
       ]
     },
     {

@@ -1181,8 +1181,6 @@ def check_service_kind_registry(lint: Lint) -> None:
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
 
     contexts = data.get("contexts")
     rows = data.get("service_kinds")

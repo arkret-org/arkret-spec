@@ -1,7 +1,4 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T21:25:01+08:00",
-  "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm), and canonical_id is the wire prefix in `<suite>:<lowercase_hex>` values. Event, Realm-derived and RealmCommit content-address identities are a separate fixed current-v1 domain and always use json_jcs + SHA-256 (suite code 0x01); no Realm field selects or transitions that suite.",
   "fixed_v1_content_address_suite": "sha256",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",

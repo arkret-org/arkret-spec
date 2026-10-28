@@ -3,8 +3,6 @@
     "kind": "known_answer_tests",
     "entrypoint": "ak.suite.mls.group_id_derivation.v1"
   },
-  "suite": "mls_group_id_derivation",
-  "version": "2026-09-18.1",
   "covers_vectors": [
     "ak.vector.mls.group_id_derivation_kat.v1",
     "ak.vector.mls.group_id_reversible_formula_rejected.v1"

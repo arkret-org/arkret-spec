@@ -1,7 +1,5 @@
 {
-  "suite": "producer_allocated_identity_collision",
   "profile": "ak.vector_group.object_identity.producer_allocated.v1",
-  "version": "2026-08-08",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.object_identity.producer_allocated_collision.v1"

@@ -35,7 +35,6 @@ FIXTURE = "probe-fixture.json"
 
 def clause_registry() -> dict:
     return {
-        "version": "probe",
         "coverage_scope": {
             "included_categories": ["security", "privacy"],
             "executable_fixture_categories": ["security"],
@@ -61,8 +60,6 @@ def clause_registry() -> dict:
 
 def vector_registry() -> dict:
     return {
-        "version": "probe",
-        "source_of_truth": True,
         "vectors": [
             {
                 "vector_id": VECTOR,
@@ -75,10 +72,9 @@ def vector_registry() -> dict:
 
 def fixture() -> dict:
     return {
-        "suite": "probe",
-        "fixture_kind": "semantic",
+
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.probe.v1"},
-        "version": "probe",
+
         "covers_vectors": [VECTOR],
         "security_evidence": [
             {

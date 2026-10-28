@@ -1,7 +1,5 @@
 {
-  "version": "2026-09-19.1",
   "description": "Frozen real RFC 9420 KeyPackages for every Arkret endpoint branch. Each BasicCredential identity is exactly UTF8(RFC8785_JCS(complete ActorId)); every vector pins the LeafNode and KeyPackage signatures, suite, upload entry and SHA-256 digests.",
-  "suite": "mls_keypackage_endpoint_known_answers",
   "profile": "ak.profile.e2ee_client.v1",
   "runner": {
     "kind": "known_answer_tests",

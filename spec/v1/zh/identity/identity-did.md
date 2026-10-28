@@ -270,7 +270,7 @@ DIF / identity.foundation `did:webvh` method specification（<https://identity.f
 与 §7.2；core v1 文档不再展开。`did:webvh` 当前不是 W3C Recommendation，本规范不应把它表述为 W3C
 artifact。
 
-**直接主体控制证明的历史 key 选择（normative）**：approval signature 与 3PID claim 的 subject proof
+**直接主体控制证明的历史 key 选择（normative）**：approval signature
 证明原生 principal 的控制关系，不是普通 Event producer/device authorization。对 `did:webvh` principal，
 verifier MUST 从签名所绑定时点的完整已验证 method-native history 取得 effective `updateKeys`，
 允许其中精确 Multikey 对应的标准 `did:key:<multibase>#<multibase>` 作为 proof 的

@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-25.1",
-  "generated_at": "2026-10-25T06:36:16+08:00",
-  "source_of_truth": true,
   "codes": [
     {
       "code": "json_invalid",
@@ -1463,15 +1460,6 @@
       "description": "The selected operation or portable artifact requires a profile or feature the service does not implement. Capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/unsupported_profile",
       "title": "Unsupported profile",
-      "status": "active"
-    },
-    {
-      "code": "unsupported_join_rule",
-      "http_status": 422,
-      "scope": "both",
-      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ak.find.directory.read.describe.v1 / ak.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3.",
-      "type_uri": "https://arkret.org/problems/unsupported_join_rule",
-      "title": "Unsupported join rule",
       "status": "active"
     },
     {
@@ -3428,16 +3416,6 @@
       "activation_condition": "Promote delegation_revoked to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
-      "code": "delivery_target_unreachable",
-      "applies_to": [
-        "event_envelope",
-        "service_call"
-      ],
-      "description": "Sub-reason carried by the ak.invite.revoke that moves a pending Invite to target_state=send_failed: the delivery service could not reach the private invite delivery target after its retry budget. It is a delivery diagnostic only and MUST NOT leak the 3PID plaintext, the invite token or a verification code. See zh/models/governance-objects.md section 5 and zh/sync/third-party-invites.md section 6.1.",
-      "status": "reserved",
-      "activation_condition": "Promote delivery_target_unreachable to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
       "code": "dependency_missing",
       "applies_to": [
         "batch_item",
@@ -3537,7 +3515,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "The ak.self.events.command.submit.v1 active-profile invite guard rejected an ak.invite.create or ak.invite.third_party Event targeting a Direct Conversation. A pair-external candidate is classified earlier as direct_conversation_third_party_member_forbidden; the atomic founding peer join is not an invite. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "description": "The ak.self.events.command.submit.v1 active-profile invite guard rejected an ak.invite.create Event targeting a Direct Conversation. A pair-external candidate is classified earlier as direct_conversation_third_party_member_forbidden; the atomic founding peer join is not an invite. Realm invite links are restricted to ordinary Collaboration Realms by their independent admission contract. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings and zh/sync/realm-invite-links.md.",
       "status": "active"
     },
     {
@@ -3741,14 +3719,6 @@
         "moderation_report"
       ],
       "description": "A moderation evidence package's encrypted_to recipient does not match the declared recipient_public_key_ref binding. The submission MUST reject. See governance/content-moderation.md.",
-      "status": "active"
-    },
-    {
-      "code": "expired_invite_token",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Invite token's expires_at has passed when claim is attempted. Internal-only reason code; the wire response MUST be the unified non-enumerable `not_found` per zh/sync/third-party-invites.md §6.1.",
       "status": "active"
     },
     {
@@ -4043,14 +4013,6 @@
       "status": "active"
     },
     {
-      "code": "invalidated_by_rate_limit",
-      "applies_to": [
-        "auth_decision"
-      ],
-      "description": "An out-of-band invite code attempt was invalidated because the per-code attempt rate limit was exceeded. See zh/conformance/conformance-vectors.md §3.11 (ak.vector.invite.oob_code_entropy.v1).",
-      "status": "active"
-    },
-    {
       "code": "invite_already_terminal",
       "applies_to": [
         "event_envelope",
@@ -4087,29 +4049,12 @@
       "activation_condition": "Promote invite_event_unaccepted to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
-      "code": "invite_kind_requires_revoke",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.invite.cancel targeted a token/3PID Invite without a stored direct invitee binding. Only ak.invite.revoke may terminate that Invite class.",
-      "status": "active"
-    },
-    {
       "code": "invite_live_target_occupied",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
       "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no current state write; the closed top-level Problem extensions is InviteLiveTargetOccupiedProblemExtensions carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3.",
-      "status": "active"
-    },
-    {
-      "code": "invite_oob_entropy_too_low",
-      "applies_to": [
-        "auth_decision"
-      ],
-      "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §3.11 (ak.vector.invite.oob_code_entropy.v1).",
       "status": "active"
     },
     {
@@ -5415,14 +5360,6 @@
       "activation_condition": "Promote selector_too_complex to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
-      "code": "send_failed",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Invite delivery to the private target failed after the delivery service exhausted the retry budget. Used as a stable invite transition reason for ak.invite state projections; see zh/models/governance-objects.md and zh/sync/third-party-invites.md §6.1.",
-      "status": "active"
-    },
-    {
       "code": "series_chain_broken",
       "applies_to": [
         "schema_validation",
@@ -5709,60 +5646,6 @@
         "crypto"
       ],
       "description": "The presented signing material or identifier is registered in artifacts/registry/test-material-registry.json as published test material or as a reserved test identifier, so it MUST NOT be admitted on a formal verification, authorization or trust-admission path even when the signature verifies: its private key ships with the specification. The refusal is fail-closed and MUST NOT leave a verified binding, a resolution cache entry or accepted auth state behind, MUST NOT degrade to a weaker evidence class, a limited_trust pin or a retryable unavailable, and MUST NOT be reachable through a configuration switch on the formal API. See zh/identity/did-usage-and-verification.md §8.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_acceptance_missing",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for failed_precondition when ak.open.third_party_invite.command.activate.v1 has no usable Station acceptance attestation for the named invite: the attestation signature does not verify against the attesting Station service identity, its audience or verification_id is not this service, or it does not attest a pending ak.invite.third_party on an accepted basis. A caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. See zh/sync/third-party-invites.md section 7.5.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_acceptance_stale",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for failed_precondition when a Station acceptance attestation is structurally valid but its signed expires_at has passed, observed_at is later than expires_at, or expires_at exceeds invite_expires_at. The verification service MUST fail closed rather than bind private invite material with an invalid or expired attestation. See zh/sync/third-party-invites.md section 7.5.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_material_mismatch",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for failed_precondition when the accepted ak.invite.third_party attested for activation differs from the frozen provisioning record in author, Realm, expiry or any member of the public third_party_invite object. The verification service MUST refuse rather than adopt the accepted current state values, because its private token, salt or pepper and ephemeral key were generated for the frozen material. See zh/sync/third-party-invites.md section 7.5.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_provisioning_already_bound",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for duplicate_conflict when an activation attempt would bind an already bound provisioning record to a different invite, Realm or author. One provisioning record binds to exactly one invite for its whole life; the service MUST NOT rebind, rotate the ephemeral key or reissue the token. See zh/sync/third-party-invites.md section 7.5.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_provisioning_expired",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for failed_precondition when activation is attempted after the provisioning record activation_expires_at. The record is cleaned up on the zh/sync/third-party-invites.md section 6.1 schedule and MUST NOT be revived; the inviter provisions fresh material and authors a new invite.",
-      "status": "active"
-    },
-    {
-      "code": "third_party_invite_token_in_query",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "A 3PID invite claim arrived with the invite_token sourced from a URL query string or path segment instead of from a URL fragment or out-of-band code, in violation of zh/sync/third-party-invites.md §3.2. The verification service MUST reject and SHOULD invalidate the token to prevent referer / log replay.",
       "status": "active"
     },
     {

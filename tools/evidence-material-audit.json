@@ -1,12 +1,9 @@
 {
-  "version": 51,
-  "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 413,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -429,7 +426,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 44,
+      "occurrences": 42,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -954,7 +951,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 44,
+      "occurrences": 41,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },
@@ -989,7 +986,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 44,
+      "occurrences": 42,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

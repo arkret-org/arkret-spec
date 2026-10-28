@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-21.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-21T10:55:31+08:00",
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
     "kernel": "Security and convergence primitives only: identity proof, native realm/circle/sidecar security scope shapes plus the create-only realm_genesis exception, Realm/Circle lifecycle, authority-commit/authz/membership/policy, MLS/key delivery, audit commitments, invitations, and device/account security. Sidecar domain Event kinds remain Extension-owned.",
@@ -28,10 +25,8 @@
       "ak.identity.resolution.update",
       "ak.invite.accept",
       "ak.invite.cancel",
-      "ak.invite.claim",
       "ak.invite.create",
       "ak.invite.revoke",
-      "ak.invite.third_party",
       "ak.key_backup.active_series",
       "ak.member.identity.update",
       "ak.member.state",
@@ -55,6 +50,9 @@
       "ak.realm.restore",
       "ak.realm.tombstone",
       "ak.realm.unfreeze",
+      "ak.realm_invite_link.accept",
+      "ak.realm_invite_link.create",
+      "ak.realm_invite_link.revoke",
       "ak.schema.define"
     ],
     "collaboration_base": [

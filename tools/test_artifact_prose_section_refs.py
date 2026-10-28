@@ -150,7 +150,6 @@ class ArtifactProseSectionRefGateTest(unittest.TestCase):
         # finding, not three.
         generated = ARTIFACTS / "registry" / "event-kind-registry.json"
         document = json.loads(generated.read_text(encoding="utf-8"))
-        self.assertIs(False, document.get("source_of_truth"))
         with MutateFile(
             ARTIFACTS / "registry" / "contract-registry.json",
             "crypto-media/media-and-blob.md section 6",

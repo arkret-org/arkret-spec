@@ -1,8 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-16.6",
-  "kind": "canonical_lexeme_registry",
-  "source_of_truth": true,
   "description": "Closed adjudication table for Arkret-owned domain words that have historically acquired shortened aliases. Ordinary words stay complete on every contract surface; abbreviations are admitted only by one of the registered authority classes. The lint rejects every forbidden alias on schema property, type, symbolic-value, registry-symbol, fixture and normative JSON-example surfaces.",
   "contract_surfaces": [
     "wire_property",

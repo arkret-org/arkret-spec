@@ -419,8 +419,7 @@ def build_manifest() -> dict[str, Any]:
             entry["schema_ids"].append(binding)
 
     return {
-        "schema": "arkret.property-presence-manifest.v1",
-        "source_of_truth": False,
+
         "generated_by": "tools/gen_property_presence_manifest.py",
         "generated_from": ["spec/v1/artifacts/schemas/*.json", "spec/v1/artifacts/registry/schema-registry.json"],
         "description": (

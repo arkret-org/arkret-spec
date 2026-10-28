@@ -210,6 +210,20 @@ class Lint:
         self.errors.append(f"{self.rel(path)}: {message}")
 
 
+def registry_source_role(path: Path) -> str | None:
+    """Resolve artifact ownership from the unique registry manifest."""
+    path = path.resolve()
+    manifest_path = ARTIFACTS / "registry/registry-manifest.json"
+    if path == manifest_path.resolve():
+        return "canonical"
+    try:
+        relative = path.relative_to(ARTIFACTS.resolve()).as_posix()
+    except ValueError:
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return next((row["source_role"] for row in manifest["registries"] if row["file"] == relative), None)
+
+
 EVENT_ENVELOPE_IDENTITY_FIELDS = frozenset({"event_id", "realm_id", "payload"})
 
 FORBIDDEN_EVENT_ENVELOPE_FIELDS = frozenset(
@@ -661,10 +675,8 @@ SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.strand.update", "strand_patch_payload"),
     ("ak.invite.accept", "invite_accept_payload"),
     ("ak.invite.cancel", "invite_cancel_payload"),
-    ("ak.invite.claim", "invite_claim_payload"),
     ("ak.invite.create", "invite_create_payload"),
     ("ak.invite.revoke", "invite_revoke_payload"),
-    ("ak.invite.third_party", "invite_third_party_create_payload"),
     ("ak.morph.archive", "object_lifecycle_payload"),
     ("ak.morph.restore", "object_lifecycle_payload"),
     ("ak.reaction.add", "reaction_payload"),

@@ -123,8 +123,6 @@ def check_franking_proof_transcript(lint: Lint) -> None:
     if len(matching_vectors) != 1 or matching_vectors[0].get("applies_to_fixtures") != [FIXTURE.name]:
         lint.fail(VECTOR_REGISTRY, f"{VECTOR_ID} must cover only {FIXTURE.name}")
 
-    if fixture.get("generated_by") != "tools/regenerate_franking_proof_transcript_fixture.py":
-        lint.fail(FIXTURE, "franking transcript fixture generator metadata is invalid")
     if fixture.get("domain") != DOMAIN:
         lint.fail(FIXTURE, f"fixture domain must be {DOMAIN}")
     key = fixture.get("test_key")

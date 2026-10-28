@@ -1,11 +1,8 @@
 {
-  "suite": "keypackage_recipient_claim_read",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.keypackage.recipient_claim_read.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.keypackage.recipient_claim_read.v1"

@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-24.2",
-  "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.participation.v1"

@@ -1,6 +1,4 @@
 {
-  "suite": "identity_recovery_kdf",
-  "version": "2026-07-15",
   "runner": {
     "kind": "known_answer_tests",
     "entrypoint": "ak.suite.identity.recovery_kdf.v1"

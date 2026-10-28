@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-invite-link.schema.json",
+  "title": "Arkret Realm Invite Link",
+  "$ref": "#/$defs/view",
+  "$defs": {
+    "realm_invite_link_id": {
+      "type": "string",
+      "pattern": "^ak:realm_invite_link:[A-Za-z0-9_-]{44}$"
+    },
+    "link_public_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes."
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "signature_algorithm",
+        "transcript_digest",
+        "signature"
+      ],
+      "properties": {
+        "signature_algorithm": {
+          "const": "Ed25519",
+          "x-arkret-value-ownership": {
+            "class": "external_literal",
+            "authority": "https://www.rfc-editor.org/rfc/rfc8032#section-5.1",
+            "owner": "realm-invite-link.schema.json#/$defs/proof/properties/signature_algorithm",
+            "values": [
+              "Ed25519"
+            ]
+          }
+        },
+        "transcript_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "max_lifetime_seconds",
+        "max_uses_per_link"
+      ],
+      "properties": {
+        "max_lifetime_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 4294967295,
+          "default": 2592000
+        },
+        "max_uses_per_link": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295,
+          "default": 1000
+        }
+      },
+      "additionalProperties": false
+    },
+    "lifecycle_value": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-invite-link.schema.json#/$defs/lifecycle_value",
+        "owner": "realm-invite-link.schema.json#/$defs/lifecycle_value",
+        "values": [
+          "active",
+          "revoked"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired",
+        "exhausted"
+      ],
+      "x-arkret-value-ownership": {
+        "class": "owned_symbol",
+        "authority": "realm-invite-link.schema.json#/$defs/status",
+        "owner": "realm-invite-link.schema.json#/$defs/status",
+        "values": [
+          "active",
+          "revoked",
+          "expired",
+          "exhausted"
+        ]
+      }
+    },
+    "create_payload": {
+      "type": "object",
+      "required": [
+        "public_key",
+        "expires_at",
+        "max_uses"
+      ],
+      "properties": {
+        "public_key": {
+          "$ref": "#/$defs/link_public_key"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "max_uses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        }
+      },
+      "additionalProperties": false
+    },
+    "revoke_payload": {
+      "type": "object",
+      "required": [
+        "realm_invite_link_id"
+      ],
+      "properties": {
+        "realm_invite_link_id": {
+          "$ref": "#/$defs/realm_invite_link_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "accept_payload": {
+      "type": "object",
+      "required": [
+        "realm_invite_link_id",
+        "subject_account_id",
+        "request_id",
+        "link_proof"
+      ],
+      "properties": {
+        "realm_invite_link_id": {
+          "$ref": "#/$defs/realm_invite_link_id"
+        },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "link_proof": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "definition_value": {
+      "type": "object",
+      "required": [
+        "public_key",
+        "expires_at",
+        "max_uses",
+        "create_event_id",
+        "creator_actor_id"
+      ],
+      "properties": {
+        "public_key": {
+          "$ref": "#/$defs/link_public_key"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "max_uses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "create_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "creator_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "use_record": {
+      "type": "object",
+      "required": [
+        "realm_invite_link_id",
+        "subject_account_id",
+        "accept_event_id"
+      ],
+      "properties": {
+        "realm_invite_link_id": {
+          "$ref": "#/$defs/realm_invite_link_id"
+        },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "accept_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Create-locked accepted-use fact. Identity is exact link and complete account. Its enclosing typed-current source binds the actual Event/RealmCommit; membership leave and cache GC never remove it."
+    },
+    "view": {
+      "type": "object",
+      "required": [
+        "realm_invite_link_id",
+        "realm_id",
+        "inviter_account_id",
+        "expires_at",
+        "max_uses",
+        "use_count",
+        "status",
+        "create_event_id",
+        "as_of"
+      ],
+      "properties": {
+        "realm_invite_link_id": {
+          "$ref": "#/$defs/realm_invite_link_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "inviter_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "max_uses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "use_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "create_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "as_of": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

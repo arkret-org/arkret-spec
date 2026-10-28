@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-24T14:14:05+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",

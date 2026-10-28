@@ -1,11 +1,8 @@
 {
-  "suite": "circle_parent_membership",
-  "fixture_kind": "schema_and_semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.circle.parent_membership.v1"
   },
-  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.circle.parent_membership_revision.v1"
   ],

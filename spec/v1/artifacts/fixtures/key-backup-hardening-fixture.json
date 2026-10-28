@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-10-24.1",
-  "suite": "key_backup_hardening",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.key_backup_hardening.v1"
@@ -243,7 +241,6 @@
         ]
       },
       "crypto_transcript": {
-        "fixture_kind": "cryptographic_transcript",
         "aead": "chacha20_poly1305",
         "key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "nonce_b64u": "oKGio6Slpqeoqaqr",
@@ -347,8 +344,8 @@
             "nonce_key_hex": "07aa5a12884ff18247febbc594545fe087c7c3d6ef1591a66d22607525e08585",
             "key_commitment": "sha256:303ef5d00665693793334f41b4b808a09e124bae0277a84678a8877751c50790",
             "nonce_b64u": "laMvJWNrSsFxYRygwgRkjGpVjEiQFfAx",
-            "ciphertext_b64u": "TZdvYS08RwFdrmXarZN04O0JyZPxqRB8rYotksM-A8j2sdL_YXCTMjpXu_LAlxzIuaXJSRfG7kfAtUC55CFs9LjwQhQfvALEWltAQNVfMgDq8NILvmDEP-N7lNgekhOrA7BqLkgtPHtE63S0qRKIJekNQYcFrDcIXjvz86_VB8ZztoX6P7ZQKV_npdjS-kr2hepKALYpPSNB1k89QRFWujyL3A8fNRrXzRNEw24miWZx",
-            "ciphertext_digest": "sha256:5b5811bc35df09c22d21acd173101f994e0eceed13c9074f142eb732981c7666"
+            "ciphertext_b64u": "TZdvYS08RwFdrmXarZN04O0JyZPxqRB8rYotksM-A8j2sdL_YXCTMjpXu_LAlxzIuaXJSRfG7kfAtUC55CFs9LjwQhQfvALEWltAQNVfMgDq8NILvmDEaKRrgNZJg03fU_FkSi4LCC9ngWnBvEWhEahTBoA_qCADTxb14qjfG4U97Ma2bukAdxjgn9LEvQSLje0LVeEmKm5d10A9CkBfhjXNucNeiMwQuRWLhqQPfbO17fa6Bhw",
+            "ciphertext_digest": "sha256:0476417ec9773d1979fa872fb90c6610999c8816b115ab0b3bbbadedc340940c"
           }
         },
         {
@@ -356,11 +353,11 @@
           "kdf": {
             "name": "pbkdf2",
             "salt": "AAECAwQFBgcICQoLDA0ODw",
-            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable",
             "parameters": {
               "iterations": 600000,
               "digest_algorithm": "sha512"
-            }
+            },
+            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable"
           },
           "expected": {
             "root_key_hex": "1cf30a518878f44aecb75c0e0d0d69a02ac5f9181a53b5292092e10a3c0cbb41",
@@ -369,8 +366,8 @@
             "nonce_key_hex": "d097b7975cd06bf49777b9d3831734f601979d45356dd06826f13b2fe9098445",
             "key_commitment": "sha256:bf0b08611807cff9f049ecf552bc3b3ac757b1784fc92e4ee462bd43e9b3d372",
             "nonce_b64u": "IPvU2mXE8cPTAvu0OLmZFBCoJ8k_Kc_b",
-            "ciphertext_b64u": "HdFFPuNeErY1Amtnf5S4NROBHxOzq_VWmygQVNLS8_acZ4OnIYZMOWbJcot4Z0RDCFMCNEzOARs3KFV9kXXGVkjNhy9jjIFh0xtPmCZoWVbbsPGWf8UBIbjBenfejKqPYO6ZM_Xb3Y8PdJczztIl1gfisns5C5XmllLcw_fNWia3FGlWeKsqn7pb0OTFBYZzbvcG0gctyOtlTG1HcZedCJSJ7oEAwM0kZS4TqQLUhyNg",
-            "ciphertext_digest": "sha256:0938510b4b25e6dadf5b2ef53a82f9671649cf026b40488a2519a8ed1bbcfbf7"
+            "ciphertext_b64u": "HdFFPuNeErY1Amtnf5S4NROBHxOzq_VWmygQVNLS8_acZ4OnIYZMOWbJcot4Z0RDCFMCNEzOARs3KFV9kXXGVkjNhy9jjIFh0xtPmCZoWVbbsPGWf8UBdv_RbnmJnfT7MK-XV5P96dssHopG24UM4ka89XwDD4Lth3_a0vDHRmX5TioaKfR6wf1c6u7TQsgOZvBHh1Ai36Z5TWJHOsaUNJ1t32KldjeRT3AxBXyv7EeNJGMeB6M",
+            "ciphertext_digest": "sha256:bfcd3c2227840578ce7e7760f1045e55be51fdcc3d563840002905c7d3f7be29"
           }
         }
       ],
@@ -381,5 +378,5 @@
       ]
     }
   ],
-  "generated_by": "tools/regenerate_key_backup_hardening_kat.mjs"
+  "generated_by": "tools/generate_key_backup_passphrase_kat.py"
 }

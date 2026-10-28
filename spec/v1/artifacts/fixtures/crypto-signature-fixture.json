@@ -4,7 +4,6 @@
     "entrypoint": "ak.suite.crypto.signature.v1"
   },
   "profile": "ak.vector_group.crypto_signature.v1",
-  "version": "2026-10-24.1",
   "vectors": [
     {
       "name": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",

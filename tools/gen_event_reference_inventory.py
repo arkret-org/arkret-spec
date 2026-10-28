@@ -49,16 +49,11 @@ def build_inventory() -> dict[str, Any]:
     for path in sorted(SCHEMAS.glob("*.json")):
         walk(json.loads(path.read_text(encoding="utf-8")), [], rows, path.name)
     rows.sort(key=lambda row: (row["schema"], row["json_pointer"]))
-    counts: dict[str, int] = {}
-    for row in rows:
-        counts[row["classification"]] = counts.get(row["classification"], 0) + 1
     return {
-        "version": "2026-08-22",
-        "source_of_truth": False,
+
         "generated_from": ["schemas/*.json"],
         "generated_by": "tools/gen_event_reference_inventory.py",
         "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
-        "counts": counts,
         "fields": rows,
     }
 

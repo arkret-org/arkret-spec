@@ -504,28 +504,11 @@ sibling Account、foreign admission、非 Human actual producer、registration �
 
 ### 3.11 邀请
 
-`ak.vector.invite.claim_reducer_state_machine.v1` MUST 证明：`ak.invite.claim` 的 Realm reducer 在同一 accepted authority cut
-核对唯一 accepted create Event/Commit、纯状态 `invite_lifecycle` 与有效 Realm policy；`binding_proof` 与 `subject_proof`
-的签名 transcript、create Event 的 `token_commitment` 匹配、`verification_id` allowlist 复查、accepted claim 的
-`claim_nonce` 与 commitment 唯一性，均在接纳前检查。接纳时 exact claim Event/Commit、`pending -> claimed`、可重建
-派生索引与 subject-bound membership proposal 原子成立；后续 accept 以该 claim Event 的 exact ref 和 subject 校验。
-被拒 claim 零共享 projected write，过期终态只能由独立 accepted `ak.invite.revoke` 推进。
+定向邀请 MUST 验证完整目标、pending 到四种终态的闭合 FSM、单 live-target slot、精确 Event 重试及全部拒绝零写入。
 
-`ak.vector.invite.consumed_token_resubject_rejected.v1` MUST 证明：已被原子消费并签发了绑定某 subject 的
-`binding_proof` 的第三方邀请 token，不能被再次签发给不同 subject——验证服务 MUST 拒绝第二次签发，
-仅当请求绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)` 时才允许在可恢复窗口内幂等重投递
-同一份既有 `binding_proof`；reducer MUST 以 `duplicate_conflict` 拒绝改绑 subject 的 `ak.invite.claim`；
-对外失败响应 MUST 与 `not_found` 不可区分，具体 reason code 只写入服务端审计日志。
+`ak.vector.invite.locator_failure_indistinguishable.v1` MUST 独立验证 PrincipalLocator 解析对不存在、过期、撤销和策略拒绝的响应及时间分布不可区分；不得依赖已撤销的第三方邀请验证服务。
 
-`ak.vector.invite.failure_indistinguishable.v1` MUST 证明：第三方 claim 端点与 invite locator 解析端点各自的
-全部失败类别共享同一个对外响应形状与有界的时延分布。
-
-`ak.vector.invite.oob_code_entropy.v1` MUST 证明：低于生产最低熵的离线 OOB code claim MUST 被 reducer 或验证服务
-拒绝；有效窗口或 claim 次数超过策略上限的 lookup 形态 MUST 失效，不得进入 pending invite 或已接纳成员资格。
-
-`ak.vector.invite.provisioning_activation_binding.v1` MUST 证明：第三方邀请私有材料的生命周期——
-provisioning 对 `request_id` 幂等并拒绝同 id 不同意图；激活只在新鲜且成员逐一匹配的 Station 接纳背书上绑定；
-一条 provisioning 记录绝不重绑到第二个 invite；重启后完全相同的重试返回原绑定；带外投递在激活之前绝不开始。
+`ak.vector.realm_invite_link.possession_proof.v1` 固定两种用途的独立密码 KAT；它不证明原生接纳或成员状态。Realm 邀请链接按 [realm-invite-links.md](../sync/realm-invite-links.md)逐项验收：链接公钥只来自已接纳创建原件；接受证明绑定完整账号、Realm、链接与请求；preview context 不能授权 accept。有效期以真实接纳时点判断，回填 created_at 无效。末次名额并发只能一个成功，撤销和接受以同 Realm cut 排序。同账号每链接至多一次，退群不返次数，精确重试不重新入组。使用事实、成员、原件、Commit 和 outbox 必须原子提交；错误证明、到期、耗尽及 ban 均零写入。真实同站、跨站和合法交接必须使用完整原件与权威闭包；mock、空响应或响应前拒绝不构成正例覆盖。
 
 ### 3.12 Patch 与 reducer
 
@@ -775,3 +758,9 @@ HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过�
 
 `ak.vector.applet.management_source.v1` 对应 applet-management-source-fixture.json，执行正文闭包、closed载体、
 真实配置 Ed25519 domain／原像反变异与 MR／CR 协议模型。主体四个 detached 签名、Device PoP、控制流、双门、身份隔离及管理交接由 ak.vector.realm_actor.contract.v1 覆盖；这些参考测试不声明生产或真实双站 MLS 通过。
+
+## 用户分享的 Realm 邀请链接
+
+`ak.vector.realm_invite_link.possession_proof.v1` 固定独立 Ed25519 已知答案、完整账号、Realm、链接、request_id 与 accept／preview 目的分离，执行未知字段及原像反变异。测试 seed 仅用于密码学向量，不是已接纳邀请原件，不声明业务接纳覆盖。
+
+`ak.realm_invite_link.create`、`ak.realm_invite_link.revoke` 和 `ak.realm_invite_link.accept` 的工程验收 MUST 使用真实已签发会话、完整 producer source、已接纳原签 Event 与治理 RealmCommit；保留定义、生命周期、账号使用事实、成员与 outbox 的同事务闭包。必须覆盖同站／跨站接受、最后名额并发、撤销竞争、可信接纳时刻到期、每账号至多一次、精确 Event 重试、退群与恢复。打开／预览／prepare 不占次数；响应前拒绝与 mock 成功均不构成该合同覆盖。密码学向量通过也不能代替这些工程验收。

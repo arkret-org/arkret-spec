@@ -29,7 +29,6 @@ from tools.artifact_lint import core
 from tools.artifact_lint.core import Lint
 
 REGISTRY = {
-    "version": "probe",
     "operations": [
         {"operation_id": "ak.self.events.command.submit.v1"},
         {"operation_id": "ak.server.read.describe.v1"},
@@ -41,7 +40,7 @@ FIXTURE = {
     "cases": [{"operation_id": "ak.self.events.command.submit.v1"}],
 }
 
-EMPTY_LEDGER: dict = {"version": "probe", "references": []}
+EMPTY_LEDGER: dict = {"references": []}
 
 NEGATIVE_ROW = {
     "token": "ak.self.events.command.unregistered.v1",
@@ -185,7 +184,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
             [],
             self.run_gate(
                 fixtures={"fixtures/probe-fixture.json": fixture},
-                ledger={"version": "probe", "references": [OWNED_ROW]},
+                ledger={"references": [OWNED_ROW]},
             ),
         )
 
@@ -200,7 +199,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
                 "fixtures/probe-fixture.json": fixture,
                 "fixtures/other-fixture.json": fixture,
             },
-            ledger={"version": "probe", "references": [OWNED_ROW]},
+            ledger={"references": [OWNED_ROW]},
         )
         self.assertEqual(1, len(errors), errors)
         self.assertIn("other-fixture.json", errors[0])
@@ -214,7 +213,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         }
         errors = self.run_gate(
             fixtures={"fixtures/probe-fixture.json": fixture},
-            ledger={"version": "probe", "references": [row]},
+            ledger={"references": [row]},
         )
         self.assertEqual(2, len(errors), errors)
         self.assertIn("owner_report", errors[0])
@@ -228,7 +227,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         }
         errors = self.run_gate(
             fixtures={"fixtures/probe-fixture.json": fixture},
-            ledger={"version": "probe", "references": [row]},
+            ledger={"references": [row]},
         )
         self.assertEqual(2, len(errors), errors)
         self.assertIn("asserts the rejection", errors[0])
@@ -243,7 +242,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         }
         errors = self.run_gate(
             fixtures={"fixtures/probe-fixture.json": fixture},
-            ledger={"version": "probe", "references": [row]},
+            ledger={"references": [row]},
         )
         self.assertEqual(2, len(errors), errors)
         self.assertIn("no owner_report", errors[0])
@@ -257,7 +256,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         }
         errors = self.run_gate(
             fixtures={"fixtures/probe-fixture.json": fixture},
-            ledger={"version": "probe", "references": [row]},
+            ledger={"references": [row]},
         )
         self.assertEqual(2, len(errors), errors)
         self.assertIn("kind must be", errors[0])
@@ -271,7 +270,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         }
         errors = self.run_gate(
             fixtures={"fixtures/probe-fixture.json": fixture},
-            ledger={"version": "probe", "references": [row]},
+            ledger={"references": [row]},
         )
         self.assertEqual(2, len(errors), errors)
         self.assertIn("no reason", errors[0])
@@ -281,19 +280,19 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
     def test_a_row_whose_token_became_registered_turns_the_gate_red(self) -> None:
         row = dict(OWNED_ROW)
         row["token"] = "ak.self.events.command.submit.v1"
-        errors = self.run_gate(ledger={"version": "probe", "references": [row]})
+        errors = self.run_gate(ledger={"references": [row]})
         self.assertEqual(1, len(errors), errors)
         self.assertIn("registered now", errors[0])
 
     def test_a_registered_negative_token_says_the_case_is_contradicted(self) -> None:
         row = dict(NEGATIVE_ROW)
         row["token"] = "ak.self.events.command.submit.v1"
-        errors = self.run_gate(ledger={"version": "probe", "references": [row]})
+        errors = self.run_gate(ledger={"references": [row]})
         self.assertEqual(1, len(errors), errors)
         self.assertIn("contradicts", errors[0])
 
     def test_a_row_no_artifact_carries_any_more_turns_the_gate_red(self) -> None:
-        errors = self.run_gate(ledger={"version": "probe", "references": [OWNED_ROW]})
+        errors = self.run_gate(ledger={"references": [OWNED_ROW]})
         self.assertEqual(1, len(errors), errors)
         self.assertIn("does not name the token", errors[0])
 

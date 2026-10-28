@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.agent_runtime.v1",
-  "version": "2026-09-19",
-  "suite": "agent_mls_keypackage_authorization",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.mls_keypackage_authorization.v1"

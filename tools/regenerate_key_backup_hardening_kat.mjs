@@ -88,7 +88,7 @@ vector.test_key = {
   note: 'Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_signing_material_denied.'
 };
 vector.crypto_transcript = {
-  fixture_kind: 'cryptographic_transcript', aead: 'chacha20_poly1305',
+  aead: 'chacha20_poly1305',
   key_b64u: b64u(key), nonce_b64u: b64u(nonce), aad_canonical_json: aad,
   plaintext_canonical_json: plaintext, ciphertext_b64u: b64u(encrypted), tag_b64u: b64u(tag),
   ciphertext_and_tag_b64u: b64u(combined), ciphertext_digest: digest, tag_length_bytes: 16,
@@ -100,7 +100,6 @@ vector.expected.cryptographic_proof_signature = 'valid';
 vector.expected.cryptographic_aead_open = 'valid';
 vector.assertions = vector.assertions.map(a => a.includes('the real Ed25519 signature')
   ? 'The published Ed25519 key proves offline transcript validity; live authorization rejects this key as test_signing_material_denied.' : a);
-fixture.generated_by = 'tools/regenerate_key_backup_hardening_kat.mjs';
 
 // Independent cryptographic checks, including negative mutation controls.
 const open = (aadBytes, encryptedBytes) => {

@@ -1,0 +1,137 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.realm_invite_link.proofs.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.realm_invite_link.possession_proof.v1"
+  ],
+  "required_schemas": [
+    "ak.schema.realm_invite_link_token.v1",
+    "ak.schema.realm_invite_link.v1"
+  ],
+  "coverage_boundary": "Codec and cryptographic transcript KAT only. IDs are frozen syntactic targets; this fixture asserts no accepted link creation, issuer ledger, membership or native contract coverage. Live native tests must obtain real accepted creation originals.",
+  "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+  "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+  "accepted_proof_cases": [
+    {
+      "case": "accept_purpose",
+      "context": "ak.realm_invite_link.accept_proof.v1",
+      "binding": {
+        "realm_id": "ak:realm:AT3p9polsnQ_WOix32QZimMdE2zPe62HptJu2PaO3V1h",
+        "realm_invite_link_id": "ak:realm_invite_link:AY6DJbBwavsGTQuBZZiqqw9MVcqPZ8QX8invQ3i2kpi7",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:web:bob.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "request_id": "ak:request:01904100-0000-7000-8000-000000000001",
+        "audience": "arkret.realm_invite_link.accept"
+      },
+      "signing_bytes_utf8": "ak.realm_invite_link.accept_proof.v1\n{\"audience\":\"arkret.realm_invite_link.accept\",\"realm_id\":\"ak:realm:AT3p9polsnQ_WOix32QZimMdE2zPe62HptJu2PaO3V1h\",\"realm_invite_link_id\":\"ak:realm_invite_link:AY6DJbBwavsGTQuBZZiqqw9MVcqPZ8QX8invQ3i2kpi7\",\"request_id\":\"ak:request:01904100-0000-7000-8000-000000000001\",\"subject_account_id\":{\"principal_id\":\"ak:did_core:web:bob.example\",\"station_id\":\"ak:did_core:web:station.example\"}}",
+      "proof": {
+        "signature_algorithm": "Ed25519",
+        "transcript_digest": "sha256:07e936550777f01fdaa89cd5a314d083e305b5da6e8b86773a714e1ffc2a94d4",
+        "signature": "hJpowWAOn83pzOyk1qKFYfXWpaS7NbHq6GYxDOagMSBfpl9P_K-bl7_uIhU6upabl18aJRvDZhxKt3mYwBBYDA"
+      }
+    },
+    {
+      "case": "preview_purpose",
+      "context": "ak.realm_invite_link.preview_proof.v1",
+      "binding": {
+        "realm_id": "ak:realm:AT3p9polsnQ_WOix32QZimMdE2zPe62HptJu2PaO3V1h",
+        "realm_invite_link_id": "ak:realm_invite_link:AY6DJbBwavsGTQuBZZiqqw9MVcqPZ8QX8invQ3i2kpi7",
+        "subject_account_id": {
+          "principal_id": "ak:did_core:web:bob.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "request_id": "ak:request:01904100-0000-7000-8000-000000000001",
+        "audience": "arkret.realm_invite_link.preview"
+      },
+      "signing_bytes_utf8": "ak.realm_invite_link.preview_proof.v1\n{\"audience\":\"arkret.realm_invite_link.preview\",\"realm_id\":\"ak:realm:AT3p9polsnQ_WOix32QZimMdE2zPe62HptJu2PaO3V1h\",\"realm_invite_link_id\":\"ak:realm_invite_link:AY6DJbBwavsGTQuBZZiqqw9MVcqPZ8QX8invQ3i2kpi7\",\"request_id\":\"ak:request:01904100-0000-7000-8000-000000000001\",\"subject_account_id\":{\"principal_id\":\"ak:did_core:web:bob.example\",\"station_id\":\"ak:did_core:web:station.example\"}}",
+      "proof": {
+        "signature_algorithm": "Ed25519",
+        "transcript_digest": "sha256:53f21a8efa0191c65b8d2bcef786039ff252bdb75ba8b2b37f17497e0e01f4ae",
+        "signature": "AqFYJpvyTaX0eF6mNTdLr2ImlO9vQYbnDRlpuDfy1bke0nq4knS84Q_M_ia1_7zEIw6UjkCqMXfj-nUE_gaSBQ"
+      }
+    }
+  ],
+  "negative_mutations": [
+    "purpose",
+    "realm_id",
+    "realm_invite_link_id",
+    "principal_id",
+    "station_id",
+    "request_id",
+    "audience",
+    "transcript_digest",
+    "signature",
+    "unknown_field",
+    "padded_base64url",
+    "token_wrong_realm",
+    "token_noncanonical_json",
+    "token_unknown_field"
+  ],
+  "token": {
+    "schema": "ak.schema.realm_invite_link_token.v1",
+    "realm_id": "ak:realm:AT3p9polsnQ_WOix32QZimMdE2zPe62HptJu2PaO3V1h",
+    "realm_invite_link_id": "ak:realm_invite_link:AY6DJbBwavsGTQuBZZiqqw9MVcqPZ8QX8invQ3i2kpi7",
+    "secret_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "authority_locator_hints": [
+      {
+        "service_kind": "station",
+        "service_id": "ak:did_core:web:station.example",
+        "source": "invite"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "accept_purpose"
+    },
+    {
+      "case_id": "preview_purpose"
+    },
+    {
+      "case_id": "purpose"
+    },
+    {
+      "case_id": "realm_id"
+    },
+    {
+      "case_id": "realm_invite_link_id"
+    },
+    {
+      "case_id": "principal_id"
+    },
+    {
+      "case_id": "station_id"
+    },
+    {
+      "case_id": "request_id"
+    },
+    {
+      "case_id": "audience"
+    },
+    {
+      "case_id": "transcript_digest"
+    },
+    {
+      "case_id": "signature"
+    },
+    {
+      "case_id": "unknown_field"
+    },
+    {
+      "case_id": "padded_base64url"
+    },
+    {
+      "case_id": "token_wrong_realm"
+    },
+    {
+      "case_id": "token_noncanonical_json"
+    },
+    {
+      "case_id": "token_unknown_field"
+    }
+  ]
+}

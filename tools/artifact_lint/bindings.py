@@ -988,10 +988,6 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.gate.account.command.register.v1",
         "ak.gate.account.command.issue_session_grant.v1",
         "ak.open.invite_locator.read.resolve.v1",
-        "ak.open.third_party_invite.command.activate.v1",
-        "ak.open.third_party_invite.command.present_token.v1",
-        "ak.open.third_party_invite.command.provision.v1",
-        "ak.open.third_party_invite.read.provisioning_status.v1",
         "ak.open.agent_pairing.read.resolve.v1",
         "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
         "ak.open.agent_pairing.read.runtime_key_request_status.v1",
@@ -2038,6 +2034,7 @@ def _supply_walk_demand(
             supplied_defs,
             covered or key in supplied_defs,
             caller_signed
+            or (rfile == "schemas/realm-invite-link.schema.json" and ridentity == "#/$defs/proof")
             or rdef in _SUPPLY_CALLER_SIGNED_SCHEMAS
             or rfile in _SUPPLY_CALLER_SIGNED_SCHEMAS,
         )

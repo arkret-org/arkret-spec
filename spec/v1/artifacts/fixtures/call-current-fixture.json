@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "suite": "call_current",
-  "fixture_kind": "cryptographic_transcript",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.call_state.compact_current.v1"

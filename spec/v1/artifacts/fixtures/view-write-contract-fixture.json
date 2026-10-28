@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.core_event_store.v1",
-  "version": "2026-10-24.1",
-  "suite": "view_write_contract",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.view.write_contract.v1"

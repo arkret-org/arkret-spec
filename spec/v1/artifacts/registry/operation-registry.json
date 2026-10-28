@@ -1,25 +1,6 @@
 {
-  "version": "2026-10-27",
-  "source_of_truth": false,
-  "generated_at": "2026-10-27T03:26:08+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
   "normative_source": "artifacts/registry/contract-registry.json#operation_registry",
-  "generated_views": [
-    {
-      "file": "registry/operation-registry.json",
-      "role": "Generated machine-readable operation registry view."
-    },
-    {
-      "file": "openapi/arkret-service-api.openapi.yaml",
-      "role": "HTTP/OpenAPI binding shape aligned to the catalog; not a second operation namespace."
-    },
-    {
-      "file": "../zh/sync/service-api-schema.mdx",
-      "role": "Descriptive operation map and governance notes; excerpt-only unless explicitly marked generated."
-    }
-  ],
   "high_security_session_authentication_policy": {
     "applies_to_operation_id_prefix": "ak.self.",
     "protected_operation_default": "rfc9421_session_public_key_required",
@@ -417,17 +398,6 @@
       "surface": "invite_locator_handoff",
       "operations": [
         "ak.open.invite_locator.read.resolve.v1"
-      ],
-      "surface_class": "extension"
-    },
-    {
-      "surface": "third_party_invite_handoff",
-      "operations": [
-        "ak.open.third_party_invite.command.activate.v1",
-        "ak.open.third_party_invite.command.present_token.v1",
-        "ak.open.third_party_invite.command.provision.v1",
-        "ak.open.third_party_invite.read.provisioning_status.v1",
-        "ak.self.third_party_invite.read.acceptance_attestation.v1"
       ],
       "surface_class": "extension"
     },
@@ -1451,82 +1421,6 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/identity-resolution.schema.json#/$defs/authenticated_service_resolution"
-    },
-    {
-      "operation_id": "ak.open.third_party_invite.command.activate.v1",
-      "http": "POST /_arkret/open/third-party-invites/activate",
-      "grpc": "OpenThirdPartyInvite/Activate",
-      "mq": "open.third_party_invite.command.activate",
-      "notes": "Back-binding activation of one provisioned private record to exactly one accepted ak.invite.third_party (third-party-invites.md section 7.5). The body carries provisioning_id and the Station-signed ThirdPartyInviteAcceptanceAttestation; the attestation is the whole authorization, so a caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT be accepted in its place. The service verifies the Station service identity and signature, audience, exact verification_id, the attestation's signed expires_at/invite_expires_at bounds, and member-for-member equality of author, Realm, expiry and public material against the frozen provisioning record, recomputes invite_digest from the attested current state per section 4.2, then atomically persists the unique binding and the delivery intent. One provisioning record binds to one invite forever: a second attestation naming a different invite, Realm or author is refused and never rebinds, rotates the key or reissues the token. A byte-identical retry, a concurrent duplicate and a retry after a restart all return the original binding.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
-      "retry_safe": true,
-      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_activation_response_body",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "persists_only_the_verification_service_private_invite_binding_and_delivery_intent_no_event_is_authored",
-        "cross_service_effects": [
-          "activation_commits_a_durable_out_of_band_delivery_intent_to_the_private_3pid_target"
-        ],
-        "irreversibility_note": "Delivery to an external mail or SMS gateway cannot be recalled. The intent MUST be durable before success is returned, and the delivered material stays the one invite this activation bound; stopping an already delivered invite requires an authorized writer's ak.invite.revoke."
-      }
-    },
-    {
-      "operation_id": "ak.open.third_party_invite.command.present_token.v1",
-      "http": "POST /_arkret/open/third-party-invites/present",
-      "grpc": "OpenThirdPartyInvite/PresentToken",
-      "mq": "open.third_party_invite.command.present_token",
-      "notes": "Token presentation surface of the 3PID invite verification service (third-party-invites.md section 4.1). The invitee's client submits invite_token, realm_id, subject_account_id, subject_did and a client claim_nonce in the JSON body; the service validates token, expiry, claim count and Realm binding, atomically consumes the token, signs the ak.invite.claim.binding_proof.v1 transcript with the invite's verification_public_key and returns invite_id, token_commitment and binding_proof. invite_token in the URL query string or path segment is rejected with third_party_invite_token_in_query and the token SHOULD be invalidated; a knock_restricted Realm is rejected with unsupported_join_rule; every other failure is non-enumerable (section 6). A consumed token MUST NOT be re-bound to a different subject; the same (realm_id, subject_account_id, claim_nonce) MAY be answered with the same binding_proof inside the recoverable window (section 6.1).",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "uncertain_outcome": {
-        "strategy": "replay_same_operation",
-        "operation_id": "ak.open.third_party_invite.command.present_token.v1",
-        "requires_same_request_identity_and_canonical_intent": true
-      },
-      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_present_response_body",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-      }
-    },
-    {
-      "operation_id": "ak.open.third_party_invite.command.provision.v1",
-      "http": "POST /_arkret/open/third-party-invites/provision",
-      "grpc": "OpenThirdPartyInvite/Provision",
-      "mq": "open.third_party_invite.command.provision",
-      "notes": "Private-material provisioning entry of the 3PID invite verification service (third-party-invites.md section 7.2). An authenticated inviter submits request_id, realm_id, inviter_account_id, verification_id, oob_code_kind, the private mailto:/tel: delivery target and the requested expiry, signed under ak.third_party_invite_provision_request_proof.v1 with the service DID as audience. The service mints and durably keeps the token, the per-invite 256-bit token_salt or lookup pepper and the per-invite ephemeral signing key, then returns only the public third_party_invite object, the effective expires_at, the activation deadline and an opaque provisioning_id. It MUST NOT return the token, salt, pepper, ephemeral private key or the delivery target, MUST NOT create a pending Realm Invite, MUST NOT mint an invite_id and MUST NOT deliver anything before activation. Same request_id plus byte-identical canonical intent replays the original outcome; same request_id plus different intent is duplicate_conflict with no second set of material. An unimplemented oob_code_kind or delivery scheme is unsupported_feature; every existence failure stays non-enumerable (section 6).",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "request_id",
-      "retry_safe": true,
-      "uncertain_outcome": {
-        "strategy": "replay_same_operation",
-        "operation_id": "ak.open.third_party_invite.command.provision.v1",
-        "requires_same_request_identity_and_canonical_intent": true
-      },
-      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provision_response_body",
-      "durable_effect": {
-        "kind": "none",
-        "rationale": "mints_and_persists_only_verification_service_private_invite_material_no_event_is_authored"
-      }
-    },
-    {
-      "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
-      "http": "POST /_arkret/open/third-party-invites/status",
-      "grpc": "OpenThirdPartyInvite/ProvisioningStatus",
-      "mq": "open.third_party_invite.query.provisioning_status",
-      "notes": "Lifecycle and out-of-band delivery position of one provisioning record (third-party-invites.md section 7.6). provisioning_id is the whole query credential and MUST travel only in the JSON body. It is the recovery surface after a lost provisioning or activation response and the only standard delivery observation point. The outcome carries provisioning_state, and once activated also invite_id, activated_at, delivery_state and delivery_attempt_count; it MUST NOT carry the token, salt, pepper, ephemeral private key, delivery target or any 3PID-derived value, and MUST NOT reveal whether the invitee opened the invite. An unknown handle, a handle belonging to another inviter and a deleted record MUST be indistinguishable.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_provisioning_status_response_body"
     },
     {
       "operation_id": "ak.peer.account_status.command.submit.v1",
@@ -4059,17 +3953,6 @@
       }
     },
     {
-      "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
-      "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
-      "grpc": "SelfThirdPartyInvite/AcceptanceAttestation",
-      "mq": "self.third_party_invite.query.acceptance_attestation",
-      "notes": "Purpose-scoped acceptance attestation the authenticated inviter obtains from its own Station for one exact accepted ak.invite.third_party create Event/Commit it authored (third-party-invites.md section 7.4). At one current accepted authority cut, the Station confirms the create author, pure invite_lifecycle pending and verification_id from that create Event against the effective Realm allowlist, then signs an attestation binding station_id, verification_id, audience, realm_id, invite_id, inviter_account_id, provisioning_id, the exact public material, invite_expires_at, invite_state, accepted_commit_id, observed_at and its own expires_at. The caller supplies no governance material and receives no governance closure, RealmCommit ancestry or membership listing; the attestation authorizes nothing except activation of the named provisioning record. Not visible, not authored by the caller and not pending all return the uniform section 6 not_found; a basis the Station cannot currently confirm returns revision_unavailable.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",
-      "response_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_response_body"
-    },
-    {
       "operation_id": "ak.server.read.describe.v1",
       "http": "GET /_arkret/describe",
       "grpc": "Server/Describe",
@@ -4650,7 +4533,6 @@
         "stage": "candidate_pair_membership_before_invite_class_guard",
         "event_kinds": [
           "ak.invite.create",
-          "ak.invite.third_party",
           "ak.member.state"
         ],
         "predicate": "An invite or join candidate ActorId is not one of the immutable binding's two exact ActorIds. This rule wins over direct_conversation_invite_forbidden when both predicates match.",
@@ -4667,8 +4549,7 @@
         "reason_code": "direct_conversation_invite_forbidden",
         "stage": "active_profile_invite_guard_after_candidate_pair_membership",
         "event_kinds": [
-          "ak.invite.create",
-          "ak.invite.third_party"
+          "ak.invite.create"
         ],
         "predicate": "An invite flow targets an active Direct Conversation and its candidate, when one is resolvable, is inside the immutable pair. The atomic founding peer join is not an invite and is outside this stage.",
         "positive_case": "founding_peer_join_accepts",
@@ -4820,7 +4701,6 @@
         "device_pairing_handoff",
         "mimi_interop",
         "push",
-        "third_party_invite_handoff",
         "tus_upload",
         "websocket"
       ]
@@ -5374,51 +5254,6 @@
           "operation_id": "ak.open.device_pairing.read.status.v1",
           "binding_kind": "http_json"
         }
-      ]
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1",
-      "service_kind": "station",
-      "deployment_evidence": [
-        "normative:zh/sync/third-party-invites.md#74-接受证据-acceptance-attestationnormative"
-      ],
-      "members": [
-        {
-          "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
-      "service_kind": "station",
-      "deployment_evidence": [
-        "ak.deployment_prototype.coland_station.v1#third_party_invite_handoff"
-      ],
-      "members": [
-        {
-          "operation_id": "ak.open.third_party_invite.command.activate.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.open.third_party_invite.command.present_token.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.open.third_party_invite.command.provision.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.open.third_party_invite.read.provisioning_status.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "included_operation_bundle_ids": [
-        "ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1"
       ]
     },
     {
@@ -6257,7 +6092,6 @@
       ]
     }
   ],
-  "metadata_authority": "contract_registry_section",
   "wait_for_bindings": [
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",

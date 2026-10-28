@@ -129,8 +129,7 @@ def build():
     for name, value, valid in [('external_validation', complete_external, True), ('new_registry_acceptance', complete_new, True), ('mixed_time_roles', dict(complete_external, accepted_at=complete_new['accepted_at']), False)]:
         case(name, 'registration-did-evidence.schema.json#/$defs/accepted_registration_did_evidence', value, valid)
     return {
-        'version': 2, 'suite': 'published_did_registration', 'fixture_kind': 'schema_only',
-        'generated_by': 'tools/generate_published_did_registration_fixture.py',
+          'generated_by': 'tools/generate_published_did_registration_fixture.py',
         'covers_vectors': ['ak.vector.identity.published_did_registration.v1'],
         'runner': {'kind': 'json_schema_and_semantic_cases', 'command': 'python -B -m unittest tools.test_published_did_registration_contract'},
         'description': 'Schema-only genesis/draft objects include placeholder signatures and do not prove method, witness or Event verification. The outer account-control Ed25519 signature is real and reproducible under a published test key. Existing method/rotation/witness and genesis vectors remain independent prerequisites; this is not live external hosting, database atomicity or product acceptance.',

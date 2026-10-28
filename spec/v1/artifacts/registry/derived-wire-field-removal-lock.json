@@ -1,21 +1,7 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-24T14:14:05+08:00",
-  "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
     "lock_id_pattern": "^ak\\.lock\\.derived_wire_field_removal\\.[a-z0-9_]+\\.v1$",
-    "row_keys": [
-      "lock_id",
-      "ruling",
-      "schema",
-      "path",
-      "removed",
-      "source",
-      "derivation",
-      "spec_anchor"
-    ],
     "path_rule": "path is the JSON Pointer (without the leading #) of the schema object that owned the removed member: empty string for the file root, otherwise /$defs/<name>[/properties/<member>|/items|/oneOf/<index>...]. It MUST resolve to a schema object.",
     "removed_rule": "removed names one member. The member MUST be absent from the resolved object's properties and required, and from the properties and required of every allOf, oneOf, anyOf, if, then and else branch that overlays the same object; nested property subschemas are not searched.",
     "source_rule": "source names the member whose bytes the deleted value is recomputed from. source.field is required; source.schema and source.path default to the row's own schema and path and MAY point at another object (for example the Event envelope root when a payload member was a projection of envelope.actor_id). The source member MUST remain declared in that object's explicit property set. When the ruling replaced the deleted member with a new one (E5 winner_index), the replacement is the source and the lock is red until the replacement lands.",

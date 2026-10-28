@@ -1,6 +1,4 @@
 {
-  "schema": "arkret.operation-string-field-classification.v1",
-  "source_of_truth": false,
   "generated_by": "tools/gen_operation_string_field_classification.py",
   "generated_from": [
     "spec/v1/artifacts/schemas/*operations.schema.json",

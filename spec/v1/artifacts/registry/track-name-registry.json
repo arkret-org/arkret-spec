@@ -1,9 +1,4 @@
 {
-  "version": "2026-09-19.1",
-  "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "track_names[] is the canonical source for every Strand.tracks map key; syntax alone never admits a name.",
     "New writes MUST use an active row. Unknown, inactive, duplicate, or owner-unresolvable names fail closed with schema_violation.",
@@ -30,6 +25,5 @@
       },
       "description": "Authoritative Synthesis track stored at Strand.tracks.synthesis; its narrative carrier is tracks.synthesis.content / tracks.synthesis.encrypted_content."
     }
-  ],
-  "metadata_authority": "contract_registry_section"
+  ]
 }

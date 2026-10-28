@@ -1,6 +1,4 @@
 {
-  "version": "2026-09-19.1",
-  "source_of_truth": true,
   "description": "Canonical MLS (RFC 9420) ciphersuite vocabulary for v1 KeyPackage cipher_suites[] negotiation and server describe surfaces. Completes the algorithm-agility registry symmetry with digest-suite-registry.json, signature-alg-registry.json and hpke-suite-registry.json.",
   "registry_rules": [
     "Schema / describe enum values for MLS ciphersuite fields MUST be generated from active rows' canonical_id only when publishing a new schema/describe contract version, then frozen for that version. Activating a reserved/new suite requires a new contract version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",

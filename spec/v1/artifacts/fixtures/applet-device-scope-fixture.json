@@ -1,5 +1,4 @@
 {
-  "version": "2026-10-19.1",
   "description": "Exact original managed Device scope/action pairs; semantic validity includes canonical ordering and registered actions.",
   "cases": [
     {
@@ -404,7 +403,6 @@
     }
   ],
   "profile": "ak.profile.applet_bridge.v1",
-  "suite": "applet_device_scopes",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.applet.device_scopes.v1"

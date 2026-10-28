@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-24T14:14:05+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -9,7 +6,6 @@
       "file": "registry/account-data-key-registry.json",
       "kind": "account_data_key_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical Account Data key-pattern registry for actor/private account state."
     },
     {
@@ -17,7 +13,6 @@
       "file": "registry/account-status-replica-decision-table.json",
       "kind": "decision_table",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical ordered decision table for the account-status replica receiver classification in zh/identity/account-lifecycle.md 3.1. Every branch compares the submission against the durable replica head and nothing else."
     },
     {
@@ -26,7 +21,6 @@
       "kind": "aead_profile_registry",
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical standalone AEAD construction profiles, distinct from HPKE and MLS ciphersuite ids."
     },
     {
@@ -34,7 +28,6 @@
       "file": "registry/agent-runtime-scope-registry.json",
       "kind": "agent_runtime_scope_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed Agent provision, key-authorization and session operation sets with layer-specific recovery reasons."
     },
     {
@@ -42,7 +35,6 @@
       "file": "registry/authority-set-policy-registry.json",
       "kind": "authority_set_policy_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical authority-set symbols and deterministic policy projections from accepted authority-commit control state."
     },
     {
@@ -51,7 +43,6 @@
       "kind": "authority_source_registry",
       "value_set_evolution": "closed",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for closed non-grant authorization sources and profile-scoped evaluator contracts."
     },
@@ -61,7 +52,6 @@
       "kind": "binding_kind_registry",
       "value_set_evolution": "closed",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for closed ServiceDescribe transport binding kinds and extension profile requirements."
     },
@@ -71,7 +61,6 @@
       "kind": "calendar_timezone_registry",
       "value_set_evolution": "open",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for the IANA TZDB releases calendar schedules may pin, and the canonicalization rules that turn a producer-supplied zone name into the signed canonical Zone."
     },
@@ -80,7 +69,6 @@
       "file": "registry/canonical-lexeme-registry.json",
       "kind": "canonical_lexeme_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical full-word vocabulary, forbidden shortened aliases and the closed authority classes that may admit abbreviations on Arkret-owned contract surfaces."
     },
     {
@@ -89,7 +77,6 @@
       "kind": "capability_action_registry",
       "value_set_evolution": "open",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for canonical capability action vocabulary, risk tiers, required constraints, and event_kind targets."
     },
@@ -98,7 +85,6 @@
       "file": "registry/classification-field-registry.json",
       "kind": "classification_field_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Exact-context machine authority for Arkret kind/type/class/tier naming-axis validation."
     },
     {
@@ -106,7 +92,6 @@
       "file": "registry/content-addressed-ref-digest-exemption-registry.json",
       "kind": "content_addressed_ref_digest_exemption_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed per-field registry for the zh/conformance/encoding.md 4.0.1 rule that a carrier holding a complete content-addressed typed ref MUST NOT also carry a sibling digest of the same bytes. Every digest property that sits next to a content-addressed ref in the same closed object must state here the distinct preimage it commits to. Only refs whose whole pattern is one content-addressed form are in scope; union patterns are outside the gate. Consumed by tools/artifact_lint#check_content_addressed_ref_sibling_digests."
     },
     {
@@ -114,7 +99,6 @@
       "file": "registry/contract-registry.json",
       "kind": "contract_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical catalog for generated event/schema/id/operation registry views."
     },
     {
@@ -122,7 +106,6 @@
       "file": "registry/current-state-registry.json",
       "kind": "current_state_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Typed current current state values and exact interest ownership generated from canonical family bindings."
     },
@@ -131,7 +114,6 @@
       "file": "registry/derived-wire-field-removal-lock.json",
       "kind": "derived_wire_field_removal_lock",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed regression lock for adjudicated removals of wire members that are derived from retained carrier fields. Consumed by tools/artifact_lint#check_derived_wire_field_removals."
     },
     {
@@ -139,7 +121,6 @@
       "file": "registry/did-document-contract-registry.json",
       "kind": "did_document_contract_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated closed registry for normalized DID Document projection, digest ownership, Arkret-consumed members and Arkret service entry shapes."
     },
@@ -148,7 +129,6 @@
       "file": "registry/did-evidence-boundary-registry.json",
       "kind": "did_evidence_boundary_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated closed registry mapping identity creation and authority verification responsibilities to required DID, DID URL and resolution-evidence carriers."
     },
@@ -158,7 +138,6 @@
       "kind": "did_freshness_profile_registry",
       "value_set_evolution": "open",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical registry of the freshness profile ids a DID authority call site references; risk tier is registered here, numeric windows are declared per deployment."
     },
     {
@@ -166,7 +145,6 @@
       "file": "registry/did-method-adapter-registry.json",
       "kind": "did_method_adapter_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for did validation, did_core_id projection and method-native resolution evidence rules."
     },
@@ -176,7 +154,6 @@
       "kind": "digest_suite_registry",
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes. Event, Event-derived object, Realm and RealmCommit identities use the registry's fixed current-v1 SHA-256 suite; other typed domains explicitly declare any broader active-suite set."
     },
     {
@@ -185,7 +162,6 @@
       "kind": "error_code_registry",
       "value_set_evolution": "open",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Standard service-level and per-item error code registry."
     },
     {
@@ -193,7 +169,6 @@
       "file": "registry/event-kind-vector-gap-registry.json",
       "kind": "event_kind_vector_gap_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Explicit checked backlog of active Event kinds without directly searchable fixture/vector evidence. Consumed by tools/check_event_kind_vector_gaps.py."
     },
     {
@@ -202,7 +177,6 @@
       "kind": "event_kind_registry",
       "value_set_evolution": "open",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for standard ak.* Event.kind values and wire scopes."
     },
@@ -211,7 +185,6 @@
       "file": "registry/exporter-label-registry.json",
       "kind": "exporter_label_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical registry of media-key MLS-Exporter labels (Context field shape, output length, applicable profiles, grandfathering, no-reuse rules)."
     },
     {
@@ -220,7 +193,6 @@
       "kind": "feature_registry",
       "value_set_evolution": "open",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for exact supported_features identifiers and their operation, profile, limit, guarantee, and conflict prerequisites."
     },
@@ -229,7 +201,6 @@
       "file": "registry/forbidden-model-terms.json",
       "kind": "drift_detection_forbidden_model_terms",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Terms that MUST NOT be used in current-model prose, code identifiers, or UI copy. Consumed by cotest drift scanner."
     },
     {
@@ -237,7 +208,6 @@
       "file": "registry/forbidden-wire-fields.json",
       "kind": "drift_detection_forbidden_wire_fields",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Field names that MUST NOT appear in specified wire contexts (envelope / payload). Consumed by cotest drift scanner."
     },
     {
@@ -246,7 +216,6 @@
       "kind": "hpke_suite_registry",
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
     },
     {
@@ -255,7 +224,6 @@
       "kind": "id_kind_registry",
       "value_set_evolution": "open",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for ak:<kind>: typed ID prefixes and storage/wire rules."
     },
@@ -265,7 +233,6 @@
       "kind": "keypackage_capability_registry",
       "value_set_evolution": "open",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical open registry for application content and policy capability identifiers carried by MLS KeyPackages and selected as group capability floors."
     },
     {
@@ -274,7 +241,6 @@
       "kind": "mls_ciphersuite_registry",
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical MLS ciphersuite vocabulary for KeyPackage cipher_suites[] negotiation; unregistered suites fail closed."
     },
     {
@@ -282,7 +248,6 @@
       "file": "registry/mls-creator-bootstrap-transaction-registry.json",
       "kind": "mls_creator_bootstrap_transaction_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical closed state machine for the client-local durable transaction that carries one encrypted effective scope from the creator's genesis intent to MLS write-ready; it constrains what a conforming client persists and never authorizes a peer to trust local state."
     },
     {
@@ -290,7 +255,6 @@
       "file": "registry/mls-extension-registry.json",
       "kind": "mls_extension_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical registry of Arkret-defined MLS GroupContext extension codepoints in the private-use range."
     },
     {
@@ -298,7 +262,6 @@
       "file": "registry/morph-kind-decision-table.json",
       "kind": "decision_table",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical merge precedence + conflict rules for the four Morph kind declaration sources (schema_refs, realm morph_kind_profiles, morph_kind, facets). Referenced normatively from zh/models/morph.md §4."
     },
     {
@@ -306,7 +269,6 @@
       "file": "registry/normative-clause-registry.json",
       "kind": "normative_clause_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Reverse-coverage registry binding high-risk normative clauses to an exact prose anchor, that section's text digest, and executable evidence. Consumed by tools/artifact_lint#check_normative_clause_registry."
     },
     {
@@ -314,7 +276,6 @@
       "file": "registry/operation-bundle-closure-lock.json",
       "kind": "operation_bundle_closure_lock",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Append-only SHA-256 locks for registered role-local operation bundle memberships."
     },
@@ -323,7 +284,6 @@
       "file": "registry/operation-clause-registry.json",
       "kind": "operation_clause_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Selector-based normative clause and evidence closure for profile operation conformance certification."
     },
     {
@@ -331,7 +291,6 @@
       "file": "registry/operation-contract-closure-lock.json",
       "kind": "operation_contract_closure_lock",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Append-only SHA-256 locks for each exact versioned operation contract and recursive schema/error closure."
     },
@@ -340,7 +299,6 @@
       "file": "registry/operation-registry.json",
       "kind": "operation_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
@@ -349,7 +307,6 @@
       "file": "registry/operations-error-mapping.json",
       "kind": "operations_error_mapping",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical endpoint -> operation-specific error code map. Layered on top of the universal failure surface (auth / schema / rate-limit / internal). Cross-linked from zh/sync/service-http-binding.md §2.3."
     },
     {
@@ -357,7 +314,6 @@
       "file": "registry/outward-disclosure-policy-registry.json",
       "kind": "outward_disclosure_policy_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Reusable gate-order and observable-failure-equivalence policies referenced by operation and carrier exposure contracts."
     },
     {
@@ -365,7 +321,6 @@
       "file": "registry/owned-agent-authority-registry.json",
       "kind": "authorization_contract",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Explicit terminal owned Agent grant, dynamic controller ceiling, shared quota and administrator policy contract."
     },
     {
@@ -373,7 +328,6 @@
       "file": "registry/payload-validator-profile-registry.json",
       "kind": "payload_validator_profile_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Executable validator profiles for Event payload documents that cannot be represented as a finite closed schema family. The only v1 profile validates ak.schema.define.value as JSON Schema 2020-12 and takes schema identity solely from value.$id. Consumed by tools/check_payload_validator_profiles.py."
     },
     {
@@ -381,7 +335,6 @@
       "file": "registry/pcr-exposure-registry.json",
       "kind": "pcr_exposure_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. The dual of the PCR write allowlist: it declares which admitted kinds may leave the Realm, through which carrier and surface, and under which authorization policy."
     },
     {
@@ -389,7 +342,6 @@
       "file": "registry/preimage-identity-exemption-registry.json",
       "kind": "preimage_identity_exemption_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed named-exemption registry for the zh/conformance/encoding.md §3.1 ban on committing to an Event identity from inside the event_digest preimage. Only one-way forward declarations naming a later Event from another submission are registerable; self and same-unit sibling shapes MUST NOT appear. Consumed by tools/artifact_lint#check_preimage_event_identity_commitments."
     },
     {
@@ -397,7 +349,6 @@
       "file": "registry/profiles-dependency-graph.json",
       "kind": "profiles_dependency_graph",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
       "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
       "description": "Generated DAG view of profile inherits / depends_on / mutually_exclusive_with edges from profile_requirements[<id>] in profiles/conformance-profiles.json. Rendered as a visualization aid in zh/conformance/conformance-profiles.md §2.1."
@@ -407,7 +358,6 @@
       "file": "registry/proof-context-registry.json",
       "kind": "proof_context_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical domain-separation contexts and binding fields for Event and non-Event detached proof object families."
     },
     {
@@ -415,7 +365,6 @@
       "file": "registry/protocol-layer-registry.json",
       "kind": "protocol_layer_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Exhaustive ownership of every active Event.kind by Kernel, Collaboration Base, or Extension."
     },
     {
@@ -423,7 +372,6 @@
       "file": "registry/redactable-field-registry.json",
       "kind": "redactable_field_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Machine-readable projection of the zh/models/event-and-patch.md 4.2.4 redactable content-carrier slots: the paths an ak.schema.patch.v1 $op=\"unset\" MUST NOT remove, with the paired plaintext/encrypted slot and the legal non-terminal and terminal clear paths for each."
     },
     {
@@ -431,7 +379,6 @@
       "file": "registry/reducer-managed-path-registry.json",
       "kind": "reducer_managed_path_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Machine-readable projection of the zh/models/event-and-patch.md 4.2.5 reducer-managed-field protection: per object kind, the ak.schema.patch.v1 paths a generic update surface MUST reject, the universal minimum set they extend, and the one named View state exemption."
     },
     {
@@ -439,7 +386,6 @@
       "file": "registry/registry-manifest.json",
       "kind": "registry_index",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Index of every machine-readable registry file under artifacts/registry."
     },
     {
@@ -448,7 +394,6 @@
       "kind": "relation_kind_registry",
       "value_set_evolution": "open",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical machine index of the v1 standard relation_kind vocabulary (kind list, cardinality class, truth-source class, writability); detailed semantics stay in zh/models/relation.md."
     },
     {
@@ -456,7 +401,6 @@
       "file": "registry/repeated-enum-registry.json",
       "kind": "repeated_enum_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Authoritative value list for each enum that v1 spells out at more than one schema location, and every site that must spell it identically."
     },
     {
@@ -464,7 +408,6 @@
       "file": "registry/request-material-supply-exemption-registry.json",
       "kind": "request_material_supply_exemption_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed named-exemption registry for the zh/sync/service-http-binding.md 2.2.2 request material supply-closure law. Rows carry individually adjudicated exceptions (external_form, open_finding, deferred_supply) per operation and json-path prefix; open findings must reference a live arkret-work review anchor and be deleted when the gap closes. Consumed by tools/artifact_lint#check_request_material_supply_closure."
     },
     {
@@ -472,7 +415,6 @@
       "file": "registry/runner-kind-registry.json",
       "kind": "runner_kind_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Closed vocabulary, execution contract, and owner for fixture top-level runner.kind dispatch."
     },
     {
@@ -480,7 +422,6 @@
       "file": "registry/schema-registry.json",
       "kind": "schema_registry",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for active schema IDs and schema file locations."
     },
@@ -489,7 +430,6 @@
       "file": "registry/service-kind-registry.json",
       "kind": "service_kind_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical service_kind role vocabulary and its per-context validity (Service Describe, Realm join forwarding candidate, ServiceRegistrationKey, MIMI provider directory); replaces drifted definitions."
     },
     {
@@ -498,7 +438,6 @@
       "kind": "signature_algorithm_registry",
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical signature algorithm vocabulary and explicit mappings for JOSE alg and Arkret raw signature_algorithm schema enums."
     },
     {
@@ -506,7 +445,6 @@
       "file": "registry/string-profile-registry.json",
       "kind": "string_profile_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical Unicode, PRECIS, IDNA, display-text, external-string, comparison, and data-version rules for Arkret v1 strings."
     },
     {
@@ -514,7 +452,6 @@
       "file": "registry/test-material-registry.json",
       "kind": "test_material_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical list of the published test signing material and reserved test identifiers that formal verification, authorization and trust-admission paths MUST refuse. Consumed by artifact_lint.test_material and by zh/identity/did-usage-and-verification.md §8."
     },
     {
@@ -523,7 +460,6 @@
       "kind": "track_name_registry",
       "value_set_evolution": "closed",
       "source_role": "generated",
-      "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for the closed active Strand TrackName vocabulary and its schema/profile owners."
     },
@@ -532,7 +468,6 @@
       "file": "registry/vector-registry.json",
       "kind": "conformance_vector_registry",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Canonical machine index of ak.vector.* conformance vector identifiers and their defining prose/fixture sources."
     },
     {
@@ -540,7 +475,6 @@
       "file": "registry/applet-managed-authority-registry.json",
       "kind": "authority_contract",
       "source_role": "canonical",
-      "source_of_truth": true,
       "description": "Managed Applet role, creation, lineage, Device authentication allowlist and scope contract."
     }
   ]

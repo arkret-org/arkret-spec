@@ -1,12 +1,9 @@
 {
-  "suite": "agent_membership_cascade",
-  "fixture_kind": "schema_and_semantic",
   "admission_status": "typed_model_only_no_v1_ingress",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.membership_cascade.v1"
   },
-  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.agent.membership_cascade.v1"
   ],

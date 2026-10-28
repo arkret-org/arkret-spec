@@ -1,13 +1,10 @@
 {
-  "suite": "push_notify_outcome_conformance",
-  "fixture_kind": "schema_and_semantic",
   "profile": "ak.vector_group.discovery.v1",
   "covers_vectors": [
     "ak.vector.push.notify_outcome_conservation.v1",
     "ak.vector.push.device_route_revision_cas.v1",
     "ak.vector.push.registration_handoff_lifecycle.v1"
   ],
-  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#52-响应",
   "source_refs": [
     "spec/v1/zh/discovery/push-notifications.md",

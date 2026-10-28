@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.blob_node.v1",
-  "version": "2026-09-21.1",
-  "suite": "aead_nonce_replay",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.aead_nonce_replay.v1"

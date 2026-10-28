@@ -1,6 +1,4 @@
 {
-  "suite": "error_code_registry_coverage_fixture",
-  "version": "2026-07-10",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [

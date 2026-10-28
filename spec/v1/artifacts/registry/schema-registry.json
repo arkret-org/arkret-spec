@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.2",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T19:15:25+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
     "The only allowed schema status is active. Unknown or any non-active status fails closed; the registry defines no historical compatibility rows.",
@@ -1807,7 +1802,20 @@
       "status": "active",
       "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
       "file": "schemas/decimal-integers.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.realm_invite_link.v1",
+      "file": "schemas/realm-invite-link.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.realm_invite_link_token.v1",
+      "file": "schemas/realm-invite-link-token.schema.json",
+      "description": "Client-only fragment credential; forbidden on HTTP request and response surfaces.",
+      "consumer_binding": {
+        "kind": "client_fragment",
+        "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
+        "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
+      }
     }
-  ],
-  "metadata_authority": "contract_registry_section"
+  ]
 }

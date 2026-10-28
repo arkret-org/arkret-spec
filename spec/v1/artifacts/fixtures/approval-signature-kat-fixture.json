@@ -3,7 +3,6 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.authz.approval_signature.v1"
   },
-  "version": "2026-09-20.2",
   "covers_vectors": [
     "ak.vector.authz.approval_signature_bytes.v1",
     "ak.vector.authz.approval_signature_governance_context.v1",
@@ -1521,6 +1520,5 @@
         "reason": "agent confirmation is not approval evidence for the target Event"
       }
     }
-  ],
-  "generated_by": "tools/check_approval_signature_kat.py"
+  ]
 }

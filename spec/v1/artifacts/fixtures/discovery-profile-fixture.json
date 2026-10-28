@@ -1,6 +1,4 @@
 {
-  "suite": "discovery_profile_fixture",
-  "version": "2026-07-10",
   "runner": {
     "kind": "profile_discovery_coverage",
     "inputs": [

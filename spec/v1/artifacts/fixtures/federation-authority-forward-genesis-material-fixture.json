@@ -1,11 +1,8 @@
 {
-  "suite": "federation_authority_forward_genesis_material",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.federation.authority_forward_genesis_material.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.federation.authority_forward_genesis_material.v1"

@@ -1,5 +1,4 @@
 {
-  "version": "2026-10-24.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"

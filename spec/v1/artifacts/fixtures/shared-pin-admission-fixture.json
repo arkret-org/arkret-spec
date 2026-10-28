@@ -1,7 +1,4 @@
 {
-  "suite": "shared_pin_admission",
-  "fixture_kind": "semantic",
-  "version": "2026-10-01.1",
   "profile": "ak.profile.pinned_items.v1",
   "covers_vectors": [
     "ak.vector.pin.admission_and_scope.v1"

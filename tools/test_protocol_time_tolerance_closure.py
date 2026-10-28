@@ -23,7 +23,7 @@ TOLERANCE = "ak.time_tolerance.probe_limit.v1"
 def catalog() -> dict:
     return {
         "protocol_time_tolerance_registry": {
-            "source_of_truth": True,
+
             "tolerances": [
                 {
                     "tolerance_id": TOLERANCE,

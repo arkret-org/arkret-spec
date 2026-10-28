@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.media_service_binding.v1",
-  "version": "2026-09-25",
-  "suite": "call_state_media_lifecycle",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.call.media_lifecycle.v1"

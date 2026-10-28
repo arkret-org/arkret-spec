@@ -1,20 +1,4 @@
-"""Guards for how the artifact tooling reports failure and writes files.
-
-Three merge-time traps live here, all of them about signal rather than
-content:
-
-1. ``artifact_pipeline.py check`` streams each step's output, and the steps
-   that happen to run last end on reassuring lines. A run that already failed
-   still finished with ``0 error(s), 0 warning(s)`` and ``registry diff:
-   clean``, so reading the tail reported green on a non-zero exit.
-2. ``refresh-operation-closure-locks`` advanced ``version`` but copied
-   ``generated_at`` from the source catalog, which is routinely older than the
-   lock being replaced. The timestamp went backwards and
-   ``check_artifact_versions.py --write-reference`` then refused the result.
-3. Writers that omit ``newline`` inherit the platform line ending, so the same
-   generator produced CRLF on Windows and LF elsewhere against a repository
-   pinned to ``eol=lf``.
-"""
+"""Failure propagation and deterministic LF output guards for artifact tooling."""
 
 from __future__ import annotations
 
@@ -33,7 +17,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import artifact_pipeline
 import check_operation_closure_locks
-from check_operation_closure_locks import next_generated_at, refresh_candidate_lock
 
 
 TOOLS = Path(__file__).resolve().parent
@@ -114,7 +97,6 @@ class CheckVerdictTest(unittest.TestCase):
                 "run_session_grant_kat_check",
                 "run_contact_round_kat_check",
                 "run_handle_claim_kat_check",
-                "run_artifact_version_check",
                 "run_lint",
             )
         }
@@ -130,6 +112,7 @@ class CheckVerdictTest(unittest.TestCase):
                 run_fixture_digest_check=Mock(return_value=1),
                 run_prose_lint=Mock(side_effect=reassuring_prose_lint),
             ),
+            patch.object(artifact_pipeline, "registered_runners", side_effect=lambda _pipeline, runners: [("fixture digests", runners["fixture_digests"]), ("prose lint", runners["prose_lint"])]),
             redirect_stdout(stream),
         ):
             status = artifact_pipeline.cmd_check(None)
@@ -167,48 +150,6 @@ class CheckVerdictTest(unittest.TestCase):
         self.assertTrue(stream.getvalue().splitlines()[-1].startswith("FAILED: check:"))
 
 
-class ClosureLockGeneratedAtTest(unittest.TestCase):
-    def test_stale_candidate_timestamp_is_advanced(self) -> None:
-        self.assertEqual(
-            next_generated_at("2026-09-05T12:00:00+08:00", "2026-09-05T10:21:00+08:00"),
-            "2026-09-05T12:00:01+08:00",
-        )
-
-    def test_equal_timestamp_still_advances(self) -> None:
-        self.assertEqual(
-            next_generated_at("2026-09-05T12:00:00+08:00", "2026-09-05T12:00:00+08:00"),
-            "2026-09-05T12:00:01+08:00",
-        )
-
-    def test_fresher_candidate_is_kept_verbatim(self) -> None:
-        self.assertEqual(
-            next_generated_at("2026-09-05T10:21:00+08:00", "2026-09-05T12:00:00+08:00"),
-            "2026-09-05T12:00:00+08:00",
-        )
-
-    def test_refresh_advances_both_version_and_generated_at(self) -> None:
-        existing = {
-            "version": "2026-09-05.1",
-            "generated_at": "2026-09-05T12:00:00+08:00",
-            "identity_key": "operation",
-            "closures": [{"operation": "ak.realm.create", "sha256": "old"}],
-        }
-        # The catalog the payload copies its timestamp from is older than the
-        # lock being replaced, which is what wrote the timestamp backwards.
-        expected = {
-            "version": "2026-08-27.1",
-            "generated_at": "2026-09-05T10:21:00+08:00",
-            "identity_key": "operation",
-            "closures": [{"operation": "ak.realm.create", "sha256": "new"}],
-        }
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "operation-contract-closure-lock.json"
-            path.write_text(json.dumps(existing), encoding="utf-8", newline="\n")
-            summary = refresh_candidate_lock(path, expected)
-            written = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(summary["changed"], ["ak.realm.create"])
-        self.assertEqual(written["version"], "2026-09-05.2")
-        self.assertGreater(written["generated_at"], existing["generated_at"])
 
 
 class GeneratedFileNewlineTest(unittest.TestCase):
@@ -237,10 +178,6 @@ class GeneratedFileNewlineTest(unittest.TestCase):
         self.assertEqual(offenders, [])
 
 
-class ModuleImportTest(unittest.TestCase):
-    def test_closure_lock_helpers_are_exported(self) -> None:
-        self.assertTrue(hasattr(check_operation_closure_locks, "next_generated_at"))
-        self.assertTrue(hasattr(check_operation_closure_locks, "parse_generated_at"))
 
 
 if __name__ == "__main__":

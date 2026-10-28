@@ -1,11 +1,8 @@
 {
-  "suite": "did_webvh_witness_conformance",
-  "fixture_kind": "schema_semantic_and_crypto",
   "profile": "ak.vector_group.privacy_security.v1",
   "covers_vectors": [
     "ak.vector.identity.did_webvh_witness_rail.v1"
   ],
-  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/identity/identity-did.md#341-witness-的-method-native-输入合同normative",
   "source_refs": [
     "spec/v1/zh/identity/identity-did.md",

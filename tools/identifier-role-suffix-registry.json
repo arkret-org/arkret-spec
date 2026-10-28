@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
     "holder_id",
@@ -874,6 +872,5 @@
       ],
       "reason": "Exact accepted realm delegation byline projected without renaming the signed payload field."
     }
-  ],
-  "generated_at": "2026-10-24T14:22:45+08:00"
+  ]
 }

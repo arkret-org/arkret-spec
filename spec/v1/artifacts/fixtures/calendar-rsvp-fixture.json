@@ -1,6 +1,4 @@
 {
-  "suite": "calendar_rsvp_conformance",
-  "fixture_kind": "schema_and_semantic",
   "profile": "ak.profile.calendar_event.v1",
   "covers_vectors": [
     "ak.vector.calendar.profile_activation.v1",
@@ -16,7 +14,6 @@
     "ak.vector.calendar.attendee_roster.v1",
     "ak.vector.calendar.rsvp_privacy.v1"
   ],
-  "version": "2026-10-24.1",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#1-模型与激活",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",

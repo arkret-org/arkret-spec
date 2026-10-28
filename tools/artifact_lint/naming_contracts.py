@@ -197,11 +197,6 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
     data = load_json(lint, NAMING_COVERAGE_MATRIX_PATH)
     if not isinstance(data, dict):
         return
-    if data.get("source_of_truth") is not False:
-        lint.fail(
-            NAMING_COVERAGE_MATRIX_PATH,
-            "the coverage matrix is derived from prose and lint code, not a truth source",
-        )
     rows = data.get("rules")
     if not isinstance(rows, list) or not rows:
         lint.fail(NAMING_COVERAGE_MATRIX_PATH, "rules must be a non-empty array")
@@ -211,7 +206,6 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
     definitions = _definition_index()
     prose_cache: dict[str, str] = {}
     seen_ids: set[str] = set()
-    coverage_counts: dict[str, int] = {kind: 0 for kind in ENFORCEMENT_KINDS}
     predicate_rows: set[str] = set()
 
     for index, row in enumerate(rows):
@@ -277,7 +271,6 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
                 f"{where} enforcement_kind must be one of {sorted(ENFORCEMENT_KINDS)}",
             )
             continue
-        coverage_counts[enforcement_kind] += 1
 
         coverage_level = row.get("coverage_level")
         if coverage_level not in COVERAGE_LEVELS:
@@ -415,12 +408,6 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
                 f"rules-only={sorted(registered - predicate_rows)}",
             )
 
-    summary = data.get("coverage_summary")
-    if not isinstance(summary, dict) or summary != coverage_counts:
-        lint.fail(
-            NAMING_COVERAGE_MATRIX_PATH,
-            f"coverage_summary is stale; recompute it as {coverage_counts}",
-        )
 
 
 # --------------------------------------------------------------------------
@@ -1716,11 +1703,6 @@ def check_collection_field_contracts(lint: Lint) -> None:
     registry = load_json(lint, COLLECTION_NAMING_REGISTRY_PATH)
     if not isinstance(registry, dict):
         return
-    if registry.get("source_of_truth") is not False:
-        lint.fail(
-            COLLECTION_NAMING_REGISTRY_PATH,
-            "the collection naming registry records reviewed exceptions; schemas and prose remain normative",
-        )
     exception_rows = registry.get("exact_exceptions")
     pagination_rows = registry.get("pagination_objects")
     singular_s_tokens = registry.get("singular_s_tokens")
@@ -1986,11 +1968,6 @@ def check_identifier_value_categories(lint: Lint) -> None:
     registry = load_json(lint, IDENTIFIER_CLASSIFICATION_PATH)
     if not isinstance(registry, dict):
         return
-    if registry.get("source_of_truth") is not False:
-        lint.fail(
-            IDENTIFIER_CLASSIFICATION_PATH,
-            "the classification registry is derived from prose and schema types, not a truth source",
-        )
     declared_categories = registry.get("categories")
     if not isinstance(declared_categories, list) or set(declared_categories) != prose_categories:
         lint.fail(
@@ -2054,7 +2031,6 @@ def check_identifier_value_categories(lint: Lint) -> None:
             lint.fail(IDENTIFIER_CLASSIFICATION_PATH, f"{where}.occurrences must be positive")
 
     observed: dict[tuple[str, str], int] = {}
-    decided: dict[str, int] = {}
     for file_name, document in documents.items():
         for occurrence in enumerate_schema_properties(file_name, document):
             name = occurrence.name
@@ -2068,8 +2044,6 @@ def check_identifier_value_categories(lint: Lint) -> None:
                 observed[key] = observed.get(key, 0) + 1
                 registered = index.get(key)
                 category = registered.get("category") if isinstance(registered, dict) else None
-            else:
-                decided[category] = decided.get(category, 0) + 1
             # An occurrence the type system cannot decide and the registry does
             # not classify is judged as if it owned nothing, so a newly widened
             # or newly minted terminal fails closed instead of slipping through
@@ -2093,13 +2067,6 @@ def check_identifier_value_categories(lint: Lint) -> None:
             f"{[f'{name} {signature}' for name, signature in unregistered[:5]]}, "
             f"stale={[f'{name} {signature}' for name, signature in stale[:5]]}, "
             f"count_drift={drift[:5]}",
-        )
-
-    summary = registry.get("type_derived_summary")
-    if not isinstance(summary, dict) or summary != decided:
-        lint.fail(
-            IDENTIFIER_CLASSIFICATION_PATH,
-            f"type_derived_summary is stale; recompute it as {decided}",
         )
 
     _check_pending_renames(lint, registry, documents)
@@ -2324,11 +2291,6 @@ def check_slug_field_closure(lint: Lint) -> None:
     registry = load_json(lint, SLUG_FIELD_REGISTRY_PATH)
     if not isinstance(registry, dict):
         return
-    if registry.get("source_of_truth") is not False:
-        lint.fail(
-            SLUG_FIELD_REGISTRY_PATH,
-            "the slug field registry is derived from prose and schemas, not a truth source",
-        )
     entities = registry.get("entities")
     if not isinstance(entities, list) or not entities:
         lint.fail(SLUG_FIELD_REGISTRY_PATH, "entities must be a non-empty array")

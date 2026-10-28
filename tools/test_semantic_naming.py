@@ -197,7 +197,6 @@ class SemanticNamingTests(unittest.TestCase):
     def test_error_and_reason_code_authority_is_in_the_release_freeze(self):
         root = Path(__file__).resolve().parents[1]
         registry = json.loads((root / 'spec/v1/artifacts/registry/error-code-registry.json').read_text(encoding='utf-8'))
-        self.assertIs(registry.get('source_of_truth'), True)
         baseline = derive(root)
         row = next(row for row in baseline['canonical_registries'] if row['file'] == 'error-code-registry.json')
         changed = copy.deepcopy(baseline)
@@ -258,6 +257,8 @@ class SemanticNamingTests(unittest.TestCase):
             (artifacts / 'openapi/arkret-service-api.openapi.yaml').write_text('openapi: 3.1.0\n', encoding='utf-8')
             schema = artifacts / 'schemas/value.schema.json'
             schema.write_text(json.dumps({'type': 'object', 'properties': {'value': {'type': 'string'}}}), encoding='utf-8')
+            (artifacts / 'registry/registry-manifest.json').write_text(
+                json.dumps({'registries': []}), encoding='utf-8')
             reference = root / REFERENCE
             reference.parent.mkdir(parents=True)
             reference.write_text(json.dumps(derive(root)), encoding='utf-8')
@@ -277,11 +278,10 @@ class SemanticNamingTests(unittest.TestCase):
             reference.write_text(json.dumps(derive(root)), encoding='utf-8')
             self.assertTrue(any('v1.2.3 is immutable' in error for error in check(root)))
 
-    def test_maintenance_metadata_does_not_erase_wire_version(self):
-        document = {'source_of_truth': True, 'version': '2026-10-24.1',
+    def test_contract_preserves_real_wire_version_members(self):
+        document = {
                     'properties': {'version': {'const': 'v1'}}}
         changed = copy.deepcopy(document)
-        changed['version'] = '2026-10-24.2'
         self.assertEqual(registry_contract_shape(document), registry_contract_shape(changed))
         changed['properties']['version']['const'] = 'v2'
         self.assertNotEqual(contract_shape(document), contract_shape(changed))

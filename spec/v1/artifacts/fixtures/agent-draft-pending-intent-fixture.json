@@ -1,6 +1,5 @@
 {
   "profile": "ak.vector.agent.draft_pending_intent.v1",
-  "version": "2026-10-18.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.draft_pending_intent.v1"

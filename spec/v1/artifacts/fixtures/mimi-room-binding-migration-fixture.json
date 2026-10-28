@@ -1,6 +1,4 @@
 {
-  "fixture_id": "ak.fixture.mimi.room_binding_migration.v1",
-  "version": 3,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mimi.room_binding_migration.v1"

@@ -57,8 +57,7 @@ def build() -> dict:
         rows.append({'name':'opaque_'+reason,'rule':'disclosure','input':{'reason':reason,'disclosable_fact':False},'expected':{'status':'deferred','material':None}})
     for name,choice,next_choice,expected in [('glare_to_normal','glare','normal',False),('glare_to_reject','glare','reject',False),('glare_exact_retry','glare','glare',True),('normal_to_glare','normal','glare',False)]:
         rows.append({'name':name,'rule':'consume','input':{'choice':choice,'next_choice':next_choice},'expected':expected})
-    return {'suite':'contact_current_state','fixture_kind':'schema_signed_and_reference','version':'2026-10-24.1',
-        'generated_by':'tools/generate_contact_current_fixture.py','spec_anchor':'spec/v1/zh/identity/contact-and-direct-conversation.md',
+    return {'generated_by':'tools/generate_contact_current_fixture.py','spec_anchor':'spec/v1/zh/identity/contact-and-direct-conversation.md',
         'covers_vectors':['ak.vector.contact.current_state.v1'],
         'source_refs':['spec/v1/artifacts/schemas/contact-operations.schema.json','spec/v1/zh/identity/contact-and-direct-conversation.md'],
         'description':'Deterministic Ed25519 source current, closed-shape negatives and executable reference transitions. Event refs and lifecycle rows are synthetic conformance inputs, not verified native identity, live HTTP/PG admission, or complete holder-Event proofs.',

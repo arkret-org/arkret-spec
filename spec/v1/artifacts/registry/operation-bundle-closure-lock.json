@@ -1,12 +1,5 @@
 {
-  "version": "2026-10-23.1",
-  "generated_at": "2026-10-23T13:01:46+08:00",
-  "source_of_truth": false,
-  "generated_from": [
-    "registry/contract-registry.json"
-  ],
   "algorithm": "sha256 over canonical sorted-key JSON closure",
-  "lock_kind": "operation_bundle_members",
   "identity_key": "operation_bundle_id",
   "closures": [
     {
@@ -164,14 +157,6 @@
     {
       "operation_bundle_id": "ak.operation_bundle.station.snapshot_exact_read.v1",
       "sha256": "sha256:466d1b2610e96cc53c60b6ff90ceb455cfe62cdc43f54d35c4d1e00554dd5595"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1",
-      "sha256": "sha256:ac9ee68e75f8244d9b305b928951b42df6a2967b12ff4837f60375a3d2cfa0d4"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
-      "sha256": "sha256:a84dd75cc88597cab7b9197859d711f46c11dc6c41ef4d08836194c9527322ae"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.tus_upload.v1",

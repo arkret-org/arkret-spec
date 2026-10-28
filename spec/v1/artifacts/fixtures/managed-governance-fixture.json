@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-10-24.1",
-  "suite": "ak.suite.managed_governance.v1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.managed_governance.v1"

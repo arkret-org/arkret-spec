@@ -1,11 +1,8 @@
 {
-  "suite": "mls_creator_bootstrap_recovery",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.creator_bootstrap_recovery.v1"
   },
-  "version": "2026-10-14",
   "covers_vectors": [
     "ak.vector.mls.creator_bootstrap_recovery.v1"
   ],

@@ -213,7 +213,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `invite_live_target`：以 `canonical_json(invitee_account_id)` 选择该 invitee 在本 Realm 的唯一 live
   direct invite 槽位，值为 `{create_event_id}` 或 `null`（空槽）；**subject 不含 `realm_id`**；
 - `invite_directed_invitee`：以 `invite_id` 选择该 Invite 的 create-locked 定向目标 `{invitee_account_id}`；
-  它是 `invite_live_target` 的反向索引，三方（3PID）Invite 不写这条，故其前态为**缺失**而不是 `null`；
+  它是 `invite_live_target` 的反向索引，每条定向 Invite 都必须写一次不可变目标；
 - `call_state` / `call_focus` / `call_moderation` / `call_roster`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；roster／moderation 为完整有效 `{entries,last_source}`，原有效来源、历史 issuer key 与整轴修订合同见该文 §4.3，不再承载全部失效断言。普通读取复用完整内联 Snapshot，不暗增 Call exact-current operation；`call_mute_override` 保留 call-only 形状但 v1 无可接纳写入，不构成媒体授权；
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
 - `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
@@ -341,6 +341,10 @@ family 完全无法区分，正文读起来像是「该状态存在」，而实�
 
 清单只登记「谁读」，MUST NOT 被读成授权或可见性声明：某一节被列入 `consumed_by[]`，不意味着调用者有权读取该
 selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
+
+- `realm_invite_link_definition`：以 RealmInviteLinkId 选择已接纳创建原件冻结的公钥、有效期、次数及创建者。
+- `realm_invite_link_lifecycle`：同链接的 active／revoked 寄存器，撤销不可恢复。
+- `realm_invite_link_use`：以链接与完整 subject_account_id 选择 create-locked 接受事实；不可删除或因退群返还。完整集合基数是已使用次数，同事务成员 leave→join，详见 [Realm 邀请链接](./realm-invite-links.md)。
 
 ## 3. 当前结果响应
 

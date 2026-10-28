@@ -1,9 +1,4 @@
 {
-  "version": "2026-09-19.2",
-  "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "normalized_document_schema_ref is the sole owner of the document_digest preimage; raw resolver bytes use raw_document_digest and no third DID-document digest name is permitted",
     "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
@@ -106,6 +101,5 @@
       "reverse_binding": true,
       "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
     }
-  ],
-  "metadata_authority": "contract_registry_section"
+  ]
 }

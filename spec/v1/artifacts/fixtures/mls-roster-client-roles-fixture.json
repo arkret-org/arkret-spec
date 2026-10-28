@@ -1,11 +1,8 @@
 {
-  "suite": "mls_roster_client_roles",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_client_roles.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_client_roles.v1"

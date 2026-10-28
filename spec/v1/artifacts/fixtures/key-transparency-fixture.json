@@ -1,7 +1,5 @@
 {
-  "suite": "key_transparency",
   "profile": "ak.profile.key_transparency.v1",
-  "version": "2026-07-11",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",

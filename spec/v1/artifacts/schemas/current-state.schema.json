@@ -285,6 +285,15 @@
     },
     {
       "$ref": "#/$defs/current_realm_actor_recovery"
+    },
+    {
+      "$ref": "#/$defs/current_realm_invite_link_definition"
+    },
+    {
+      "$ref": "#/$defs/current_realm_invite_link_lifecycle"
+    },
+    {
+      "$ref": "#/$defs/current_realm_invite_link_use"
     }
   ],
   "$defs": {
@@ -3075,7 +3084,6 @@
       "type": "string",
       "enum": [
         "pending",
-        "claimed",
         "accepted",
         "rejected",
         "revoked",
@@ -3087,7 +3095,6 @@
         "owner": "current-state.schema.json#/$defs/invite_lifecycle_value",
         "values": [
           "pending",
-          "claimed",
           "accepted",
           "rejected",
           "revoked",
@@ -3097,7 +3104,7 @@
     },
     "current_invite_lifecycle": {
       "type": "object",
-      "description": "Registered projection of one Invite's process state. The subject InviteId is the create Event id retyped (zh/models/common-fields.md section 6.0), so a directed ak.invite.create and a third-party ak.invite.third_party each open exactly one of these and every later Event names it through payload.invite_id.",
+      "description": "Registered process-state projection of one directed Invite; its ID retypes the accepted ak.invite.create Event.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -3211,7 +3218,7 @@
       "x-arkret-name-role": "current_state"
     },
     "invite_directed_invitee_value": {
-      "description": "Closed value of the invite_directed_invitee record: the exact account one directed Invite is addressed to, written once by ak.invite.create from that same Event's payload and never updated. It is the reverse index of invite_live_target, and the two together are what make the slot release checkable: the slot answers \"which Invite holds this account\", this record answers \"which account does this Invite hold\". ak.invite.third_party writes no record at all, so a third-party Invite's stored invitee is absent rather than null -- that absence is what the stored_field_matches_payload pre-state requirement of zh/models/governance-objects.md section 5.3 reads.",
+      "description": "Create-locked exact complete account target of one directed Invite, immutable and required by every terminal transition and slot release.",
       "type": "object",
       "required": [
         "invitee_account_id"
@@ -6366,6 +6373,151 @@
         },
         "value": {
           "$ref": "#/$defs/realm_actor_recovery_value"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
+    },
+    "current_realm_invite_link_definition": {
+      "type": "object",
+      "description": "Realm invite link security current; zh/sync/realm-invite-links.md.",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_invite_link_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_invite_link_definition",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_invite_link_definition/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_invite_link_definition/properties/selector/properties/kind",
+                "values": [
+                  "realm_invite_link_definition"
+                ]
+              }
+            },
+            "realm_invite_link_id": {
+              "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/definition_value"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
+    },
+    "current_realm_invite_link_lifecycle": {
+      "type": "object",
+      "description": "Realm invite link security current; zh/sync/realm-invite-links.md.",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_invite_link_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_invite_link_lifecycle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_invite_link_lifecycle/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_invite_link_lifecycle/properties/selector/properties/kind",
+                "values": [
+                  "realm_invite_link_lifecycle"
+                ]
+              }
+            },
+            "realm_invite_link_id": {
+              "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/lifecycle_value"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
+    },
+    "current_realm_invite_link_use": {
+      "type": "object",
+      "description": "Realm invite link security current; zh/sync/realm-invite-links.md.",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_invite_link_id",
+            "subject_account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_invite_link_use",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "current-state.schema.json#/$defs/current_realm_invite_link_use/properties/selector/properties/kind",
+                "owner": "current-state.schema.json#/$defs/current_realm_invite_link_use/properties/selector/properties/kind",
+                "values": [
+                  "realm_invite_link_use"
+                ]
+              }
+            },
+            "realm_invite_link_id": {
+              "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+            },
+            "subject_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/use_record"
         }
       },
       "additionalProperties": false,

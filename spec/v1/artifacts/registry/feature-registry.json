@@ -1,9 +1,4 @@
 {
-  "version": "2026-09-24.1",
-  "source_of_truth": false,
-  "generated_at": "2026-09-24T10:08:00+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
   "registry_rules": [
     "Every standard feature id is registered here and ends in .v1; unregistered ak.feature.* values are invalid.",
@@ -187,6 +182,5 @@
       "semantic_guarantees": [],
       "conflicts": []
     }
-  ],
-  "metadata_authority": "contract_registry_section"
+  ]
 }

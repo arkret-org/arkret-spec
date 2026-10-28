@@ -1,5 +1,4 @@
 {
-  "version": 1,
   "description": "Closed exact-path exemption registry for the typed-ID fixture gates (check_typed_id_fixture_value_closure and the digest-suite wire-code check in the fixture pass). Every concrete typed ID a conformance fixture ships MUST be a registered wire form of registry/id-kind-registry.json. A fixture legitimately carries a few strings that wear a typed-ID prefix and MUST NOT be a registered form: a negative vector whose value only exists to be rejected, and a documented wire-form template. Those cases are declared here by exact JSON pointer, carrier position and pinned value, never inferred from a field name such as negative_cases, reject_* or invalid_*, because an authoring convention is not a contract and a gate that trusted one would let any future value opt out by renaming its key. Editing the value ends its exemption, and an entry that stops matching a failing occurrence is reported as stale.",
   "positions": {
     "value": "The whole JSON string is the identifier.",

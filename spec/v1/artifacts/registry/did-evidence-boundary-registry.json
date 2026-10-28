@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.2",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T19:15:25+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A stable DidCoreId alone never starts DID resolution and no adapter may expose core_to_did expansion",
     "registration, genesis, resolution records and method evidence carry a required validated Did; method proof keys carry DidUrl",
@@ -113,7 +108,6 @@
       ]
     }
   ],
-  "metadata_authority": "contract_registry_section",
   "mls_roster_verification_contract": {
     "roles": {
       "ordinary_client": {

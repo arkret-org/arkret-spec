@@ -213,7 +213,6 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - 带有 `access_token`、`session_credential`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `param_invalid`，并且不得把 query 中的敏感值写入普通访问日志。
 - `ak.self.blob.command.presign.v1` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
-- 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 - online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_arkret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
 ### 3.1 认证服务发现
@@ -752,3 +751,5 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 self默认SessionGrant+DPoP之外，只有 [Applet integration §18](../extensions/applet-integration.md) 与registered applet_managed_device scenario明确列出的operation接受已授权Bot/Ghost Device HTTP签名。Service管理请求只用自身正式Service认证，不能取得内容Device资格；两类认证均不生成AppletSessionGrant。
 
 `ak.self.events.command.submit.v1` 的 Applet Service 认证例外只接受正式登记的 Realm actor 创建及恢复 Event，分别按 [Realm actors §6](../extensions/realm-actors.md#6-创建与控制更新签名) 和 [§10](../extensions/realm-actors.md#10-applet-同身份密钥重置normative) 核验。受管 Bot／Ghost 不创建 PCR；主体的日常控制和 Device 授权使用各自已登记的独立原签认证分支。Service 的 terminal child grant／revoke 等业务写入使用 `ak.edge.applet.command.transaction.v1`，不能借本例外提交。例外不得泛化到其它 self operations 或新增业务权限。
+
+Realm 邀请凭据只在客户端 fragment 内读取；网络只提交目的隔离的持有证明和原签 Event，见 [Realm 邀请链接](./realm-invite-links.md)。

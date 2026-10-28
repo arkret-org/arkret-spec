@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-10-22.1",
-  "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.applet.revoke_saga.v1"

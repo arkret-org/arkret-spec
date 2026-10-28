@@ -1,7 +1,4 @@
 {
-  "suite": "event_payload_value_closure",
-  "fixture_kind": "schema_and_semantic",
-  "version": "2026-09-15.1",
   "spec_anchor": "spec/v1/zh/conformance/schema-registry.md",
   "source_refs": [
     "spec/v1/artifacts/schemas/event-payload.schema.json",

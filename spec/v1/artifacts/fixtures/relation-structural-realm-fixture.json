@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.core_event_store.v1",
-  "version": "2026-09-21.1",
-  "suite": "relation_structural_realm",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.relation.structural_realm.v1"

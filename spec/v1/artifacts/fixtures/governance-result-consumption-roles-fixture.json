@@ -1,11 +1,8 @@
 {
-  "suite": "governance_result_consumption_roles",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit_projection.result_consumption_roles.v1"
   },
-  "version": "2026-10-22.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.authority_commit_projection.result_consumption_roles.v1"

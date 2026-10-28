@@ -6,8 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
-from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +13,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = ROOT / "spec" / "v1" / "artifacts" / "fixtures"
 DEFAULT_REFERENCE = ROOT / "spec" / "v1" / "artifacts" / "reports" / "fixture-digests.json"
-DATED_VERSION_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:\.(\d+))?$")
 
 
 def fixture_entries() -> list[dict[str, Any]]:
@@ -23,13 +20,9 @@ def fixture_entries() -> list[dict[str, Any]]:
     for path in sorted(FIXTURE_DIR.glob("*.json")):
         data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
         document = json.loads(data)
-        version = document.get("version") if isinstance(document, dict) else None
-        if not isinstance(version, (str, int)) or isinstance(version, bool):
-            raise ValueError(f"{path}: fixture must carry a string or integer top-level version")
         entries.append(
             {
                 "path": path.relative_to(ROOT).as_posix(),
-                "version": version,
                 "sha256": hashlib.sha256(data).hexdigest(),
             }
         )
@@ -38,12 +31,8 @@ def fixture_entries() -> list[dict[str, Any]]:
 
 def manifest() -> dict[str, Any]:
     return {
-        "schema": "arkret.fixture-digests.v1",
-        "source_of_truth": False,
         "generated_from": ["spec/v1/artifacts/fixtures/*.json"],
         "generated_by": "tools/check_fixture_digests.py --write-reference",
-        "fixtures_root": "spec/v1/artifacts/fixtures",
-        "hash": "sha256",
         "files": fixture_entries(),
     }
 
@@ -54,6 +43,12 @@ def load_reference(path: Path) -> dict[str, Any]:
 
 
 def compare(current: dict[str, Any], reference: dict[str, Any]) -> list[str]:
+    for label, document in (("current", current), ("reference", reference)):
+        rows = document.get("files", [])
+        if any(set(row) != {"path", "sha256"} for row in rows):
+            return [f"{label} fixture entries must contain only path and sha256"]
+        if len({row["path"] for row in rows}) != len(rows):
+            return [f"{label} repeats a fixture path"]
     current_files = {entry["path"]: entry for entry in current.get("files", [])}
     reference_files = {entry["path"]: entry for entry in reference.get("files", [])}
 
@@ -68,53 +63,11 @@ def compare(current: dict[str, Any], reference: dict[str, Any]) -> list[str]:
                 f"digest mismatch: {path} current={current_files[path].get('sha256')} "
                 f"reference={reference_files[path].get('sha256')}"
             )
-        if (
-            "version" in reference_files[path]
-            and current_files[path].get("version") != reference_files[path].get("version")
-        ):
-            failures.append(
-                f"version mismatch: {path} current={current_files[path].get('version')!r} "
-                f"reference={reference_files[path].get('version')!r}"
-            )
     return failures
 
 
-def version_advanced(old: Any, new: Any) -> bool:
-    if isinstance(old, int) and not isinstance(old, bool) and isinstance(new, int) and not isinstance(new, bool):
-        return new > old
-    if isinstance(old, str) and isinstance(new, str):
-        old_match = DATED_VERSION_RE.fullmatch(old)
-        new_match = DATED_VERSION_RE.fullmatch(new)
-        if old_match and new_match:
-            try:
-                old_key = (date.fromisoformat(old_match.group(1)), int(old_match.group(2) or 0))
-                new_key = (date.fromisoformat(new_match.group(1)), int(new_match.group(2) or 0))
-            except ValueError:
-                return False
-            return new_key > old_key
-        return new != old
-    return False
 
 
-def release_transition_errors(current: dict[str, Any], reference: dict[str, Any]) -> list[str]:
-    """A fixture content edit and its version advance are one atomic release."""
-    current_files = {entry["path"]: entry for entry in current.get("files", [])}
-    reference_files = {entry["path"]: entry for entry in reference.get("files", [])}
-    failures: list[str] = []
-    for path in sorted(current_files.keys() & reference_files.keys()):
-        old = reference_files[path]
-        new = current_files[path]
-        old_version = old.get("version")
-        if old_version is None:
-            # One-time migration from the v1 manifest that recorded only digests.
-            continue
-        changed = old.get("sha256") != new.get("sha256")
-        version_changed = old_version != new.get("version")
-        if changed and not version_advanced(old_version, new.get("version")):
-            failures.append(f"fixture content changed without version advance: {path}")
-        elif not changed and version_changed:
-            failures.append(f"fixture version changed without content change: {path}")
-    return failures
 
 
 def main() -> int:
@@ -129,12 +82,6 @@ def main() -> int:
         print(f"fixture-digest-check: {exc}")
         return 1
     if args.write_reference:
-        if args.reference.exists():
-            failures = release_transition_errors(current, load_reference(args.reference))
-            if failures:
-                for failure in failures:
-                    print(f"fixture-digest-check: {failure}")
-                return 1
         args.reference.parent.mkdir(parents=True, exist_ok=True)
         with args.reference.open("w", encoding="utf-8", newline="\n") as handle:
             handle.write(json.dumps(current, indent=2, sort_keys=True) + "\n")

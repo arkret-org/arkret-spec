@@ -15,16 +15,14 @@ T = TypeVar("T")
 def load_manifest(path: Path = MANIFEST_PATH, root: Path = ROOT) -> dict:
     body = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(body, dict) or set(body) != {
-        "version",
-        "source_of_truth",
-        "generated_at",
+
+
+
         "description",
         "pipelines",
         "checks",
     }:
         raise ValueError(f"{path}: release tool manifest has an open or incomplete shape")
-    if body.get("source_of_truth") is not True:
-        raise ValueError(f"{path}: source_of_truth must be true")
     checks = body.get("checks")
     if not isinstance(checks, list) or not checks:
         raise ValueError(f"{path}: checks must be a non-empty array")

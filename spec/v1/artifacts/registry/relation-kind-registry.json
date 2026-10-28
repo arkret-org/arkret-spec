@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "generated_at": "2026-10-24T14:14:05+08:00",
-  "source_of_truth": true,
   "description": "Canonical machine index of the v1 standard relation_kind vocabulary. This registry is the machine source for the kind list, default cardinality class, truth-source class, and writability; detailed dedupe keys, scope rules, and conflict semantics remain normative in zh/models/relation.md sections 3-6.",
   "registry_rules": [
     "relation.schema.json relation_kind stays a free string so extension profiles can introduce new kinds; kinds listed here are the v1 standard vocabulary and MUST follow their registered row.",

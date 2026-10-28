@@ -5,7 +5,6 @@
     "in_tree_checker": "tools/artifact_lint/read_receipt_scope_policy.py"
   },
   "description": "Unified ak.scope.read_receipt_policy / scope_read_receipt_policy schema and semantic decision vectors. Verified basis/authorization flags are preconditions supplied by the native verifier, not cryptographic evidence or production acceptance. Each case re-evaluates one exact scope; other policies are deliberate non-inputs.",
-  "version": "2026-10-24.1",
   "covers_vectors": [
     "ak.vector.read_receipt.scope_policy.schema.v1",
     "ak.vector.read_receipt.scope_policy.independent.v1",

@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.full_client.v1",
-  "version": "2026-09-20.1",
-  "suite": "account_data_cas_convergence",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.account_data.cas_convergence.v1"

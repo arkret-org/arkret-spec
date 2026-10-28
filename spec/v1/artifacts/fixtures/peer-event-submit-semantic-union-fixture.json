@@ -1,6 +1,5 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-10-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"

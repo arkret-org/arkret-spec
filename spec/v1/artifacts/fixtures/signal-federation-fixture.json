@@ -1,6 +1,4 @@
 {
-  "suite": "signal_peer_relay",
-  "version": "2026-10-26.1",
   "profile": "ak.profile.signal_peer_relay.v1",
   "runner": {
     "kind": "generated_limit_cases",

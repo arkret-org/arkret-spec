@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.station.v1",
-  "version": "2026-09-20",
-  "suite": "auth_session_proof",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.auth.session_proof.v1"

@@ -1,6 +1,4 @@
 {
-  "version": "2026-09-19.2",
-  "generated_at": "2026-09-19T15:43:04+08:00",
   "description": "Ledger of prose anchors carried inside canonical artifacts whose target section does not exist. An artifact anchor is how a registry row pins a machine obligation to the prose that states it; when it dangles, the row asserts a source that cannot be read. That is a protocol gap, not a typo, so it MUST NOT be repaired by guessing a nearby heading: a silently redirected anchor moves the obligation. check_artifact_fragment_targets consults this ledger. The list is empty: the 42 rows it opened with were adjudicated one by one -- 24 resolved once the gate learned to read explicit <a id> anchors, 11 were stale pointers repointed at the heading that carries the obligation today, 3 moved to the page the topic now lives on, and 2 had their deleted normative prose restored (federation 4.1.1, service-http-binding 2.2.4).",
   "ratchet": "This list may only shrink. A new entry is admissible only together with the spec report that owns the gap it records; landing that report MUST remove the entry rather than retarget the anchor. A listed anchor that resolves again, or that no artifact carries any more, fails the gate until its row is deleted.",
   "owner_report": "arkret-work/tasks/spec-done/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md",

@@ -3,8 +3,6 @@
     "kind": "known_answer_tests",
     "entrypoint": "ak.suite.identity.did_binding_digests.v1"
   },
-  "suite": "did_binding_digests",
-  "version": "2026-07-31",
   "covers_vectors": [
     "ak.vector.did_binding.document_digest_kat.v1",
     "ak.vector.did_binding.evidence_receipt_kat.v1",

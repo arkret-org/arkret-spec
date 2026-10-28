@@ -65,8 +65,6 @@ def key_fixture() -> dict:
 
 def material_registry() -> dict:
     return {
-        "version": "probe",
-        "source_of_truth": True,
         "rules": ["the fingerprint is over algorithm-defined public key bytes"],
         "published_signing_material_field_names": ["test_private_key_jwk"],
         "public_key_encodings": {
@@ -131,8 +129,6 @@ def material_registry() -> dict:
 
 def vector_registry() -> dict:
     return {
-        "version": "probe",
-        "source_of_truth": True,
         "vectors": [
             {
                 "vector_id": VECTOR,
@@ -148,9 +144,9 @@ def vector_registry() -> dict:
 
 def carrier_fixture() -> dict:
     return {
-        "suite": "probe_carrier",
+
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.probe.carrier.v1"},
-        "version": "probe",
+
         "covers_vectors": [VECTOR],
         "cases": [],
     }
@@ -198,7 +194,7 @@ def contract_body() -> dict:
 
 
 def contract(body: dict | None = None) -> dict:
-    return {"version": "probe", "sdk_conformance_contract": body or contract_body()}
+    return {"sdk_conformance_contract": body or contract_body()}
 
 
 def claim_fixture(contract_document: dict) -> dict:
@@ -243,7 +239,6 @@ def claim_fixture(contract_document: dict) -> dict:
     )
     return {
         "suite": "sdk_conformance_claim",
-        "version": "probe",
         "schema_validation_cases": [
             {"name": "valid", "expect_valid": True, "instance": instance},
             {

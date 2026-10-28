@@ -1,15 +1,4 @@
-"""The executable registry-assertion table must bind to fixtures that ship.
-
-`check_fixture_runner_contract` holds a table keyed by fixture `suite` and then
-sweeps the fixture directory by file. The two are not the same thing: a table
-entry naming a suite no file declares is never visited, so it neither passes nor
-fails -- it is unreachable.
-
-The gate had no tests at all. These cover the reconciliation and the per-file
-binding it was already doing unverified.
-
-Every mutation reads as a delta against the live baseline.
-"""
+"""Registry assertion contracts bind to actual fixture paths and executable cases."""
 
 from __future__ import annotations
 
@@ -64,26 +53,24 @@ class FixtureRunnerSuiteContractTest(unittest.TestCase):
         declared = set()
         for path in sorted(FIXTURE_ROOT.glob("*.json")):
             document = gate.load_json(gate.Lint(), path)
-            if isinstance(document, dict) and isinstance(document.get("suite"), str):
-                declared.add(document["suite"])
-        self.assertIn("error_code_registry_coverage_fixture", declared)
-        self.assertIn("operation_registry_coverage_fixture", declared)
-        self.assertIn("event_kind_payload_coverage_fixture", declared)
+            if isinstance(document, dict):
+                declared.add(path.name)
+        self.assertIn("error-code-registry-coverage-fixture.json", declared)
+        self.assertIn("operation-registry-coverage-fixture.json", declared)
+        self.assertIn("event-kind-payload-coverage-fixture.json", declared)
 
     # ---- the reconciliation ---------------------------------------------
 
-    def test_a_required_suite_that_no_file_declares_is_reported(self) -> None:
-        reported = self._newly_reported(
-            PAYLOAD_COVERAGE, lambda document: document.__setitem__("suite", "renamed_suite")
-        )
-        self.assertTrue(
-            any("event_kind_payload_coverage_fixture" in error for error in reported),
-            reported,
-        )
-        self.assertTrue(
-            any("no file declares" in error for error in reported),
-            reported,
-        )
+    def test_missing_required_fixture_is_reported(self) -> None:
+        from unittest.mock import patch
+        original = Path.glob
+
+        def without_payload(path, pattern):
+            return (item for item in original(path, pattern) if item.name != PAYLOAD_COVERAGE.name)
+
+        with patch.object(Path, "glob", without_payload):
+            errors = self._run()
+        self.assertTrue(any("absent from the directory" in error for error in errors), errors)
 
     # ---- the per-file binding it was already doing -----------------------
 

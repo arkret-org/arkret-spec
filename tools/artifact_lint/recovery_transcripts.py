@@ -223,8 +223,8 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
     if len(matching_vectors) != 1 or matching_vectors[0].get("applies_to_fixtures") != [FIXTURE.name]:
         lint.fail(VECTOR_REGISTRY, f"{VECTOR_ID} must cover only {FIXTURE.name}")
 
-    if fixture.get("generated_by") != "tools/regenerate_recovery_transcript_fixture.py" or fixture.get("domain") != DOMAIN:
-        lint.fail(FIXTURE, "recovery transcript fixture generator/domain metadata is invalid")
+    if fixture.get("domain") != DOMAIN:
+        lint.fail(FIXTURE, "recovery transcript domain is invalid")
     key = fixture.get("test_key")
     public_raw = _b64u_decode(key.get("public_key")) if isinstance(key, dict) else None
     public_key = None

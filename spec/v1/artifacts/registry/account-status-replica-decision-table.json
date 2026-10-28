@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": true,
   "description": "Canonical decision table for the account-status replica receiver classification defined in zh/identity/account-lifecycle.md section 3.1. A receiver of ak.peer.account_status.command.submit.v1 classifies an already transport- and proof-verified AccountStatusRecord by comparing it against exactly one baseline: the receiver's durable replica head for (account_authority_id, account_id). Rows are evaluated in the declared order and the first matching row decides the outcome.",
   "comparison_baseline": "durable_replica_head",
   "registry_rules": [
@@ -110,6 +108,5 @@
       "retryable_for_exact_record": true,
       "description": "The submission is beyond the next sequence. The response carries required_status_sequence = head.status_sequence + 1 and triggers a bounded resolve; the exact record stays retryable once the gap is filled."
     }
-  ],
-  "generated_at": "2026-10-24T14:14:05+08:00"
+  ]
 }

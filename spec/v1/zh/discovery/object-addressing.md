@@ -56,7 +56,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 ### 3.1 Path 规则（normative）
 
-- **realm 是身份，进 path；join forwarding 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；客户端只向自己的 Station 提交，后者可用的 joined-member forwarding hints 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
+- **realm 是身份，进 path；join forwarding 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；客户端只向自己的 Station 提交，后者可用的 joined-member forwarding hints 由 `resolve_realm` 返回的 `join_candidates[]` 给出，不写入地址本体。
 - **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail closed（返回 `not_found`），不得做全网 strand_id 猜测。
 - **`<realm>` 段消歧（normative）**：该段匹配 canonical 44-character Base64URL-no-pad Realm token 时解释为
   `realm_id`，并在重建 `ak:realm:<token>` 后按 id-kind registry 校验保留零高 nibble、digest suite 与 canonical 重编码；否则该段必须匹配
@@ -117,7 +117,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 - **授权**：`ak.realm.alias` 由同名 action `ak.realm.alias`（`risk_tier=high`）或覆盖它的聚合 `ak.realm.admin` 授权（见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。
 - **issuer authority 绑定**：alias 的 `<domain>` 是签发该 alias 的 authority，治理 Station 对 RealmCommit 的签名并不证明该 domain 的 issuer 批准了这次占用。因此 reducer / registrar MUST 校验 `<domain>` 是该 Realm `trust_domain` 的 authority domain，否则 fail closed（`failed_precondition`，`reason="realm_alias_authority_mismatch"`）。
 - **命名空间占用**：Realm RealmCommit 只确认该 Realm 的 alias 使用意图，不能单独证明跨 Realm 唯一占用。namespace issuer 维护以 `(realm_alias, canonical_alias)` 为键的唯一持久分配账本；所有 worker/副本必须共享一个线性化 CAS/事务边界，禁止各 Realm 各自分配。激活目标必须是该 Realm 已确认的当前 alias 声明，且同 authority slot 为空或已指向完全相同的 Realm/声明 revision。已由另一个 Realm 持有时，namespace 激活拒绝为 `realm_alias_taken`；不追溯改写已确认 Realm 意图。handle 占用不参与这个 key。
-- **解析方向**：alias 的有效解析是唯一 namespace 分配与 Realm 已确认声明的交集：issuer 账本绑定 canonical alias、完整 RealmId 和该声明的 Event revision；Realm 当前声明必须仍选择同一 alias。tombstone、替代声明或释放后不返回旧绑定。`resolve_realm` / `resolve_target` / `ak.edge.applet.realm.read.resolve.v1` 必须使用 namespace issuer 的已认证结果，Directory 缓存仅是这个结果的投影，不能凭 Realm current state 自行铸造跨 Realm 地址。最终身份比较一律使用稳定 RealmId。
+- **解析方向**：alias 的有效解析是唯一 namespace 分配与 Realm 已确认声明的交集：issuer 账本绑定 canonical alias、完整 RealmId 和该声明的 Event revision；Realm 当前声明必须仍选择同一 alias。tombstone、替代声明或释放后不返回旧绑定。`resolve_realm` / `ak.edge.applet.realm.read.resolve.v1` 必须使用 namespace issuer 的已认证结果，Directory 缓存仅是这个结果的投影，不能凭 Realm current state 自行铸造跨 Realm 地址。最终身份比较一律使用稳定 RealmId。
 - **PCR 不得有 alias**：`ak.realm.alias` 不在 `ak.profile.principal_control_realm.v1` 的 event-kind allowlist 内，Principal Control Realm 只能按 `realm_id` 寻址（写入 MUST `principal_control_event_kind_forbidden`）。
 
 **分配、重试与释放（normative）**：namespace issuer 只消费已验证的 Realm 确认声明；按完整 Event revision 幂等保存处理结果。登记前持久核对该 Realm 的唯一安全前缀，旧声明不能覆盖较新 release/rename，未完成确认不得激活。释放只消费当前持有 Realm 已确认的 tombstone/rename，原子移除该 exact allocation；不得按 TTL、离线、旧缓存缺席或普通到达时间释放。新声明与释放竞争在同一 namespace 事务串行化。
@@ -132,14 +132,14 @@ Realm 意图确认与 namespace 激活是两个明确阶段，不声称跨 Realm
 
 ## 4. Link 类型与授权 token
 
-授权**不做成独立 scheme**，而是同一地址 + 一个分型签名 token 组件（与 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 已有的 `realm_id`（纯）vs `invite_token` / `signed_link`（带授权）输入形状同构）。
+地址外壳统一使用同一 grammar；授权对象及其凭据必须按各自正式合同处理，URL 自述不授予权限。Realm 邀请使用 [realm-invite-links.md](../sync/realm-invite-links.md) 的私密片段凭据与公开创建 Event，不是由服务器签发、兑换的通用 signed-link token。
 
 v1 定义三种 link 类型：
 
 | 类型 | 携带 | 解析后效果 |
 | --- | --- | --- |
 | `reference`（默认） | 纯地址 | 走正常 discovery + access gate；**不授予任何权限**。请求方本就能发现/读取时返回对应 preview / 内容，否则 `not_found`。 |
-| `invite` | 地址 + `tok`（`invite_token` / `signed_link`） | 兑换后经 [`governance/join-policy.md`](../governance/join-policy.md) 授予 membership / 访问；有 expiry、audience-bound、可吊销。 |
+| `invite` | Realm 地址 + `tok`（RealmInviteLinkToken） | 用户选账号并显式签署接受 Event，由当前 Realm 权威核验、计次并入组；不自动接受，不直接授予内容读取。 |
 | `preview` | 地址 + `tok`（signed preview token），或 requester proof 满足 `ak.realm.preview_policy` | 只授予 policy 限定的 stripped preview / history stub / plaintext Realm snippet；**不授予 membership、write、join routing 或完整历史读取**。 |
 
 `preview` link type 的授权语义由 [`discovery-directory.md` §3.2](./discovery-directory.md) 与 Realm 的 effective `ak.realm.preview_policy` 定义。解析方遇到 preview token 但 Realm 未声明有效 preview policy 时 MUST 按未授权处理并返回统一 `not_found`。Preview token 只扩大到 policy 指定的 preview projection，不得被解释成 invite、membership、`ak.event.read` 或 E2EE key share grant。
@@ -149,12 +149,12 @@ v1 定义三种 link 类型：
 授权组件**统一**用两个 query 参数，**禁止** `invite_token=` / `signed_link=` 等分叉参数名（否则不同客户端生成互不互通的链接）：
 
 - `lt=<reference|invite|preview>`，省略等价 `reference`。解析方遇到其它值时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
-- token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
-- token 存在时，**权威 address_link_kind 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
+- Realm 邀请凭据的 schema 必须是 `ak.schema.realm_invite_link_token.v1`；不可携带 Strand 或 Message 子目标。其它 token 按其正式公共合同验证，不能凭 URL 参数推导权限。
+- URL `lt`、action、landing 和 token 自述都不是信任锚。Realm 邀请必须验证已接纳创建原件和当前权威，证明与接受者完整账号绑定；preview 凭据不得转成接受证明。
 
 ### 4.2 Token 必须绑定 canonical target（normative）
 
-`invite` / `preview` token 仅有 expiry / audience / 可吊销**不够**——其签名 payload **MUST** 覆盖它授权的具体对象，否则 `resolve_target` 把 `address` 与 `token` 当独立输入时，A 对象的有效 token 可被重放到 B 地址（scope confusion）。
+本小节的签名 target descriptor 适用于 signed preview token。Realm 邀请凭据使用 realm-invite-links.md 的独立格式：客户端比较 canonical RealmId，服务端以已接纳创建公钥验证绑定 Realm、链接、完整账号、request_id 与用途的证明；不得把下面的通用 claims 当作 Realm 邀请接受合同。
 
 token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段。
 
@@ -165,30 +165,23 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
   "realm_id": "ak:realm:<44-char-token>",
   "strand_id": "ak:strand:<44-char-event-token>",
   "message_id": "ak:message:<44-char-event-token>",
-  "address_link_kind": "invite"
+  "address_link_kind": "preview"
 }
 ```
-字段出现规则：`realm_id` 与 `address_link_kind` 必含；`address_link_kind` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
+字段出现规则：`realm_id` 与 `address_link_kind` 必含；`address_link_kind` MUST 是 token 签名 payload 声明的 effective type（此处为 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
 - `realm_id` / `strand_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ak:realm:<44-char-token>` 等），不得使用 path 中的裸 token 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
 - **`target_digest` 只覆盖身份元组（`realm` / `strand` / `m`）与 `address_link_kind`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Strand / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
-- 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
+- 签发端与凭据验证端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
 
 ### 4.3 Token 生命周期
 
-`invite` token 的签发 / 过期 / 吊销复用 [`governance/join-policy.md`](../governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期，本文**不另发明** revocation 机制。`resolve_target` 在 §4.2 target descriptor 校验通过后，仍 MUST 走 join-policy 的 token 有效性 / 吊销检查。
+Realm 邀请链接的生成、撤销、有效期、使用次数与账号接受，唯一按 [realm-invite-links.md](../sync/realm-invite-links.md)定义；不存在 join-policy 隐含的 invite_token／signed_link 生命周期。创建者客户端生成秘密，只发布公钥；当前治理方在接受 Event 的 RealmCommit 事务中原子核对生命周期与使用事实。打开、预取、preview、prepare 和登录都不消耗次数。
 
-`preview` token 使用同一 target descriptor discipline，但生命周期由 `ak.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`address_link_kind="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 effective policy **显式枚举**的、仍接受的 previous digest；否则返回统一 `not_found`。
-
-**`preview_policy_digest` allowlist 边界（normative）**：为避免 "still-valid previous" 含义不清形成 policy downgrade 窗口（旧、已收紧前的 preview policy 被无限期接受），其边界 MUST 由 policy 自身显式声明，不得由解析方自行推断版本数 / 时间窗口：
-
-- effective `ak.realm.preview_policy` MUST 显式枚举它仍接受的 previous `preview_policy_digest` 集合（`accepted_previous_policy_digests[]`），每个条目 MUST 携带各自的过期时间（`expires_at`）。
-- 解析方 MUST 仅接受 `preview_policy_digest` 等于当前 effective digest、或命中该 allowlist 且 `now < expires_at` 的 previous digest；不在 allowlist 内、或已过期者一律按未授权返回统一 `not_found`。
-- 解析方 MUST NOT 用"最近 N 个版本""固定时间窗口"等隐式规则代替 allowlist。
-- policy 收紧时，签发端 MUST 能即时清空 / 重写 `accepted_previous_policy_digests[]`（例如置空数组），使被收紧前签发的 preview token 立即失效，不依赖各条目自然过期。
+preview token 只按其签名 claims 与有效 preview policy 提供已登记的受限预览，不得授予 membership、接受或历史扩大；不能推导新的签发／兑换接口。
 
 ## 5. 隐私：target 与 token 放 fragment
 
@@ -206,23 +199,18 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 `<landing>` 域名与 web `registerProtocolHandler` handler 模板域名由部署方任意选定，本协议**不**赋予它们任何权威。客户端解析链接时：
 
 - 客户端 **MUST** 把**解析后**的 canonical 身份（`realm_id` 及 §4.2 target descriptor 中的 `strand_id` / `message_id`，经 §3.1 alias 规范化）作为唯一信任锚，所有后续 access gate / 身份比对一律绑定该 canonical target。
-- 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
+- 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的目标与授权校验，或自动向该域名提交 `tok` / 任何授权 material。实际目标及授权只由已验证合同决定，与承载它的 landing 域无关。Realm 邀请秘密不得发送给 landing、Directory 或账号服务。
 - 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Arkret 链接外壳诱导用户提交 token。
 
 
 
-| operation_id | 必填 | 可选 | 响应 | 约束 |
-| --- | --- | --- | --- | --- |
+## 6. 已登记解析与入组调用
 
-响应约束（normative）：
+本文不登记通用 resolve_target operation，也不得把示意解析步骤当成可调用端点。纯引用在授权范围内使用现有 Directory／内容读取面。Alias 必须先取得经过验证的 canonical RealmId，不能用 alias 作为授权身份。
 
-- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 全部通用字段，按该节定义直接继承——本节不重述或弱化各字段的强度。其中 `as_of`、`source_refs`、`policy_revision` 在所有 search / resolve 结果上均为 **MUST**（与 [`discovery-directory.md` §7.3](./discovery-directory.md) 不变量 3 一致）；`stale` / `divergent` 为可选诊断标记。realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
-- invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
-- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, strand_id?, message_id?}` + 生效 address_link_kind **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
-- `preview` token 校验通过时，响应 MUST 只包含 effective `ak.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。
-- alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
+Realm 邀请链接只携 Realm；客户端读取 fragment 后清理地址栏，校验私密 token 的 canonical Realm 与 URL 一致。用户先登录并明确选择完整账号，通过自己的 Station 调用已登记 Realm preview／prepare，再显式签署并提交 ak.realm_invite_link.accept。自己的 Station 验证 nonce-bound RealmAuthorityBundle，通过正常 peer 面转交给当前治理方；用户 bearer 与链接秘密均不转发。
 
-客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 canonical `realm_id` → 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 strand / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端只向自己的 Station 提交；可披露的 `join_candidates[]` 仅供该 Station 按 signed invite / 当前 joined-joined-member ActorId routing projection 转发。
+preview 必须遵守 effective preview policy；未知、撤销、到期、耗尽或证明错误使用统一 not_found，不泄露成员、消息、MLS secrets。prepare 只是发现当前权威和提交 stream，既不接受邀请也不承诺稍后一定入组；所有最终准入以接受事务的当前 cut 为准。
 
 ## 7. 规范性引用
 

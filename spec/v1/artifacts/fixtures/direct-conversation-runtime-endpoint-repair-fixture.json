@@ -1,6 +1,4 @@
 {
-  "fixture_id": "ak.fixture.direct_conversation.runtime_endpoint_repair.v1",
-  "version": 1,
   "covers_vectors": [
     "ak.vector.direct_conversation.admission.participant_authority_denied.v1"
   ],

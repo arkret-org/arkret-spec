@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.3",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T23:34:31+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
@@ -445,7 +440,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current state by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current state the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 125 of the 128 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 129 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
     "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed effect_ownership object. A typed_state_writer owns non-empty state_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no current-state write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/state_writes[] fail tools/artifact_lint:effect_ownership.",
     "transition_contracts declares the lifecycle axis of a current state family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition state_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
     "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
@@ -556,7 +551,6 @@
       "axis": "state",
       "states": [
         "pending",
-        "claimed",
         "accepted",
         "rejected",
         "revoked",
@@ -581,31 +575,33 @@
         ],
         [
           "pending",
-          "claimed"
-        ],
-        [
-          "pending",
           "revoked"
         ],
         [
           "pending",
           "expired"
+        ]
+      ]
+    },
+    "realm_invite_link_lifecycle": {
+      "axis": "lifecycle",
+      "states": [
+        "active",
+        "revoked"
+      ],
+      "initial_state": "active",
+      "terminal_states": [
+        "revoked"
+      ],
+      "idempotent_replay": "same_event_identity_replay_noop",
+      "allowed_transitions": [
+        [
+          null,
+          "active"
         ],
         [
-          "claimed",
-          "accepted"
-        ],
-        [
-          "claimed",
-          "rejected"
-        ],
-        [
-          "claimed",
+          "active",
           "revoked"
-        ],
-        [
-          "claimed",
-          "expired"
         ]
       ]
     }
@@ -2826,7 +2822,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite accept. payload.previous_state names the non-terminal invite_lifecycle state this Event moves out of, which is pending for a directed invite and claimed for a third-party one. payload.invitee_account_id is present exactly when the target Invite stores an invite_directed_invitee record, that is for a directed invite and never for a third-party invite; it exists so the invite_live_target slot subject is derivable from the signed Event, and the registered pre_state_requirements row holds it against the stored record in both directions. For a claimed third-party invite, the reducer resolves the unique accepted ak.invite.claim Event exact ref and Commit at the same authority cut and requires its subject_account_id to match the accept author before member join; the claimed lifecycle value alone does not prove the subject.",
+      "payload": "Only the stored exact invitee may accept pending. The required invitee_account_id equals the account actor and frozen direct target. Lifecycle accepted, live slot null and member leave-to-join commit atomically.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_accept_payload",
       "id_source": "reference",
       "state_writes": [
@@ -2846,7 +2842,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "models/governance-objects.md section 5.3 allows accept out of pending and out of claimed, so no single const could carry both edges and from is read from payload.previous_state, whose enum is exactly [pending, claimed]. accepted is terminal, which is what makes a second accept of the same Invite impossible and therefore makes a stale second release of its slot impossible: the reducer rejects it with reason_code invite_already_terminal before any projection runs."
+          "notes": "Only pending is nonterminal. Producer previous_state is compared with current; exact accepted Event retry returns its original outcome."
         },
         {
           "state_family": "member_state",
@@ -2872,7 +2868,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
-          "notes": "models/governance-objects.md section 5.3 makes accept the Event that moves the accepting party's member_state from leave to join in the same atomic commit as the lifecycle transition. The subject is the canonical JSON of the complete author ActorId, the same shape ak.member.state and the agent_status genesis write use: accept may only be authored by the invited party, so that section requires payload.invitee_account_id to equal the account component of envelope.actor_id and forbids accepting on someone else's behalf. There is nothing to retype -- envelope.actor_id already is the complete ActorId this subject needs -- and membership is a literal, because join is the only edge accept can take."
+          "notes": "Only an exact invitee acceptance joins its complete account actor atomically. Rejection/revocation never joins or removes a member."
         },
         {
           "state_family": "invite_live_target",
@@ -2885,10 +2881,6 @@
               }
             ]
           },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.invitee_account_id"
-          },
           "state_projection": {
             "kind": "set",
             "value": {
@@ -2896,7 +2888,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_live_target_value",
-          "notes": "models/governance-objects.md section 5.3 releases the slot only for a directed invite, and the payload carries the account exactly then, so the write is conditional on that field's presence. The release is a real identified write returning the slot to the reusable empty state, not a deletion back to never-written: its head stays in the state commitment, so a first-ever empty slot and a released one read the same null in business terms while staying distinguishable in protocol state."
+          "notes": "Required payload invitee_account_id identifies the exact frozen target. Release writes explicit null with durable revision; never clear a later occupying create Event."
         }
       ],
       "pre_state_requirements": [
@@ -2928,7 +2920,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite cancel. Directed invites only: the Event terminates the invite (rejected or revoked) and atomically releases the invite_live_target slot keyed by canonical_json(payload.invitee_account_id). payload.previous_state names the non-terminal state it moves out of; a non-terminal frozen pre-state that differs from it is a bare failed_precondition with no reason_code. The invitee declining and the still-joined inviter cancelling are authorized by the Invite binding alone; only a third actor needs an ak.invite.cancel grant. Both registered pre_state_requirements rows read the stored invite_directed_invitee record: an Invite with no stored invitee is a third-party or token invite and MUST be rejected with invite_kind_requires_revoke, and a stored invitee that is not byte-equal to the payload's is rejected with invite_directed_invitee_mismatch.",
+      "payload": "The exact directed invitee rejects, or an authorized inviter/manager cancels pending. The required complete target equals the frozen invitee. Rejection/revocation releases the matching live slot and never writes membership.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_cancel_payload",
       "id_source": "reference",
       "state_writes": [
@@ -2948,7 +2940,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "models/governance-objects.md section 5.3 lets one cancel carry four edges: out of pending or claimed, into rejected (the invitee declining) or revoked (the inviter or an authorized actor cancelling). Both endpoints are therefore read from the payload, whose enums are exactly [pending, claimed] and [rejected, revoked]; which of the two targets is legal for a given author is an authorization rule of that section, not a state-table rule."
+          "notes": "Only pending is nonterminal. Producer previous_state is compared with current; exact accepted Event retry returns its original outcome."
         },
         {
           "state_family": "invite_live_target",
@@ -2968,7 +2960,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_live_target_value",
-          "notes": "models/governance-objects.md section 5.3 makes payload.invitee_account_id required on cancel, so the release is unconditional. cancel MUST NOT synthesize a member write: member_state keeps its value, and an Event deriving a member write outside this registered set MUST be rejected atomically with reducer_projection_failed."
+          "notes": "Required payload invitee_account_id identifies the exact frozen target. Release writes explicit null with durable revision; never clear a later occupying create Event."
         }
       ],
       "pre_state_requirements": [
@@ -2984,7 +2976,7 @@
           },
           "failure": {
             "code": "failed_precondition",
-            "reason_code": "invite_kind_requires_revoke"
+            "reason_code": "invite_directed_invitee_mismatch"
           }
         },
         {
@@ -3009,60 +3001,13 @@
       }
     },
     {
-      "event_kind": "ak.invite.claim",
-      "category": "invite",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Third-party invite claim. The reducer reads the unique accepted ak.invite.third_party create Event/Commit, pure invite_lifecycle and current Realm policy at one accepted authority cut. On acceptance, claim subject, nonce, commitment, verification and time material are derived from this exact accepted claim Event/Commit; a rebuildable index is not a second truth source.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_claim_payload",
-      "reducer_authority": "realm",
-      "reducer_effects": [
-        "match the unique accepted ak.invite.third_party create Event/Commit by invite_id and token_commitment with pending invite_lifecycle at the same authority cut",
-        "re-check verification_id against the effective Realm policy at that same accepted authority cut",
-        "atomically deduplicate (invite_id, claim_nonce) and token_commitment against accepted claim Events using a rebuildable durable index before accepting",
-        "accept the exact claim Event/Commit, transition pure invite_lifecycle pending -> claimed and materialize a subject-bound membership proposal in one authority transaction; subsequent accept resolves this exact accepted claim and verifies its subject_account_id",
-        "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Event"
-      ],
-      "conformance_vectors": [
-        "ak.vector.invite.claim_reducer_state_machine.v1",
-        "ak.vector.invite.consumed_token_resubject_rejected.v1",
-        "ak.vector.invite.failure_indistinguishable.v1"
-      ],
-      "id_source": "reference",
-      "state_writes": [
-        {
-          "state_family": "invite_lifecycle",
-          "state_selector": {
-            "kind": "id:invite",
-            "field": "payload.invite_id"
-          },
-          "state_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "pending"
-            },
-            "to": {
-              "const": "claimed"
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "models/governance-objects.md section 5.3 gives claimed exactly one inbound edge, pending -> claimed, and restricts it to the third-party flow, so both endpoints are const. The subject-bound membership proposal the reducer materializes in the same commit is not a current state: only a later ak.invite.accept moves member_state from leave to join."
-        }
-      ],
-      "effect_ownership": {
-        "kind": "typed_state_writer"
-      }
-    },
-    {
       "event_kind": "ak.invite.create",
       "category": "invite",
       "status": "active",
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Event atomically opens the invite_lifecycle register at pending, writes the create-locked invite_directed_invitee record, and claims the Realm live-target slot invite_live_target keyed by canonical_json(payload.invitee_account_id); a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
+      "payload": "Create one directed Invite for an exact complete AccountId. The signed introduction evidence digest binds private delivery. Atomically open pending lifecycle, freeze invitee and occupy its one live target slot.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
       "id_source": "event_derived",
       "id_kind": "invite",
@@ -3082,7 +3027,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "Every Invite starts at pending. Private delivery observations never change the shared authorization lifecycle."
+          "notes": "Only pending is nonterminal. Producer previous_state is compared with current; exact accepted Event retry returns its original outcome."
         },
         {
           "state_family": "invite_directed_invitee",
@@ -3102,7 +3047,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_directed_invitee_value",
-          "notes": "models/governance-objects.md section 5.3 needs the directed target of an Invite to be readable from the Invite's own id at every later transition, because the release of the live-target slot has to be checkable against it. This is that record: create-locked, written once from this Event's own payload, never updated and never written by ak.invite.third_party, so a third-party Invite's stored invitee is absent rather than null. It is not a materialized copy of the Invite object -- the join rule and join policy of the admission baseline stay unmaterialized and are replayed from this Event's own basis, exactly as that section requires."
+          "notes": "Create-locked exact target of every directed Invite; immutable and required for every subsequent transition."
         },
         {
           "state_family": "invite_live_target",
@@ -3142,7 +3087,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Signed terminal revoked or expired transition from pending or claimed. Delivery progress remains private. invitee_account_id is present exactly when invite_directed_invitee stores it; the unconditional pre-state requirement rejects omissions and forged third-party slot releases.",
+      "payload": "Authorized high-risk invalidation of a directed pending Invite to revoked or expired. Required invitee_account_id equals its frozen target. Current authorization and trusted time are checked at the same cut; member current is unchanged.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_revoke_payload",
       "id_source": "reference",
       "state_writes": [
@@ -3162,7 +3107,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "Both endpoints come from the signed payload; the only targets are irreversible revoked and expired. Private retries do not author lifecycle transitions."
+          "notes": "Only pending is nonterminal. Producer previous_state is compared with current; exact accepted Event retry returns its original outcome."
         },
         {
           "state_family": "invite_live_target",
@@ -3175,10 +3120,6 @@
               }
             ]
           },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.invitee_account_id"
-          },
           "state_projection": {
             "kind": "set",
             "value": {
@@ -3186,7 +3127,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_live_target_value",
-          "notes": "A directed terminal transition releases only its own slot once. Wall-clock expiry and private delivery failure never release a slot."
+          "notes": "Required payload invitee_account_id identifies the exact frozen target. Release writes explicit null with durable revision; never clear a later occupying create Event."
         }
       ],
       "pre_state_requirements": [
@@ -3205,40 +3146,6 @@
             "code": "failed_precondition",
             "reason_code": "invite_directed_invitee_mismatch"
           }
-        }
-      ],
-      "effect_ownership": {
-        "kind": "typed_state_writer"
-      }
-    },
-    {
-      "event_kind": "ak.invite.third_party",
-      "category": "invite",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event. It opens the pure invite_lifecycle register at pending and writes nothing else: a third-party invite has no exact invitee account, so it writes no invite_directed_invitee record and never touches an invite_live_target slot. Frozen public invite material is read from this exact accepted create Event/Commit at the same authority cut as lifecycle and Realm policy; it is not stored in invite_lifecycle.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload",
-      "id_source": "event_derived",
-      "id_kind": "invite",
-      "state_writes": [
-        {
-          "state_family": "invite_lifecycle",
-          "state_selector": {
-            "kind": "id:invite"
-          },
-          "state_projection": {
-            "kind": "transition",
-            "from": {
-              "const": null
-            },
-            "to": {
-              "const": "pending"
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/invite_lifecycle_value",
-          "notes": "models/governance-objects.md section 5.3 gives directed and third-party invites the same lifecycle register and the same pending entry state; the claim step is what distinguishes them afterwards. The absent invite_directed_invitee record of a third-party Invite is what the release preconditions of ak.invite.accept / cancel / revoke read, so the absence is load bearing rather than incidental."
         }
       ],
       "effect_ownership": {
@@ -8814,6 +8721,183 @@
       "effect_ownership": {
         "kind": "typed_state_writer"
       }
+    },
+    {
+      "event_kind": "ak.realm_invite_link.create",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link create; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/create_payload",
+      "id_source": "event_derived",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_definition",
+          "state_selector": {
+            "kind": "id:realm_invite_link"
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "public_key",
+                  "field": "payload.public_key"
+                },
+                {
+                  "name": "expires_at",
+                  "field": "payload.expires_at"
+                },
+                {
+                  "name": "max_uses",
+                  "field": "payload.max_uses"
+                },
+                {
+                  "name": "create_event_id",
+                  "envelope_field": "event_id"
+                },
+                {
+                  "name": "creator_actor_id",
+                  "envelope_field": "actor_id"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/definition_value"
+        },
+        {
+          "state_family": "realm_invite_link_lifecycle",
+          "state_selector": {
+            "kind": "id:realm_invite_link"
+          },
+          "state_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "active"
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      },
+      "id_kind": "realm_invite_link"
+    },
+    {
+      "event_kind": "ak.realm_invite_link.revoke",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link revoke; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/revoke_payload",
+      "id_source": "reference",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_lifecycle",
+          "state_selector": {
+            "kind": "id:realm_invite_link",
+            "field": "payload.realm_invite_link_id"
+          },
+          "state_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "revoked"
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      }
+    },
+    {
+      "event_kind": "ak.realm_invite_link.accept",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link accept; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/accept_payload",
+      "id_source": "reference",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_use",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.realm_invite_link_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.subject_account_id"
+              }
+            ]
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "realm_invite_link_id",
+                  "field": "payload.realm_invite_link_id"
+                },
+                {
+                  "name": "subject_account_id",
+                  "field": "payload.subject_account_id"
+                },
+                {
+                  "name": "accept_event_id",
+                  "envelope_field": "event_id"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/use_record"
+        },
+        {
+          "state_family": "member_state",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "membership",
+                  "literal": "join"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
+          "notes": "The accepting complete account actor joins only when its link proof and all current join gates pass. This write and the create-locked use record commit atomically; no open/preview/prepare writes membership."
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      }
     }
   ],
   "actor_private_contracts": {
@@ -9410,7 +9494,6 @@
     "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",
     "consumer_schema_bindings": []
   },
-  "metadata_authority": "contract_registry_section",
   "direct_conversation_binding_contract": {
     "normative_source": "zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
     "event_kind": "ak.direct_conversation.bound",
@@ -9467,5 +9550,41 @@
       "historical_originals": "original_event_commit_and_accepted_at_signer_then_independent_current_gate",
       "per_message_online_probe_required": false
     }
+  },
+  "realm_invite_link_contract": {
+    "normative_source": "zh/sync/realm-invite-links.md",
+    "definition_family": "realm_invite_link_definition",
+    "lifecycle_family": "realm_invite_link_lifecycle",
+    "use_family": "realm_invite_link_use",
+    "use_identity": [
+      "realm_invite_link_id",
+      "canonical_json(subject_account_id)"
+    ],
+    "count_source": "cardinality of the complete accepted create-locked use set at the same authority cut",
+    "accept_atomicity": [
+      "exact producer Event",
+      "link use record",
+      "member_state leave to join",
+      "RealmCommit",
+      "required outbox"
+    ],
+    "expiry": "trusted accepting linearization instant is strictly before expires_at; original committed retry never writes again",
+    "zero_effect": [
+      "open",
+      "preview",
+      "prepare",
+      "login",
+      "already joined",
+      "every rejected acceptance"
+    ],
+    "proof_contexts": [
+      "ak.realm_invite_link.accept_proof.v1",
+      "ak.realm_invite_link.preview_proof.v1"
+    ],
+    "secret_boundary": "32-byte client-only link seed; only signatures, never the reusable secret, enter any API or Event"
+  },
+  "invite_terminal_transition_failure": {
+    "code": "failed_precondition",
+    "reason_code": "invite_already_terminal"
   }
 }

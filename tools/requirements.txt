@@ -1,0 +1,5 @@
+cryptography
+jsonschema>=4.18,<5
+PyYAML
+argon2-cffi
+PyNaCl

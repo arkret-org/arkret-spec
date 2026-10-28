@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-21.1",
-  "source_of_truth": true,
   "description": "Reusable outward-disclosure policies. Operations and carrier exposures reference a policy id instead of reproducing operation/profile matrices. Authorization decides whether a caller may reach a value; this registry decides which internal failures may cross the boundary and which observable response properties must remain equivalent.",
   "registry_rules": [
     "Every referenced policy_id MUST exist exactly once. Missing policy references fail closed.",
@@ -144,6 +142,5 @@
       "outward_buckets": [],
       "diagnostic_rule": "Detailed registered operation errors are allowed only after the authenticated holder/device is proven to own the exact material selector."
     }
-  ],
-  "generated_at": "2026-10-21T08:08:00+08:00"
+  ]
 }

@@ -38,17 +38,13 @@ ERROR_CODE_REGISTRY_RELATIVE = Path("registry") / "error-code-registry.json"
 _ARTIFACT_SUFFIXES = {".json", ".yaml", ".yml"}
 _CODE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _BASELINE_KEYS = {
-    "$schema",
-    "version",
-    "kind",
-    "source_of_truth",
-    "generated_from",
-    "generated_by",
+
+
     "description",
     "unreferenced_reason_codes",
     "removed_reason_codes",
 }
-_REMOVED_ROW_REQUIRED_KEYS = {"code", "ruling", "registry_version", "why"}
+_REMOVED_ROW_REQUIRED_KEYS = {"code", "ruling", "why"}
 _REMOVED_ROW_OPTIONAL_KEYS = {"carried_by_code"}
 _STATUS_VALUES = {"active", "reserved"}
 
@@ -158,15 +154,12 @@ def load_baseline(lint: Lint, baseline_path: Path) -> dict[str, Any] | None:
         lint.fail(baseline_path, "baseline must be a JSON object")
         return None
     unknown = set(document) - _BASELINE_KEYS
-    missing = {"kind", "unreferenced_reason_codes", "removed_reason_codes"} - set(document)
+    missing = {"unreferenced_reason_codes", "removed_reason_codes"} - set(document)
     if unknown or missing:
         lint.fail(
             baseline_path,
             f"baseline key set is closed; unknown {sorted(unknown)}, missing {sorted(missing)}",
         )
-        return None
-    if document.get("kind") != "reason_code_producer_baseline":
-        lint.fail(baseline_path, "kind must be reason_code_producer_baseline")
         return None
     unreferenced = document["unreferenced_reason_codes"]
     if not isinstance(unreferenced, list) or not all(
@@ -367,15 +360,7 @@ def check_reason_code_producer_paths(
 def baseline_document(codes: list[str], removed_rows: list[dict[str, str]]) -> dict[str, Any]:
     """Shape of ``tools/reason-code-producer-baseline.json`` (used to (re)generate it)."""
     return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "version": 2,
-        "kind": "reason_code_producer_baseline",
-        "source_of_truth": False,
-        "generated_from": [
-            "spec/v1/artifacts/registry/error-code-registry.json",
-            "spec/v1/artifacts",
-        ],
-        "generated_by": "tools/artifact_lint (check_reason_code_producer_paths)",
+
         "description": (
             "Tombstone ledger for reason codes removed by adjudication. Live reachability "
             "is declared per row in error-code-registry.json as active or reserved; "

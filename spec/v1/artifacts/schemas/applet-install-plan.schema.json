@@ -275,10 +275,8 @@
             "ak.identity.resolution.update",
             "ak.invite.accept",
             "ak.invite.cancel",
-            "ak.invite.claim",
             "ak.invite.create",
             "ak.invite.revoke",
-            "ak.invite.third_party",
             "ak.key_backup.active_series",
             "ak.member.identity.update",
             "ak.member.state",
@@ -340,6 +338,9 @@
             "ak.realm.set_default_strand",
             "ak.realm.tombstone",
             "ak.realm.unfreeze",
+            "ak.realm_invite_link.accept",
+            "ak.realm_invite_link.create",
+            "ak.realm_invite_link.revoke",
             "ak.redaction",
             "ak.relation.create",
             "ak.relation.tombstone",
@@ -415,10 +416,8 @@
               "ak.identity.resolution.update",
               "ak.invite.accept",
               "ak.invite.cancel",
-              "ak.invite.claim",
               "ak.invite.create",
               "ak.invite.revoke",
-              "ak.invite.third_party",
               "ak.key_backup.active_series",
               "ak.member.identity.update",
               "ak.member.state",
@@ -480,6 +479,9 @@
               "ak.realm.set_default_strand",
               "ak.realm.tombstone",
               "ak.realm.unfreeze",
+              "ak.realm_invite_link.accept",
+              "ak.realm_invite_link.create",
+              "ak.realm_invite_link.revoke",
               "ak.redaction",
               "ak.relation.create",
               "ak.relation.tombstone",
@@ -1559,38 +1561,11 @@
           "if": {
             "properties": {
               "event_kind": {
-                "const": "ak.invite.claim",
+                "const": "ak.invite.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
                   "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/38/if/properties/event_kind",
                   "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/38/if/properties/event_kind",
-                  "values": [
-                    "ak.invite.claim"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "event_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "payload": {
-                "$ref": "./event-payload.schema.json#/$defs/invite_claim_payload"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "event_kind": {
-                "const": "ak.invite.create",
-                "x-arkret-value-ownership": {
-                  "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
                   "values": [
                     "ak.invite.create"
                   ]
@@ -1616,8 +1591,8 @@
                 "const": "ak.invite.revoke",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/39/if/properties/event_kind",
                   "values": [
                     "ak.invite.revoke"
                   ]
@@ -1640,38 +1615,11 @@
           "if": {
             "properties": {
               "event_kind": {
-                "const": "ak.invite.third_party",
-                "x-arkret-value-ownership": {
-                  "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
-                  "values": [
-                    "ak.invite.third_party"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "event_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "payload": {
-                "$ref": "./event-payload.schema.json#/$defs/invite_third_party_create_payload"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "event_kind": {
                 "const": "ak.key_backup.active_series",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/40/if/properties/event_kind",
                   "values": [
                     "ak.key_backup.active_series"
                   ]
@@ -1697,8 +1645,8 @@
                 "const": "ak.member.identity.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/41/if/properties/event_kind",
                   "values": [
                     "ak.member.identity.update"
                   ]
@@ -1724,8 +1672,8 @@
                 "const": "ak.member.state",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/42/if/properties/event_kind",
                   "values": [
                     "ak.member.state"
                   ]
@@ -1751,8 +1699,8 @@
                 "const": "ak.message.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/43/if/properties/event_kind",
                   "values": [
                     "ak.message.create"
                   ]
@@ -1778,8 +1726,8 @@
                 "const": "ak.message.redact",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/44/if/properties/event_kind",
                   "values": [
                     "ak.message.redact"
                   ]
@@ -1805,8 +1753,8 @@
                 "const": "ak.message.revise",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/45/if/properties/event_kind",
                   "values": [
                     "ak.message.revise"
                   ]
@@ -1832,8 +1780,8 @@
                 "const": "ak.mimi.room_binding",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/46/if/properties/event_kind",
                   "values": [
                     "ak.mimi.room_binding"
                   ]
@@ -1859,8 +1807,8 @@
                 "const": "ak.mls.commit",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/47/if/properties/event_kind",
                   "values": [
                     "ak.mls.commit"
                   ]
@@ -1886,8 +1834,8 @@
                 "const": "ak.mls.genesis",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/48/if/properties/event_kind",
                   "values": [
                     "ak.mls.genesis"
                   ]
@@ -1913,8 +1861,8 @@
                 "const": "ak.moderation.decision",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/49/if/properties/event_kind",
                   "values": [
                     "ak.moderation.decision"
                   ]
@@ -1940,8 +1888,8 @@
                 "const": "ak.moderation.decision.lift",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/50/if/properties/event_kind",
                   "values": [
                     "ak.moderation.decision.lift"
                   ]
@@ -1967,8 +1915,8 @@
                 "const": "ak.moderation.franking_proof",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/51/if/properties/event_kind",
                   "values": [
                     "ak.moderation.franking_proof"
                   ]
@@ -1994,8 +1942,8 @@
                 "const": "ak.morph.archive",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/52/if/properties/event_kind",
                   "values": [
                     "ak.morph.archive"
                   ]
@@ -2021,8 +1969,8 @@
                 "const": "ak.morph.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/53/if/properties/event_kind",
                   "values": [
                     "ak.morph.create"
                   ]
@@ -2048,8 +1996,8 @@
                 "const": "ak.morph.restore",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/54/if/properties/event_kind",
                   "values": [
                     "ak.morph.restore"
                   ]
@@ -2075,8 +2023,8 @@
                 "const": "ak.morph.stage.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/55/if/properties/event_kind",
                   "values": [
                     "ak.morph.stage.set"
                   ]
@@ -2102,8 +2050,8 @@
                 "const": "ak.morph.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/56/if/properties/event_kind",
                   "values": [
                     "ak.morph.update"
                   ]
@@ -2129,8 +2077,8 @@
                 "const": "ak.organization.moderation_policy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/57/if/properties/event_kind",
                   "values": [
                     "ak.organization.moderation_policy"
                   ]
@@ -2156,8 +2104,8 @@
                 "const": "ak.pin.add",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/58/if/properties/event_kind",
                   "values": [
                     "ak.pin.add"
                   ]
@@ -2183,8 +2131,8 @@
                 "const": "ak.pin.remove",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/59/if/properties/event_kind",
                   "values": [
                     "ak.pin.remove"
                   ]
@@ -2210,8 +2158,8 @@
                 "const": "ak.pin.reorder",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/60/if/properties/event_kind",
                   "values": [
                     "ak.pin.reorder"
                   ]
@@ -2237,8 +2185,8 @@
                 "const": "ak.policy.action",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/61/if/properties/event_kind",
                   "values": [
                     "ak.policy.action"
                   ]
@@ -2264,8 +2212,8 @@
                 "const": "ak.policy.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/62/if/properties/event_kind",
                   "values": [
                     "ak.policy.set"
                   ]
@@ -2291,8 +2239,8 @@
                 "const": "ak.profile.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/63/if/properties/event_kind",
                   "values": [
                     "ak.profile.create"
                   ]
@@ -2318,8 +2266,8 @@
                 "const": "ak.profile.realm_override",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/64/if/properties/event_kind",
                   "values": [
                     "ak.profile.realm_override"
                   ]
@@ -2345,8 +2293,8 @@
                 "const": "ak.profile.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/65/if/properties/event_kind",
                   "values": [
                     "ak.profile.update"
                   ]
@@ -2372,8 +2320,8 @@
                 "const": "ak.reaction.add",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/66/if/properties/event_kind",
                   "values": [
                     "ak.reaction.add"
                   ]
@@ -2399,8 +2347,8 @@
                 "const": "ak.reaction.remove",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/67/if/properties/event_kind",
                   "values": [
                     "ak.reaction.remove"
                   ]
@@ -2426,8 +2374,8 @@
                 "const": "ak.realm.actor.control.reset",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/68/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.control.reset"
                   ]
@@ -2453,8 +2401,8 @@
                 "const": "ak.realm.actor.control.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/69/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.control.update"
                   ]
@@ -2480,8 +2428,8 @@
                 "const": "ak.realm.actor.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/70/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.create"
                   ]
@@ -2507,8 +2455,8 @@
                 "const": "ak.realm.actor.devices.reset",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/71/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.devices.reset"
                   ]
@@ -2534,8 +2482,8 @@
                 "const": "ak.realm.actor.manager.change",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/72/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.manager.change"
                   ]
@@ -2561,8 +2509,8 @@
                 "const": "ak.realm.actor.recovery.begin",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/73/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.recovery.begin"
                   ]
@@ -2588,8 +2536,8 @@
                 "const": "ak.realm.actor.recovery.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/74/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.recovery.set"
                   ]
@@ -2615,8 +2563,8 @@
                 "const": "ak.realm.actor.status.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/75/if/properties/event_kind",
                   "values": [
                     "ak.realm.actor.status.set"
                   ]
@@ -2642,8 +2590,8 @@
                 "const": "ak.realm.alias",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/76/if/properties/event_kind",
                   "values": [
                     "ak.realm.alias"
                   ]
@@ -2669,8 +2617,8 @@
                 "const": "ak.realm.archive",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/77/if/properties/event_kind",
                   "values": [
                     "ak.realm.archive"
                   ]
@@ -2696,8 +2644,8 @@
                 "const": "ak.realm.asset_privacy_policy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/78/if/properties/event_kind",
                   "values": [
                     "ak.realm.asset_privacy_policy"
                   ]
@@ -2723,8 +2671,8 @@
                 "const": "ak.realm.authority.reset",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/79/if/properties/event_kind",
                   "values": [
                     "ak.realm.authority.reset"
                   ]
@@ -2750,8 +2698,8 @@
                 "const": "ak.realm.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/80/if/properties/event_kind",
                   "values": [
                     "ak.realm.create"
                   ]
@@ -2777,8 +2725,8 @@
                 "const": "ak.realm.destroy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/81/if/properties/event_kind",
                   "values": [
                     "ak.realm.destroy"
                   ]
@@ -2804,8 +2752,8 @@
                 "const": "ak.realm.discovery",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/82/if/properties/event_kind",
                   "values": [
                     "ak.realm.discovery"
                   ]
@@ -2831,8 +2779,8 @@
                 "const": "ak.realm.freeze",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/83/if/properties/event_kind",
                   "values": [
                     "ak.realm.freeze"
                   ]
@@ -2858,8 +2806,8 @@
                 "const": "ak.realm.governance_station.change",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/84/if/properties/event_kind",
                   "values": [
                     "ak.realm.governance_station.change"
                   ]
@@ -2885,8 +2833,8 @@
                 "const": "ak.realm.history_access",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/85/if/properties/event_kind",
                   "values": [
                     "ak.realm.history_access"
                   ]
@@ -2912,8 +2860,8 @@
                 "const": "ak.realm.join_rule",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/86/if/properties/event_kind",
                   "values": [
                     "ak.realm.join_rule"
                   ]
@@ -2939,8 +2887,8 @@
                 "const": "ak.realm.link",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/87/if/properties/event_kind",
                   "values": [
                     "ak.realm.link"
                   ]
@@ -2966,8 +2914,8 @@
                 "const": "ak.realm.media_service",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/88/if/properties/event_kind",
                   "values": [
                     "ak.realm.media_service"
                   ]
@@ -2993,8 +2941,8 @@
                 "const": "ak.realm.organization",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/89/if/properties/event_kind",
                   "values": [
                     "ak.realm.organization"
                   ]
@@ -3020,8 +2968,8 @@
                 "const": "ak.realm.owner.transfer",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/90/if/properties/event_kind",
                   "values": [
                     "ak.realm.owner.transfer"
                   ]
@@ -3047,8 +2995,8 @@
                 "const": "ak.realm.plaintext_visible_services",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/91/if/properties/event_kind",
                   "values": [
                     "ak.realm.plaintext_visible_services"
                   ]
@@ -3074,8 +3022,8 @@
                 "const": "ak.realm.policy_bundle",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/92/if/properties/event_kind",
                   "values": [
                     "ak.realm.policy_bundle"
                   ]
@@ -3101,8 +3049,8 @@
                 "const": "ak.realm.preview_policy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/93/if/properties/event_kind",
                   "values": [
                     "ak.realm.preview_policy"
                   ]
@@ -3128,8 +3076,8 @@
                 "const": "ak.realm.profile",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/94/if/properties/event_kind",
                   "values": [
                     "ak.realm.profile"
                   ]
@@ -3155,8 +3103,8 @@
                 "const": "ak.realm.restore",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/95/if/properties/event_kind",
                   "values": [
                     "ak.realm.restore"
                   ]
@@ -3182,8 +3130,8 @@
                 "const": "ak.realm.schema",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/96/if/properties/event_kind",
                   "values": [
                     "ak.realm.schema"
                   ]
@@ -3209,8 +3157,8 @@
                 "const": "ak.realm.search_policy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/97/if/properties/event_kind",
                   "values": [
                     "ak.realm.search_policy"
                   ]
@@ -3236,8 +3184,8 @@
                 "const": "ak.realm.set_default_strand",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/98/if/properties/event_kind",
                   "values": [
                     "ak.realm.set_default_strand"
                   ]
@@ -3263,8 +3211,8 @@
                 "const": "ak.realm.tombstone",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/99/if/properties/event_kind",
                   "values": [
                     "ak.realm.tombstone"
                   ]
@@ -3290,8 +3238,8 @@
                 "const": "ak.realm.unfreeze",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/100/if/properties/event_kind",
                   "values": [
                     "ak.realm.unfreeze"
                   ]
@@ -3317,8 +3265,8 @@
                 "const": "ak.redaction",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/101/if/properties/event_kind",
                   "values": [
                     "ak.redaction"
                   ]
@@ -3344,8 +3292,8 @@
                 "const": "ak.relation.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/102/if/properties/event_kind",
                   "values": [
                     "ak.relation.create"
                   ]
@@ -3371,8 +3319,8 @@
                 "const": "ak.relation.tombstone",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/103/if/properties/event_kind",
                   "values": [
                     "ak.relation.tombstone"
                   ]
@@ -3398,8 +3346,8 @@
                 "const": "ak.relation.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/104/if/properties/event_kind",
                   "values": [
                     "ak.relation.update"
                   ]
@@ -3425,8 +3373,8 @@
                 "const": "ak.rsvp.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/105/if/properties/event_kind",
                   "values": [
                     "ak.rsvp.set"
                   ]
@@ -3452,8 +3400,8 @@
                 "const": "ak.schema.define",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/106/if/properties/event_kind",
                   "values": [
                     "ak.schema.define"
                   ]
@@ -3479,8 +3427,8 @@
                 "const": "ak.scope.read_receipt_policy",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/107/if/properties/event_kind",
                   "values": [
                     "ak.scope.read_receipt_policy"
                   ]
@@ -3506,8 +3454,8 @@
                 "const": "ak.self.agent.deactivate",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/108/if/properties/event_kind",
                   "values": [
                     "ak.self.agent.deactivate"
                   ]
@@ -3533,8 +3481,8 @@
                 "const": "ak.self.agent.pause",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/109/if/properties/event_kind",
                   "values": [
                     "ak.self.agent.pause"
                   ]
@@ -3560,8 +3508,8 @@
                 "const": "ak.self.agent.resume",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/110/if/properties/event_kind",
                   "values": [
                     "ak.self.agent.resume"
                   ]
@@ -3587,8 +3535,8 @@
                 "const": "ak.self.moderation.report",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/111/if/properties/event_kind",
                   "values": [
                     "ak.self.moderation.report"
                   ]
@@ -3614,8 +3562,8 @@
                 "const": "ak.sidecar.context.attach",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/112/if/properties/event_kind",
                   "values": [
                     "ak.sidecar.context.attach"
                   ]
@@ -3641,8 +3589,8 @@
                 "const": "ak.sidecar.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/113/if/properties/event_kind",
                   "values": [
                     "ak.sidecar.create"
                   ]
@@ -3668,8 +3616,8 @@
                 "const": "ak.space.archive",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/114/if/properties/event_kind",
                   "values": [
                     "ak.space.archive"
                   ]
@@ -3695,8 +3643,8 @@
                 "const": "ak.space.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/115/if/properties/event_kind",
                   "values": [
                     "ak.space.create"
                   ]
@@ -3722,8 +3670,8 @@
                 "const": "ak.space.parent",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
                   "values": [
                     "ak.space.parent"
                   ]
@@ -3749,8 +3697,8 @@
                 "const": "ak.space.restore",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
                   "values": [
                     "ak.space.restore"
                   ]
@@ -3776,8 +3724,8 @@
                 "const": "ak.space.tombstone",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
                   "values": [
                     "ak.space.tombstone"
                   ]
@@ -3803,8 +3751,8 @@
                 "const": "ak.space.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
                   "values": [
                     "ak.space.update"
                   ]
@@ -3830,8 +3778,8 @@
                 "const": "ak.strand.archive",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
                   "values": [
                     "ak.strand.archive"
                   ]
@@ -3857,8 +3805,8 @@
                 "const": "ak.strand.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
                   "values": [
                     "ak.strand.create"
                   ]
@@ -3884,8 +3832,8 @@
                 "const": "ak.strand.move",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
                   "values": [
                     "ak.strand.move"
                   ]
@@ -3911,8 +3859,8 @@
                 "const": "ak.strand.reorder",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
                   "values": [
                     "ak.strand.reorder"
                   ]
@@ -3938,8 +3886,8 @@
                 "const": "ak.strand.restore",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
                   "values": [
                     "ak.strand.restore"
                   ]
@@ -3965,8 +3913,8 @@
                 "const": "ak.strand.stage.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
                   "values": [
                     "ak.strand.stage.set"
                   ]
@@ -3992,8 +3940,8 @@
                 "const": "ak.strand.tracks.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
                   "values": [
                     "ak.strand.tracks.update"
                   ]
@@ -4019,8 +3967,8 @@
                 "const": "ak.strand.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
                   "values": [
                     "ak.strand.update"
                   ]
@@ -4046,8 +3994,8 @@
                 "const": "ak.strand.watch.set",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
                   "values": [
                     "ak.strand.watch.set"
                   ]
@@ -4073,8 +4021,8 @@
                 "const": "ak.view.create",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
                   "values": [
                     "ak.view.create"
                   ]
@@ -4100,8 +4048,8 @@
                 "const": "ak.view.reconcile",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
                   "values": [
                     "ak.view.reconcile"
                   ]
@@ -4127,8 +4075,8 @@
                 "const": "ak.view.update",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
-                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
                   "values": [
                     "ak.view.update"
                   ]
@@ -4143,6 +4091,87 @@
             "properties": {
               "payload": {
                 "$ref": "./event-payload.schema.json#/$defs/view_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm_invite_link.create",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                  "values": [
+                    "ak.realm_invite_link.create"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./realm-invite-link.schema.json#/$defs/create_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm_invite_link.revoke",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                  "values": [
+                    "ak.realm_invite_link.revoke"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./realm-invite-link.schema.json#/$defs/revoke_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.realm_invite_link.accept",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                  "values": [
+                    "ak.realm_invite_link.accept"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./realm-invite-link.schema.json#/$defs/accept_payload"
               }
             }
           }

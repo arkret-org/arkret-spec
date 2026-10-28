@@ -17,9 +17,6 @@ const repoRoot = resolve(siteRoot, "..");
 
 const releaseMetadataPath = resolve(repoRoot, "spec/v1/release-metadata.json");
 const releaseMetadata = JSON.parse(readFileSync(releaseMetadataPath, "utf8"));
-if (releaseMetadata.format_version !== 1) {
-  throw new Error("unsupported release metadata format_version");
-}
 const tag = releaseMetadata.release_tag;
 const releaseTagPattern =
   /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-candidate(?:\.[0-9A-Za-z-]+)*)?$/;

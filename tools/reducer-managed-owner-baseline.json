@@ -1,13 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 2,
-  "kind": "reducer_managed_owner_baseline",
-  "source_of_truth": false,
-  "generated_from": [
-    "spec/v1/artifacts/registry/reducer-managed-path-registry.json",
-    "spec/v1/artifacts/registry/current-state-registry.json"
-  ],
-  "generated_by": "tools/artifact_lint (check_reducer_managed_path_registry, _check_owner)",
   "description": "Ledger of reducer-managed forbidden patch paths whose owner_kind is state_family and whose owner current-state-registry.json does not register. A forbidden path cites its owner as the write authority that replaces the banned patch, so an unregistered owner names a write authority that does not exist yet. Opened 2026-09-18 when the owner guard was repaired: it had walked event_kinds[].cell_writes[].cell_family since the authority-commit clean break renamed both, always returned the empty set, and short-circuited on `and cell_families`, so no owner had ever been checked. Closed the same day by the Space result-write coverage batch, which registered both families: space_parent with its genesis write on ak.space.create and its only later write plus compare-and-set on ak.space.parent, and space_child_scope_policy with its genesis write on ak.space.create and the dedicated non-patch policy write on ak.space.update. owners_without_registered_family only shrinks; a new entry is a defect, not a baseline update.",
   "owners_without_registered_family": []
 }

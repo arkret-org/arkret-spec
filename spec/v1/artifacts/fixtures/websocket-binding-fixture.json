@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-10-24.1",
-  "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.binding.websocket.v1"

@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.blob_node.v1",
-  "version": "2026-10-24.1",
-  "suite": "blob_content_key",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.blob.content_key.v1"

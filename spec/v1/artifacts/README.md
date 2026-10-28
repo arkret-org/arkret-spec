@@ -32,7 +32,7 @@ updated: 2026-05-25
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`
-  - **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-registry.json` 等契约真源派生的生成视图）。不作为协议规范来源，随契约真源由 pipeline 重生成。
+  - **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，保留实际 `generated_from` / `generated_by`，是从 `contract-registry.json` 等契约真源派生的生成视图）。不作为协议规范来源，随契约真源由 pipeline 重生成。
 
 ### 1.2 生成视图（Generated）
 
@@ -51,7 +51,7 @@ updated: 2026-05-25
 
 | Artifact | 角色 | 真源 / 同步方式 |
 | --- | --- | --- |
-| `artifacts/registry/contract-registry.json` | canonical | event kind / schema / typed-ID / operation 的唯一源定义（`source_of_truth: true`）。 |
+| `artifacts/registry/contract-registry.json` | canonical | event kind / schema / typed-ID / operation 的唯一源定义（归属登记于 `registry-manifest.json`）。 |
 | `artifacts/registry/event-kind-registry.json` | generated | 由 `contract-registry.json#event_kind_registry` 经 `artifact_pipeline.py generate` 派生；包含 family-specific typed-current key derivation API／KAT metadata；不得手工编辑。 |
 | `artifacts/registry/schema-registry.json` | generated | 由 `contract-registry.json#schema_registry` 派生；schema_id → 文件位置的机器视图。 |
 | `artifacts/schemas/event-payload.schema.json` | canonical | 手工撰写的 JSON Schema（payload class 与各 `$defs/*_payload`）。新增 payload class 时必须同时在 `contract-registry.json` 注册对应 `event_kind` + `schema_id`，使派生 registry 与 schema 文件互相覆盖。 |

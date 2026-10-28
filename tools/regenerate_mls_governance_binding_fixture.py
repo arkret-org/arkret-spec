@@ -326,8 +326,8 @@ def build_fixture() -> dict[str, Any]:
     cases = json_coordinates(cases)
     return {
         "profile": "ak.vector_group.privacy_security.v1",
-        "version": "2026-10-24.2",
-        "suite": "mls_governance_binding_closure",
+
+
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.mls.governance_binding_closure.v1"},
         "covers_vectors": [VECTOR_ID, EPOCH_VECTOR_ID],
         "security_evidence": [{
@@ -353,7 +353,6 @@ def write_json(path: Path, value: Any) -> None:
 
 def clean_final_closure() -> None:
     data = json.loads(FINAL_CLOSURE.read_text(encoding="utf-8"))
-    data["version"] = "2026-09-19.2"
     data["covers_vectors"] = [
         item for item in data["covers_vectors"] if item not in {VECTOR_ID, EPOCH_VECTOR_ID}
     ]

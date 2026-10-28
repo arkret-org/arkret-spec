@@ -361,14 +361,13 @@ def build_fixture() -> dict:
         },
     ]
     return {
-        "suite": "detached_object_signature_transcripts",
-        "fixture_kind": "cryptographic_known_answer",
+
         "runner": {
             "kind": "named_suite",
             "entrypoint": "ak.suite.detached_object_signature_transcripts.v1",
         },
-        "version": "2026-10-24.1",
-        "schema": "arkret.detached-object-signature-kat-fixture.v1",
+
+
         "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
         "covers_vectors": ["ak.vector.detached_object_signature_transcripts.v1"],
         "security_evidence": [

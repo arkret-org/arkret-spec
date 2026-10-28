@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T14:14:05+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
@@ -494,7 +489,7 @@
       ],
       "profile": null,
       "subject_only": true,
-      "notes": "Subject-only self-service acceptance. The only authority is that the actor is the invitee of the target Invite (the stored invite_directed_invitee for a directed Invite, the claimed subject for a third-party Invite); an invitee is usually not yet a member and holds no grant, so admission never evaluates a capability and the action is excluded from every derived authority set (zh/models/governance-objects.md section 5.3).",
+      "notes": "Subject-only directed acceptance; actor account equals stored invitee_account_id. No capability grant is required before membership.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -507,17 +502,6 @@
       ],
       "profile": null,
       "notes": "Grants only the third-party cancellation branch of ak.invite.cancel (target_state=revoked by an actor that is not the inviter). The invitee declining (target_state=rejected) and the still-joined inviter cancelling its own Invite are authorized by the Invite's accepted binding alone and never evaluate this grant (zh/models/governance-objects.md section 5.3).",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.claim",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.claim"
-      ],
-      "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
@@ -538,17 +522,6 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.invite.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.third_party",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.third_party"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -1196,10 +1169,8 @@
         "ak.circle.tombstone",
         "ak.circle.update",
         "ak.invite.cancel",
-        "ak.invite.claim",
         "ak.invite.create",
         "ak.invite.revoke",
-        "ak.invite.third_party",
         "ak.member.state",
         "ak.message.create",
         "ak.message.redact",
@@ -1243,6 +1214,8 @@
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
         "ak.realm.unfreeze",
+        "ak.realm_invite_link.create",
+        "ak.realm_invite_link.revoke",
         "ak.redaction",
         "ak.relation.create",
         "ak.relation.tombstone",
@@ -1297,10 +1270,8 @@
         "ak.circle.member.manage",
         "ak.event.read",
         "ak.invite.cancel",
-        "ak.invite.claim",
         "ak.invite.create",
         "ak.invite.revoke",
-        "ak.invite.third_party",
         "ak.message.create",
         "ak.message.mention.broadcast",
         "ak.message.redact",
@@ -1350,6 +1321,8 @@
         "ak.realm.preview_policy",
         "ak.realm.profile",
         "ak.realm.set_default_strand",
+        "ak.realm_invite_link.create",
+        "ak.realm_invite_link.revoke",
         "ak.receipt.broadcast",
         "ak.relation.create",
         "ak.relation.tombstone",
@@ -2187,6 +2160,43 @@
       "target_event_kinds": [],
       "event_mapping_kind": "non_event_surface",
       "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
+      "action": "ak.realm_invite_link.create",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_invite_link.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
+    },
+    {
+      "action": "ak.realm_invite_link.revoke",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_invite_link.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
+    },
+    {
+      "action": "ak.realm_invite_link.accept",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_invite_link.accept"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "subject_only": true,
+      "notes": "Purpose-scoped link acceptance requires complete account producer proof and link possession; no pre-membership grant."
     }
   ],
   "event_mapping_kind_definitions": {
@@ -2197,7 +2207,6 @@
     "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
     "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
   },
-  "metadata_authority": "contract_registry_section",
   "constraint_evaluation_contract": {
     "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",
     "predicate_results": [

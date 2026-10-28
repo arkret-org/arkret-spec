@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.4",
-  "source_of_truth": true,
-  "generated_at": "2026-10-24T23:34:31+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2860,59 +2857,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",
-      "status": "active",
-      "domain": "invite",
-      "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
-      ],
-      "description": "Invite claim expiry compares the signed claim Event created_at against the invite expires_at and never receiver-local now: every clock variant and backfill replay yields the identical outcome and typed current value, the rejected claim writes no shared effect, and pending to expired only comes from a separate accepted ak.invite.revoke.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
-      "status": "active",
-      "domain": "invite",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Realm reducer authority for ak.invite.claim: the unique accepted create Event/Commit, pure invite_lifecycle and effective Realm policy are checked at one authority cut; proof transcripts, token commitment and accepted-claim nonce uniqueness are verified before an atomic pending -> claimed transition and subject-bound membership proposal. A rejected claim has no shared projected writes; expiry needs an independent accepted revoke Event.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/sync/third-party-invites.md",
-        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.consumed_token_resubject_rejected.v1",
-      "status": "reserved",
-      "domain": "invite",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: A third-party invite token consumed with a subject-bound binding_proof cannot be reissued to a different subject: only a request binding the same (invite_id, claim_nonce, subject_id, binding_proof_digest) replays the existing proof idempotently, a re-subjected ak.invite.claim is rejected with duplicate_conflict, and the external failure stays indistinguishable from not_found. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
-      "source_refs": [
-        "spec/v1/zh/sync/third-party-invites.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
-      "status": "active",
-      "domain": "invite",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Failure-indistinguishability vector covering both the third-party claim endpoint and the invite-locator resolve endpoint; each endpoint's failure classes MUST share one external response shape and bounded timing distribution.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/sync/invite-addressing.md",
-        "spec/v1/zh/sync/third-party-invites.md",
-        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.invite.live_target_uniqueness.v1",
       "status": "active",
       "domain": "invite",
@@ -2958,32 +2902,6 @@
       "description": "New-source invite admission is charged against the holder quota at admission time, and an over-quota introduction is refused without disclosing the holder state to the sender.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.oob_code_entropy.v1",
-      "status": "active",
-      "domain": "invite",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "An out-of-band invite code below the production entropy floor is rejected by the reducer or verification service, and a lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/sync/third-party-invites.md",
-        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.provisioning_activation_binding.v1",
-      "status": "reserved",
-      "domain": "invite",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Third-party invite private-material lifecycle: provisioning is idempotent on request_id and refuses a reused id with different intent, activation only binds on a fresh and member-for-member matching Station acceptance attestation, one provisioning record never rebinds to a second invite, an identical retry after a restart returns the original binding, and out-of-band delivery never starts before activation. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
-      "source_refs": [
-        "spec/v1/zh/sync/third-party-invites.md"
       ]
     },
     {
@@ -5362,6 +5280,32 @@
         "spec/v1/zh/identity/account-lifecycle.md",
         "spec/v1/artifacts/fixtures/published-did-registration-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.realm_invite_link.possession_proof.v1",
+      "status": "active",
+      "domain": "realm_invite_link",
+      "applies_to_fixtures": [
+        "realm-invite-link-proof-kat-fixture.json"
+      ],
+      "description": "Independent Ed25519 accept/preview purpose transcripts, exact complete AccountId binding and private token closed/canonical decoding. This is not native admission coverage.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.locator_failure_indistinguishable.v1",
+      "status": "reserved",
+      "domain": "invite",
+      "description": "PrincipalLocator non-enumeration remains mandatory independently of IVS. The old mixed claim/locator fixture was withdrawn with IVS and did not prove native locator response/timing behavior. No replacement executable locator fixture is certified by this registry row.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/invite-addressing.md"
+      ],
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "activation_condition": "Attach and execute an independent locator-only fixture over every failure response and timing class; no provider claim fixture or source declaration substitutes for that evidence."
     }
   ]
 }

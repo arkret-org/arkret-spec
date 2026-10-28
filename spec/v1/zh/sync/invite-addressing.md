@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-09-25
 see_also:
   - service-http-binding.md
-  - third-party-invites.md
+  - realm-invite-links.md
   - ../identity/identity-handles.md
 ---
 
@@ -119,7 +119,7 @@ token 要求：
 - `locator_token` MUST 至少 192 bit 熵（与 §3.1 签发要求同一数值，不存在更低的验收下界）；base64url 无 padding 编码时 192 bit 为 32 字符。
 - `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `account_id`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
 - token MUST be unguessable、可撤销、可设置短 TTL，并 MAY 设置一次性使用。
-- endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ak.vector.invite.failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
+- endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ak.vector.invite.locator_failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
 - endpoint 返回体 MUST 是签名 `principal_locator`；调用方不能只信任 HTTPS URL。
 
 ## 4. `principal_locator`
@@ -310,8 +310,8 @@ effective_receive_policy =
 - `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等，不得只比较 principal。
 - destination service 只从 `invitee_account_id.station_id` 派生；service resolution 与 route assistance 只在私有 transport carrier 中出现，MUST NOT 要求 durable Event 镜像它们。
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。该 Event 只推进 Invite lifecycle，不写 `member.state`。
-- `ak.invite.revoke` 使用独立 `invite_revoke_payload`，只推进 Invite lifecycle；指向尚未绑定账号的 3PID placeholder 时 MUST NOT 携带 `invitee_account_id`。取消或撤销不会合成 membership `leave` 写入。完整终态规则见 [`governance-objects.md` §5.3](../models/governance-objects.md)。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，缺少或不匹配 immutable invitee 的前态 MUST 以 `failed_precondition` / `invite_directed_invitee_mismatch` 原子拒绝；不得信任请求补出的身份。该 Event 只推进 Invite lifecycle，不写 `member.state`。
+- `ak.invite.revoke` 使用独立 `invite_revoke_payload`，只推进 Invite lifecycle；必须携带与不可变 stored target 相等的完整 `invitee_account_id`。取消或撤销不会合成 membership `leave` 写入。完整终态规则见 [`governance-objects.md` §5.3](../models/governance-objects.md)。
 
 ## 7. 私有 Invite Delivery
 

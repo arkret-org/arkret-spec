@@ -1,6 +1,4 @@
 {
-  "suite": "scalability_limits",
-  "version": "2026-09-22.1",
   "profile": "ak.profile.core_event_store.v1",
   "runner": {
     "kind": "generated_limit_cases",

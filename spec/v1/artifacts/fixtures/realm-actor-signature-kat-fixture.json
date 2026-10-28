@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-24.2",
-  "suite": "realm_actor_signature_transcripts",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.realm_actor.contract.v1",

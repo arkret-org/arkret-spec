@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.applet_bridge.v1",
-  "version": "2026-10-19.1",
-  "suite": "applet_managed_actor_authority",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.applet.managed_actor_authority.v1"

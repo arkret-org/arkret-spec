@@ -1,9 +1,4 @@
 {
-  "version": "2026-10-24.2",
-  "source_of_truth": false,
-  "generated_at": "2026-10-24T19:15:25+08:00",
-  "generated_from": "registry/contract-registry.json",
-  "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-state families derived from authority-committed Events. Selectors are domain types, never alternate current state IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_state_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
   "consumption_classes": {
     "admission_input": "Reading the current value can change whether an Event or request is accepted or authorized.",
@@ -1061,9 +1056,41 @@
         ],
         "note": "Current enabled policy and exact pending recovery; manager remains a separate locked authority row."
       }
+    },
+    {
+      "state_kind": "realm_invite_link_definition",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_invite_link_definition",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "sync/realm-invite-links.md"
+        ],
+        "note": "All source completeness, link/account uniqueness, bounded cardinality, current policy and membership gates are evaluated at one accepting Realm authority cut."
+      }
+    },
+    {
+      "state_kind": "realm_invite_link_lifecycle",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_invite_link_lifecycle",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "sync/realm-invite-links.md"
+        ],
+        "note": "All source completeness, link/account uniqueness, bounded cardinality, current policy and membership gates are evaluated at one accepting Realm authority cut."
+      }
+    },
+    {
+      "state_kind": "realm_invite_link_use",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_invite_link_use",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "sync/realm-invite-links.md"
+        ],
+        "note": "All source completeness, link/account uniqueness, bounded cardinality, current policy and membership gates are evaluated at one accepting Realm authority cut."
+      }
     }
   ],
-  "metadata_authority": "contract_registry_section",
   "call_current_contract": {
     "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",
     "families": [

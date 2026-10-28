@@ -153,8 +153,6 @@ def check_registry_manifest(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
 
     rows = data.get("registries")
     if not isinstance(rows, list) or not rows:
@@ -178,7 +176,7 @@ def check_registry_manifest(lint: Lint) -> None:
         file_ref = row.get("file")
         kind = row.get("kind")
         source_role = row.get("source_role")
-        source_of_truth = row.get("source_of_truth")
+
         generated_from = row.get("generated_from")
         description = row.get("description")
 
@@ -212,13 +210,9 @@ def check_registry_manifest(lint: Lint) -> None:
         if source_role not in {"canonical", "generated"}:
             lint.fail(path, f"registries[{index}].source_role must be canonical or generated")
         if source_role == "canonical":
-            if source_of_truth is not True:
-                lint.fail(path, f"registries[{index}].source_of_truth must be true for canonical entries")
             if generated_from not in {None, ""}:
                 lint.fail(path, f"registries[{index}] canonical entry must not declare generated_from")
         elif source_role == "generated":
-            if source_of_truth is not False:
-                lint.fail(path, f"registries[{index}].source_of_truth must be false for generated entries")
             if not isinstance(generated_from, str) or not generated_from:
                 lint.fail(path, f"registries[{index}].generated_from must be a non-empty string")
             elif Path(generated_from).is_absolute() or ".." in Path(generated_from).parts:
@@ -904,6 +898,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     declared_wire_binding_kinds = {
         "account_data_plaintext",
         "account_data_storage",
+        "client_fragment",
         "dynamic_schema_ref",
         "mls_encrypted_payload",
         "signal_plaintext_dispatch",
@@ -2126,8 +2121,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
 
     migration_path = ROOT / "tools" / "operation-id-v1-migration.json"
     migration = load_json(lint, migration_path) or {}
-    if migration.get("runtime_aliases") is not False:
-        lint.fail(migration_path, "operation migration map must explicitly forbid runtime aliases")
     mappings = migration.get("mappings")
     mapped_new: set[str] = set()
     mapped_old: set[str] = set()
@@ -4304,8 +4297,8 @@ def check_proof_context_registry(lint: Lint) -> None:
     """
     path = ARTIFACTS / "registry" / "proof-context-registry.json"
     data = load_json(lint, path)
-    if not isinstance(data, dict) or data.get("source_of_truth") is not True:
-        lint.fail(path, "proof context registry must be a source_of_truth object")
+    if not isinstance(data, dict):
+        lint.fail(path, "proof context registry must be an object")
         return
     rows = data.get("contexts")
     if not isinstance(rows, list) or not rows:
@@ -4762,14 +4755,14 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
     check_pcr_governance_policy(lint)
     path = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
     data = load_json(lint, path)
-    if not isinstance(data, dict) or data.get("source_of_truth") is not True:
-        lint.fail(path, "pcr exposure registry must be a source_of_truth object")
+    if not isinstance(data, dict):
+        lint.fail(path, "pcr exposure registry must be an object")
         return
 
     disclosure_path = ARTIFACTS / "registry" / "outward-disclosure-policy-registry.json"
     disclosure = load_json(lint, disclosure_path)
-    if not isinstance(disclosure, dict) or disclosure.get("source_of_truth") is not True:
-        lint.fail(disclosure_path, "outward disclosure policy registry must be a source_of_truth object")
+    if not isinstance(disclosure, dict):
+        lint.fail(disclosure_path, "outward disclosure policy registry must be an object")
         return
     disclosure_rows = disclosure.get("policies")
     if not isinstance(disclosure_rows, list) or not disclosure_rows:

@@ -23,7 +23,6 @@ FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "franking-proof-tran
 DOMAIN = "ak.franking_proof.signature.v1"
 PRIVATE_SEED = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
 PUBLIC_KEY = "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
-VERSION = "2026-09-21.1"
 
 
 def b64u(raw: bytes) -> str:
@@ -67,8 +66,8 @@ def build_fixture() -> dict[str, Any]:
         )
 
     return {
-        "version": VERSION,
-        "suite": "franking_proof_transcript",
+
+
         "vector_id": "ak.vector.moderation.franking_proof_transcript.v1",
         "runner": {
             "kind": "named_suite",

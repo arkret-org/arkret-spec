@@ -1,7 +1,5 @@
 {
-  "version": "2026-10-24.1",
   "profile": "ak.profile.mimi_interop.v1",
-  "suite": "mimi_key_material_claim",
   "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",

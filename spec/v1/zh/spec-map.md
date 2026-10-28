@@ -140,7 +140,6 @@ see_also:
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 | `identity/security-transactions.md` | RecoveryTransaction / SecurityRotationTransaction 的幂等、恢复与终态合同。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
-| `sync/third-party-invites.md` | 3PID 邀请、认领与第三方标识符 claim 流程；物理位于 `sync/`，因为其 wire strand 与服务提交路径由 Sync / Federation 章节承载。 |
 
 ### 4.3 对象模型与交互
 
@@ -204,13 +203,13 @@ see_also:
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/invite-addressing.md` | Realm invite 的显式 invite address、online principal locator、introduction evidence、private invite delivery 与 handle/mention 边界。 |
+| `sync/realm-invite-links.md` | Realm 邀请链接的客户端凭据、创建／撤销／接受、有效期、使用次数与账号绑定。 |
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
 | `sync/websocket-binding.md` | （optional profile）`ak.profile.binding.websocket.v1`：三条 stream operation 的 WebSocket 承载、帧 schema、DPoP 绑定、重连与 flow control。 |
 | `sync/federation.md` | 跨域转发、当前治理 Station 发现、逐 stream Commit 复制与跨域加入。 |
 | `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
-| `sync/third-party-invites.md` | 3PID 邀请与认领的 wire strand、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |
 
 ### 4.6 发现、目录与用户状态
 
@@ -288,3 +287,5 @@ see_also:
 - [Realm用户、Agent与Applet精细治理](./authz/managed-governance.md)
 
 `authz/managed-governance.md`：Realm 用户、个人 Agent 与 Applet 的精细治理、管理审批及 Service 来源链。
+
+Realm 邀请链接的唯一正式定义：[sync/realm-invite-links.md](./sync/realm-invite-links.md)，包含创建、持有证明、账号接受、撤销和计次。

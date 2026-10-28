@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .metadata import check_artifact_metadata
+
 from .semantic_naming import check_semantic_naming, check_protocol_member_contract
 from .primitive_fixtures import check_named_primitive_fixtures
 
@@ -364,6 +366,7 @@ def main(argv: list[str] | None = None) -> int:
             ("text_encoding", lambda: check_text_files_utf8_no_nul(lint)),
             ("history_response_naming", lambda: check_history_response_naming(lint)),
             ("registry_manifest", lambda: check_registry_manifest(lint)),
+            ("artifact_metadata", lambda: check_artifact_metadata(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
             (

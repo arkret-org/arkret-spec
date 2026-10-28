@@ -1,7 +1,5 @@
 {
   "profile": "ak.vector_group.state.v1",
-  "version": "2026-10-24.1",
-  "suite": "registered_atomic_units_and_watch_audit",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.state.registered_atomic_units_and_watch_audit.v1"

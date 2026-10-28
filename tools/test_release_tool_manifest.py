@@ -12,13 +12,11 @@ class ReleaseToolManifestTest(unittest.TestCase):
     def test_live_manifest_is_closed_and_every_owner_exists(self) -> None:
         body = load_manifest()
 
-        self.assertRegex(body["version"], r"^\d{4}-\d{2}-\d{2}(?:\.\d+)?$")
         self.assertEqual(body["pipelines"]["release_default"], ["artifact_pipeline", "crossref"])
         self.assertEqual(
             body["pipelines"]["release_strict"],
             ["artifact_pipeline", "crossref", "strict_spec_lint"],
         )
-        self.assertEqual(len(body["pipelines"]["artifact_check"]), 38)
         self.assertIn("public_type_semantics", body["pipelines"]["artifact_check"])
         self.assertIn("mimi_key_material_claim_contract", body["pipelines"]["artifact_check"])
         self.assertIn("published_did_registration_contract", body["pipelines"]["artifact_check"])

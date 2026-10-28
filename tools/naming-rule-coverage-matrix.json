@@ -1,14 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 5,
-  "kind": "naming_rule_coverage_matrix",
-  "source_of_truth": false,
-  "generated_from": [
-    "spec/v1/zh/models/common-fields.md",
-    "tools/naming-convention-rules.json",
-    "tools/artifact_lint"
-  ],
-  "generated_by": "tools/artifact_lint/naming_contracts.py (check_naming_rule_coverage_matrix)",
   "description": "Inventory of every normative naming clause of common-fields.md and the enforcement that actually decides it. The audit unit is a stable rule_id plus a normative anchor (section heading plus a verbatim quote), NOT a hand-counted axis number: the prose keeps evolving, and an axis count drifts the moment a clause is split or merged. rule_id values that also appear in naming-convention-rules.json denote the same rule; the other identifiers were assigned here for clauses the prose never numbered, and they are new identifiers rather than a continuation of any earlier manual inventory. `enforcement_kind` is what a row claims and the lint verifies: named predicates must be in the executed predicate table, named functions must be defined in tools/artifact_lint and reachable in the static call graph from a check that runs from the artifact-lint main entry, and named registries and tests must exist. `prose_only` and `uncovered` may not name executable enforcement, may not claim full coverage, and must state why the residual risk is accepted; neither is a default fallback.",
   "enforcement_kinds": {
     "predicate": "An executable name predicate decides the clause. It is either a registered rule of naming-convention-rules.json or a closed table inside the named check function.",
@@ -20,13 +10,6 @@
   "coverage_levels": {
     "full": "Every occurrence of the clause on the declared surfaces is decided mechanically.",
     "partial": "Some occurrences are decided mechanically and the remainder needs human judgement or a registry that is not yet complete."
-  },
-  "coverage_summary": {
-    "predicate": 18,
-    "registry_closure": 9,
-    "schema_type": 3,
-    "prose_only": 7,
-    "uncovered": 0
   },
   "rules": [
     {
@@ -286,17 +269,21 @@
           "NC-ARTIFACT-001"
         ],
         "functions": [
-          "prose.py:check_naming_predicates"
+          "prose.py:check_naming_predicates",
+          "metadata.py:check_artifact_metadata"
         ],
         "registries": [
-          "tools/naming-convention-rules.json"
+          "tools/naming-convention-rules.json",
+          "spec/v1/artifacts/registry/registry-manifest.json"
         ]
       },
       "entry_points": [
-        "naming_predicates"
+        "naming_predicates",
+        "artifact_metadata"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_artifact_metadata.py"
       ],
       "coverage_level": "full"
     },
@@ -1155,6 +1142,5 @@
       "coverage_level": "partial",
       "residual_gap": "The slug field registry pins every bare `slug` occurrence to a declared owning context and the check closes the wire surface in both directions: a bare slug outside a registered context fails, a registered context whose pointer stops resolving fails, and a reference name must be `<entity>_slug` (with an optional role/time qualifier) for an entity that has a registered owning context. Whether a context genuinely is the owning object of its entity is the human judgement recorded per registry row, the same epistemic status as the identifier classification registry."
     }
-  ],
-  "generated_at": "2026-10-25T06:40:18+08:00"
+  ]
 }

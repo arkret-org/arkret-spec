@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.file_transfer.v1",
-  "version": "2026-09-01",
-  "suite": "file_transfer_stream_aead",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.file_transfer.stream_aead.v1"

@@ -1,7 +1,4 @@
 {
-  "suite": "contact_current_state",
-  "fixture_kind": "schema_signed_and_reference",
-  "version": "2026-10-24.1",
   "generated_by": "tools/generate_contact_current_fixture.py",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md",
   "covers_vectors": [

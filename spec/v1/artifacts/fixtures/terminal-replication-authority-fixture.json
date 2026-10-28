@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-12",
-  "suite": "terminal_replication_authority",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.federation.terminal_replication_authority.v1"
@@ -65,6 +63,5 @@
         "Historical holders still receive authenticated erasure_receipt_package on the separate registered erasure rail; terminal fanout does not substitute for erasure."
       ]
     }
-  ],
-  "fixture_kind": "semantic"
+  ]
 }

@@ -1,12 +1,8 @@
 {
-  "suite": "realm_join_candidate_untrusted_locator",
-  "fixture_kind": "schema_and_semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.realm_join_candidate.untrusted_locator.v1"
   },
-  "version": "2026-09-20.3",
-  "schema": "arkret.realm-join-candidate-locator-fixture.v1",
   "vector_id": "ak.vector.realm_join_candidate.untrusted_locator.v1",
   "accepted_candidate": {
     "service_kind": "station",

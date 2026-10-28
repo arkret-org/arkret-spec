@@ -1,6 +1,4 @@
 {
-  "schema": "arkret.schema-consumer-coverage.v1",
-  "source_of_truth": false,
   "generated_by": "tools/gen_schema_consumer_coverage.py",
   "generated_from": [
     "spec/v1/artifacts/registry/schema-registry.json",
@@ -16,7 +14,7 @@
     "outbound": "bound as an operation response body.",
     "schema_reference": "referenced by another schema document, so it is a structural component; local self-reference is not a consumer.",
     "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
-    "declared_wire": "explicit machine-readable runtime, dynamic, nested-value or alias binding declared by the canonical schema registry.",
+    "declared_wire": "explicit machine-readable runtime, dynamic, nested-value, alias or local client-fragment binding declared by the canonical schema registry; a fragment binding does not expose HTTP request/response bodies.",
     "prose_only": "explicitly declared as having no whole-object v1 wire admission surface.",
     "vectors": "required by a conformance profile or vector group, or referenced by a fixture.",
     "prose": "named by the normative text, which is where a runtime-dispatched contract is defined.",
@@ -41,17 +39,17 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 230,
+    "total_schemas": 232,
     "by_consumer": {
-      "declared_wire": 59,
+      "declared_wire": 60,
       "event_kind": 7,
-      "inbound": 55,
-      "outbound": 66,
-      "prose": 106,
+      "inbound": 54,
+      "outbound": 65,
+      "prose": 107,
       "prose_only": 4,
-      "schema_reference": 167,
-      "startup_compile": 230,
-      "vectors": 114
+      "schema_reference": 168,
+      "startup_compile": 232,
+      "vectors": 116
     },
     "without_wire_consumer": 3,
     "explicit_prose_only": 4,
@@ -1561,6 +1559,8 @@
           "ak.schema.realm_authority_handoff.v1",
           "ak.schema.realm_commit.v1",
           "ak.schema.realm_genesis.v1",
+          "ak.schema.realm_invite_link.v1",
+          "ak.schema.realm_invite_link_token.v1",
           "ak.schema.realm_join_bootstrap_request.v1",
           "ak.schema.realm_join_bootstrap_response_body.v1",
           "ak.schema.realm_join_candidate.v1",
@@ -2533,8 +2533,6 @@
       "schema_id": "ak.schema.invite.v1",
       "file": "schemas/invite.schema.json",
       "consumers": {
-        "inbound": "fragment",
-        "outbound": "fragment",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
@@ -3589,6 +3587,40 @@
       }
     },
     {
+      "schema_id": "ak.schema.realm_invite_link.v1",
+      "file": "schemas/realm-invite-link.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "fixture"
+      }
+    },
+    {
+      "schema_id": "ak.schema.realm_invite_link_token.v1",
+      "file": "schemas/realm-invite-link-token.schema.json",
+      "consumers": {
+        "declared_wire": "client_fragment",
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "fixture"
+      },
+      "consumer_binding": {
+        "kind": "client_fragment",
+        "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
+        "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
+      }
+    },
+    {
       "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
       "file": "schemas/realm-join-intake.schema.json",
       "consumers": {
@@ -3638,6 +3670,7 @@
         "owners": [
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
+          "ak.schema.realm_invite_link_token.v1",
           "ak.schema.realm_join_bootstrap_request.v1",
           "ak.schema.realm_join_bootstrap_response_body.v1",
           "ak.schema.realm_join_peer_preview_request.v1",
@@ -4490,6 +4523,7 @@
           "ak.schema.realm_actor_material.v1",
           "ak.schema.realm_authority_bundle.v1",
           "ak.schema.realm_commit.v1",
+          "ak.schema.realm_invite_link.v1",
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_read_operations.v1",

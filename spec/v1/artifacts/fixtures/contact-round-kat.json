@@ -1,6 +1,4 @@
 {
-  "version": "2026-10-24.1",
-  "suite": "contact_round_id_kat",
   "runner": {
     "kind": "known_answer_tests",
     "entrypoint": "ak.suite.contact.round_id.v1"

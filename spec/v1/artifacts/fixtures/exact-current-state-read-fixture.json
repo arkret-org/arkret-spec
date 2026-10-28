@@ -1,8 +1,4 @@
 {
-  "fixture_id": "ak.fixture.exact_current_state_read.v1",
-  "version": "2026-10-24.2",
-  "suite": "exact_current_state_read",
-  "fixture_kind": "schema_only",
   "spec_anchor": "spec/v1/zh/sync/current-state.md",
   "source_refs": [
     "spec/v1/artifacts/schemas/exact-current-state-read.schema.json",

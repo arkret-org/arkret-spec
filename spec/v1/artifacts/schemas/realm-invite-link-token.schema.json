@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-invite-link-token.schema.json",
+  "title": "Client-only Realm Invite Link Token",
+  "type": "object",
+  "required": [
+    "schema",
+    "realm_id",
+    "realm_invite_link_id",
+    "secret_seed",
+    "authority_locator_hints"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.realm_invite_link_token.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "realm-invite-link-token.schema.json#/properties/schema",
+        "owner": "realm-invite-link-token.schema.json#/properties/schema",
+        "values": [
+          "ak.schema.realm_invite_link_token.v1"
+        ]
+      }
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "realm_invite_link_id": {
+      "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+    },
+    "secret_seed": {
+      "$ref": "#/$defs/secret_seed"
+    },
+    "authority_locator_hints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "./realm-join-candidate.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "description": "Client-only share credential. The fragment is parsed locally; only purpose-separated proofs cross a Station API. This object is never accepted as an HTTP request body.",
+  "$defs": {
+    "secret_seed": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "Client-only 32-byte seed; never a network request/response or shared Event field."
+    }
+  }
+}

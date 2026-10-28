@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.blob_node.v1",
-  "version": "2026-07-03",
-  "suite": "blob_stream_aead",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.blob.stream_aead.v1"

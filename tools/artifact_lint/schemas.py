@@ -467,8 +467,6 @@ def check_event_reference_inventory(lint: Lint) -> None:
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
-    if data.get("generated_by") != "tools/gen_event_reference_inventory.py":
-        lint.fail(path, "Event reference inventory must name its generator")
     rows = data.get("fields", [])
     if not isinstance(rows, list):
         lint.fail(path, "Event reference inventory fields must be an array")
@@ -1396,19 +1394,12 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if not isinstance(runner_suite, dict):
                 lint.fail(path, f"{profile_id} required_runner_suites entry must be an object")
                 continue
-            suite = runner_suite.get("suite")
             fixture = runner_suite.get("artifact_fixture")
             entrypoint = runner_suite.get("entrypoint")
-            if not isinstance(suite, str) or not suite:
-                lint.fail(path, f"{profile_id} runner suite requires non-empty suite")
-                continue
             if not isinstance(fixture, str) or fixture not in fixture_documents:
                 lint.fail(path, f"{profile_id} runner suite references missing fixture: {fixture!r}")
                 continue
             fixture_document = fixture_documents[fixture]
-            if not isinstance(fixture_document, dict) or fixture_document.get("suite") != suite:
-                lint.fail(path, f"{profile_id} runner suite {suite!r} does not match {fixture}")
-                continue
             fixture_runner = fixture_document.get("runner")
             if not isinstance(fixture_runner, dict):
                 lint.fail(path, f"{profile_id} runner suite fixture {fixture} has no runner")

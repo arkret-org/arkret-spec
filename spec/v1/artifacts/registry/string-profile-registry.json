@@ -1,6 +1,4 @@
 {
-  "version": "2026-08-13",
-  "source_of_truth": true,
   "canonical_schema": "schemas/string-profiles.schema.json",
   "data_versions": {
     "unicode_normalization_and_script": "17.0.0",

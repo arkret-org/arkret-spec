@@ -60,9 +60,18 @@
             "$ref": "./realm-join-candidate.schema.json"
           },
           "description": "One to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array."
+        },
+        "realm_invite_link_id": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "invite_id",
+          "realm_invite_link_id"
+        ]
+      }
     },
     "join_intent": {
       "oneOf": [
@@ -113,6 +122,34 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_invite_link_id",
+            "link_proof"
+          ],
+          "properties": {
+            "kind": {
+              "const": "invite_link_accept",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/2/properties/kind",
+                "owner": "realm-join-intake.schema.json#/$defs/join_intent/oneOf/2/properties/kind",
+                "values": [
+                  "invite_link_accept"
+                ]
+              }
+            },
+            "realm_invite_link_id": {
+              "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+            },
+            "link_proof": {
+              "$ref": "./realm-invite-link.schema.json#/$defs/proof"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -157,6 +194,9 @@
         },
         "target": {
           "$ref": "#/$defs/join_target"
+        },
+        "link_proof": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/proof"
         }
       },
       "additionalProperties": false
@@ -202,9 +242,21 @@
         },
         "invite_id": {
           "$ref": "#/$defs/invite_id"
+        },
+        "realm_invite_link_id": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/realm_invite_link_id"
+        },
+        "link_proof": {
+          "$ref": "./realm-invite-link.schema.json#/$defs/proof"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "invite_id",
+          "realm_invite_link_id"
+        ]
+      }
     },
     "peer_preview_response_body": {
       "type": "object",

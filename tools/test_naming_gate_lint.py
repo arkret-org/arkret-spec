@@ -85,21 +85,28 @@ def run_gate() -> Lint:
 
 class MutationHarness(unittest.TestCase):
     def lint_with_file(self, path: Path, mutate, check=check_naming_predicates) -> list[str]:
-        """Apply a mutation, run the gate, always restore the original bytes."""
+        """Read a virtual mutation without writing to the normative source tree."""
 
-        original = path.read_bytes()
-        document = json.loads(original.decode("utf-8"))
+        document = json.loads(path.read_text(encoding="utf-8"))
         mutate(document)
+        replacement = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
+        read_original_text = Path.read_text
+        read_original_bytes = Path.read_bytes
+
+        def read_mutated_text(target, *args, **kwargs):
+            return replacement if target == path else read_original_text(target, *args, **kwargs)
+
+        def read_mutated_bytes(target, *args, **kwargs):
+            return replacement.encode("utf-8") if target == path else read_original_bytes(target, *args, **kwargs)
+
         try:
-            path.write_text(
-                json.dumps(document, ensure_ascii=False, indent=2) + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
-            return run_check(check).errors
+            with patch.object(Path, "read_text", autospec=True, side_effect=read_mutated_text), patch.object(
+                Path, "read_bytes", autospec=True, side_effect=read_mutated_bytes
+            ):
+                return run_check(check).errors
         finally:
-            path.write_bytes(original)
             drop_reader_caches()
+
 
 
 class NamingGateBaselineTest(unittest.TestCase):
@@ -298,7 +305,6 @@ class DebtBaselineTest(MutationHarness):
 
     def test_debt_is_internal_and_owned(self) -> None:
         debt = json.loads(NAMING_DEBT_PATH.read_text(encoding="utf-8"))
-        self.assertIs(debt["source_of_truth"], False)
         for entry in debt["entries"]:
             self.assertIn(entry["rule_id"], PREDICATES)
             self.assertTrue(entry["owner_batch"], entry)
@@ -582,12 +588,6 @@ class CoverageMatrixTest(MutationHarness):
         errors = self.lint_matrix(mutate)
         self.assertTrue(any("quotes text that is no longer in" in e for e in errors), errors)
 
-    def test_stale_coverage_summary_fails(self) -> None:
-        def mutate(document):
-            document["coverage_summary"]["prose_only"] += 1
-
-        errors = self.lint_matrix(mutate)
-        self.assertTrue(any("coverage_summary is stale" in error for error in errors), errors)
 
 
 class IdentifierClassificationTest(MutationHarness):

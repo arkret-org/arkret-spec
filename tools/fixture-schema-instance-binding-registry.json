@@ -1,8 +1,4 @@
 {
-  "version": "2026-09-20",
-  "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
-  "lock_kind": "fixture_schema_instance_bindings",
   "description": "Fixture objects that are real wire instances but carry no `schema` discriminator, bound by exact JSON Pointer to the schema that owns them. check_declared_schema_fixture_instances only claims objects that name their own schema, so an instance without that member has no schema landing point at all: it survives every field deletion its schema makes, and the drift surfaces only when a downstream deny_unknown_fields type finally parses it. Each row makes one such object validate in the artifact pipeline instead.",
   "registry_rules": [
     "pointer MUST resolve to an object in the named fixture; a stale row is a failure, not a silent skip",

@@ -3,9 +3,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.string_profiles.v1"
   },
-  "suite": "string_profiles",
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-08-02",
   "description": "Machine-readable positive and negative vectors for the eight Arkret custom JSON string formats declared by string-profiles.schema.json and pinned by string-profile-registry.json. Every implementation that consumes these formats MUST execute both lists.",
   "layering_semantics": "Each rejected value declares the layer that MUST reject it. rejected_by=schema_pattern values are already rejected by the coarse JSON Schema shape, so a runner without a Unicode profile implementation still fails them. rejected_by=profile_validator values deliberately satisfy the coarse pattern and length keywords and can only be rejected by the normative PRECIS / UTS #46 / NFC profile validator; a runner that accepts any of them has an incomplete implementation even when its JSON Schema validation passes.",
   "vectors": [

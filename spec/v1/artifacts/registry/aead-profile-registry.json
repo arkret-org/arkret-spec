@@ -1,6 +1,4 @@
 {
-  "version": "2026-08-16.1",
-  "source_of_truth": true,
   "description": "Canonical AEAD construction profiles used where an Arkret wire object selects an AEAD independently of an MLS ciphersuite or HPKE suite.",
   "registry_rules": [
     "canonical_id values are exact wire values and MUST be unique",

@@ -1,6 +1,5 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-10-25.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -27,7 +26,6 @@
     "ak.vector.invite.live_target_uniqueness.v1",
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
-    "ak.vector.invite.claim_expiry_canonical_time.v1",
     "ak.vector.device_pairing.code_claim.v1",
     "ak.vector.device_pairing.challenge_transcript.v1",
     "ak.vector.device_pairing.accepted_device_attestation.v1",
@@ -756,27 +754,6 @@
         "the consent_request branch carries no Event ref and none of introduction_kind, effective_kind, trust_tier, invite_event_id, request_digest or idempotency_key_digest; its consent_scope excludes invite",
         "the invite_delivery branch keeps all six members required and pins consent_scope to invite; any cross-branch member is a schema violation",
         "consent_request deduplicates by live-entry uniqueness over (account_id, source_peer_principal_id, consent_scope) because that operation has no idempotency key and no nonce"
-      ]
-    },
-    {
-      "name": "invite_claim_expiry_canonical_time",
-      "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",
-      "variants": [
-        "same_signed_claim_receiver_clock_before_expiry",
-        "same_signed_claim_receiver_clock_after_expiry",
-        "backfill_replay_after_expiry"
-      ],
-      "expected": {
-        "decision": "reject",
-        "reason_code": "expired_invite_token",
-        "invite_state": "unchanged",
-        "shared_effects": "none"
-      },
-      "assertions": [
-        "expiry compares the signed claim event created_at against the invite expires_at and never uses receiver-local now",
-        "all clock variants and the backfill replay produce identical outcome and identical invite current state value",
-        "the rejected claim writes no shared effect",
-        "pending to expired must come from a separate accepted ak.invite.revoke Event"
       ]
     },
     {

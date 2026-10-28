@@ -1,10 +1,8 @@
 {
-  "version": "2026-09-19.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.push.rule_core.v1"
   },
-  "suite": "push_rule_core_consistency",
   "profile": "ak.profile.push_gateway.blind_wakeup.v1",
   "description": "Shared v1 push rule vectors for conforming SDK implementations.",
   "cases": [

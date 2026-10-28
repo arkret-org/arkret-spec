@@ -199,7 +199,6 @@ def main() -> None:
             },
         )
     data["cryptographic_vectors"] = [build_vector(witness_keys)]
-    data["version"] = "2026-09-19.1"
     data["description"] = (
         "Conformance vectors for the did:webvh witness rail. cryptographic_vectors[] contains "
         "a deterministic, field-exact inception whose SCID, versionId, controller proof, witness "

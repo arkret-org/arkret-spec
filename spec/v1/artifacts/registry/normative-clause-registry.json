@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-25.2",
-  "source_of_truth": true,
-  "generated_at": "2026-10-25T13:44:06+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -169,7 +166,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:79c708ce3004bbd8c7bc29d3d4332d0e87743a7aee4971daf11a1f404600071f",
+      "section_digest": "sha256:fe1164d306a4a8607cc8f5003f031f63a36ab75bd26a6e894947d8ab05263f69",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -618,40 +615,14 @@
       ]
     },
     {
-      "clause_id": "AK-NC-077",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
-      "section_digest": "sha256:c68a613d1e756c8aa5ff10bc0da83137705758efb9328746f6e519e002ae956f",
-      "requirement": "At one accepted authority cut, the ak.invite.claim reducer verifies accepted create Event/Commit, pure lifecycle, effective Realm policy, both proof transcripts, the frozen token commitment and accepted-claim uniqueness. It atomically accepts the exact claim Event/Commit, pending to claimed lifecycle and subject-bound proposal; rejected claims write nothing shared and expiry requires a separate accepted revoke Event.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.invite.claim_reducer_state_machine.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-078",
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
-      "section_digest": "sha256:c68a613d1e756c8aa5ff10bc0da83137705758efb9328746f6e519e002ae956f",
-      "requirement": "The third-party claim endpoint and the invite locator resolve endpoint each give every one of their failure classes one external response shape and a bounded, class-independent timing distribution.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.invite.failure_indistinguishable.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-079",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
-      "section_digest": "sha256:c68a613d1e756c8aa5ff10bc0da83137705758efb9328746f6e519e002ae956f",
-      "requirement": "An out-of-band invite code below the production entropy floor is refused, and a lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.invite.oob_code_entropy.v1"
-      ]
+      "section_digest": "sha256:e328525a96c8f768eb5c1324ab7260c96b7f7d0e43ca19f6a459c753ac179c79",
+      "requirement": "Principal locator resolve failure classes have one external response shape and a bounded, class-independent timing distribution; verification-provider invitation claims are withdrawn.",
+      "testability_grade": "audit",
+      "test_plan": "Execute independent PrincipalLocator unknown/expired/revoked/policy-denied response and bounded-timing checks. The withdrawn mixed IVS fixture is not evidence of this remaining requirement; reserved ak.vector.invite.locator_failure_indistinguishable.v1 tracks its independent activation."
     },
     {
       "clause_id": "AK-NC-080",

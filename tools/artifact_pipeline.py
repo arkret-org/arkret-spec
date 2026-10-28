@@ -16,7 +16,7 @@ This pipeline owns three responsibilities:
 
   generate   regenerate derived registry views from contract-registry.json
              and the single version-pinned public registry snapshot
-  check      verify generated/public drift, fixture digests, artifact versions,
+  check      verify generated/public drift, fixture digests, source ownership,
              then run lints
 
 The "sync canonical files into zh/ mirrors" and "rewrite generated
@@ -44,12 +44,10 @@ try:
     from .event_admission_contract import synchronize as synchronize_event_admission
     from .release_metadata import current_release_tag as read_current_release_tag
     from .release_tool_manifest import registered_runners
-    from .check_artifact_versions import semantic_content_digest, transition_errors
 except ImportError:  # Direct script execution: python tools/artifact_pipeline.py
     from event_admission_contract import synchronize as synchronize_event_admission
     from release_metadata import current_release_tag as read_current_release_tag
     from release_tool_manifest import registered_runners
-    from check_artifact_versions import semantic_content_digest, transition_errors
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
@@ -80,7 +78,6 @@ CURSOR_NEGATIVE_FIXTURE_SCRIPT = Path(__file__).with_name(
 VECTOR_REGISTRY_TRACEABILITY_SCRIPT = Path(__file__).with_name(
     "check_vector_registry_traceability.py"
 )
-ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
     "gen_event_reference_inventory.py"
@@ -120,57 +117,8 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
-@lru_cache(maxsize=1)
-def artifact_metadata_references() -> dict[str, dict[str, Any]]:
-    """Read the last validated metadata baseline, not another semantic source."""
-    path = ARTIFACTS / "reports" / "artifact-version-digests.json"
-    if not path.exists():
-        return {}
-    return {row["path"]: row for row in load_json(path).get("artifacts", [])}
 
 
-def preserve_artifact_metadata_when_semantics_match(
-    path: Path, payload: dict[str, Any]
-) -> dict[str, Any]:
-    """Keep artifact-local release metadata stable across unrelated source changes."""
-    if not path.exists():
-        return payload
-    existing = load_json(path)
-    if not isinstance(existing, dict):
-        return payload
-    semantic_keys = {"version", "generated_at"}
-    existing_semantics = {
-        key: value for key, value in existing.items() if key not in semantic_keys
-    }
-    payload_semantics = {
-        key: value for key, value in payload.items() if key not in semantic_keys
-    }
-    if existing_semantics != payload_semantics:
-        return payload
-    if path.is_relative_to(ROOT):
-        reference = artifact_metadata_references().get(path.relative_to(ROOT).as_posix())
-        if reference is not None:
-            current = {
-                "path": reference["path"],
-                "version": existing.get("version"),
-                "generated_at": existing.get("generated_at"),
-                "content_digest": semantic_content_digest(existing),
-            }
-            if transition_errors(reference, current):
-                # A prior generation may have written new content before the
-                # author advanced its canonical metadata. Do not pin that
-                # intermediate state merely because the next run is byte-stable.
-                return payload
-    version = existing.get("version")
-    generated_at = existing.get("generated_at")
-    if not isinstance(version, (str, int)) or isinstance(version, bool):
-        return payload
-    if not isinstance(generated_at, str) or not generated_at:
-        return payload
-    stable = copy.deepcopy(payload)
-    stable["version"] = version
-    stable["generated_at"] = generated_at
-    return stable
 
 
 @lru_cache(maxsize=1)
@@ -181,20 +129,6 @@ def load_contract_registry() -> dict[str, Any]:
     return data
 
 
-def registry_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
-    version = catalog.get("version")
-    generated_at = catalog.get("generated_at")
-    if not isinstance(version, str) or not version:
-        raise SystemExit("contract registry missing version")
-    if not isinstance(generated_at, str) or not generated_at:
-        raise SystemExit("contract registry missing generated_at")
-    try:
-        datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
-    except ValueError as exc:
-        raise SystemExit(f"contract registry generated_at must be RFC3339: {generated_at}") from exc
-    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", version) and not generated_at.startswith(version):
-        raise SystemExit("contract registry generated_at date must match version")
-    return version, generated_at
 
 
 def current_release_tag() -> str:
@@ -454,7 +388,6 @@ def check_id_wire_form_derivations() -> list[str]:
 
 
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
-    version, generated_at = registry_generation_metadata(catalog)
     generated = catalog.get("derived_registry_views")
     if not isinstance(generated, list) or not generated:
         raise SystemExit("contract registry missing derived_registry_views")
@@ -473,11 +406,6 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
         if not isinstance(section_payload, dict):
             raise SystemExit(f"contract registry missing section {section}")
         section_payload = copy.deepcopy(section_payload)
-        if section_payload.get("metadata_authority") != "contract_registry_section":
-            raise SystemExit(
-                f"contract registry section {section} must declare "
-                "metadata_authority=contract_registry_section"
-            )
         if section == "event_kind_registry":
             event_rows = section_payload.get("event_kinds")
             if not isinstance(event_rows, list):
@@ -497,17 +425,8 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
                     raise SystemExit(f"cannot generate wire_form for id row {id_row!r}")
                 id_row["wire_form"] = template.replace("<kind>", kind)
         path = ARTIFACTS / file_ref
-        payload = {
-            "version": version,
-            "source_of_truth": False,
-            "generated_at": generated_at,
-            "generated_from": "registry/contract-registry.json",
-            "generated_by": "tools/artifact_pipeline.py",
-            **section_payload,
-        }
-        # The canonical section is the metadata authority for its derived view.
-        # Preserving a byte-stable file's older local metadata here would let the
-        # projection disagree indefinitely with the source that generates it.
+        payload = section_payload
+        # A view is the exact canonical section, with no local metadata overlay.
         payloads[path] = payload
     return payloads
 
@@ -558,6 +477,12 @@ def projected_openapi_text(catalog: dict[str, Any]) -> str:
             f"{OPENAPI_PATH.relative_to(ROOT).as_posix()} must contain exactly one "
             f"{OPENAPI_HIGH_SECURITY_POLICY_KEY} block before info"
         )
+    info_pattern = re.compile(r"(?ms)(^info:\n(?:(?!^[^\s]).)*?^  version:) [^\n]+")
+    projected, count = info_pattern.subn(
+        lambda match: f"{match[1]} {current_release_tag()[1:]}", projected, count=1
+    )
+    if count != 1:
+        raise SystemExit("OpenAPI must contain exactly one info.version")
     return projected
 
 
@@ -1000,7 +925,6 @@ def schema_summary(schema_ref: str) -> dict[str, Any]:
 
 
 def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
-    version, generated_at = registry_generation_metadata(catalog)
     operation_registry = catalog.get("operation_registry")
     if not isinstance(operation_registry, dict):
         raise SystemExit("contract registry missing operation_registry")
@@ -1026,9 +950,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
             operations.append(entry)
 
     payload = {
-        "version": version,
-        "source_of_truth": False,
-        "generated_at": generated_at,
+
         "generated_from": [
             "registry/contract-registry.json",
             "schemas/*.schema.json"
@@ -1037,7 +959,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
         "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
         "operations": operations,
     }
-    return preserve_artifact_metadata_when_semantics_match(OPERATION_SCHEMA_INDEX_PATH, payload)
+    return payload
 
 
 def profile_summary_text() -> str:
@@ -1229,13 +1151,13 @@ def run_approval_signature_kat_check() -> int:
 
 
 def run_key_backup_hardening_kat_check() -> int:
+    independent = subprocess.run([sys.executable, str(ROOT / "tools/generate_key_backup_passphrase_kat.py"), "--check"], cwd=ROOT)
+    if independent.returncode:
+        return independent.returncode
     result = subprocess.run(["node", str(KEY_BACKUP_HARDENING_KAT_SCRIPT), "--check"], cwd=ROOT)
     return result.returncode
 
 
-def run_artifact_version_check() -> int:
-    result = subprocess.run([sys.executable, str(ARTIFACT_VERSION_SCRIPT)], cwd=ROOT)
-    return result.returncode
 
 
 def run_operation_completeness_report(mode: str) -> int:
@@ -1420,6 +1342,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     runners = {
+        "artifact_metadata": lambda: subprocess.run([sys.executable, "-B", "tools/check_artifact_metadata.py"], cwd=ROOT).returncode,
         "public_type_semantics": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_semantic_naming", "tools.test_public_type_duplicates"], cwd=ROOT).returncode,
         "realm_actor_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_realm_actor_contract"], cwd=ROOT).returncode,
         "applet_management_source_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_management_source"], cwd=ROOT).returncode,
@@ -1444,6 +1367,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "fixture_digests": run_fixture_digest_check,
         "vector_registry_traceability": run_vector_registry_traceability_check,
         "session_grant_kat": run_session_grant_kat_check,
+        "realm_invite_link_contract": lambda: subprocess.run([sys.executable, "-B", "tools/check_realm_invite_link_contract.py"],cwd=ROOT).returncode,
         "sdk_conformance_claim": run_sdk_conformance_claim_check,
         "contact_round_kat": run_contact_round_kat_check,
         "contact_current_contract": run_contact_current_contract_check,
@@ -1455,7 +1379,6 @@ def cmd_check(_: argparse.Namespace) -> int:
         "approval_signature_kat": run_approval_signature_kat_check,
         "key_backup_hardening_kat": run_key_backup_hardening_kat_check,
         "cursor_negative_fixture": run_cursor_negative_fixture_check,
-        "artifact_versions": run_artifact_version_check,
         "artifact_lint": run_lint,
         "prose_lint": run_prose_lint,
     }

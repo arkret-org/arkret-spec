@@ -1,11 +1,8 @@
 {
-  "suite": "actor_private_events_submit",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.actor_private_events.submit.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.actor_private_events.submit.v1"

@@ -1,8 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schema": "arkret.collection-naming-registry.v1",
-  "version": "2026-10-24.1",
-  "source_of_truth": false,
   "normative_rule": "NC-COLLECTION-001",
   "description": "Reviewed exact exceptions to the default object-collection plural grammar, plus named pagination object contracts. Entry, Row, View, Preview, Projection and Descriptor are semantic words, not representation suffixes; referenced item type names never determine property names.",
   "singular_s_tokens": [

@@ -1,6 +1,4 @@
 {
-  "suite": "current_signer_contact_endpoint",
-  "version": "2026-10-24.2",
   "covers_vectors": [
     "ak.vector.signer_key.human_current_privacy.v1",
     "ak.vector.contact.peer_endpoint_selector.v1"

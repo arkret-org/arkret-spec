@@ -1,14 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 100,
-  "kind": "identifier_classification_registry",
-  "source_of_truth": false,
-  "generated_from": [
-    "spec/v1/zh/models/common-fields.md#21-identifier-字段命名约定normative",
-    "spec/v1/artifacts/schemas",
-    "spec/v1/artifacts/registry/id-kind-registry.json"
-  ],
-  "generated_by": "tools/artifact_lint/naming_contracts.py (check_identifier_value_categories)",
   "description": "Per-occurrence identifier value-category adjudication for the wire identifier properties whose resolved schema terminal constraint does NOT determine the category on its own. Occurrences the type system decides (an anchored ak:<kind>: / ak:did_core: / did: / ak.<symbol> terminal) are deliberately absent: copying an obvious $ref into a hand-kept table would create a second truth that drifts away from the schema. Rows are keyed by (property name, resolved terminal signature); a differently typed occurrence of the same name lands in a different row and fails closed.",
   "categories": [
     "document_local_symbol",
@@ -25,11 +15,6 @@
     "non_identifier",
     "unregistered_object_identifier"
   ],
-  "type_derived_summary": {
-    "typed_object_id": 996,
-    "responsibility_identity_material": 657,
-    "registry_catalog_symbol": 15
-  },
   "pending_rename_convergence": [],
   "classifications": [
     {
@@ -472,14 +457,6 @@
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
     {
-      "name": "pepper_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "invite.schema.json#/$defs/third_party_invite/properties/pepper_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "ping_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{16,128}$\"]]",
       "category": "opaque_correlation",
@@ -494,14 +471,6 @@
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/provider_id",
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
-    },
-    {
-      "name": "provisioning_id",
-      "terminal_signature": "[[\"pattern\", \"^third_party_invite_provisioning:[A-Za-z0-9_-]{43}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 7,
-      "example_path": "invite.schema.json#/$defs/third_party_invite_provision_response_body/properties/provisioning_id",
-      "reason": "Bounded opaque handle minted by the verification service to address one private third-party invite provisioning record; the record, not the handle, carries authority, and it is neither invite permission nor activation authority."
     },
     {
       "name": "rate_limit_policy_id",
@@ -652,14 +621,6 @@
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
     },
     {
-      "name": "token_salt_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "invite.schema.json#/$defs/third_party_invite/properties/token_salt_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "transfer_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~=-]{22,128}$\"]]",
       "category": "opaque_correlation",
@@ -731,6 +692,5 @@
       "example_path": "contact-operations.schema.json#/$defs/contact_current_proof/properties/initial_contact_round_id",
       "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
-  ],
-  "generated_at": "2026-10-24T22:36:16+00:00"
+  ]
 }

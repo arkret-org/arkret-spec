@@ -1,11 +1,8 @@
 {
-  "suite": "current_cas_failure_read_boundary",
-  "fixture_kind": "semantic",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.current.cas_failure_read_boundary.v1"
   },
-  "version": "2026-10-24.1",
   "profile": "ak.profile.core_event_store.v1",
   "covers_vectors": [
     "ak.vector.current.cas_failure_read_boundary.v1"

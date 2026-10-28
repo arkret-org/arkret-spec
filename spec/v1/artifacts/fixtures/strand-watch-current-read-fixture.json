@@ -1,7 +1,5 @@
 {
   "profile": "ak.vector_group.state.v1",
-  "version": "2026-10-24.1",
-  "suite": "strand_watch_current_read",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.state.strand_watch_current_read.v1"

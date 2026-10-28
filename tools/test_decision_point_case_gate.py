@@ -46,7 +46,6 @@ CEILING_RULE = "the frozen set of pairs the ratchet was ever allowed to hold"
 
 def vector_registry() -> dict:
     return {
-        "version": "probe",
         "vectors": [
             {
                 "vector_id": VECTOR,
@@ -62,7 +61,6 @@ def vector_registry() -> dict:
 
 def contract() -> dict:
     return {
-        "version": "probe",
         "sdk_conformance_contract": {
             "contract_version": "1",
             "decision_point_case_rule": RULE,
@@ -103,7 +101,7 @@ def contract() -> dict:
 
 def carrier() -> dict:
     return {
-        "suite": "probe",
+
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.probe.admission.v1"},
         "covers_vectors": [VECTOR],
         "cases": [
@@ -123,7 +121,7 @@ def carrier() -> dict:
 
 def unrelated() -> dict:
     return {
-        "suite": "probe_unrelated",
+
         "runner": {"kind": "inline_cases"},
         "cases": [{"name": "something_else", "expected": {"ok": True}}],
     }

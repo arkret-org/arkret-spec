@@ -206,7 +206,7 @@ def build_report() -> dict[str, Any]:
             }
         )
     return {
-        "source_of_truth": False,
+
         "generated_by": "tools/generate_did_representation_report.py",
         "profiles": ["did_core_id", "did", "did_url", "account_id", "actor_id"],
         "multi_representation_fields": multi_representation_entries,

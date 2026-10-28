@@ -1,6 +1,4 @@
 {
-  "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-10-24.1",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [

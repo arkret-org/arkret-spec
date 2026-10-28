@@ -1,7 +1,4 @@
 {
-  "version": "2026-10-25.1",
-  "source_of_truth": true,
-  "generated_at": "2026-10-25T06:47:33+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1338,61 +1335,6 @@
       "page": "sync/signal.md",
       "heading": "1.1 Plaintext payload profile 通用最小集（normative）",
       "fragment": "11-plaintext-payload-profile-通用最小集normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "2.1 验证服务威胁假设（normative）",
-      "fragment": "21-验证服务威胁假设normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "3.1.1 两种模式的 commitment 与 token 字符空间（normative）",
-      "fragment": "311-两种模式的-commitment-与-token-字符空间normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "6.1 失败 / 异常清理状态机（normative）",
-      "fragment": "61-失败--异常清理状态机normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7. 私有材料生命周期（normative）",
-      "fragment": "7-私有材料生命周期normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.2 预配 provisioning（normative）",
-      "fragment": "72-预配-provisioningnormative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.3 author 与接受（normative）",
-      "fragment": "73-author-与接受normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.4 接受证据 acceptance attestation（normative）",
-      "fragment": "74-接受证据-acceptance-attestationnormative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.5 回绑激活 activation（normative）",
-      "fragment": "75-回绑激活-activationnormative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.6 投递与状态观察（normative）",
-      "fragment": "76-投递与状态观察normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.7 崩溃恢复、幂等与清理（normative）",
-      "fragment": "77-崩溃恢复幂等与清理normative"
-    },
-    {
-      "page": "sync/third-party-invites.md",
-      "heading": "7.8 与 present 的边界与 bundle 广告（normative）",
-      "fragment": "78-与-present-的边界与-bundle-广告normative"
     },
     {
       "page": "sync/transport-bindings.md",

@@ -1,6 +1,4 @@
 {
-  "fixture_id": "ak.fixture.mimi.admission_guards.v1",
-  "version": 3,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.mimi.admission_guards.v1"

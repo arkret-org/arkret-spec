@@ -1,6 +1,4 @@
 {
-  "fixture_id": "ak.fixture.direct_conversation.admission_producers.v1",
-  "version": 2,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.admission_producers.v1"
@@ -131,7 +129,7 @@
         },
         {
           "case_id": "third_party_invite_dual_match_uses_third_party_reason",
-          "event_kind": "ak.invite.third_party",
+          "event_kind": "ak.invite.create",
           "candidate_is_bound_peer": false,
           "also_matches_invite_guard": true,
           "expected_reason_code": "direct_conversation_third_party_member_forbidden"

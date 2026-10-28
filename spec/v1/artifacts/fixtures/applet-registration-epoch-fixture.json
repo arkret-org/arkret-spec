@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-10-24.1",
-  "suite": "applet_registration_epoch",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.applet.registration_epoch.v1"

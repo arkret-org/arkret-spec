@@ -226,8 +226,6 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
-    if data.get("generated_by") != "tools/generate_content_bound_event_id_fixture.py":
-        lint.fail(path, "fixed-suite Event-ID fixture must name its deterministic generator")
     required = {
         "full_digest_single_bit_difference_changes_event_id",
         "suite_code_mismatch_rejected",
@@ -1966,14 +1964,14 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         if row.get("execution_status") != "contract_published":
             lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} must publish its execution contract")
     executable_registry_assertions = {
-        "error_code_registry_coverage_fixture": {
+        "error-code-registry-coverage-fixture.json": {
             "unique_top_level_codes",
             "unique_reason_codes",
             "operation_errors_registered",
             "reason_references_registered",
             "layering_is_explicit",
         },
-        "operation_registry_coverage_fixture": {
+        "operation-registry-coverage-fixture.json": {
             "catalog_registry_bijection",
             "registry_openapi_endpoint_projection",
             "registry_binding_coverage",
@@ -1982,25 +1980,19 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             "read_retry_contract",
             "write_durable_effect_contract",
         },
-        "event_kind_payload_coverage_fixture": {
+        "event-kind-payload-coverage-fixture.json": {
             "catalog_registry_bijection",
             "payload_schema_ref_resolves",
             "wire_scope_matches_envelope",
             "unknown_durable_kind_fails_closed",
         },
     }
-    # The table above is keyed by suite and the sweep below is keyed by file, so
-    # an entry naming a suite nobody ships is unreachable rather than wrong. The
-    # table and files are reconciled after the sweep so deleting a fixture without
-    # deleting its required-suite row is an error instead of a silent hole.
-    declared_suites: set[str] = set()
+    declared_fixtures: set[str] = set()
     for path in sorted(fixture_root.glob("*.json")):
         data = load_json(lint, path)
         if not isinstance(data, dict):
             continue
-        suite_name = data.get("suite")
-        if isinstance(suite_name, str):
-            declared_suites.add(suite_name)
+        declared_fixtures.add(path.name)
         runner = data.get("runner")
         if not isinstance(runner, dict):
             lint.fail(path, "top-level runner must be an object with runner.kind")
@@ -2024,19 +2016,18 @@ def check_fixture_runner_contract(lint: Lint) -> None:
                 for relative in inputs:
                     if not isinstance(relative, str) or not (ARTIFACTS / relative).is_file():
                         lint.fail(path, f"registry coverage input does not exist: {relative!r}")
-            suite = data.get("suite")
-            expected = executable_registry_assertions.get(suite)
+            expected = executable_registry_assertions.get(path.name)
             assertions = data.get("assertions")
             actual = {
                 row.get("id") for row in assertions if isinstance(row, dict) and isinstance(row.get("id"), str)
             } if isinstance(assertions, list) else set()
             if expected is None or actual != expected:
                 lint.fail(path, f"registry coverage assertions are not bound to the executable lint contract: {sorted(actual)}")
-    unshipped = sorted(set(executable_registry_assertions) - declared_suites)
+    unshipped = sorted(set(executable_registry_assertions) - declared_fixtures)
     if unshipped:
         lint.fail(
             fixture_root,
-            "executable registry assertion contract names fixture suite(s) no file declares: "
+            "executable registry assertion contract names fixture path(s) absent from the directory: "
             f"{unshipped}",
         )
 
@@ -2496,8 +2487,6 @@ def check_normative_clause_registry(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
 
     coverage_scope = data.get("coverage_scope")
     if not isinstance(coverage_scope, dict):
@@ -2614,8 +2603,6 @@ def check_vector_registry(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
 
     profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
     profiles_data = load_json(lint, profiles_path)
@@ -2841,8 +2828,6 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
     if not isinstance(data, dict):
         return
 
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
 
     rows = data.get("account_data_key_patterns")
     if not isinstance(rows, list) or not rows:
@@ -8342,8 +8327,6 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
     registry = load_json(lint, registry_path)
     if not isinstance(registry, dict):
         return
-    if registry.get("source_of_truth") is not True:
-        lint.fail(registry_path, "source_of_truth must be true")
 
     evidence = registry.get("governance_evidence_contract")
     evidence_keys = (

@@ -1,6 +1,4 @@
 {
-  "suite": "operation_registry_coverage_fixture",
-  "version": "2026-07-30",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [

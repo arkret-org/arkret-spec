@@ -172,7 +172,6 @@ see_also:
 | Member | 成员 | 已加入某 Realm 或 Circle 的 actor；具体由 membership current state `member_state` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
 | Subject | 授权对象 | Capability grant 的授予对象；`subject` 字段值是 DID（具体 principal）或机器 registry 明确登记的 condition selector（如 role / federated trust scope）。Actor Profile `actor_kind` 不是授权 selector。具体使用约束见 [`common-fields.md` §4.1](../models/common-fields.md#41-did-适用边界)。 |
 | participant | _local-context only_ | 不是通用术语。仅允许在 SFU stream binding、Mermaid sequence 图、call participant_id 等明确局部上下文出现；prose normative 段落 MUST 使用 actor / member / subject 视语义选用，不得用 `participant` 表达通用主体语义。 |
-| 3PID | 第三方标识符 | 邮箱、手机号等外部体系标识符在第三方邀请和认领流程中的具体形态。3PID 是 Connection Identifier 在邀请阶段的专门用法；公开 Event 中不得写入明文 3PID 或可枚举摘要。完整流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 |
 | Operation | 操作（canonical operation_id） | API wire-binding 抽象单元，由 canonical `operation_id` 标识；定义见 [`api-conventions.md` §2.4](../sync/api-conventions.md)。Operation 不等同于 wire event kind——前者是 RPC / sync 单元，后者是 reducer-input event family；MUST NOT 互换。 |
 | Patch | 字段增量（`ak.schema.patch.v1`） | `ak.schema.patch.v1` field 增量 payload 格式，统一表达 canonical object 字段级更新；路径与 op 规则见 [`event-and-patch.md` §4](../models/event-and-patch.md)。新对象的字段更新槽 SHOULD 通过 Patch 表达，不再造单字段 update event。 |
 | Push terminology layering | push / notification / notify / wakeup 词汇分层 | 四个词在 v1 严格分层，不互换：**Push** = transport 层（push gateway 投递）；**Notification** = projection object（`ak.notification` current state value，inbox 派生对象）；**Notify** = push rule action（`ak.push_rules` 的 action enum 值）；**Wakeup** = payload disclosure class（`ak.profile.push_gateway.blind_wakeup.v1` 等 wakeup 信封）。Normative prose MUST 按上述分层选词。 |
@@ -253,7 +252,6 @@ see_also:
 | `PCR` | Principal Control Realm | 主体控制 Realm | §2 `Principal Control Realm` 条目；[`../identity/key-management.md` §4.1](../identity/key-management.md) |
 | `E2EE` | End-to-End Encryption | 端到端加密 | §3 CC-04（大小写规则）；[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `DM` | Direct Message | 直接会话 | [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) |
-| `3PID` | Third-Party Identifier | 第三方标识符 | §2 `3PID` 条目；[`../sync/third-party-invites.md`](../sync/third-party-invites.md) |
 | `HLC` | Hybrid Logical Clock | 混合逻辑时钟 | §2 `HLC` 条目；[`../conformance/encoding.md` §7](../conformance/encoding.md) |
 
 ### 4.2 外部标准与算法缩写（informative）
@@ -290,7 +288,6 @@ see_also:
 | `AAD` | Additional Authenticated Data | RFC 5116 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
 | `KDF` | Key Derivation Function | — | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `HKDF` | HMAC-based Key Derivation Function | RFC 5869 | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
-| `HMAC` | Hash-based Message Authentication Code | RFC 2104 | [`../sync/third-party-invites.md`](../sync/third-party-invites.md) |
 | `PBKDF2` | Password-Based Key Derivation Function 2 | RFC 8018 | [`../identity/key-management.md`](../identity/key-management.md) |
 | `I2OSP` | Integer-to-Octet-String Primitive | RFC 8017 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
 | `OPRF` | Oblivious Pseudorandom Function | RFC 9497 | [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) |

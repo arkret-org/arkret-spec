@@ -1,5 +1,4 @@
 {
-  "version": "2026-09-20.1",
   "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
   "domain": "ak.identity.recovery_proof.v1",
   "description": "Byte-exact signing transcripts for all four recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",

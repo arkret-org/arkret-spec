@@ -1,7 +1,5 @@
 {
   "profile": "ak.profile.full_client.v1",
-  "version": "2026-08-01",
-  "suite": "private_view_inbox_account_data",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.account_data.private_view_inbox_binding.v1"
