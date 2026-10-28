@@ -38,6 +38,7 @@ x-arkret-high-security-session-authentication-policy:
   newOperationsFailClosed: true
 info:
   title: Arkret Service API
+  version: v1
 """
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "openapi.yaml"
@@ -46,7 +47,7 @@ info:
                 projected = artifact_pipeline.projected_openapi_text(catalog)
         self.assertIn("  - ak.self.example.read.describe.v1\n", projected)
         self.assertEqual(projected.count("x-arkret-high-security-session-authentication-policy:"), 1)
-        self.assertTrue(projected.endswith("info:\n  title: Arkret Service API\n"))
+        self.assertTrue(projected.endswith(f"info:\n  title: Arkret Service API\n  version: {artifact_pipeline.current_release_tag()[1:]}\n"))
 
 
 if __name__ == "__main__":

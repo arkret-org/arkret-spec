@@ -46,6 +46,7 @@ FSM_FAMILIES = (
     "call_recording_state",
     "call_transcript_state",
     "invite_lifecycle",
+    "realm_invite_link_lifecycle",
 )
 
 

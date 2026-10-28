@@ -66,12 +66,12 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
 
     def test_compound_generation_string_reintroduction_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["source_commit_ref"]["properties"]["device_generation_ref"] = {
+            schema["properties"]["source_commit_ref"]["properties"]["device_generation_ref"] = {
                 "type": "string",
                 "pattern": "^[1-9][0-9]*-[^\\s]+$",
             }
 
-        errors = self._lint("key-backup-active-series.schema.json", mutate)
+        errors = self._lint("key-backup.schema.json", mutate)
         self.assertTrue(any("must reuse recovery-session" in error for error in errors), errors)
 
     def test_completion_event_digest_mirror_reintroduction_fails(self) -> None:

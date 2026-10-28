@@ -35,7 +35,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("mimi-operations.schema.json", "mimi_report_abuse_response_body", ("status",)),
             ("principal-locator.schema.json", "invite_locator_revoke_response_body", ("status",)),
             ("recovery-session.schema.json", "recovery_session_proof_submit_response_body", ("state", "verification")),
-            ("service-operation-dtos.schema.json", "ModerationReportResponseBody", ("status",)),
         ]
         for file_name, definition, members in cases:
             with self.subTest(file_name=file_name, definition=definition):
@@ -45,6 +44,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
         definitions = load("service-operation-dtos.schema.json")["$defs"]
         retained = [
             ("SessionGrantReplayExpiredProblemExtensions", "state", "expired"),
+            ("ModerationReportResponseBody", "status", "submitted"),
             ("DeviceMessageDeliveredEntry", "status", "delivered"),
             ("DeviceMessageUnknownEntry", "status", "unknown"),
         ]
