@@ -7271,6 +7271,26 @@ def check_websocket_bundle_closure_cases(lint: Lint, path: Path, data: dict[str,
         )
 
 
+def websocket_signal_fixture_digest_error(frame: Any) -> str | None:
+    """Check the SHA-256 unsigned projection in the WebSocket Signal vector."""
+    if not isinstance(frame, dict):
+        return None
+    payload = frame.get("payload")
+    if not isinstance(payload, dict) or payload.get("kind") != "signal":
+        return None
+    envelope = payload.get("envelope")
+    if not isinstance(envelope, dict) or not isinstance(envelope.get("proof"), dict):
+        return "Signal envelope requires its proof carrier"
+    # encoding.md section 6.0.2: remove the carrier itself and preserve every
+    # other wire value, including the decimal-string epoch.
+    unsigned = {key: value for key, value in envelope.items() if key != "proof"}
+    expected = sha256_text(canonical_json(unsigned))
+    actual = envelope["proof"].get("envelope_digest")
+    if actual != expected:
+        return f"Signal proof.envelope_digest differs from its unsigned wire bytes: {actual!r} != {expected}"
+    return None
+
+
 def check_websocket_binding_fixture(lint: Lint) -> None:
     """Execute the in-tree, tool-neutral portion of the WebSocket binding suite."""
     path = ARTIFACTS / "fixtures" / "websocket-binding-fixture.json"
@@ -7638,6 +7658,9 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
                 continue
             if duplicate_members:
                 lint.fail(path, f"frame_schema_cases[{index}] contains duplicate members")
+            digest_error = websocket_signal_fixture_digest_error(instance)
+            if digest_error:
+                lint.fail(path, f"frame_schema_cases[{index}] {digest_error}")
             check_json_instance_against_schema(
                 lint,
                 path,

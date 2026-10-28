@@ -558,7 +558,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "3557b3b3cc4e80174c444de9c9297f561af92dd95ee6a9235683b529a0437106"
+      "sha256": "81d38f2e9a20e104936b92ff29b8b60be5782b21f650a1f812cd954e2ef5da5a"
     }
   ],
   "generated_by": "tools/check_fixture_digests.py --write-reference",

@@ -14,7 +14,8 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / 'spec/v1/artifacts/fixtures'
 NAMES = ['applet-registration-epoch-fixture.json', 'handle-claim-kat.json',
-         'encoding-fixture.json', 'blob-content-key-fixture.json', 'mls-roster-client-roles-fixture.json']
+         'encoding-fixture.json', 'blob-content-key-fixture.json', 'mls-roster-client-roles-fixture.json',
+         'websocket-binding-fixture.json']
 
 
 def canonical(value):
@@ -104,6 +105,13 @@ def build(name, source):
             value = kat[object_name]
             unsigned = {key: item for key, item in value.items() if key != 'signature'}
             value['signature']['signature'] = b64(key.sign(domain.encode() + canonical(unsigned).encode()))
+    elif name == 'websocket-binding-fixture.json':
+        case = next(row for row in result['frame_schema_cases'] if row['name'] == 'signal_data')
+        frame = json.loads(case['wire_utf8'])
+        envelope = frame['payload']['envelope']
+        unsigned = {key: value for key, value in envelope.items() if key != 'proof'}
+        envelope['proof']['envelope_digest'] = sha(canonical(unsigned))
+        case['wire_utf8'] = canonical(frame)
     return result
 
 
