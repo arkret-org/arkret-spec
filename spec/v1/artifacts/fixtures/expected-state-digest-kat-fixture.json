@@ -43,8 +43,8 @@
         "authority_generation": "0",
         "authority_event_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8"
       },
-      "canonical_utf8": "{\"authority_event_ref\":\"ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8\",\"authority_generation\":0,\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
-      "expected_digest": "sha256:59af752dff46099fc17ee1a7441acc82d00b531d33e216122ad452671dfa1dd5",
+      "canonical_utf8": "{\"authority_event_ref\":\"ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8\",\"authority_generation\":\"0\",\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
+      "expected_digest": "sha256:bf339e4a62487a260f19d4f727052e8f7b9f5b19ad713d24635a7a7a8d36c934",
       "why": "A single-value family digests its complete frozen typed current value."
     },
     {

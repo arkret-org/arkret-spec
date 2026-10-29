@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / 'spec/v1/artifacts/fixtures'
 NAMES = ['applet-registration-epoch-fixture.json', 'handle-claim-kat.json',
          'encoding-fixture.json', 'blob-content-key-fixture.json', 'mls-roster-client-roles-fixture.json',
-         'websocket-binding-fixture.json']
+         'websocket-binding-fixture.json', 'expected-state-digest-kat-fixture.json']
 
 
 def canonical(value):
@@ -112,6 +112,13 @@ def build(name, source):
         unsigned = {key: value for key, value in envelope.items() if key != 'proof'}
         envelope['proof']['envelope_digest'] = sha(canonical(unsigned))
         case['wire_utf8'] = canonical(frame)
+    elif name == 'expected-state-digest-kat-fixture.json':
+        # current-state.md section 2: no domain prefix, just the canonical
+        # complete frozen value. The independent SDK runner still rebuilds
+        # each family's digest_input_value from its source assertions.
+        for case in result['cases']:
+            case['canonical_utf8'] = canonical(case['digest_input_value'])
+            case['expected_digest'] = sha(case['canonical_utf8'])
     return result
 
 
