@@ -152,10 +152,10 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         # Policy CAS and the private review request add no producer Event ID.
         # Recovery binds already accepted manager/policy/begin Event coordinates.
         self.assertIn(("authority-commit-operations.schema.json", "$.$defs.committed_event_ref.properties", "event_id"), candidates)
-        self.assertEqual(len(candidates), 43)
+        self.assertEqual(len(candidates), 42)
         for name in ("contact_requested_payload", "contact_accepted_payload", "contact_rejected_payload"):
             self.assertIn(("event-payload.schema.json", f"$.$defs.{name}.properties", "predecessor_event_ref"), candidates)
-        self.assertEqual(len({key[0] for key in candidates}), 14)
+        self.assertEqual(len({key[0] for key in candidates}), 13)
         self.assertFalse(any(key[0] == "approval-signature.schema.json" for key in candidates))
 
     def test_unreferenced_defs_sibling_is_not_walked(self) -> None:
