@@ -684,18 +684,6 @@
     },
     {
       "file": "event-payload.schema.json",
-      "key": "evidence_package",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "Moderation evidence packages may contain content proofs, witness attestations, and handling receipts."
-    },
-    {
-      "file": "event-payload.schema.json",
       "key": "evidence_ref",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -709,14 +697,14 @@
     {
       "file": "event-payload.schema.json",
       "key": "evidence_refs",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation",
         "receipt"
       ],
-      "reason": "Realm-link and moderation references admit multiple registered material families."
+      "reason": "Realm-link references admit multiple registered material families."
     },
     {
       "file": "event-payload.schema.json",
@@ -737,13 +725,6 @@
         "transcript"
       ],
       "reason": "The signed Applet registration Event manifest carries the single method-native registration-time identity transcript and its accepted key commitments."
-    },
-    {
-      "file": "forbidden-wire-fields.json",
-      "key": "moderation_queue_item.evidence_policy",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
     },
     {
       "file": "identity-resolution.schema.json",
@@ -897,25 +878,6 @@
       "reason": "Locates the immutable historical signer evidence containing this exact device attestation; the client-facing device_key_view and the Station-to-Station peer_device_key_view carry the same reference."
     },
     {
-      "file": "mimi-operations.schema.json",
-      "key": "evidence_package",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "The signed MIMI report claim carries the closed encrypted moderation evidence package; the facade copies it only after verifying reporter authority."
-    },
-    {
-      "file": "mimi-operations.schema.json",
-      "key": "evidence_refs",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "The signed report claim identifies external evidence objects without treating those references as authorization or plaintext."
-    },
-    {
       "file": "mls-creator-bootstrap-transaction-registry.json",
       "key": "evidence_source",
       "occurrences": 1,
@@ -928,25 +890,6 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
-    },
-    {
-      "file": "moderation-evidence.schema.json",
-      "key": "evidence_package",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "The closed encrypted package may contain content proofs, witness attestations, and handling receipts while binding the exact target, moderator key, ciphertext digest and reporter signature."
-    },
-    {
-      "file": "moderation-queue-item.schema.json",
-      "key": "evidence_policy",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Selects handling policy for heterogeneous moderation evidence."
     },
     {
       "file": "normative-clause-registry.json",

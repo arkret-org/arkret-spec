@@ -591,18 +591,6 @@
       "identity_authority": "producer_signature"
     },
     {
-      "kind": "moderation_queue_item",
-      "category": "moderation",
-      "status": "active",
-      "wire_form": "ak:moderation_queue_item:<44-char-event-token>",
-      "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.self.moderation.report"
-      ]
-    },
-    {
       "kind": "morph",
       "category": "core_object",
       "status": "active",
@@ -716,18 +704,6 @@
       "identity_authority": "event",
       "genesis_event_kinds": [
         "ak.relation.create"
-      ]
-    },
-    {
-      "kind": "report",
-      "category": "moderation",
-      "status": "active",
-      "wire_form": "ak:report:<44-char-event-token>",
-      "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.self.moderation.report"
       ]
     },
     {

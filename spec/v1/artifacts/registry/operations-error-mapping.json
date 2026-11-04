@@ -486,18 +486,6 @@
       "codes": []
     },
     {
-      "operation_id": "ak.open.mimi.command.report_abuse.v1",
-      "http_alias": "POST /_arkret/open/mimi/report-abuse",
-      "operation_specific": [
-        "http_signature_required",
-        "http_signature_invalid",
-        "signature_window_invalid",
-        "snapshot_capacity_exceeded"
-      ],
-      "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
       "http_alias": "POST /_arkret/open/mimi/consent/request",
       "operation_specific": [
@@ -1951,18 +1939,6 @@
         "not_found"
       ],
       "description": "The exact authenticated Actor must be current and target-cut authorized. Unknown and unauthorized selectors share the universal not_found; incomplete signed history is uniformly revision_unavailable.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.moderation.command.report.v1",
-      "http_alias": "POST /_arkret/self/moderation/report",
-      "operation_specific": [
-        "not_found",
-        "evidence_recipient_mismatch",
-        "duplicate_conflict",
-        "snapshot_capacity_exceeded"
-      ],
-      "description": "not_found is the single anti-oracle result for an absent target, a target not visible to the reporter, or any declared Realm/effective-scope mismatch. evidence_recipient_mismatch rejects a canonical evidence package whose recipient_public_key_ref and encrypted_to differ or whose key is not authorized for the exact target scope. Exact replay of one accepted report Event returns the stored submitted outcome; reuse of the same Event identity with different canonical bytes returns duplicate_conflict and appends neither a report log entry nor a queue item.",
       "codes": []
     },
     {

@@ -990,28 +990,6 @@
       ]
     },
     {
-      "domain": "ak.franking_proof.signature.v1",
-      "object_family": "moderation_franking_proof",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "domain",
-        "realm_id",
-        "event_id",
-        "received_by",
-        "verification_method",
-        "received_at",
-        "replay_nonce"
-      ],
-      "defined_in": "zh/governance/content-moderation.md",
-      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
-      "injected_fields": [
-        {
-          "field": "domain",
-          "source": "constant ak.franking_proof.signature.v1"
-        }
-      ]
-    },
-    {
       "domain": "ak.http_message_signature.v1",
       "object_family": "http_message_signature",
       "primitive": "http_message_signature",
@@ -1200,40 +1178,6 @@
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_consume_receipt"
-    },
-    {
-      "domain": "ak.mimi_reporter_authority_proof.v1",
-      "object_family": "mimi_reporter_authority",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "report_claim",
-        "membership_ref",
-        "room_binding_ref",
-        "expires_at",
-        "verification_method",
-        "created_at",
-        "domain",
-        "audience"
-      ],
-      "defined_in": "zh/extensions/mimi-interop.md#11-abuse-report-and-proxy-download",
-      "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_reporter_authority",
-      "transcript_schema_refs": [
-        "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
-        "schemas/mimi-operations.schema.json#/$defs/signature"
-      ],
-      "injected_fields": [
-        {
-          "field": "issuer",
-          "source": "request.reporter_authority.actor_id"
-        },
-        {
-          "field": "operation_id",
-          "source": "constant ak.open.mimi.command.report_abuse.v1"
-        }
-      ]
     },
     {
       "domain": "ak.mls.recipient_durable_receipt.v1",

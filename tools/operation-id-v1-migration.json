@@ -174,10 +174,6 @@
       "new": "ak.open.mimi.command.proxy_download.v1"
     },
     {
-      "old": "ak.open.mimi.command.report_abuse",
-      "new": "ak.open.mimi.command.report_abuse.v1"
-    },
-    {
       "old": "ak.open.mimi.command.request_consent",
       "new": "ak.open.mimi.command.request_consent.v1"
     },
@@ -776,10 +772,6 @@
     {
       "old": "ak.self.mls.read.roster_authority",
       "new": "ak.self.mls.read.roster_authority.v1"
-    },
-    {
-      "old": "ak.self.moderation.command.report",
-      "new": "ak.self.moderation.command.report.v1"
     },
     {
       "old": "ak.self.morph.read.list",

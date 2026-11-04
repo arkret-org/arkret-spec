@@ -3345,7 +3345,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/136/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/134/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -3355,7 +3355,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/143/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/141/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -3365,7 +3365,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/145/then/else/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/143/then/else/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -3375,7 +3375,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/150/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/148/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -3385,7 +3385,7 @@
       ]
     },
     {
-      "schema_path": "event-envelope.schema.json#/allOf/151/then/properties/actor_id",
+      "schema_path": "event-envelope.schema.json#/allOf/149/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -4077,26 +4077,6 @@
     {
       "schema_path": "event-payload.schema.json#/$defs/moderation_policy_target/oneOf/6/properties/issuer_id",
       "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/moderation_report_payload/properties/reporter_id",
-      "property_name": "reporter_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/moderation_report_payload/properties/source_provider_id",
-      "property_name": "source_provider_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -5715,26 +5695,6 @@
       ]
     },
     {
-      "schema_path": "mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body/properties/routed_to_ids",
-      "property_name": "routed_to_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "mimi-operations.schema.json#/$defs/mimi_reporter_authority/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "mimi-operations.schema.json#/$defs/mimi_request_consent_request_body/properties/holder_account_id",
       "property_name": "holder_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -5912,56 +5872,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "moderation-evidence.schema.json#/$defs/evidence_package/properties/encrypted_to_kid",
-      "property_name": "encrypted_to_kid",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "moderation-evidence.schema.json#/$defs/evidence_package/properties/recipient_public_key_ref",
-      "property_name": "recipient_public_key_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "moderation-evidence.schema.json#/$defs/franking_proof/properties/received_by",
-      "property_name": "received_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "moderation-evidence.schema.json#/$defs/franking_proof/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "moderation-queue-item.schema.json#/properties/assigned_to_ids",
-      "property_name": "assigned_to_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {
@@ -7395,16 +7305,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody/properties/routed_to_ids",
-      "property_name": "routed_to_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/MorphView/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
@@ -8514,7 +8414,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/119/state_writes/0/state_projection/value_projection/members/3/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/117/state_writes/0/state_projection/value_projection/members/3/name",
       "property_name": "controller_account_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "account",
@@ -8556,7 +8456,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/86/state_writes/1/state_projection/value_projection/members/0/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/85/state_writes/1/state_projection/value_projection/members/0/name",
       "property_name": "controller_actor_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "actor",

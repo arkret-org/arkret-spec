@@ -64,15 +64,6 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `mimi_room_binding`：以 MIMI room URI `payload.mimi_room_uri` 选择一条 MIMI 房间绑定
   （见 [`../extensions/mimi-interop.md` §3](../extensions/mimi-interop.md)）；subject 是外部 room URI
   而**不是** Arkret id——同一 Realm / Strand 可被绑进多个 room，该值是向 MIMI 的投影，从不是 Arkret 侧的真相；
-- `moderation_franking_proof`：以被证明 Event 的 `payload.event_id` 选择一条接收方 franking 证明
-  （见 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md)）；证明独立于任何后续
-  report 产生，因此 `report_id` / `target_ref` 既不是 payload 字段也不进 subject。授权披露后的 closed
-  current 安装与 moderator 举报验证分别执行；普通 baseline 不以举报 UI 或独立存在时间证明为前置；
-- `moderation_report`：以来源举报 Event 自身的 EventId 选择一条已受理的 `ak.self.moderation.report`
-  （见 [`../governance/content-moderation.md` §3.3](../governance/content-moderation.md)）；value 是原封闭
-  report payload，family 不可变。`ak.moderation.decision{decision="dismiss"}` 的 `payload.target_ref` 逐字
-  就是这个 subject，因此驳回按同一 EventId 查询，subject 语法里没有也不需要 retype 步骤；服务面的
-  moderation queue item 是本 family 与 `moderation_state` 的读取侧 View，**不是**本 family 的 value；
 - `consent`：以完整 `payload.peer.actor_id` 选择 holder PCR 唯一许可集合，value 为完整 permissions，empty 保留真实 revision；只有原签 `ak.consent.replace` 全份替换，无独立 ID／status／any。见 [Consent §2](../identity/consent-model.md)。peer 永不可读；
 
 - `moderation_state`：以被裁决对象 `payload.target_ref` 的 canonical string 选择该 target 的

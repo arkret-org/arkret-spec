@@ -727,10 +727,6 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body
     MimiProxyDownloadResponseBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_response_body
-    MimiReportAbuseRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body
-    MimiReportAbuseResponseBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body
     MimiRequestConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body
     MimiRequestConsentResponseBody:
@@ -765,8 +761,6 @@ components:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_response_body
     MlsSelfRosterAuthorityReadResponseBody:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_response_body
-    ModerationReportResponseBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody
     MorphPage:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MorphPage
     OrganizationRegistrationChallenge:
@@ -6775,46 +6769,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsPage'
-  /_arkret/self/moderation/report:
-    post:
-      operationId: ak.self.moderation.command.report
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.moderation.command.report.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1moderation~1report/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1moderation~1report/post/parameters/0/schema
-            values:
-            - ak.self.moderation.command.report.v1
-      description: Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The
-        authenticated session principal must equal both the event.actor_id signing principal and payload.reporter_id.
-        The signed Event realm/scope must equal the accepted target's derived governance scope; absent, invisible
-        and scope-mismatched targets all return not_found. The service forwards exact bytes through authority Event
-        submission and never authors, rebuilds, co-signs or adds preconditions. Exact replay returns the stored
-        submitted outcome; the same Event id with different bytes returns duplicate_conflict. routed_to_ids is omitted
-        unless the caller independently holds moderation/governance capability for the exact scope.
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/moderation-report.schema.json#/$defs/moderation_report_request_body
-      responses:
-        '200':
-          description: Signed moderation report accepted; report_id is retyped from the Event id and status is submitted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ModerationReportResponseBody'
   /_arkret/open/principals/{principal_id}/resolution:
     get:
       operationId: ak.open.identity.read.resolution
@@ -7669,41 +7623,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiIdentifierQueryRequestBody'
-  /_arkret/open/mimi/report-abuse:
-    post:
-      operationId: ak.open.mimi.command.report_abuse
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.open.mimi.command.report_abuse.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1open~1mimi~1report-abuse/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1open~1mimi~1report-abuse/post/parameters/0/schema
-            values:
-            - ak.open.mimi.command.report_abuse.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: MIMI abuse report result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MimiReportAbuseResponseBody'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MimiReportAbuseRequestBody'
   /_arkret/open/mimi/proxy-download:
     post:
       operationId: ak.open.mimi.command.proxy_download

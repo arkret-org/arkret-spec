@@ -183,7 +183,6 @@
                   "submit_message",
                   "consent",
                   "identifier_query",
-                  "report_abuse",
                   "proxy_download"
                 ],
                 "x-arkret-value-ownership": {
@@ -197,7 +196,6 @@
                     "submit_message",
                     "consent",
                     "identifier_query",
-                    "report_abuse",
                     "proxy_download"
                   ]
                 }
@@ -283,7 +281,6 @@
             "submit_message",
             "consent",
             "identifier_query",
-            "report_abuse",
             "proxy_download"
           ],
           "description": "The feature this endpoint serves; the id set is the same closed feature enum, and each endpoint_id appears at most once.",
@@ -298,7 +295,6 @@
               "submit_message",
               "consent",
               "identifier_query",
-              "report_abuse",
               "proxy_download"
             ]
           }

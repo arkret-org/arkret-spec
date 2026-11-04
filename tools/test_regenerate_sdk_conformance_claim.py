@@ -103,7 +103,7 @@ class SdkConformanceClaimRegeneratorTest(unittest.TestCase):
             temp = Path(directory)
             contract_path = temp / "conformance-profiles.json"
             fixture_path = temp / "sdk-conformance-claim-fixture.json"
-            key_path = temp / "franking-proof-transcript-fixture.json"
+            key_path = temp / "sdk-conformance-signing-key-fixture.json"
             contract = copy.deepcopy(self.contract)
             contract["sdk_conformance_contract"]["regenerator_probe"] = "changed"
             contract_path.write_text(json.dumps(contract, indent=2) + "\n", encoding="utf-8", newline="\n")

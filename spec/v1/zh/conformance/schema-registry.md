@@ -150,8 +150,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.device_message.v1` | To-device Message Envelope |
 | `ak.schema.applet_registration_epoch_transcript.v1` | Closed Applet registration epoch security transcript |
 | `ak.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
-| `ak.schema.moderation_report.v1` | Moderation Report |
-| `ak.schema.moderation_queue_item.v1` | Moderation Queue Item |
 
 ## 3. Event Type 设计约束
 
@@ -240,7 +238,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.profile.update` | Actor profile patch |
 | `ak.profile.realm_override` | Realm-scoped profile override |
 | `ak.audit.accessed` | Auditable access |
-| `ak.self.moderation.report` | Moderation report |
 | `ak.session.grant` | Session grant |
 | `ak.device.authorize` | Device authorization |
 | `ak.device.revoke` | Device revocation |

@@ -4862,7 +4862,6 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
     expected_mimi_signature_operations = {
         "ak.open.mimi.command.notify.v1",
         "ak.open.mimi.command.proxy_download.v1",
-        "ak.open.mimi.command.report_abuse.v1",
         "ak.open.mimi.command.request_consent.v1",
         "ak.open.mimi.command.submit_message.v1",
         "ak.open.mimi.command.update_consent.v1",

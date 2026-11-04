@@ -83,7 +83,7 @@ Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 
 | `encryption` | 已登记的加密准入约束；不提供另一套激活模式、父 Realm floor 或密钥继承 |
 | `retention` | 保留与擦除 |
 | `federation` | 联邦准入与传播 |
-| `moderation` | 举报 / 审核 / franking 流程 |
+| `moderation` | 审核与治理决策流程 |
 | `discoverability` | Realm / 对象可发现性 |
 | `join` | 加入规则 |
 | `history_access` | 历史可见性 |
@@ -145,7 +145,7 @@ root；v1 没有第三个 policy family，也不通过随机 `policy_id` 查询�
 
 ### 3.3 Policy 与 capability 决策
 
-Moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
+Moderation policy（审核与治理决策流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
 
 `policy_kind=agent` 的 closed `kind=agent` rule 使用 `agent_target`（all／完整 controller／完整 Agent）和 `agent_operations`（join／authorize／execute／read／deliver），字段、主体匹配、默认自助与跨层取严按 [owned-agent-authority.md](../authz/owned-agent-authority.md)。管理 gate 未设置时不要求普通成员找管理员逐次批准；禁止新增不自动停止已有 Agent，行动禁令持续覆盖指定主人的当前及未来 Agents。用户 grant、selection 或更窄 scope allow 不能覆盖有效禁令；主人直接收权仍允许。
 

@@ -479,7 +479,6 @@ MUST 支持：
 - room policy component 到 Arkret capability / policy state 的映射
 - identifier query 的 private contact discovery
 - consent state isolation
-- E2EE abuse report franking
 - asset privacy policy 下的 proxy / OHTTP 下载策略
 - unsupported draft fail-closed
 
@@ -623,7 +622,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 
 - 多用户共享 Realm
 - 基础目录与推送
-- moderation queue
+- committed moderation decision / lift
 - snapshot / backfill
 
 `ak.profile.organization.v1` MUST cover：
@@ -875,33 +874,6 @@ Applet bridge SHOULD 支持：
 - per-Realm bridge policy
 - Applet health and lag metrics
 
-## 19a. Franking (E2EE Abuse Reporting)
-
-`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Station sync surface / MIMI provider facade / Station）。
-
-参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
-
-MUST 支持：
-
-- 在接收 E2EE Event Envelope 时签发七字段 `ak.moderation.franking_proof` 事件，绑定 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 与 `signature`；不得携带派生 digest、sender claim、proof id 或 payload `kind`。
-- franking proof `signature` 由 service DID 在 `received_at` 有效的 verification method 签发，覆盖 `ak.franking_proof.signature.v1` 唯一 canonical transcript。
-- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证目标 Event 与 proof Event 各自的 producer proof、covering RealmCommit、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event并确认其 exact committed ref；普通发送不得等待后来才生成的可选 franking 证据。仅本地命中不能替代所声明的存在证明。
-- 接收 reporter 提交的 `ak.self.moderation.command.report.v1` 时，把 exact durable franking proof Event 与 report Event 绑定为审计链一部分；不得仅信 reporter 单方声称。
-- franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
-
-MUST NOT：
-
-- 在 franking proof 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Realm policy 显式允许该字段。
-- 用 franking proof 单独证明明文含义——franking proof 只证明"该密文事件被该 service 在该时间收到"。
-- 跨 Realm 复用同一 franking proof（`replay_nonce` 与 `realm_id` 必须进 franking proof 签名）。
-- 在没有有效 service DID 绑定的情况下签发 franking proof。
-
-SHOULD 支持：
-
-- franking proof batch endpoint（一次 fetch 多条 franking proof）以减少 audit traffic。
-- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Realm authority stream 独立，因为 franking proof 不进入 Realm authority commit checkpoint（franking proof 是 service-side audit material，不改变协作状态）。
-- 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
-
 ## 19b. Realtime Media Services
 
 `ak.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
@@ -963,7 +935,6 @@ E2EE profile MUST 额外提供：
 - MLS epoch transition vector
 - encrypted payload vector
 - removed member cannot decrypt vector
-- E2EE franking report vector
 
 Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应向量：
 
@@ -984,13 +955,6 @@ Privacy / security hardening profile MUST 额外覆盖：
 - plaintext-visible service 对私有正文处理的强制拒绝
 - private blob HEAD / Range anti-enumeration
 - blind wakeup push payload 最小披露
-
-Moderation profile MUST 额外覆盖：
-
-- `ak.schema.moderation_report.v1`
-- `ak.schema.moderation_queue_item.v1`
-- `ak.self.moderation.command.report.v1` payload schema validation
-- E2EE evidence package / franking proof 只向授权 moderation recipient 披露
 
 Identity profile MUST 额外提供：
 

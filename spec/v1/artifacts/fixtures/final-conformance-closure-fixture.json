@@ -10,8 +10,6 @@
     "ak.vector.federation.timing_bucket.v1",
     "ak.vector.mls.key_access_revision_key_access_only.v1",
     "ak.vector.mls.proposal_producer_binding.v1",
-    "ak.vector.moderation.franking_roundtrip.v1",
-    "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
     "ak.vector.moderation.review_resolution_fold.v1",
     "ak.vector.relation.reference_projection_indistinguishable.v1"
   ],
@@ -35,9 +33,9 @@
           "id": "key_access_revision_decides_no_authorization_or_membership",
           "requirement": "The revision carries no authorization or membership decision of its own: a membership change with no key-access effect does not move it, a current revision does not authorize a producer who is not a member, and advancing it admits nobody.",
           "evidence": [
-            "/cases/9",
-            "/cases/9/samples/1",
-            "/cases/9/samples/2"
+            "/cases/7",
+            "/cases/7/samples/1",
+            "/cases/7/samples/2"
           ]
         }
       ]
@@ -602,142 +600,6 @@
             "decision": "reject",
             "reason_code": "unsupported_feature",
             "active_epoch_advanced": false
-          }
-        }
-      ]
-    },
-    {
-      "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
-      "assertions": [
-        "target_event_content_commitment_and_signature_verify",
-        "durable_proof_event_and_optional_existence_anchor_verify",
-        "evidence_package_does_not_release_governance_or_mls_secrets",
-        "target_event_tamper_downgrades_proof",
-        "unknown_or_plaintext_fields_rejected"
-      ],
-      "cases": [
-        {
-          "name": "roundtrip_valid",
-          "target_event_content_commitment_matches": true,
-          "franking_signature_matches": true,
-          "durable_proof_event_matches": true,
-          "existence_anchor_valid": true,
-          "unexpected_fields": [],
-          "proof_contains_plaintext_body": false,
-          "evidence_forbidden_secret_fields": [],
-          "expected": {
-            "decision": "verifiable_delivery_proof",
-            "governance_key_released": false
-          }
-        },
-        {
-          "name": "target_event_commitment_mismatch",
-          "target_event_content_commitment_matches": false,
-          "franking_signature_matches": true,
-          "durable_proof_event_matches": true,
-          "existence_anchor_valid": true,
-          "unexpected_fields": [],
-          "proof_contains_plaintext_body": false,
-          "expected": {
-            "decision": "manual_clue_only",
-            "verifiable_delivery_proof": false
-          }
-        },
-        {
-          "name": "unknown_field_violation",
-          "target_event_content_commitment_matches": true,
-          "franking_signature_matches": true,
-          "durable_proof_event_matches": true,
-          "existence_anchor_valid": true,
-          "unexpected_fields": [
-            "unknown_digest_mirror",
-            "unknown_sender_mirror",
-            "unknown_random_identity",
-            "unknown_payload_discriminator"
-          ],
-          "proof_contains_plaintext_body": true,
-          "expected": {
-            "decision": "reject",
-            "reason": "schema_violation"
-          }
-        }
-      ]
-    },
-    {
-      "vector_id": "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
-      "assertions": [
-        "evidence_package_targets_only_reported_events",
-        "recipient_public_key_binding_is_required",
-        "reporter_signature_is_required",
-        "mls_epoch_private_material_is_rejected",
-        "unrelated_plaintext_messages_are_rejected"
-      ],
-      "cases": [
-        {
-          "name": "targeted_encrypted_package_valid",
-          "target_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "plaintext_event_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "reporter_signature_present": true,
-          "included_material": [
-            "encrypted_envelope",
-            "franking_proof",
-            "attachment_digest",
-            "reporter_signature"
-          ],
-          "forbidden_material": [],
-          "expected": {
-            "decision": "accept",
-            "minimal_disclosure": true,
-            "governance_key_released": false
-          }
-        },
-        {
-          "name": "unrelated_message_plaintext_rejected",
-          "target_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "plaintext_event_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg",
-            "ak:event:ASYjb8EUT-Hr0Gmd6-oGuc4dzr88njVzza5tVpUrWBxB"
-          ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "reporter_signature_present": true,
-          "included_material": [
-            "encrypted_envelope",
-            "franking_proof"
-          ],
-          "forbidden_material": [],
-          "expected": {
-            "decision": "reject",
-            "reason": "minimal_disclosure_violation"
-          }
-        },
-        {
-          "name": "recipient_binding_missing_rejected",
-          "target_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "plaintext_event_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixtureotherexample:other.example#key-1",
-          "reporter_signature_present": true,
-          "included_material": [
-            "encrypted_envelope",
-            "franking_proof"
-          ],
-          "forbidden_material": [],
-          "expected": {
-            "decision": "reject",
-            "reason": "evidence_recipient_mismatch"
           }
         }
       ]

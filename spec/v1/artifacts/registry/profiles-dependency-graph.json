@@ -39,7 +39,6 @@
     "ak.profile.enterprise_client.v1",
     "ak.profile.federation_minimal.v1",
     "ak.profile.file_transfer.v1",
-    "ak.profile.franking.v1",
     "ak.profile.full_client.v1",
     "ak.profile.hash.blake3.v1",
     "ak.profile.high_security_organization.v1",

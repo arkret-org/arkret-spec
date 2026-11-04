@@ -265,13 +265,6 @@
       "reason": "complete production provenance role"
     },
     {
-      "field": "received_by",
-      "terminal_categories": [
-        "did_core_id"
-      ],
-      "reason": "complete receipt provenance role"
-    },
-    {
       "field": "removed_by",
       "terminal_categories": [
         "did_core_id"

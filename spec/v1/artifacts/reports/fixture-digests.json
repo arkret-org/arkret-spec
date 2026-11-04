@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "dba24347538f54f7545a4d59693e30d0443ef5bc43f325436e5ffb5b0ce160ef"
+      "sha256": "2e54b36df5b7c5dc41c2c83c0726805e37f30d13b7fcbf5e7b96b7c68df22658"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "22f3e93cde152d13151d7e61d2b62ae3c2e4be2f3f7dfeac541a575450958a26"
+      "sha256": "86066da061a36449d87590b692a4891028127851c630b99780ce572a2a8388ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -246,11 +246,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "d373db0da60415e653ff2a4c9c13ca99079516324a47ffbaea80837054bba408"
-    },
-    {
-      "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
-      "sha256": "7f42a848105177f20ea594fb61eadecddc31782056f7dc9efcde6b4987128c57"
+      "sha256": "0b42c6fd80f4ba51402f545a31366a187089d45b8d97a6e40024975bc986b3ae"
     },
     {
       "path": "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json",

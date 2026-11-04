@@ -41,12 +41,6 @@
       "$ref": "#/$defs/mimi_identifier_query_response_body"
     },
     {
-      "$ref": "#/$defs/mimi_report_abuse_request_body"
-    },
-    {
-      "$ref": "#/$defs/mimi_report_abuse_response_body"
-    },
-    {
       "$ref": "#/$defs/mimi_proxy_download_request_body"
     },
     {
@@ -65,10 +59,6 @@
     },
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
-    },
-    "report_id": {
-      "type": "string",
-      "pattern": "^ak:report:[A-Za-z0-9_-]{44}$"
     },
     "consent_id": {
       "type": "string",
@@ -735,110 +725,6 @@
         },
         "has_more": {
           "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "response_body"
-    },
-    "mimi_report_abuse_request_body": {
-      "type": "object",
-      "description": "Holder-signed MIMI report claim for a service-authored moderation Event. The body carries no provider identity, reporter identity or pre-signed Event mirror: the facade derives them from authenticated transport, reporter_authority and this exact claim.",
-      "required": [
-        "reporter_authority",
-        "report_claim"
-      ],
-      "properties": {
-        "reporter_authority": {
-          "$ref": "#/$defs/mimi_reporter_authority"
-        },
-        "report_claim": {
-          "$ref": "#/$defs/mimi_report_claim"
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_report_claim": {
-      "type": "object",
-      "description": "Exact reporter-signed input to the facade's service-authored ak.self.moderation.report Event. The facade derives reporter_id, provenance and source_provider_id from authenticated authority, never from a body echo.",
-      "required": [
-        "realm_id",
-        "scope_ref",
-        "target_ref",
-        "report_reason_code"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "scope_ref": {
-          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
-        },
-        "target_ref": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/target_ref"
-        },
-        "report_reason_code": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/report_reason_code"
-        },
-        "description": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/description"
-        },
-        "evidence_refs": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/evidence_refs"
-        },
-        "evidence_package": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/evidence_package"
-        },
-        "franking_proof": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/franking_proof"
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_reporter_authority": {
-      "type": "object",
-      "x-arkret-signature-domain": "ak.mimi_reporter_authority_proof.v1",
-      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the complete closed request with only reporter_authority.proof omitted: reporter_authority and report_claim. The verifier resolves the current device or authorized Agent proxy key independently, authenticates the Provider at the transport layer, and verifies both full CommittedEventRefs remain current before the facade service authors an Event; carrier fields never self-authorize.",
-      "required": [
-        "actor_id",
-        "membership_ref",
-        "room_binding_ref",
-        "expires_at",
-        "proof"
-      ],
-      "properties": {
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "membership_ref": {
-          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
-        },
-        "room_binding_ref": {
-          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "proof": {
-          "$ref": "#/$defs/signature"
-        }
-      },
-      "additionalProperties": false
-    },
-    "mimi_report_abuse_response_body": {
-      "type": "object",
-      "required": [
-        "report_id"
-      ],
-      "properties": {
-        "report_id": {
-          "$ref": "#/$defs/report_id"
-        },
-        "routed_to_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did_core_id"
-          },
-          "uniqueItems": true
         }
       },
       "additionalProperties": false,

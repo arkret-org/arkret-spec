@@ -1572,15 +1572,6 @@
       "status": "active"
     },
     {
-      "code": "franking_proof_unavailable",
-      "http_status": 503,
-      "scope": "both",
-      "description": "E2EE franking proof cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4.",
-      "type_uri": "https://arkret.org/problems/franking_proof_unavailable",
-      "title": "Franking proof unavailable",
-      "status": "active"
-    },
-    {
       "code": "turn_credential_expired",
       "http_status": 401,
       "scope": "endpoint",
@@ -2531,19 +2522,6 @@
       "status": "active"
     },
     {
-      "code": "mimi_reporter_resolution_required",
-      "http_status": 403,
-      "scope": "endpoint",
-      "description": "MIMI reporter resolution is required before this action.",
-      "type_uri": "https://arkret.org/problems/mimi_reporter_resolution_required",
-      "title": "Mimi reporter resolution required",
-      "status": "reserved",
-      "applies_to": [
-        "endpoint"
-      ],
-      "activation_condition": "Promote mimi_reporter_resolution_required to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
       "code": "peer_state_stale_unavailable",
       "http_status": 503,
       "scope": "service_call",
@@ -2555,19 +2533,6 @@
         "service_call"
       ],
       "activation_condition": "Promote peer_state_stale_unavailable to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
-      "code": "franking_tampered",
-      "http_status": 400,
-      "scope": "endpoint",
-      "description": "The franking tag is tampered or does not verify.",
-      "type_uri": "https://arkret.org/problems/franking_tampered",
-      "title": "Franking tampered",
-      "status": "reserved",
-      "applies_to": [
-        "endpoint"
-      ],
-      "activation_condition": "Promote franking_tampered to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
       "code": "mls_keypackage_claim_request_expired",
@@ -3713,15 +3678,6 @@
       "status": "active"
     },
     {
-      "code": "evidence_recipient_mismatch",
-      "applies_to": [
-        "moderation_decision",
-        "moderation_report"
-      ],
-      "description": "A moderation evidence package's encrypted_to recipient does not match the declared recipient_public_key_ref binding. The submission MUST reject. See governance/content-moderation.md.",
-      "status": "active"
-    },
-    {
       "code": "external_rate_limited",
       "applies_to": [
         "service_call"
@@ -3869,22 +3825,6 @@
       "status": "active"
     },
     {
-      "code": "harassment",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: harassment.",
-      "status": "active"
-    },
-    {
-      "code": "hate_speech",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: hate speech / targeted attacks against a protected group.",
-      "status": "active"
-    },
-    {
       "code": "human_approval_required",
       "applies_to": [
         "auth_decision",
@@ -3935,14 +3875,6 @@
         "auth_decision"
       ],
       "description": "Submitted method_history_evidence fails independent verification: broken inception/current hash chain, SCID mismatch, invalid controller proof, unmet witness threshold, or stale evidence. An Applet-managed principal MUST carry a complete webvh_log; did:web snapshots, did:key expansion and service attestation are not substitutes. See zh/extensions/applet-integration.md.",
-      "status": "active"
-    },
-    {
-      "code": "illegal",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: content alleged to violate applicable law (CSAM, threats, IP infringement, etc.).",
       "status": "active"
     },
     {
@@ -4320,29 +4252,12 @@
       "status": "active"
     },
     {
-      "code": "minimal_disclosure_violation",
-      "applies_to": [
-        "moderation_decision",
-        "moderation_report"
-      ],
-      "description": "A moderation evidence package discloses material beyond the minimal-disclosure obligation (for example unrelated plaintext message bodies or MLS private state). The evidence submission MUST reject. See governance/content-moderation.md.",
-      "status": "active"
-    },
-    {
       "code": "routing_unlinkability_presign_forbidden",
       "applies_to": [
         "authz",
         "service_call"
       ],
       "description": "A presigned blob URL was requested for a Realm whose asset policy declares routing_unlinkability_required=true. The service MUST deny presign and require an authenticated proxy, OHTTP relay, or equivalent non-bearer direct download path.",
-      "status": "active"
-    },
-    {
-      "code": "misinformation",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: misleading / false information posing harm.",
       "status": "active"
     },
     {
@@ -4435,14 +4350,6 @@
       "activation_condition": "Promote no_strand_track_message_grant to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
-      "code": "nsfw",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: not-safe-for-work / explicit adult content posted outside permitted contexts.",
-      "status": "active"
-    },
-    {
       "code": "object_id_not_event_derived",
       "applies_to": [
         "event_envelope"
@@ -4466,14 +4373,6 @@
         "device_recovery"
       ],
       "description": "Recovery-session `rejection_reason_code` value: an operator / admin surface explicitly rejected the session. Closed value set defined in artifacts/schemas/recovery-session.schema.json; completion ownership is defined in zh/identity/security-transactions.md §2.",
-      "status": "active"
-    },
-    {
-      "code": "other",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: catch-all for reports that do not fit the named categories. MUST be accompanied by a free-text `description` field. See zh/governance/content-moderation.md §3.2.",
       "status": "active"
     },
     {
@@ -5548,14 +5447,6 @@
         "auth_decision"
       ],
       "description": "A verified canonical Space parent or Board/List/Strand placement crosses actual Realm identities. Reject with failed_precondition after target readability and evidence checks; no profile exception or automatic Realm rewrite.",
-      "status": "active"
-    },
-    {
-      "code": "spam",
-      "applies_to": [
-        "moderation_report"
-      ],
-      "description": "Standard moderation reason: spam content.",
       "status": "active"
     },
     {

@@ -250,8 +250,6 @@ from .account_status_replica import (
 )
 from .account_status_issuer import check_account_status_issuer_genesis
 
-from .franking_transcript import check_franking_proof_transcript
-
 from .recovery_transcripts import (
     check_recovery_transcript_closure,
     check_registered_context_schema_duplicates,
@@ -773,10 +771,6 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "mls_keypackage_actor_ciphersuite_closure",
                 lambda: check_mls_keypackage_actor_ciphersuite_closure(lint),
-            ),
-            (
-                "franking_proof_transcript",
-                lambda: check_franking_proof_transcript(lint),
             ),
             (
                 "declared_schema_fixture_instances",

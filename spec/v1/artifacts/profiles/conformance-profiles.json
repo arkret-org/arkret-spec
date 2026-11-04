@@ -1439,7 +1439,6 @@
     "ak.profile.membership_join_compensation.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.sovereign_client.v1",
-    "ak.profile.franking.v1",
     "ak.profile.webrtc_media.v1",
     "ak.profile.circle_conformance.v1",
     "ak.profile.personal_productivity.v1",
@@ -1474,7 +1473,6 @@
       "ak.profile.push_gateway.visible_notification.v1",
       "ak.profile.push_gateway.matrix_passthrough.v1",
       "ak.profile.sovereign_client.v1",
-      "ak.profile.franking.v1",
       "ak.profile.webrtc_media.v1",
       "ak.profile.circle_conformance.v1"
     ],
@@ -1597,7 +1595,6 @@
     "ak.profile.direct_conversation_repair.v1": "server",
     "ak.profile.membership_join_compensation.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
-    "ak.profile.franking.v1": "server",
     "ak.profile.webrtc_media.v1": "gateway",
     "ak.profile.circle_conformance.v1": "interop",
     "ak.profile.personal_node.v1": "admin",
@@ -1640,8 +1637,7 @@
     "policy_decision_exchange"
   ],
   "e2ee_hardening": [
-    "keypackage_claim_lifecycle",
-    "e2ee_report_framed_franking"
+    "keypackage_claim_lifecycle"
   ],
   "privacy_hardening": [
     "asset_download_privacy_policy",
@@ -1658,7 +1654,6 @@
     "room_policy_mapping",
     "identifier_query_privacy",
     "consent_isolation",
-    "e2ee_franking_report",
     "proxy_download_policy",
     "unsupported_draft_fail_closed"
   ],
@@ -4896,8 +4891,7 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "proxy_download_policy",
-        "e2ee_franking_report"
+        "proxy_download_policy"
       ],
       "feature_discovery": {
         "required": [
@@ -5090,48 +5084,6 @@
       "additional_requirements": {
         "canonical_boundary_flow_must": "Main/enclave Realm, invite, membership and Event flows MUST use the registered canonical Event and operation surfaces. Deployment-local export/import review, malware scanning, declassification, watermarking and boundary audit records are not Arkret wire state and MUST NOT be advertised as interoperable features.",
         "live_claim_gate_must": "ServiceDescribe MUST omit this profile unless live tests use two Station processes with independent databases and cover restart on both sides, disconnection and durable recovery, external-member join/leave/ban, and closed/restricted/quarantine enforcement on ingress, destination selection and fanout. In-memory maps, fixture Realm ids, repeated seeding and private endpoints are not conformance evidence."
-      }
-    },
-    "ak.profile.franking.v1": {
-      "enforcement_phases": [
-        "conformance",
-        "startup_claim_guard"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.account.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "required_event_kinds": [
-        "ak.moderation.franking_proof",
-        "ak.self.moderation.report"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.moderation_evidence.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [
-        "frank_batch_endpoint"
-      ],
-      "feature_discovery": {
-        "required": [
-          "service_id",
-          "frank_signature_alg",
-          "frank_canonical_fields"
-        ],
-        "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
       }
     },
     "ak.profile.webrtc_media.v1": {
@@ -5526,8 +5478,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.policy.v1",
-        "ak.schema.handle_claim.v1",
-        "ak.schema.moderation_report.v1"
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -5591,7 +5542,6 @@
       "required_schemas": [
         "ak.schema.realm_state_snapshot.v1",
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.moderation_queue_item.v1",
         "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [

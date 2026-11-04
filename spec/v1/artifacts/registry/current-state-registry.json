@@ -517,28 +517,6 @@
       }
     },
     {
-      "state_kind": "moderation_franking_proof",
-      "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_franking_proof",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "governance/content-moderation.md §3.4"
-        ],
-        "note": "Validating an E2EE abuse report's evidence package reads the franking proof."
-      }
-    },
-    {
-      "state_kind": "moderation_report",
-      "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_report",
-      "consumption": {
-        "class": "delivery_input",
-        "consumed_by": [
-          "governance/content-moderation.md §3.3"
-        ],
-        "note": "The moderation queue View returns the accepted report and folds its two-state status from this family plus the dismiss records in moderation_state."
-      }
-    },
-    {
       "state_kind": "agent_selector_claim",
       "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_selector_claim",
       "consumption": {

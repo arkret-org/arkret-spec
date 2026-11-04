@@ -552,46 +552,6 @@
         }
       ]
     },
-    "moderation_queue_item": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "moderation-queue-item.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "moderation_queue_item.evidence_policy": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "moderation-queue-item.schema.json",
-          "instance_pointer": "/evidence_policy",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "moderation_queue_item.visibility": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "moderation-queue-item.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "moderation_report_payload": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "event-payload.schema.json#/$defs/moderation_report_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "morph_payload": {
       "selectors": [
         {
@@ -1361,24 +1321,6 @@
         "kind": "prefix",
         "values": [
           "ak:devmsg:"
-        ]
-      }
-    },
-    {
-      "id": "ak:modq:",
-      "context": "typed_id_prefix",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "ak:moderation_queue_item:",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Abbreviated typed ID prefixes are not valid v1 wire.",
-      "match": {
-        "kind": "prefix",
-        "values": [
-          "ak:modq:"
         ]
       }
     },
@@ -2768,61 +2710,6 @@
       }
     },
     {
-      "id": "frank",
-      "context": "moderation_report_payload",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Moderation report proof object uses franking_proof.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "frank"
-        ]
-      }
-    },
-    {
-      "id": "frank_only",
-      "context": "moderation_queue_item.visibility",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof_only",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Moderation visibility enum values use the full franking_proof noun.",
-      "match": {
-        "kind": "value",
-        "values": [
-          "frank_only"
-        ],
-        "value_pointer": "/visibility"
-      }
-    },
-    {
-      "id": "frank_unavailable",
-      "context": "error_code",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof_unavailable",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Error code uses the full franking_proof noun.",
-      "match": {
-        "kind": "value",
-        "values": [
-          "frank_unavailable"
-        ]
-      }
-    },
-    {
       "id": "from_tree_size",
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-07-26",
@@ -3939,24 +3826,6 @@
       }
     },
     {
-      "id": "queue_item_id",
-      "context": "moderation_queue_item",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Moderation queue item's own typed identifier uses the common id field.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "queue_item_id"
-        ]
-      }
-    },
-    {
       "id": "quorum_size",
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-07-26",
@@ -4300,42 +4169,6 @@
       }
     },
     {
-      "id": "requires_frank_verification",
-      "context": "moderation_queue_item.evidence_policy",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof_verification_required",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Moderation evidence policy fields use the full franking_proof noun.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "requires_frank_verification"
-        ]
-      }
-    },
-    {
-      "id": "requires_franking_proof_verification",
-      "context": "all_arkret_owned_wire_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "franking_proof_verification_required",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current v1 readers and reducers MUST reject this unregistered spelling.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "requires_franking_proof_verification"
-        ]
-      }
-    },
-    {
       "id": "requires_fresh_authentication",
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-08-14",
@@ -4440,24 +4273,6 @@
         "kind": "field",
         "values": [
           "retention_policy"
-        ]
-      }
-    },
-    {
-      "id": "retention_until",
-      "context": "moderation_queue_item.evidence_policy",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "retention_expires_at",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Retention time upper bounds use the canonical expires_at suffix.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "retention_until"
         ]
       }
     },

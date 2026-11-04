@@ -94,22 +94,6 @@ class ProofContextClosureLintTest(unittest.TestCase):
         foundation.check_proof_context_registry(lint)
         self.assertEqual(lint.errors, [])
 
-    def test_local_directory_proof_cannot_move_back_to_contexts(self) -> None:
-        def move_to_contexts(document) -> None:
-            row = self._domain_row(
-                document, "ak.mimi_reporter_authority_proof.v1"
-            )
-            document["domain_separations"].remove(row)
-            moved = copy.deepcopy(row)
-            moved["context"] = moved.pop("domain")
-            moved.pop("primitive")
-            moved.pop("transcript_schema_refs")
-            moved.pop("injected_fields")
-            document["contexts"].append(moved)
-
-        errors = self._run_with_mutations({REGISTRY: move_to_contexts})
-        self.assertAnyContains(errors, "local proof leaves belong in domain_separations[]")
-
     def test_domain_separation_binding_field_must_match_schema(self) -> None:
         def drift(document) -> None:
             row = self._domain_row(
@@ -134,18 +118,6 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations({REGISTRY: drift})
         self.assertAnyContains(errors, "binding_fields names ['delegation_ref']")
         self.assertAnyContains(errors, "binding_fields names ['issuer']")
-
-    def test_outer_binding_field_requires_explicit_injection(self) -> None:
-        def drop_injection(document) -> None:
-            row = self._domain_row(
-                document, "ak.mimi_reporter_authority_proof.v1"
-            )
-            row["injected_fields"] = [
-                entry for entry in row["injected_fields"] if entry["field"] != "issuer"
-            ]
-
-        errors = self._run_with_mutations({REGISTRY: drop_injection})
-        self.assertAnyContains(errors, "declare injected_fields sources")
 
     def test_unregistered_use_point_family_fails(self) -> None:
         """The MIMI provider directory state: a whole object family with no row."""

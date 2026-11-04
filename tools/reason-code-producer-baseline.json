@@ -3,11 +3,6 @@
   "unreferenced_reason_codes": [],
   "removed_reason_codes": [
     {
-      "code": "abuse_cluster",
-      "ruling": "2026-09-04-2130",
-      "why": "v1 举报队列两态，明文禁止中间态（content-moderation.md:209-220）；“clustered”语义由 require_review 承载。"
-    },
-    {
       "code": "attestation_missing",
       "ruling": "0032 product-owned account recovery minimal protocol",
       "why": "Named recipient_method=hardware_wrapped_key, which is not a v1 enum value, and trusted_recovery_service.attestation_required, which ruling 0032 deleted together with the hardware attestation framework. No v1 carrier can raise it."

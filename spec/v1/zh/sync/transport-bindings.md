@@ -102,7 +102,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |
 | `ak.edge.push.command.notify.v1` | 投递脱敏唤醒。 |
 | `ak.self.authz.read.check.v1` | 检查 capability / policy 是否允许动作。 |
-| `ak.self.moderation.command.report.v1` | 提交 direct-holder signed `ak.self.moderation.report` Event；服务端只做 exact validate-and-forward，不代签或重建举报。 |
 | `ak.edge.applet.command.transaction.v1` | 向 Applet 推送事件批次。 |
 | `ak.edge.applet.read.describe.v1` | 查询 Applet profile、namespace 与限制。 |
 | `ak.self.device_messages.command.send.v1` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |

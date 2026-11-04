@@ -642,11 +642,6 @@
       "fragment": "81-account-跨站私有审计材料读取normative"
     },
     {
-      "page": "governance/content-moderation.md",
-      "heading": "3.1.1 举报入口反滥用约束（normative）",
-      "fragment": "311-举报入口反滥用约束normative"
-    },
-    {
       "page": "governance/history-visibility.md",
       "heading": "3.1 floor 必须可验证（normative）",
       "fragment": "31-floor-必须可验证normative"

@@ -246,8 +246,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "source_capability": "parent_grant_id",
     "parent_space_refs": "membership_source_realm_refs",
     "parent_realm_id": "source_realm_id",
-    "frank": "franking_proof",
-    "requires_frank_verification": "franking_proof_verification_required",
     "retention_until": "retention_expires_at",
     "queue_item_id": "id",
     "series_seq": "series_sequence",

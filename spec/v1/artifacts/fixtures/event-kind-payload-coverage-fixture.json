@@ -9,7 +9,6 @@
       "schemas/invite-receive-policy.schema.json",
       "schemas/accountability-grant.schema.json",
       "schemas/agent-provision.schema.json",
-      "schemas/moderation-evidence.schema.json",
       "schemas/read-cursor.schema.json"
     ]
   },
@@ -229,30 +228,6 @@
       "instance": {
         "target_ref": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "patch": []
-      }
-    },
-    {
-      "name": "moderation_franking_proof_accepts_canonical_proof",
-      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
-      "expect_valid": true,
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-        "received_by": "ak:did_core:webvh:z6mkfixturesyncexample",
-        "verification_method": "did:webvh:z6mkfixturesyncexample:sync.example#franking-key-1",
-        "received_at": "2026-08-01T00:00:00.000Z",
-        "replay_nonce": "fixture-nonce-0001",
-        "signature": "c2lnbmF0dXJl"
-      }
-    },
-    {
-      "name": "moderation_franking_proof_rejects_report_subject_aliases",
-      "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
-      "expect_valid": false,
-      "first_expected_error": "$: 'realm_id' is a required property",
-      "instance": {
-        "report_id": "ak:report:ATAqsVFFwxiA6K_flXOCz1_jv_uczcCC90q5dqT7DLm3",
-        "target_ref": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
       }
     },
     {

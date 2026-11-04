@@ -4079,7 +4079,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|realm_invite_link|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -7010,7 +7010,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes a keyed_set_add effect onto the moderation_state current state whose subject is the canonical string of target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
+      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes a keyed_set_add effect onto the moderation_state current state whose subject is the canonical string of target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
       "required": [
         "target_ref",
         "decision",
@@ -7027,10 +7027,9 @@
           "enum": [
             "hard_deny",
             "quarantine",
-            "require_review",
-            "dismiss"
+            "require_review"
           ],
-          "description": "committed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes.",
+          "description": "Committed moderation-state decision verb. allow and soft_deny are out-of-band runtime outcomes.",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
             "authority": "event-payload.schema.json#/$defs/moderation_decision_payload/properties/decision",
@@ -7038,8 +7037,7 @@
             "values": [
               "hard_deny",
               "quarantine",
-              "require_review",
-              "dismiss"
+              "require_review"
             ]
           }
         },
@@ -7098,154 +7096,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "moderation_report_payload": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "target_ref",
-        "report_reason_code",
-        "reporter_id"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "description": "Governance boundary for the report. Defaults to the Realm scope when absent; Circle-scoped targets MUST resolve to the target Circle and route only to scoped moderators/admins."
-        },
-        "target_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "report_reason_code": {
-          "type": "string",
-          "enum": [
-            "spam",
-            "harassment",
-            "hate_speech",
-            "nsfw",
-            "illegal",
-            "misinformation",
-            "other"
-          ],
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/moderation_report_payload/properties/report_reason_code",
-            "owner": "event-payload.schema.json#/$defs/moderation_report_payload/properties/report_reason_code",
-            "values": [
-              "spam",
-              "harassment",
-              "hate_speech",
-              "nsfw",
-              "illegal",
-              "misinformation",
-              "other"
-            ]
-          }
-        },
-        "description": {
-          "$ref": "string-profiles.schema.json#/$defs/short_text",
-          "maxLength": 4096
-        },
-        "reporter_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "provenance": {
-          "type": "string",
-          "enum": [
-            "self",
-            "mimi_facade"
-          ],
-          "description": "Delivery provenance. Absent or \"self\" is a native self-authored report. \"mimi_facade\" is a service-attested report authored by the authorized receiving facade service after authenticating the source Provider and the reporter's claim and current authority. The facade never writes the reporter Actor as Event actor; source_provider_id is required only for mimi_facade.",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "event-payload.schema.json#/$defs/moderation_report_payload/properties/provenance",
-            "owner": "event-payload.schema.json#/$defs/moderation_report_payload/properties/provenance",
-            "values": [
-              "self",
-              "mimi_facade"
-            ]
-          }
-        },
-        "source_provider_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Origin MIMI provider's service DID for a facade-mapped report. Required exactly when provenance is \"mimi_facade\"; forbidden otherwise."
-        },
-        "evidence_refs": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/object_ref"
-          }
-        },
-        "evidence_package": {
-          "$ref": "./moderation-evidence.schema.json#/$defs/evidence_package"
-        },
-        "franking_proof": {
-          "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "provenance": {
-                "const": "mimi_facade",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "event-payload.schema.json#/$defs/moderation_report_payload/allOf/0/if/properties/provenance",
-                  "owner": "event-payload.schema.json#/$defs/moderation_report_payload/allOf/0/if/properties/provenance",
-                  "values": [
-                    "mimi_facade"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "provenance"
-            ]
-          },
-          "then": {
-            "required": [
-              "source_provider_id"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "source_provider_id"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "report_reason_code": {
-                "const": "other",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "event-payload.schema.json#/$defs/moderation_report_payload/allOf/1/if/properties/report_reason_code",
-                  "owner": "event-payload.schema.json#/$defs/moderation_report_payload/allOf/1/if/properties/report_reason_code",
-                  "values": [
-                    "other"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "report_reason_code"
-            ]
-          },
-          "then": {
-            "required": [
-              "description"
-            ]
-          }
-        }
-      ]
     },
     "morph_create_payload": {
       "type": "object",
@@ -7469,7 +7319,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|realm_invite_link|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",

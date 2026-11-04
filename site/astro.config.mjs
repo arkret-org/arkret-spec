@@ -346,7 +346,6 @@ document.addEventListener("astro:after-swap", boot);
                 "webrtc-signaling",
                 "media-service-binding",
                 "call-state",
-                "audited-e2ee",
               ]),
             },
             {

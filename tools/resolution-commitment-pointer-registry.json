@@ -48,12 +48,12 @@
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/25/complete_wire_event/payload/object/initial_resolution",
+      "pointer": "/cases/24/complete_wire_event/payload/object/initial_resolution",
       "evidence_id": "human_pcr"
     },
     {
       "fixture": "content-bound-event-id-fixture.json",
-      "pointer": "/cases/25/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
+      "pointer": "/cases/24/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution",
       "evidence_id": "human_pcr"
     },
     {

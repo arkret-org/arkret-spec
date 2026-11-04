@@ -32,7 +32,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("holder-quarantine.schema.json", "quarantine_entry", ("status",)),
             ("mimi-operations.schema.json", "mimi_request_consent_response_body", ("status",)),
             ("mimi-operations.schema.json", "mimi_update_consent_response_body", ("status",)),
-            ("mimi-operations.schema.json", "mimi_report_abuse_response_body", ("status",)),
             ("principal-locator.schema.json", "invite_locator_revoke_response_body", ("status",)),
             ("recovery-session.schema.json", "recovery_session_proof_submit_response_body", ("state", "verification")),
         ]
@@ -44,7 +43,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
         definitions = load("service-operation-dtos.schema.json")["$defs"]
         retained = [
             ("SessionGrantReplayExpiredProblemExtensions", "state", "expired"),
-            ("ModerationReportResponseBody", "status", "submitted"),
             ("DeviceMessageDeliveredEntry", "status", "delivered"),
             ("DeviceMessageUnknownEntry", "status", "unknown"),
         ]

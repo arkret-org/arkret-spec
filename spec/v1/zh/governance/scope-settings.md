@@ -112,8 +112,8 @@ presign 的 hold 检查、强一致回查及拒绝继续按 Blob 专章；不能
 缩略图、preview、转码、搜索文本、embedding 与通知摘要仍须随真实源的撤回／擦除重新裁剪、删除或最小化；
 已有 hold 覆盖的保留材料不得因该普通披露失效被物理删除，也不得反向恢复普通访问。
 
-现有 moderation queue 的 `retention_expires_at` / `legal_hold` 是本 Station 保留元数据，
-不是 canonical moderation decision，不能改写其它 Station 的决定或授权，见 [审核 §3.3](./content-moderation.md)。
+部署本地的 `retention_expires_at` / `legal_hold` 是本 Station 保留元数据，
+不是 canonical moderation decision，不能改写其它 Station 的决定或授权，见 [审核 §2.6](./content-moderation.md#26-moderation-决策-must-committed)。
 Realm terminal、GC 与 erasure receipt 仍按 [Realm §2.6](../models/realm-and-space.md)区分；
 terminal 不自动擦除，hold 可以阻止适用的物理删除，receipt 必须如实记录结果。
 
@@ -141,7 +141,7 @@ acknowledgement 只确认接收，不证明物理删除完成；完成或阻断�
 失败或部分完成 MUST 使用该操作已有的结果合同如实表达；本节不增加统一错误、成功回执或新的查询服务。
 hold 解除不恢复内容可见性，后续清理由原流程重新判断资格，不新增自动解除或期限重置业务。
 
-已登记 Blob hold、本地 moderation queue 保留元数据、擦除回执与专用读取／presign／删除检查继续生效。
+已登记 Blob hold、部署本地保留元数据、擦除回执与专用读取／presign／删除检查继续生效。
 不能用“未定义通用 hold”忽略已覆盖目标的禁止删除或强一致检查；也 MUST NOT 由部署私有字段、
 Space 子树、裸 Realm ID 或未认证配置伪造新的 Arkret current、跨 scope 权力或成功结果。
 任何未来新增业务须另行正式定义，不得通过本节或现有扩展成员自行发布为 current-v1 支持。

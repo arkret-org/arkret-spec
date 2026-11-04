@@ -255,7 +255,6 @@ grpc:
       Notify: ak.open.mimi.command.notify.v1
       ProviderDirectory: ak.open.mimi.read.provider_directory.v1
       ProxyDownload: ak.open.mimi.command.proxy_download.v1
-      ReportAbuse: ak.open.mimi.command.report_abuse.v1
       RequestConsent: ak.open.mimi.command.request_consent.v1
       RoomUpdate: ak.open.mimi.command.update_room.v1
       SubmitMessage: ak.open.mimi.command.submit_message.v1
@@ -280,8 +279,6 @@ grpc:
       Issue: ak.self.invite_locator.command.issue.v1
       Rotate: ak.self.invite_locator.command.rotate.v1
       Revoke: ak.self.invite_locator.command.revoke.v1
-    SelfModeration:
-      Report: ak.self.moderation.command.report.v1
     SelfSpace:
       List: ak.self.space.read.list.v1
     SelfStrand:
@@ -450,7 +447,6 @@ mq:
     self.keys.backups.command.unlock: ak.self.keys.backups.command.unlock.v1
     self.keys.backups.command.issue_delete_challenge: ak.self.keys.backups.command.issue_delete_challenge.v1
     self.keys.backups.resource.delete: ak.self.keys.backups.resource.delete.v1
-    self.moderation.command.report: ak.self.moderation.command.report.v1
     self.space.query.list: ak.self.space.read.list.v1
     self.strand.query.list: ak.self.strand.read.list.v1
     peer.strand.watch.query.current: ak.peer.strand.watch.read.current.v1
@@ -467,7 +463,6 @@ mq:
     open.mimi.command.request_consent: ak.open.mimi.command.request_consent.v1
     open.mimi.command.update_consent: ak.open.mimi.command.update_consent.v1
     open.mimi.query.identifiers: ak.open.mimi.read.identifiers.v1
-    open.mimi.command.report_abuse: ak.open.mimi.command.report_abuse.v1
     open.mimi.command.proxy_download: ak.open.mimi.command.proxy_download.v1
     open.invite_locator.query.resolve: ak.open.invite_locator.read.resolve.v1
     open.agent_pairing.query.resolve: ak.open.agent_pairing.read.resolve.v1

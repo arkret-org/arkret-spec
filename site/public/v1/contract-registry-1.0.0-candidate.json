@@ -455,7 +455,7 @@
     "admission_class_definitions": {
       "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
-      "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
+      "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch and key material) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
       "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create carrying both executed_by and authorization_ref. A purpose=principal_control create carrying only one of the two matches no variant and is denied with zero writes. For purpose=agent_control the immutable accepted controller-authored ak.agent.provision is resolved by its whole-value claim of retype(this EventId, realm); the genesis MUST NOT carry a backward agent_provision ref, which would create an EventId cycle. The verifier cross-binds the complete actor/controller AccountIds, PCR delegation and provision payload before materializing Agent status. An explicitly organization-governed purpose=principal_control branch proves its separate accepted organization authority. A self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
       "registration_anchor": "Admitted only for self-principal PCR genesis: a purpose=principal_control ak.realm.create carrying neither executed_by nor authorization_ref. The create carries no DID-inception Event reference, because DID inception is method-native material and not an Arkret Event. Registration-time DID control evidence is the frozen typed principal_registration_anchor carried by the genesis submission: the verifier rebuilds the registration-time DID, terminal version / history head, normalized DID Document and then-active update key from that one anchor, recomputes SHA-256 over its RFC 8785 JCS bytes and requires the result to equal the identity creation control proof registration_anchor_digest. It validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant. The selector only routes to this verifier and proves no authorization: a create that reaches it without the complete ordered genesis unit, anchor and accepted receipt closure is still rejected with zero writes.",
@@ -888,7 +888,7 @@
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current state by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current state the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-      "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 129 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+      "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 124 of the 127 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
       "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed effect_ownership object. A typed_state_writer owns non-empty state_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no current-state write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/state_writes[] fail tools/artifact_lint:effect_ownership.",
       "transition_contracts declares the lifecycle axis of a current state family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition state_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
       "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
@@ -4076,7 +4076,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/moderation_state_value",
-            "notes": "governance/content-moderation.md section 5.3 keys the set per moderated target and moderation_decision_payload already names the canonical string of target_ref as the subject. The element tag is the canonical <event_id>:<write_index> dot and NEVER a payload composite -- models/common-fields.md section 2 is the sole source of that join -- so issuer_id, request_canonical_digest, effective_at and expires_at all live in the element value and none of them enters set identity. The element value is the complete payload, unassembled. The active-record filter and the hard_deny > quarantine > require_review > none fold, and dismiss folding to none, are read-side folds of that section and MUST NOT become a second stored state."
+            "notes": "governance/content-moderation.md section 5.3 keys the set per moderated target and moderation_decision_payload already names the canonical string of target_ref as the subject. The element tag is the canonical <event_id>:<write_index> dot and NEVER a payload composite -- models/common-fields.md section 2 is the sole source of that join -- so issuer_id, request_canonical_digest, effective_at and expires_at all live in the element value and none of them enters set identity. The element value is the complete payload, unassembled. The active-record filter and the hard_deny > quarantine > require_review > none fold are read-side folds of that section and MUST NOT become a second stored state."
           }
         ],
         "effect_ownership": {
@@ -4115,38 +4115,6 @@
             "notes": "The lift is one more asserted element, not a removal. models/common-fields.md section 2 says every Event of a keyed-set family MUST keyed_set_add and that revocation MUST be expressed as another assertion, and reserves keyed_set_remove_observed / keyed_set_remove_dots for same-writer explicitly named sets that carry no concurrent assertion semantics -- which moderation_state is not, because content-moderation.md section 5.3 has several issuers' records active at once. Deleting the decision dot would drop one side of a concurrent (decision, lift) pair and leave the audit view unrebuildable. payload.decision_ref names which prior decision the fold must stop honouring; the reducer resolves it, the projection does not erase it. payload.expected_revision is a staleness guard on this result's revision; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
           }
         ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.moderation.franking_proof",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "crypto_verifiable",
-        "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the moderation_franking_proof current state subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
-        "payload_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
-        "state_writes": [
-          {
-            "state_family": "moderation_franking_proof",
-            "state_selector": {
-              "kind": "id:event",
-              "field": "payload.event_id"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            },
-            "value_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
-            "notes": "governance/content-moderation.md section 6 defines the proof and the payload def already asserted this family and payload.event_id as its subject. The payload is the closed franking_proof object itself, so the projection is the identity on it. One proof per proven Event is the whole family: a proof is created independently of any later report, which is why report_id and target_ref are neither payload fields nor part of the subject."
-          }
-        ],
-        "id_source": "reference",
         "effect_ownership": {
           "kind": "typed_state_writer"
         }
@@ -7415,56 +7383,6 @@
           }
         ],
         "id_source": "not_an_object_id",
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.self.moderation.report",
-        "category": "moderation",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "conditional",
-        "admission_variants": [
-          {
-            "when": {
-              "payload_path": "provenance",
-              "const": "mimi_facade"
-            },
-            "admission": "service_attested"
-          },
-          {
-            "when": {
-              "otherwise": true
-            },
-            "admission": "self_authored_proof"
-          }
-        ],
-        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 11 reporter_authority rules, payload.source_provider_id carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal. One accepted Event derives exactly one report and one moderation_queue_item; their full typed IDs differ although both retype the same complete event_id token.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
-        "id_source": "event_derived",
-        "id_kinds": [
-          "report",
-          "moderation_queue_item"
-        ],
-        "state_writes": [
-          {
-            "state_family": "moderation_report",
-            "state_selector": {
-              "kind": "id:event"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            },
-            "value_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
-            "notes": "governance/content-moderation.md section 3.3 makes the accepted report itself the canonical fact. The subject is this Event's own id retyped to an EventId, which is exactly the value ak.moderation.decision carries in payload.target_ref when decision=dismiss, so dismiss names the report by the id it already has and no retype step is added to the subject grammar. The value is the complete report payload, unassembled; the two-state queue item is a read-side View folded from this family plus the dismiss records in moderation_state, and MUST NOT become a second stored state. moderation-queue-item.schema.json stays a service response shape and is NOT this family's value: its visibility / evidence_policy / priority / assigned_to_ids members are read-side derivations and local workflow, enumerated in the same section."
-          }
-        ],
         "effect_ownership": {
           "kind": "typed_state_writer"
         }
@@ -11246,23 +11164,6 @@
         "description": "Producer-signed recipient Welcome delivery."
       },
       {
-        "schema_id": "ak.schema.moderation_evidence.v1",
-        "file": "schemas/moderation-evidence.schema.json"
-      },
-      {
-        "schema_id": "ak.schema.moderation_queue_item.v1",
-        "file": "schemas/moderation-queue-item.schema.json",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "moderation queue projection item",
-          "normative_ref": "zh/conformance/conformance-profiles.md"
-        }
-      },
-      {
-        "schema_id": "ak.schema.moderation_report.v1",
-        "file": "schemas/moderation-report.schema.json"
-      },
-      {
         "schema_id": "ak.schema.morph.customer_risk.v1",
         "file": "schemas/morph-customer-risk.schema.json",
         "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers.",
@@ -12575,18 +12476,6 @@
         "identity_authority": "producer_signature"
       },
       {
-        "kind": "moderation_queue_item",
-        "category": "moderation",
-        "status": "active",
-        "wire_form": "ak:moderation_queue_item:<44-char-event-token>",
-        "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
-        "id_form": "event_derived",
-        "identity_authority": "event",
-        "genesis_event_kinds": [
-          "ak.self.moderation.report"
-        ]
-      },
-      {
         "kind": "morph",
         "category": "core_object",
         "status": "active",
@@ -12700,18 +12589,6 @@
         "identity_authority": "event",
         "genesis_event_kinds": [
           "ak.relation.create"
-        ]
-      },
-      {
-        "kind": "report",
-        "category": "moderation",
-        "status": "active",
-        "wire_form": "ak:report:<44-char-event-token>",
-        "description": "Moderation report ID derived from the accepted ak.self.moderation.report Event.",
-        "id_form": "event_derived",
-        "identity_authority": "event",
-        "genesis_event_kinds": [
-          "ak.self.moderation.report"
         ]
       },
       {
@@ -13961,13 +13838,6 @@
         "surface_class": "extension"
       },
       {
-        "surface": "moderation_reports",
-        "operations": [
-          "ak.self.moderation.command.report.v1"
-        ],
-        "surface_class": "extension"
-      },
-      {
         "surface": "device_and_keys",
         "operations": [
           "ak.self.device_messages.command.send.v1",
@@ -14061,7 +13931,6 @@
           "ak.open.mimi.command.update_consent.v1",
           "ak.open.mimi.read.identifiers.v1",
           "ak.open.mimi.command.notify.v1",
-          "ak.open.mimi.command.report_abuse.v1",
           "ak.open.mimi.command.proxy_download.v1"
         ],
         "surface_class": "interop_bridge"
@@ -14910,26 +14779,6 @@
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
         "notes": ""
-      },
-      {
-        "operation_id": "ak.open.mimi.command.report_abuse.v1",
-        "http": "POST /_arkret/open/mimi/report-abuse",
-        "grpc": "OpenMimi/ReportAbuse",
-        "mq": "open.mimi.command.report_abuse",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "canonical_hash",
-        "canonical_hash_input": "full_body",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.self.moderation.report"
-          ]
-        },
-        "notes": "The authenticated Provider-ID scopes the canonical full-body hash. The service atomically binds that key to the service-authored Event and Commit; exact retry returns the same result, while a proof reused with different claim bytes is rejected."
       },
       {
         "operation_id": "ak.open.mimi.command.request_consent.v1",
@@ -17295,26 +17144,6 @@
         "response_schema_ref": "schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body"
       },
       {
-        "operation_id": "ak.self.moderation.command.report.v1",
-        "http": "POST /_arkret/self/moderation/report",
-        "grpc": "SelfModeration/Report",
-        "mq": "self.moderation.command.report",
-        "notes": "Carries one caller-signed moderation report Event. The current governance Station revalidates the authenticated reporter, target visibility, effective scope and current authorization, then commits the exact Event on that scope's authority stream. The Event contains only its closed producer, scope, payload and signature fields.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "idempotency_object_path": "/report_event/event/event_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.self.moderation.report"
-          ]
-        }
-      },
-      {
         "operation_id": "ak.self.morph.read.list.v1",
         "http": "GET /_arkret/self/realms/{realm_id}/morphs",
         "grpc": "SelfMorph/List",
@@ -19433,10 +19262,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.moderation.command.report.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.morph.read.list.v1",
             "binding_kind": "http_json"
           },
@@ -19548,10 +19373,6 @@
           },
           {
             "operation_id": "ak.open.mimi.command.proxy_download.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.open.mimi.command.report_abuse.v1",
             "binding_kind": "http_json"
           },
           {
@@ -23766,28 +23587,6 @@
             "extensions/mimi-interop.md §7"
           ],
           "note": "Message submission through the MIMI facade is admitted against the current room binding."
-        }
-      },
-      {
-        "state_kind": "moderation_franking_proof",
-        "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_franking_proof",
-        "consumption": {
-          "class": "admission_input",
-          "consumed_by": [
-            "governance/content-moderation.md §3.4"
-          ],
-          "note": "Validating an E2EE abuse report's evidence package reads the franking proof."
-        }
-      },
-      {
-        "state_kind": "moderation_report",
-        "schema_ref": "schemas/current-state.schema.json#/$defs/current_moderation_report",
-        "consumption": {
-          "class": "delivery_input",
-          "consumed_by": [
-            "governance/content-moderation.md §3.3"
-          ],
-          "note": "The moderation queue View returns the accepted report and folds its two-state status from this family plus the dismiss records in moderation_state."
         }
       },
       {

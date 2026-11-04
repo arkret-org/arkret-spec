@@ -702,16 +702,6 @@
       "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence. Execute the Snapshot policy cases and Garth bound HTTP historical-basis regression; the policy matrix does not prove cryptography, revocation transactions or live handoff. Execute compact Call conformance signatures and policy cases; native historical issuer authority and actual cold recovery remain the unique compact-Call engineering owner obligations."
     },
     {
-      "clause_id": "AK-NC-087",
-      "status": "active",
-      "category": "state_machine",
-      "source_anchor": "spec/v1/zh/governance/content-moderation.md#34-e2ee-举报-evidence-package-与-franking",
-      "section_digest": "sha256:482748019241d552de65d2a1a3e4341ad270afdaa626012a73ffbff300b72a0a",
-      "requirement": "An authorized own-Station moderation_franking_proof current row is installed independently of report workflow and moderator verification. The closed selector names the target Event, value repeats that target and Realm, and the value remains the canonical closed FrankingProof. Installing the current row grants no permission or cryptographic verdict; ordinary MLS chat must not wait for a report or optional existence anchor, while invalid source, cut, scope or target bindings fail closed.",
-      "testability_grade": "api_shape",
-      "test_plan": "Run tools.test_franking_current_installation_gate and the existing franking transcript/controller gates: mutations of selector target type, canonical value reference, row closure and the ordinary-chat independence obligation must fail. This checks schema and normative guards, not moderator verification or native client installation; Inkson current installation and owner1725 live acceptance remain implementation evidence."
-    },
-    {
       "clause_id": "AK-NC-088",
       "status": "active",
       "category": "authorization",

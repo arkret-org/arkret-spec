@@ -3466,43 +3466,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
-      "status": "active",
-      "domain": "moderation",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "E2EE moderation evidence packages are encrypted to the authorized moderation recipient, target only reported events, carry reporter signature evidence, and reject MLS epoch/history secrets or unrelated plaintext.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "spec/v1/zh/governance/content-moderation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.moderation.franking_proof_transcript.v1",
-      "status": "active",
-      "domain": "moderation",
-      "applies_to_fixtures": [
-        "franking-proof-transcript-fixture.json"
-      ],
-      "description": "Byte-exact Ed25519 KAT for the seven-field ak.franking_proof.signature.v1 transcript. The fixture removes only payload.signature, prepends the registered domain field, and rejects mutation of every bound member.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
-      "status": "active",
-      "domain": "moderation",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.moderation.review_resolution_fold.v1",
       "status": "active",
       "domain": "moderation",

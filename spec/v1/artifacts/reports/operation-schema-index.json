@@ -1641,35 +1641,6 @@
       }
     },
     {
-      "operation_id": "ak.open.mimi.command.report_abuse.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
-        "schema_kind": "object",
-        "required": [
-          "reporter_authority",
-          "report_claim"
-        ],
-        "properties": [
-          "reporter_authority",
-          "report_claim"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_response_body",
-        "schema_kind": "object",
-        "required": [
-          "report_id"
-        ],
-        "properties": [
-          "report_id",
-          "routed_to_ids"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -7511,35 +7482,6 @@
           "signing_keys",
           "observed_at",
           "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.moderation.command.report.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/moderation-report.schema.json#/$defs/moderation_report_request_body",
-        "schema_kind": "object",
-        "required": [
-          "report_event"
-        ],
-        "properties": [
-          "report_event"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponseBody",
-        "schema_kind": "object",
-        "required": [
-          "report_id",
-          "status"
-        ],
-        "properties": [
-          "report_id",
-          "status",
-          "routed_to_ids"
         ],
         "closed": true
       }

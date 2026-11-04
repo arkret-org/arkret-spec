@@ -398,23 +398,6 @@
       }
     },
     {
-      "name": "one_event_derives_distinct_report_and_queue_item_typed_ids",
-      "vector_id": "ak.vector.object_identity.event_derived.v1",
-      "event_kind": "ak.self.moderation.report",
-      "derived_event_id": "ak:event:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
-      "derived_object_ids": [
-        "ak:report:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",
-        "ak:moderation_queue_item:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v"
-      ],
-      "identity_key": "full_typed_id",
-      "expected": {
-        "outcome": "accepted",
-        "all_retyped_tokens_equal_event_id": true,
-        "full_typed_ids_unique": true,
-        "maximum_objects_per_typed_kind": 1
-      }
-    },
-    {
       "name": "closed_single_genesis_kinds_retype_the_event_id",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
       "derived_event_id": "ak:event:Aa2Nr64418oSiMpEfwPph1BEAJvBD8rTgUfGC_U64p0v",

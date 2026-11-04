@@ -444,7 +444,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `mls_epoch` current state reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
-Audit action 只授权对已可见材料的特权读取留痕（`ak.audit.accessed` 配对）。协议不提供把 MLS 历史密钥 release 给第三方的动作面。普通 Realm/Circle 治理举报只路由给 scoped 管理员 / moderator。
+Audit action 只授权对已可见材料的特权读取留痕（`ak.audit.accessed` 配对）。协议不提供把 MLS 历史密钥 release 给第三方的动作面。
 
 ### 5.6 人类界面与个人状态动作
 
@@ -947,7 +947,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
     2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` 中的任一项（moderator role grant 通常依赖 moderation current state 决定谁是 moderator）；
-    3. `constraints[]` 中存在任何 typed constraint 引用 moderation state current state、moderation queue、moderation report 或 moderation tag。
+    3. `constraints[]` 中存在任何 typed constraint 引用 moderation state current state 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `ak.strand.update`、`ak.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation current state 失效抖动影响，符合本节"moderation 是后置层"的设计。
   - **条件 2 的保守取舍（normative rationale）**：条件 2 按 `actions[]` 是否含 moderation 写入动作触发，即使 subject 是固定 DID 的 admin / moderator grant（其"谁是 moderator"并不真正依赖 moderation current state）也强制 `depends_on_moderation_state=true`，因而该 grant 的 fast-path cache 会被无关 moderation current state 变化抖动失效。这是**有意的 fail-safe 设计**：lint 是 schema / reducer 层的静态规则，无法廉价区分"固定 DID admin"与"依赖 moderation state 的 condition-selector moderator"，而漏失效（已被 moderation 降权的 moderator 仍走 fast-path allow）的安全代价远高于多失效一次 cache 的性能代价。真正精确依赖 moderation state 的 grant 由条件 1、条件 3 覆盖；条件 2 是对"moderation 动作持有者"的额外保守网，**不收窄**。

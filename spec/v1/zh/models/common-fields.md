@@ -93,7 +93,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `recipient_id` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_id`；反之亦然。 对于 schema 已闭合为单一稳定责任主体 `DidCoreId` 的受众，使用 `audience_id`（例如 SessionGrant 与 其它明确登记的单一稳定主体载体）；其类别、受众唯一性与身份绑定必须由各对象合同明确，不得因通用 proof 存在 `audience` 就去掉 `_id`。通用 proof 的字符串／数组 `audience` 不构成 typed identity 字段的命名例外。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`effective_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
-- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且 MUST 与 snake_case `kind` 逐字相同——**不存在拼写例外**。`membership_compensation_delegation` 的 wire form 固定为 `ak:membership_compensation_delegation:`。artifact lint 对 segment ≠ kind 直接失败。
+- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:request:`、`ak:transaction:`）。该要求同样适用于 special form：special form 的 wire segment MUST 由其 `wire_form` 唯一解析，且 MUST 与 snake_case `kind` 逐字相同——**不存在拼写例外**。`membership_compensation_delegation` 的 wire form 固定为 `ak:membership_compensation_delegation:`。artifact lint 对 segment ≠ kind 直接失败。
 - **schema → registry 封闭（normative）**：任何 schema validation carrier（`pattern`，含分组 / union 分支；`const`；`enum`；以及经本地 `$ref` 复用的同一形状）实际可接受的每一个字面 `ak:<segment>:` 前缀，MUST 唯一命中 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中某个 `id_kinds` 或 `special_forms` 行由 `wire_form` 解析出的 canonical wire prefix。artifact lint 执行该封闭；未登记前缀是合同缺陷，不是可以留待运行时容忍的写法。反过来，纯关联用途的有界 opaque 字符串（例如 `ServiceRegistrationEnsureRequestBody.idempotency_key`）MUST NOT 借用 `ak:` 命名空间：它不进入 typed-ID parser，也不得成为该 operation 的第二个幂等 authority——注册 identity 是 canonical `(service_kind, public_base_url)` 唯一约束，幂等机制以 operation registry 的 `idempotency_mechanism` 为准。
 - current state 状态模型字段统一使用 `domain reducer`，封闭取值为 `current-value projection`、`commit-ordered projection`、`keyed-set projection`、`counter`、`append-only projection`；执行域由 `execution=data|security` 明示，物理值形态由 `value_shape=register|set|counter|log` 明示。不得用 CAS、业务状态机或旧的 register 别名扩展状态模型；新增模型必须先完成合并/顺序语义、op schema、profile gate 与 conformance vector 闭包。
 
@@ -740,8 +740,8 @@ object_id ≡ retype(create_event.event_id, object_kind)
 - **create payload MUST NOT 携带该 ID 字段。**携带即 `schema_violation`，`reason_code=object_id_not_event_derived`。reducer 在物化对象时派生它。
 - **一条 create Event 对同一 typed kind 最多派生一个 create-once 对象 ID。**同一 Event MAY 按
   registry 的封闭 `id_kind` / `id_kinds[]` 声明，把相同 33-octet token 重类型到多个不同 typed
-  namespace；例如一个 Event 可同时派生 `ak:report:<T>` 与 `ak:moderation_queue_item:<T>`，二者不是同一
-  完整 typed ID。未在 registry 登记的额外派生、同一 kind 的多个对象或 caller 自选 ID 一律禁止。
+  namespace；不同 namespace 的值不是同一完整 typed ID。未在 registry 登记的额外派生、同一 kind
+  的多个对象或 caller 自选 ID 一律禁止。
 - **`event_id` 是完整密码学身份。**canonical Event store 必须保存完整 33-octet raw token 或等价 typed string；重算验证通过前不得物化对象。
 - `ak.realm.create` 的 wire envelope 与 payload 都省略 `realm_id`，receiver 对所有 `purpose` 一律按 `retype(event_id)` 派生；见 [`realm-and-space.md` §2.5](./realm-and-space.md)。
 

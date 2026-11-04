@@ -116,9 +116,6 @@
       "$ref": "#/$defs/current_mimi_room_binding"
     },
     {
-      "$ref": "#/$defs/current_moderation_franking_proof"
-    },
-    {
       "$ref": "#/$defs/current_realm_tombstone"
     },
     {
@@ -243,9 +240,6 @@
     },
     {
       "$ref": "#/$defs/current_direct_conversation_binding"
-    },
-    {
-      "$ref": "#/$defs/current_moderation_report"
     },
     {
       "$ref": "#/$defs/current_morph"
@@ -2749,100 +2743,6 @@
       "additionalProperties": false,
       "x-arkret-name-role": "current_state"
     },
-    "current_moderation_franking_proof": {
-      "type": "object",
-      "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 3.4). The subject is the proven Event id. Installing an authorized signed current row is independent of a later report and does not itself establish moderator verification or an existence-time verdict.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "event_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "moderation_franking_proof",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "current-state.schema.json#/$defs/current_moderation_franking_proof/properties/selector/properties/kind",
-                "owner": "current-state.schema.json#/$defs/current_moderation_franking_proof/properties/selector/properties/kind",
-                "values": [
-                  "moderation_franking_proof"
-                ]
-              }
-            },
-            "event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "current_state"
-    },
-    "current_moderation_report": {
-      "type": "object",
-      "description": "The accepted moderation report itself (governance/content-moderation.md section 3.3). The subject is the report Event's own EventId, which is the same value ak.moderation.decision carries in payload.target_ref for decision=dismiss. The value is the complete report payload. The queue item is a read-side View over this family and the dismiss records in moderation_state, not a second stored state.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "event_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "moderation_report",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "current-state.schema.json#/$defs/current_moderation_report/properties/selector/properties/kind",
-                "owner": "current-state.schema.json#/$defs/current_moderation_report/properties/selector/properties/kind",
-                "values": [
-                  "moderation_report"
-                ]
-              }
-            },
-            "event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "current_state"
-    },
     "current_realm_preview_policy": {
       "type": "object",
       "description": "The Realm preview / peek policy (models/realm-and-space.md section 2.3). It is the projected source of the query field preview_policy_id and is a per-Realm singleton like every sibling facet in that sentence. The value is payload.value only: payload.reason is audit provenance carried by the Event, not projected state.",
@@ -3809,7 +3709,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one moderated target. governance/content-moderation.md section 5.3 keys the set per target and folds several issuers' active records into one effective decision at read time; dismiss closes a report queue item and folds to none. payload.expected_revision of ak.moderation.decision.lift names this result's revision, which is why the lift is stale-checkable without the set carrying a lifecycle axis.",
+      "description": "Registered projection of one moderated target. governance/content-moderation.md section 5.3 keys the set per target and folds several issuers' active records into one effective decision at read time. payload.expected_revision of ak.moderation.decision.lift names this result's revision, which is why the lift is stale-checkable without the set carrying a lifecycle axis.",
       "properties": {
         "selector": {
           "type": "object",

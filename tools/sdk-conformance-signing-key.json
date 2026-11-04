@@ -1,0 +1,10 @@
+{
+  "generated_by": "tools/regenerate_sdk_conformance_claim.py",
+  "description": "Public Ed25519 test key used only to regenerate the SDK conformance claim fixture.",
+  "test_key": {
+    "algorithm": "Ed25519",
+    "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+    "note": "Public conformance test key only. The private key ships with the specification and proves no signer identity or authority."
+  }
+}

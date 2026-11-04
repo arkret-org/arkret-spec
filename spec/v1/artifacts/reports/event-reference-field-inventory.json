@@ -559,18 +559,6 @@
     },
     {
       "schema": "current-state.schema.json",
-      "json_pointer": "/$defs/current_moderation_franking_proof/properties/selector/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "current-state.schema.json",
-      "json_pointer": "/$defs/current_moderation_report/properties/selector/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "current-state.schema.json",
       "json_pointer": "/$defs/device_authorization_value/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
       "classification": "complete_event_id"
@@ -1041,12 +1029,6 @@
       "schema": "mls-welcome-delivery.schema.json",
       "json_pointer": "/properties/commit_event_ref",
       "field": "commit_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "moderation-evidence.schema.json",
-      "json_pointer": "/$defs/franking_proof/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

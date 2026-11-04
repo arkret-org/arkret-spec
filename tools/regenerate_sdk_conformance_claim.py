@@ -40,7 +40,7 @@ CLAIM_FIXTURE = (
     ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "sdk-conformance-claim-fixture.json"
 )
 KEY_FIXTURE = (
-    ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "franking-proof-transcript-fixture.json"
+    ROOT / "tools" / "sdk-conformance-signing-key.json"
 )
 CLAIM_DOMAIN = b"arkret-sdk-conformance-claim-v1\n"
 GENERATED_BY = "tools/regenerate_sdk_conformance_claim.py"
