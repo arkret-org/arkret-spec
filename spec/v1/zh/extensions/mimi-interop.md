@@ -212,6 +212,8 @@ mimi://mimi.example.com/rooms/01JSMIMI
 - E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `key_access_revision`；只有 current membership 推进该 revision（§2.4.1），实际 leaf key 的撤销由治理 Station send gate 同 cut 拒绝，普通 capability 仍由 Event admission 独立校验。
 - MIMI facade 在无法解析或验证 Arkret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Arkret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 
+- 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
+
 **E2EE MIMI 互操作下界（normative）**：凡 MIMI room binding 携带 `mls_group_id`、groupInfo、key material 或加密 application message，并要投影到 Arkret Realm / Strand，facade MUST 把 §2.5.1 固定 GroupContext binding 当作最低 E2EE 互操作能力，而不是把 MIMI provider 的 room state 当成等价治理真相。具体要求：
 
 - `ak.mimi.room_binding.mls_group_id`、经 RFC 9420 验证的 MIMI GroupInfo／GroupContext group id，以及从同一 scope 的当前 accepted `MlsGroupValue.effective_scope` 按 [`../models/realm-and-space.md` §2.2](../models/realm-and-space.md) 唯一公式推导的 Arkret group id MUST 相等。facade MUST 先验证该 current public state 的 source RealmCommit 和固定五字段 `governance_binding`，再作比较；GroupInfo、provider room state 或请求自报值均不能单独充当 Arkret 当前治理事实。固定 binding 不含 `mls_group_id`，MUST NOT 为此增加第六字段、接受第二套推导公式或以本地缓存补缺；
@@ -253,6 +255,7 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 
 - **终态**：`revoked` 是唯一终态；对 `revoked` binding 的任何 `status` 变更 MUST 被拒绝。同一对象若需重新导出为 MIMI room，MUST 以新的 `mimi_room_uri` 建立新 binding 并重新通过 §4 的 capability 校验，不得复活已撤销 binding。
 - **非法迁移**：不在上表中的迁移（含初始状态违例与 `revoked` 后写入）MUST 被 reducer 以 `mimi_room_binding_status_transition_invalid` 拒绝。
+- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 state-changing Event MUST 引用已验证的 migration proof 并携带 `payload.migration_outcome ∈ {completed, rolled_back}`（其它转换 MUST NOT 携带该字段），使"迁移完成"与"回滚"在 binding 状态上可区分、可审计；hub / follower 拓扑变更只能随该迁移落地。
 - **迁移证据载体与校验**：`migrating -> accepted` 的 caller-signed Event payload MUST 同时携带 `migration_outcome` 和闭合 `migration_proof`；其它初始写入及状态转换 MUST 省略两者。`migration_proof` 的四项必填成员依次为 `previous_accepted_event_id`、`previous_accepted_commit_id`、`migrating_event_id`、`migrating_commit_id`，均是已经 accepted 的 Event 与其 covering RealmCommit 的精确 ID；不得用 pending Event、provider 自报状态、receipt 或未认证缓存代替。接纳方在拟提交的 RealmCommit basis 上验证四个引用均属于同一 Realm、同一 canonical `mimi_room_uri`，各 Commit 覆盖所指 Event，前一对是进入迁移前的最终 accepted binding source，后一对是当前 `migrating` current state 的 source，且两者按该 room 的权威提交顺序相邻（中间没有另一条 accepted binding Event）。本次 Event 的 `binding_scope`、`mimi_room_uri`、`profile` 必须与两项来源一致。`completed` 时本次 `hub_provider_id`、`follower_provider_ids`、`local_provider_role`、`mls_group_id` 必须逐项等于 `migrating` 候选 payload；`rolled_back` 时必须逐项等于迁移前 accepted payload；缺失的 optional 字段与存在的字段不得视为等价。本次 `mls_group_id` 还必须通过 §4 的当前 accepted `MlsGroupValue.effective_scope` 唯一推导与已验证 GroupInfo／GroupContext 三者比较；迁移候选或回滚原值与当前 MLS public state 不一致时不得接纳，直到相应 MLS 状态已获权威提交。proof 是可重放验证的 committed lineage 加本次 Event 签名断言，不声称单靠 provider transport 或 receipt 证明远端动作完成；hub 委托和其它 admission gate 仍须分别通过 §4。闭合 schema 中只带一个迁移字段或 proof 内缺字段先以 `schema_violation` 拒绝；两个迁移字段都缺失却试图从 `migrating` 转到 `accepted`，以及结构合法但状态、引用、拓扑或 MLS 当前性验证失败，MUST 以 `mimi_room_binding_migration_proof_invalid` 拒绝，且不得产生 Event、RealmCommit 或 current state 写入。
 - **可写性判定**：仅 `accepted` 状态接受新的 MIMI writes 投影。`proposed` 状态下 facade MUST NOT 把 MIMI room state 投影到 Realm（目录 / 协商类流量除外）；`revoked` 后行为见 §4 撤销规则。
 - **并发收敛**：`ak.mimi.room_binding` 是写入 `mimi_room_binding` current state 的 state-changing Event，并发更新由控制面 RealmCommit 串行化仲裁，不存在数据面并发合并；后到的冲突 Event 在其 authority commit basis 下按本状态机重新校验，非法即拒绝。
@@ -260,6 +263,18 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 ## 5. Endpoint Surface
 
 MIMI facade 至少定义以下 canonical operation：
+
+| operation_id | HTTP binding | 语义 |
+| --- | --- | --- |
+| `ak.open.mimi.read.provider_directory.v1` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
+| `ak.open.mimi.exchange.request_key_material.v1` | `POST /_arkret/open/mimi/key-material` | 现有 KeyPackage claim 的 MIMI 适配入口，复用原生请求、领取账本和带状态结果（§6）。 |
+| `ak.open.mimi.command.update_room.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
+| `ak.open.mimi.command.notify.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | 向接收方现有获权读取路径提交短期刷新提示。 |
+| `ak.open.mimi.command.submit_message.v1` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
+| `ak.open.mimi.command.request_consent.v1` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
+| `ak.open.mimi.command.update_consent.v1` | `POST /_arkret/open/mimi/consent/update` | 提交调用方已签名的 `ak.consent.replace` Event。 |
+| `ak.open.mimi.read.identifiers.v1` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
+| `ak.open.mimi.command.proxy_download.v1` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
 **notify 的真实接收边界（normative）**：`notify` 是 provider 的短期刷新提示，不是新的
 Arkret Event、Signal 或客户端可直接渲染的消息。接收方 MUST 验证逐次来源签名、path room 的当前
@@ -294,6 +309,15 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 
 逐次 RFC 9421 来源签名的适用面由 operation id 封闭，不由 HTTP method 或 `read` / `command` 名称推导。
 下列 operation **MUST** 使用 HTTP Message Signatures；其它 MIMI operation 不继承该要求：
+
+- `ak.open.mimi.command.notify.v1`
+- `ak.open.mimi.command.proxy_download.v1`
+- `ak.open.mimi.command.request_consent.v1`
+- `ak.open.mimi.command.submit_message.v1`
+- `ak.open.mimi.command.update_consent.v1`
+- `ak.open.mimi.command.update_room.v1`
+- `ak.open.mimi.exchange.request_key_material.v1`
+- `ak.open.mimi.read.identifiers.v1`
 
 上述来源签名要求对每次调用都适用，包括同部署调用、携带 Bearer user session 或 AgentRuntime session 的请求。会话认证不豁免 HTTP Message Signature；缺来源签名 MUST 在 actor proof、PSI、consent state 或 Event 处理之前以 `http_signature_required` 拒绝并零写入。发送方须使用本 operation 登记的 provider / service 身份，不得以用户或 Agent runtime key 冒充 provider transport key。
 
