@@ -680,7 +680,7 @@ Controller device 必须按 accepted delegation 签署 Agent PCR create/control 
 Realm stream 的 `RealmCommit(position=0)` 或后续 Commit。Station、Account Authority 或其它 service 的
 signature 只能证明接纳顺序，不得替代 Agent/controller producer proof。
 
-Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每个 Agent 保存另一套 24 词。Agent DID / PCR 管理连续性来自当前 controller delegation；可移植 backup 只迁移该 actor 本地已持有的 MLS state，不保存或恢复 Agent PCR active MLS state，也不提供加入前 epoch 的密钥。恢复本地 state 不授予 Agent DID 控制、agent-control authoring 或业务 capability；fresh endpoint 仍必须用 current delegation 经标准 KeyPackage/Add/Welcome 重新加入，任何恢复后的写入仍验证当前 Agent DID delegation、controller 状态与目标 Event authorization。
+Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每个 Agent 保存另一套 24 词。Agent DID／PCR 管理连续性来自当前 controller delegation；content-history.md §6／§8 的 Agent-subject 根备份由原 provision 显式批准的 custodian 24 词恢复原 PCR 历史，不克隆 active MLS 私态。Controller 在 Agent PCR 持有自己的 Human endpoint，首根引导和双 Actor 绑定按该文 §6.1；真实 runtime 独立 pairing 后经 Add／Welcome 加入，更换 runtime 沿 §5 的原 group External／完整 supersedes 收尾。历史可解密不授 DID 控制、control authoring 或业务 capability；任何新写仍验证当前 delegation、controller／runtime 状态和目标 Event authorization，不创建新 Account／PCR 或切换逻辑 Station。
 
 实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `realm_id` 规则。
 

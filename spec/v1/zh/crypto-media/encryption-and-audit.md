@@ -590,6 +590,8 @@ plaintext的服务必须由客户端显式选择并在客户端侧取得内容�
 
 Agent、Bot与Ghost使用自己的受限 endpoint key和KeyPackage。controller可以授权或撤销 runtime key，但不得取得或合成
 Agent MLS private state。controller需要代表 Agent执行 Commit时，producer proof仍必须满足 Agent delegation合同。
+Controller 在原 Agent PCR 建立的是自己的 Human endpoint 私态，窄资格、资源 Actor 与 actual_signer 的区分
+以及首根顺序见 content-history.md §6.1；不得全局把普通 Agent scope 的 credential 改为 controller。
 
 ### 4.1 独立 Agent 密钥
 
@@ -651,6 +653,9 @@ Genesis 的签名 payload 必带 `creator_leaf_authority`：声明 epoch-0 唯�
 **不要求** MLS leaf key 与 Event producer signing key 相等。治理 Station 必须核对 producer 自身的
 历史签名／endpoint 授权、声明的 endpoint／授权 ref、唯一 public tree leaf 的完整 ActorId 与
 signature key，并验证该 leaf 的 RFC 自签名；任一不符以 `failed_precondition` 零写入拒绝。
+普通分支 creator leaf 归资源 Event.actor_id；content-history.md §6.1 独立验证的 Agent PCR controller
+分支归 actual_signer，creator 的 Device authorize 来自 controller 自身 PCR，外层授权仍是 Agent control。
+同一规则适用于 Member sender、Proposal sender 与恢复 External path，不能仅凭 caller 自报 controller 或 executed_by 选择该分支。
 后来的成员须按 exact accepted Genesis Event／Commit 和历史签名 key 独立重验该绑定；
 缺 `creator_leaf_authority` 的旧 Genesis 不得被静默推断或由 current keys lookup 补齐。
 

@@ -4517,7 +4517,8 @@
               "agent_slug",
               "avatar_blob_ref",
               "accountable_principal_ids",
-              "profile_fields"
+              "profile_fields",
+              "encrypted_private_fields"
             ]
           },
           "derived_members": [
@@ -4538,7 +4539,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/actor-profile.schema.json",
-          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them.",
+          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
           "condition": {
             "kind": "field_equals",
             "field": "envelope.actor_id.kind",
@@ -4562,7 +4563,8 @@
               "agent_slug",
               "avatar_blob_ref",
               "accountable_principal_ids",
-              "profile_fields"
+              "profile_fields",
+              "encrypted_private_fields"
             ]
           },
           "derived_members": [
@@ -4583,7 +4585,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/actor-profile.schema.json",
-          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them.",
+          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
           "condition": {
             "kind": "field_equals",
             "field": "envelope.actor_id.kind",

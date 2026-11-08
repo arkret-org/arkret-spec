@@ -515,7 +515,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - Genesis discriminator 与 effective projection MUST：
   - human / organization PCR create genesis `purpose = "principal_control"`；Agent PCR create genesis `purpose = "agent_control"`。两者是该 discriminator 的完整取值集合，`realm.schema.json` 与 `realm-genesis.schema.json` 的 enum 与本表逐字相等
   - 该 discriminator 的唯一权威是已验证 genesis 自身；`schema_refs` 与 materialized `fields.purpose` 都不是判定依据（[§2.3.A](#23a-字段-carrier-inventorynormative)）
-  - PCR MUST 在任何控制内容写入之前接受自己的 `ak.mls.genesis`；该 accepted RealmCommit 把 PCR scope 不可逆激活为 standard RFC 9420。v1 不存在"明文 PCR"：激活后的明文控制内容写入 MUST fail closed。
+  - PCR 的私有应用内容写入 MUST 先接受自己的 `ak.mls.genesis`；该 accepted RealmCommit 不可逆激活其 MLS scope，私有内容使用 content-history.md 的可恢复 AEAD。原生身份／设备／policy／握手事实以及明确用于公开展示的 Profile 字段仍是其闭合 schema 规定的控制 metadata，不能加密整个 Event 或用此句阻止创世、首个 policy／备份与 MLS 引导。PCR 私有 Profile 使用 profiles-presence.md §2.3.1 的 typed encrypted_private_fields，禁止激活后把其明文写入展示字段或另开 plaintext 私有内容分支。
   - `created_by` 从 create envelope 的完整 `actor_id` 派生；`governance_station_id` 明确指定 generation-0 治理 Station。RealmCommit 必须由该 generation 的治理 Station service identity 签署，并通过 service DID 的 historical method evidence 验证。
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
   - effective `history_access = "since_join"`。同Actor新endpoint保留原Actor的genesis join floor；历史按content-history.md的获权根／DEK恢复，不以新Add时间截断。控制baseline不得冒充全部原历史。

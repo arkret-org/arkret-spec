@@ -25,5 +25,42 @@
       "mutation": "create_locked",
       "normative_ref": "zh/crypto-media/content-history.md"
     }
-  ]
+  ],
+  "pcr_private_profile": {
+    "event_kinds": [
+      "ak.profile.create",
+      "ak.profile.update"
+    ],
+    "create_content_path": "/payload/object/encrypted_private_fields",
+    "update_patch_path": "encrypted_private_fields",
+    "update_operations": [
+      "set"
+    ],
+    "purpose": "event_body",
+    "scope": "original_account_pcr",
+    "plaintext_schema_ref": "schemas/actor-profile.schema.json#/$defs/private_profile_fields",
+    "realm_actor_allowed": false,
+    "realm_override_allowed": false,
+    "original_disclosure": "preserve_exact_ciphertext_without_key_authority",
+    "normative_ref": "zh/discovery/profiles-presence.md#231-pcr-私有-profile-字段"
+  },
+  "agent_pcr_controller_endpoint": {
+    "scope": "original_agent_pcr",
+    "resource_actor": "agent_account",
+    "producer_actor": "actual_signer",
+    "endpoint_kind": "device",
+    "native_qualification": [
+      "accepted_immutable_provision",
+      "original_account_and_station",
+      "current_controller_and_agent_lifecycle",
+      "current_human_device_authorization",
+      "action_specific_control_delegation"
+    ],
+    "custody_is_write_authority": false,
+    "runtime_authorization_required_for_controller_bootstrap": false,
+    "human_recovery_inventory_includes_controller_leaves": true,
+    "runtime_replacement_preserves_controller_leaves": true,
+    "ordinary_scope_exception": false,
+    "normative_ref": "zh/crypto-media/content-history.md#61-controller-的独立-pcr-mls-endpoint"
+  }
 }

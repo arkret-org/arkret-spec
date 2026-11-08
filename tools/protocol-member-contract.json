@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d9b8f262b446196e1959d9d397c71b01f2c21e41079694d2ed873ed3401b8c11",
+  "contract_digest": "sha256:d158a241de129e0ced24208d47640d7d181d13d58cf95e357a7bdbecdf1f3cae",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -6285,6 +6285,10 @@
             },
             "additionalProperties": true
           },
+          "encrypted_private_fields": {
+            "$ref": "./encrypted-envelope.schema.json",
+            "description": "Optional PCR-only private profile fields. This complete envelope uses the registered event_body purpose under the original PCR MLS scope and content-history backup contract; it is not a public display field or a container for MLS private state. Public original Event disclosure preserves ciphertext without granting decryption rights."
+          },
           "created_at": {
             "$ref": "#/$defs/timestamp"
           },
@@ -6381,6 +6385,10 @@
                 },
                 "additionalProperties": true
               },
+              "encrypted_private_fields": {
+                "$ref": "./encrypted-envelope.schema.json",
+                "description": "Optional PCR-only private profile fields. This complete envelope uses the registered event_body purpose under the original PCR MLS scope and content-history backup contract; it is not a public display field or a container for MLS private state. Public original Event disclosure preserves ciphertext without granting decryption rights."
+              },
               "actor_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_actor"
               }
@@ -6446,6 +6454,11 @@
                       "required": [
                         "accountable_principal_ids"
                       ]
+                    },
+                    {
+                      "required": [
+                        "encrypted_private_fields"
+                      ]
                     }
                   ]
                 },
@@ -6496,6 +6509,19 @@
               }
             },
             "additionalProperties": false
+          },
+          "private_profile_fields": {
+            "type": "object",
+            "required": [
+              "profile_fields"
+            ],
+            "properties": {
+              "profile_fields": {
+                "$ref": "#/properties/profile_fields"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Authenticated plaintext of encrypted_private_fields. Private user profile data only; it does not install identity, device authority, capabilities, recovery material or active MLS state."
           }
         },
         "allOf": [
@@ -6558,6 +6584,11 @@
                 {
                   "required": [
                     "accountable_principal_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "encrypted_private_fields"
                   ]
                 }
               ]
@@ -55575,6 +55606,44 @@
                         "pattern": "^actor_id(?:\\.|$)"
                       }
                     }
+                  },
+                  {
+                    "properties": {
+                      "encrypted_private_fields": {
+                        "oneOf": [
+                          {
+                            "$ref": "./encrypted-envelope.schema.json"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "$op",
+                              "value"
+                            ],
+                            "properties": {
+                              "$op": {
+                                "const": "set",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "event-payload.schema.json#/$defs/actor_profile_update_payload/properties/patch/allOf/5/properties/encrypted_private_fields/oneOf/1/properties/$op",
+                                  "owner": "event-payload.schema.json#/$defs/actor_profile_update_payload/properties/patch/allOf/5/properties/encrypted_private_fields/oneOf/1/properties/$op",
+                                  "values": [
+                                    "set"
+                                  ]
+                                }
+                              },
+                              "value": {
+                                "$ref": "./encrypted-envelope.schema.json"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "patternProperties": {
+                      "^encrypted_private_fields\\.": false
+                    }
                   }
                 ]
               },
@@ -63843,6 +63912,11 @@
                       "not": {
                         "pattern": "^actor_id(?:\\.|$)"
                       }
+                    }
+                  },
+                  {
+                    "patternProperties": {
+                      "^encrypted_private_fields(?:\\.|$)": false
                     }
                   }
                 ]
@@ -112413,11 +112487,11 @@
     },
     {
       "file": "content-encryption-registry.json",
-      "digest": "sha256:03574caec40d2827e6ca7b3184f86a1617b00b0c949da84e74804bf303efcd05"
+      "digest": "sha256:b9930451030d9cb981103b822a5b195a315221a3a555153ca5dc9b3666aabc0b"
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:7bf3c8778735c9a8a1f89007583e31d3964c4e9ddee774082551d6da82b61c6d"
+      "digest": "sha256:4e9d4b88b5c99d2ce10d41dbfc92dfe66c6bfd0f58540375aab64e1329bfb0e7"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -112477,7 +112551,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:70eb0a7040d3c3e37b4395e6ff3963f71ef923220a4be37ce6bbdfc42125fca1"
+      "digest": "sha256:b234122d26cb57e70af638168eaa34ebf60f22f1c434b702fd9129defc78a41a"
     },
     {
       "file": "operation-clause-registry.json",

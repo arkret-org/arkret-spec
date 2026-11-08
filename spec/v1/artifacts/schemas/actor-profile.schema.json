@@ -101,6 +101,10 @@
       },
       "additionalProperties": true
     },
+    "encrypted_private_fields": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Optional PCR-only private profile fields. This complete envelope uses the registered event_body purpose under the original PCR MLS scope and content-history backup contract; it is not a public display field or a container for MLS private state. Public original Event disclosure preserves ciphertext without granting decryption rights."
+    },
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
@@ -197,6 +201,10 @@
           },
           "additionalProperties": true
         },
+        "encrypted_private_fields": {
+          "$ref": "./encrypted-envelope.schema.json",
+          "description": "Optional PCR-only private profile fields. This complete envelope uses the registered event_body purpose under the original PCR MLS scope and content-history backup contract; it is not a public display field or a container for MLS private state. Public original Event disclosure preserves ciphertext without granting decryption rights."
+        },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_actor"
         }
@@ -262,6 +270,11 @@
                 "required": [
                   "accountable_principal_ids"
                 ]
+              },
+              {
+                "required": [
+                  "encrypted_private_fields"
+                ]
               }
             ]
           },
@@ -312,6 +325,19 @@
         }
       },
       "additionalProperties": false
+    },
+    "private_profile_fields": {
+      "type": "object",
+      "required": [
+        "profile_fields"
+      ],
+      "properties": {
+        "profile_fields": {
+          "$ref": "#/properties/profile_fields"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated plaintext of encrypted_private_fields. Private user profile data only; it does not install identity, device authority, capabilities, recovery material or active MLS state."
     }
   },
   "allOf": [
@@ -374,6 +400,11 @@
           {
             "required": [
               "accountable_principal_ids"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_private_fields"
             ]
           }
         ]

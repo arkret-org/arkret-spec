@@ -38,6 +38,53 @@ class ContentHistoryContractTest(unittest.TestCase):
             self.validate(schema, value)
         self.assertIn("ValidationError", type(caught.exception).__name__)
 
+    def test_pcr_private_profile_has_a_typed_whole_envelope_slot(self):
+        envelope = self.fixture["kat"]["envelope"]
+        profile = {"principal_id": self.fixture["kat"]["outer_event"]["actor_id"]["account_id"]["principal_id"],
+                   "actor_kind": "user", "display_name": "Public name", "encrypted_private_fields": envelope}
+        schema = "actor-profile.schema.json#/$defs/actor_profile_definition"
+        self.validate(schema, profile)
+        self.invalid(schema, {**profile, "encrypted_private_fields": None})
+        self.invalid(schema, {**profile, "encrypted_private_fields": {"profile_fields": {"biography": "private"}}})
+        realm_profile = {"actor_kind": "bot", "display_name": "Bot", "actor_id": {"kind": "realm", "realm_actor_id": {
+            "realm_id": self.fixture["kat"]["outer_event"]["realm_id"], "principal_id": profile["principal_id"]}}}
+        self.validate(schema, realm_profile)
+        self.invalid(schema, {**realm_profile, "encrypted_private_fields": envelope})
+        target = "ak:actor_profile:" + self.fixture["kat"]["outer_event"]["realm_id"].split(":", 2)[2]
+        update = "event-payload.schema.json#/$defs/actor_profile_update_payload"
+        for slot in (envelope, {"$op": "set", "value": envelope}):
+            self.validate(update, {"target_ref": target, "patch": {"encrypted_private_fields": slot}})
+        for slot in (None, {"$op": "unset"}, {"$op": "remove", "value": envelope}, {"op": "set", "value": envelope}):
+            self.invalid(update, {"target_ref": target, "patch": {"encrypted_private_fields": slot}})
+        self.invalid(update, {"target_ref": target, "patch": {"encrypted_private_fields.ciphertext": "changed"}})
+        self.invalid("event-payload.schema.json#/$defs/profile_realm_override_payload", {
+            "target_ref": target, "target_realm_id": self.fixture["kat"]["outer_event"]["realm_id"],
+            "patch": {"encrypted_private_fields": envelope}})
+
+    def test_private_profile_plaintext_is_closed_and_uses_registered_fresh_content_domain(self):
+        plain = {"profile_fields": {"biography": "private profile", "locale": "zh-CN"}}
+        self.validate("actor-profile.schema.json#/$defs/private_profile_fields", plain)
+        self.invalid("actor-profile.schema.json#/$defs/private_profile_fields", {**plain, "device_authorization": {}})
+        self.invalid("actor-profile.schema.json#/$defs/private_profile_fields", {"profile_fields": {"biography": "x" * 257}})
+        k = self.fixture["kat"]
+        context = copy.deepcopy(k["content_context"])
+        context["content_key_salt"] = b64(bytes([213]) * 32)
+        self.validate("content-encryption.schema.json#/$defs/content_context", context)
+        root = bytes.fromhex(k["root_hex"])
+        key = content_key(root, context)
+        self.assertNotEqual(key.hex(), k["key_hex"])
+        outer = {**k["outer_event"], "kind": "ak.profile.create"}
+        envelope = copy.deepcopy(k["envelope"])
+        envelope["encryption_context"]["content_key_salt"] = context["content_key_salt"]
+        envelope["encryption_context"]["key_commitment"] = key_commitment(key, context)
+        associated = aad(outer, envelope, context)
+        encrypted = AESGCM(key).encrypt(bytes(12), jcs(plain), associated)
+        self.assertEqual(json.loads(AESGCM(key).decrypt(bytes(12), encrypted, associated)), plain)
+        with self.assertRaises(InvalidTag):
+            AESGCM(bytes.fromhex(k["key_hex"])).decrypt(bytes(12), encrypted, associated)
+        with self.assertRaises(InvalidTag):
+            AESGCM(key).decrypt(bytes(12), encrypted, aad(k["outer_event"], envelope, context))
+
     def test_frozen_kat_and_original_ciphertext(self):
         self.assertEqual(self.fixture, build())
         k = self.fixture["kat"]
@@ -630,6 +677,18 @@ class ContentHistoryContractTest(unittest.TestCase):
         self.validate("authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact", human["producer_signer_fact"])
         human["covering_commit"]["producer_signer_fact_digest"] = "sha256:" + hashlib.sha256(jcs(human["producer_signer_fact"])).hexdigest()
         verify_recovery_source(human, key)
+        # Source crypto binds the actual Human producer, independently of the
+        # resource Actor. This minimal transcript does not prove native control
+        # delegation or admit a new Event into an Agent PCR.
+        controlled = copy.deepcopy(human)
+        controlled["commit_event"]["actor_id"] = {"kind": "account", "account_id": {
+            **actor["account_id"], "principal_id": "ak:did_core:web:controlled-agent.example"}}
+        controlled["commit_event"]["executed_by"] = actor
+        verify_recovery_source(controlled, key)
+        changed_controller = copy.deepcopy(controlled)
+        changed_controller["commit_event"]["executed_by"] = controlled["commit_event"]["actor_id"]
+        with self.assertRaises(ValueError):
+            verify_recovery_source(changed_controller, key)
         agent = copy.deepcopy(record)
         agent_actor = copy.deepcopy(actor); agent_actor["account_id"]["principal_id"] = "ak:did_core:web:agent.example"
         agent["commit_event"]["actor_id"] = agent_actor

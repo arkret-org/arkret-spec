@@ -339,6 +339,7 @@ def ordered_roster(records):
 
 
 def verify_roster_keys(records, add_rows, recovery_rows):
+    """Verify original key bindings; native participation/control is separate."""
     if records != ordered_roster(records):
         raise ValueError("noncanonical roster ordering")
     for kind, rows in (("add", add_rows), ("recovery", recovery_rows)):
@@ -355,7 +356,7 @@ def verify_roster_keys(records, add_rows, recovery_rows):
                 event = original["commit_event"]
                 leaf = recovery_path_leaf(unb64(event["payload"]["commit_base64url"]))
                 replacement = event["payload"]["recovery_binding"]["replacement"]
-                if leaf["actor_id"] != event["actor_id"] or leaf["actor_id"] != replacement["actor_id"] or leaf["signature_key_base64url"] != row["public_key_base64url"] or leaf["signature_key_base64url"] != replacement["signature_key_base64url"]:
+                if leaf["actor_id"] != event.get("executed_by", event["actor_id"]) or leaf["actor_id"] != replacement["actor_id"] or leaf["signature_key_base64url"] != row["public_key_base64url"] or leaf["signature_key_base64url"] != replacement["signature_key_base64url"]:
                     raise ValueError("original recovery fact differs from RFC path leaf")
                 scope = event["scope_ref"]
                 name = scope["kind"]
@@ -366,11 +367,15 @@ def verify_roster_keys(records, add_rows, recovery_rows):
 
 
 def verify_recovery_source(record, origin_key):
-    """Check exact source signature after method-native origin resolution."""
+    """Check source crypto after native role and method-native qualification.
+
+    Executed-by identifies the actual producer; this function does not authorize
+    delegation or decide that a resource is an accepted controlled Agent PCR.
+    """
     source = record["recovery_source"]["attestation"]
     event = record["commit_event"]
     payload, binding = event["payload"], event["payload"]["recovery_binding"]
-    if source["replacement"]["actor_id"] != event["actor_id"]:
+    if source["replacement"]["actor_id"] != event.get("executed_by", event["actor_id"]):
         raise ValueError("wrong original producer actor")
     if source["replacement"]["actor_id"].get("kind") != "account" or origin_key["station_id"] != source["replacement"]["actor_id"]["account_id"]["station_id"]:
         raise ValueError("origin is not the original owning Account Station")

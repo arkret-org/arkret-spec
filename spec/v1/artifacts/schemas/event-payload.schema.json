@@ -189,6 +189,44 @@
                   "pattern": "^actor_id(?:\\.|$)"
                 }
               }
+            },
+            {
+              "properties": {
+                "encrypted_private_fields": {
+                  "oneOf": [
+                    {
+                      "$ref": "./encrypted-envelope.schema.json"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "$op",
+                        "value"
+                      ],
+                      "properties": {
+                        "$op": {
+                          "const": "set",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "event-payload.schema.json#/$defs/actor_profile_update_payload/properties/patch/allOf/5/properties/encrypted_private_fields/oneOf/1/properties/$op",
+                            "owner": "event-payload.schema.json#/$defs/actor_profile_update_payload/properties/patch/allOf/5/properties/encrypted_private_fields/oneOf/1/properties/$op",
+                            "values": [
+                              "set"
+                            ]
+                          }
+                        },
+                        "value": {
+                          "$ref": "./encrypted-envelope.schema.json"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "patternProperties": {
+                "^encrypted_private_fields\\.": false
+              }
             }
           ]
         },
@@ -8469,6 +8507,11 @@
                 "not": {
                   "pattern": "^actor_id(?:\\.|$)"
                 }
+              }
+            },
+            {
+              "patternProperties": {
+                "^encrypted_private_fields(?:\\.|$)": false
               }
             }
           ]

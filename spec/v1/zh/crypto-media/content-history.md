@@ -145,6 +145,8 @@ history-ready要求获准全部source的原件与grant已耐久且接收方逐�
 按既有隔离KDF重建recovery-proof和backup-HPKE；不需旧设备、旧端account secret、另存文件／口令或在线批准者。
 首次启用必须确认两种公钥来自该24词并登记充分的accepted policy路径；未完成不得表示账号恢复配置完成。
 初始公共控制原件也须完整保管，首条加密PCR写入前必须完成recipient登记及根耐久。
+PCR 私有 Profile 的唯一 typed 槽与精确原件路径见 profiles-presence.md §2.3.1；其 C_item.purpose 固定为 event_body，
+原公开控制字段不伪装为密文，PCR allowlist 不因历史恢复增加业务 Message。
 
 复用既有policy-authorized RecoveryTransaction两Event原子unit，先推进generation、只授权replacement，
 与session消费及current目录同事务提交，随后旧设备／session／队列／KeyPackage立即按旧代次拒绝。
@@ -161,6 +163,8 @@ history-ready要求获准全部source的原件与grant已耐久且接收方逐�
 
 恢复沿原group External Commit接入：仅在`mls_commit_payload.recovery_binding`有效、原Actor当前仍joined、
 replacement授权已接纳、exact current base／epoch及库存digest匹配时允许new_member_commit／ExternalInit。
+§6.1 的 controller endpoint 以其独立原生控制角色及原 accepted leaf 参与事实替代普通 joined 行，
+仅限原 Agent PCR；不能据此建立业务 membership。
 Human授权ref必须来自已accepted的policy-authorized RecoveryTransaction两Event unit，核reanchor／authorize／generation关系；
 Agent必须来自当前controller批准且完整supersedes的实际pairing授权。普通DeviceAuthorize、普通Add或仅当前membership
 不能授予此恢复例外。新replacement签名pub必须不等于该Actor任何被替换端的旧pub，并有独立fresh PoP。
@@ -208,6 +212,41 @@ recovery_policy_ref／recipient_key_ref在该custodian的accepted policy中解�
 Controller可信客户端用自己的24词解Agent备份，仅将获准Agent根密封给经pairing批准的新runtime。
 24词、backup私钥、Human其它scope及DID root不进入runtime。新runtime使用该同一fresh签名key接续原group。
 旧runtime授权以完整supersedes／activation fence替换，不能套Human Device generation或创建新Agent。
+
+### 6.1 Controller 的独立 PCR MLS endpoint
+
+Agent PCR 的原件仍以 Agent 为资源 Actor，controller 代表其写入时维持既有
+`actor_id=Agent`、`executed_by=controller` 与原生 `authorization_ref`，不增加 Human
+self-authored 写入 Agent PCR 的例外。仅在独立验证 accepted immutable provision、原 Agent PCR／
+完整 Account／同 Station、当前 controller binding／lifecycle、实际 Human 设备授权及该具体
+MLS 动作的 control delegation 后，才可使用本窄角色。history_custody 批准本身不是写权限；
+普通 Realm／Circle／Sidecar／Direct 不适用此例外。
+
+此角色的 MLS BasicCredential、Genesis 唯一 leaf、Member sender、External path leaf、
+creator_leaf_authority.endpoint／authorization_event_ref 和内容 C_item.producer 均绑定
+`actual_signer`，即 controller 自己的完整 Human Actor／真实 Device 授权。Event key 与其 MLS
+leaf key仍可独立，但须原签绑定；外层 Agent control authorization_ref 与 controller 的 Device
+authorize ref 职责独立。不得构造 Agent credential、预写 runtime key、克隆 runtime MLS 私态、
+把 controller key 当 Agent runtime key，或仅因 executed_by 存在就放宽普通 scope 的 sender 验证。
+
+合法顺序是：controller PCR 接受 provision／history_custody；创建同 Station 原 Agent PCR；
+controller 以自己的 endpoint 创建其 epoch-0 group，提交 Agent＋executed_by 的 Genesis，
+再将导出的首根按 Agent subject／当前 custodian policy 密封上传；充分根包耐久后才接纳首个
+encrypted_private_fields 原件。最后用真实 pairing 授权、KeyPackage、Add／Welcome 接入独立
+runtime。各步保存 exact intent／原件，失败续接原步骤，不重新 provision、换 PCR 或要求 runtime
+预先存在。非依赖控制 metadata 可先提交；服务端从不持有 R 或任一 endpoint 私态。
+
+名册和全 scope 库存必须按原 Genesis／Add／recovery 事实中的实际 endpoint Actor 归属，
+不能按资源 Event.actor_id 推断。Human 全设备丢失时，库存包含该 Human 在所有受托 Agent PCR
+内的 controller leaves（含空群），用其原生 Human RecoveryTransaction replacement 恢复；
+治理方另核当前 Agent control delegation 与上述窄角色，允许原 group 的 External／Remove 收尾，
+不要求不存在的普通 Realm member 行。只移除被替换 Human endpoints，保留独立有效 runtime；
+Agent runtime supersedes 则只清理相应 Agent endpoints，保留合法 controller leaves。
+两类恢复的原件来源、fresh PoP、库存／exact base CAS、全发送者屏障及新根隔离规则均不减少。
+recovery_source、producer fact 和 roster 公钥绑定实际签名者，并通过完整原 Event／Commit
+保留 Agent 资源 Actor 与 executed_by 的原签关系，不添加另一种身份或把 Human fact 伪装为 Agent。
+Agent 自己的 history_recovery 检查点仍由对应 replacement runtime 自签，controller 不能冒签。
+
 
 保留R意味着该epoch可恢复，不能同时声称逐条key密码销毁或MLS原生逐消息FS。
 旧端已缓存的旧历史无法远程擦除；新R及新备份对仅持旧日常私态的端隔离。

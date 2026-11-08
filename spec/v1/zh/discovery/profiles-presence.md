@@ -48,7 +48,7 @@ updated: 2026-07-03
   "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
-字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`schema`、`realm_id`、`principal_id`、`actor_kind`、`display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、`accountable_principal_ids`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`realm_id`、`updated_by` / `updated_at` 为可选字段，初始 `ak.profile.create` 后尚未发生更新时 MAY 省略。
+字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`schema`、`realm_id`、`principal_id`、`actor_kind`、`display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、`accountable_principal_ids`、`profile_fields`、`encrypted_private_fields`、`created_at`、`updated_by`、`updated_at`）；`realm_id`、`updated_by` / `updated_at` 为可选字段，初始 `ak.profile.create` 后尚未发生更新时 MAY 省略。
 
 ### 2.2 标准 Profile 字段
 
@@ -66,6 +66,7 @@ updated: 2026-07-03
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
+| `encrypted_private_fields` | EncryptedEnvelope | 可选 | PCR 私有 Profile 数据；完整密文，公开展示字段职责独立，规范见 §2.3.1。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
 | `updated_by` | ActorId | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
@@ -159,6 +160,28 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event、covering RealmCommit 及其与该 actor 和其 Principal Control Realm stream 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 与其 Commit 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
 
 `ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 current state，登记名为 **`actor_profile`**（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出），`state_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。本段曾把它写成 `profile_create:<target_actor_profile_id>`——那是一个 create-only 的拼法，而 update 写的是同一个值；登记名只有一个，不登记别名、也不另造 create-only family。`ak.profile.update` 的可选 `payload.expected_state_digest` 按 [`../sync/current-state.md` §2](../sync/current-state.md) 的统一算法对冻结的完整 `actor_profile` value 求摘要，失配以 `failed_precondition` 零写入拒绝。
+
+### 2.3.1 PCR 私有 Profile 字段
+
+`encrypted_private_fields` 是既有 `ak.profile.create/update` 的独立、typed 可选槽，位于 create 的
+`/payload/object/encrypted_private_fields`，或 update 的 `payload.patch.encrypted_private_fields`
+（直接值或唯一 `$op=set` 的完整 value）。只允许整槽 set，禁止子路径、unset、显式 null、
+Realm override 和 Realm Bot／Ghost Profile。提交者 MUST 独立证明这是该完整 Account 的原 PCR，
+并具备其当前原生 Profile 写权限；公开 Profile、exposure policy 或 MLS leaf 本身不授该写权限。
+
+该槽 MUST 使用已激活 PCR 自己的 MLS scope，以现行 C_item.purpose=`event_body` 和 content-history.md 的
+可恢复内容格式加密。解密后的 JSON MUST 符合 actor-profile.schema.json#/$defs/private_profile_fields：
+闭合外层仅有 `profile_fields`，内部复用既有 Profile 用户字段约束。它不是通用业务日志、设备授权、
+恢复私钥或可安装的 active MLS 私态。公开 display_name／handle／avatar／profile_fields 的原职责保持，
+作者 MUST NOT 把私有明文镜像写入这些展示字段。没有私有数据时可省略该槽；清空私有数据须写一个
+新加密的空 profile_fields 对象，不抹除已接受历史。更新其它展示字段时保留原槽，不构造新保护引用。
+
+每次写入前 MUST 先耐久保存 fresh salt／exact intent、当前充分 recipient 的根包及必要 Blob；
+原件与原签 protection、根上下文、coverage 依 content-history.md 原子接纳，缺根零效果。
+服务端 current／snapshot 原样保存密文；客户端只有经当前读取授权、原件及 AEAD 验证后才解密。
+现有已登记 exact Profile Event 对外披露仍保留原密文字节和签名，不能删字段后冒称原件；
+看见密文及公开保护 metadata 不授 root／DEK，不能据此扩大历史 grant 或备份读取资格。
+新槽不开放 Message／Strand 等被 PCR allowlist 禁止的业务 kind。
 
 ### 2.4 Per-Realm Profile 覆写
 
