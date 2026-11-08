@@ -2338,7 +2338,38 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-name-role": "response_body"
+      "x-arkret-name-role": "response_body",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke",
+        "ak.agent.provision",
+        "ak.consent.replace",
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.requested",
+        "ak.contact.scope.update",
+        "ak.contact.tombstone",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
+        "ak.direct_conversation.bound",
+        "ak.identity.accountability_grant",
+        "ak.identity.resolution.update",
+        "ak.key_backup.active_series",
+        "ak.mls.commit",
+        "ak.mls.genesis",
+        "ak.mls.history_grant",
+        "ak.mls.history_recovery",
+        "ak.mls.history_request",
+        "ak.policy.set",
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.realm.create",
+        "ak.realm.governance_station.change",
+        "ak.self.agent.deactivate",
+        "ak.self.agent.pause",
+        "ak.self.agent.resume"
+      ]
     },
     "committed_event_ref": {
       "type": "object",
@@ -2753,6 +2784,9 @@
         },
         {
           "$ref": "#/$defs/realm_recovery_service_historical_signer_fact"
+        },
+        {
+          "$ref": "#/$defs/agent_runtime_historical_signer_fact"
         }
       ]
     },
@@ -3350,6 +3384,56 @@
         }
       },
       "additionalProperties": false
+    },
+    "agent_runtime_historical_signer_fact": {
+      "type": "object",
+      "required": [
+        "kind",
+        "event_ref",
+        "actor_id",
+        "verification_method",
+        "public_key_base64url",
+        "authorization_event_ref",
+        "accepted_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent_runtime",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "authority-commit-operations.schema.json#/$defs/agent_runtime_historical_signer_fact/properties/kind",
+            "owner": "authority-commit-operations.schema.json#/$defs/agent_runtime_historical_signer_fact/properties/kind",
+            "values": [
+              "agent_runtime"
+            ]
+          }
+        },
+        "event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Actual original covering RealmCommit.committed_at, set by the governor when freezing the final fact and Commit. It is not predicted or signed in the earlier origin recovery_source attestation."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Minimal immutable Agent runtime signer fact derived only after native authority verification at original admission. The fact includes original producer Event ref but no target Commit coordinate. Its SHA256(JCS) is committed as producer_signer_fact_digest. Native private Agent scope stays at its Account Station; recovery uses the separately signed exact origin recovery source."
     }
   }
 }

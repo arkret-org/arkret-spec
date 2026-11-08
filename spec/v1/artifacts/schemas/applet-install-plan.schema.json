@@ -287,6 +287,8 @@
             "ak.mls.commit",
             "ak.mls.genesis",
             "ak.mls.history_grant",
+            "ak.mls.history_recovery",
+            "ak.mls.history_request",
             "ak.moderation.decision",
             "ak.moderation.decision.lift",
             "ak.morph.archive",
@@ -427,6 +429,8 @@
               "ak.mls.commit",
               "ak.mls.genesis",
               "ak.mls.history_grant",
+              "ak.mls.history_recovery",
+              "ak.mls.history_request",
               "ak.moderation.decision",
               "ak.moderation.decision.lift",
               "ak.morph.archive",
@@ -4143,6 +4147,60 @@
             "properties": {
               "payload": {
                 "$ref": "./event-payload.schema.json#/$defs/view_update_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.mls.history_request",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                  "values": [
+                    "ak.mls.history_request"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/mls_history_request_payload"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "ak.mls.history_recovery",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
+                  "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
+                  "values": [
+                    "ak.mls.history_recovery"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "./event-payload.schema.json#/$defs/mls_history_recovery_payload"
               }
             }
           }

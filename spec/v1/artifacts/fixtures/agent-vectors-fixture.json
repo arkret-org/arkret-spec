@@ -186,7 +186,21 @@
         "accountability_scope": "agent_operator",
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
-        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
+        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83",
+        "history_custody": {
+          "custodian_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkcontroller",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "recovery_policy_ref": {
+            "policy_id": "ak:policy:019a0000-0000-7000-8000-000000000001",
+            "policy_version": 1
+          },
+          "recipient_key_ref": "did:key:z6LSnf9Cz9K2i2cRdxkLLBzBJDgSeuctdvHYYLCWS7JuX8uL#z6LSnf9Cz9K2i2cRdxkLLBzBJDgSeuctdvHYYLCWS7JuX8uL"
+        }
       }
     },
     {
@@ -205,7 +219,21 @@
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
         "proofs": [],
-        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
+        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83",
+        "history_custody": {
+          "custodian_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkcontroller",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "recovery_policy_ref": {
+            "policy_id": "ak:policy:019a0000-0000-7000-8000-000000000001",
+            "policy_version": 1
+          },
+          "recipient_key_ref": "did:key:z6LSnf9Cz9K2i2cRdxkLLBzBJDgSeuctdvHYYLCWS7JuX8uL#z6LSnf9Cz9K2i2cRdxkLLBzBJDgSeuctdvHYYLCWS7JuX8uL"
+        }
       }
     },
     {

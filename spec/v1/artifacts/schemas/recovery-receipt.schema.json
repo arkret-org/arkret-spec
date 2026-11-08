@@ -311,9 +311,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "content_recovery": {
-      "$ref": "./content-encryption.schema.json#/$defs/history_recovery"
     }
   },
   "allOf": [

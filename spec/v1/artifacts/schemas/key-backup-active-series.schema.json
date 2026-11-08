@@ -95,6 +95,13 @@
         }
       },
       "additionalProperties": false
+    },
+    "custodian_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    },
+    "custody_authorization_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id",
+      "x-arkret-preimage-commitment": "fixed_event"
     }
   },
   "patternProperties": {
@@ -125,5 +132,13 @@
     "backup_series_id": {
       "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
     }
+  },
+  "dependentRequired": {
+    "custodian_actor_id": [
+      "custody_authorization_ref"
+    ],
+    "custody_authorization_ref": [
+      "custodian_actor_id"
+    ]
   }
 }

@@ -16,10 +16,6 @@ DISTINCT_PURPOSES = {
         'management-review-operations.schema.json#/$defs/management_review_status_request_body',
     }): 'Erasure idempotency intent and lookup of a management-review request are different operation contracts.',
     frozenset({
-        'keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body',
-        'keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body',
-    }): 'Independent erasure, delete-challenge and unlock-challenge idempotency domains.',
-    frozenset({
         'account-subscribe-frame.schema.json#/$defs/realm_list_removal',
         'account-subscribe-frame.schema.json#/$defs/realm_invalidation',
     }): 'List membership removal and invalidation of a retained Realm are different frame actions.',

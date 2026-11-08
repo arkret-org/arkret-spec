@@ -119,7 +119,7 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
 2. **membership MAC 的验证角色**：`PublicMessage` 的 membership MAC 只有持有该 epoch
    `membership_key` 的**成员**能验证。治理 Station 不是成员，它 MUST NOT 取得 `membership_key`
    或任何成员 secret，因此 MUST NOT 把 membership MAC 当作准入判据——它只验证 §2.2 列出的公开量。
-   成员在本地 MUST 验证 membership MAC。
+   成员按RFC sender分支验证Member消息membership MAC；恢复NewMemberCommit不携Member MAC，按content-history §9验证原签与path leaf。
 3. **被消费 Proposal 的 leaf provenance**：Station MUST 为每个 accepted Commit 持久保存它实际
    消费的 Proposal 集合，以及每条 Proposal 的精确 leaf provenance（目标 leaf、该 leaf 的完整
    ActorId 与 Proposal sender）。该 provenance MUST 只从第 1 项的公开 wire bytes 导出，
@@ -229,8 +229,7 @@ verifier；不允许用 manifest 签名代替双签，也不允许用当前 DID 
 Welcome、调用方输入或缺证据的历史投影反推；治理 Station 在签名每页 manifest 前核对，缺原始依据时
 整份 roster 为 `revision_unavailable`。epoch 0 的 `target_commit_event_ref` 与 `authority_head_commit_event_ref` 均填写该 Genesis
 Event ref；其它 epoch 的目标 ref 必须是产生目标 epoch 的 accepted Commit Event，head ref 是签发时
-同一 group 的最新 accepted Commit Event。冻结集合先放唯一 Genesis 记录，再按 accepted Commit 的
-stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录。治理
+同一 group 的最新 accepted Commit Event。冻结集合的唯一Genesis／历史Add／恢复recovery全序、原来源及self key对应按content-history §9。治理
 Station 在签 manifest 前按完整 canonical JSON 响应的 2 MiB 上限确定页边界：每页取从下一个
 未返回记录开始、peer 页与下述完整 self 公钥投影两者均在该上限内可容纳的最长连续前缀，
 记录数为 1..8；不得截断单条或跳项。self 预算包括 wrapper、manifest 公钥与每条 Add 的两份
@@ -279,7 +278,7 @@ Station 角色、same-core、已登记 method 版本、完整方法证明、两�
 在其授权内验证完整 closure；审计角色不会扩大普通客户端的职责或披露范围。
 
 peer 返回原 `roster_read_response_body`；self 返回封闭 `self_roster_read_response_body`，按 wire 顺序包含：
-`roster`（原 peer 页逐字不变）、`manifest_signing_key`、`add_signing_keys[]`。每个 signing key
+`roster`（原peer页逐字不变）、`manifest_signing_key`、`add_signing_keys[]`及仅有recovery记录时必带的`recovery_signing_keys[]`，精确规则见content-history §9。每个 signing key
 只有 `verification_method` 与 `public_key_base64url`；manifest key 必须在原 `issued_at` 授权给该
 generation 的治理 Station。每条 Add key row 按该页 Add 顺序携 `record_digest`、
 `claim_receipt_signing_key`、`attestation_signing_key`；digest 是完整该记录（含 closure）的 JCS

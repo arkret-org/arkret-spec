@@ -751,9 +751,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "history_custody": {
-          "$ref": "./content-encryption.schema.json#/$defs/custody"
         }
       },
       "additionalProperties": false
@@ -11625,6 +11622,12 @@
     },
     "mls_history_grant_payload": {
       "$ref": "./content-encryption.schema.json#/$defs/history_grant"
+    },
+    "mls_history_request_payload": {
+      "$ref": "./content-encryption.schema.json#/$defs/history_request"
+    },
+    "mls_history_recovery_payload": {
+      "$ref": "./content-encryption.schema.json#/$defs/history_recovery"
     }
   },
   "x-arkret-public-handshake-contract": {

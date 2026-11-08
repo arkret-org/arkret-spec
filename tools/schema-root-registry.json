@@ -7,6 +7,20 @@
       "registry_path": "registry/contract-registry.json#/content_encryption_contract/kdf_context_schema_ref",
       "implementation_path": "tools/content_history.py",
       "implementation_symbol": "content_key"
+    },
+    {
+      "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_inventory",
+      "kind": "canonical_preimage",
+      "registry_path": "registry/contract-registry.json#/content_encryption_contract/inventory_schema_ref",
+      "implementation_path": "tools/content_history.py",
+      "implementation_symbol": "inventory_digest"
+    },
+    {
+      "schema_ref": "schemas/content-encryption.schema.json#/$defs/cleanup_inventory",
+      "kind": "canonical_preimage",
+      "registry_path": "registry/contract-registry.json#/content_encryption_contract/cleanup_schema_ref",
+      "implementation_path": "tools/content_history.py",
+      "implementation_symbol": "cleanup_digest"
     }
   ],
   "compatibility_review": {

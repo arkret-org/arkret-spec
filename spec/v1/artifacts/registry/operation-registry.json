@@ -3099,7 +3099,7 @@
       "http": "POST /_arkret/self/streams/scan",
       "grpc": "SelfStreams/Scan",
       "mq": "self.streams.read.scan",
-      "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
@@ -3120,7 +3120,7 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
-      "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+      "notes": "Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
       "auth_requirements": {
         "managed_device_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
@@ -3315,7 +3315,7 @@
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
       "canonical_hash_input": "/proof",
-      "notes": "Same still-authorized holder exact replay returns the durable unlock outcome without charging the one-use challenge again."
+      "notes": "Exact challenge and proof bind optional subject_actor_id/custody_authorization_ref and content_history. Current-device history-only access to original protected content roots survives generation/policy changes and identity transaction completion; old sessions and revoked callers remain refused. No implicit active-state restoration."
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
@@ -3325,7 +3325,7 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
-      "notes": ""
+      "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing."
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",

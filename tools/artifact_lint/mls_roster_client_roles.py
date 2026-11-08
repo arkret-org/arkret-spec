@@ -40,12 +40,14 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
     client = roles.get("ordinary_client", {})
     if client.get("method_history_verifier") is not False or client.get("live_did_discovery") is not False:
         lint.fail(path, "ordinary MLS client must have neither method history nor live discovery")
-    required = {"recipient_claim_receipt_signature", "recipient_add_attestation_signature", "rfc9420_credential_leaf_and_proposal_binding"}
+    required = {"recipient_claim_receipt_signature", "recipient_add_attestation_signature", "rfc9420_credential_leaf_and_proposal_binding", "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"}
     if not required <= set(client.get("checks", [])):
         lint.fail(path, "ordinary client must independently verify both original signatures and RFC leaf")
     for role in ("account_station", "governance_station", "independent_auditor"):
         if roles.get(role, {}).get("method_history_verifier") is not True:
             lint.fail(path, f"{role} must verify native historical authority")
+        if "recovery_origin_station_exact_native_history_and_original_source_signature" not in roles.get(role, {}).get("checks", []):
+            lint.fail(path, f"{role} must independently verify the original recovery origin source")
     for name in ("self_result_portable", "network_from_retained_commit_signer", "historical_closure_is_current_route"):
         if rules.get(name) is not False:
             lint.fail(path, f"roster boundary cannot enable {name}")
@@ -79,12 +81,19 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
         ("roster_add_signing_keys", ["record_digest", "claim_receipt_signing_key", "attestation_signing_key"]),
         ("roster_signing_key", ["verification_method", "public_key_base64url"]),
         ("roster_recovery_signing_key", ["record_digest", "public_key_base64url"]),
-        ("roster_recovery_record", ["kind", "commit_event", "covering_commit", "producer_signer_fact"]),
-        ("roster_agent_signer_fact", ["kind", "event_ref", "actor_id", "verification_method", "public_key_base64url", "authorization_event_ref", "accepted_at"]),
+        ("roster_recovery_record", ["kind", "commit_event", "covering_commit", "producer_signer_fact", "recovery_source"]),
     ):
         row = definitions.get(name, {})
         if row.get("required") != [field for field in fields if field not in {"cursor", "recovery_signing_keys"}] or list(row.get("properties", {})) != fields or row.get("additionalProperties") is not False:
             lint.fail(schema_path, f"{name} must retain its exact closed required key bindings")
+    native_path = ARTIFACTS / "schemas/authority-commit-operations.schema.json"
+    native = load_json(lint, native_path)["$defs"]
+    agent = native.get("agent_runtime_historical_signer_fact", {})
+    agent_fields = ["kind", "event_ref", "actor_id", "verification_method", "public_key_base64url", "authorization_event_ref", "accepted_at"]
+    if agent.get("required") != agent_fields or list(agent.get("properties", {})) != agent_fields or agent.get("additionalProperties") is not False:
+        lint.fail(native_path, "Agent recovery fact must retain its single native canonical owner and exact source")
+    if {"$ref": "#/$defs/agent_runtime_historical_signer_fact"} not in native.get("historical_producer_signer_fact", {}).get("oneOf", []):
+        lint.fail(native_path, "Agent fact must be a real committed native signer branch")
     recovery = definitions.get("roster_recovery_record", {})
     commit_rules = recovery.get("properties", {}).get("commit_event", {}).get("allOf", [])
     if len(commit_rules) != 2 or commit_rules[0].get("$ref") != "./event-envelope.schema.json" or commit_rules[1].get("properties", {}).get("payload", {}).get("required") != ["recovery_binding"]:

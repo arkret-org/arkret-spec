@@ -40,6 +40,13 @@ class RosterClientRoleTests(unittest.TestCase):
                         data["did_evidence_boundary_registry"]["mls_roster_verification_contract"]["roles"]["ordinary_client"]["checks"].remove(field)
                 self.assertTrue(self.run_gate(mutate))
 
+    def test_recovery_origin_and_original_endpoint_checks_cannot_disappear(self):
+        for role, check in (("ordinary_client", "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"), ("account_station", "recovery_origin_station_exact_native_history_and_original_source_signature"), ("governance_station", "recovery_origin_station_exact_native_history_and_original_source_signature"), ("independent_auditor", "recovery_origin_station_exact_native_history_and_original_source_signature")):
+            def mutate(name, data):
+                if name == "contract-registry.json":
+                    data["did_evidence_boundary_registry"]["mls_roster_verification_contract"]["roles"][role]["checks"].remove(check)
+            self.assertTrue(self.run_gate(mutate))
+
     def test_commit_signer_and_history_cannot_become_route_sources(self):
         for field in ("self_result_portable", "network_from_retained_commit_signer", "historical_closure_is_current_route"):
             with self.subTest(field=field):
@@ -113,8 +120,8 @@ class RosterClientRoleTests(unittest.TestCase):
     def test_agent_recovery_fact_cannot_become_a_boolean_or_open_claim(self):
         for field in ("event_ref", "authorization_event_ref", "verification_method"):
             def mutate(name, data):
-                if name == "mls-roster-authority.schema.json":
-                    data["$defs"]["roster_agent_signer_fact"]["required"].remove(field)
+                if name == "authority-commit-operations.schema.json":
+                    data["$defs"]["agent_runtime_historical_signer_fact"]["required"].remove(field)
             self.assertTrue(self.run_gate(mutate))
 
 

@@ -9,7 +9,8 @@
     "Every exposure resolves exactly one reusable outward disclosure policy through outward_disclosure_policy_mapping, unless it carries an explicit outward_disclosure_policy_id override. The referenced policy is defined in outward-disclosure-policy-registry.json.",
     "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry.",
     "Existing self signer-key historical results for a self-submitted Human PCR target expose only query_signing_key: original same-Station self-admission and exact target must bind the authenticated recipient fullAccount to the actual Human producer fullAccount and complete immutable historical authorization/proof. Controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that same transaction. This does not expose PCR Events/history, grant scan/membership, alter floor, allow sibling/foreign admission, or reconstruct missing facts from current rows.",
-    "All carriers intersect the PCR profile pcr_governance_policy derived from verified accepted genesis provenance. Human PCR has no governance-change, handoff Snapshot/import, separated-governor proxy/publication or foreign-current-authority exposure; Human PCR genesis/Commit/current assertion MUST NOT be disclosed through the public authority-bundle operation; indistinguishable not_found applies. User-managed Agent PCR likewise forbids governance change, handoff and separated-governor proxy/publication/foreign current; existing generation-zero minimal authority disclosure remains governed by its own gates. The shared union is not per-subject permission. Unknown provenance fails closed; ordinary client projections do not establish provenance."
+    "All carriers intersect the PCR profile pcr_governance_policy derived from verified accepted genesis provenance. Human PCR has no governance-change, handoff Snapshot/import, separated-governor proxy/publication or foreign-current-authority exposure; Human PCR genesis/Commit/current assertion MUST NOT be disclosed through the public authority-bundle operation; indistinguishable not_found applies. User-managed Agent PCR likewise forbids governance change, handoff and separated-governor proxy/publication/foreign current; existing generation-zero minimal authority disclosure remains governed by its own gates. The shared union is not per-subject permission. Unknown provenance fails closed; ordinary client projections do not establish provenance.",
+    "Every admitted PCR kind has two current_agent_history_custodian exact-original self read carriers. This policy is applicable only to independently verified accepted agent_control PCR provenance and immutable provision custody; it never authorizes a Human PCR or a peer/public path. Covering RealmCommits retain their original signatures. Blob and root-backup reads apply the same native subject/custody gate and the narrower original protection context, not general cross-principal access."
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
@@ -80,6 +81,25 @@
     {
       "policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
       "description": "Exact accepted C/S managed Account operation source: current authorized owning Service, exact subject and purpose, candidate binding, bounded private audit only; no generic PCR read or source preregistration."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+      "description": "Only the currently authorized Human custodian Device of an accepted user-managed Agent provision may read that exact agent_control PCR originals and covering Commits. Verify immutable history_custody, complete controller and Agent Accounts, same logical Station, current device generation/lifecycle, current Agent controller/lifecycle and continuous accepted custody policy before target lookup. This is history-only: no Human PCR, foreign Realm, peer/public carrier, delegated manager, new membership or governance transfer. Revoked controller/runtime/device fails indistinguishable_not_found; possession of a Blob or Event ID is never authority.",
+      "required_native_facts": [
+        "accepted_agent_control_genesis",
+        "immutable_provision_history_custody",
+        "complete_same_station_subject_and_controller_accounts",
+        "current_controller_binding_and_lifecycle",
+        "current_controller_device_generation_and_lifecycle",
+        "continuous_current_custody_policy",
+        "exact_subject_pcr_and_original_protection_context"
+      ],
+      "forbidden_surfaces": [
+        "human_pcr",
+        "foreign_realm",
+        "peer",
+        "public"
+      ]
     }
   ],
   "anti_enumeration_policies": [
@@ -123,6 +143,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -151,6 +195,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -187,6 +255,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -277,6 +369,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -305,6 +421,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -332,6 +472,30 @@
             "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -373,6 +537,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -401,6 +589,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -428,6 +640,30 @@
             "/$defs/peer_submit_request_body/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -471,6 +707,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -511,6 +771,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -553,6 +837,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -582,6 +890,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -610,6 +942,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -653,6 +1009,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -681,6 +1061,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -711,6 +1115,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -740,12 +1168,119 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
     {
       "event_kind": "ak.mls.history_grant",
-      "exposures": []
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.mls.history_recovery",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        }
+      ]
+    },
+    {
+      "event_kind": "ak.mls.history_request",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        }
+      ]
     },
     {
       "event_kind": "ak.policy.set",
@@ -772,6 +1307,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -814,6 +1373,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -854,6 +1437,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -930,6 +1537,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -969,6 +1600,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -997,6 +1652,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -1027,6 +1706,30 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -1055,6 +1758,30 @@
             "/$defs/realm_authority_handoff_request_body/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]

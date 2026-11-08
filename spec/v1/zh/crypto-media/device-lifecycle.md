@@ -1550,4 +1550,4 @@ Realm Bot／Ghost 的 current、控制原件及 exact 结果只通过
 
 ### 14.3 完整内容恢复结果
 
-RecoveryTransaction两Event unit的completed只表示身份原子提交。recovery receipt的content_recovery按content-encryption.schema.json独立表示pending／ready；ready须PCR全原件恢复及完整scope库存清理完成。旧generation设备、session、队列和KeyPackage不得等TTL而继续使用；历史重放不恢复旧authorize。闭合空群库存、全发送者屏障、旧端新消息／备份隔离及24词充分路径见[可恢复内容 §5](./content-history.md#5-pcr24词恢复与旧端失效)。
+RecoveryTransaction两Event unit的completed只表示身份原子提交。原签ak.mls.history_recovery检查点按content-encryption.schema.json独立表示pending／ready，原RecoveryReceipt不可事后修改；ready须PCR全原件恢复及完整scope库存清理完成。旧generation设备、session、队列和KeyPackage不得等TTL而继续使用；历史重放不恢复旧authorize。闭合空群库存、全发送者屏障、旧端新消息／备份隔离及24词充分路径见[可恢复内容 §5](./content-history.md#5-pcr24词恢复与旧端失效)。

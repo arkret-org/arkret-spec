@@ -1,0 +1,36 @@
+{
+  "source_sdk_commit": "be1c07a1b6dd73d8eabe277c3c19ca789f68668f",
+  "source_artifact": "arkret-rust-sdk/artifacts/epoch-content-recovery/20261108-0911/epoch-content-human-3-01a1b8bb-2a22-7382-a211-2ad4737ff867/recovered.json",
+  "wire_sha256": "57abdc7ac6206951169cc5829cfb00c591e82e27c2e472537fa4fa69866abd8e",
+  "public_message_hex": "000100012046e3f5ab43774150e0f6be77267d89c1561fcf3c871745ccdad411e7aa540ffc000000000000000304000324010006202ade115fd66f2c73971f3df5dfd6e53462581dbd370e5f9df665fee572e2022001202fdb2a5c8f147b66f14f97f5fd608db9ebb0e5936397273a6fa04079f8fdb56c20a51863f5861cd62e088efd79a499215080ecd94bd6f54147a8fe592bdd68806c000140ab7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a516d546e705261616478736f39676d757143616f5435346962346b574b4e74314635557571584e36693568776579222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a7265636f766572792d73746174696f6e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d02000106000100020003000002000103200bce1b0105b3658b2fb8a34d4826688f4b400ede89f0598c3688952df6bd6af9004040c67531d5b93b05ab269f53b3e6a9d945d2e20b8747f8459a4e028ae1427cc653a4277793c5b9f2d5d52fac287d5f861caacb699501ba11c3db3070415786ec0340ea20be0a9d78e1c5374757a54f0f82d96aa436d837f2524caf9ad6dff71c8f23081d40522026aea14aba657ed055ec1534bedee634ba746520dde634dee948460f28784e69307b61c017783f6c48be866f37a12a31bac4b59b15af02da1888343e655f8684c1a2e250945c97f2a8a14594a9aa300e0620f95407656b63f7ed64d3c1161b20a44a53f208ca9e54ca0e5392924613cb83334052204834bcb36a38b2ba74a21edb634996f95b2b953cc7d8f9ff25cb08e38e8e65463096c9cea48616a8d480318f8966dfb8e9b55f9f42e2a948f9cee730d89e31d571321152e5925a4f08ddf9d08ef9d1ad234040e7ad51348d3a4bf4941b0db2b7f5f6b1e1f75b0cb3a94a0a3931012229759ece6005cdb7c5c0aa8d4c41dfe17146abc4103ab7398c4dcc80a33749f61c07df0d20d234762b95209cb9c4fcbf675178e65e302071e1a24b587518a5d0e3c9eba264",
+  "expected_path_leaf": {
+    "group_id_hex": "46e3f5ab43774150e0f6be77267d89c1561fcf3c871745ccdad411e7aa540ffc",
+    "epoch": "3",
+    "actor_id": {
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "station_id": "ak:did_core:web:recovery-station.example"
+      },
+      "kind": "account"
+    },
+    "signature_key_base64url": "pRhj9YYc1i4Ijv15pJkhUIDs2UvW9UFHqP5ZK91ogGw",
+    "encryption_key_base64url": "L9sqXI8Ue2bxT5f1_WCNueuw5ZNjlyc6b6BAefj9tWw",
+    "confirmation_tag_base64url": "0jR2K5UgnLnE_L9nUXjmXjAgceGiS1h1GKXQ48nromQ"
+  },
+  "note": "Frozen public bytes from a previously executed native OpenMLS experiment. Parser checks the RFC branch and exact path leaf, not native Arkret admission.",
+  "native_output_bindings": {
+    "actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "station_id": "ak:did_core:web:recovery-station.example"
+      }
+    },
+    "signature_key_base64url": "pRhj9YYc1i4Ijv15pJkhUIDs2UvW9UFHqP5ZK91ogGw",
+    "group_id_hex": "46e3f5ab43774150e0f6be77267d89c1561fcf3c871745ccdad411e7aa540ffc"
+  },
+  "native_scope": {
+    "kind": "realm",
+    "realm_id": "ak:realm:AUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVF"
+  }
+}

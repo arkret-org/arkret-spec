@@ -1762,14 +1762,19 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.agent_provision.v1",
+          "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.blob.v1",
           "ak.schema.encrypted_envelope.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.key_backup.v1",
           "ak.schema.key_backup_plaintext.v1",
+          "ak.schema.key_backup_unlock_proof.v1",
+          "ak.schema.keys_operations.v1",
+          "ak.schema.mls_commit_submission.v1",
+          "ak.schema.mls_roster_authority.v1",
           "ak.schema.realm.v1",
-          "ak.schema.realm_genesis.v1",
-          "ak.schema.recovery_receipt.v1"
+          "ak.schema.realm_genesis.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
@@ -4515,7 +4520,6 @@
           "ak.schema.message.v1",
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
-          "ak.schema.mls_roster_authority.v1",
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
           "ak.schema.personal_productivity.v1",

@@ -17,7 +17,8 @@
     "accountability_scope",
     "requested_scope_digest",
     "selector_visibility",
-    "created_at"
+    "created_at",
+    "history_custody"
   ],
   "properties": {
     "schema": {
@@ -88,6 +89,9 @@
     },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "history_custody": {
+      "$ref": "./content-encryption.schema.json#/$defs/custody"
     }
   },
   "allOf": [

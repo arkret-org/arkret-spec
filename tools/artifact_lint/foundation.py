@@ -4961,6 +4961,15 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
 
     authorization_policies = policy_ids("authorization_policies")
     anti_enumeration_policies = policy_ids("anti_enumeration_policies")
+    custody_id = "ak.pcr_exposure_policy.current_agent_history_custodian.v1"
+    custody = next((x for x in data.get("authorization_policies", []) if isinstance(x, dict) and x.get("policy_id") == custody_id), {})
+    if custody.get("required_native_facts") != [
+        "accepted_agent_control_genesis", "immutable_provision_history_custody",
+        "complete_same_station_subject_and_controller_accounts", "current_controller_binding_and_lifecycle",
+        "current_controller_device_generation_and_lifecycle", "continuous_current_custody_policy",
+        "exact_subject_pcr_and_original_protection_context",
+    ] or custody.get("forbidden_surfaces") != ["human_pcr", "foreign_realm", "peer", "public"]:
+        lint.fail(path, "Agent history custody must retain every exact native qualification and forbidden surface")
 
     profiles = load_json(lint, ARTIFACTS / "profiles" / "conformance-profiles.json")
     allowlist = (
@@ -5014,6 +5023,14 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
         if not isinstance(exposures, list):
             lint.fail(path, f"{where}.exposures must be a list")
             continue
+        custody_carriers = [x for x in exposures if isinstance(x, dict) and x.get("authorization_policy_id") == custody_id]
+        custody_ops = {"ak.self.committed_event.read.scan.v1", "ak.self.committed_event.resource.get.v1"}
+        if len(custody_carriers) != 2 or {x.get("operation_id") for x in custody_carriers} != custody_ops or any(
+            x.get("carrier") != "exact_event" or x.get("surface") != "operation" or x.get("direction") != "response"
+            or x.get("anti_enumeration_policy_id") != "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+            for x in custody_carriers
+        ):
+            lint.fail(path, f"{where} must retain only the two exact private Agent custody history read carriers")
         if not exposures:
             private_kinds.add(event_kind)
             continue

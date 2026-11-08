@@ -2318,6 +2318,8 @@
           "ak.mls.commit",
           "ak.mls.genesis",
           "ak.mls.history_grant",
+          "ak.mls.history_recovery",
+          "ak.mls.history_request",
           "ak.policy.set",
           "ak.profile.create",
           "ak.profile.update",
@@ -2347,7 +2349,8 @@
           "ak.agent.key.revoke",
           "ak.self.agent.pause",
           "ak.self.agent.resume",
-          "ak.self.agent.deactivate"
+          "ak.self.agent.deactivate",
+          "ak.key_backup.active_series"
         ],
         "controller_pcr_event_kinds": [
           "ak.agent.provision",
@@ -2360,7 +2363,8 @@
         "rules": [
           "Agent PCR events MUST target the Agent DID bound to the Realm; controller execution uses actor_id=Agent DID, executed_by=controller DID, and a verified authorization_ref.",
           "Initial provisioning MUST use one controller-owned ak.agent.provision Event in the controller PCR and atomically project provision, accountability and selector facts; later standalone accountability/selector changes remain controller-owned and MUST NOT move into the Agent PCR.",
-          "Pairing requests and account approval notifications MUST NOT be written to any PCR or Collaboration Realm."
+          "Pairing requests and account approval notifications MUST NOT be written to any PCR or Collaboration Realm.",
+          "Agent-subject active-series selection is an Agent PCR control Event: actor_id is the complete Agent Account, executed_by the current immutable-provision custodian Account, authorization_ref the verified native Agent control delegation. The signed payload carries the same custodian pair and a real current custodian Device/source anchor; it is not a runtime permission or a Human generation on the Agent."
         ]
       },
       "realm_defaults": {
@@ -2865,7 +2869,8 @@
           "complete_ordered_records_digest",
           "recipient_claim_receipt_signature",
           "recipient_add_attestation_signature",
-          "rfc9420_credential_leaf_and_proposal_binding"
+          "rfc9420_credential_leaf_and_proposal_binding",
+          "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"
         ]
       },
       "required_vectors": [
@@ -3004,7 +3009,8 @@
           "complete_ordered_records_digest",
           "recipient_claim_receipt_signature",
           "recipient_add_attestation_signature",
-          "rfc9420_credential_leaf_and_proposal_binding"
+          "rfc9420_credential_leaf_and_proposal_binding",
+          "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"
         ]
       },
       "required_vectors": [
@@ -3370,7 +3376,8 @@
           "method_native_history_and_station_role_core",
           "assertion_method_at_claimed_at_and_attested_at",
           "original_recipient_signatures",
-          "realm_claim_authority_and_add_authority_same_realm_verified_succession"
+          "realm_claim_authority_and_add_authority_same_realm_verified_succession",
+          "recovery_origin_station_exact_native_history_and_original_source_signature"
         ],
         "output": "self_roster_read_response_body",
         "failure_code": "revision_unavailable"

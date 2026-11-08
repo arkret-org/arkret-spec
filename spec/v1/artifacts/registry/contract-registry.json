@@ -3607,8 +3607,8 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Key backup active series selection for one principal and backup_kind. The signed payload has exactly one source-anchor member: source_commit_ref{realm_commit_id,device_generation_ref}; source_ref and nested CommittedEventRef shapes are invalid.",
+        "admission": "conditional",
+        "payload": "Key backup active series selection for one principal and backup_kind. The signed payload has exactly one source-anchor member: source_commit_ref{realm_commit_id,device_generation_ref}; source_ref and nested CommittedEventRef shapes are invalid. Agent custody selection targets the Agent PCR with actor_id=Agent, executed_by=the exact current custodian and the original native Agent control delegation; current controller Device proof and its PCR source anchor are required. Runtime cannot select a series.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
         "id_source": "not_an_object_id",
         "effect_ownership": {
@@ -3634,7 +3634,33 @@
               }
             },
             "value_schema_ref": "schemas/key-backup-active-series.schema.json",
-            "notes": "identity/key-management.md sections 7.6 and 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization and the exact source_commit_ref{realm_commit_id,device_generation_ref}; it does not accept source_ref, commit_ref or a full CommittedEventRef. Version must be 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
+            "notes": "identity/key-management.md sections 7.6 and 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization and the exact source_commit_ref{realm_commit_id,device_generation_ref}; it does not accept source_ref, commit_ref or a full CommittedEventRef. Version must be 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes. For Agent custody, the payload actor selects the Agent pointer, while source_commit_ref and device proof refer to the custodian PCR; no Agent device generation is fabricated."
+          }
+        ],
+        "admission_variants": [
+          {
+            "when": {
+              "top_level_fields_present": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "capability_gated"
+          },
+          {
+            "when": {
+              "top_level_fields_absent": [
+                "executed_by",
+                "authorization_ref"
+              ]
+            },
+            "admission": "self_authored_proof"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "deny"
           }
         ]
       },
@@ -9283,6 +9309,38 @@
         "effect_ownership": {
           "kind": "typed_state_writer"
         }
+      },
+      {
+        "event_kind": "ak.mls.history_request",
+        "category": "e2ee",
+        "status": "active",
+        "verb_form": "not_applicable",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Subject-only current-reader signed HPKE recipient key request, bound to exact authorized endpoint, scope, history cut and expiry. No secrets, membership change or key disclosure.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_history_request_payload",
+        "id_source": "not_an_object_id",
+        "effect_ownership": {
+          "kind": "durable_fact_no_current_projection",
+          "defined_in": "zh/crypto-media/content-history.md"
+        },
+        "admission": "self_authored_proof"
+      },
+      {
+        "event_kind": "ak.mls.history_recovery",
+        "category": "e2ee",
+        "status": "active",
+        "verb_form": "not_applicable",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Exact replacement-endpoint-signed private PCR recovery checkpoint after the independent identity unit. Binds immutable inventory and cleanup Blobs; never modifies the pre-signed RecoveryReceipt or grants membership.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_history_recovery_payload",
+        "id_source": "not_an_object_id",
+        "effect_ownership": {
+          "kind": "durable_fact_no_current_projection",
+          "defined_in": "zh/crypto-media/content-history.md"
+        },
+        "admission": "self_authored_proof"
       }
     ],
     "actor_private_contracts": {
@@ -16708,7 +16766,7 @@
         "http": "POST /_arkret/self/streams/scan",
         "grpc": "SelfStreams/Scan",
         "mq": "self.streams.read.scan",
-        "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+        "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
@@ -16729,7 +16787,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
-        "notes": " Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+        "notes": "Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
         "auth_requirements": {
           "managed_device_signature": {
             "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
@@ -16924,7 +16982,7 @@
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
         "canonical_hash_input": "/proof",
-        "notes": "Same still-authorized holder exact replay returns the durable unlock outcome without charging the one-use challenge again."
+        "notes": "Exact challenge and proof bind optional subject_actor_id/custody_authorization_ref and content_history. Current-device history-only access to original protected content roots survives generation/policy changes and identity transaction completion; old sessions and revoked callers remain refused. No implicit active-state restoration."
       },
       {
         "operation_id": "ak.self.keys.backups.read.list.v1",
@@ -16934,7 +16992,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
-        "notes": ""
+        "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing."
       },
       {
         "operation_id": "ak.self.keys.backups.resource.delete.v1",
@@ -20318,6 +20376,19 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.key_backup.active_series",
+        "category": "personal",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.key_backup.active_series"
+        ],
+        "profile": "ak.profile.principal_control_realm.v1",
+        "root_control_only": true,
+        "notes": "Only the exact current native controller of the target Agent PCR may select its backup series under the immutable provision history_custody binding. Never grantable to Realm members, co-owners or runtime keys. The Human self-authored proof branch remains subject-native.",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.member.compensate.leave",
         "category": "membership",
         "risk_tier": "high",
@@ -20519,6 +20590,32 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.mls.history_recovery",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.mls.history_recovery"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "subject_only": true,
+        "notes": "Subject-only current native replacement endpoint in its own PCR; signed proof must equal inventory replacement key. Private control metadata allowed while MLS cleanup is pending, never business plaintext or cross-subject delegation."
+      },
+      {
+        "action": "ak.mls.history_request",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.mls.history_request"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "subject_only": true,
+        "notes": "Current effective read authority and exact recipient native endpoint proof; no administrator grant required, no membership creation. Request event key is the grant recipient source."
       },
       {
         "action": "ak.moderation.decision",
@@ -22336,7 +22433,8 @@
             "complete_ordered_records_digest",
             "recipient_claim_receipt_signature",
             "recipient_add_attestation_signature",
-            "rfc9420_credential_leaf_and_proposal_binding"
+            "rfc9420_credential_leaf_and_proposal_binding",
+            "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"
           ]
         },
         "account_station": {
@@ -22348,7 +22446,8 @@
             "method_native_history_and_station_role_core",
             "assertion_method_at_claimed_at_and_attested_at",
             "original_recipient_signatures",
-            "realm_claim_authority_and_add_authority_same_realm_verified_succession"
+            "realm_claim_authority_and_add_authority_same_realm_verified_succession",
+            "recovery_origin_station_exact_native_history_and_original_source_signature"
           ],
           "output": "self_roster_read_response_body",
           "failure_code": "revision_unavailable"
@@ -22357,12 +22456,18 @@
           "method_history_verifier": true,
           "initial_history_source": "already_verified_same_core_route",
           "freeze": "exact_add_attestation_acceptance_transaction",
-          "replay": "immutable_original_closure"
+          "replay": "immutable_original_closure",
+          "checks": [
+            "recovery_origin_station_exact_native_history_and_original_source_signature"
+          ]
         },
         "independent_auditor": {
           "method_history_verifier": true,
           "history_source": "authorized_inline_closure",
-          "live_discovery": "requires_separate_registered_route_source_no_roster_exception"
+          "live_discovery": "requires_separate_registered_route_source_no_roster_exception",
+          "checks": [
+            "recovery_origin_station_exact_native_history_and_original_source_signature"
+          ]
         }
       },
       "self_result_portable": false,
@@ -24775,7 +24880,8 @@
       "base": "exact_current_accepted_group_state",
       "old_leaf_remove_required": true,
       "intermediate_business_writes": false,
-      "cleanup_authorization": "current_recovery_replacement_exact_same_actor_inventory_only_without_admin_escalation"
+      "cleanup_authorization": "current_recovery_replacement_exact_same_actor_inventory_only_without_admin_escalation",
+      "authorization_source": "committed_policy_recovery_unit_or_current_agent_full_supersedes_pairing"
     },
     "key_backup_item": "content_epoch_root",
     "raw_mls_secrets_allowed": false,
@@ -24785,6 +24891,16 @@
       "all_history_for_current_members"
     ],
     "kdf_context_schema_ref": "schemas/content-encryption.schema.json#/$defs/content_context",
-    "recovery_roster_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_recovery_record"
+    "recovery_roster_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_recovery_record",
+    "history_request_event_kind": "ak.mls.history_request",
+    "inventory_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_inventory",
+    "cleanup_schema_ref": "schemas/content-encryption.schema.json#/$defs/cleanup_inventory",
+    "history_backup_access": "current_device_object_bound_original_protection_only",
+    "agent_custody_source": "accepted_immutable_agent_provision",
+    "agent_series_signer": "current_custodian_device_native_authority",
+    "agent_envelope_signer": "current_custodian_device_or_current_native_runtime",
+    "coverage_page_size": 256,
+    "history_recovery_event_kind": "ak.mls.history_recovery",
+    "recovery_source_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_source"
   }
 }

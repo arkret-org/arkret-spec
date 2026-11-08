@@ -6762,6 +6762,14 @@ paths:
           minimum: 1
           maximum: 200
           default: 50
+      - in: query
+        name: agent_id
+        required: false
+        description: Exact same-Station owned Agent selector; current controller custody is required. The subject
+          AccountId is derived from accepted immutable provision, never from this DID alone. Cursor binds caller
+          and subject independently.
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Encrypted key backup metadata list

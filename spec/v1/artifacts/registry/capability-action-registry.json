@@ -644,6 +644,19 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ak.key_backup.active_series",
+      "category": "personal",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.key_backup.active_series"
+      ],
+      "profile": "ak.profile.principal_control_realm.v1",
+      "root_control_only": true,
+      "notes": "Only the exact current native controller of the target Agent PCR may select its backup series under the immutable provision history_custody binding. Never grantable to Realm members, co-owners or runtime keys. The Human self-authored proof branch remains subject-native.",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.member.compensate.leave",
       "category": "membership",
       "risk_tier": "high",
@@ -845,6 +858,32 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.mls.history_recovery",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.history_recovery"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "subject_only": true,
+      "notes": "Subject-only current native replacement endpoint in its own PCR; signed proof must equal inventory replacement key. Private control metadata allowed while MLS cleanup is pending, never business plaintext or cross-subject delegation."
+    },
+    {
+      "action": "ak.mls.history_request",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.history_request"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "subject_only": true,
+      "notes": "Current effective read authority and exact recipient native endpoint proof; no administrator grant required, no membership creation. Request event key is the grant recipient source."
     },
     {
       "action": "ak.moderation.decision",

@@ -126,6 +126,16 @@
     },
     "nonce": {
       "$ref": "./keys-operations.schema.json#/$defs/base64url"
+    },
+    "subject_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    },
+    "custody_authorization_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id",
+      "x-arkret-preimage-commitment": "fixed_event"
+    },
+    "content_history": {
+      "$ref": "./content-encryption.schema.json#/$defs/history_backup_access"
     }
   },
   "additionalProperties": false,
@@ -209,9 +219,32 @@
             "required": [
               "nonce"
             ]
+          },
+          {
+            "required": [
+              "subject_actor_id"
+            ]
+          },
+          {
+            "required": [
+              "custody_authorization_ref"
+            ]
+          },
+          {
+            "required": [
+              "content_history"
+            ]
           }
         ]
       }
     }
-  ]
+  ],
+  "dependentRequired": {
+    "subject_actor_id": [
+      "custody_authorization_ref"
+    ],
+    "custody_authorization_ref": [
+      "subject_actor_id"
+    ]
+  }
 }

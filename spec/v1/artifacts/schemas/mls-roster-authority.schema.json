@@ -744,7 +744,8 @@
         "kind",
         "commit_event",
         "covering_commit",
-        "producer_signer_fact"
+        "producer_signer_fact",
+        "recovery_source"
       ],
       "properties": {
         "kind": {
@@ -803,14 +804,10 @@
           "$ref": "./realm-commit.schema.json"
         },
         "producer_signer_fact": {
-          "oneOf": [
-            {
-              "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact"
-            },
-            {
-              "$ref": "#/$defs/roster_agent_signer_fact"
-            }
-          ]
+          "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact"
+        },
+        "recovery_source": {
+          "$ref": "./content-encryption.schema.json#/$defs/recovery_source"
         }
       },
       "additionalProperties": false,
@@ -831,53 +828,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "roster_agent_signer_fact": {
-      "type": "object",
-      "required": [
-        "kind",
-        "event_ref",
-        "actor_id",
-        "verification_method",
-        "public_key_base64url",
-        "authorization_event_ref",
-        "accepted_at"
-      ],
-      "properties": {
-        "kind": {
-          "const": "agent_runtime",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "mls-roster-authority.schema.json#/$defs/roster_agent_signer_fact/properties/kind",
-            "owner": "mls-roster-authority.schema.json#/$defs/roster_agent_signer_fact/properties/kind",
-            "values": [
-              "agent_runtime"
-            ]
-          }
-        },
-        "event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "x-arkret-preimage-commitment": "fixed_event"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "public_key_base64url": {
-          "$ref": "#/$defs/signature_key"
-        },
-        "authorization_event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "x-arkret-preimage-commitment": "fixed_event"
-        },
-        "accepted_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Exact-target minimum Agent source projection, frozen only after native Agent authority verification at original admission; must match original accepted Commit producer-fact digest. Never an Agent authorization proof on its own or an input to current authorization."
     }
   }
 }

@@ -253,8 +253,8 @@
           "items": {
             "$ref": "./key-backup.schema.json#/properties/backup_id"
           },
-          "minItems": 1,
-          "maxItems": 256,
+          "minItems": 0,
+          "maxItems": 65536,
           "uniqueItems": true
         },
         "previous_page_digest": {
@@ -348,6 +348,7 @@
       "required": [
         "recipient",
         "recipient_hpke_key_base64url",
+        "recipient_key_event_ref",
         "history_cut",
         "authorization_event_ref",
         "expires_at",
@@ -361,6 +362,10 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{43}$",
           "x-arkret-member-role": "binary_encoding"
+        },
+        "recipient_key_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "history_cut": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -386,9 +391,9 @@
               },
               "sealed_key_base64url": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 1048576,
-                "pattern": "^[A-Za-z0-9_-]+$",
+                "pattern": "^(?:[A-Za-z0-9_-]{85}[AQgw]|[A-Za-z0-9_-]{106}[AEIMQUYcgkosw048])$",
+                "minLength": 86,
+                "maxLength": 107,
                 "x-arkret-member-role": "binary_encoding"
               }
             },
@@ -400,7 +405,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Original Event producer proof covers every field. HPKE info and aad equal JCS({recipient,recipient_hpke_key_base64url,history_cut,authorization_event_ref,expires_at,selector}); plaintext is exactly the selected 16/32-byte DEK or 32-byte content root. Never plaintext archive or MLS private state."
+      "description": "Original signed grant references an accepted ak.mls.history_request authored by its exact recipient endpoint. HPKE info and aad equal JCS({recipient,recipient_hpke_key_base64url,recipient_key_event_ref,history_cut,authorization_event_ref,expires_at,selector}). sealed_key_base64url is canonical unpadded base64url(enc[32] || ciphertext || tag[16]), exactly 64 or 80 decoded bytes for a 16/32-byte key. Default RFC9180 suite is X25519/HKDF-SHA256/ChaCha20Poly1305, mode Base, seq=0; no wire nonce."
     },
     "recovery_binding": {
       "type": "object",
@@ -460,8 +465,9 @@
         "pcr_cut",
         "coverage_head_digest",
         "restored_event_count",
-        "cleanup_inventory_digest",
-        "cleanup_completed"
+        "cleanup_completed",
+        "inventory_blob_ref",
+        "replacement"
       ],
       "properties": {
         "state": {
@@ -495,6 +501,15 @@
         },
         "cleanup_completed": {
           "type": "boolean"
+        },
+        "inventory_blob_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "cleanup_blob_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "replacement": {
+          "$ref": "#/$defs/endpoint"
         }
       },
       "additionalProperties": false,
@@ -528,6 +543,39 @@
                   "owner": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/then/properties/cleanup_completed",
                   "values": [
                     true
+                  ]
+                }
+              }
+            },
+            "required": [
+              "cleanup_blob_ref",
+              "cleanup_inventory_digest"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "cleanup_blob_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "cleanup_inventory_digest"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "cleanup_completed": {
+                "const": false,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/else/properties/cleanup_completed",
+                  "owner": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/else/properties/cleanup_completed",
+                  "values": [
+                    false
                   ]
                 }
               }
@@ -570,6 +618,289 @@
           "maxItems": 256,
           "uniqueItems": true,
           "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_request": {
+      "type": "object",
+      "required": [
+        "recipient",
+        "recipient_hpke_key_base64url",
+        "history_cut",
+        "authorization_event_ref",
+        "expires_at"
+      ],
+      "properties": {
+        "recipient": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "recipient_hpke_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "history_cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_backup_access": {
+      "type": "object",
+      "required": [
+        "source",
+        "root_refs"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "root_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 256
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_inventory_entry": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "genesis_event_ref",
+        "base_group_state_ref",
+        "epoch",
+        "old_leaves"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "base_group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "epoch": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "old_leaves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "leaf_index",
+              "endpoint"
+            ],
+            "properties": {
+              "leaf_index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              },
+              "endpoint": {
+                "$ref": "#/$defs/endpoint"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_inventory": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "replacement",
+        "authorization_event_ref",
+        "pcr_cut",
+        "entries"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "replacement": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "pcr_cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recovery_inventory_entry"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence."
+    },
+    "scope_cleanup": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "genesis_event_ref",
+        "winning_commit",
+        "remaining_old_leaf_count",
+        "root_refs",
+        "backup_refs"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "winning_commit": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "remaining_old_leaf_count": {
+          "const": 0,
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "content-encryption.schema.json#/$defs/scope_cleanup/properties/remaining_old_leaf_count",
+            "owner": "content-encryption.schema.json#/$defs/scope_cleanup/properties/remaining_old_leaf_count",
+            "values": [
+              0
+            ]
+          }
+        },
+        "root_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "backup_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./key-backup.schema.json#/properties/backup_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 256
+        }
+      },
+      "additionalProperties": false
+    },
+    "cleanup_inventory": {
+      "type": "object",
+      "required": [
+        "inventory_digest",
+        "scope_cleanups"
+      ],
+      "properties": {
+        "inventory_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "scope_cleanups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scope_cleanup"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private canonical Blob preimage; scope_cleanups correspond one-for-one to initial inventory entries in the same order, with actual independently verified winning Commit and zero matching old leaves. SHA256 domain is ak.content.cleanup_inventory.v1 followed by LF and JCS."
+    },
+    "recovery_source_attestation": {
+      "type": "object",
+      "required": [
+        "event_ref",
+        "replacement",
+        "effective_scope",
+        "base_group_state_ref",
+        "previous_epoch",
+        "inventory_digest",
+        "verification_method",
+        "attested_at",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "replacement": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "base_group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "previous_epoch": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "inventory_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "attested_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_source": {
+      "type": "object",
+      "required": [
+        "attestation",
+        "origin_resolution"
+      ],
+      "properties": {
+        "attestation": {
+          "$ref": "#/$defs/recovery_source_attestation"
+        },
+        "origin_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
         }
       },
       "additionalProperties": false

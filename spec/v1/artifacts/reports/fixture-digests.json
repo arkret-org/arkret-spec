@@ -38,7 +38,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "fc660c2a787e039d6570fdf0c31a023c9d2ac7759b09d232524df88ea7e3170b"
+      "sha256": "e9c339550b54a54eedcf8b34bb51b07a0997f9c5a2ca8213d29896ebb09e598a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
@@ -150,11 +150,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "f1c431f39f8f21b4599bdd076d2f69b471b1f3692df71534729d2cdb0d216733"
+      "sha256": "dd8fa1414495c40f201d7c5307cad98e60c8dc3a7f7f626426bea90fa906b179"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-history-fixture.json",
-      "sha256": "05f4dc54e0013b33347678bcb8f2fca45a6f9d8ace1719d1724d06c06bbbc3e9"
+      "sha256": "dab72bcf08a19f9865d14adf88a1af205af1326e8caa3ccb46f9ca7131fe23ef"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

@@ -249,6 +249,38 @@
       },
       "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_coverage_head_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/content-encryption.schema.json",
+        "json_path": "$.$defs.history_recovery.properties",
+        "digest_field": "coverage_head_digest",
+        "content_addressed_refs": [
+          "inventory_blob_ref",
+          "cleanup_blob_ref"
+        ]
+      },
+      "preimage": "SHA-256 of the final deterministically chained coverage page for the original stream cut; not a digest of either inventory or cleanup Blob bytes.",
+      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_cleanup_inventory_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/content-encryption.schema.json",
+        "json_path": "$.$defs.history_recovery.properties",
+        "digest_field": "cleanup_inventory_digest",
+        "content_addressed_refs": [
+          "inventory_blob_ref",
+          "cleanup_blob_ref"
+        ]
+      },
+      "preimage": "SHA-256 of UTF8(ak.content.cleanup_inventory.v1 followed by LF) concatenated with JCS(cleanup_inventory); Blob ref commits only raw JCS without the required domain prefix.",
+      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
     }
   ]
 }

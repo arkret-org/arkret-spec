@@ -33,6 +33,8 @@
       "ak.mls.commit",
       "ak.mls.genesis",
       "ak.mls.history_grant",
+      "ak.mls.history_recovery",
+      "ak.mls.history_request",
       "ak.policy.action",
       "ak.policy.set",
       "ak.realm.archive",

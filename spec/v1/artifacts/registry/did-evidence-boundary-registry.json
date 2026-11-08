@@ -120,7 +120,8 @@
           "complete_ordered_records_digest",
           "recipient_claim_receipt_signature",
           "recipient_add_attestation_signature",
-          "rfc9420_credential_leaf_and_proposal_binding"
+          "rfc9420_credential_leaf_and_proposal_binding",
+          "recovery_original_endpoint_signature_origin_binding_and_rfc_path_leaf"
         ]
       },
       "account_station": {
@@ -132,7 +133,8 @@
           "method_native_history_and_station_role_core",
           "assertion_method_at_claimed_at_and_attested_at",
           "original_recipient_signatures",
-          "realm_claim_authority_and_add_authority_same_realm_verified_succession"
+          "realm_claim_authority_and_add_authority_same_realm_verified_succession",
+          "recovery_origin_station_exact_native_history_and_original_source_signature"
         ],
         "output": "self_roster_read_response_body",
         "failure_code": "revision_unavailable"
@@ -141,12 +143,18 @@
         "method_history_verifier": true,
         "initial_history_source": "already_verified_same_core_route",
         "freeze": "exact_add_attestation_acceptance_transaction",
-        "replay": "immutable_original_closure"
+        "replay": "immutable_original_closure",
+        "checks": [
+          "recovery_origin_station_exact_native_history_and_original_source_signature"
+        ]
       },
       "independent_auditor": {
         "method_history_verifier": true,
         "history_source": "authorized_inline_closure",
-        "live_discovery": "requires_separate_registered_route_source_no_roster_exception"
+        "live_discovery": "requires_separate_registered_route_source_no_roster_exception",
+        "checks": [
+          "recovery_origin_station_exact_native_history_and_original_source_signature"
+        ]
       }
     },
     "self_result_portable": false,

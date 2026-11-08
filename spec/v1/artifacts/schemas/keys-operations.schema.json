@@ -1387,20 +1387,39 @@
           "$ref": "#/$defs/backup_active_series_pointer"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Exact selected subject account and PCR basis. For agent_id list selection, account_id/control_realm_id belong to the Agent, while the authenticated controller and current custody are independently authorized; no caller/subject substitution."
     },
     "keys_backups_issue_unlock_challenge_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.issue_unlock_challenge.v1. While an issued challenge for the same (account_id, backup_id, request_id) is still valid, the service MUST return the same challenge; a different request_id mints a new challenge.",
+      "description": "Exact current-device single-object challenge request. Idempotency binds current caller/device/generation, backup_id, request_id and the complete canonical request including subject/custody/content_history. Identical still-current replay returns identical challenge; changed intent is a conflict, never a widened or rebound challenge. Response echoes all optional scope fields exactly.",
       "required": [
         "request_id"
       ],
       "properties": {
         "request_id": {
           "$ref": "#/$defs/request_id"
+        },
+        "subject_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "custody_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "content_history": {
+          "$ref": "./content-encryption.schema.json#/$defs/history_backup_access"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "subject_actor_id": [
+          "custody_authorization_ref"
+        ],
+        "custody_authorization_ref": [
+          "subject_actor_id"
+        ]
+      }
     },
     "keys_backups_unlock_challenge": {
       "type": "object",
@@ -1481,9 +1500,27 @@
         },
         "ciphertext_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "subject_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "custody_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "content_history": {
+          "$ref": "./content-encryption.schema.json#/$defs/history_backup_access"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "subject_actor_id": [
+          "custody_authorization_ref"
+        ],
+        "custody_authorization_ref": [
+          "subject_actor_id"
+        ]
+      }
     },
     "account_device_event_authorization": {
       "type": "object",

@@ -6122,6 +6122,7 @@
           "commit_event",
           "welcomes",
           "idempotency_key",
+          "recovery_source",
           "unit_kind",
           "events",
           "event_submission",
@@ -6152,7 +6153,8 @@
             "properties": [
               "commit_event",
               "welcomes",
-              "idempotency_key"
+              "idempotency_key",
+              "recovery_source"
             ],
             "closed": true
           },
@@ -6908,7 +6910,10 @@
           "request_id"
         ],
         "properties": [
-          "request_id"
+          "request_id",
+          "subject_actor_id",
+          "custody_authorization_ref",
+          "content_history"
         ],
         "closed": true
       },
@@ -6945,7 +6950,10 @@
           "expires_at",
           "requesting_device_id",
           "series_id",
-          "ciphertext_digest"
+          "ciphertext_digest",
+          "subject_actor_id",
+          "custody_authorization_ref",
+          "content_history"
         ],
         "closed": true
       }

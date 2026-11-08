@@ -4920,6 +4920,37 @@
           },
           "additionalProperties": false
         }
+      ],
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke",
+        "ak.agent.provision",
+        "ak.consent.replace",
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.requested",
+        "ak.contact.scope.update",
+        "ak.contact.tombstone",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
+        "ak.direct_conversation.bound",
+        "ak.identity.accountability_grant",
+        "ak.identity.resolution.update",
+        "ak.key_backup.active_series",
+        "ak.mls.commit",
+        "ak.mls.genesis",
+        "ak.mls.history_grant",
+        "ak.mls.history_recovery",
+        "ak.mls.history_request",
+        "ak.policy.set",
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.realm.create",
+        "ak.realm.governance_station.change",
+        "ak.self.agent.deactivate",
+        "ak.self.agent.pause",
+        "ak.self.agent.resume"
       ]
     },
     "PublicRealmMetadata": {

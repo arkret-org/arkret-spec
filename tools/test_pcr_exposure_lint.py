@@ -60,6 +60,20 @@ class PcrExposureLintTest(unittest.TestCase):
                 row["description"] = "Any PCR with valid signatures may migrate."
         self.assertTrue(any("must exclude Human" in error for error in self._run(registry)))
 
+    def test_agent_history_custody_cannot_drop_native_subject_or_device_facts(self) -> None:
+        for field in ("required_native_facts", "forbidden_surfaces"):
+            registry = self._mutate()
+            policy = next(x for x in registry["authorization_policies"] if x["policy_id"].endswith("current_agent_history_custodian.v1"))
+            policy[field].pop()
+            self.assertTrue(any("every exact native qualification" in error for error in self._run(registry)))
+
+    def test_agent_history_custody_cannot_become_public_peer_or_ordinary_read(self) -> None:
+        for field, value in (("operation_id", "ak.peer.events.command.submit.v1"), ("authorization_policy_id", "ak.pcr_exposure_policy.public.v1"), ("anti_enumeration_policy_id", None)):
+            registry = self._mutate()
+            carrier = next(x for x in registry["event_kinds"][0]["exposures"] if x["authorization_policy_id"].endswith("current_agent_history_custodian.v1"))
+            carrier[field] = value
+            self.assertTrue(any("two exact private Agent custody" in error for error in self._run(registry)))
+
     def test_subject_policy_mutations_are_rejected(self) -> None:
         original = _load(PROFILES)
         for mutation in ("human_transfer", "public_human_bundle", "agent_transfer", "agent_activation", "agent_public_bundle_ban", "unknown_fallback", "drop_org", "weaken_import", "unconditional_required"):
