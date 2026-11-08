@@ -341,9 +341,18 @@ def build_fixture() -> dict[str, Any]:
                 {"id": "valid_public_material_still_requires_exact_binding_equality", "requirement": "RFC 9420-valid public material is rejected when its internal binding differs from Station state or the Event payload.", "evidence": ["/cases/2"]},
                 {"id": "historical_replay_is_not_current_send_authority", "requirement": "Historical material is verified against its accepted historical binding and never grants current send authority.", "evidence": ["/cases/3"]},
                 {"id": "proposal_carrier_reuses_the_one_binding_schema", "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema; a missing required member fails schema validation before semantic evaluation.", "evidence": ["/cases/4"]},
+                {"id": "external_commit_binding_uses_rfc_authenticated_data", "requirement": "Authorized External Commit carries the same exact deterministic-CBOR MlsGroupBinding in FramedContent.authenticated_data and inherits accepted-base GroupContext extensions. Changed binding or inherited bytes fail; native RFC signatures, authority and CAS require implementation evidence.", "evidence": ["/external_recovery_binding"]},
             ],
         }],
         "cases": cases,
+        "external_recovery_binding": {
+            "carrier": "FramedContent.authenticated_data",
+            "encoding": "exact deterministic CBOR with no prefix or trailing bytes",
+            "group_context_extensions": "unchanged from exact accepted base",
+            "fixed_bytes": cases[0]["accepted"][:3],
+            "rejections": ["empty_authenticated_data", "JCS_instead_of_CBOR", "prefixed_or_trailing_data", "changed_epoch", "changed_inherited_extensions"],
+            "native_rfc_and_authority_evidence_required": True,
+        },
     }
 
 

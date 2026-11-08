@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:79e0349b1fb81613c2ab5562def4f385af2b6424e8510de806b7387f2045b6bc",
+  "contract_digest": "sha256:779039f217c961536dbe3db01bb6e1cbd8ae94fde1412aadca406943dc308e7e",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -82208,7 +82208,7 @@
           },
           "mls_member_group_state_material_read_request_body": {
             "type": "object",
-            "description": "Authenticated member read of accepted Genesis public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
+            "description": "Authenticated member read of exact accepted-epoch public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
             "required": [
               "realm_id",
               "effective_scope",
@@ -82939,7 +82939,9 @@
               "commit_event",
               "covering_commit",
               "producer_signer_fact",
-              "recovery_source"
+              "recovery_source",
+              "base_group_info_ref",
+              "base_ratchet_tree_ref"
             ],
             "properties": {
               "kind": {
@@ -83002,6 +83004,12 @@
               },
               "recovery_source": {
                 "$ref": "./content-encryption.schema.json#/$defs/recovery_source"
+              },
+              "base_group_info_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+              },
+              "base_ratchet_tree_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/blob_ref"
               }
             },
             "additionalProperties": false,
@@ -103125,7 +103133,7 @@
               "group_info_ref": {
                 "type": "string",
                 "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-                "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+                "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
               },
               "group_info_base64url": {
                 "type": "string",
@@ -103137,7 +103145,7 @@
               "ratchet_tree_ref": {
                 "type": "string",
                 "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-                "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+                "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
               },
               "ratchet_tree_base64url": {
                 "type": "string",
@@ -103152,7 +103160,7 @@
           },
           "MlsGroupStateMaterialRequestBody": {
             "type": "object",
-            "description": "Read-only service request for the exact public MLS accepted-epoch GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every accepted Genesis/Commit selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the accepted Genesis/Commit Commit position.",
+            "description": "Read-only service request for the exact public MLS accepted-epoch GroupInfo and ratchet_tree bytes committed by one exact accepted ak.mls.genesis or ak.mls.commit Event. Every accepted Genesis/Commit selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the accepted Genesis/Commit Commit position.",
             "required": [
               "realm_id",
               "effective_scope",
@@ -103190,12 +103198,12 @@
               "group_info_ref": {
                 "type": "string",
                 "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-                "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+                "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
               },
               "ratchet_tree_ref": {
                 "type": "string",
                 "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-                "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+                "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
               },
               "max_response_bytes": {
                 "type": "integer",
@@ -112472,7 +112480,7 @@
     },
     {
       "file": "mls-extension-registry.json",
-      "digest": "sha256:5cc499cabf6f27de34fb3b5ede6cbc95ef87eb6d756500bfa1a12542084fda3d"
+      "digest": "sha256:fd60f4cdc0195eb5f63c1024f5de8daa656c9548cff2426b78a138b6163c8d20"
     },
     {
       "file": "morph-kind-decision-table.json",
@@ -112480,7 +112488,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:58732809a0447aa2885eeb488ef3c248536266bbf99a7da810955b5fc5b30157"
+      "digest": "sha256:48e8199d37fe84dc4ec6027d59bd4612bc10d61eb63667c6c0b50430dc140c2f"
     },
     {
       "file": "operation-clause-registry.json",

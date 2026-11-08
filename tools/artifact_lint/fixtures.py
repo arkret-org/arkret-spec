@@ -6019,6 +6019,21 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             lint.fail(extension_path, "MLS extension row does not point at the formal proposal carrier")
         if extension.get("decoder_limits") != expected_limits:
             lint.fail(extension_path, "MLS extension decoder limits differ from schema and fixture")
+        expected_external = {
+            "sender_type": "new_member_commit",
+            "required_event_member": "recovery_binding",
+            "binding_carrier": "FramedContent.authenticated_data",
+            "encoding": "exact existing deterministic CBOR without prefix or trailing bytes",
+            "group_context_extensions": "unchanged exact accepted base",
+            "group_context_extensions_proposal_allowed": False,
+            "subsequent_member_commit_updates_extension": True,
+            "native_authority_and_exact_base_cas_required": True,
+        }
+        if extension.get("external_recovery_binding") != expected_external:
+            lint.fail(extension_path, "external recovery binding must use exact RFC authenticated_data and inherited extensions")
+        external = data.get("external_recovery_binding", {})
+        if external.get("carrier") != "FramedContent.authenticated_data" or external.get("fixed_bytes") != accepted[:3]:
+            lint.fail(path, "external recovery binding must reuse the exact existing CBOR KATs")
 
     bootstrap_path = ARTIFACTS / "registry" / "mls-creator-bootstrap-transaction-registry.json"
     bootstrap = load_json(lint, bootstrap_path)

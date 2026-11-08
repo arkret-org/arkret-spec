@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10370,
+    "total_properties": 10372,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2439,
       "optional_defaulted": 46,
-      "required": 7358,
+      "required": 7360,
       "required_nullable": 311,
       "tristate": 216
     },
@@ -10712,6 +10712,8 @@
         "/$defs/roster_read_response_body/properties/next_cursor": "optional",
         "/$defs/roster_read_response_body/properties/page_index": "required",
         "/$defs/roster_read_response_body/properties/records": "required",
+        "/$defs/roster_recovery_record/properties/base_group_info_ref": "required",
+        "/$defs/roster_recovery_record/properties/base_ratchet_tree_ref": "required",
         "/$defs/roster_recovery_record/properties/commit_event": "required",
         "/$defs/roster_recovery_record/properties/commit_event/allOf/1/properties/kind": "optional",
         "/$defs/roster_recovery_record/properties/commit_event/allOf/1/properties/payload": "tristate",

@@ -242,6 +242,18 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
         self.assertTrue(any("standalone" in error for error in self._run(FINAL, mutate)))
 
+    def test_external_recovery_binding_cannot_change_primitive_or_allow_gce(self) -> None:
+        for field, value in (("binding_carrier", "GroupContext.0xF1C0"), ("group_context_extensions_proposal_allowed", True)):
+            def mutate(document, field=field, value=value):
+                row = next(row for row in document["extensions"] if row["name"] == "mls_governance_binding")
+                row["external_recovery_binding"][field] = value
+            self.assertTrue(any("external recovery binding" in error for error in self._run(EXTENSIONS, mutate)))
+
+    def test_external_recovery_fixed_bytes_are_not_a_second_binding(self) -> None:
+        def mutate(document):
+            document["external_recovery_binding"]["fixed_bytes"][0]["encoded_map_hex"] += "00"
+        self.assertTrue(any("external recovery binding" in error for error in self._run(FIXTURE, mutate)))
+
 
 if __name__ == "__main__":
     unittest.main()

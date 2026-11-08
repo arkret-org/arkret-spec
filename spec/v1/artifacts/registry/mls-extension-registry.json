@@ -32,6 +32,16 @@
       "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
       "proposal_carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
       "key_access_revision_contract": "Monotonic unsigned 64-bit integer counter; it is never encoded or compared as a digest.",
+      "external_recovery_binding": {
+        "sender_type": "new_member_commit",
+        "required_event_member": "recovery_binding",
+        "binding_carrier": "FramedContent.authenticated_data",
+        "encoding": "exact existing deterministic CBOR without prefix or trailing bytes",
+        "group_context_extensions": "unchanged exact accepted base",
+        "group_context_extensions_proposal_allowed": false,
+        "subsequent_member_commit_updates_extension": true,
+        "native_authority_and_exact_base_cas_required": true
+      },
       "decoder_limits": {
         "maximum_input_bytes": 16384,
         "maximum_nesting_depth": 8,

@@ -16,6 +16,7 @@ from referencing import Registry, Resource
 from tools.content_history import SCHEME, STRATEGY, aad, content_key, content_root, jcs, key_commitment, unb64, root_ref
 from tools.content_history import b64, hpke_context, hpke_seal, hpke_open, grant_header, mnemonic_backup_key, verify_root_index, coverage_pages, inventory_digest, cleanup_digest, ordered_roster, verify_roster_keys, verify_recovery_source, recovery_path_leaf, authorize_history_read, roster_pages
 from tools.generate_content_history_fixture import build
+from tools.content_history import verify_external_recovery_binding
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "spec/v1/artifacts"
@@ -50,6 +51,21 @@ class ContentHistoryContractTest(unittest.TestCase):
         signer.public_key().verify(unb64(k["signature_base64url"]), bytes.fromhex(k["primitive_original_transcript_hex"]))
         with self.assertRaises(InvalidSignature):
             signer.public_key().verify(unb64(k["signature_base64url"]), bytes.fromhex(k["primitive_original_transcript_hex"]) + b" ")
+
+    def test_external_recovery_uses_existing_cbor_binding_in_rfc_authenticated_data(self):
+        for case in self.fixture["external_recovery_binding"]["cases"]:
+            binding = case["binding"]
+            encoded = bytes.fromhex(case["encoded_map_hex"])
+            inherited = b"exact accepted base extensions"
+            verify_external_recovery_binding(binding, encoded, inherited, inherited)
+            for altered in (b"", jcs(binding), b"prefix" + encoded, encoded + b" "):
+                with self.assertRaises(ValueError):
+                    verify_external_recovery_binding(binding, altered, inherited, inherited)
+            changed = copy.deepcopy(binding); changed["next_epoch"] = "43"
+            with self.assertRaises(ValueError):
+                verify_external_recovery_binding(changed, encoded, inherited, inherited)
+            with self.assertRaises(ValueError):
+                verify_external_recovery_binding(binding, encoded, inherited + b"changed policy", inherited)
 
     def test_scheme_is_mandatory_distinct_and_closed(self):
         envelope = self.fixture["kat"]["envelope"]
@@ -162,7 +178,7 @@ class ContentHistoryContractTest(unittest.TestCase):
                 value["recovery_signing_keys"] = [{"record_digest": "sha256:" + "1" * 64, "public_key_base64url": "A" * 43}]
             self.assertEqual(validator.is_valid(value), valid)
         recovery = definitions["roster_recovery_record"]
-        self.assertEqual(recovery["required"], ["kind", "commit_event", "covering_commit", "producer_signer_fact", "recovery_source"])
+        self.assertEqual(recovery["required"], ["kind", "commit_event", "covering_commit", "producer_signer_fact", "recovery_source", "base_group_info_ref", "base_ratchet_tree_ref"])
         restriction = recovery["properties"]["commit_event"]["allOf"][1]
         self.assertEqual(restriction["properties"]["payload"]["required"], ["recovery_binding"])
         for field in ("semantic_refs", "external_ref"):

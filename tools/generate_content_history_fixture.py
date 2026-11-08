@@ -17,6 +17,11 @@ VECTOR = "ak.vector.crypto.content_history.v1"
 
 
 def build():
+    governance = json.loads((ROOT / "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json").read_text(encoding="utf-8"))
+    external_binding = {"encoding": "MlsGroupBinding deterministic CBOR without prefix",
+                        "carrier": "FramedContent.authenticated_data",
+                        "group_context_extension": "inherited exact accepted base bytes",
+                        "cases": governance["cases"][0]["accepted"][:3]}
     event_ref = "ak:event:" + b64(b"\x01" + bytes([0x41]) * 32)
     realm = "ak:realm:" + event_ref.split(":", 2)[2]
     actor = {"kind": "account", "account_id": {"principal_id": "ak:did_core:webvh:z6mkfixture", "station_id": "ak:did_core:webvh:z6mkfixturestationexample"}}
@@ -88,6 +93,7 @@ def build():
                                     "cleanup_inventory_digest": "sha256:" + "4" * 64},
             "hpke_grant": {"mnemonic": mnemonic, "recipient_private_hex": recipient_secret.hex(), "grant": grant, "entries": hpke_cases},
             "public_recovery_wire": json.loads((ROOT / "tools/content-history-public-wire.json").read_text(encoding="utf-8")),
+            "external_recovery_binding": external_binding,
             "root_backup": {"envelope": backup, "plaintext": bag, "info_hex": backup_info.hex(), "aad_hex": backup_aad.hex(), "signing_hex": backup_signature_transcript.hex()},
             "security_evidence": [{"clause_id": "AK-NC-011", "vector_id": VECTOR, "decision_points": [
                 {"id": "registered_scheme_and_original_crypto_binding", "requirement": "Unknown construction or changed original metadata/ciphertext fails closed; reconstructed domain-separated keys cannot decrypt across endpoint, purpose, epoch or strategy basis.", "evidence": ["/kat/envelope", "/kat/aad_hex", "/kat/key_hex", "/kat/signature_base64url"]}

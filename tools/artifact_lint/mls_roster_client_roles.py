@@ -81,7 +81,7 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
         ("roster_add_signing_keys", ["record_digest", "claim_receipt_signing_key", "attestation_signing_key"]),
         ("roster_signing_key", ["verification_method", "public_key_base64url"]),
         ("roster_recovery_signing_key", ["record_digest", "public_key_base64url"]),
-        ("roster_recovery_record", ["kind", "commit_event", "covering_commit", "producer_signer_fact", "recovery_source"]),
+        ("roster_recovery_record", ["kind", "commit_event", "covering_commit", "producer_signer_fact", "recovery_source", "base_group_info_ref", "base_ratchet_tree_ref"]),
     ):
         row = definitions.get(name, {})
         if row.get("required") != [field for field in fields if field not in {"cursor", "recovery_signing_keys"}] or list(row.get("properties", {})) != fields or row.get("additionalProperties") is not False:

@@ -14,7 +14,7 @@
     },
     "mls_member_group_state_material_read_request_body": {
       "type": "object",
-      "description": "Authenticated member read of accepted Genesis public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
+      "description": "Authenticated member read of exact accepted-epoch public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -745,7 +745,9 @@
         "commit_event",
         "covering_commit",
         "producer_signer_fact",
-        "recovery_source"
+        "recovery_source",
+        "base_group_info_ref",
+        "base_ratchet_tree_ref"
       ],
       "properties": {
         "kind": {
@@ -808,6 +810,12 @@
         },
         "recovery_source": {
           "$ref": "./content-encryption.schema.json#/$defs/recovery_source"
+        },
+        "base_group_info_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "base_ratchet_tree_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         }
       },
       "additionalProperties": false,

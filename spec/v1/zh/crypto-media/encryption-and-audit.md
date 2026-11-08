@@ -317,6 +317,11 @@ receipt/attestation kid、DID 托管域或裸 core 推导首次 live discovery �
 `mls_roster_retained_attestor_history` 为准。
 
 **成员读取 Genesis public material（normative）**：`ak.self.mls.read.group_state_material.v1` 是成员设备
+取得已接受epoch公开物料的既有操作；content-history §5／§9的恢复分支同样适用，使用已核原accepted
+Genesis／Commit的epoch、Event ref与两条Blob refs。后文描述epoch 0的通常Genesis取证；非零恢复base
+按content-history §9从完整recovery记录的原base refs构造请求，并保持原manifest的current／target读取门。
+此扩展不允许调用者自报任意历史业务Blob或越过业务history floor。
+`ak.self.mls.read.group_state_material.v1` 是成员设备
 取得同一 accepted Genesis 所承诺 RFC GroupInfo 与 ratchet tree 原字节的唯一成员端操作；它不授予设备
 `ak.peer.mls.read.group_state_material.v1` 的服务身份。self 请求必带完整 `caller_actor_id`、Realm、
 effective scope、group、epoch 0、Genesis Event ref、两条 content-addressed Blob ref 与可选响应字节上限。
@@ -449,6 +454,13 @@ Genesis 的 epoch transition为 `0 -> 0`；Commit 必须 `next_epoch = previous_
 与 revision必须逐字段匹配 Station 的 current public state和 Commit payload。即使 GroupInfo 签名、ratchet tree、group id
 与 epoch 的 RFC 9420 公共校验全部成功，内部 binding 与外层任一字段不等仍 MUST 以
 `governance_binding_mismatch` 拒绝，并且不得推进 MLS epoch 或安装 Welcome。
+
+仅content-history §5已授权的恢复External Commit按RFC 9420 §12.2例外：不得携
+GroupContextExtensions Proposal，内部新binding放入RFC `FramedContent.authenticated_data`，
+使用上述同一精确deterministic CBOR。`0xF1C0`及其它GroupContext extensions逐字继承exact accepted base；
+接纳、历史重放、公开物料与本地checkpoint恢复均须核该继承关系、原RFC签名和AAD中的新binding。
+不得用当前epoch与继承extension旧epoch相等作为判据；下一笔Member Commit恢复通常extension更新规则。
+这不放宽Genesis、普通Member Commit、current native恢复授权或业务发送屏障。
 
 **提案形态就是同一个 binding（normative）**：`proposed_group_genesis_binding` **不是第二套 binding 概念**。
 正式 carrier 是 `event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier` 的封闭对象：

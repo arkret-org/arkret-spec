@@ -1757,7 +1757,7 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "group_info_base64url": {
           "type": "string",
@@ -1769,7 +1769,7 @@
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "ratchet_tree_base64url": {
           "type": "string",
@@ -1784,7 +1784,7 @@
     },
     "MlsGroupStateMaterialRequestBody": {
       "type": "object",
-      "description": "Read-only service request for the exact public MLS accepted-epoch GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every accepted Genesis/Commit selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the accepted Genesis/Commit Commit position.",
+      "description": "Read-only service request for the exact public MLS accepted-epoch GroupInfo and ratchet_tree bytes committed by one exact accepted ak.mls.genesis or ak.mls.commit Event. Every accepted Genesis/Commit selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the accepted Genesis/Commit Commit position.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -1822,12 +1822,12 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the exact accepted ak.mls.genesis or ak.mls.commit payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "max_response_bytes": {
           "type": "integer",

@@ -68,6 +68,13 @@
           "evidence": [
             "/cases/4"
           ]
+        },
+        {
+          "id": "external_commit_binding_uses_rfc_authenticated_data",
+          "requirement": "Authorized External Commit carries the same exact deterministic-CBOR MlsGroupBinding in FramedContent.authenticated_data and inherits accepted-base GroupContext extensions. Changed binding or inherited bytes fail; native RFC signatures, authority and CAS require implementation evidence.",
+          "evidence": [
+            "/external_recovery_binding"
+          ]
         }
       ]
     }
@@ -721,5 +728,79 @@
         }
       ]
     }
-  ]
+  ],
+  "external_recovery_binding": {
+    "carrier": "FramedContent.authenticated_data",
+    "encoding": "exact deterministic CBOR with no prefix or trailing bytes",
+    "group_context_extensions": "unchanged from exact accepted base",
+    "fixed_bytes": [
+      {
+        "name": "realm_scope_commit",
+        "binding": {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+          "previous_epoch": "41",
+          "next_epoch": "42",
+          "key_access_revision": "17"
+        },
+        "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+        "expected": {
+          "decision": "accept"
+        }
+      },
+      {
+        "name": "circle_scope_commit",
+        "binding": {
+          "effective_scope": {
+            "kind": "circle",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "circle_id": "ak:circle:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+          },
+          "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+          "previous_epoch": "41",
+          "next_epoch": "42",
+          "key_access_revision": "17"
+        },
+        "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a3646b696e6466636972636c65687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a3569636972636c655f69647836616b3a636972636c653a416351616a71614b467679446f4d707170536c42764d683064346768655a73565068624861546c7158746b56736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+        "expected": {
+          "decision": "accept"
+        }
+      },
+      {
+        "name": "sidecar_scope_commit",
+        "binding": {
+          "effective_scope": {
+            "kind": "sidecar",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "sidecar_id": "ak:sidecar:AZUfzdx1qBOtCsg2CGmS3QLP7vlDe_kxRx0pxdxefWTa"
+          },
+          "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+          "previous_epoch": "41",
+          "next_epoch": "42",
+          "key_access_revision": "17",
+          "participant_authority_digest": "sha256:4232feac803ded777277d73b9057e9fb14aa02201f68eea9b7153b6ed45e7f34",
+          "authority_stream_head": [
+            "ak:event:AY5VsuTYPJiGLdHZnS7EOuEwtGW-tT2VMf0xUn3dw257",
+            "ak:event:AY__VaP8YdSIVN4--kDJSGOIM-jZ80t6bLxupvcOIcCU",
+            "ak:event:Ab0uTR6vA4Di246ekrKT73_BSfQYLbWIXAlQe-tj3X0D"
+          ]
+        },
+        "encoded_map_hex": "a76a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a3646b696e646773696465636172687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a356a736964656361725f69647837616b3a736964656361723a415a55667a64783171424f744373673243476d5333514c5037766c44655f6b78527830707864786566575461736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e5636587175617574686f726974795f73747265616d5f68656164837835616b3a6576656e743a4159355673755459504a69474c64485a6e5337454f7545777447572d745432564d663078556e3364773235377835616b3a6576656e743a41595f5f5661503859645349564e342d2d6b444a53474f494d2d6a5a38307436624c78757076634f496343557835616b3a6576656e743a416230755452367641344469323436656b724b5437335f42536651594c62574958416c51652d746a33583044781c7061727469636970616e745f617574686f726974795f64696765737478477368613235363a34323332666561633830336465643737373237376437336239303537653966623134616130323230316636386565613962373135336236656434356537663334",
+        "expected": {
+          "decision": "accept"
+        }
+      }
+    ],
+    "rejections": [
+      "empty_authenticated_data",
+      "JCS_instead_of_CBOR",
+      "prefixed_or_trailing_data",
+      "changed_epoch",
+      "changed_inherited_extensions"
+    ],
+    "native_rfc_and_authority_evidence_required": true
+  }
 }

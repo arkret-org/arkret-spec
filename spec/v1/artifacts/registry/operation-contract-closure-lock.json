@@ -284,11 +284,11 @@
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
-      "sha256": "sha256:609652a1d100a2c87fe59bd186c1aedad5ac2970eb235be026278585ed179a4e"
+      "sha256": "sha256:0bdaebf39c06570047581b6ce5b67ccd4e411f43f6d872fc353ca9d5f7a5f7b2"
     },
     {
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
-      "sha256": "sha256:0efebbcaab4c8f19832cf049cadd51d0a83df5541210961605f2b58b7a49b676"
+      "sha256": "sha256:a2f4c0ba9a3a0ab6e784939006b149552f0a4756e7f897f7ff7459eb2d3306cb"
     },
     {
       "operation_id": "ak.peer.realm_actor.read.material.v1",
@@ -768,11 +768,11 @@
     },
     {
       "operation_id": "ak.self.mls.read.group_state_material.v1",
-      "sha256": "sha256:eaf5c3685799e79614b54ff2d1dcb6ebee396ca8677f14daa2898d7a17df1e6d"
+      "sha256": "sha256:543067639b5482b0586890ca56ccfebaaf1e5aa674163e072cd7d3aac23dcbad"
     },
     {
       "operation_id": "ak.self.mls.read.roster_authority.v1",
-      "sha256": "sha256:1bec953e633c6b2f58de324edec54426bac6f01b059b4b5bde45b8367efd12ab"
+      "sha256": "sha256:5f2c8480689b594e3b47338a28594cb7195bf54f570b1a5ddd477c0a5072fc8c"
     },
     {
       "operation_id": "ak.self.morph.read.list.v1",

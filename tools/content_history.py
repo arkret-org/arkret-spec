@@ -381,6 +381,21 @@ def roster_pages(records, wrap, maximum=2 * 1024 * 1024):
     raise ValueError("unstable final manifest pagination")
 
 
+def verify_external_recovery_binding(binding, authenticated_data, inherited_extensions, accepted_base_extensions):
+    """Reference byte binding only; native authority and RFC signatures remain mandatory."""
+    from tools.regenerate_mls_governance_binding_fixture import encode
+    numeric = dict(binding)
+    for field in ("previous_epoch", "next_epoch", "key_access_revision"):
+        value = numeric[field]
+        if not isinstance(value, str) or not value.isascii() or not value.isdecimal() or str(int(value)) != value:
+            raise ValueError("noncanonical binding counter")
+        numeric[field] = int(value)
+    if numeric["next_epoch"] != numeric["previous_epoch"] + 1:
+        raise ValueError("recovery epoch differs from exact base")
+    if authenticated_data != encode(numeric) or inherited_extensions != accepted_base_extensions:
+        raise ValueError("External Commit binding or inherited extensions differ")
+
+
 def recovery_path_leaf(wire):
     """Strict public-wire fixture reader for the v1 ExternalInit-only branch.
 

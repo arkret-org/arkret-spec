@@ -154,6 +154,20 @@ Agent必须来自当前controller批准且完整supersedes的实际pairing授权
 可恢复群的GroupInfo必须包含RFC 9420 external_pub扩展，并与同一accepted tree／epoch核对，不能只保留缺少ExternalInit所需公钥的普通GroupInfo。
 同base仅一个CAS winner；恢复fence、原件、reserved材料及step结果耐久，崩溃后对账续跑，不清空义务。
 
+**External Commit治理绑定（normative）**：RFC 9420 §12.2不允许External Commit包含
+GroupContextExtensions Proposal，因此此唯一恢复分支不更新GroupContext中的`0xF1C0`。
+它必须逐字继承exact accepted base的全部GroupContext extensions，禁止借恢复修改policy或扩展；
+旧extension只证明继承的base，不得与新payload的next epoch强行比较。
+本次`MlsGroupBinding`仍使用encryption-and-audit §2.5.1的同一closed字段表和deterministic CBOR，
+其精确编码必须完整放入RFC `FramedContent.authenticated_data`，不得添加前缀、JCS包装或trailing bytes。
+该CBOR binding须与原Event的`governance_binding`及current scope／base／previous_epoch／next_epoch／
+key_access_revision逐字段相等，并验证RFC原Commit签名、path及transcript。
+`recovery_binding`仍由原Event producer proof和origin source逐项绑定；authenticated_data本身不授予恢复资格。
+Genesis及Member Commit继续按通常`0xF1C0`合同验证；后续首笔Member清理Commit必须更新该extension
+至自己的新binding。读取刚恢复epoch的公开物料或恢复本地checkpoint时，必须连同原External Commit
+验证上述AAD binding及继承关系，不能把继承extension的旧epoch误当当前epoch，也不能跳过exact accepted base。
+参考固定字节与负例见`content-history-fixture.json.external_recovery_binding`；真实RFC验证仍属实现验收。
+
 恢复准入及后续清理使用同一current恢复授权门，不要求普通成员额外取得Realm管理员能力。
 每个清理Commit仍带按其新base／epoch更新的recovery_binding；producer必须是已批准replacement，
 Remove集合必须精确覆盖库存中该Actor尚存的旧endpoint，禁止删除其它Actor、普通Add／扩权或借机改变policy。
@@ -303,6 +317,16 @@ controller policy本身撤销则当前领取仍拒绝；解除日常runtime授�
 若仍是Member sender，不重复追加recovery记录，也不伪造Add记录。
 recovery记录的原Commit、covering RealmCommit和source fact必须独立核原签、exact base／epoch、
 已接纳replacement及RFC PublicMessage UpdatePath leaf／BasicCredential／signature key，不能只凭manifest。
+
+为使后加入客户端能验证原RFC恢复握手，recovery记录另必带`base_group_info_ref`与
+`base_ratchet_tree_ref`，逐字取自`commit_event.payload.base_group_state_ref`所指exact accepted
+Genesis／Commit原payload。治理方签发前及own Station投影前均须独立核对该原base、epoch和refs；
+不得用恢复后的GroupInfo／tree、当前tree或调用者自报值替代。两refs在完整record_digest及manifest摘要内。
+客户端从已验证record的base ref／previous_epoch／这两refs与原manifest的caller／target cut构造既有
+self group-state-material请求，取得digest-bound原base GroupInfo／tree并验证原RFC External Commit
+signature、path、BasicCredential、replacement key、AAD binding和继承的extensions；不要求在业务history
+floor之前另行公开base Event或PCR历史。该窄公开握手物料仍受相同current／target cut披露门，缺原件则
+revision_unavailable；不能仅解析path字段就宣称独立RFC验签成功。两refs及self投影均计入原分页预算。
 
 records_digest=sha256(JCS(完整有序records))，record_digest=sha256(JCS(该完整记录))。
 self wrapper唯一字段顺序为roster、manifest_signing_key、add_signing_keys、可选recovery_signing_keys。
