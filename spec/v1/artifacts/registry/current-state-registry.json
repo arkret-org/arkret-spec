@@ -117,7 +117,7 @@
         "consumed_by": [
           "models/realm-and-space.md §2.3.A"
         ],
-        "note": "The cross-field rule admits a scope's first history-bearing write only while the current history_access is since_join."
+        "note": "MLS activation accepts either registered history_access value; current policy and the original Actor join floor gate actual content-history key delivery."
       }
     },
     {

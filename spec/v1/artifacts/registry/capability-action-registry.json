@@ -141,6 +141,18 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ak.agent.join",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Self Agent join still requires verified current controller intent and all original join gates; this label only selects management review and never creates membership by grant."
+    },
+    {
       "action": "ak.agent.key.authorize",
       "category": "management",
       "risk_tier": "high",
@@ -161,6 +173,18 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.publish",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.interaction.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Controller-only public intent. Independent grants cannot override controller signature or public service governance."
     },
     {
       "action": "ak.agent.sidecar.exchange.control",
@@ -203,6 +227,28 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
+      "action": "ak.applet.bot.provision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "applet_id",
+        "executed_by",
+        "registration_epoch"
+      ],
+      "required_evaluator_checks": [
+        "active_applet_registration_exact",
+        "realm_actor_creation_scope",
+        "realm_actor_candidate_and_controller_proof",
+        "realm_actor_creation_atomic"
+      ],
+      "target_event_kinds": [
+        "ak.realm.actor.create"
+      ],
+      "profile": "ak.profile.applet_service.v1",
+      "event_mapping_kind": "operation_verb",
+      "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
+    },
+    {
       "action": "ak.applet.bridge_error",
       "category": "service",
       "risk_tier": "medium",
@@ -219,6 +265,19 @@
       "profile": "ak.profile.applet_bridge.v1",
       "event_mapping_kind": "same_name",
       "notes": "Authorizes a service-actor signed bridge error Event only for the exact active Applet installation, registration epoch and granted scope. The Event still carries applet_id and a real authorization_ref; service signature is provenance, not authority."
+    },
+    {
+      "action": "ak.applet.configure",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "current_scope_realm_admin"
+      ],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
     },
     {
       "action": "ak.applet.ghost.provision",
@@ -241,6 +300,35 @@
       "profile": "ak.profile.applet_bridge.v1",
       "event_mapping_kind": "operation_verb",
       "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
+    },
+    {
+      "action": "ak.applet.join",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "applet_managed_self_join"
+      ],
+      "target_event_kinds": [
+        "ak.circle.member.state",
+        "ak.member.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
+    },
+    {
+      "action": "ak.applet.publish",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.profile.create",
+        "ak.profile.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Management gate for public intent of an accepted Applet-managed Bot/Ghost, using reserved closed applet_interaction in the subject-signed profile. It does not authorize arbitrary profile edits or override native self-authored control."
     },
     {
       "action": "ak.approval.vote",
@@ -471,6 +559,35 @@
       ]
     },
     {
+      "action": "ak.consent.replace",
+      "category": "personal",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.consent.replace"
+      ],
+      "profile": "ak.profile.principal_control_realm.v1",
+      "root_control_only": true,
+      "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.contact.scope.update",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "contact_holder_exact",
+        "contact_round_current",
+        "contact_lineage_version_cas"
+      ],
+      "target_event_kinds": [
+        "ak.contact.scope.update"
+      ],
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.event.read",
       "category": "discussion",
       "risk_tier": "low",
@@ -527,22 +644,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.member.leave.own",
-      "category": "membership",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "membership_transition_is_join_to_leave",
-        "actor_equals_membership_subject"
-      ],
-      "target_event_kinds": [
-        "ak.member.state"
-      ],
-      "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "scope_suffix_variant",
-      "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
-    },
-    {
       "action": "ak.member.compensate.leave",
       "category": "membership",
       "risk_tier": "high",
@@ -575,6 +676,22 @@
       "profile": "ak.profile.membership_join_compensation.v1",
       "event_mapping_kind": "scope_suffix_variant",
       "notes": "Accepted-at compensation for a delegated/admin-authored join only. It authorizes one fresh standard remove transition for the exact admission and old membership incarnation; it grants no Realm admin capability."
+    },
+    {
+      "action": "ak.member.leave.own",
+      "category": "membership",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "membership_transition_is_join_to_leave",
+        "actor_equals_membership_subject"
+      ],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "event_mapping_kind": "scope_suffix_variant",
+      "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
     },
     {
       "action": "ak.member.rejoin.own",
@@ -714,6 +831,17 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.mls.genesis"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.mls.history_grant",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.history_grant"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -1018,6 +1146,53 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ak.realm.actor.audit",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [],
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
+      "action": "ak.realm.actor.manage",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [
+        "ak.realm.actor.status.set",
+        "ak.realm.actor.recovery.set"
+      ],
+      "event_mapping_kind": "operation_verb",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
+      "action": "ak.realm.actor.manager.change",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "realm_actor_exact_target",
+        "realm_actor_current_governor",
+        "realm_actor_management_policy"
+      ],
+      "target_event_kinds": [
+        "ak.realm.actor.manager.change"
+      ],
+      "event_mapping_kind": "same_name",
+      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+    },
+    {
       "action": "ak.realm.admin",
       "category": "management",
       "risk_tier": "high",
@@ -1070,6 +1245,19 @@
       "event_mapping_kind": "operation_verb"
     },
     {
+      "action": "ak.realm.authority.reset",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.authority.reset"
+      ],
+      "profile": null,
+      "root_control_only": true,
+      "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.realm.create",
       "category": "general",
       "risk_tier": "medium",
@@ -1113,6 +1301,18 @@
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb"
+    },
+    {
+      "action": "ak.realm.governance_station.change",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.governance_station.change"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "root_control_only": true
     },
     {
       "action": "ak.realm.link",
@@ -1178,6 +1378,7 @@
         "ak.mimi.room_binding",
         "ak.mls.commit",
         "ak.mls.genesis",
+        "ak.mls.history_grant",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",
@@ -1281,6 +1482,7 @@
         "ak.message.stream.send",
         "ak.mls.commit",
         "ak.mls.genesis",
+        "ak.mls.history_grant",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",
@@ -1438,6 +1640,19 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ak.realm.profile",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_write_fields"
+      ],
+      "target_event_kinds": [
+        "ak.realm.profile"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.realm.search_policy",
       "category": "management",
       "risk_tier": "high",
@@ -1474,17 +1689,41 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.profile",
-      "category": "general",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_write_fields"
-      ],
+      "action": "ak.realm_invite_link.accept",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.profile"
+        "ak.realm_invite_link.accept"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "same_name",
+      "subject_only": true,
+      "notes": "Purpose-scoped link acceptance requires complete account producer proof and link possession; no pre-membership grant."
+    },
+    {
+      "action": "ak.realm_invite_link.create",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_invite_link.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
+    },
+    {
+      "action": "ak.realm_invite_link.revoke",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_invite_link.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
     },
     {
       "action": "ak.receipt.broadcast",
@@ -1650,22 +1889,6 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.contact.scope.update",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "contact_holder_exact",
-        "contact_round_current",
-        "contact_lineage_version_cas"
-      ],
-      "target_event_kinds": [
-        "ak.contact.scope.update"
-      ],
-      "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.self.blob.command.presign.v1",
       "category": "service",
       "risk_tier": "medium",
@@ -1810,19 +2033,6 @@
         "ak.space.update"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.consent.replace",
-      "category": "personal",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.consent.replace"
-      ],
-      "profile": "ak.profile.principal_control_realm.v1",
-      "root_control_only": true,
-      "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -2000,203 +2210,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm.governance_station.change",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.governance_station.change"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "root_control_only": true
-    },
-    {
-      "action": "ak.realm.authority.reset",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.authority.reset"
-      ],
-      "profile": null,
-      "root_control_only": true,
-      "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.applet.bot.provision",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "applet_id",
-        "executed_by",
-        "registration_epoch"
-      ],
-      "required_evaluator_checks": [
-        "active_applet_registration_exact",
-        "realm_actor_creation_scope",
-        "realm_actor_candidate_and_controller_proof",
-        "realm_actor_creation_atomic"
-      ],
-      "target_event_kinds": [
-        "ak.realm.actor.create"
-      ],
-      "profile": "ak.profile.applet_service.v1",
-      "event_mapping_kind": "operation_verb",
-      "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
-    },
-    {
-      "action": "ak.agent.join",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.member.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "operation_verb",
-      "notes": "Self Agent join still requires verified current controller intent and all original join gates; this label only selects management review and never creates membership by grant."
-    },
-    {
-      "action": "ak.agent.publish",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.interaction.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "operation_verb",
-      "notes": "Controller-only public intent. Independent grants cannot override controller signature or public service governance."
-    },
-    {
-      "action": "ak.applet.publish",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.profile.create",
-        "ak.profile.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "operation_verb",
-      "notes": "Management gate for public intent of an accepted Applet-managed Bot/Ghost, using reserved closed applet_interaction in the subject-signed profile. It does not authorize arbitrary profile edits or override native self-authored control."
-    },
-    {
-      "action": "ak.applet.join",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "applet_managed_self_join"
-      ],
-      "target_event_kinds": [
-        "ak.circle.member.state",
-        "ak.member.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "operation_verb",
-      "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
-    },
-    {
-      "action": "ak.applet.configure",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "current_scope_realm_admin"
-      ],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
-    },
-    {
-      "action": "ak.realm.actor.manage",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "realm_actor_exact_target",
-        "realm_actor_current_governor",
-        "realm_actor_management_policy"
-      ],
-      "target_event_kinds": [
-        "ak.realm.actor.status.set",
-        "ak.realm.actor.recovery.set"
-      ],
-      "event_mapping_kind": "operation_verb",
-      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-    },
-    {
-      "action": "ak.realm.actor.manager.change",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "realm_actor_exact_target",
-        "realm_actor_current_governor",
-        "realm_actor_management_policy"
-      ],
-      "target_event_kinds": [
-        "ak.realm.actor.manager.change"
-      ],
-      "event_mapping_kind": "same_name",
-      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-    },
-    {
-      "action": "ak.realm.actor.audit",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "realm_actor_exact_target",
-        "realm_actor_current_governor",
-        "realm_actor_management_policy"
-      ],
-      "target_event_kinds": [],
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-    },
-    {
-      "action": "ak.realm_invite_link.create",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm_invite_link.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
-    },
-    {
-      "action": "ak.realm_invite_link.revoke",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm_invite_link.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
-    },
-    {
-      "action": "ak.realm_invite_link.accept",
-      "category": "personal",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm_invite_link.accept"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "subject_only": true,
-      "notes": "Purpose-scoped link acceptance requires complete account producer proof and link possession; no pre-membership grant."
     }
   ],
   "event_mapping_kind_definitions": {

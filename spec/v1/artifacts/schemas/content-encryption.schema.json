@@ -1,0 +1,578 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/content-encryption.schema.json",
+  "title": "Arkret recoverable application-content encryption",
+  "$defs": {
+    "encryption_scheme": {
+      "const": "ak.encryption.epoch_content_aead.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "content-encryption.schema.json#/$defs/encryption_scheme",
+        "owner": "content-encryption.schema.json#/$defs/encryption_scheme",
+        "values": [
+          "ak.encryption.epoch_content_aead.v1"
+        ]
+      }
+    },
+    "encryption_backup_strategy": {
+      "const": "ak.encryption_backup.epoch_content_roots.v1",
+      "x-arkret-value-ownership": {
+        "class": "namespaced_symbol",
+        "authority": "content-encryption.schema.json#/$defs/encryption_backup_strategy",
+        "owner": "content-encryption.schema.json#/$defs/encryption_backup_strategy",
+        "values": [
+          "ak.encryption_backup.epoch_content_roots.v1"
+        ]
+      }
+    },
+    "root_context": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "genesis_event_ref",
+        "epoch",
+        "group_state_ref",
+        "cipher_suite",
+        "encryption_backup_strategy",
+        "backup_strategy_ref"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "epoch": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "cipher_suite": {
+          "type": "string",
+          "minLength": 1
+        },
+        "encryption_backup_strategy": {
+          "$ref": "#/$defs/encryption_backup_strategy"
+        },
+        "backup_strategy_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        }
+      },
+      "additionalProperties": false
+    },
+    "endpoint": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "endpoint",
+        "authorization_event_ref",
+        "signature_key_base64url"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "endpoint": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "signature_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
+        }
+      },
+      "additionalProperties": false
+    },
+    "content_context": {
+      "type": "object",
+      "required": [
+        "root_context",
+        "root_ref",
+        "purpose",
+        "encryption_scheme",
+        "encryption_algorithm",
+        "producer",
+        "content_key_salt"
+      ],
+      "properties": {
+        "root_context": {
+          "$ref": "#/$defs/root_context"
+        },
+        "root_ref": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "purpose": {
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "content-encryption.schema.json#/$defs/content_context/properties/purpose",
+            "owner": "content-encryption.schema.json#/$defs/content_context/properties/purpose",
+            "values": [
+              "event_body"
+            ]
+          },
+          "const": "event_body"
+        },
+        "encryption_scheme": {
+          "$ref": "#/$defs/encryption_scheme"
+        },
+        "encryption_algorithm": {
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "content-encryption.schema.json#/$defs/content_context/properties/encryption_algorithm",
+            "owner": "content-encryption.schema.json#/$defs/content_context/properties/encryption_algorithm",
+            "values": [
+              "aes128_gcm"
+            ]
+          },
+          "const": "aes128_gcm"
+        },
+        "producer": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "content_key_salt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "content_epoch_root": {
+      "type": "object",
+      "required": [
+        "item_kind",
+        "secret_id",
+        "root_context",
+        "root_ref",
+        "root_base64url"
+      ],
+      "properties": {
+        "item_kind": {
+          "const": "content_epoch_root",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "content-encryption.schema.json#/$defs/content_epoch_root/properties/item_kind",
+            "owner": "content-encryption.schema.json#/$defs/content_epoch_root/properties/item_kind",
+            "values": [
+              "content_epoch_root"
+            ]
+          }
+        },
+        "secret_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "root_context": {
+          "$ref": "#/$defs/root_context"
+        },
+        "root_ref": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "root_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage_entry": {
+      "type": "object",
+      "required": [
+        "source",
+        "root_refs",
+        "blob_refs"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "root_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "blob_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "genesis_event_ref",
+        "cut",
+        "entries",
+        "backup_refs",
+        "previous_page_digest",
+        "page_digest"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coverage_entry"
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "backup_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./key-backup.schema.json#/properties/backup_id"
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "previous_page_digest": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "page_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "key_selector": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "source_event_ref",
+            "content_path"
+          ],
+          "properties": {
+            "kind": {
+              "const": "content_key",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "content-encryption.schema.json#/$defs/key_selector/oneOf/0/properties/kind",
+                "owner": "content-encryption.schema.json#/$defs/key_selector/oneOf/0/properties/kind",
+                "values": [
+                  "content_key"
+                ]
+              }
+            },
+            "source_event_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "x-arkret-preimage-commitment": "fixed_event"
+            },
+            "content_path": {
+              "type": "string",
+              "pattern": "^(?:/(?:[^~/]|~[01])*)+$",
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "root_context",
+            "root_ref",
+            "closed_epoch_cut"
+          ],
+          "properties": {
+            "kind": {
+              "const": "epoch_root",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "content-encryption.schema.json#/$defs/key_selector/oneOf/1/properties/kind",
+                "owner": "content-encryption.schema.json#/$defs/key_selector/oneOf/1/properties/kind",
+                "values": [
+                  "epoch_root"
+                ]
+              }
+            },
+            "root_context": {
+              "$ref": "#/$defs/root_context"
+            },
+            "root_ref": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "closed_epoch_cut": {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "history_grant": {
+      "type": "object",
+      "required": [
+        "recipient",
+        "recipient_hpke_key_base64url",
+        "history_cut",
+        "authorization_event_ref",
+        "expires_at",
+        "entries"
+      ],
+      "properties": {
+        "recipient": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "recipient_hpke_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "history_cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "selector",
+              "sealed_key_base64url"
+            ],
+            "properties": {
+              "selector": {
+                "$ref": "#/$defs/key_selector"
+              },
+              "sealed_key_base64url": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1048576,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "x-arkret-member-role": "binary_encoding"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "description": "Original Event producer proof covers every field. HPKE info and aad equal JCS({recipient,recipient_hpke_key_base64url,history_cut,authorization_event_ref,expires_at,selector}); plaintext is exactly the selected 16/32-byte DEK or 32-byte content root. Never plaintext archive or MLS private state."
+    },
+    "recovery_binding": {
+      "type": "object",
+      "required": [
+        "replacement",
+        "authorization_event_ref",
+        "base_group_state_ref",
+        "expected_epoch",
+        "inventory_digest"
+      ],
+      "properties": {
+        "replacement": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "base_group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "expected_epoch": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "inventory_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "custody": {
+      "type": "object",
+      "required": [
+        "custodian_actor_id",
+        "recovery_policy_ref",
+        "recipient_key_ref"
+      ],
+      "properties": {
+        "custodian_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "recovery_policy_ref": {
+          "$ref": "./key-backup.schema.json#/properties/recovery_policy_ref"
+        },
+        "recipient_key_ref": {
+          "$ref": "./key-backup.schema.json#/properties/encryption/properties/recipient_key_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_recovery": {
+      "type": "object",
+      "required": [
+        "state",
+        "pcr_cut",
+        "coverage_head_digest",
+        "restored_event_count",
+        "cleanup_inventory_digest",
+        "cleanup_completed"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "pending",
+            "ready"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "content-encryption.schema.json#/$defs/history_recovery/properties/state",
+            "owner": "content-encryption.schema.json#/$defs/history_recovery/properties/state",
+            "values": [
+              "pending",
+              "ready"
+            ]
+          }
+        },
+        "pcr_cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "coverage_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "restored_event_count": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "cleanup_inventory_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "cleanup_completed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "ready",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/if/properties/state",
+                  "owner": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/if/properties/state",
+                  "values": [
+                    "ready"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "cleanup_completed": {
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/then/properties/cleanup_completed",
+                  "owner": "content-encryption.schema.json#/$defs/history_recovery/allOf/0/then/properties/cleanup_completed",
+                  "values": [
+                    true
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "protection": {
+      "type": "object",
+      "required": [
+        "root_refs",
+        "blob_refs",
+        "backup_refs"
+      ],
+      "properties": {
+        "root_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "maxItems": 256,
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "blob_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "backup_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./key-backup.schema.json#/properties/backup_id"
+          },
+          "maxItems": 256,
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

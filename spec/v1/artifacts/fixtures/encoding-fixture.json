@@ -40,7 +40,7 @@
       "clause_id": "AK-NC-011",
       "decision_points": [
         {
-          "id": "envelope_is_the_closed_four_member_wire",
+          "id": "envelope_is_the_closed_five_member_wire",
           "requirement": "Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext}: scope, mls_group_id, Event kind, content scheme, AEAD algorithm and any AAD digest are reconstructed and never duplicated on the wire, and a fifth member makes the envelope invalid rather than selecting another content scheme.",
           "evidence": [
             "/vectors/10/closed_envelope",
@@ -401,24 +401,38 @@
         "content_type": "application/json",
         "encryption_context": {
           "epoch": "12",
-          "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
-        }
+          "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+          "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "protection": {
+            "root_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "blob_refs": [],
+            "backup_refs": [
+              "ak:backup:019a0000-0000-7000-8000-000000000001"
+            ]
+          }
+        },
+        "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"content_type\":\"application/json\",\"encryption_context\":{\"epoch\":\"12\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\"},\"version\":\"1.0\"}",
+      "expected_metadata_canonical_bytes_utf8": "{\"content_type\":\"application/json\",\"encryption_context\":{\"content_key_salt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":\"12\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\",\"key_commitment\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"protection\":{\"backup_refs\":[\"ak:backup:019a0000-0000-7000-8000-000000000001\"],\"blob_refs\":[],\"root_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"]},\"root_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"encryption_scheme\":\"ak.encryption.epoch_content_aead.v1\",\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
-      "expected_digest": "sha256:a9b48ace0d15993bcec611c1dd0fa51ac3ccf2c55abc6c28851e451bb6652655",
+      "expected_digest": "sha256:8e845892ab69b8bc26702e850db1f6f2a1a05c636b2471f8e8237ccaa7e8318f",
       "rules": [
-        "payload_metadata is exactly {version,content_type,encryption_context}; scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on wire",
-        "encryption_context is closed to epoch, group_state_ref and registered routing context only; a counter, scheme, algorithm, scope, group id or AAD digest member makes the envelope invalid rather than selecting another content scheme",
-        "implementations MUST NOT hash plaintext payload"
+        "metadata is the exact version/content_type/encryption_scheme/encryption_context projection; hash canonical metadata and raw ciphertext, never plaintext",
+        "scheme is a registered construction; no unknown scheme fallback",
+        "historical decoding uses original accepted state and producer, never current endpoint substitution"
       ],
       "closed_envelope": {
         "schema_ref": "spec/v1/artifacts/schemas/encrypted-envelope.schema.json",
         "wire_members": [
           "version",
           "content_type",
+          "encryption_scheme",
           "encryption_context",
           "ciphertext"
         ],
@@ -436,7 +450,11 @@
       "encryption_context_members": {
         "required": [
           "epoch",
-          "group_state_ref"
+          "group_state_ref",
+          "content_key_salt",
+          "root_ref",
+          "key_commitment",
+          "protection"
         ],
         "registered_optional": [
           "routing_context"
@@ -477,7 +495,7 @@
       "cases": [
         {
           "name": "closed_header_is_rebuilt_locally_not_read_from_wire",
-          "given": "a well-formed envelope carrying exactly the four wire members, whose sender assembled the closed header from the five sources before encrypting",
+          "given": "a well-formed envelope carrying exactly the five wire members, whose sender assembled the closed header from the five sources before encrypting",
           "action": "verify and decrypt the application message",
           "expected": {
             "outcome": "accepted",

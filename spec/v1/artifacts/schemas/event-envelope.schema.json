@@ -4968,6 +4968,33 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.mls.history_grant",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "event-envelope.schema.json#/allOf/154/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/154/if/properties/kind",
+              "values": [
+                "ak.mls.history_grant"
+              ]
+            }
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_history_grant_payload"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -8476,6 +8503,7 @@
                 "ak.mimi.room_binding",
                 "ak.mls.commit",
                 "ak.mls.genesis",
+                "ak.mls.history_grant",
                 "ak.moderation.decision",
                 "ak.moderation.decision.lift",
                 "ak.morph.archive",
@@ -8615,6 +8643,7 @@
                   "ak.mimi.room_binding",
                   "ak.mls.commit",
                   "ak.mls.genesis",
+                  "ak.mls.history_grant",
                   "ak.moderation.decision",
                   "ak.moderation.decision.lift",
                   "ak.morph.archive",
@@ -8768,6 +8797,7 @@
             "ak.mimi.room_binding",
             "ak.mls.commit",
             "ak.mls.genesis",
+            "ak.mls.history_grant",
             "ak.moderation.decision",
             "ak.moderation.decision.lift",
             "ak.morph.archive",
@@ -8913,6 +8943,7 @@
               "ak.mimi.room_binding",
               "ak.mls.commit",
               "ak.mls.genesis",
+              "ak.mls.history_grant",
               "ak.moderation.decision",
               "ak.moderation.decision.lift",
               "ak.morph.archive",

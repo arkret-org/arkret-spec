@@ -213,7 +213,9 @@
                 "previous_epoch": "0",
                 "next_epoch": "1",
                 "key_access_revision": "0"
-              }
+              },
+              "group_info_ref": "ak:blob:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "ratchet_tree_ref": "ak:blob:sha256:4444444444444444444444444444444444444444444444444444444444444444"
             },
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
             "scope_ref": {

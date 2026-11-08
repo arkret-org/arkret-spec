@@ -3497,12 +3497,16 @@
                 {
                   "name": "covered_key_access_revision",
                   "field": "payload.covers_key_access_revision"
+                },
+                {
+                  "name": "public_tree_ref",
+                  "field": "payload.ratchet_tree_ref"
                 }
               ]
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/mls_group_value",
-          "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced only by a membership Event on the scope's own stream that changes the current joined set (ak.member.state or ak.invite.accept for a Realm scope), never by endpoint authorization, policy or an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupValue."
+          "notes": "Current winning Commit updates epoch, coverage and its exact public tree; immutable genesis/ciphersuite and current key-access revision remain retained. Recovery-only External Commit obeys content_encryption_contract."
         }
       ],
       "id_source": "not_an_object_id",
@@ -3597,6 +3601,21 @@
           "producer_proof.created_at",
           "committed_at"
         ]
+      }
+    },
+    {
+      "event_kind": "ak.mls.history_grant",
+      "category": "e2ee",
+      "status": "active",
+      "verb_form": "not_applicable",
+      "wire_scope": "durable_event",
+      "reducer_input": false,
+      "payload": "Current-authorized, original signed HPKE history-key grant at an exact scope and history cut; grants no membership or live endpoint state.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_history_grant_payload",
+      "id_source": "not_an_object_id",
+      "effect_ownership": {
+        "kind": "durable_fact_no_current_projection",
+        "defined_in": "zh/crypto-media/content-history.md"
       }
     },
     {
@@ -5649,7 +5668,7 @@
           "admission": "deny"
         }
       ],
-      "payload": "Realm create",
+      "payload": "Realm create initial_encryption_backup_strategy is a required signed, create-locked genesis member and participates in the Realm ID preimage.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_create_payload",
       "state_writes": [
         {
@@ -6413,6 +6432,183 @@
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_freeze_value",
           "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      }
+    },
+    {
+      "event_kind": "ak.realm_invite_link.accept",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link accept; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/accept_payload",
+      "id_source": "reference",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_use",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.realm_invite_link_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.subject_account_id"
+              }
+            ]
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "realm_invite_link_id",
+                  "field": "payload.realm_invite_link_id"
+                },
+                {
+                  "name": "subject_account_id",
+                  "field": "payload.subject_account_id"
+                },
+                {
+                  "name": "accept_event_id",
+                  "envelope_field": "event_id"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/use_record"
+        },
+        {
+          "state_family": "member_state",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "membership",
+                  "literal": "join"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
+          "notes": "The accepting complete account actor joins only when its link proof and all current join gates pass. This write and the create-locked use record commit atomically; no open/preview/prepare writes membership."
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      }
+    },
+    {
+      "event_kind": "ak.realm_invite_link.create",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link create; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/create_payload",
+      "id_source": "event_derived",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_definition",
+          "state_selector": {
+            "kind": "id:realm_invite_link"
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "public_key",
+                  "field": "payload.public_key"
+                },
+                {
+                  "name": "expires_at",
+                  "field": "payload.expires_at"
+                },
+                {
+                  "name": "max_uses",
+                  "field": "payload.max_uses"
+                },
+                {
+                  "name": "create_event_id",
+                  "envelope_field": "event_id"
+                },
+                {
+                  "name": "creator_actor_id",
+                  "envelope_field": "actor_id"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/definition_value"
+        },
+        {
+          "state_family": "realm_invite_link_lifecycle",
+          "state_selector": {
+            "kind": "id:realm_invite_link"
+          },
+          "state_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "active"
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
+        }
+      ],
+      "effect_ownership": {
+        "kind": "typed_state_writer"
+      },
+      "id_kind": "realm_invite_link"
+    },
+    {
+      "event_kind": "ak.realm_invite_link.revoke",
+      "category": "invite",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm invitation link revoke; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/revoke_payload",
+      "id_source": "reference",
+      "state_writes": [
+        {
+          "state_family": "realm_invite_link_lifecycle",
+          "state_selector": {
+            "kind": "id:realm_invite_link",
+            "field": "payload.realm_invite_link_id"
+          },
+          "state_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "revoked"
+            }
+          },
+          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
         }
       ],
       "effect_ownership": {
@@ -8634,183 +8830,6 @@
           ],
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/view_value",
           "notes": "models/views.md section 3.2 table row 2, and the one write section 3.1 makes normatively load-bearing: a shared View has no tombstone event kind, so its protocol-level removal IS this patch setting state=tombstoned. allowed_paths is not a new enumeration -- it is the complement the reducer-managed-path-registry already fixed: the 21 declared View members minus the effective forbidden set for this object, with `state` subtracted by the single registered universal exemption. The registry is read per object, so another family declaring `stage` or `resolution` cannot narrow this set and this exemption cannot widen theirs. state_changed_at stays reducer-derived and conditional: only an accepted active -> tombstoned transition produces it, an author-supplied value MUST be rejected, and a terminal View MUST fail any later update or reconcile with failed_precondition reason_code=view_already_terminal. The four retained members are the create-locked identity and creation metadata, preserved verbatim from the frozen pre-state; a patch MUST NOT reach them and this write MUST NOT re-derive them."
-        }
-      ],
-      "effect_ownership": {
-        "kind": "typed_state_writer"
-      }
-    },
-    {
-      "event_kind": "ak.realm_invite_link.create",
-      "category": "invite",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm invitation link create; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/create_payload",
-      "id_source": "event_derived",
-      "state_writes": [
-        {
-          "state_family": "realm_invite_link_definition",
-          "state_selector": {
-            "kind": "id:realm_invite_link"
-          },
-          "state_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "public_key",
-                  "field": "payload.public_key"
-                },
-                {
-                  "name": "expires_at",
-                  "field": "payload.expires_at"
-                },
-                {
-                  "name": "max_uses",
-                  "field": "payload.max_uses"
-                },
-                {
-                  "name": "create_event_id",
-                  "envelope_field": "event_id"
-                },
-                {
-                  "name": "creator_actor_id",
-                  "envelope_field": "actor_id"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/definition_value"
-        },
-        {
-          "state_family": "realm_invite_link_lifecycle",
-          "state_selector": {
-            "kind": "id:realm_invite_link"
-          },
-          "state_projection": {
-            "kind": "transition",
-            "from": {
-              "const": null
-            },
-            "to": {
-              "const": "active"
-            }
-          },
-          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
-        }
-      ],
-      "effect_ownership": {
-        "kind": "typed_state_writer"
-      },
-      "id_kind": "realm_invite_link"
-    },
-    {
-      "event_kind": "ak.realm_invite_link.revoke",
-      "category": "invite",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm invitation link revoke; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/revoke_payload",
-      "id_source": "reference",
-      "state_writes": [
-        {
-          "state_family": "realm_invite_link_lifecycle",
-          "state_selector": {
-            "kind": "id:realm_invite_link",
-            "field": "payload.realm_invite_link_id"
-          },
-          "state_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "active"
-            },
-            "to": {
-              "const": "revoked"
-            }
-          },
-          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
-        }
-      ],
-      "effect_ownership": {
-        "kind": "typed_state_writer"
-      }
-    },
-    {
-      "event_kind": "ak.realm_invite_link.accept",
-      "category": "invite",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm invitation link accept; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-      "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/accept_payload",
-      "id_source": "reference",
-      "state_writes": [
-        {
-          "state_family": "realm_invite_link_use",
-          "state_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.realm_invite_link_id",
-              {
-                "kind": "canonical_json",
-                "field": "payload.subject_account_id"
-              }
-            ]
-          },
-          "state_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "realm_invite_link_id",
-                  "field": "payload.realm_invite_link_id"
-                },
-                {
-                  "name": "subject_account_id",
-                  "field": "payload.subject_account_id"
-                },
-                {
-                  "name": "accept_event_id",
-                  "envelope_field": "event_id"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/use_record"
-        },
-        {
-          "state_family": "member_state",
-          "state_selector": {
-            "kind": "composite",
-            "components": [
-              {
-                "kind": "canonical_json",
-                "field": "envelope.actor_id"
-              }
-            ]
-          },
-          "state_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "membership",
-                  "literal": "join"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
-          "notes": "The accepting complete account actor joins only when its link proof and all current join gates pass. This write and the create-locked use record commit atomically; no open/preview/prepare writes membership."
         }
       ],
       "effect_ownership": {

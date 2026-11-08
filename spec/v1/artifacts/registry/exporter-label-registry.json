@@ -157,8 +157,8 @@
     },
     {
       "label": "ak.blob-content-key-v1",
-      "primitive": "MLS-Exporter",
-      "purpose": "Fresh per-object MLS encrypted attachment content key, including independently salted thumbnails",
+      "primitive": "ExpandWithLabel",
+      "purpose": "Independently salted, endpoint-bound recoverable encrypted attachment key",
       "defined_in": "zh/crypto-media/media-and-blob.md §3.0",
       "context_fields": [
         "effective_scope",
@@ -166,9 +166,10 @@
         "epoch",
         "scheme",
         "encryption_algorithm",
-        "content_key_salt"
+        "content_key_salt",
+        "producer"
       ],
-      "context_encoding": "RFC 8785 JCS UTF-8 bytes of closed {effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt}; resolve the exact winning MLS state and immutable group genesis before constructing Context; normalize omitted whole-file scheme only",
+      "context_encoding": "SHA-256/SHA-384 of RFC8785 JCS {effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt,producer}; hash follows the negotiated MLS suite; parent is the purpose-separated retained content root, never exporter_secret",
       "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.blob_node.v1"
@@ -180,7 +181,59 @@
         "ak.reaction-routing-root-v1",
         "ak.signal-root-v1",
         "ak.rtc-frame-key/v1"
+      ],
+      "parent_secret": "ak.epoch-content-root-v1"
+    },
+    {
+      "label": "ak.epoch-content-root-v1",
+      "primitive": "MLS-Exporter",
+      "purpose": "Recoverable application content only; never live MLS, Signal or RTC state",
+      "defined_in": "zh/crypto-media/content-history.md",
+      "context_fields": [
+        "effective_scope",
+        "genesis_event_ref",
+        "epoch",
+        "group_state_ref",
+        "cipher_suite",
+        "encryption_backup_strategy",
+        "backup_strategy_ref"
+      ],
+      "context_encoding": "RFC 8785 JCS bytes",
+      "output_bytes": 32,
+      "applies_to_profiles": [],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": [
+        "ak.signal-root-v1",
+        "ak.reaction-routing-root-v1"
       ]
+    },
+    {
+      "label": "ak.content-v1",
+      "primitive": "ExpandWithLabel",
+      "purpose": "Recoverable application content only; never live MLS, Signal or RTC state",
+      "defined_in": "zh/crypto-media/content-history.md",
+      "context_fields": [
+        "root_context",
+        "root_ref",
+        "purpose",
+        "encryption_scheme",
+        "encryption_algorithm",
+        "producer",
+        "content_key_salt"
+      ],
+      "context_encoding": "SHA-256 of RFC 8785 JCS bytes",
+      "output_bytes": "AEAD.Nk",
+      "applies_to_profiles": [],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": [
+        "ak.signal-root-v1",
+        "ak.reaction-routing-root-v1"
+      ],
+      "parent_secret": "ak.epoch-content-root-v1"
     }
   ]
 }

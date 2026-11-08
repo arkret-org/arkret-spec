@@ -75,13 +75,22 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
     definitions = load_json(lint, schema_path)["$defs"]
     for name, fields in (
         ("mls_member_roster_authority_read_request_body", ["realm_id", "effective_scope", "mls_group_id", "target_commit_event_ref", "target_epoch", "caller_actor_id", "cursor"]),
-        ("self_roster_read_response_body", ["roster", "manifest_signing_key", "add_signing_keys"]),
+        ("self_roster_read_response_body", ["roster", "manifest_signing_key", "add_signing_keys", "recovery_signing_keys"]),
         ("roster_add_signing_keys", ["record_digest", "claim_receipt_signing_key", "attestation_signing_key"]),
         ("roster_signing_key", ["verification_method", "public_key_base64url"]),
+        ("roster_recovery_signing_key", ["record_digest", "public_key_base64url"]),
+        ("roster_recovery_record", ["kind", "commit_event", "covering_commit", "producer_signer_fact"]),
+        ("roster_agent_signer_fact", ["kind", "event_ref", "actor_id", "verification_method", "public_key_base64url", "authorization_event_ref", "accepted_at"]),
     ):
         row = definitions.get(name, {})
-        if row.get("required") != [field for field in fields if field != "cursor"] or list(row.get("properties", {})) != fields or row.get("additionalProperties") is not False:
+        if row.get("required") != [field for field in fields if field not in {"cursor", "recovery_signing_keys"}] or list(row.get("properties", {})) != fields or row.get("additionalProperties") is not False:
             lint.fail(schema_path, f"{name} must retain its exact closed required key bindings")
+    recovery = definitions.get("roster_recovery_record", {})
+    commit_rules = recovery.get("properties", {}).get("commit_event", {}).get("allOf", [])
+    if len(commit_rules) != 2 or commit_rules[0].get("$ref") != "./event-envelope.schema.json" or commit_rules[1].get("properties", {}).get("payload", {}).get("required") != ["recovery_binding"]:
+        lint.fail(schema_path, "recovery roster requires the complete original Event and recovery binding")
+    if {"$ref": "#/$defs/roster_recovery_record"} not in definitions.get("roster_record", {}).get("oneOf", []):
+        lint.fail(schema_path, "recovery roster branch cannot disappear")
     fixture_path = ARTIFACTS / "fixtures/mls-roster-client-roles-fixture.json"
     fixture = load_json(lint, fixture_path)
     required_cases = {

@@ -146,7 +146,23 @@ Blob 的 `blake3:` 支持不得扩展到 group-state proof hash。解析者 MUST
   "nonce": "base64url...",
   "size_bytes": 1234,
   "media_type": "image/png",
-  "encryption_algorithm": "xchacha20_poly1305"
+  "encryption_algorithm": "xchacha20_poly1305",
+  "producer": {
+    "actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+      }
+    },
+    "endpoint": {
+      "kind": "device",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+    },
+    "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+    "signature_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+  },
+  "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
 }
 ```
 ### 3.0 MLS per-object 内容密钥（normative）
@@ -159,25 +175,24 @@ salt／descriptor／密文，改变明文或加密参数的重新加密 MUST 创
 
 Producer 使用冻结的 authoring scope 与已验证 group provenance；接收端先验证承载 descriptor 的
 ContentBlock 与 enclosing Event。双方均按 §3 解析 exact winning
-MLS state、其 epoch、immutable genesis Event ref 和 effective scope，恢复获授权的该 epoch MLS
-checkpoint。effective scope 使用 encryption-and-audit §5.1 的 closed 形态，必须与 enclosing Event
+MLS state、其 epoch、immutable genesis Event ref 和 effective scope，恢复获授权的该epoch专用内容根R。effective scope 使用 encryption-and-audit §5.1 的 closed 形态，必须与 enclosing Event
 及该 group provenance 逐字段匹配，不从下载 URL 或当前 UI 推断。historical epoch 不得替换为当前 epoch；
 拥有 ref、salt 或密文字节不授予历史读取或密钥恢复权。缺 state／secret、非 winning state、scope 不符、
 非 canonical salt 或未授权时 MUST 在派生／解密前 fail closed，不使用其它 epoch、随机 key 或其它 label fallback。
 
 ```text
-Context = JCS({effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt})
-content_key = MLS-Exporter("ak.blob-content-key-v1", Context, 32)
+Context = JCS({effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt,producer})
+content_key = ExpandWithLabel(R, "ak.blob-content-key-v1", Hash(Context), 32)
 ```
 
-primitive 是 RFC 9420 §8.5 的 MLS-Exporter，使用该 exact epoch 的 exporter_secret 和 MLS
+primitive是ExpandWithLabel，R是content-history.md中同一accepted状态的专用内容根；不得保留底层exporter_secret。使用MLS
 cipher suite 的 Hash／KDF；不是 Realm ID 的 digest suite，也不是对 secret 直接 HKDF。label 的唯一真源是
 exporter-label-registry。Context 的逻辑字段顺序如上，实际 UTF-8 字节严格由 RFC 8785 JCS 排序，
-不加换行、BOM、null、未知成员或字符串化的数字；`epoch` 为解析出的整数。whole-file descriptor 省略
+不加换行、BOM、null、未知成员或字符串化的数字；`epoch`为canonical uint64 decimal string。whole-file descriptor 省略
 `scheme` 时唯一补为 `ak.blob.whole_file_aead.v1`；algorithm 保持 descriptor 的 exact registered string。
 `genesis_event_ref` 是已验证 group 的 immutable genesis EventId，不是当前 Commit ref；Event ref 与等价
 proof-hash `key_ref` 解析到同一 group state 时 MUST 得到同一 Context 与 key，wire `key_ref` 不直接进入 KDF。
-32 bytes 对应本 descriptor 已登记的 AES-256-GCM／XChaCha20-Poly1305 内容密钥长度。
+32 bytes对应已登记AES-256-GCM／XChaCha20-Poly1305。producer使用content-history.md的原作者端点事实；descriptor新增required producer和key_commitment，后者为SHA256(UTF8("ak.content.key_commitment.v1\n") || Context || content_key)。两者进入原件认证和immutable AAD。指定DEK的历史grant必须有source_event_ref及content_path，不能用一个Event ID混淆正文与多个附件。
 
 `blob_ref`、密文 digest、enclosing Event ID 和接受后的 Commit 不得进入 KDF：它们依赖密文，会造成循环。
 `content_key_salt` MUST 同时进入 §3.1／§3.3.3 的 immutable AAD。原 canonical `key_ref` 继续进入 AAD，
@@ -328,7 +343,23 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "segment_bytes": 262144,
   "size_bytes": 3211264,
   "media_type": "video/mp4",
-  "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
+  "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream",
+  "producer": {
+    "actor_id": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+      }
+    },
+    "endpoint": {
+      "kind": "device",
+      "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+    },
+    "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+    "signature_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+  },
+  "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
 }
 ```
 整文件形态（`ak.blob.whole_file_aead.v1`）的 envelope 仍按 §3 示例（携带单 `nonce` 而非 `nonce_prefix` / `segment_*`）。

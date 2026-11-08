@@ -11,6 +11,7 @@
     "default_discoverability",
     "default_join_rule",
     "history_access",
+    "encryption_backup_strategy",
     "governance_station_id",
     "created_by",
     "created_at"
@@ -219,7 +220,7 @@
         "since_join",
         "all_history_for_current_members"
       ],
-      "description": "Scope-local history range ratchet initialized by Realm create. Only all_history_for_current_members to since_join may change state; widening back to all_history is permanently forbidden. Standard MLS requires since_join.",
+      "description": "Scope-local authorized historical range; both values are supported by recoverable application encryption. Same Actor endpoint replacement preserves its original authorized floor.",
       "x-arkret-value-ownership": {
         "class": "owned_symbol",
         "authority": "realm.schema.json#/properties/history_access",
@@ -229,6 +230,9 @@
           "all_history_for_current_members"
         ]
       }
+    },
+    "encryption_backup_strategy": {
+      "$ref": "./content-encryption.schema.json#/$defs/encryption_backup_strategy"
     },
     "governance_station_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",

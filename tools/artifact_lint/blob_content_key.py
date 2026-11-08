@@ -9,7 +9,7 @@ import re
 from .core import ARTIFACTS, ROOT, load_json, schema_validator
 
 FIELDS = ["effective_scope", "genesis_event_ref", "epoch", "scheme",
-          "encryption_algorithm", "content_key_salt"]
+          "encryption_algorithm", "content_key_salt", "producer"]
 LABEL = "ak.blob-content-key-v1"
 
 
@@ -35,17 +35,15 @@ def expand(secret, label, context, length, hash_name):
 
 
 def exporter(secret, context, hash_name):
-    nh = hashlib.new(hash_name).digest_size
-    derived = expand(secret, LABEL, b"", nh, hash_name)
-    return expand(derived, "exported", hashlib.new(hash_name, jcs(context)).digest(),
-                  32, hash_name)
+    # Kept as the named primitive generator entry point; secret is application R.
+    return expand(secret, LABEL, hashlib.new(hash_name, jcs(context)).digest(), 32, hash_name)
 
 
 def check(lint, registry):
     path = ARTIFACTS / "fixtures/blob-content-key-fixture.json"
     try:
         entry = next(row for row in registry["labels"] if row["label"] == LABEL)
-        assert entry["primitive"] == "MLS-Exporter"
+        assert entry["primitive"] == "ExpandWithLabel" and entry["parent_secret"] == "ak.epoch-content-root-v1"
         assert entry["context_fields"] == FIELDS and entry["output_bytes"] == 32
         assert entry["empty_context_forbidden"] is True
         fixture = load_json(lint, path)
@@ -83,7 +81,7 @@ def check(lint, registry):
             context = kat["context"]
             assert set(context) == set(FIELDS)
             assert jcs(context).decode() == kat["context_utf8"]
-            secret = bytes.fromhex(kat["exporter_secret_hex"])
+            secret = bytes.fromhex(kat["content_root_hex"])
             expected = bytes.fromhex(kat["content_key_hex"])
             assert exporter(secret, context, kat["hash"]) == expected
             for field, replacement in kat["separation_inputs"].items():

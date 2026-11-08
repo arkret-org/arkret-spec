@@ -32,6 +32,7 @@
       "ak.member.state",
       "ak.mls.commit",
       "ak.mls.genesis",
+      "ak.mls.history_grant",
       "ak.policy.action",
       "ak.policy.set",
       "ak.realm.archive",

@@ -3945,12 +3945,16 @@
                   {
                     "name": "covered_key_access_revision",
                     "field": "payload.covers_key_access_revision"
+                  },
+                  {
+                    "name": "public_tree_ref",
+                    "field": "payload.ratchet_tree_ref"
                   }
                 ]
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/mls_group_value",
-            "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced only by a membership Event on the scope's own stream that changes the current joined set (ak.member.state or ak.invite.accept for a Realm scope), never by endpoint authorization, policy or an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupValue."
+            "notes": "Current winning Commit updates epoch, coverage and its exact public tree; immutable genesis/ciphersuite and current key-access revision remain retained. Recovery-only External Commit obeys content_encryption_contract."
           }
         ],
         "id_source": "not_an_object_id",
@@ -4045,6 +4049,21 @@
             "producer_proof.created_at",
             "committed_at"
           ]
+        }
+      },
+      {
+        "event_kind": "ak.mls.history_grant",
+        "category": "e2ee",
+        "status": "active",
+        "verb_form": "not_applicable",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Current-authorized, original signed HPKE history-key grant at an exact scope and history cut; grants no membership or live endpoint state.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_history_grant_payload",
+        "id_source": "not_an_object_id",
+        "effect_ownership": {
+          "kind": "durable_fact_no_current_projection",
+          "defined_in": "zh/crypto-media/content-history.md"
         }
       },
       {
@@ -6097,7 +6116,7 @@
             "admission": "deny"
           }
         ],
-        "payload": "Realm create",
+        "payload": "Realm create initial_encryption_backup_strategy is a required signed, create-locked genesis member and participates in the Realm ID preimage.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_create_payload",
         "state_writes": [
           {
@@ -6861,6 +6880,183 @@
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_freeze_value",
             "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
+          }
+        ],
+        "effect_ownership": {
+          "kind": "typed_state_writer"
+        }
+      },
+      {
+        "event_kind": "ak.realm_invite_link.accept",
+        "category": "invite",
+        "status": "active",
+        "verb_form": "base",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm invitation link accept; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/accept_payload",
+        "id_source": "reference",
+        "state_writes": [
+          {
+            "state_family": "realm_invite_link_use",
+            "state_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.realm_invite_link_id",
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.subject_account_id"
+                }
+              ]
+            },
+            "state_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "realm_invite_link_id",
+                    "field": "payload.realm_invite_link_id"
+                  },
+                  {
+                    "name": "subject_account_id",
+                    "field": "payload.subject_account_id"
+                  },
+                  {
+                    "name": "accept_event_id",
+                    "envelope_field": "event_id"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/use_record"
+          },
+          {
+            "state_family": "member_state",
+            "state_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
+              ]
+            },
+            "state_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "membership",
+                    "literal": "join"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
+            "notes": "The accepting complete account actor joins only when its link proof and all current join gates pass. This write and the create-locked use record commit atomically; no open/preview/prepare writes membership."
+          }
+        ],
+        "effect_ownership": {
+          "kind": "typed_state_writer"
+        }
+      },
+      {
+        "event_kind": "ak.realm_invite_link.create",
+        "category": "invite",
+        "status": "active",
+        "verb_form": "base",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm invitation link create; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/create_payload",
+        "id_source": "event_derived",
+        "state_writes": [
+          {
+            "state_family": "realm_invite_link_definition",
+            "state_selector": {
+              "kind": "id:realm_invite_link"
+            },
+            "state_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "public_key",
+                    "field": "payload.public_key"
+                  },
+                  {
+                    "name": "expires_at",
+                    "field": "payload.expires_at"
+                  },
+                  {
+                    "name": "max_uses",
+                    "field": "payload.max_uses"
+                  },
+                  {
+                    "name": "create_event_id",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "creator_actor_id",
+                    "envelope_field": "actor_id"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/definition_value"
+          },
+          {
+            "state_family": "realm_invite_link_lifecycle",
+            "state_selector": {
+              "kind": "id:realm_invite_link"
+            },
+            "state_projection": {
+              "kind": "transition",
+              "from": {
+                "const": null
+              },
+              "to": {
+                "const": "active"
+              }
+            },
+            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
+          }
+        ],
+        "effect_ownership": {
+          "kind": "typed_state_writer"
+        },
+        "id_kind": "realm_invite_link"
+      },
+      {
+        "event_kind": "ak.realm_invite_link.revoke",
+        "category": "invite",
+        "status": "active",
+        "verb_form": "base",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm invitation link revoke; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
+        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/revoke_payload",
+        "id_source": "reference",
+        "state_writes": [
+          {
+            "state_family": "realm_invite_link_lifecycle",
+            "state_selector": {
+              "kind": "id:realm_invite_link",
+              "field": "payload.realm_invite_link_id"
+            },
+            "state_projection": {
+              "kind": "transition",
+              "from": {
+                "const": "active"
+              },
+              "to": {
+                "const": "revoked"
+              }
+            },
+            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
           }
         ],
         "effect_ownership": {
@@ -9087,183 +9283,6 @@
         "effect_ownership": {
           "kind": "typed_state_writer"
         }
-      },
-      {
-        "event_kind": "ak.realm_invite_link.create",
-        "category": "invite",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm invitation link create; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/create_payload",
-        "id_source": "event_derived",
-        "state_writes": [
-          {
-            "state_family": "realm_invite_link_definition",
-            "state_selector": {
-              "kind": "id:realm_invite_link"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "public_key",
-                    "field": "payload.public_key"
-                  },
-                  {
-                    "name": "expires_at",
-                    "field": "payload.expires_at"
-                  },
-                  {
-                    "name": "max_uses",
-                    "field": "payload.max_uses"
-                  },
-                  {
-                    "name": "create_event_id",
-                    "envelope_field": "event_id"
-                  },
-                  {
-                    "name": "creator_actor_id",
-                    "envelope_field": "actor_id"
-                  }
-                ]
-              }
-            },
-            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/definition_value"
-          },
-          {
-            "state_family": "realm_invite_link_lifecycle",
-            "state_selector": {
-              "kind": "id:realm_invite_link"
-            },
-            "state_projection": {
-              "kind": "transition",
-              "from": {
-                "const": null
-              },
-              "to": {
-                "const": "active"
-              }
-            },
-            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        },
-        "id_kind": "realm_invite_link"
-      },
-      {
-        "event_kind": "ak.realm_invite_link.revoke",
-        "category": "invite",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm invitation link revoke; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/revoke_payload",
-        "id_source": "reference",
-        "state_writes": [
-          {
-            "state_family": "realm_invite_link_lifecycle",
-            "state_selector": {
-              "kind": "id:realm_invite_link",
-              "field": "payload.realm_invite_link_id"
-            },
-            "state_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "active"
-              },
-              "to": {
-                "const": "revoked"
-              }
-            },
-            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/lifecycle_value"
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.realm_invite_link.accept",
-        "category": "invite",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Realm invitation link accept; exact rules in zh/sync/realm-invite-links.md. All shared effects commit on the Realm stream in one authority transaction.",
-        "payload_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/accept_payload",
-        "id_source": "reference",
-        "state_writes": [
-          {
-            "state_family": "realm_invite_link_use",
-            "state_selector": {
-              "kind": "composite",
-              "components": [
-                "payload.realm_invite_link_id",
-                {
-                  "kind": "canonical_json",
-                  "field": "payload.subject_account_id"
-                }
-              ]
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "realm_invite_link_id",
-                    "field": "payload.realm_invite_link_id"
-                  },
-                  {
-                    "name": "subject_account_id",
-                    "field": "payload.subject_account_id"
-                  },
-                  {
-                    "name": "accept_event_id",
-                    "envelope_field": "event_id"
-                  }
-                ]
-              }
-            },
-            "value_schema_ref": "schemas/realm-invite-link.schema.json#/$defs/use_record"
-          },
-          {
-            "state_family": "member_state",
-            "state_selector": {
-              "kind": "composite",
-              "components": [
-                {
-                  "kind": "canonical_json",
-                  "field": "envelope.actor_id"
-                }
-              ]
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "membership",
-                    "literal": "join"
-                  }
-                ]
-              }
-            },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/member_state_value",
-            "notes": "The accepting complete account actor joins only when its link proof and all current join gates pass. This write and the create-locked use record commit atomically; no open/preview/prepare writes membership."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
       }
     ],
     "actor_private_contracts": {
@@ -10101,12 +10120,6 @@
         }
       },
       {
-        "schema_id": "ak.schema.account_state_view.v1",
-        "file": "schemas/account-state-view.schema.json",
-        "status": "active",
-        "description": "Server-trusted typed current current state results, deterministic causal-register sources, versioned removal and exact baseline coverage."
-      },
-      {
         "schema_id": "ak.schema.account_data_encrypted_value.v1",
         "file": "schemas/account-data-encrypted-value.schema.json",
         "status": "active",
@@ -10139,6 +10152,12 @@
         "file": "schemas/account-operations.schema.json",
         "status": "active",
         "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
+      },
+      {
+        "schema_id": "ak.schema.account_state_view.v1",
+        "file": "schemas/account-state-view.schema.json",
+        "status": "active",
+        "description": "Server-trusted typed current current state results, deterministic causal-register sources, versioned removal and exact baseline coverage."
       },
       {
         "schema_id": "ak.schema.account_status_record.v1",
@@ -10411,6 +10430,12 @@
         "description": "Closed post-install Bot creation preview and commit DTOs."
       },
       {
+        "schema_id": "ak.schema.applet_configuration_operations.v1",
+        "status": "active",
+        "file": "schemas/applet-configuration-operations.schema.json",
+        "description": "Bounded administrator configuration command, B-to-C execution and source result"
+      },
+      {
         "schema_id": "ak.schema.applet_device_authentication.v1",
         "file": "schemas/applet-device-authentication.schema.json",
         "status": "active",
@@ -10579,6 +10604,12 @@
         "description": "Profile fields for calendar-event Strands."
       },
       {
+        "schema_id": "ak.schema.call_invitation_operations.v1",
+        "file": "schemas/call-invitation-operations.schema.json",
+        "status": "active",
+        "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
+      },
+      {
         "schema_id": "ak.schema.call_recording_artifact.v1",
         "file": "schemas/call-recording-artifact.schema.json",
         "status": "active",
@@ -10629,6 +10660,12 @@
         "description": "Closed request/response DTO bundle for self-surface holder-private consent current state operations (ak.self.consent.*); see zh/identity/consent-model.md."
       },
       {
+        "schema_id": "ak.schema.consent_private_operations.v1",
+        "file": "schemas/consent-private-operations.schema.json",
+        "status": "active",
+        "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
+      },
+      {
         "schema_id": "ak.schema.contact_operations.v1",
         "file": "schemas/contact-operations.schema.json",
         "status": "active",
@@ -10669,18 +10706,34 @@
         }
       },
       {
+        "schema_id": "ak.schema.content_encryption.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "status": "active",
+        "description": "Closed recoverable application root, grant, coverage and recovery-binding carriers.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "encrypted Event, KeyBackup root item and ak.mls.history_grant payload",
+          "normative_ref": "zh/crypto-media/content-history.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.content_encryption_context.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/content_context",
+        "status": "active",
+        "description": "Closed reconstructed application-content KDF and AAD context, never caller asserted wire authority.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "content-history.md reconstructed C_item for application KDF and AAD",
+          "normative_ref": "zh/crypto-media/content-history.md"
+        }
+      },
+      {
         "schema_id": "ak.schema.controller_account_gate_attestation.v1",
         "file": "schemas/agent-authority-evidence.schema.json",
         "fragment": "#/$defs/controller_account_gate_attestation",
         "status": "active",
         "description": "Account Authority controller-account eligibility gate signed under ak.controller_account_gate.v1; privacy minimised and valid for at most 300 seconds."
-      },
-      {
-        "schema_id": "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
-        "file": "schemas/agent-authority-evidence.schema.json",
-        "fragment": "#/$defs/controller_account_gate_attestation_issue_response_body",
-        "status": "active",
-        "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
       },
       {
         "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
@@ -10690,11 +10743,11 @@
         "description": "Deployment-authenticated controller gate issuance request; carries no service resolution carrier."
       },
       {
-        "schema_id": "ak.schema.current_principal_response_body.v1",
-        "file": "schemas/identity-resolution.schema.json",
-        "fragment": "#/$defs/current_principal_response_body",
+        "schema_id": "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation_issue_response_body",
         "status": "active",
-        "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+        "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
       },
       {
         "schema_id": "ak.schema.current_principal_request.v1",
@@ -10704,6 +10757,19 @@
         "description": "Authenticated own-account current principal and unique PCR request."
       },
       {
+        "schema_id": "ak.schema.current_principal_response_body.v1",
+        "file": "schemas/identity-resolution.schema.json",
+        "fragment": "#/$defs/current_principal_response_body",
+        "status": "active",
+        "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+      },
+      {
+        "schema_id": "ak.schema.current_state.v1",
+        "file": "schemas/current-state.schema.json",
+        "status": "active",
+        "description": "Closed typed current-state selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
+      },
+      {
         "schema_id": "ak.schema.cursor.v1",
         "file": "schemas/cursor.schema.json",
         "consumer_binding": {
@@ -10711,6 +10777,12 @@
           "selector": "opaque cursor payload selected by purpose",
           "normative_ref": "zh/sync/api-conventions.md"
         }
+      },
+      {
+        "schema_id": "ak.schema.decimal_integers.v1",
+        "status": "active",
+        "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
+        "file": "schemas/decimal-integers.schema.json"
       },
       {
         "schema_id": "ak.schema.detached_object_signature.v1",
@@ -10922,10 +10994,6 @@
         }
       },
       {
-        "schema_id": "ak.schema.media_ice_configuration_response_body.v1",
-        "file": "schemas/media-ice-configuration-response-body.schema.json"
-      },
-      {
         "schema_id": "ak.schema.identity_link.v1",
         "file": "schemas/identity-link.schema.json",
         "status": "active",
@@ -11072,6 +11140,10 @@
         "description": "Private durable management review requests, decisions and outcome; pending carries no authority."
       },
       {
+        "schema_id": "ak.schema.media_ice_configuration_response_body.v1",
+        "file": "schemas/media-ice-configuration-response-body.schema.json"
+      },
+      {
         "schema_id": "ak.schema.media_metadata.v1",
         "file": "schemas/media-metadata.schema.json",
         "consumer_binding": {
@@ -11087,18 +11159,18 @@
         "description": "Closed request DTO bundle for realtime media service operations."
       },
       {
-        "schema_id": "ak.schema.media_service_binding_response_body.v1",
-        "file": "schemas/media-service-binding-operations.schema.json",
-        "fragment": "#/$defs/media_service_binding_response_body",
-        "status": "active",
-        "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
-      },
-      {
         "schema_id": "ak.schema.media_service_binding_request.v1",
         "file": "schemas/media-service-binding-operations.schema.json",
         "fragment": "#/$defs/media_service_binding_request_body",
         "status": "active",
         "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
+      },
+      {
+        "schema_id": "ak.schema.media_service_binding_response_body.v1",
+        "file": "schemas/media-service-binding-operations.schema.json",
+        "fragment": "#/$defs/media_service_binding_response_body",
+        "status": "active",
+        "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
       },
       {
         "schema_id": "ak.schema.member_identity.v1",
@@ -11335,6 +11407,28 @@
         "status": "active"
       },
       {
+        "schema_id": "ak.schema.realm_actor_create.v1",
+        "file": "schemas/realm-actor.schema.json",
+        "status": "active",
+        "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.realm.actor.create",
+          "normative_ref": "zh/extensions/realm-actors.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.realm_actor_material.v1",
+        "file": "schemas/realm-actor-material.schema.json",
+        "status": "active",
+        "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.self.realm_actor.read.material.v1",
+          "normative_ref": "zh/extensions/realm-actors.md"
+        }
+      },
+      {
         "schema_id": "ak.schema.realm_authority_bundle.v1",
         "file": "schemas/realm-authority-bundle.schema.json",
         "status": "active",
@@ -11358,11 +11452,18 @@
         "status": "active"
       },
       {
-        "schema_id": "ak.schema.realm_join_bootstrap_response_body.v1",
-        "file": "schemas/realm-join-intake.schema.json",
-        "fragment": "#/$defs/peer_bootstrap_response_body",
-        "status": "active",
-        "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
+        "schema_id": "ak.schema.realm_invite_link.v1",
+        "file": "schemas/realm-invite-link.schema.json"
+      },
+      {
+        "schema_id": "ak.schema.realm_invite_link_token.v1",
+        "file": "schemas/realm-invite-link-token.schema.json",
+        "description": "Client-only fragment credential; forbidden on HTTP request and response surfaces.",
+        "consumer_binding": {
+          "kind": "client_fragment",
+          "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
+          "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
+        }
       },
       {
         "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
@@ -11372,17 +11473,17 @@
         "description": "Authenticated service-to-service request for the bounded material required to author and verify exactly one first-contact Realm join attempt."
       },
       {
+        "schema_id": "ak.schema.realm_join_bootstrap_response_body.v1",
+        "file": "schemas/realm-join-intake.schema.json",
+        "fragment": "#/$defs/peer_bootstrap_response_body",
+        "status": "active",
+        "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
+      },
+      {
         "schema_id": "ak.schema.realm_join_candidate.v1",
         "file": "schemas/realm-join-candidate.schema.json",
         "status": "active",
         "description": "Closed, untrusted authority-bundle locator returned by Realm discovery, invite delivery, and join intake. Realm scope and freshness belong to the enclosing carrier and nonce-bound current assertion; the locator neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
-      },
-      {
-        "schema_id": "ak.schema.realm_join_peer_preview_response_body.v1",
-        "file": "schemas/realm-join-intake.schema.json",
-        "fragment": "#/$defs/peer_preview_response_body",
-        "status": "active",
-        "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
       },
       {
         "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
@@ -11392,11 +11493,11 @@
         "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
       },
       {
-        "schema_id": "ak.schema.realm_join_prepare_response_body.v1",
+        "schema_id": "ak.schema.realm_join_peer_preview_response_body.v1",
         "file": "schemas/realm-join-intake.schema.json",
-        "fragment": "#/$defs/self_prepare_response_body",
+        "fragment": "#/$defs/peer_preview_response_body",
         "status": "active",
-        "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
+        "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
       },
       {
         "schema_id": "ak.schema.realm_join_prepare_request.v1",
@@ -11406,11 +11507,11 @@
         "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
       },
       {
-        "schema_id": "ak.schema.realm_join_self_preview_response_body.v1",
+        "schema_id": "ak.schema.realm_join_prepare_response_body.v1",
         "file": "schemas/realm-join-intake.schema.json",
-        "fragment": "#/$defs/self_preview_response_body",
+        "fragment": "#/$defs/self_prepare_response_body",
         "status": "active",
-        "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
+        "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
       },
       {
         "schema_id": "ak.schema.realm_join_self_preview_request.v1",
@@ -11418,6 +11519,13 @@
         "fragment": "#/$defs/self_preview_request_body",
         "status": "active",
         "description": "Authenticated account request for a pre-join Realm preview through the account's own Station."
+      },
+      {
+        "schema_id": "ak.schema.realm_join_self_preview_response_body.v1",
+        "file": "schemas/realm-join-intake.schema.json",
+        "fragment": "#/$defs/self_preview_response_body",
+        "status": "active",
+        "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
       },
       {
         "schema_id": "ak.schema.realm_link_operations.v1",
@@ -11498,12 +11606,6 @@
       {
         "schema_id": "ak.schema.resource_selector.v1",
         "file": "schemas/resource-selector.schema.json"
-      },
-      {
-        "schema_id": "ak.schema.current_state.v1",
-        "file": "schemas/current-state.schema.json",
-        "status": "active",
-        "description": "Closed typed current-state selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
       },
       {
         "schema_id": "ak.schema.rsvp.v1",
@@ -11626,18 +11728,18 @@
         }
       },
       {
-        "schema_id": "ak.schema.signer_key_query_response_body.v1",
-        "file": "schemas/signer-key-operations.schema.json",
-        "fragment": "#/$defs/query_response_body",
-        "status": "active",
-        "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
-      },
-      {
         "schema_id": "ak.schema.signer_key_query_request.v1",
         "file": "schemas/signer-key-operations.schema.json",
         "fragment": "#/$defs/query_request_body",
         "status": "active",
         "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified committed_event_view, never a bare EventId or current projection."
+      },
+      {
+        "schema_id": "ak.schema.signer_key_query_response_body.v1",
+        "file": "schemas/signer-key-operations.schema.json",
+        "fragment": "#/$defs/query_response_body",
+        "status": "active",
+        "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
       },
       {
         "schema_id": "ak.schema.space.v1",
@@ -11673,6 +11775,12 @@
       {
         "schema_id": "ak.schema.view.v1",
         "file": "schemas/view.schema.json"
+      },
+      {
+        "schema_id": "ak.schema.watch_audit_operations.v1",
+        "status": "active",
+        "file": "schemas/watch-audit-operations.schema.json",
+        "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
       },
       {
         "schema_id": "ak.schema.websocket_authenticate_frame.v1",
@@ -11814,72 +11922,6 @@
         "fragment": "#/$defs/welcome",
         "status": "active",
         "description": "Server authentication-success frame carrying effective connection and channel limits."
-      },
-      {
-        "schema_id": "ak.schema.call_invitation_operations.v1",
-        "file": "schemas/call-invitation-operations.schema.json",
-        "status": "active",
-        "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
-      },
-      {
-        "schema_id": "ak.schema.watch_audit_operations.v1",
-        "status": "active",
-        "file": "schemas/watch-audit-operations.schema.json",
-        "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
-      },
-      {
-        "schema_id": "ak.schema.consent_private_operations.v1",
-        "file": "schemas/consent-private-operations.schema.json",
-        "status": "active",
-        "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
-      },
-      {
-        "schema_id": "ak.schema.applet_configuration_operations.v1",
-        "status": "active",
-        "file": "schemas/applet-configuration-operations.schema.json",
-        "description": "Bounded administrator configuration command, B-to-C execution and source result"
-      },
-      {
-        "schema_id": "ak.schema.realm_actor_create.v1",
-        "file": "schemas/realm-actor.schema.json",
-        "status": "active",
-        "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "ak.realm.actor.create",
-          "normative_ref": "zh/extensions/realm-actors.md"
-        }
-      },
-      {
-        "schema_id": "ak.schema.realm_actor_material.v1",
-        "file": "schemas/realm-actor-material.schema.json",
-        "status": "active",
-        "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "ak.self.realm_actor.read.material.v1",
-          "normative_ref": "zh/extensions/realm-actors.md"
-        }
-      },
-      {
-        "schema_id": "ak.schema.decimal_integers.v1",
-        "status": "active",
-        "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
-        "file": "schemas/decimal-integers.schema.json"
-      },
-      {
-        "schema_id": "ak.schema.realm_invite_link.v1",
-        "file": "schemas/realm-invite-link.schema.json"
-      },
-      {
-        "schema_id": "ak.schema.realm_invite_link_token.v1",
-        "file": "schemas/realm-invite-link-token.schema.json",
-        "description": "Client-only fragment credential; forbidden on HTTP request and response surfaces.",
-        "consumer_binding": {
-          "kind": "client_fragment",
-          "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
-          "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
-        }
       }
     ]
   },
@@ -15206,7 +15248,7 @@
         "http": "POST /_arkret/peer/mls/group-state-material",
         "grpc": "PeerMls/GroupStateMaterial",
         "mq": "peer.mls.query.group_state_material",
-        "notes": "Read-only service-authenticated retrieval of the exact RFC 9420 GroupInfo and ratchet_tree extension bytes committed by one accepted ak.mls.genesis Event. A self member forwarding request also binds caller_actor_id and target Commit/epoch; governance checks that exact Actor's current and target-cut membership/history and the calling Station's replication right at the target accepted Commit cut. Without caller_actor_id this remains Station replication-only and checks the Station's replication right at the Genesis Commit position. The provider resolves the Event, verifies every selector, hashes raw bytes against content-addressed refs, and validates GroupInfo/tree consistency before an all-or-nothing response. It never returns private tree material, secrets, inferred leaf DTOs or proof-bundle leaves; consumers derive leaf_index only from occupied leaves in the verified RFC tree.",
+        "notes": "Read-only service-authenticated retrieval of the exact RFC 9420 GroupInfo and ratchet_tree extension bytes committed by one accepted ak.mls.genesis Event. A self member forwarding request also binds caller_actor_id and target Commit/epoch; governance checks that exact Actor's current and target-cut membership/history and the calling Station's replication right at the target accepted Commit cut. Without caller_actor_id this remains Station replication-only and checks the Station's replication right at the accepted Genesis/Commit Commit position. The provider resolves the Event, verifies every selector, hashes raw bytes against content-addressed refs, and validates GroupInfo/tree consistency before an all-or-nothing response. It never returns private tree material, secrets, inferred leaf DTOs or proof-bundle leaves; consumers derive leaf_index only from occupied leaves in the verified RFC tree. Nonzero accepted Commit material is subject to content-history.md recovery/current authorization; never anonymous PCR disclosure.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
@@ -17195,7 +17237,7 @@
         "http": "POST /_arkret/self/mls/group-state-material/query",
         "grpc": "SelfMls/GroupStateMaterial",
         "mq": "self.mls.query.group_state_material",
-        "notes": "Authenticated member's Account Station binds caller_actor_id to the exact session Actor, checks current and target-cut scope/membership/history/policy, and forwards the same selectors to governance over the existing peer material read. Governance independently checks the named Actor's current and target-cut authority and the caller Station's replication right at the target accepted Commit cut; response contains only digest-verified Genesis GroupInfo and ratchet-tree public bytes, never a leaf index, private tree or secret. Unknown and unauthorized selectors are indistinguishable. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+        "notes": "Authenticated member's Account Station binds caller_actor_id to the exact session Actor, checks current and target-cut scope/membership/history/policy, and forwards the same selectors to governance over the existing peer material read. Governance independently checks the named Actor's current and target-cut authority and the caller Station's replication right at the target accepted Commit cut; response contains only digest-verified accepted Genesis/Commit GroupInfo and ratchet-tree public bytes, never a leaf index, private tree or secret. Unknown and unauthorized selectors are indistinguishable. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Nonzero accepted Commit material is subject to content-history.md recovery/current authorization; never anonymous PCR disclosure.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body",
@@ -19773,6 +19815,18 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.agent.join",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.member.state"
+        ],
+        "profile": null,
+        "event_mapping_kind": "operation_verb",
+        "notes": "Self Agent join still requires verified current controller intent and all original join gates; this label only selects management review and never creates membership by grant."
+      },
+      {
         "action": "ak.agent.key.authorize",
         "category": "management",
         "risk_tier": "high",
@@ -19793,6 +19847,18 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.agent.publish",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.agent.interaction.set"
+        ],
+        "profile": null,
+        "event_mapping_kind": "operation_verb",
+        "notes": "Controller-only public intent. Independent grants cannot override controller signature or public service governance."
       },
       {
         "action": "ak.agent.sidecar.exchange.control",
@@ -19835,6 +19901,28 @@
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
+        "action": "ak.applet.bot.provision",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [
+          "applet_id",
+          "executed_by",
+          "registration_epoch"
+        ],
+        "required_evaluator_checks": [
+          "active_applet_registration_exact",
+          "realm_actor_creation_scope",
+          "realm_actor_candidate_and_controller_proof",
+          "realm_actor_creation_atomic"
+        ],
+        "target_event_kinds": [
+          "ak.realm.actor.create"
+        ],
+        "profile": "ak.profile.applet_service.v1",
+        "event_mapping_kind": "operation_verb",
+        "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
+      },
+      {
         "action": "ak.applet.bridge_error",
         "category": "service",
         "risk_tier": "medium",
@@ -19851,6 +19939,19 @@
         "profile": "ak.profile.applet_bridge.v1",
         "event_mapping_kind": "same_name",
         "notes": "Authorizes a service-actor signed bridge error Event only for the exact active Applet installation, registration epoch and granted scope. The Event still carries applet_id and a real authorization_ref; service signature is provenance, not authority."
+      },
+      {
+        "action": "ak.applet.configure",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "current_scope_realm_admin"
+        ],
+        "target_event_kinds": [],
+        "profile": null,
+        "event_mapping_kind": "non_event_surface",
+        "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
       },
       {
         "action": "ak.applet.ghost.provision",
@@ -19873,6 +19974,35 @@
         "profile": "ak.profile.applet_bridge.v1",
         "event_mapping_kind": "operation_verb",
         "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
+      },
+      {
+        "action": "ak.applet.join",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "applet_managed_self_join"
+        ],
+        "target_event_kinds": [
+          "ak.circle.member.state",
+          "ak.member.state"
+        ],
+        "profile": null,
+        "event_mapping_kind": "operation_verb",
+        "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
+      },
+      {
+        "action": "ak.applet.publish",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.profile.create",
+          "ak.profile.update"
+        ],
+        "profile": null,
+        "event_mapping_kind": "operation_verb",
+        "notes": "Management gate for public intent of an accepted Applet-managed Bot/Ghost, using reserved closed applet_interaction in the subject-signed profile. It does not authorize arbitrary profile edits or override native self-authored control."
       },
       {
         "action": "ak.approval.vote",
@@ -20103,6 +20233,35 @@
         ]
       },
       {
+        "action": "ak.consent.replace",
+        "category": "personal",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.consent.replace"
+        ],
+        "profile": "ak.profile.principal_control_realm.v1",
+        "root_control_only": true,
+        "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.contact.scope.update",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "contact_holder_exact",
+          "contact_round_current",
+          "contact_lineage_version_cas"
+        ],
+        "target_event_kinds": [
+          "ak.contact.scope.update"
+        ],
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.event.read",
         "category": "discussion",
         "risk_tier": "low",
@@ -20159,22 +20318,6 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.member.leave.own",
-        "category": "membership",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "membership_transition_is_join_to_leave",
-          "actor_equals_membership_subject"
-        ],
-        "target_event_kinds": [
-          "ak.member.state"
-        ],
-        "profile": "ak.profile.direct_conversation_realm.v1",
-        "event_mapping_kind": "scope_suffix_variant",
-        "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
-      },
-      {
         "action": "ak.member.compensate.leave",
         "category": "membership",
         "risk_tier": "high",
@@ -20207,6 +20350,22 @@
         "profile": "ak.profile.membership_join_compensation.v1",
         "event_mapping_kind": "scope_suffix_variant",
         "notes": "Accepted-at compensation for a delegated/admin-authored join only. It authorizes one fresh standard remove transition for the exact admission and old membership incarnation; it grants no Realm admin capability."
+      },
+      {
+        "action": "ak.member.leave.own",
+        "category": "membership",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "membership_transition_is_join_to_leave",
+          "actor_equals_membership_subject"
+        ],
+        "target_event_kinds": [
+          "ak.member.state"
+        ],
+        "profile": "ak.profile.direct_conversation_realm.v1",
+        "event_mapping_kind": "scope_suffix_variant",
+        "notes": "Direct Conversation participant self-leave only. It never authorizes leave/ban/remove of the other participant or any join transition."
       },
       {
         "action": "ak.member.rejoin.own",
@@ -20346,6 +20505,17 @@
         "required_constraints": [],
         "target_event_kinds": [
           "ak.mls.genesis"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.mls.history_grant",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.mls.history_grant"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
@@ -20650,6 +20820,53 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.realm.actor.audit",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "realm_actor_exact_target",
+          "realm_actor_current_governor",
+          "realm_actor_management_policy"
+        ],
+        "target_event_kinds": [],
+        "event_mapping_kind": "non_event_surface",
+        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+      },
+      {
+        "action": "ak.realm.actor.manage",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "realm_actor_exact_target",
+          "realm_actor_current_governor",
+          "realm_actor_management_policy"
+        ],
+        "target_event_kinds": [
+          "ak.realm.actor.status.set",
+          "ak.realm.actor.recovery.set"
+        ],
+        "event_mapping_kind": "operation_verb",
+        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+      },
+      {
+        "action": "ak.realm.actor.manager.change",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "realm_actor_exact_target",
+          "realm_actor_current_governor",
+          "realm_actor_management_policy"
+        ],
+        "target_event_kinds": [
+          "ak.realm.actor.manager.change"
+        ],
+        "event_mapping_kind": "same_name",
+        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
+      },
+      {
         "action": "ak.realm.admin",
         "category": "management",
         "risk_tier": "high",
@@ -20702,6 +20919,19 @@
         "event_mapping_kind": "operation_verb"
       },
       {
+        "action": "ak.realm.authority.reset",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.authority.reset"
+        ],
+        "profile": null,
+        "root_control_only": true,
+        "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.realm.create",
         "category": "general",
         "risk_tier": "medium",
@@ -20745,6 +20975,18 @@
         ],
         "profile": null,
         "event_mapping_kind": "operation_verb"
+      },
+      {
+        "action": "ak.realm.governance_station.change",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.governance_station.change"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "root_control_only": true
       },
       {
         "action": "ak.realm.link",
@@ -20810,6 +21052,7 @@
           "ak.mimi.room_binding",
           "ak.mls.commit",
           "ak.mls.genesis",
+          "ak.mls.history_grant",
           "ak.moderation.decision",
           "ak.moderation.decision.lift",
           "ak.morph.archive",
@@ -20913,6 +21156,7 @@
           "ak.message.stream.send",
           "ak.mls.commit",
           "ak.mls.genesis",
+          "ak.mls.history_grant",
           "ak.moderation.decision",
           "ak.moderation.decision.lift",
           "ak.morph.archive",
@@ -21070,6 +21314,19 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.realm.profile",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "allowed_write_fields"
+        ],
+        "target_event_kinds": [
+          "ak.realm.profile"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.realm.search_policy",
         "category": "management",
         "risk_tier": "high",
@@ -21106,17 +21363,41 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.realm.profile",
-        "category": "general",
-        "risk_tier": "medium",
-        "required_constraints": [
-          "allowed_write_fields"
-        ],
+        "action": "ak.realm_invite_link.accept",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
         "target_event_kinds": [
-          "ak.realm.profile"
+          "ak.realm_invite_link.accept"
         ],
         "profile": null,
-        "event_mapping_kind": "same_name"
+        "event_mapping_kind": "same_name",
+        "subject_only": true,
+        "notes": "Purpose-scoped link acceptance requires complete account producer proof and link possession; no pre-membership grant."
+      },
+      {
+        "action": "ak.realm_invite_link.create",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm_invite_link.create"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
+      },
+      {
+        "action": "ak.realm_invite_link.revoke",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm_invite_link.revoke"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
       },
       {
         "action": "ak.receipt.broadcast",
@@ -21282,22 +21563,6 @@
         "event_mapping_kind": "aggregate_admin"
       },
       {
-        "action": "ak.contact.scope.update",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "contact_holder_exact",
-          "contact_round_current",
-          "contact_lineage_version_cas"
-        ],
-        "target_event_kinds": [
-          "ak.contact.scope.update"
-        ],
-        "profile": "ak.profile.direct_conversation_realm.v1",
-        "event_mapping_kind": "same_name"
-      },
-      {
         "action": "ak.self.blob.command.presign.v1",
         "category": "service",
         "risk_tier": "medium",
@@ -21442,19 +21707,6 @@
           "ak.space.update"
         ],
         "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.consent.replace",
-        "category": "personal",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.consent.replace"
-        ],
-        "profile": "ak.profile.principal_control_realm.v1",
-        "root_control_only": true,
-        "notes": "Holder-private consent is authored only by the current controller of the holder Principal Control Realm; it is never grantable to a Realm co-owner or another principal.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -21632,203 +21884,6 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.realm.governance_station.change",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm.governance_station.change"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name",
-        "root_control_only": true
-      },
-      {
-        "action": "ak.realm.authority.reset",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm.authority.reset"
-        ],
-        "profile": null,
-        "root_control_only": true,
-        "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.applet.bot.provision",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [
-          "applet_id",
-          "executed_by",
-          "registration_epoch"
-        ],
-        "required_evaluator_checks": [
-          "active_applet_registration_exact",
-          "realm_actor_creation_scope",
-          "realm_actor_candidate_and_controller_proof",
-          "realm_actor_creation_atomic"
-        ],
-        "target_event_kinds": [
-          "ak.realm.actor.create"
-        ],
-        "profile": "ak.profile.applet_service.v1",
-        "event_mapping_kind": "operation_verb",
-        "notes": "Creates one Realm actor at candidate.creation_scope under current installation and applicable approval. No PCR, Device, Profile, membership or capability child is created implicitly. Persistent auto-Ghost permission is evaluated per create without another administrator interaction."
-      },
-      {
-        "action": "ak.agent.join",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.member.state"
-        ],
-        "profile": null,
-        "event_mapping_kind": "operation_verb",
-        "notes": "Self Agent join still requires verified current controller intent and all original join gates; this label only selects management review and never creates membership by grant."
-      },
-      {
-        "action": "ak.agent.publish",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.agent.interaction.set"
-        ],
-        "profile": null,
-        "event_mapping_kind": "operation_verb",
-        "notes": "Controller-only public intent. Independent grants cannot override controller signature or public service governance."
-      },
-      {
-        "action": "ak.applet.publish",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.profile.create",
-          "ak.profile.update"
-        ],
-        "profile": null,
-        "event_mapping_kind": "operation_verb",
-        "notes": "Management gate for public intent of an accepted Applet-managed Bot/Ghost, using reserved closed applet_interaction in the subject-signed profile. It does not authorize arbitrary profile edits or override native self-authored control."
-      },
-      {
-        "action": "ak.applet.join",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "applet_managed_self_join"
-        ],
-        "target_event_kinds": [
-          "ak.circle.member.state",
-          "ak.member.state"
-        ],
-        "profile": null,
-        "event_mapping_kind": "operation_verb",
-        "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
-      },
-      {
-        "action": "ak.applet.configure",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "current_scope_realm_admin"
-        ],
-        "target_event_kinds": [],
-        "profile": null,
-        "event_mapping_kind": "non_event_surface",
-        "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
-      },
-      {
-        "action": "ak.realm.actor.manage",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "realm_actor_exact_target",
-          "realm_actor_current_governor",
-          "realm_actor_management_policy"
-        ],
-        "target_event_kinds": [
-          "ak.realm.actor.status.set",
-          "ak.realm.actor.recovery.set"
-        ],
-        "event_mapping_kind": "operation_verb",
-        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-      },
-      {
-        "action": "ak.realm.actor.manager.change",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "realm_actor_exact_target",
-          "realm_actor_current_governor",
-          "realm_actor_management_policy"
-        ],
-        "target_event_kinds": [
-          "ak.realm.actor.manager.change"
-        ],
-        "event_mapping_kind": "same_name",
-        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-      },
-      {
-        "action": "ak.realm.actor.audit",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "realm_actor_exact_target",
-          "realm_actor_current_governor",
-          "realm_actor_management_policy"
-        ],
-        "target_event_kinds": [],
-        "event_mapping_kind": "non_event_surface",
-        "notes": "Exact realm_actor resource and owning Realm permission; neither an administrator label nor membership implies authorization. Audit grants exact private disclosure, never public stream scan."
-      },
-      {
-        "action": "ak.realm_invite_link.create",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm_invite_link.create"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name",
-        "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
-      },
-      {
-        "action": "ak.realm_invite_link.revoke",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm_invite_link.revoke"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name",
-        "notes": "Independent Realm link management authority, not implicitly granted by directed invite creation."
-      },
-      {
-        "action": "ak.realm_invite_link.accept",
-        "category": "personal",
-        "risk_tier": "low",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.realm_invite_link.accept"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name",
-        "subject_only": true,
-        "notes": "Purpose-scoped link acceptance requires complete account producer proof and link possession; no pre-membership grant."
       }
     ],
     "event_mapping_kind_definitions": {
@@ -23190,7 +23245,7 @@
           "consumed_by": [
             "models/realm-and-space.md §2.3.A"
           ],
-          "note": "The cross-field rule admits a scope's first history-bearing write only while the current history_access is since_join."
+          "note": "MLS activation accepts either registered history_access value; current policy and the original Actor join floor gate actual content-history key delivery."
         }
       },
       {
@@ -24693,5 +24748,43 @@
         "authorization_rule": "registered_grant_or_native_agent_runtime_source_and_current_lifecycle_no_inferred_pcr_or_contact_authority"
       }
     ]
+  },
+  "content_encryption_contract": {
+    "normative_ref": "zh/crypto-media/content-history.md",
+    "scheme": "ak.encryption.epoch_content_aead.v1",
+    "strategy": "ak.encryption_backup.epoch_content_roots.v1",
+    "message_selector": "encryption_scheme",
+    "realm_selector": "encryption_backup_strategy",
+    "initial_carrier": "realm-genesis.schema.json#/properties/initial_encryption_backup_strategy",
+    "unknown_selector": "reject_without_fallback",
+    "strategy_mutability": "create_locked",
+    "history_grant_event_kind": "ak.mls.history_grant",
+    "history_grant_schema_ref": "schemas/content-encryption.schema.json#/$defs/history_grant",
+    "coverage_schema_ref": "schemas/content-encryption.schema.json#/$defs/coverage",
+    "pcr_guarantees": [
+      "all_originals_from_genesis",
+      "mnemonic_only_local_credential",
+      "durable_before_acceptance",
+      "no_lossy_retention",
+      "generation_fence_before_replay",
+      "all_scope_leaf_cleanup_before_complete"
+    ],
+    "external_commit": {
+      "allowed_only_with": "verified_current_recovery_binding",
+      "membership_creation": false,
+      "base": "exact_current_accepted_group_state",
+      "old_leaf_remove_required": true,
+      "intermediate_business_writes": false,
+      "cleanup_authorization": "current_recovery_replacement_exact_same_actor_inventory_only_without_admin_escalation"
+    },
+    "key_backup_item": "content_epoch_root",
+    "raw_mls_secrets_allowed": false,
+    "new_backup_block_key": "fresh_csprng_each_immutable_block_all_recipients_current",
+    "mls_activation_history_values": [
+      "since_join",
+      "all_history_for_current_members"
+    ],
+    "kdf_context_schema_ref": "schemas/content-encryption.schema.json#/$defs/content_context",
+    "recovery_roster_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_recovery_record"
   }
 }

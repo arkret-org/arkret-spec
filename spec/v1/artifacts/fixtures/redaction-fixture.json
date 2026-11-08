@@ -50,9 +50,22 @@
           "content_type": "application/vnd.arkret.strand+json",
           "encryption_context": {
             "epoch": "7",
-            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
+          "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "tracks": {
           "synthesis": {
@@ -120,9 +133,22 @@
               "content_type": "application/vnd.arkret.strand+json",
               "encryption_context": {
                 "epoch": "7",
-                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+                "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+                "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "protection": {
+                  "root_refs": [
+                    "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                  ],
+                  "blob_refs": [],
+                  "backup_refs": [
+                    "ak:backup:019a0000-0000-7000-8000-000000000001"
+                  ]
+                }
               },
-              "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA"
+              "ciphertext": "c3ludGhlc2lzQ2lwaGVydGV4dA",
+              "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
             }
           }
         },
@@ -255,9 +281,22 @@
           "content_type": "application/vnd.arkret.morph+json",
           "encryption_context": {
             "epoch": "7",
-            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0"
+          "ciphertext": "bW9ycGhDaXBoZXJ0ZXh0",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "state": "redacted",
         "state_changed_at": "2026-04-26T00:05:00.000Z",

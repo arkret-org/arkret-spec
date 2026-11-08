@@ -342,3 +342,7 @@ MUST 同批推进该 inventory，并由门禁对当前正文重新求全集，�
 
 Applet Realm 主体的私有材料使用 `ak.schema.realm_actor_material.v1`（schemas/realm-actor-material.schema.json）及
 `ak.schema.applet_configuration_operations.v1`（schemas/applet-configuration-operations.schema.json）；它们只由既有窄入口／配置operation引用。
+
+`ak.schema.content_encryption.v1`定义于`schemas/content-encryption.schema.json`，由encrypted envelope、KeyBackup、history grant及recovery receipt引用；格式／策略及用途label真源见content-encryption-registry.json与exporter-label-registry.json。
+
+`ak.schema.content_encryption_context.v1`引用content-encryption.schema.json的封闭content_context，供重建KDF／AAD消费。

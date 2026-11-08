@@ -1749,15 +1749,7 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "const": "0",
-          "x-arkret-value-ownership": {
-            "class": "decimal_text",
-            "authority": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody/properties/epoch",
-            "owner": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody/properties/epoch",
-            "values": [
-              "0"
-            ]
-          }
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "group_state_event_id": {
           "$ref": "#/$defs/EventId"
@@ -1792,7 +1784,7 @@
     },
     "MlsGroupStateMaterialRequestBody": {
       "type": "object",
-      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every Genesis selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the Genesis Commit position.",
+      "description": "Read-only service request for the exact public MLS accepted-epoch GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every accepted Genesis/Commit selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the accepted Genesis/Commit Commit position.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -1813,15 +1805,7 @@
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
-          "const": "0",
-          "x-arkret-value-ownership": {
-            "class": "decimal_text",
-            "authority": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch",
-            "owner": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch",
-            "values": [
-              "0"
-            ]
-          }
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
         },
         "group_state_event_id": {
           "$ref": "#/$defs/EventId"

@@ -449,8 +449,8 @@
       "registration_anchor_digest": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
       "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
-      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
-      "realm_create_payload_digest": "sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d",
+      "pcr_realm_id": "ak:realm:AeOMFT433KCU-Du2N57BSMPNM3UfeyU0ALg6_iN9VEE6",
+      "realm_create_payload_digest": "sha256:e6afb986e998da79c8a71bf18a213eee3d7a56b2f60ac7ebb0151a0f2862fe0c",
       "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
       "initial_session_request_digest": "sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c",
       "genesis_unit_kinds": [
@@ -468,8 +468,8 @@
       "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
       "signature_algorithm": "Ed25519"
     },
-    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea\",\"signature_algorithm\":\"Ed25519\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
-    "canonical_json_sha256": "sha256:341971841496b4ff1dbaa3e227ed9c8f7b54324ffd0810418dab6414bf5cb1dd",
+    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AeOMFT433KCU-Du2N57BSMPNM3UfeyU0ALg6_iN9VEE6\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:e6afb986e998da79c8a71bf18a213eee3d7a56b2f60ac7ebb0151a0f2862fe0c\",\"registration_anchor_digest\":\"sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea\",\"signature_algorithm\":\"Ed25519\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
+    "canonical_json_sha256": "sha256:d1d6c6db1e0beb8128134f95913df2ad21f456d004a196ddcd50e94d2e32e19f",
     "forbidden_fields": [
       "audience",
       "founding_authorize_envelope_digest",
@@ -481,7 +481,7 @@
     ],
     "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
     "signing_input": "UTF-8(\"ak.identity_creation_control_proof.v1\" || 0x0A) || JCS(signature_omitted_object)",
-    "signature": "sk4xPAu6NimUvpcvJBWQJe1mlenKQVLbfemlDc4950mXIEmb6yr0FqSVkrBgzV6Mdtsr4_vmbLQIIeXfPzJ-DA",
+    "signature": "DYdl8_pJ3VljUGR3Ojxo3mt16GbtvlgpZs5RpeFSguqEWzicVZva6nBxxYmIW2CXYQJ5Xe14PaIQdJvvkqsrCQ",
     "signed_object": {
       "proof_kind": "did_webvh_inception_update_key",
       "challenge_id": "genesis-challenge-000001",
@@ -493,8 +493,8 @@
       "registration_anchor_digest": "sha256:e7484e3548b9463b4a63d5f4aa87de25bc0c7a517fc8488415a3b1edd00ce5ea",
       "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
-      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
-      "realm_create_payload_digest": "sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d",
+      "pcr_realm_id": "ak:realm:AeOMFT433KCU-Du2N57BSMPNM3UfeyU0ALg6_iN9VEE6",
+      "realm_create_payload_digest": "sha256:e6afb986e998da79c8a71bf18a213eee3d7a56b2f60ac7ebb0151a0f2862fe0c",
       "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
       "initial_session_request_digest": "sha256:bda25c07e5d8894435fb6866a7e6e226ae06d6f65b1cbe9f44ee8ebe0c25c88c",
       "genesis_unit_kinds": [
@@ -511,7 +511,7 @@
       "expires_at": "2026-08-09T00:05:00.000Z",
       "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
       "signature_algorithm": "Ed25519",
-      "signature": "sk4xPAu6NimUvpcvJBWQJe1mlenKQVLbfemlDc4950mXIEmb6yr0FqSVkrBgzV6Mdtsr4_vmbLQIIeXfPzJ-DA"
+      "signature": "DYdl8_pJ3VljUGR3Ojxo3mt16GbtvlgpZs5RpeFSguqEWzicVZva6nBxxYmIW2CXYQJ5Xe14PaIQdJvvkqsrCQ"
     },
     "account_subject_preimage": {
       "domain": "ak.account-subject.v1",
@@ -863,7 +863,7 @@
       "create_case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
       "initial_resolution_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/payload/object/initial_resolution",
       "producer_proof_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/producer_proof",
-      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
+      "pcr_realm_id": "ak:realm:AeOMFT433KCU-Du2N57BSMPNM3UfeyU0ALg6_iN9VEE6",
       "note": "The create Event's initial_resolution carries exactly the did, version_id and method_history_head derived here, and its producer proof verification method is root_verification_method. Replacing the anchor changes anchor_canonical_json_sha256 and therefore invalidates the identity-root control proof that commits to it."
     },
     "forbidden_substitutions": [

@@ -7005,7 +7005,9 @@
           "ciphertext_digest",
           "plaintext_commitment",
           "signature_proof",
-          "retention"
+          "retention",
+          "custodian_actor_id",
+          "custody_authorization_ref"
         ],
         "closed": true
       }
@@ -7094,7 +7096,9 @@
           "ciphertext_digest",
           "plaintext_commitment",
           "signature_proof",
-          "retention"
+          "retention",
+          "custodian_actor_id",
+          "custody_authorization_ref"
         ],
         "closed": true
       },
@@ -7678,7 +7682,8 @@
         "properties": [
           "roster",
           "manifest_signing_key",
-          "add_signing_keys"
+          "add_signing_keys",
+          "recovery_signing_keys"
         ],
         "closed": true
       }

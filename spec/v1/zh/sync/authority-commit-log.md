@@ -318,7 +318,7 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 | Circle／Sidecar 与其中的 Space／Strand 内容 | 不可独立更换治理站；随所属 Realm 的合法交接迁入 | 保留各自 stream、final head、访问 floor、current、历史原件、public MLS／claim／Welcome；不从别的 Realm 或父级授权扩大可见性 |
 | Realm Bot／Ghost 及 realm_control | 无独立 Account／PCR 可迁；随所属 Realm 的合法交接延续治理 | 完整 Realm ActorId、原 Applet／DID／Device 归属不变；控制流、原签事实、current、审批／恢复 ledger 完整迁入；Applet 私钥与成员 MLS 私态不随治理交接搬运 |
 | Agent runtime 换进程／设备／主机及重新配对 | 可按 current controller 与 key／pairing 合同重新接入；不迁 Agent PCR | 不改变 Agent Account、controller Station 或 PCR governor；旧授权不能复活；新端仍需当前授权及原能力边界 |
-| 客户端本地密钥／MLS 状态备份与恢复 | 仅按对应密钥／备份合同转移本端已合法持有的状态 | 不转移服务端写权，不恢复加入前 epoch，不授予 membership／Device／Agent 权限；Realm handoff 永不携成员 private MLS state |
+| 客户端本地密钥／MLS 状态备份与恢复 | 仅按对应密钥／备份合同转移本端已合法持有的状态 | 不转移服务端写权；仅按content-history.md恢复获权专用内容根，不克隆原始MLS私态，不授予membership／Device／Agent权限；Realm handoff 永不携成员 private MLS state |
 | DID 方法原生 key 轮换／恢复／portable relocation | 仅按该方法与角色已登记合同执行；不等价于账号或治理迁移 | 不改 AccountId.station_id，不重判 Human／Agent 来源，不继承旧账号权限；服务 endpoint hint 不是 current governor 授权 |
 | Handle／authority domain 变更或重新绑定 | 可按 [Handle 合同](../identity/identity-handles.md) 更新可读标签和 claim | 不改完整 AccountId、历史作者或 membership；新持有者不继承旧持有者授权 |
 | Realm owner／admin／组织关系或 Applet manager 转交、authority reset | 仅按各自原签／current／CAS 合同改变控制或授权 | 不等于 Station 交接；新 owner 不成为用户 Agent 的 controller；不自动加入 Circle／Sidecar、不取得旧 MLS secrets；reset 与 owner transfer 的授权失效范围分别求值 |

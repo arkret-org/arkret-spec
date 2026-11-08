@@ -2,11 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/encrypted-envelope.schema.json",
   "title": "Arkret Encrypted Payload Envelope",
-  "description": "Minimal ciphertext wire. purpose, effective scope and Event kind come from the frozen signed outer Event; mls_group_id is derived from that scope. The canonical pre-encryption header is reconstructed and is not duplicated on wire.",
+  "description": "Closed recoverable application ciphertext. encryption_scheme selects the registered construction, content_type selects decrypted business content. No implicit standard-MLS or plaintext fallback.",
   "type": "object",
   "required": [
     "version",
     "content_type",
+    "encryption_scheme",
     "encryption_context",
     "ciphertext"
   ],
@@ -25,6 +26,9 @@
     "content_type": {
       "type": "string",
       "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "encryption_scheme": {
+      "$ref": "./content-encryption.schema.json#/$defs/encryption_scheme"
     },
     "encryption_context": {
       "$ref": "#/$defs/encryption_context"
@@ -54,11 +58,15 @@
       "additionalProperties": false,
       "description": "Present only for a registered reaction outer Event kind. The reaction kind and routing_window=floor(unix_ms(outer.created_at)/3600000) are derived inputs to AAD/KDF and never wire fields. All non-reaction kinds forbid routing_context."
     },
-    "standard_mls_encryption_context": {
+    "epoch_content_encryption_context": {
       "type": "object",
       "required": [
         "epoch",
-        "group_state_ref"
+        "group_state_ref",
+        "content_key_salt",
+        "root_ref",
+        "key_commitment",
+        "protection"
       ],
       "properties": {
         "epoch": {
@@ -69,14 +77,29 @@
         },
         "routing_context": {
           "$ref": "#/$defs/routing_context"
+        },
+        "content_key_salt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "root_ref": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "key_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "protection": {
+          "$ref": "./content-encryption.schema.json#/$defs/protection"
         }
       },
       "additionalProperties": false,
-      "description": "RFC 9420 application-message context bound to the accepted group state."
+      "description": "Recoverable epoch-content context, not RFC 9420 PrivateMessage. Immutable scope, endpoint, strategy and algorithm are reconstructed from original signed Event and accepted historical state."
     },
     "encryption_context": {
-      "$ref": "#/$defs/standard_mls_encryption_context",
-      "description": "RFC 9420 application-message context for the accepted MLS group state."
+      "$ref": "#/$defs/epoch_content_encryption_context",
+      "description": "Recoverable epoch-content context, not RFC 9420 PrivateMessage. Immutable scope, endpoint, strategy and algorithm are reconstructed from original signed Event and accepted historical state."
     }
   }
 }

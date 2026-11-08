@@ -674,9 +674,22 @@
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "encryption_context": {
               "epoch": "7",
-              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+              "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "protection": {
+                "root_refs": [
+                  "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
             },
-            "ciphertext": "rsvpAlpha"
+            "ciphertext": "rsvpAlpha",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
           }
         }
       }
@@ -722,9 +735,22 @@
             "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
             "encryption_context": {
               "epoch": "7",
-              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+              "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "protection": {
+                "root_refs": [
+                  "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
             },
-            "ciphertext": "rsvpAlpha"
+            "ciphertext": "rsvpAlpha",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
           }
         }
       }
@@ -1078,9 +1104,22 @@
             "content_type": "application/json",
             "encryption_context": {
               "epoch": "7",
-              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
+              "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
+              "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "protection": {
+                "root_refs": [
+                  "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
             },
-            "ciphertext": "rsvpAlpha"
+            "ciphertext": "rsvpAlpha",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
           }
         }
       }

@@ -558,6 +558,42 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/coverage/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/endpoint/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/history_grant/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/key_selector/oneOf/0/properties/source_event_ref",
+      "field": "source_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/recovery_binding/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/root_context/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "current-state.schema.json",
       "json_pointer": "/$defs/device_authorization_value/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
@@ -993,6 +1029,12 @@
       "schema": "mls-roster-authority.schema.json",
       "json_pointer": "/$defs/roster_add_record/properties/commit_event_ref",
       "field": "commit_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_agent_signer_fact/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
       "classification": "complete_event_id"
     },
     {

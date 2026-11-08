@@ -2,18 +2,6 @@
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
-      "vector_id": "ak.vector.crypto.aead_nonce_replay.v1",
-      "status": "active",
-      "domain": "crypto",
-      "applies_to_fixtures": [
-        "aead-nonce-replay-fixture.json"
-      ],
-      "description": "The receiver binds each whole-file AEAD (key_ref, purpose, aead_profile, counter) tuple to the exact ciphertext digest before decryption: a first ciphertext binds, an exact retry folds, and a different ciphertext under the same tuple fails with failed_precondition/aead_nonce_counter_replay with zero decrypt or durable effect.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/aead-nonce-replay-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.account.blocklist_projection.v1",
       "status": "active",
       "domain": "account",
@@ -25,19 +13,6 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.actor_private_events.submit.v1",
-      "status": "active",
-      "domain": "actor_private_events",
-      "applies_to_fixtures": [
-        "actor-private-events-submit-fixture.json"
-      ],
-      "description": "ak.device.push_route, ak.agent.action_request, ak.agent.action_reject and ak.agent.draft.propose are admitted only through ak.self.actor_private_events.command.submit.v1 with a closed per-kind outcome and no RealmCommit; an exact retry returns the first stored outcome even after a later write; the same event_id with different bytes or an occupied create-once key is duplicate_conflict, a push_route revision mismatch is cas_conflict, an owner AccountId on another Station is param_invalid, a missing or terminal rejection target is failed_precondition, and an action_reject without request_id is schema_violation, all with zero writes; ak.self.events.command.submit.v1 refuses every actor-private kind with unsupported_event_kind and writes nothing.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/actor-private-events-submit-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -107,6 +82,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.actor_private_events.submit.v1",
+      "status": "active",
+      "domain": "actor_private_events",
+      "applies_to_fixtures": [
+        "actor-private-events-submit-fixture.json"
+      ],
+      "description": "ak.device.push_route, ak.agent.action_request, ak.agent.action_reject and ak.agent.draft.propose are admitted only through ak.self.actor_private_events.command.submit.v1 with a closed per-kind outcome and no RealmCommit; an exact retry returns the first stored outcome even after a later write; the same event_id with different bytes or an occupied create-once key is duplicate_conflict, a push_route revision mismatch is cas_conflict, an owner AccountId on another Station is param_invalid, a missing or terminal rejection target is failed_precondition, and an action_reject without request_id is schema_violation, all with zero writes; ak.self.events.command.submit.v1 refuses every actor-private kind with unsupported_event_kind and writes nothing.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/actor-private-events-submit-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.aead.full_width_counter_nonce.v1",
       "status": "active",
       "domain": "aead",
@@ -131,6 +119,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.action_approve_expiry.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "ak.agent.action_approve expires_at is judged only against the signed committed_at of the covering RealmCommit, inclusive with zero tolerance: equality accepts; a confirmation one millisecond late fails with generic failed_precondition, no nonce and zero writes; an approved Event published after expiry fails with claim_required reason approval_required and zero writes; envelope created_at and Station-local time are never compared, and exact retry returns the original Commit without re-judging.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.controller_lifecycle.v1",
       "status": "active",
       "domain": "agent",
@@ -143,6 +144,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.draft_pending_intent.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-draft-pending-intent-fixture.json"
+      ],
+      "description": "D3 two-step Agent draft: proposal creates one owner-bound Station-private structured pending intent with controller-device HPKE handoff; the controller holder's unique initial account-data CAS uses two registered domain-prefixed UTF-8 SHA-256 base64url components, Station recomputes the signed 105-character key only from the source row, and revision 1 atomically consumes the intent. The dedicated account-subscribe agent_draft_pending_intents channel carries a closed live | terminal-redacted union with independent frozen baseline pages, cursor-covered deltas, terminal removals and active-controller-device authorization. The vector covers byte-exact KAT, padding/length/canonicality/prefix/domain/source-selector negatives, exact replay, conflict, expiry, rollback, ciphertext GC, no-resurrection, forbidden carrier reuse, audience denial, no-plaintext and no-shared-reducer boundaries.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/agent-draft-pending-intent-fixture.json",
+        "spec/v1/zh/models/actor-private-effects.md",
+        "spec/v1/zh/models/account-data.md",
+        "spec/v1/zh/sync/client-sync.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
       "status": "reserved",
       "domain": "agent",
@@ -152,6 +168,25 @@
       "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Historical Agent materialization freezes original state and tagged acceptance: the original producer proof and authorization evidence, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.interaction_mode.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json",
+        "event-kind-payload-coverage-fixture.json",
+        "exact-current-state-read-fixture.json"
+      ],
+      "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation. Explicit scoped reply configuration, independent human/Agent message authority, partial acceptance, effective readiness, and cold/reset/restart recovery boundaries.",
+      "source_refs": [
+        "spec/v1/zh/models/agent-interaction.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
+        "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
+        "spec/v1/artifacts/fixtures/exact-current-state-read-fixture.json",
+        "spec/v1/zh/authz/capabilities.md",
+        "spec/v1/zh/conformance/conformance-profiles.md"
       ]
     },
     {
@@ -179,18 +214,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.selector_label_known_account.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-participation-fixture.json"
-      ],
-      "description": "Authorized candidates bind exact full AccountIds to current draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings and private holder notes stay local. Each source Strand draft/send routes only by its current bound targets: no Agent mention or only public Agents use the original Strand, current owned private Agents use Sidecar, and mixed/unknown targets keep the existing rejection rule. Prior private session, addressed targets, accepted requests and merged history never supply a current target; Circle and independent Direct keep their scope contracts, without silent private-failure fallback.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.agent.mls_keypackage_authorization.v1",
       "status": "active",
       "domain": "agent",
@@ -213,34 +236,6 @@
       "description": "Agent key pairing pins ak.gate.account.command.pair_agent_key.v1 and its failure set: expired pairing requests fail pairing_request_expired, and DID mismatch, invalid proof and deactivated agent each map to their own stable code.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.agent.draft_pending_intent.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-draft-pending-intent-fixture.json"
-      ],
-      "description": "D3 two-step Agent draft: proposal creates one owner-bound Station-private structured pending intent with controller-device HPKE handoff; the controller holder's unique initial account-data CAS uses two registered domain-prefixed UTF-8 SHA-256 base64url components, Station recomputes the signed 105-character key only from the source row, and revision 1 atomically consumes the intent. The dedicated account-subscribe agent_draft_pending_intents channel carries a closed live | terminal-redacted union with independent frozen baseline pages, cursor-covered deltas, terminal removals and active-controller-device authorization. The vector covers byte-exact KAT, padding/length/canonicality/prefix/domain/source-selector negatives, exact replay, conflict, expiry, rollback, ciphertext GC, no-resurrection, forbidden carrier reuse, audience denial, no-plaintext and no-shared-reducer boundaries.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/agent-draft-pending-intent-fixture.json",
-        "spec/v1/zh/models/actor-private-effects.md",
-        "spec/v1/zh/models/account-data.md",
-        "spec/v1/zh/sync/client-sync.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.agent.action_approve_expiry.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
-      ],
-      "description": "ak.agent.action_approve expires_at is judged only against the signed committed_at of the covering RealmCommit, inclusive with zero tolerance: equality accepts; a confirmation one millisecond late fails with generic failed_precondition, no nonce and zero writes; an approved Event published after expiry fails with claim_required reason approval_required and zero writes; envelope created_at and Station-local time are never compared, and exact retry returns the original Commit without re-judging.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/authz/constraint-schema.md"
       ]
     },
     {
@@ -378,6 +373,31 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.selector_label_known_account.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
+      "description": "Authorized candidates bind exact full AccountIds to current draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings and private holder notes stay local. Each source Strand draft/send routes only by its current bound targets: no Agent mention or only public Agents use the original Strand, current owned private Agents use Sidecar, and mixed/unknown targets keep the existing rejection rule. Prior private session, addressed targets, accepted requests and merged history never supply a current target; Circle and independent Direct keep their scope contracts, without silent private-failure fallback.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.session_content_authority.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "description": "Resource-bound Agent content session authority: legitimate non-grant reading, independent ceilings/current gates, fresh issue versus non-expanding rotation, exact replay and phased Sidecar Welcome/effective access.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
+        "spec/v1/zh/authz/owned-agent-authority.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "status": "active",
       "domain": "agent",
@@ -429,6 +449,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.applet.device_scopes.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-device-scope-fixture.json"
+      ],
+      "description": "Canonical exact managed Device scope/action pairs reject cross-entry expansion, inherited scopes, unregistered actions, duplicates and noncanonical order.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.applet.managed_actor_authority.v1",
       "status": "active",
       "domain": "applet",
@@ -438,6 +471,32 @@
       "description": "Applet-managed Bot/Ghost creation uses an exact account ActorId, independently verified method evidence, immutable provision/PCR anchors, fixed atomic units, DID namespace matching, ordinary PCR rotation and a generic registration/grant/revoke write fence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.managed_governance.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "managed-governance-fixture.json"
+      ],
+      "description": "Service-only installation, exact Service parent to independent terminal managed Account, closed Policy/review/Device metadata and RFC9421 Ed25519 request KAT, dynamic current/quota/scope matrices. Protocol reference checks only, not a live Station certification.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
+        "spec/v1/zh/authz/managed-governance.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.management_source.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-management-source-fixture.json"
+      ],
+      "description": "Realm-scoped configuration, private approval recovery and MR/CR reference models with real Ed25519 configuration transcript KATs; identity control is covered by realm_actor.contract.",
+      "source_refs": [
+        "spec/v1/zh/extensions/applet-management-source.md",
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
       ]
     },
     {
@@ -515,6 +574,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.authority_commit.cross_stream_saga.v1",
+      "status": "active",
+      "domain": "authority_commit",
+      "applies_to_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "description": "Atomic acceptance is limited to one authority stream even when streams share a governance Station and serializable store. A cross-stream workflow uses exact committed references and idempotent saga steps; terminal cancellation is a separately committed compensating Event and never rollback of an accepted predecessor.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+        "spec/v1/zh/authz/event-auth-state-resolution.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.authority_commit.equivocation_freeze.v1",
       "status": "active",
       "domain": "authority_commit",
@@ -539,19 +611,6 @@
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/authority-commit-log.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.authority_commit.cross_stream_saga.v1",
-      "status": "active",
-      "domain": "authority_commit",
-      "applies_to_fixtures": [
-        "authority-commit-fixture.json"
-      ],
-      "description": "Atomic acceptance is limited to one authority stream even when streams share a governance Station and serializable store. A cross-stream workflow uses exact committed references and idempotent saga steps; terminal cancellation is a separately committed compensating Event and never rollback of an accepted predecessor.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-        "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
     },
     {
@@ -634,6 +693,20 @@
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.result_consumption_roles.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_fixtures": [
+        "governance-result-consumption-roles-fixture.json"
+      ],
+      "description": "Executable role/input policy: ordinary clients consume their persistently bound authenticated own Station original results, retaining exact cuts, continuity and producer/MLS checks; Station/auditor native verification is mandatory. Policy execution does not claim production cryptographic or live cross-station acceptance. Snapshot policy covers current head versus exact historical by-ref after handoff, native Station/auditor verification, ordinary own-Station consumption, whole-original disclosure revocation and unavailable basis without head substitution or current rollback.",
+      "source_refs": [
+        "spec/v1/zh/sync/server-trusted-results.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json"
       ]
     },
     {
@@ -745,6 +818,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
         "spec/v1/zh/sync/websocket-binding.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "status": "active",
+      "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-content-key-fixture.json"
+      ],
+      "description": "Byte-exact RFC 9420 MLS-Exporter KAT for attachment content keys: JCS Context, both AEAD schemes, salt/group/scope/epoch/algorithm separation, equivalent key-ref resolution, invalid salt and unauthorized checkpoint failures.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
+        "spec/v1/zh/crypto-media/media-and-blob.md"
       ]
     },
     {
@@ -977,6 +1063,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.call.force_mute_v1_boundary.v1",
+      "status": "active",
+      "domain": "call",
+      "applies_to_fixtures": [
+        "call-force-mute-v1-boundary-fixture.json"
+      ],
+      "description": "v1 refuses every ak.call.state mute_override payload, including a mixed delta, and moderator mute_state signaling; other call state, self mute and kick, ban or end-for-all remain available.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.call_state.axis_result_split.v1",
       "status": "active",
       "domain": "call_state",
@@ -986,6 +1084,19 @@
       "description": "Call state axes project independently: each axis carries its own current state, and a transition on one axis never rewrites another.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.call_state.compact_current.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_fixtures": [
+        "call-current-fixture.json"
+      ],
+      "description": "Complete effective Call roster and moderation with original sources, axis-tip revision, full ActorId and original issuer key; deterministic Ed25519 transcripts and executable rejection cases retain the ordinary-client omission trust boundary. Not live admission or native authority verification.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/call-current-fixture.json",
+        "spec/v1/zh/crypto-media/call-state.md"
       ]
     },
     {
@@ -1262,18 +1373,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
-      "status": "reserved",
-      "domain": "capability",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.capability.relinquish_authoring_basis.v1",
       "status": "active",
       "domain": "capability",
@@ -1283,6 +1382,18 @@
       "description": "The governing Station atomically returns each active effective CapabilityGrant with its exact capability_grant current-state revision. Relinquish copies only that row revision; a list digest, historical evaluation, missing revision or silent post-refresh replacement blocks authoring. Concurrent revoke and relinquish have one CAS winner, while unauthorized, missing and terminal targets remain non-enumerating.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/capability-relinquish-authoring-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
+      "status": "reserved",
+      "domain": "capability",
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1389,6 +1500,47 @@
       ]
     },
     {
+      "vector_id": "ak.vector.consent.call_invitation_admission.v1",
+      "status": "active",
+      "domain": "consent",
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "description": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, independent grants, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
+        "spec/v1/artifacts/schemas/call-invitation-operations.schema.json",
+        "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.consent.peer_current.v1",
+      "status": "active",
+      "domain": "consent",
+      "applies_to_fixtures": [
+        "protocol-simplification-fixture.json"
+      ],
+      "description": "Remove voice only, preserve the complete presence entry and optional-member presence.; Only one exact prior revision succeeds; stale write has zero effects and requires a fresh read and user confirmation.; Accepted empty remains current when an older accepted Event is replayed; return the original finality only.; Same principal at a different Station selects another peer and inherits no permission.; Only one rule per scope; a second same-scope rule cannot authorize or create another current.; Explicit all-select contains only the registered four scopes; future scope is absent and denied.; Original signed introduction/green-light does not restore a removed current invite entry.; A private correlation or accepted_for_processing does not prove a current exists or grant permission.; Caller signs the complete target; facade cannot complete, alter or co-sign the set.; Independent Contact, Realm, device and membership gates are still required.; Expired, future and unknown-constrained entries remain in the same-cut editing value.; Present without requested scope, present empty and never_written are distinct; only the last allows first-write predicate.; A never_written attempt loses to another accepted empty and cannot overwrite it.; Two purposes with distinct IDs serialize the same exact peer; second must refresh its stale prestate.; MIMI voice revoke that also changes presence is not_found with zero writes.; Exact accepted correlation/decision/Event retry returns original result after later native changes; never rolls them back.; Requester/provider cannot read complete current, revision or never_written using an opaque ID.; Native/MIMI any requests reject and do not expand; native invite remains excluded.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/identity/consent-model.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.current_state.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "contact-current-state-fixture.json"
+      ],
+      "description": "Immutable initial identity, lifetime holder direction versions, bounded normal/glare consumption, retained/re-added scope instances, independent peer closure, current_refresh request binding and opaque recovery. Executable signed vectors and reference state transitions do not claim real HTTP/PostgreSQL acceptance.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.contact.next_prepare_input.v1",
       "status": "reserved",
       "domain": "contact",
@@ -1397,6 +1549,19 @@
       ],
       "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged. It also covers the direction-independent founding edge: the normal responder's accepted Event is its own direction's version 1, while the normal requester and both glare sides take their own request Event ID as the bootstrap predecessor and MUST author their first successor at version 2, so a normal requester narrowing scope or tombstoning right after acceptance is accepted rather than refused as a glare-only shape; complete_through agrees with that version 1 in all three directions, and a first successor naming the wrong issuer, the wrong contact round, a head that is not the current lineage head, or a version other than 2 is refused with zero writes. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.peer_endpoint_selector.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "current-signer-contact-endpoint-fixture.json"
+      ],
+      "description": "Two-field peer endpoint is closed, only on accepted human rows; all other states and Agent rows reject it.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
@@ -1474,6 +1639,31 @@
       ]
     },
     {
+      "vector_id": "ak.vector.crypto.aead_nonce_replay.v1",
+      "status": "active",
+      "domain": "crypto",
+      "applies_to_fixtures": [
+        "aead-nonce-replay-fixture.json"
+      ],
+      "description": "The receiver binds each whole-file AEAD (key_ref, purpose, aead_profile, counter) tuple to the exact ciphertext digest before decryption: a first ciphertext binds, an exact retry folds, and a different ciphertext under the same tuple fails with failed_precondition/aead_nonce_counter_replay with zero decrypt or durable effect.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/aead-nonce-replay-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.crypto.content_history.v1",
+      "status": "active",
+      "domain": "crypto",
+      "applies_to_fixtures": [
+        "content-history-fixture.json"
+      ],
+      "description": "Registered ciphertext/backup selectors, exact exporter and application AEAD KAT, original-byte signature binding, grant/root closed carriers and incomplete cleanup rejection. Native admission and durable multi-Station recovery require separate product E2E.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-history-fixture.json",
+        "spec/v1/zh/crypto-media/content-history.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.crypto.keypackage_write_transcripts.v1",
       "status": "active",
       "domain": "crypto",
@@ -1484,6 +1674,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.current.cas_failure_read_boundary.v1",
+      "status": "active",
+      "domain": "current",
+      "applies_to_fixtures": [
+        "current-cas-failure-read-boundary-fixture.json"
+      ],
+      "description": "A stale typed current CAS returns failed_precondition with zero writes and no invented inline current extension; reauthoring requires a separate registered authorized read and renewed confirmation, or stops when none exists.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-cas-failure-read-boundary-fixture.json"
       ]
     },
     {
@@ -1629,6 +1831,104 @@
       ]
     },
     {
+      "vector_id": "ak.vector.direct_conversation.admission.binding_invalid.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The binding-integrity stage accepts an exact immutable binding and atomically rejects independent pair-key and initial-group-state mutations with direct_conversation_binding_invalid before effect projection.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.invite_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The active-profile invite stage accepts the non-invite atomic founding peer join and rejects an invite for an in-pair candidate with direct_conversation_invite_forbidden and zero writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.member_count_invalid.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The exact-two gate accepts matching two-distinct binding and membership projections; zero, one, duplicate, three, or disagreement rejects a new write with direct_conversation_member_count_invalid, while resolver read projection returns suspended with member_count_invalid and writes nothing.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.participant_authority_denied.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "Every required participant-authority input passes in the positive case. Each binding, membership, MLS, Contact, device, and Agent input failure plus consent, owner, and local-row fallbacks collapses to the same non-enumerating direct_conversation_participant_authority_denied result. Owned-Agent runtime endpoint reconciliation preserves current gates and the original group/binding even when Actor membership is unchanged.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json",
+        "spec/v1/artifacts/fixtures/direct-conversation-runtime-endpoint-repair-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "A masked founding action remains on the atomic founding path; root-reliant operational, grant, member-governance, policy, and otherwise-unclassified terminal families reject with direct_conversation_root_mask_violation and zero writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.terminal_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "Destroy and tombstone reject before general Realm authority with direct_conversation_terminal_forbidden and zero writes, while archive, freeze, restore, and unfreeze continue to ordinary authority evaluation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.third_party_member_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The exact bound peer remains valid in the atomic founding unit. A pair-external invite or direct join rejects with direct_conversation_third_party_member_forbidden; when the same invite also matches the general invite guard, the third-party reason deterministically wins.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.chat_topic_structure.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-structure-fixture.json"
+      ],
+      "description": "Executed flat Topic whole-field set/unset CAS and encrypted metadata vectors; participant scope and lifecycle boundaries are pinned by the structural contract gate. Live implementation acceptance remains separately required.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
       "status": "reserved",
       "domain": "direct_conversation",
@@ -1705,55 +2005,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.admission.binding_invalid.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "The binding-integrity stage accepts an exact immutable binding and atomically rejects independent pair-key and initial-group-state mutations with direct_conversation_binding_invalid before effect projection.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.admission.invite_forbidden.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "The active-profile invite stage accepts the non-invite atomic founding peer join and rejects an invite for an in-pair candidate with direct_conversation_invite_forbidden and zero writes.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.admission.member_count_invalid.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "The exact-two gate accepts matching two-distinct binding and membership projections; zero, one, duplicate, three, or disagreement rejects a new write with direct_conversation_member_count_invalid, while resolver read projection returns suspended with member_count_invalid and writes nothing.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.admission.participant_authority_denied.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "Every required participant-authority input passes in the positive case. Each binding, membership, MLS, Contact, device, and Agent input failure plus consent, owner, and local-row fallbacks collapses to the same non-enumerating direct_conversation_participant_authority_denied result. Owned-Agent runtime endpoint reconciliation preserves current gates and the original group/binding even when Actor membership is unchanged.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json",
-        "spec/v1/artifacts/fixtures/direct-conversation-runtime-endpoint-repair-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.direct_conversation.signal_admission.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -1767,39 +2018,16 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",
+      "vector_id": "ak.vector.direct_conversation.single_confirmation.v1",
       "status": "active",
       "domain": "direct_conversation",
       "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
+        "protocol-simplification-fixture.json"
       ],
-      "description": "A masked founding action remains on the atomic founding path; root-reliant operational, grant, member-governance, policy, and otherwise-unclassified terminal families reject with direct_conversation_root_mask_violation and zero writes.",
+      "description": "A confirmation does not replace founding uniqueness or create a second Realm.; Two roster members without durable Welcome/provenance cannot confirm.; Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.; At most one different Event wins; loser has zero writes and resolves the original Event ref.; Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.; Only the producer-signed accepted bound and covering Commit establish first completion.; Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.; Restart and late replication preserve original Event/Commit and historical signer; cross-Station governance handoff is forbidden with zero effects and current gates remain independent.; Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.admission.terminal_forbidden.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "Destroy and tombstone reject before general Realm authority with direct_conversation_terminal_forbidden and zero writes, while archive, freeze, restore, and unfreeze continue to ordinary authority evaluation.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.admission.third_party_member_forbidden.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-admission-fixture.json"
-      ],
-      "description": "The exact bound peer remains valid in the atomic founding unit. A pair-external invite or direct join rejects with direct_conversation_third_party_member_forbidden; when the same invite also matches the general invite guard, the third-party reason deterministically wins.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
     {
@@ -1842,6 +2070,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
+      "description": "Encrypted prepare and authority-forward submit into a definitely inactive MLS scope return generic failed_precondition with zero writes; transient current-read failure returns temporarily_unavailable.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.e2ee.mls_activation_irreversible.v1",
       "status": "active",
       "domain": "e2ee",
@@ -1861,18 +2101,6 @@
         "visibility-policy-fixture.json"
       ],
       "description": "A plaintext write submitted after the accepted ak.mls.genesis is rejected rather than silently accepted or re-encrypted.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
-      "status": "active",
-      "domain": "e2ee",
-      "applies_to_fixtures": [
-        "visibility-policy-fixture.json"
-      ],
-      "description": "Encrypted prepare and authority-forward submit into a definitely inactive MLS scope return generic failed_precondition with zero writes; transient current-read failure returns temporarily_unavailable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -2230,16 +2458,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.encoding.state_selector_uri.v1",
-      "status": "reserved",
-      "domain": "encoding",
-      "scope": "universal",
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The canonical MIMI room URI is the current state subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
-      "source_refs": [
-        "spec/v1/zh/extensions/mimi-interop.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.encoding.signature_binding_payload.v1",
       "status": "active",
       "domain": "encoding",
@@ -2285,6 +2503,16 @@
       "description": "Domain and audience may be combined, an audience array preserves its order verbatim in the canonical bytes, and absent optional fields stay omitted rather than written as null.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.state_selector_uri.v1",
+      "status": "reserved",
+      "domain": "encoding",
+      "scope": "universal",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The canonical MIMI room URI is the current state subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "source_refs": [
+        "spec/v1/zh/extensions/mimi-interop.md"
       ]
     },
     {
@@ -2420,6 +2648,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.federation.authority_forward_genesis_material.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-authority-forward-genesis-material-fixture.json"
+      ],
+      "description": "A cross-Station ak.mls.genesis is forwarded with mls_genesis_material holding the raw GroupInfo and ratchet_tree Blob bytes; the governance Station accepts it only when both hash to the Genesis refs under their embedded suites and the RFC 9420 epoch-0 public state verifies, stores both as public Blobs in the acceptance transaction and later serves them unchanged through ak.peer.mls.read.group_state_material.v1. A Genesis without the member or any other kind with it, a member longer than 5592406 characters or not canonical unpadded base64url, and addressed bytes that are no epoch-0 public state are schema_violation, and a digest mismatch is digest_mismatch, all with zero writes; two members at the bound decode to exactly the 8388608-byte response bound, so no aggregate refusal exists. The forwarding Station refuses a Genesis whose Blobs it does not hold or that do not address their refs with a bare failed_precondition and forwards nothing; an exact replay returns the original Commit.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.federation.authority_forward_producer_device_evidence.v1",
       "status": "active",
       "domain": "federation",
@@ -2456,6 +2697,19 @@
       "description": "A non-governance committed-Event receiver (committed replication member Station, invite delivery receiver) does not resolve a foreign human device key. It stores the replica when the producer proof is self-consistent (event_digest, verification_method projection to the actual signer, fragment equal to device_id), the governance RealmCommit signature is valid and its signer is the current governance Station of that generation in the verified authority chain, and ref/position/predecessor continuity holds. Digest mismatch, fragment not equal to device_id, projection not equal to the signer, invalid governance signature and a Commit from a non-current governance Station are rejected; a producer hosted by the receiver is still verified against local PCR and a key mismatch is rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
+        "spec/v1/zh/sync/federation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "terminal-replication-authority-fixture.json"
+      ],
+      "description": "Terminal Event fanout uses existing joined-member authority, durable basis revalidation and continuous-chain admission. Last-member departure fences live effects without inventing Realm terminal knowledge; erasure receipts retain their separate contract.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
         "spec/v1/zh/sync/federation.md"
       ]
     },
@@ -2749,6 +3003,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.published_did_registration.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "published-did-registration-fixture.json"
+      ],
+      "description": "Complete published-DID registration requires frozen lease, primary anchor, separate control/evidence proofs, ordered PCR genesis and initial session. Proof-only, partial genesis, branch substitution and mixed registry/validation time roles reject. Schema/control signature vectors are not live method or product acceptance.",
+      "source_refs": [
+        "spec/v1/zh/identity/account-lifecycle.md",
+        "spec/v1/artifacts/fixtures/published-did-registration-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.recovery_kdf.v1",
       "status": "active",
       "domain": "identity",
@@ -2867,6 +3134,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.invite.locator_failure_indistinguishable.v1",
+      "status": "reserved",
+      "domain": "invite",
+      "description": "PrincipalLocator non-enumeration remains mandatory independently of IVS. The old mixed claim/locator fixture was withdrawn with IVS and did not prove native locator response/timing behavior. No replacement executable locator fixture is certified by this registry row.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/invite-addressing.md"
+      ],
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "activation_condition": "Attach and execute an independent locator-only fixture over every failure response and timing class; no provider claim fixture or source declaration substitutes for that evidence."
     },
     {
       "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
@@ -3062,6 +3343,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.keypackage.recipient_claim_read.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-recipient-claim-read-fixture.json"
+      ],
+      "description": "ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, the byte-identical original keypackages_claim_response_body; the requester, another device of the same Account, an unknown claim id, a superseded Agent authorization and a claim past its query retention are one keypackage_unknown; no read changes claim or KeyPackage state; the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, winning Add Commit and current endpoint authorization before decrypting, and any failure, including a failed read, leaves the Welcome undecrypted.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
       "status": "active",
       "domain": "keypackage",
@@ -3205,6 +3499,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.message.local_authoring.v1",
+      "status": "active",
+      "domain": "message",
+      "applies_to_fixtures": [
+        "protocol-simplification-fixture.json"
+      ],
+      "description": "Legal canonical locally signed Message uses ordinary submit with no prepare operation.; Exact session/scope/config/authorizing refs are supplied by registered reads; missing inputs cannot be guessed.; Submit rechecks all current gates even after local construction.; Local canonical Event must match the frozen actor/scope/content/AAD; no server rewrite or encryption.; Durably frozen exact signed Event and MLS state survive unknown/restart; no re-encryption or second sender generation.; Removed prepare test coverage must preserve independent account cursor and producer validation.; No per-message context operation recreates the removed draft protocol.; Shared MessageAuthoringIntent/Submit/draft/encryption context and ordinary queue remain; epoch errors and original finality remain.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
+        "spec/v1/zh/sync/service-http-binding.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.message.poll_reducer.v1",
       "status": "reserved",
       "domain": "message",
@@ -3289,15 +3596,16 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls.roster_authority.v1",
+      "vector_id": "ak.vector.mls.cross_station_welcome_replication.v1",
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
-        "mls-roster-authority-fixture.json"
+        "mls-cross-station-welcome-replication-fixture.json"
       ],
-      "description": "Genesis producer-signed leaf-key ownership, recipient Station signed historical Add attestation, governance Station complete roster manifest, dual-cut member disclosure and member-authorized cross-Station Genesis public material forwarding, and fail-closed absence, mismatch, replay, same-tuple Remove+Add and pagination cases.",
+      "description": "The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts and, inside the Commit acceptance transaction, writes it into the committed-replication intent of that recipient's routing service: every ak.mls.commit item carries immutable genesis_event_ref from the exact accepted group Genesis under the authenticated canonical peer signature, including later epochs whose base ref names another Commit. Other kinds forbid that field. The Commit item carries exactly that service's recipients' welcomes[] in submission order and no welcomes member when the service hosts none, a hosted recipient's Welcome is queued locally, and a Welcome for a service outside the target set refuses the whole submission with a bare failed_precondition and zero writes. Missing, mismatched or replay-mutated Genesis ref refuses the replica and attestation with zero writes; welcomes on any other Event kind, or empty, is schema_violation. The destination re-verifies each claim against its own ledger and queues the passing Welcomes with their claim bindings in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate, and a further replay queues nothing; replicated Welcomes count toward but are never refused by endpoint capacity, unlike a first admission at capacity (quota_exceeded), and leave the queue only through ACK.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json"
+        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -3384,7 +3692,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "A v1 Realm/Circle durable ak.mls.proposal is admitted only from a Member sender whose leaf is occupied in the exact accepted base and whose leaf credential and signature key equal the verified Event producer executed_by ?? actor_id. A structurally valid ExternalSender, NewMemberProposal, NewMemberCommit, decoded external_init, unregistered app_custom codepoint, or a transition that installs the external_senders GroupContext extension fails closed with unsupported_feature and never as schema_violation, while an absent base leaf stays failed_precondition and a producer mismatch stays signature_invalid; standard Member proposal types remain admissible.",
+      "description": "Realm/Circle inline MLS Proposals require verified complete public Commit source, exact-base occupied Member leaf and original producer binding. Unregistered external senders, NewMemberProposal, ExternalInit or NewMemberCommit without the current content-history recovery exception fail closed with unsupported_feature; absent base leaf stays failed_precondition and producer mismatch stays signature_invalid. Recovery-specific External Commit and exact same-Actor old-leaf cleanup use recovery_binding and cannot create membership or general administrator rights.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
@@ -3402,55 +3710,28 @@
       ]
     },
     {
-      "vector_id": "ak.vector.mls.welcome_recipient_delivery_queue.v1",
-      "status": "reserved",
-      "domain": "mls",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1",
-        "ak.profile.agent_runtime.v1"
-      ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: An accepted MLS Commit atomically queues exact producer-signed MlsWelcomeDelivery objects. Account delta and same-queue list return ordered device_message/mls_welcome discriminator branches with one position, cursor and cumulative ACK. Welcome deduplicates by recipient endpoint plus welcome_id; wrong branch, changed bytes, cross-endpoint token, stale Agent authorization, premature ACK and dropped-item silence fail closed. Unacknowledged deliveries survive content expiry; full endpoint capacity rejects fresh DeviceMessage or Commit+Welcome atomically without evicting old items or writing request idempotency. Human devices and Agent runtimes use their own authenticated endpoint without synthetic device ids or an independent Welcome-ref GET. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.mls.cross_station_welcome_replication.v1",
+      "vector_id": "ak.vector.mls.roster_authority.v1",
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
-        "mls-cross-station-welcome-replication-fixture.json"
+        "mls-roster-authority-fixture.json"
       ],
-      "description": "The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts and, inside the Commit acceptance transaction, writes it into the committed-replication intent of that recipient's routing service: every ak.mls.commit item carries immutable genesis_event_ref from the exact accepted group Genesis under the authenticated canonical peer signature, including later epochs whose base ref names another Commit. Other kinds forbid that field. The Commit item carries exactly that service's recipients' welcomes[] in submission order and no welcomes member when the service hosts none, a hosted recipient's Welcome is queued locally, and a Welcome for a service outside the target set refuses the whole submission with a bare failed_precondition and zero writes. Missing, mismatched or replay-mutated Genesis ref refuses the replica and attestation with zero writes; welcomes on any other Event kind, or empty, is schema_violation. The destination re-verifies each claim against its own ledger and queues the passing Welcomes with their claim bindings in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate, and a further replay queues nothing; replicated Welcomes count toward but are never refused by endpoint capacity, unlike a first admission at capacity (quota_exceeded), and leave the queue only through ACK.",
+      "description": "Genesis producer-signed leaf-key ownership, recipient Station signed historical Add attestation, governance Station complete roster manifest, dual-cut member disclosure and member-authorized cross-Station Genesis public material forwarding, and fail-closed absence, mismatch, replay, same-tuple Remove+Add and pagination cases.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.keypackage.recipient_claim_read.v1",
+      "vector_id": "ak.vector.mls.roster_client_roles.v1",
       "status": "active",
-      "domain": "keypackage",
+      "domain": "mls",
       "applies_to_fixtures": [
-        "keypackage-recipient-claim-read-fixture.json"
+        "mls-roster-client-roles-fixture.json"
       ],
-      "description": "ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, the byte-identical original keypackages_claim_response_body; the requester, another device of the same Account, an unknown claim id, a superseded Agent authorization and a claim past its query retention are one keypackage_unknown; no read changes claim or KeyPackage state; the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, winning Add Commit and current endpoint authorization before decrypting, and any failure, including a failed read, leaves the Welcome undecrypted.",
+      "description": "Own Station validates inline historical authority; ordinary full/e2ee clients consume exact purpose-bound keys and independently verify original double signatures without method history or live discovery. Key rotation, wrong core/role, tampered evidence, unregistered discovery, remote results and boolean-only results fail closed. Signature/key binding KAT and closed self carrier are executable; complete native history/RFC MLS acceptance remains the named suite obligation.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.federation.authority_forward_genesis_material.v1",
-      "status": "active",
-      "domain": "federation",
-      "applies_to_fixtures": [
-        "federation-authority-forward-genesis-material-fixture.json"
-      ],
-      "description": "A cross-Station ak.mls.genesis is forwarded with mls_genesis_material holding the raw GroupInfo and ratchet_tree Blob bytes; the governance Station accepts it only when both hash to the Genesis refs under their embedded suites and the RFC 9420 epoch-0 public state verifies, stores both as public Blobs in the acceptance transaction and later serves them unchanged through ak.peer.mls.read.group_state_material.v1. A Genesis without the member or any other kind with it, a member longer than 5592406 characters or not canonical unpadded base64url, and addressed bytes that are no epoch-0 public state are schema_violation, and a digest mismatch is digest_mismatch, all with zero writes; two members at the bound decode to exactly the 8388608-byte response bound, so no aggregate refusal exists. The forwarding Station refuses a Genesis whose Blobs it does not hold or that do not address their refs with a bare failed_precondition and forwards nothing; an exact replay returns the original Commit.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]
     },
     {
@@ -3463,6 +3744,19 @@
       "description": "A producer-signed MlsWelcomeDelivery is queued with the winning Add Commit and carries one typed keypackage_claim_ref, recipient endpoint and exact ciphertext. Before decrypting, the recipient resolves the durable claim record, recomputes the KeyPackage digest and signed LeafNode capability set, checks current endpoint authority, and binds the delivery to the accepted winning Commit on the same lineage. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted; the original claim is consumed only after durable group state.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.welcome_recipient_delivery_queue.v1",
+      "status": "reserved",
+      "domain": "mls",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.agent_runtime.v1"
+      ],
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: An accepted MLS Commit atomically queues exact producer-signed MlsWelcomeDelivery objects. Account delta and same-queue list return ordered device_message/mls_welcome discriminator branches with one position, cursor and cumulative ACK. Welcome deduplicates by recipient endpoint plus welcome_id; wrong branch, changed bytes, cross-endpoint token, stale Agent authorization, premature ACK and dropped-item silence fail closed. Unacknowledged deliveries survive content expiry; full endpoint capacity rejects fresh DeviceMessage or Commit+Welcome atomically without evicting old items or writing request idempotency. Human devices and Agent runtimes use their own authenticated endpoint without synthetic device ids or an independent Welcome-ref GET. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -3573,6 +3867,18 @@
       "description": "The sole peer Event ingress has exactly three mutually exclusive semantic branches: authority_forward performs first admission with approval evidence only at current governance; committed_replication verifies bounded exact source Event/RealmCommit rows with private approval_signatures omitted and stores replicas without re-signing or second fanout; registered_atomic_unit materializes Direct Conversation founding or membership compensation all-or-nothing. Full-body canonical-hash exact replay is branch-stable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.pin.admission_and_scope.v1",
+      "status": "active",
+      "domain": "pin",
+      "applies_to_fixtures": [
+        "shared-pin-admission-fixture.json"
+      ],
+      "description": "Exact owner grant ceiling, explicit Pin authority, hidden target non-enumeration, expected-rank refusal, reorder-without-live-add refusal and immutable add/reorder/remove dot-set assertions.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json"
       ]
     },
     {
@@ -3697,6 +4003,83 @@
       "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: a position with the larger stream_position on the same CommitStreamRef dominates even when its HLC is lower; positions on different streams or on the same Event do not dominate each other and HLC max decides; device_id breaks equal HLCs; a position whose committed coordinate the Station does not hold is refused with temporarily_unavailable and zero writes. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Independent Realm and Circle policies, defaults and preferences; no parent or sibling fold.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Exact target/Signal/policy/source scope, complete verified basis, membership and full author AccountId; missing proof fails closed.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Closed shared Realm/Circle policy shape rejects removed overrides, scope identity in payload, Realm-only selectors and unsupported scopes.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Whole-value replacement, explicit default reset and re-evaluation of existing display after disabled/private changes.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_actor.contract.v1",
+      "status": "active",
+      "domain": "realm_actor",
+      "applies_to_fixtures": [
+        "realm-actor-signature-kat-fixture.json"
+      ],
+      "description": "ak.realm.actor.create, ak.realm.actor.control.update, ak.realm.actor.status.set, ak.realm.actor.devices.reset, ak.realm.actor.manager.change, ak.realm.actor.recovery.begin, ak.realm.actor.control.reset and ak.realm.actor.recovery.set: closed schemas, five detached-signature KATs, bounded real native SCID/hash/pre-rotation/proof/witness verification, typed CAS, dual gates, same-identity recovery with prepare/finish fences and revocation/supersession, native management transfer and complete private handoff reference model. No production SUT, network resolver or database transaction claim. Realm claim/requester closed branches, two distinct Station signature KATs and immutable claim/consume continuation ledger model; real authority-chain and multistation acceptance remain named implementation obligations.",
+      "source_refs": [
+        "spec/v1/zh/extensions/realm-actors.md",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_invite_link.possession_proof.v1",
+      "status": "active",
+      "domain": "realm_invite_link",
+      "applies_to_fixtures": [
+        "realm-invite-link-proof-kat-fixture.json"
+      ],
+      "description": "Independent Ed25519 accept/preview purpose transcripts, exact complete AccountId binding and private token closed/canonical decoding. This is not native admission coverage.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json"
       ]
     },
     {
@@ -3835,6 +4218,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.relation.effective_scope_reducer_managed.v1",
+      "status": "active",
+      "domain": "relation",
+      "applies_to_fixtures": [
+        "circle-scope-fixture.json"
+      ],
+      "description": "Relation is the only patch-surface object whose schema declares effective_scope, so it is the only place an actor could still supply the reducer-materialized value. Both surfaces MUST be decided by schema and MUST produce zero projection writes: an ak.relation.create carrying payload.relation.effective_scope, and an ak.relation.update whose patch addresses effective_scope or any effective_scope.* descendant, both fail with schema_violation reason=effective_scope_reducer_managed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.relation.primary_domain_cas.v1",
       "status": "active",
       "domain": "relation",
@@ -3846,18 +4241,6 @@
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/models/relation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.relation.effective_scope_reducer_managed.v1",
-      "status": "active",
-      "domain": "relation",
-      "applies_to_fixtures": [
-        "circle-scope-fixture.json"
-      ],
-      "description": "Relation is the only patch-surface object whose schema declares effective_scope, so it is the only place an actor could still supply the reducer-materialized value. Both surfaces MUST be decided by schema and MUST produce zero projection writes: an ak.relation.create carrying payload.relation.effective_scope, and an ak.relation.update whose patch addresses effective_scope or any effective_scope.* descendant, both fail with schema_violation reason=effective_scope_reducer_managed.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
       ]
     },
     {
@@ -4031,18 +4414,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
-      "status": "active",
-      "domain": "scalability",
-      "applies_to_fixtures": [
-        "scalability-limits-fixture.json"
-      ],
-      "description": "Realm governance admission measures the complete RFC 8785 canonical signed maximal-disclosure snapshot projection at the candidate durable cut. Exactly 8 MiB may be accepted; a one-byte overflow is rejected atomically with snapshot_capacity_exceeded, concurrent candidates recheck the winning cut, and no paging, truncation or partial state is introduced.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
       "status": "active",
       "domain": "scalability",
@@ -4086,6 +4457,18 @@
         "scalability-limits-fixture.json"
       ],
       "description": "A relation chain at depth 32 is fully expanded; a 33-level chain stops before reading level 33 and exposes a Lazy Link boundary instead of performing unbounded traversal.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "description": "Realm governance admission measures the complete RFC 8785 canonical signed maximal-disclosure snapshot projection at the candidate durable cut. Exactly 8 MiB may be accepted; a one-byte overflow is rejected atomically with snapshot_capacity_exceeded, concurrent candidates recheck the winning cut, and no paging, truncation or partial state is introduced.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4565,19 +4948,18 @@
       ]
     },
     {
-      "vector_id": "ak.vector.signer_key.historical_commit_coordinate.v1",
+      "vector_id": "ak.vector.sidecar.view_state_closed.v1",
       "status": "active",
-      "domain": "signer_key",
+      "domain": "sidecar",
       "applies_to_fixtures": [
-        "signer-key-historical-coordinate-fixture.json"
+        "sidecar-view-state-schema-fixture.json"
       ],
-      "description": "Historical account-device and Agent signer selectors address only a verified authority-committed Event by the closed committed_event_ref copied from account-subscribe or per-stream-scan committed_event_view or the frozen complete self request Event paired with its bound accepted outcome original Commit. Bare EventId, nested current projection material, cursor/time/arrival/cache inference, redacted rows and current-query fallback remain unresolved. A resolved key independently binds its authorization committed_event_ref, current authorization-stream revision and governance generation; target and authorization references may differ and are never merged by equal key bytes. Complete selector equality survives restart, response reordering, account-context changes and bounded historical scan. A single Agent reply must resolve pending historical evidence even when the product projection changes and no later account frame arrives, then revalidate the same pending message without a page reload. Self-submitted Human PCR queries require exact authenticated recipient/actual producer fullAccount, original same-Station self-admission and complete immutable historical authorization/proof; controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that transaction. No raw local source, sibling/foreign admission, current-row backfill, head/floor advancement or PCR history scan is permitted. Ordinary Human extension: original source-cut authorization coordinates/revision/PCR generation/time, original governance Commit fact digest, same-transaction replica retention, peer coldscan/bootstrap tail and planned handoff. Full original Event Ed and new Commit signatures plus negative mutations are mandatory native evidence; structural fixture plans do not prove this extension.",
+      "description": "Executable JSON Schema positive and negative cases for the existing v1 Sidecar view-state plaintext: pin/local-collapse/HLC remain, display_mode is not a field and both former mode values are rejected. Schema-only evidence does not claim live owner display, privacy, MLS or synchronization acceptance.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/sync/server-trusted-results.md",
-        "spec/v1/zh/sync/federation.md",
-        "spec/v1/zh/sync/authority-commit-log.md"
+        "spec/v1/artifacts/fixtures/sidecar-view-state-schema-fixture.json",
+        "spec/v1/zh/models/private-objects.md",
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -4630,6 +5012,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.signal.scope_authority_cuts.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_fixtures": [
+        "signal-federation-fixture.json"
+      ],
+      "description": "Circle Signal binds independent scope and parent Realm accepted cuts in proof and AAD; historical and current membership/capability gates both hold. Later grants never authorize old parent cuts, current revoke/reset/ownership/join changes deny, and idle heads require verified handoff manifest coverage.",
+      "source_refs": [
+        "spec/v1/zh/sync/signal.md",
+        "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.signal.sequence_high_water.v1",
       "status": "active",
       "domain": "signal",
@@ -4643,6 +5038,47 @@
       ]
     },
     {
+      "vector_id": "ak.vector.signer_key.historical_commit_coordinate.v1",
+      "status": "active",
+      "domain": "signer_key",
+      "applies_to_fixtures": [
+        "signer-key-historical-coordinate-fixture.json"
+      ],
+      "description": "Historical account-device and Agent signer selectors address only a verified authority-committed Event by the closed committed_event_ref copied from account-subscribe or per-stream-scan committed_event_view or the frozen complete self request Event paired with its bound accepted outcome original Commit. Bare EventId, nested current projection material, cursor/time/arrival/cache inference, redacted rows and current-query fallback remain unresolved. A resolved key independently binds its authorization committed_event_ref, current authorization-stream revision and governance generation; target and authorization references may differ and are never merged by equal key bytes. Complete selector equality survives restart, response reordering, account-context changes and bounded historical scan. A single Agent reply must resolve pending historical evidence even when the product projection changes and no later account frame arrives, then revalidate the same pending message without a page reload. Self-submitted Human PCR queries require exact authenticated recipient/actual producer fullAccount, original same-Station self-admission and complete immutable historical authorization/proof; controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that transaction. No raw local source, sibling/foreign admission, current-row backfill, head/floor advancement or PCR history scan is permitted. Ordinary Human extension: original source-cut authorization coordinates/revision/PCR generation/time, original governance Commit fact digest, same-transaction replica retention, peer coldscan/bootstrap tail and planned handoff. Full original Event Ed and new Commit signatures plus negative mutations are mandatory native evidence; structural fixture plans do not prove this extension.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/server-trusted-results.md",
+        "spec/v1/zh/sync/federation.md",
+        "spec/v1/zh/sync/authority-commit-log.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signer_key.human_current_privacy.v1",
+      "status": "active",
+      "domain": "signer_key",
+      "applies_to_fixtures": [
+        "current-signer-contact-endpoint-fixture.json"
+      ],
+      "description": "Human current key-only is closed and cannot substitute for Agent or historical coordinates.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
+        "spec/v1/zh/sync/server-trusted-results.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state.registered_atomic_units.v1",
+      "status": "active",
+      "domain": "state",
+      "applies_to_fixtures": [
+        "registered-atomic-unit-and-watch-audit-fixture.json"
+      ],
+      "description": "Closed typed unit registry, same-governor/same-stream atomicity, exact replay, business/audit slot bindings, producer proofs, CAS and rollback; first admission is distinct from source-committed atomic materialization.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.state.strand_watch_current_read.v1",
       "status": "active",
       "domain": "state",
@@ -4652,6 +5088,18 @@
       "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses. Cross-Station cases cover authenticated own-Account-Station binding, remote delivery without local tenure, authorized and invisible Circle reads, full Account isolation, handoff provenance including cleared rows and other-author writes, revocation/session/device fences and submit-time CAS.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state.watch_audit_operations.v1",
+      "status": "active",
+      "domain": "state",
+      "applies_to_fixtures": [
+        "registered-atomic-unit-and-watch-audit-fixture.json"
+      ],
+      "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, narrow Circle audit exception, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
       ]
     },
     {
@@ -4676,6 +5124,19 @@
       "description": "Own-Station account aggregate stream: per-stream tail continuity, durable cursor checkpoints, projection-before-checkpoint ordering, reconnect reset vs resume, and explicit delivery cancellation. Includes Sidecar same-cut history/current/projection verification basis installation, missing-tail rejection with prior-cut preservation, automatic reconnect/restart recovery and cursor advancement only after durable installation; fixture evidence does not claim production browser responsiveness.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/client-sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.committed_event_view_integrity.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "CommittedEventView integrity: a full Event id equals commit.event_ref; the only non-full branch is the closed withheld marker, which is never reducer input; obsolete redacted and locked-stub shapes are rejected.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
       ]
     },
     {
@@ -4716,19 +5177,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.sync.committed_event_view_integrity.v1",
-      "status": "active",
-      "domain": "sync",
-      "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
-      ],
-      "description": "CommittedEventView integrity: a full Event id equals commit.event_ref; the only non-full branch is the closed withheld marker, which is never reducer input; obsolete redacted and locked-stub shapes are rejected.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
       ]
     },
     {
@@ -4822,30 +5270,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.call.force_mute_v1_boundary.v1",
-      "status": "active",
-      "domain": "call",
-      "applies_to_fixtures": [
-        "call-force-mute-v1-boundary-fixture.json"
-      ],
-      "description": "v1 refuses every ak.call.state mute_override payload, including a mixed delta, and moderator mute_state signaling; other call state, self mute and kick, ban or end-for-all remain available.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.current.cas_failure_read_boundary.v1",
-      "status": "active",
-      "domain": "current",
-      "applies_to_fixtures": [
-        "current-cas-failure-read-boundary-fixture.json"
-      ],
-      "description": "A stale typed current CAS returns failed_precondition with zero writes and no invented inline current extension; reauthoring requires a separate registered authorized read and renewed confirmation, or stops when none exists.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/current-cas-failure-read-boundary-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
       "status": "active",
       "domain": "webrtc",
@@ -4858,417 +5282,6 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json"
       ]
-    },
-    {
-      "vector_id": "ak.vector.pin.admission_and_scope.v1",
-      "status": "active",
-      "domain": "pin",
-      "applies_to_fixtures": [
-        "shared-pin-admission-fixture.json"
-      ],
-      "description": "Exact owner grant ceiling, explicit Pin authority, hidden target non-enumeration, expected-rank refusal, reorder-without-live-add refusal and immutable add/reorder/remove dot-set assertions.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.contact.peer_endpoint_selector.v1",
-      "status": "active",
-      "domain": "contact",
-      "applies_to_fixtures": [
-        "current-signer-contact-endpoint-fixture.json"
-      ],
-      "description": "Two-field peer endpoint is closed, only on accepted human rows; all other states and Agent rows reject it.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.signer_key.human_current_privacy.v1",
-      "status": "active",
-      "domain": "signer_key",
-      "applies_to_fixtures": [
-        "current-signer-contact-endpoint-fixture.json"
-      ],
-      "description": "Human current key-only is closed and cannot substitute for Agent or historical coordinates.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
-        "spec/v1/zh/sync/server-trusted-results.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.signal.scope_authority_cuts.v1",
-      "status": "active",
-      "domain": "signal",
-      "applies_to_fixtures": [
-        "signal-federation-fixture.json"
-      ],
-      "description": "Circle Signal binds independent scope and parent Realm accepted cuts in proof and AAD; historical and current membership/capability gates both hold. Later grants never authorize old parent cuts, current revoke/reset/ownership/join changes deny, and idle heads require verified handoff manifest coverage.",
-      "source_refs": [
-        "spec/v1/zh/sync/signal.md",
-        "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.chat_topic_structure.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "direct-conversation-structure-fixture.json"
-      ],
-      "description": "Executed flat Topic whole-field set/unset CAS and encrypted metadata vectors; participant scope and lifecycle boundaries are pinned by the structural contract gate. Live implementation acceptance remains separately required.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.mls.roster_client_roles.v1",
-      "status": "active",
-      "domain": "mls",
-      "applies_to_fixtures": [
-        "mls-roster-client-roles-fixture.json"
-      ],
-      "description": "Own Station validates inline historical authority; ordinary full/e2ee clients consume exact purpose-bound keys and independently verify original double signatures without method history or live discovery. Key rotation, wrong core/role, tampered evidence, unregistered discovery, remote results and boolean-only results fail closed. Signature/key binding KAT and closed self carrier are executable; complete native history/RFC MLS acceptance remains the named suite obligation.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
-        "spec/v1/zh/crypto-media/encryption-and-audit.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.agent.interaction_mode.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-participation-fixture.json",
-        "event-kind-payload-coverage-fixture.json",
-        "exact-current-state-read-fixture.json"
-      ],
-      "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation. Explicit scoped reply configuration, independent human/Agent message authority, partial acceptance, effective readiness, and cold/reset/restart recovery boundaries.",
-      "source_refs": [
-        "spec/v1/zh/models/agent-interaction.md",
-        "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-        "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-        "spec/v1/artifacts/fixtures/exact-current-state-read-fixture.json",
-        "spec/v1/zh/authz/capabilities.md",
-        "spec/v1/zh/conformance/conformance-profiles.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.authority_commit_projection.result_consumption_roles.v1",
-      "status": "active",
-      "domain": "authority_commit_projection",
-      "applies_to_fixtures": [
-        "governance-result-consumption-roles-fixture.json"
-      ],
-      "description": "Executable role/input policy: ordinary clients consume their persistently bound authenticated own Station original results, retaining exact cuts, continuity and producer/MLS checks; Station/auditor native verification is mandatory. Policy execution does not claim production cryptographic or live cross-station acceptance. Snapshot policy covers current head versus exact historical by-ref after handoff, native Station/auditor verification, ordinary own-Station consumption, whole-original disclosure revocation and unavailable basis without head substitution or current rollback.",
-      "source_refs": [
-        "spec/v1/zh/sync/server-trusted-results.md",
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.sidecar.view_state_closed.v1",
-      "status": "active",
-      "domain": "sidecar",
-      "applies_to_fixtures": [
-        "sidecar-view-state-schema-fixture.json"
-      ],
-      "description": "Executable JSON Schema positive and negative cases for the existing v1 Sidecar view-state plaintext: pin/local-collapse/HLC remain, display_mode is not a field and both former mode values are rejected. Schema-only evidence does not claim live owner display, privacy, MLS or synchronization acceptance.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/sidecar-view-state-schema-fixture.json",
-        "spec/v1/zh/models/private-objects.md",
-        "spec/v1/zh/models/sidecar.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.blob.content_key_derivation.v1",
-      "status": "active",
-      "domain": "blob",
-      "applies_to_fixtures": [
-        "blob-content-key-fixture.json"
-      ],
-      "description": "Byte-exact RFC 9420 MLS-Exporter KAT for attachment content keys: JCS Context, both AEAD schemes, salt/group/scope/epoch/algorithm separation, equivalent key-ref resolution, invalid salt and unauthorized checkpoint failures.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
-        "spec/v1/zh/crypto-media/media-and-blob.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
-      "status": "active",
-      "domain": "federation",
-      "applies_to_fixtures": [
-        "terminal-replication-authority-fixture.json"
-      ],
-      "description": "Terminal Event fanout uses existing joined-member authority, durable basis revalidation and continuous-chain admission. Last-member departure fences live effects without inventing Realm terminal knowledge; erasure receipts retain their separate contract.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
-        "spec/v1/zh/sync/federation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.applet.managed_governance.v1",
-      "status": "active",
-      "domain": "applet",
-      "applies_to_fixtures": [
-        "managed-governance-fixture.json"
-      ],
-      "description": "Service-only installation, exact Service parent to independent terminal managed Account, closed Policy/review/Device metadata and RFC9421 Ed25519 request KAT, dynamic current/quota/scope matrices. Protocol reference checks only, not a live Station certification.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-        "spec/v1/zh/authz/managed-governance.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.consent.call_invitation_admission.v1",
-      "status": "active",
-      "domain": "consent",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, independent grants, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery.",
-      "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
-        "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/artifacts/schemas/call-invitation-operations.schema.json",
-        "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.agent.session_content_authority.v1",
-      "status": "active",
-      "domain": "agent",
-      "applies_to_fixtures": [
-        "agent-vectors-fixture.json"
-      ],
-      "description": "Resource-bound Agent content session authority: legitimate non-grant reading, independent ceilings/current gates, fresh issue versus non-expanding rotation, exact replay and phased Sidecar Welcome/effective access.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-        "spec/v1/zh/authz/owned-agent-authority.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.state.registered_atomic_units.v1",
-      "status": "active",
-      "domain": "state",
-      "applies_to_fixtures": [
-        "registered-atomic-unit-and-watch-audit-fixture.json"
-      ],
-      "description": "Closed typed unit registry, same-governor/same-stream atomicity, exact replay, business/audit slot bindings, producer proofs, CAS and rollback; first admission is distinct from source-committed atomic materialization.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.state.watch_audit_operations.v1",
-      "status": "active",
-      "domain": "state",
-      "applies_to_fixtures": [
-        "registered-atomic-unit-and-watch-audit-fixture.json"
-      ],
-      "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, narrow Circle audit exception, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.applet.device_scopes.v1",
-      "status": "active",
-      "domain": "applet",
-      "applies_to_fixtures": [
-        "applet-device-scope-fixture.json"
-      ],
-      "description": "Canonical exact managed Device scope/action pairs reject cross-entry expansion, inherited scopes, unregistered actions, duplicates and noncanonical order.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
-        "spec/v1/zh/crypto-media/device-lifecycle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.call_state.compact_current.v1",
-      "status": "active",
-      "domain": "call_state",
-      "applies_to_fixtures": [
-        "call-current-fixture.json"
-      ],
-      "description": "Complete effective Call roster and moderation with original sources, axis-tip revision, full ActorId and original issuer key; deterministic Ed25519 transcripts and executable rejection cases retain the ordinary-client omission trust boundary. Not live admission or native authority verification.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/call-current-fixture.json",
-        "spec/v1/zh/crypto-media/call-state.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
-      "status": "active",
-      "domain": "read_receipt",
-      "applies_to_fixtures": [
-        "read-receipt-scope-policy-fixture.json"
-      ],
-      "description": "Independent Realm and Circle policies, defaults and preferences; no parent or sibling fold.",
-      "source_refs": [
-        "spec/v1/zh/discovery/read-receipts.md",
-        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
-      "status": "active",
-      "domain": "read_receipt",
-      "applies_to_fixtures": [
-        "read-receipt-scope-policy-fixture.json"
-      ],
-      "description": "Exact target/Signal/policy/source scope, complete verified basis, membership and full author AccountId; missing proof fails closed.",
-      "source_refs": [
-        "spec/v1/zh/discovery/read-receipts.md",
-        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
-      "status": "active",
-      "domain": "read_receipt",
-      "applies_to_fixtures": [
-        "read-receipt-scope-policy-fixture.json"
-      ],
-      "description": "Closed shared Realm/Circle policy shape rejects removed overrides, scope identity in payload, Realm-only selectors and unsupported scopes.",
-      "source_refs": [
-        "spec/v1/zh/discovery/read-receipts.md",
-        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
-      "status": "active",
-      "domain": "read_receipt",
-      "applies_to_fixtures": [
-        "read-receipt-scope-policy-fixture.json"
-      ],
-      "description": "Whole-value replacement, explicit default reset and re-evaluation of existing display after disabled/private changes.",
-      "source_refs": [
-        "spec/v1/zh/discovery/read-receipts.md",
-        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.applet.management_source.v1",
-      "status": "active",
-      "domain": "applet",
-      "applies_to_fixtures": [
-        "applet-management-source-fixture.json"
-      ],
-      "description": "Realm-scoped configuration, private approval recovery and MR/CR reference models with real Ed25519 configuration transcript KATs; identity control is covered by realm_actor.contract.",
-      "source_refs": [
-        "spec/v1/zh/extensions/applet-management-source.md",
-        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.realm_actor.contract.v1",
-      "status": "active",
-      "domain": "realm_actor",
-      "applies_to_fixtures": [
-        "realm-actor-signature-kat-fixture.json"
-      ],
-      "description": "ak.realm.actor.create, ak.realm.actor.control.update, ak.realm.actor.status.set, ak.realm.actor.devices.reset, ak.realm.actor.manager.change, ak.realm.actor.recovery.begin, ak.realm.actor.control.reset and ak.realm.actor.recovery.set: closed schemas, five detached-signature KATs, bounded real native SCID/hash/pre-rotation/proof/witness verification, typed CAS, dual gates, same-identity recovery with prepare/finish fences and revocation/supersession, native management transfer and complete private handoff reference model. No production SUT, network resolver or database transaction claim. Realm claim/requester closed branches, two distinct Station signature KATs and immutable claim/consume continuation ledger model; real authority-chain and multistation acceptance remain named implementation obligations.",
-      "source_refs": [
-        "spec/v1/zh/extensions/realm-actors.md",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.contact.current_state.v1",
-      "status": "active",
-      "domain": "contact",
-      "applies_to_fixtures": [
-        "contact-current-state-fixture.json"
-      ],
-      "description": "Immutable initial identity, lifetime holder direction versions, bounded normal/glare consumption, retained/re-added scope instances, independent peer closure, current_refresh request binding and opaque recovery. Executable signed vectors and reference state transitions do not claim real HTTP/PostgreSQL acceptance.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.consent.peer_current.v1",
-      "status": "active",
-      "domain": "consent",
-      "applies_to_fixtures": [
-        "protocol-simplification-fixture.json"
-      ],
-      "description": "Remove voice only, preserve the complete presence entry and optional-member presence.; Only one exact prior revision succeeds; stale write has zero effects and requires a fresh read and user confirmation.; Accepted empty remains current when an older accepted Event is replayed; return the original finality only.; Same principal at a different Station selects another peer and inherits no permission.; Only one rule per scope; a second same-scope rule cannot authorize or create another current.; Explicit all-select contains only the registered four scopes; future scope is absent and denied.; Original signed introduction/green-light does not restore a removed current invite entry.; A private correlation or accepted_for_processing does not prove a current exists or grant permission.; Caller signs the complete target; facade cannot complete, alter or co-sign the set.; Independent Contact, Realm, device and membership gates are still required.; Expired, future and unknown-constrained entries remain in the same-cut editing value.; Present without requested scope, present empty and never_written are distinct; only the last allows first-write predicate.; A never_written attempt loses to another accepted empty and cannot overwrite it.; Two purposes with distinct IDs serialize the same exact peer; second must refresh its stale prestate.; MIMI voice revoke that also changes presence is not_found with zero writes.; Exact accepted correlation/decision/Event retry returns original result after later native changes; never rolls them back.; Requester/provider cannot read complete current, revision or never_written using an opaque ID.; Native/MIMI any requests reject and do not expand; native invite remains excluded.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
-        "spec/v1/zh/identity/consent-model.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.direct_conversation.single_confirmation.v1",
-      "status": "active",
-      "domain": "direct_conversation",
-      "applies_to_fixtures": [
-        "protocol-simplification-fixture.json"
-      ],
-      "description": "A confirmation does not replace founding uniqueness or create a second Realm.; Two roster members without durable Welcome/provenance cannot confirm.; Removed leaf consumed claims do not authorize replacement; original binding/initial ref remains.; At most one different Event wins; loser has zero writes and resolves the original Event ref.; Only byte-identical Event obtains its original Commit; another Event never gets a forged accepted outcome.; Only the producer-signed accepted bound and covering Commit establish first completion.; Contact/lifecycle withdrawal suspends current use, never resets bootstrap or immutable binding.; Restart and late replication preserve original Event/Commit and historical signer; cross-Station governance handoff is forbidden with zero effects and current gates remain independent.; Message, Signal, repair, watch and owned Agent consume the same unique ref; offline founder provisional sends remain legal.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
-        "spec/v1/zh/identity/contact-and-direct-conversation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.message.local_authoring.v1",
-      "status": "active",
-      "domain": "message",
-      "applies_to_fixtures": [
-        "protocol-simplification-fixture.json"
-      ],
-      "description": "Legal canonical locally signed Message uses ordinary submit with no prepare operation.; Exact session/scope/config/authorizing refs are supplied by registered reads; missing inputs cannot be guessed.; Submit rechecks all current gates even after local construction.; Local canonical Event must match the frozen actor/scope/content/AAD; no server rewrite or encryption.; Durably frozen exact signed Event and MLS state survive unknown/restart; no re-encryption or second sender generation.; Removed prepare test coverage must preserve independent account cursor and producer validation.; No per-message context operation recreates the removed draft protocol.; Shared MessageAuthoringIntent/Submit/draft/encryption context and ordinary queue remain; epoch errors and original finality remain.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
-        "spec/v1/zh/sync/service-http-binding.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity.published_did_registration.v1",
-      "status": "active",
-      "domain": "identity",
-      "applies_to_fixtures": [
-        "published-did-registration-fixture.json"
-      ],
-      "description": "Complete published-DID registration requires frozen lease, primary anchor, separate control/evidence proofs, ordered PCR genesis and initial session. Proof-only, partial genesis, branch substitution and mixed registry/validation time roles reject. Schema/control signature vectors are not live method or product acceptance.",
-      "source_refs": [
-        "spec/v1/zh/identity/account-lifecycle.md",
-        "spec/v1/artifacts/fixtures/published-did-registration-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.realm_invite_link.possession_proof.v1",
-      "status": "active",
-      "domain": "realm_invite_link",
-      "applies_to_fixtures": [
-        "realm-invite-link-proof-kat-fixture.json"
-      ],
-      "description": "Independent Ed25519 accept/preview purpose transcripts, exact complete AccountId binding and private token closed/canonical decoding. This is not native admission coverage.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.invite.locator_failure_indistinguishable.v1",
-      "status": "reserved",
-      "domain": "invite",
-      "description": "PrincipalLocator non-enumeration remains mandatory independently of IVS. The old mixed claim/locator fixture was withdrawn with IVS and did not prove native locator response/timing behavior. No replacement executable locator fixture is certified by this registry row.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/sync/invite-addressing.md"
-      ],
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "activation_condition": "Attach and execute an independent locator-only fixture over every failure response and timing class; no provider claim fixture or source declaration substitutes for that evidence."
     }
   ]
 }

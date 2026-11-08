@@ -1,0 +1,29 @@
+{
+  "description": "Canonical independent application ciphertext scheme and backup-strategy selectors. Unknown/unimplemented values fail closed. New v1 ids require registered closed schemas, KDF, vectors and implementation support; no string guessing, silent fallback or in-place strategy migration.",
+  "value_set_evolution": "open",
+  "schemes": [
+    {
+      "scheme_id": "ak.encryption.epoch_content_aead.v1",
+      "status": "active",
+      "ciphertext_format": "aead_ciphertext_and_tag",
+      "schema_ref": "schemas/encrypted-envelope.schema.json",
+      "normative_ref": "zh/crypto-media/content-history.md"
+    }
+  ],
+  "strategies": [
+    {
+      "strategy_id": "ak.encryption_backup.epoch_content_roots.v1",
+      "status": "active",
+      "schemes": [
+        "ak.encryption.epoch_content_aead.v1"
+      ],
+      "root_label": "ak.epoch-content-root-v1",
+      "content_label": "ak.content-v1",
+      "backup_item_schema_ref": "schemas/content-encryption.schema.json#/$defs/content_epoch_root",
+      "history_grant_schema_ref": "schemas/content-encryption.schema.json#/$defs/history_grant",
+      "pcr_full_history_recovery": true,
+      "mutation": "create_locked",
+      "normative_ref": "zh/crypto-media/content-history.md"
+    }
+  ]
+}

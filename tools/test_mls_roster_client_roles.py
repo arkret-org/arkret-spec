@@ -96,6 +96,27 @@ class RosterClientRoleTests(unittest.TestCase):
                 data["cases"] = [row for row in data["cases"] if row["name"] != "wrong_station_core"]
         self.assertTrue(self.run_gate(mutate))
 
+    def test_recovery_cannot_drop_original_event_or_authorization_binding(self):
+        for field in ("original_event", "binding", "record_branch"):
+            def mutate(name, data):
+                if name != "mls-roster-authority.schema.json":
+                    return
+                definitions = data["$defs"]
+                if field == "record_branch":
+                    definitions["roster_record"]["oneOf"] = [row for row in definitions["roster_record"]["oneOf"] if row.get("$ref") != "#/$defs/roster_recovery_record"]
+                elif field == "binding":
+                    definitions["roster_recovery_record"]["properties"]["commit_event"]["allOf"][1]["properties"]["payload"]["required"] = []
+                else:
+                    definitions["roster_recovery_record"]["properties"]["commit_event"]["allOf"] = []
+            self.assertTrue(self.run_gate(mutate))
+
+    def test_agent_recovery_fact_cannot_become_a_boolean_or_open_claim(self):
+        for field in ("event_ref", "authorization_event_ref", "verification_method"):
+            def mutate(name, data):
+                if name == "mls-roster-authority.schema.json":
+                    data["$defs"]["roster_agent_signer_fact"]["required"].remove(field)
+            self.assertTrue(self.run_gate(mutate))
+
 
 if __name__ == "__main__":
     unittest.main()

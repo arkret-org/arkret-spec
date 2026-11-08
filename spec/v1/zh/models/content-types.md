@@ -171,7 +171,23 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
     "segment_bytes": 262144,
-    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
+    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream",
+    "producer": {
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        }
+      },
+      "endpoint": {
+        "kind": "device",
+        "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+      },
+      "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+      "signature_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+    },
+    "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   }
 }
 ```

@@ -744,6 +744,10 @@
       ]
     },
     {
+      "event_kind": "ak.mls.history_grant",
+      "exposures": []
+    },
+    {
       "event_kind": "ak.policy.set",
       "exposures": [
         {

@@ -93,7 +93,7 @@ def build(name, source):
         for kat in result['kats']:
             kat['context']['epoch'] = str(kat['context']['epoch'])
             kat['context_utf8'] = canonical(kat['context'])
-            kat['content_key_hex'] = exporter(bytes.fromhex(kat['exporter_secret_hex']), kat['context'], kat['hash']).hex()
+            kat['content_key_hex'] = exporter(bytes.fromhex(kat['content_root_hex']), kat['context'], kat['hash']).hex()
     elif name == 'mls-roster-client-roles-fixture.json':
         kat = result['signature_binding_kat']
         for object_name, key_name, domain, seed in [

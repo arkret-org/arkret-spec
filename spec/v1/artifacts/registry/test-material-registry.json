@@ -54,8 +54,8 @@
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
         "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json"
+        "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
       ],
       "recomputation": {
         "fixture": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

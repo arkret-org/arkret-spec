@@ -615,14 +615,65 @@
         ],
         "properties": {
           "item_kind": {
-            "$ref": "./key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/item_kind"
+            "$ref": "./key-backup-plaintext.schema.json#/$defs/backup_item_kind"
           },
           "secret_id": {
             "type": "string",
             "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "root_context": {
+            "$ref": "./content-encryption.schema.json#/$defs/root_context"
+          },
+          "root_ref": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "item_kind": {
+                  "const": "content_epoch_root",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "key-backup.schema.json#/properties/contents/items/allOf/0/if/properties/item_kind",
+                    "owner": "key-backup.schema.json#/properties/contents/items/allOf/0/if/properties/item_kind",
+                    "values": [
+                      "content_epoch_root"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "item_kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "root_context",
+                "root_ref"
+              ]
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "root_context"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "root_ref"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       }
     },
     "ciphertext": {
@@ -698,6 +749,12 @@
         }
       },
       "additionalProperties": true
+    },
+    "custodian_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    },
+    "custody_authorization_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id"
     }
   },
   "allOf": [
@@ -863,5 +920,13 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     }
+  },
+  "dependentRequired": {
+    "custodian_actor_id": [
+      "custody_authorization_ref"
+    ],
+    "custody_authorization_ref": [
+      "custodian_actor_id"
+    ]
   }
 }

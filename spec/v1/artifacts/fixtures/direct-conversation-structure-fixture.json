@@ -14,9 +14,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",
@@ -41,9 +54,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",
@@ -69,9 +95,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",
@@ -97,9 +136,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",
@@ -127,9 +179,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",
@@ -155,9 +220,22 @@
           "content_type": "application/json",
           "encryption_context": {
             "epoch": "0",
-            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_key_salt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "root_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "protection": {
+              "root_refs": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              ],
+              "blob_refs": [],
+              "backup_refs": [
+                "ak:backup:019a0000-0000-7000-8000-000000000001"
+              ]
+            }
           },
-          "ciphertext": "QQ"
+          "ciphertext": "QQ",
+          "encryption_scheme": "ak.encryption.epoch_content_aead.v1"
         },
         "created_by": {
           "kind": "account",

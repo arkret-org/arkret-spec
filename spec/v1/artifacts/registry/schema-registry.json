@@ -20,12 +20,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.account_state_view.v1",
-      "file": "schemas/account-state-view.schema.json",
-      "status": "active",
-      "description": "Server-trusted typed current current state results, deterministic causal-register sources, versioned removal and exact baseline coverage."
-    },
-    {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
       "file": "schemas/account-data-encrypted-value.schema.json",
       "status": "active",
@@ -58,6 +52,12 @@
       "file": "schemas/account-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
+    },
+    {
+      "schema_id": "ak.schema.account_state_view.v1",
+      "file": "schemas/account-state-view.schema.json",
+      "status": "active",
+      "description": "Server-trusted typed current current state results, deterministic causal-register sources, versioned removal and exact baseline coverage."
     },
     {
       "schema_id": "ak.schema.account_status_record.v1",
@@ -330,6 +330,12 @@
       "description": "Closed post-install Bot creation preview and commit DTOs."
     },
     {
+      "schema_id": "ak.schema.applet_configuration_operations.v1",
+      "status": "active",
+      "file": "schemas/applet-configuration-operations.schema.json",
+      "description": "Bounded administrator configuration command, B-to-C execution and source result"
+    },
+    {
       "schema_id": "ak.schema.applet_device_authentication.v1",
       "file": "schemas/applet-device-authentication.schema.json",
       "status": "active",
@@ -498,6 +504,12 @@
       "description": "Profile fields for calendar-event Strands."
     },
     {
+      "schema_id": "ak.schema.call_invitation_operations.v1",
+      "file": "schemas/call-invitation-operations.schema.json",
+      "status": "active",
+      "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
+    },
+    {
       "schema_id": "ak.schema.call_recording_artifact.v1",
       "file": "schemas/call-recording-artifact.schema.json",
       "status": "active",
@@ -548,6 +560,12 @@
       "description": "Closed request/response DTO bundle for self-surface holder-private consent current state operations (ak.self.consent.*); see zh/identity/consent-model.md."
     },
     {
+      "schema_id": "ak.schema.consent_private_operations.v1",
+      "file": "schemas/consent-private-operations.schema.json",
+      "status": "active",
+      "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
+    },
+    {
       "schema_id": "ak.schema.contact_operations.v1",
       "file": "schemas/contact-operations.schema.json",
       "status": "active",
@@ -588,18 +606,34 @@
       }
     },
     {
+      "schema_id": "ak.schema.content_encryption.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "status": "active",
+      "description": "Closed recoverable application root, grant, coverage and recovery-binding carriers.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "encrypted Event, KeyBackup root item and ak.mls.history_grant payload",
+        "normative_ref": "zh/crypto-media/content-history.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.content_encryption_context.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/content_context",
+      "status": "active",
+      "description": "Closed reconstructed application-content KDF and AAD context, never caller asserted wire authority.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "content-history.md reconstructed C_item for application KDF and AAD",
+        "normative_ref": "zh/crypto-media/content-history.md"
+      }
+    },
+    {
       "schema_id": "ak.schema.controller_account_gate_attestation.v1",
       "file": "schemas/agent-authority-evidence.schema.json",
       "fragment": "#/$defs/controller_account_gate_attestation",
       "status": "active",
       "description": "Account Authority controller-account eligibility gate signed under ak.controller_account_gate.v1; privacy minimised and valid for at most 300 seconds."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
-      "file": "schemas/agent-authority-evidence.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_response_body",
-      "status": "active",
-      "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
     },
     {
       "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
@@ -609,11 +643,11 @@
       "description": "Deployment-authenticated controller gate issuance request; carries no service resolution carrier."
     },
     {
-      "schema_id": "ak.schema.current_principal_response_body.v1",
-      "file": "schemas/identity-resolution.schema.json",
-      "fragment": "#/$defs/current_principal_response_body",
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_response_body",
       "status": "active",
-      "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+      "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
     },
     {
       "schema_id": "ak.schema.current_principal_request.v1",
@@ -623,6 +657,19 @@
       "description": "Authenticated own-account current principal and unique PCR request."
     },
     {
+      "schema_id": "ak.schema.current_principal_response_body.v1",
+      "file": "schemas/identity-resolution.schema.json",
+      "fragment": "#/$defs/current_principal_response_body",
+      "status": "active",
+      "description": "Own-Station accepted current principal projection and unique PCR; observation is not an authorization lease."
+    },
+    {
+      "schema_id": "ak.schema.current_state.v1",
+      "file": "schemas/current-state.schema.json",
+      "status": "active",
+      "description": "Closed typed current-state selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
+    },
+    {
       "schema_id": "ak.schema.cursor.v1",
       "file": "schemas/cursor.schema.json",
       "consumer_binding": {
@@ -630,6 +677,12 @@
         "selector": "opaque cursor payload selected by purpose",
         "normative_ref": "zh/sync/api-conventions.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.decimal_integers.v1",
+      "status": "active",
+      "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
+      "file": "schemas/decimal-integers.schema.json"
     },
     {
       "schema_id": "ak.schema.detached_object_signature.v1",
@@ -841,10 +894,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.media_ice_configuration_response_body.v1",
-      "file": "schemas/media-ice-configuration-response-body.schema.json"
-    },
-    {
       "schema_id": "ak.schema.identity_link.v1",
       "file": "schemas/identity-link.schema.json",
       "status": "active",
@@ -991,6 +1040,10 @@
       "description": "Private durable management review requests, decisions and outcome; pending carries no authority."
     },
     {
+      "schema_id": "ak.schema.media_ice_configuration_response_body.v1",
+      "file": "schemas/media-ice-configuration-response-body.schema.json"
+    },
+    {
       "schema_id": "ak.schema.media_metadata.v1",
       "file": "schemas/media-metadata.schema.json",
       "consumer_binding": {
@@ -1006,18 +1059,18 @@
       "description": "Closed request DTO bundle for realtime media service operations."
     },
     {
-      "schema_id": "ak.schema.media_service_binding_response_body.v1",
-      "file": "schemas/media-service-binding-operations.schema.json",
-      "fragment": "#/$defs/media_service_binding_response_body",
-      "status": "active",
-      "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
-    },
-    {
       "schema_id": "ak.schema.media_service_binding_request.v1",
       "file": "schemas/media-service-binding-operations.schema.json",
       "fragment": "#/$defs/media_service_binding_request_body",
       "status": "active",
       "description": "Authenticated member request for the media service anchored by one joined Realm; no caller-supplied service identity, DID or candidate origin."
+    },
+    {
+      "schema_id": "ak.schema.media_service_binding_response_body.v1",
+      "file": "schemas/media-service-binding-operations.schema.json",
+      "fragment": "#/$defs/media_service_binding_response_body",
+      "status": "active",
+      "description": "Own-Station verified media service route and signing keys bound to the accepted anchor; route reuse window only, no key release or plaintext authorization."
     },
     {
       "schema_id": "ak.schema.member_identity.v1",
@@ -1254,6 +1307,28 @@
       "status": "active"
     },
     {
+      "schema_id": "ak.schema.realm_actor_create.v1",
+      "file": "schemas/realm-actor.schema.json",
+      "status": "active",
+      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.realm.actor.create",
+        "normative_ref": "zh/extensions/realm-actors.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.realm_actor_material.v1",
+      "file": "schemas/realm-actor-material.schema.json",
+      "status": "active",
+      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.self.realm_actor.read.material.v1",
+        "normative_ref": "zh/extensions/realm-actors.md"
+      }
+    },
+    {
       "schema_id": "ak.schema.realm_authority_bundle.v1",
       "file": "schemas/realm-authority-bundle.schema.json",
       "status": "active",
@@ -1277,11 +1352,18 @@
       "status": "active"
     },
     {
-      "schema_id": "ak.schema.realm_join_bootstrap_response_body.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_bootstrap_response_body",
-      "status": "active",
-      "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
+      "schema_id": "ak.schema.realm_invite_link.v1",
+      "file": "schemas/realm-invite-link.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.realm_invite_link_token.v1",
+      "file": "schemas/realm-invite-link-token.schema.json",
+      "description": "Client-only fragment credential; forbidden on HTTP request and response surfaces.",
+      "consumer_binding": {
+        "kind": "client_fragment",
+        "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
+        "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
+      }
     },
     {
       "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
@@ -1291,17 +1373,17 @@
       "description": "Authenticated service-to-service request for the bounded material required to author and verify exactly one first-contact Realm join attempt."
     },
     {
+      "schema_id": "ak.schema.realm_join_bootstrap_response_body.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/peer_bootstrap_response_body",
+      "status": "active",
+      "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
+    },
+    {
       "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
       "description": "Closed, untrusted authority-bundle locator returned by Realm discovery, invite delivery, and join intake. Realm scope and freshness belong to the enclosing carrier and nonce-bound current assertion; the locator neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_preview_response_body.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_preview_response_body",
-      "status": "active",
-      "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
     },
     {
       "schema_id": "ak.schema.realm_join_peer_preview_request.v1",
@@ -1311,11 +1393,11 @@
       "description": "Authenticated service-to-service pre-join preview read against the exact inviter Station of one directed invite."
     },
     {
-      "schema_id": "ak.schema.realm_join_prepare_response_body.v1",
+      "schema_id": "ak.schema.realm_join_peer_preview_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_prepare_response_body",
+      "fragment": "#/$defs/peer_preview_response_body",
       "status": "active",
-      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
+      "description": "Policy-permitted pre-join disclosure for exactly one invite and invitee, without Directory result provenance or join routing hints."
     },
     {
       "schema_id": "ak.schema.realm_join_prepare_request.v1",
@@ -1325,11 +1407,11 @@
       "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
     },
     {
-      "schema_id": "ak.schema.realm_join_self_preview_response_body.v1",
+      "schema_id": "ak.schema.realm_join_prepare_response_body.v1",
       "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_preview_response_body",
+      "fragment": "#/$defs/self_prepare_response_body",
       "status": "active",
-      "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
+      "description": "Own-Station validated join preparation: verified governance facts plus the exact Event kind, canonical payload and preconditions to sign. It is not admission and not membership."
     },
     {
       "schema_id": "ak.schema.realm_join_self_preview_request.v1",
@@ -1337,6 +1419,13 @@
       "fragment": "#/$defs/self_preview_request_body",
       "status": "active",
       "description": "Authenticated account request for a pre-join Realm preview through the account's own Station."
+    },
+    {
+      "schema_id": "ak.schema.realm_join_self_preview_response_body.v1",
+      "file": "schemas/realm-join-intake.schema.json",
+      "fragment": "#/$defs/self_preview_response_body",
+      "status": "active",
+      "description": "Own-Station validated pre-join preview bound to the exact account, Realm, request and disclosure source."
     },
     {
       "schema_id": "ak.schema.realm_link_operations.v1",
@@ -1417,12 +1506,6 @@
     {
       "schema_id": "ak.schema.resource_selector.v1",
       "file": "schemas/resource-selector.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.current_state.v1",
-      "file": "schemas/current-state.schema.json",
-      "status": "active",
-      "description": "Closed typed current-state selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
     },
     {
       "schema_id": "ak.schema.rsvp.v1",
@@ -1545,18 +1628,18 @@
       }
     },
     {
-      "schema_id": "ak.schema.signer_key_query_response_body.v1",
-      "file": "schemas/signer-key-operations.schema.json",
-      "fragment": "#/$defs/query_response_body",
-      "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
-    },
-    {
       "schema_id": "ak.schema.signer_key_query_request.v1",
       "file": "schemas/signer-key-operations.schema.json",
       "fragment": "#/$defs/query_request_body",
       "status": "active",
       "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified committed_event_view, never a bare EventId or current projection."
+    },
+    {
+      "schema_id": "ak.schema.signer_key_query_response_body.v1",
+      "file": "schemas/signer-key-operations.schema.json",
+      "fragment": "#/$defs/query_response_body",
+      "status": "active",
+      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
     },
     {
       "schema_id": "ak.schema.space.v1",
@@ -1592,6 +1675,12 @@
     {
       "schema_id": "ak.schema.view.v1",
       "file": "schemas/view.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.watch_audit_operations.v1",
+      "status": "active",
+      "file": "schemas/watch-audit-operations.schema.json",
+      "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
     },
     {
       "schema_id": "ak.schema.websocket_authenticate_frame.v1",
@@ -1733,72 +1822,6 @@
       "fragment": "#/$defs/welcome",
       "status": "active",
       "description": "Server authentication-success frame carrying effective connection and channel limits."
-    },
-    {
-      "schema_id": "ak.schema.call_invitation_operations.v1",
-      "file": "schemas/call-invitation-operations.schema.json",
-      "status": "active",
-      "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
-    },
-    {
-      "schema_id": "ak.schema.watch_audit_operations.v1",
-      "status": "active",
-      "file": "schemas/watch-audit-operations.schema.json",
-      "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
-    },
-    {
-      "schema_id": "ak.schema.consent_private_operations.v1",
-      "file": "schemas/consent-private-operations.schema.json",
-      "status": "active",
-      "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
-    },
-    {
-      "schema_id": "ak.schema.applet_configuration_operations.v1",
-      "status": "active",
-      "file": "schemas/applet-configuration-operations.schema.json",
-      "description": "Bounded administrator configuration command, B-to-C execution and source result"
-    },
-    {
-      "schema_id": "ak.schema.realm_actor_create.v1",
-      "file": "schemas/realm-actor.schema.json",
-      "status": "active",
-      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.realm.actor.create",
-        "normative_ref": "zh/extensions/realm-actors.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.realm_actor_material.v1",
-      "file": "schemas/realm-actor-material.schema.json",
-      "status": "active",
-      "description": "Realm-owned Applet Bot/Ghost private identity/control contract.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.self.realm_actor.read.material.v1",
-        "normative_ref": "zh/extensions/realm-actors.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.decimal_integers.v1",
-      "status": "active",
-      "description": "Canonical exact decimal-string encodings for full-width unsigned and nonnegative signed integers.",
-      "file": "schemas/decimal-integers.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.realm_invite_link.v1",
-      "file": "schemas/realm-invite-link.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.realm_invite_link_token.v1",
-      "file": "schemas/realm-invite-link-token.schema.json",
-      "description": "Client-only fragment credential; forbidden on HTTP request and response surfaces.",
-      "consumer_binding": {
-        "kind": "client_fragment",
-        "selector": "HTTPS fragment tok with schema ak.schema.realm_invite_link_token.v1; decoded locally before any network request",
-        "normative_ref": "zh/sync/realm-invite-links.md#2-客户端秘密与链接外壳"
-      }
     }
   ]
 }

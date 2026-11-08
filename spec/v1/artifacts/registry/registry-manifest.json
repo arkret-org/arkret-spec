@@ -31,6 +31,13 @@
       "description": "Closed Agent provision, key-authorization and session operation sets with layer-specific recovery reasons."
     },
     {
+      "name": "applet_managed_authority",
+      "file": "registry/applet-managed-authority-registry.json",
+      "kind": "authority_contract",
+      "source_role": "canonical",
+      "description": "Managed Applet role, creation, lineage, Device authentication allowlist and scope contract."
+    },
+    {
       "name": "authority_set_policies",
       "file": "registry/authority-set-policy-registry.json",
       "kind": "authority_set_policy_registry",
@@ -93,6 +100,14 @@
       "kind": "content_addressed_ref_digest_exemption_registry",
       "source_role": "canonical",
       "description": "Closed per-field registry for the zh/conformance/encoding.md 4.0.1 rule that a carrier holding a complete content-addressed typed ref MUST NOT also carry a sibling digest of the same bytes. Every digest property that sits next to a content-addressed ref in the same closed object must state here the distinct preimage it commits to. Only refs whose whole pattern is one content-addressed form are in scope; union patterns are outside the gate. Consumed by tools/artifact_lint#check_content_addressed_ref_sibling_digests."
+    },
+    {
+      "name": "content_encryption",
+      "file": "registry/content-encryption-registry.json",
+      "kind": "content_encryption_registry",
+      "value_set_evolution": "open",
+      "source_role": "canonical",
+      "description": "Application ciphertext scheme and recoverable backup strategy registry."
     },
     {
       "name": "contract_registry",
@@ -469,13 +484,6 @@
       "kind": "conformance_vector_registry",
       "source_role": "canonical",
       "description": "Canonical machine index of ak.vector.* conformance vector identifiers and their defining prose/fixture sources."
-    },
-    {
-      "name": "applet_managed_authority",
-      "file": "registry/applet-managed-authority-registry.json",
-      "kind": "authority_contract",
-      "source_role": "canonical",
-      "description": "Managed Applet role, creation, lineage, Device authentication allowlist and scope contract."
     }
   ]
 }

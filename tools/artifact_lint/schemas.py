@@ -2822,7 +2822,7 @@ def check_signed_object_closure(lint: Lint) -> None:
         if envelope.get("additionalProperties") is not False:
             lint.fail(envelope_path, "encrypted envelope root additionalProperties must be false")
         definitions = envelope.get("$defs") or {}
-        for name in ("routing_context", "standard_mls_encryption_context"):
+        for name in ("routing_context", "epoch_content_encryption_context"):
             context = definitions.get(name)
             if not isinstance(context, dict) or context.get("additionalProperties") is not False:
                 lint.fail(

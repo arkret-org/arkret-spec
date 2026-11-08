@@ -40,7 +40,8 @@
       "artifact_lint",
       "prose_lint",
       "public_type_semantics",
-      "realm_invite_link_contract"
+      "realm_invite_link_contract",
+      "content_history_contract"
     ],
     "release_default": [
       "artifact_pipeline",
@@ -107,6 +108,11 @@
       "check_id": "content_bound_event_id_kat",
       "label": "content-bound Event-ID KAT",
       "owner_script": "tools/generate_content_bound_event_id_fixture.py"
+    },
+    {
+      "check_id": "content_history_contract",
+      "label": "Recoverable content encryption and history contract",
+      "owner_script": "tools/test_content_history_contract.py"
     },
     {
       "check_id": "creator_bootstrap_transaction_test",

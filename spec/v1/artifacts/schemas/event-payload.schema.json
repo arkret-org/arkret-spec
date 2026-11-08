@@ -751,6 +751,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "history_custody": {
+          "$ref": "./content-encryption.schema.json#/$defs/custody"
         }
       },
       "additionalProperties": false
@@ -6643,7 +6646,9 @@
         "next_epoch",
         "covers_key_access_revision",
         "commit_base64url",
-        "governance_binding"
+        "governance_binding",
+        "group_info_ref",
+        "ratchet_tree_ref"
       ],
       "properties": {
         "base_group_state_ref": {
@@ -6683,6 +6688,15 @@
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
+        },
+        "group_info_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "ratchet_tree_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "recovery_binding": {
+          "$ref": "./content-encryption.schema.json#/$defs/recovery_binding"
         }
       },
       "additionalProperties": false
@@ -11608,6 +11622,9 @@
           "pending"
         ]
       }
+    },
+    "mls_history_grant_payload": {
+      "$ref": "./content-encryption.schema.json#/$defs/history_grant"
     }
   },
   "x-arkret-public-handshake-contract": {

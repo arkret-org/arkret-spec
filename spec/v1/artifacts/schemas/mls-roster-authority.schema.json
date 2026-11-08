@@ -505,6 +505,9 @@
         },
         {
           "$ref": "#/$defs/roster_add_record"
+        },
+        {
+          "$ref": "#/$defs/roster_recovery_record"
         }
       ]
     },
@@ -659,7 +662,7 @@
     },
     "self_roster_read_response_body": {
       "type": "object",
-      "description": "Non-portable authenticated own-Station result. roster is the unchanged signed governance page. Exactly one key entry per Add record on that page, in the same order; no entry for Genesis. Keys bind exact signature kid, purpose, timestamp and record digest; current or remote self-asserted keys cannot substitute. Entire canonical response is at most 2 MiB.",
+      "description": "Non-portable authenticated own-Station result. roster is the unchanged signed governance page. Exactly one key entry per Add record on that page, in the same order; no entry for Genesis. Keys bind exact signature kid, purpose, timestamp and record digest; current or remote self-asserted keys cannot substitute. Entire canonical response is at most 2 MiB. Recovery records additionally require one ordered recovery_signing_keys entry each, derived by the own Station from independent native historical Event verification, digest-bound to the original record and matching the path/replacement key; never from caller claims or current DID keys.",
       "required": [
         "roster",
         "manifest_signing_key",
@@ -678,10 +681,203 @@
           "items": {
             "$ref": "#/$defs/roster_add_signing_keys"
           }
+        },
+        "recovery_signing_keys": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/roster_recovery_signing_key"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false,
-      "x-arkret-name-role": "response_body"
+      "x-arkret-name-role": "response_body",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "roster": {
+                "properties": {
+                  "records": {
+                    "contains": {
+                      "properties": {
+                        "kind": {
+                          "const": "recovery",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "mls-roster-authority.schema.json#/$defs/self_roster_read_response_body/allOf/0/if/properties/roster/properties/records/contains/properties/kind",
+                            "owner": "mls-roster-authority.schema.json#/$defs/self_roster_read_response_body/allOf/0/if/properties/roster/properties/records/contains/properties/kind",
+                            "values": [
+                              "recovery"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "recovery_signing_keys"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "recovery_signing_keys"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roster_recovery_record": {
+      "type": "object",
+      "required": [
+        "kind",
+        "commit_event",
+        "covering_commit",
+        "producer_signer_fact"
+      ],
+      "properties": {
+        "kind": {
+          "const": "recovery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mls-roster-authority.schema.json#/$defs/roster_recovery_record/properties/kind",
+            "owner": "mls-roster-authority.schema.json#/$defs/roster_recovery_record/properties/kind",
+            "values": [
+              "recovery"
+            ]
+          }
+        },
+        "commit_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.mls.commit",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "mls-roster-authority.schema.json#/$defs/roster_recovery_record/properties/commit_event/allOf/1/properties/kind",
+                    "owner": "mls-roster-authority.schema.json#/$defs/roster_recovery_record/properties/commit_event/allOf/1/properties/kind",
+                    "values": [
+                      "ak.mls.commit"
+                    ]
+                  }
+                },
+                "payload": {
+                  "required": [
+                    "recovery_binding"
+                  ]
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "semantic_refs"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "external_ref"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "covering_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "producer_signer_fact": {
+          "oneOf": [
+            {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact"
+            },
+            {
+              "$ref": "#/$defs/roster_agent_signer_fact"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete original public recovery Commit Event, its covering RealmCommit and exact minimal historical producer fact. The fact digest, target coordinates, original producer proof and RFC path leaf are independently verified; never a fabricated Add/claim or a governance-only key assertion. No PCR source history is disclosed."
+    },
+    "roster_recovery_signing_key": {
+      "type": "object",
+      "required": [
+        "record_digest",
+        "public_key_base64url"
+      ],
+      "properties": {
+        "record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "public_key_base64url": {
+          "$ref": "#/$defs/signature_key"
+        }
+      },
+      "additionalProperties": false
+    },
+    "roster_agent_signer_fact": {
+      "type": "object",
+      "required": [
+        "kind",
+        "event_ref",
+        "actor_id",
+        "verification_method",
+        "public_key_base64url",
+        "authorization_event_ref",
+        "accepted_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent_runtime",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "mls-roster-authority.schema.json#/$defs/roster_agent_signer_fact/properties/kind",
+            "owner": "mls-roster-authority.schema.json#/$defs/roster_agent_signer_fact/properties/kind",
+            "values": [
+              "agent_runtime"
+            ]
+          }
+        },
+        "event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_base64url": {
+          "$ref": "#/$defs/signature_key"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact-target minimum Agent source projection, frozen only after native Agent authority verification at original admission; must match original accepted Commit producer-fact digest. Never an Agent authorization proof on its own or an input to current authorization."
     }
   }
 }

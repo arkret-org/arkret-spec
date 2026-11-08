@@ -1367,6 +1367,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "fixture_digests": run_fixture_digest_check,
         "vector_registry_traceability": run_vector_registry_traceability_check,
         "session_grant_kat": run_session_grant_kat_check,
+        "content_history_contract": lambda: subprocess.run([sys.executable, "-B", "-m", "unittest", "tools.test_content_history_contract"], cwd=ROOT).returncode,
         "realm_invite_link_contract": lambda: subprocess.run([sys.executable, "-B", "tools/check_realm_invite_link_contract.py"],cwd=ROOT).returncode,
         "sdk_conformance_claim": run_sdk_conformance_claim_check,
         "contact_round_kat": run_contact_round_kat_check,

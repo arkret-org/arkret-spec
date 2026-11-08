@@ -1547,3 +1547,7 @@ Realm Bot／Ghost 的 current、控制原件及 exact 结果只通过
 ### Realm 主体恢复的 generation 与安全收尾
 
 受管 Bot／Ghost 的 recovery.begin 按 [Realm 主体§10](../extensions/realm-actors.md) 在同一接受事务写入 owner paused、generation successor、pending 原件和完整旧 generation 设备／leaf 安全收尾库存。所有业务与交付入口立即 fence 旧代次；generation 本身不是 MLS Remove。治理方记录原授权实例、目标 group／leaf、proposal 与 terminal 引用，由实际有权 MLS 参与方提交真实 Remove／Update／Commit；完成前相应 group 不得宣告恢复 ready。不得复用已永久撤销 DeviceId、跳过新 PoP 或通过恢复解锁旧历史。当前 manager 可 exact 续跑，本人 Human SecurityRotationTransaction API 不适用于此分支。
+
+### 14.3 完整内容恢复结果
+
+RecoveryTransaction两Event unit的completed只表示身份原子提交。recovery receipt的content_recovery按content-encryption.schema.json独立表示pending／ready；ready须PCR全原件恢复及完整scope库存清理完成。旧generation设备、session、队列和KeyPackage不得等TTL而继续使用；历史重放不恢复旧authorize。闭合空群库存、全发送者屏障、旧端新消息／备份隔离及24词充分路径见[可恢复内容 §5](./content-history.md#5-pcr24词恢复与旧端失效)。

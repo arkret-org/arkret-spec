@@ -6077,10 +6077,10 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     if not isinstance(metadata, dict):
         lint.fail(fixture_path, "Encrypted Envelope vector must declare payload_metadata")
         return
-    if set(metadata) != {"version", "content_type", "encryption_context"}:
+    if set(metadata) != {"version", "content_type", "encryption_scheme", "encryption_context"}:
         lint.fail(fixture_path, "Encrypted Envelope payload_metadata must be the minimal wire projection")
     context = metadata.get("encryption_context")
-    if not isinstance(context, dict) or set(context) != {"epoch", "group_state_ref"}:
+    if not isinstance(context, dict) or set(context) != {"epoch", "group_state_ref", "content_key_salt", "root_ref", "key_commitment", "protection"}:
         lint.fail(fixture_path, "Encrypted Envelope standard MLS context must omit duplicated AAD inputs and counter")
     canonical_metadata = canonical_json(metadata)
     if vector.get("expected_metadata_canonical_bytes_utf8") != canonical_metadata:
@@ -6109,29 +6109,34 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     if not isinstance(closed, dict) or closed.get("wire_members") != [
         "version",
         "content_type",
+        "encryption_scheme",
         "encryption_context",
         "ciphertext",
     ]:
         lint.fail(
             fixture_path,
             "Encrypted Envelope vector must declare closed_envelope.wire_members as the closed "
-            "four-member wire projection",
+            "five-member registered wire projection",
         )
     elif closed.get("additional_properties") is not False:
         lint.fail(
             fixture_path,
             "Encrypted Envelope closed_envelope must state additional_properties=false; a wire "
-            "that admits a fifth member is not closed",
+            "that admits an extra member is not closed",
         )
     context_members = vector.get("encryption_context_members")
     if not isinstance(context_members, dict) or context_members.get("required") != [
         "epoch",
         "group_state_ref",
+        "content_key_salt",
+        "root_ref",
+        "key_commitment",
+        "protection",
     ]:
         lint.fail(
             fixture_path,
             "Encrypted Envelope vector must declare encryption_context_members.required as "
-            "[epoch, group_state_ref]",
+            "[epoch, group_state_ref, content_key_salt, root_ref, key_commitment]",
         )
     elif context_members.get("registered_optional") != ["routing_context"]:
         lint.fail(

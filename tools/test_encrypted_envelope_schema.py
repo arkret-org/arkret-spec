@@ -26,8 +26,13 @@ class EncryptedEnvelopeSchemaTest(unittest.TestCase):
         return {
             "version": "1.0",
             "content_type": "application/json",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1",
             "encryption_context": {
                 "epoch": "0",
+                "content_key_salt": "A" * 43,
+                "root_ref": "sha256:" + "1" * 64,
+                "key_commitment": "sha256:" + "2" * 64,
+                "protection": {"root_refs": ["sha256:" + "1" * 64], "blob_refs": [], "backup_refs": ["ak:backup:019a0000-0000-7000-8000-000000000001"]},
                 "group_state_ref": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
             },
             "ciphertext": "AQID",

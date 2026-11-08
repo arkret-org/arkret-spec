@@ -211,7 +211,8 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
         "governance_station_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL",
         "initial_join_rule": "invite",
         "initial_history_access": "since_join",
-        "initial_discoverability": "invite_only"
+        "initial_discoverability": "invite_only",
+        "initial_encryption_backup_strategy": "ak.encryption_backup.epoch_content_roots.v1"
       }
     }
   },

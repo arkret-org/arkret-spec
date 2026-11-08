@@ -14,7 +14,9 @@
         "key_ref",
         "content_key_salt",
         "size_bytes",
-        "media_type"
+        "media_type",
+        "producer",
+        "key_commitment"
       ],
       "properties": {
         "blob_ref": {
@@ -116,6 +118,13 @@
         "media_type": {
           "type": "string",
           "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+        },
+        "producer": {
+          "$ref": "./content-encryption.schema.json#/$defs/endpoint"
+        },
+        "key_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "oneOf": [

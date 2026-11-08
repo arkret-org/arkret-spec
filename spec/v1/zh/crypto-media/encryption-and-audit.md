@@ -127,10 +127,9 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
 4. **Remove+Add 永远产生新 provenance**：先 Remove 再 Add 同一 ActorId 时，即使新 leaf 的
    `(完整 ActorId, credential, signature key, leaf 位置)` 元组与被移除的 leaf 逐字相同，它也是
    **一条新的 provenance**。实现 MUST NOT 以元组相等为由复用、合并或省略前一条 provenance
-   记录，也 MUST NOT 据此认为该成员的密文读取能力连续：§2.4 的「只从自己的 Add/Welcome epoch
-   起获得读取能力」不变。
+   记录；新的active成员状态须独立验证，已获权历史按content-history.md的原Actor floor和key交付判断。
 5. **application 与 Welcome 的保护不变**：握手面公开不改变应用内容与 Welcome 的保护形态。
-   应用内容仍按 §2.3 的 RFC 9420 encrypted envelope 发送，Welcome 仍是 §2.2 的加密 recipient
+   应用内容按 §2.3 与content-history.md的应用AEAD信封发送，Welcome 仍是 §2.2 的加密 recipient
    object。实现 MUST NOT 以「握手已公开」为由降低这两者中任何一者的保护。
 6. **握手不新增披露**：公开握手只使用本节已经列出的公开量，MUST NOT 为了让 Station 读懂
    握手而额外披露 Principal、Account、Device 或 Realm 外 locator。
@@ -141,7 +140,7 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
    Station 验证实际公开 transition 并冻结 inline provenance，成员验证 MAC；它不继承 Realm／Circle
    committer 权限或 creator-bootstrap transaction。机器合同为独立的 `x-arkret-sidecar-handshake-contract`。
 
-**v1 consumed Proposal 的唯一来源（normative）**：共享 Event 只有 `ak.mls.genesis` 与
+**v1 consumed Proposal 的唯一来源（normative）**：MLS transition Event 只有 `ak.mls.genesis` 与
 `ak.mls.commit`，Proposal 仅内联于后者，见 [`authority-commit-log.md` §9](../sync/authority-commit-log.md)。
 `ak.mls.commit` 的 RFC 9420 `Commit.proposals[]` 中任何 `ProposalOrRef::Reference` 均为
 `unsupported_feature`、整笔零写入；治理 Station 不得从临时 Proposal store、current tree 或 Welcome
@@ -349,43 +348,29 @@ Genesis 核对所有 selector，再对两份公开原字节分别按 ref 内嵌 
 
 ### 2.3 应用载荷加密
 
-effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind 的明文 payload；Genesis accepted 后 MLS
-永久激活，后续应用内容必须使用 standard RFC 9420 encrypted envelope，不能 disable、replace group 或回退明文。
-Realm 与每个 Circle 分别激活，父 scope 不隐式激活子 scope。
+effective scope无accepted MLS Genesis时只允许该kind的明文payload；激活后禁止回退明文。
+应用格式由必填`encryption_scheme`选择，当前为`ak.encryption.epoch_content_aead.v1`；
+MLS继续承担成员／epoch及握手，应用ciphertext不再是RFC PrivateMessage。
 
-Realm-default / Circle 的四种激活组合、Sidecar 固定独立 MLS 与 Space 放置检查见
-[`scope-settings.md` §3](../governance/scope-settings.md#3-加密组合与放置)；没有通用的父 Realm
-encryption floor。保留、legal hold 或明文服务名单均不产生额外 MLS secret 交付权，见该文 §4 / §5。
-
-加密 envelope 是 closed `{version,content_type,encryption_context,ciphertext}`；
-`encryption_context` 只含 `epoch`、`group_state_ref` 与已登记 routing context。AAD 从 outer signed Event、
-effective scope、Event kind、current public group result 与 sender leaf 唯一重建。wire 不复制 scope、group id、
-scheme、algorithm 或 AAD digest。
-
-**Closed pre-encryption header（normative）**：加密前，发送方 MUST 先把上述来源装配成一个封闭的
-pre-encryption header，并在加密之后视其为不可变量。该 header 是 AAD transcript 的唯一原像：成员、顺序与
-canonical 编码固定，缺字段、多字段、`null` 占位或重新排序都产生不同 AAD，因此都 MUST 被拒绝。header 本身
-**不上 wire**：接收方 MUST 从 outer signed Event、effective scope、Event kind、自己验证过的 current public
-group result 与 sender leaf 逐字重建它，MUST NOT 采信任何随 envelope 传来的副本。
-
-AAD digest 与 ciphertext digest 各自在固定 transcript 上计算：AAD digest 的原像是重建出的 pre-encryption
-header 的 canonical bytes；ciphertext digest 的原像是 envelope 的 `ciphertext` 原始字节。任一不匹配——重建的
-AAD 与解密时使用的 AAD 不同、ciphertext digest 与已签名引用不同、`encryption_context` 与 current public group
-result 不一致——MUST fail closed：MUST NOT 部分接受、MUST NOT 降级为明文、MUST NOT 换一组 secret 重试，也
-MUST NOT 写入任何 typed current 或 outbox 的部分结果。
+closed envelope为`{version,content_type,encryption_scheme,encryption_context,ciphertext}`。
+context只含epoch、group_state_ref、content_key_salt、root_ref、key_commitment、protection及已登记routing context。
+原签outer Event、历史scope／group结果、producer原授权共同重建封闭AAD；不得传入header副本、counter或任意算法开关。
+byte-exact KDF、AAD、原件key承诺、nonce和备份耐久规则以[可恢复内容 §2／§3](./content-history.md#2-精确kdf与原件绑定)为准。
+encryption_scheme与Realm encryption_backup_strategy不是同一个字段；必须核对原件产生时的已接纳basis，
+不能根据Realm当前配置猜旧密文。未知／不匹配格式拒绝，不尝试降级或另一组secret，不产生部分typed current／outbox结果。
 
 ### 2.4 Sync 与 MLS Epoch
 
 encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观察。客户端可先缓存 ciphertext，但只有在本地
-完整验证连续 RFC 9420 transition 并得到目标 epoch private state 后才进入 verified timeline。缺 epoch 时标记
+按当前授权与content-history.md验证原历史来源、取得目标内容root／DEK并成功解密后才进入 verified timeline。缺材料时标记
 `decryption_pending`；不得丢弃、重排或用 Station public result代替密码学验证。
 
-新 member 或 endpoint 只从其 Add/Welcome epoch 获得密文读取能力。治理 Station不得发送加入前 standard MLS secret，
+新active endpoint通过Add／Welcome或恢复专用External Commit建立当前MLS资格；获权历史独立按content-history.md交付。治理 Station不得发送加入前standard MLS内部secret，
 也不得从 public tree恢复 private state。
 
-**晚到 epoch 材料与审计标记的边界（normative）**：密文先到、该接收端合法 Add/Welcome 与连续 MLS transition 后到，仍按本节普通 `decryption_pending` → verified timeline 路径处理；客户端必须逐项验证原 encrypted Event 的 accepted historical group binding、自己的目标 epoch private state，以及该 Event 所在 stream 的已授权历史可见范围。正常重试不得因为本地材料晚到而被废止，也不得从当前 roster、Event 到达顺序或跨 stream 的裸 `stream_position` 猜原事件时点的成员关系。若既有可验证 MLS/stream 证据不完整，继续保持密文 pending／不可见；持有密钥字节本身不构成访问权。
+**晚到 epoch 材料与审计标记的边界（normative）**：密文先到、该接收端合法 Add/Welcome 与连续 MLS transition 后到，仍按本节普通 `decryption_pending` → verified timeline 路径处理；客户端必须逐项验证原 encrypted Event 的 accepted historical group binding、自己的获权目标root／DEK及原epoch绑定，以及该 Event 所在 stream 的已授权历史可见范围。正常重试不得因为本地材料晚到而被废止，也不得从当前 roster、Event 到达顺序或跨 stream 的裸 `stream_position` 猜原事件时点的成员关系。若既有可验证 MLS/stream 证据不完整，继续保持密文 pending／不可见；持有密钥字节本身不构成访问权。
 
-`ak.audit.accessed{access_kind="e2ee_late_recovery",late_recovery_original_event_id}` 仅是受授权写入的访问审计记录，不是历史成员证明、epoch-to-commit 证明、解密成功回执或客户端展示许可。v1 不登记独立晚到恢复明文展示捷径、强制“旧消息刚解密”横幅或专属 wire 拒绝码；客户端 MUST NOT 因看见此 audit Event、未登记 raw JSON 布尔标记、当前成员列表或旧 history-secret 捷径而解锁原密文。若未来要提供超出本节普通 MLS 路径的晚到恢复，必须另行闭合接收者完整 ActorId、原 Event/effective scope/epoch、跨 stream 已接纳历史基数及受限读取权限；不得借本审计字段隐式补足。
+`ak.audit.accessed{access_kind="e2ee_late_recovery",late_recovery_original_event_id}` 仅是受授权写入的访问审计记录，不是历史成员证明、epoch-to-commit 证明、解密成功回执或客户端展示许可。v1 不登记独立晚到恢复明文展示捷径、强制“旧消息刚解密”横幅或专属 wire 拒绝码；客户端 MUST NOT 因看见此 audit Event、未登记 raw JSON 布尔标记、当前成员列表或旧 history-secret 捷径而解锁原密文。获权历史的实际解密使用content-history.md的原签key grant／备份路径；audit字段不能代替其中的任何授权或来源证明。
 
 #### 2.4.1 Membership 与 Epoch 不一致窗口
 
@@ -573,11 +558,11 @@ MLS epoch、target、scope、routing window 和真实 emoji 的不同 sender 产
 
 ### 2.9 内容 scheme
 
-v1 只有 standard RFC 9420 application encryption。每个 application ciphertext由当前 epoch secret按 RFC 9420生成；
-协议不保存或分发额外 epoch content root。
-
-外置加密附件使用 [media-and-blob.md §3.0](./media-and-blob.md) 的 per-object MLS-Exporter
-内容密钥；它不替代 RFC 9420 PrivateMessage，不保存或分发另一个 epoch root，也不授予历史密钥访问权。
+应用正文采用注册的可恢复epoch-content AEAD格式，Realm以签名genesis声明备份策略。
+专用应用内容根可按权限加密保管；原始MLS exporter_secret、ratchet和endpoint私态不得当历史包克隆。
+后加入者按当前权限取得历史root／DEK，PCR24词全历史恢复及旧端失效按[可恢复内容](./content-history.md)执行。
+外置附件的per-object内容key同样从用途隔离的应用根派生，附件原签描述符和必要blob必须纳入覆盖。
+当前只有registry中的active格式和策略可用，不保留旧PrivateMessage应用正文兼容分支。
 
 ### 2.10 Agent Event 双绑定
 
@@ -768,17 +753,17 @@ authority transaction。
 ## 6. 离线与延迟到达
 
 离线客户端恢复后先取得current authority bundle、可见 stream heads、public MLS current state与tail，再顺序应用本地
-缺少的Commit和recipient deliveries。它不得从snapshot或其它成员取得加入前secret。
+缺少的Commit和recipient deliveries。不得从snapshot安装旧活跃私态；获权历史材料只按content-history.md取得。
 
 ## 7. v1 集成要求
 
 + Realm、每个 Circle分别决定是否通过 Genesis不可逆激活MLS；
-+ shared MLS Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；
++ MLS transition Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；历史key交付另用 `ak.mls.history_grant`；
 + Welcome与Commit同一authority transaction durable enqueue；跨站 recipient 的 Welcome 随同一 Commit 的
   committed-replication item 在成员站同一 replica 事务入队；
 + KeyPackage只在专用ledger；
 + fixed GroupContext binding只含scope、base、epoch transition与key-access revision；
-+ 新member/endpoint只从Add/Welcome epoch获得密文能力；
++ 新active成员资格与获权历史分开验证，后者按content-history.md交付；
 + governance Station handoff迁移public state、claim records与Welcome outbox，不迁移member secrets。
 
 ## 持久恢复的完成条件（normative）
@@ -788,3 +773,5 @@ sender只有在exact submission已由current governance Station确认为accepted
 claim binding、Commit lineage与完整RFC 9420处理均成功且private state耐久保存后才ACK。任何崩溃恢复都重放相同ID和bytes，不生成平行transition。
 
 Watch／Circle 跨 actor 写入与 Watch 私有前态读取的唯一已登记审计接纳、重放和交付合同见 [authority-commit-log §5.2／§5.3](../sync/authority-commit-log.md#52-业务与审计配对单元normative)。`watch_audit_read` 记录获授权的治理读取，不作为可复用读票或网络交付成功证明；不能通过普通投影绕过该 command。
+
+恢复专用External Commit的current资格、recovery_binding、exact-base CAS及全旧leaf清理例外以[content-history §5](./content-history.md#5-pcr24词恢复与旧端失效)为准；未满足该例外的ExternalInit／new_member_commit继续拒绝。所有winning Commit须原签并耐久保存group_info_ref／ratchet_tree_ref。

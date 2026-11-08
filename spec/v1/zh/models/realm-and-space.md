@@ -99,7 +99,7 @@ transcript：旧 group 只能整体重建。本派生**不**承诺隐藏同一 g
 
 Realm-default group 与每个 MLS-backed Circle group 完全独立。Realm policy 不提供 Circle group/secret/counter fallback。
 `history_access` 是 Realm 自有的单向安全 ratchet：create 初始化为二态之一，之后仅允许
-`all_history_for_current_members → since_join`，永久禁止放宽；MLS 激活要求 current 值为 `since_join`。
+`all_history_for_current_members → since_join`，永久禁止放宽；MLS激活支持这两个值；获权历史必须有实际解密材料。
 它只约束历史交付，不进入 MLS key-access revision。具体 T0/T1 与恢复规则见
 [`history-visibility.md`](../governance/history-visibility.md)。
 
@@ -122,7 +122,8 @@ Schema id: `ak.schema.realm.v1`
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
-| `history_access` | yes | `enum(since_join, all_history_for_current_members)` | reducer 派生且在任一时点恰有一个 current 值；accepted MLS Genesis 要求 current 值为 `since_join`。 | scope-local 历史访问策略。 |
+| `history_access` | yes | `enum(since_join, all_history_for_current_members)` | reducer 派生且在任一时点恰有一个 current 值；accepted MLS Genesis支持两种值，历史按原Actor floor及授权材料读取。 | scope-local 历史访问策略。 |
+| `encryption_backup_strategy` | yes | registered strategy id | create-locked；从genesis `initial_encryption_backup_strategy`投影。 | 内容备份／恢复策略，独立于消息encryption_scheme。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；仅具备交接资格的 materialized Realm 由连续 handoff chain 派生当前值；Direct Conversation 永久保持 genesis Station 与 generation 0。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
@@ -139,7 +140,7 @@ Schema id: `ak.schema.realm.v1`
 
 | 字段组 | 唯一 canonical carrier |
 | --- | --- |
-| `trust_domain`、`security_class`、`governance_station_id`、`initial_join_rule`、`initial_history_access`、`initial_discoverability` | `ak.realm.create` 的 closed `ak.schema.realm_genesis.v1` object；这些 generation-0 identity、authority 与初始策略坐标进入 Realm ID preimage。 |
+| `trust_domain`、`security_class`、`governance_station_id`、`initial_join_rule`、`initial_history_access`、`initial_encryption_backup_strategy`、`initial_discoverability` | `ak.realm.create` 的 closed `ak.schema.realm_genesis.v1` object；这些 generation-0 identity、authority 与初始策略坐标进入 Realm ID preimage。 |
 | `fields.purpose`、`fields.collaboration_role` | `ak.realm.create` 的 closed genesis `purpose`；reducer 按本节映射表确定性投影，无独立作者入口。 |
 | `schema_refs` | genesis reducer 初始化核心 schema；后续唯一作者入口是 `ak.realm.schema` → `realm_schema` 的完整替换。 |
 | `title`、`summary`、`avatar_blob_ref` | `ak.realm.profile` → `realm_profile`。 |
@@ -177,7 +178,7 @@ v1 不定义 monolithic `ak.realm.update` 或 `realm_metadata`。实现 MUST 拒
 
 `owning_organization_ids`、`fields`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。`fields.purpose` 与 `fields.collaboration_role` 是其中的特例：它们不是 extension 字段，而是上述映射表从签名 genesis `purpose` 确定性投影的只读字段，`ak.realm.create` 之外无作者入口。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
-跨字段约束（normative）：`history_access` 只有 `since_join` 与 `all_history_for_current_members`。治理 Station 仅在 current `history_access=since_join` 时接纳该 scope 的首个 `ak.mls.genesis`；激活后任何放宽历史范围的更新均以 `failed_precondition` 拒绝。
+跨字段约束（normative）：`history_access` 只有 `since_join` 与 `all_history_for_current_members`。治理Station可在两种history_access值下接纳首个MLS Genesis，必须执行content-history.md的材料耐久及交付规则；激活后任何放宽历史范围的更新均以 `failed_precondition` 拒绝。
 
 ### 2.3.0 Realm 组织归属与治理同意（normative）
 
@@ -221,7 +222,8 @@ v1 不定义 monolithic `ak.realm.update` 或 `realm_metadata`。实现 MUST 拒
       "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
     }
   },
-  "created_at": "2026-04-26T00:00:00.000Z"
+  "created_at": "2026-04-26T00:00:00.000Z",
+  "encryption_backup_strategy": "ak.encryption_backup.epoch_content_roots.v1"
 }
 ```
 
@@ -241,7 +243,7 @@ receiver 派生：realm_id = retype(event_id, "realm")
 
 违反 MUST `schema_violation`，`reason_code=realm_id_not_event_derived`。
 
-每一个 Realm——Collaboration、Direct Conversation、human PCR 与 Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`security_class`、`governance_station_id`、`initial_join_rule`、`initial_history_access`、`initial_discoverability`。其中：
+每一个 Realm——Collaboration、Direct Conversation、human PCR 与 Agent PCR——的 closed genesis object MUST 使用 `schema="ak.schema.realm_genesis.v1"`，并携带：`purpose`、`genesis_salt`、`trust_domain`、`security_class`、`governance_station_id`、`initial_join_rule`、`initial_history_access`、`initial_encryption_backup_strategy`、`initial_discoverability`。其中：
 
 ```text
 genesis_salt = base64url_no_pad(CSPRNG(32 octets))
@@ -516,7 +518,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
   - PCR MUST 在任何控制内容写入之前接受自己的 `ak.mls.genesis`；该 accepted RealmCommit 把 PCR scope 不可逆激活为 standard RFC 9420。v1 不存在"明文 PCR"：激活后的明文控制内容写入 MUST fail closed。
   - `created_by` 从 create envelope 的完整 `actor_id` 派生；`governance_station_id` 明确指定 generation-0 治理 Station。RealmCommit 必须由该 generation 的治理 Station service identity 签署，并通过 service DID 的 historical method evidence 验证。
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
-  - effective `history_access = "since_join"`。新 endpoint 从自己的 initial Add/Welcome admission 起读取密文，durable device-list / normalized principal view 提供必要控制 baseline，解密只使用该 endpoint 本地持有的 MLS state。
+  - effective `history_access = "since_join"`。同Actor新endpoint保留原Actor的genesis join floor；历史按content-history.md的获权根／DEK恢复，不以新Add时间截断。控制baseline不得冒充全部原历史。
 - 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束（该 profile 的适用条件是 genesis `purpose ∈ {principal_control, agent_control}`，不是它出现在某个可编辑集合里）：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。
 - Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；Agent lifecycle 的 `actor_id` 必须是 exact account variant，service variant、同 principal 异 Station 的替代或 payload principal mirror 不匹配均 fail closed。realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
@@ -525,7 +527,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - "私有"语义由 **用途 + event-kind allowlist + 外露注册表** 共同锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
 - **外露方向同样闭合（normative）**：`realm_event_kind_policy.allowed_event_kinds` 只锁"能写什么"。允许写入的 kind 中，有一部分必须离开该 Realm 才能让协议成立——远端做设备信任重放、RealmCommit 归属判定、Contact 验证闭环与 KeyPackage claim 都需要它们。**这些外露路径 MUST 逐条登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)**，其 `event_kinds[]` 集合 MUST 与本 allowlist 逐字相等。每条 `exposures[]` 声明 carrier 形态（`exact_event` / `derived_field` / `receipt` / `authority commit` / `did_service_entry`）、surface、`operation_id` 与方向、exact `schema_ref` 与 JSON Pointer、`authorization_policy_id`，以及适用时的 `anti_enumeration_policy_id`。`exposures[]` 为空即 **PCR-private**：该 kind MUST NOT 经任何 `ak.open.*` / `ak.peer.*` / 跨 principal `ak.self.*` 面或公开 DID Document entry 到达域外。conformance vector `ak.vector.identity.pcr_outward_exposure_registry.v1` 覆盖 registry 正反向闭合与各授权分支的反枚举等价性。
 - **`public` 是显式策略值，不是缺省**：缺少 `authorization_policy_id` MUST NOT 被解释为公开。新增任何承载 PCR 派生字段的对外面而未在该注册表登记，release gate MUST 红；把某个 carrier 悄悄扩大到第二个仍标记 private 的 kind 同样 MUST 红。
-- **PCR 历史读取（normative）**：PCR 固定 `history_access=since_join`。新 endpoint 从自己的有效 Add/Welcome 起读取密文；控制基线由 durable device-list / normalized principal view 提供。
+- **PCR 历史读取（normative）**：PCR 固定 `history_access=since_join`。同Actor换端不重置历史floor；按content-history.md §5从genesis恢复全部PCR原件，控制基线不替代历史。
 - **PCR 不得有 alias（normative）**：`ak.realm.alias` 同样不在 allowlist 内，PCR 只能按 `realm_id` 寻址；给身份基础设施控制流挂一个人类可读、可猜测的短地址会把 principal 的控制 Realm 公开暴露。写入 MUST `principal_control_event_kind_forbidden`。
 
 #### 2.8.2 Collaboration Realm
@@ -782,3 +784,5 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 
 
 Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。
+
+Realm genesis的必填initial_encryption_backup_strategy参与原Event ID preimage；当前策略及未来登记／未知拒绝规则见[可恢复内容 §1](../crypto-media/content-history.md#1-两个独立选择器)。profile／policy bundle／generic patch不得写该create-locked字段。

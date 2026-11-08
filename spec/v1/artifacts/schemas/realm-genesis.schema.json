@@ -12,6 +12,7 @@
     "governance_station_id",
     "initial_join_rule",
     "initial_history_access",
+    "initial_encryption_backup_strategy",
     "initial_discoverability"
   ],
   "properties": {
@@ -75,6 +76,9 @@
     },
     "initial_history_access": {
       "$ref": "./realm.schema.json#/properties/history_access"
+    },
+    "initial_encryption_backup_strategy": {
+      "$ref": "./content-encryption.schema.json#/$defs/encryption_backup_strategy"
     },
     "initial_discoverability": {
       "$ref": "./realm.schema.json#/properties/default_discoverability"

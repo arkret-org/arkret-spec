@@ -371,9 +371,9 @@ MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内�
 
 ### 14.1 MLS 私态与解密缓存的本地静态加密 (normative)
 
-本地 MLS private state、解密缓存和同主体备份必须静态加密并绑定账号/设备。新 member/endpoint 从其有效 Add/Welcome 起获得后续 epoch state。
+本地 MLS private state、解密缓存和同主体备份必须静态加密并绑定账号/设备。新active endpoint按Add／Welcome或恢复专用External Commit取得当前成员状态；获权历史另按content-history.md取得root／DEK。
 
-客户端提供“清除派生明文缓存”操作时，MUST 只删除派生明文、解密缓存及可重新取得的辅助链接，不得因此删除已验证的当前或合法历史 MLS private-state checkpoint。清理前 MUST 向用户明确说明：保留 checkpoint 不保证每条旧消息均可重新解密；缺失的合法 epoch 私态无法由治理 Station 的 public state 重建。不得为履行清理承诺复活独立 exporter-history secret 存储或声称所有旧内容可恢复。
+客户端提供“清除派生明文缓存”操作时，MUST 只删除派生明文、解密缓存及可重新取得的辅助链接，不得因此删除已验证的当前或合法历史 MLS private-state checkpoint。清理派生缓存不得破坏content-history.md要求的内容根、耐久备份或完整PCR恢复集。public state不能重建丢失的MLS内部私态；历史内容通过已备份专用根恢复，不通过克隆旧checkpoint。
 
 ### 14.2 History-only multi-candidate store（normative）
 
