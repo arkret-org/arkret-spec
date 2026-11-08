@@ -113,8 +113,10 @@ Event forwarding 始终保留 exact producer bytes，并只将 current authority
 已 source-committed 的配对复制仅走 `registered_atomic_unit`，不能拆成普通复制项；
 具体顺序、逐 Event signer fact、重放与整体失败关闭见 [authority-commit §5.2](./authority-commit-log.md#52-业务与审计配对单元normative)。
 
-转发 `ak.mls.genesis` 时，`authority_forward` 另携 `mls_genesis_material`：Genesis 所引 GroupInfo 与 ratchet tree 两个
-Blob 的原始字节，由治理 Station 核对内容寻址后在接纳事务内保存；其它 kind 禁带（规则见
+转发`ak.mls.genesis`的event_submission或`ak.mls.commit`的mls_submission时，`authority_forward`另必携
+`mls_group_state_material`：原签Event所引GroupInfo与ratchet tree两个Blob的原始字节。
+治理Station核对内容寻址、RFC签名／external_pub及exact post-context／tree后与winning Commit原子保存；
+其它Event、atomic和replication分支禁带（规则见
 [`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
 
 **跨站真实 Account Device producer（normative）**：transport 认证不证明 producer 设备授权，治理 Station 也没有 producer

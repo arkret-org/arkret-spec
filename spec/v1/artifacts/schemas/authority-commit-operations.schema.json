@@ -172,12 +172,12 @@
         "event_submission": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
-        "mls_genesis_material": {
-          "$ref": "#/$defs/mls_genesis_material",
-          "description": "authority_forward event branch only. Required when event_submission.event.kind is ak.mls.genesis and forbidden for every other kind: the raw GroupInfo and ratchet_tree bytes of the two content-addressed Blobs the Genesis references, read by the forwarding Station (the creator's Account Station) from its own Blob store. The governance Station hashes each under its ref's embedded suite, compares with the Genesis payload refs, rejects a mismatch with digest_mismatch and zero writes, and stores both as public Blobs inside the acceptance transaction (zh/crypto-media/encryption-and-audit.md section 5.1.2)."
-        },
         "mls_submission": {
           "$ref": "./mls-commit-submission.schema.json"
+        },
+        "mls_group_state_material": {
+          "$ref": "#/$defs/mls_group_state_material",
+          "description": "Only authority_forward: required for an event_submission containing ak.mls.genesis and for every mls_submission containing ak.mls.commit, including approved External recovery. Forbidden on other Event kinds, atomic submissions and replication branches. The forwarding Actor's owning Station loads and freezes both raw Blob bytes from its own store before forwarding. The signed Event group_info_ref and ratchet_tree_ref are the only digest carriers. The governor checks canonical encoding, each embedded digest suite, RFC GroupInfo signature, external_pub, exact accepted-transition epoch, complete post-GroupContext and ratchet tree before any acceptance writes, then stores both Blobs atomically with the winning Commit. Missing/unavailable local material is bare failed_precondition without forwarding; a digest mismatch is digest_mismatch with zero writes. Candidate uploads retain the subject/episode private Blob ACL. See zh/crypto-media/encryption-and-audit.md section 5.1.2."
         },
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
@@ -286,13 +286,13 @@
           },
           "then": {
             "required": [
-              "mls_genesis_material"
+              "mls_group_state_material"
             ]
           },
           "else": {
             "not": {
               "required": [
-                "mls_genesis_material"
+                "mls_group_state_material"
               ]
             }
           }
@@ -300,7 +300,8 @@
         {
           "required": [
             "branch",
-            "mls_submission"
+            "mls_submission",
+            "mls_group_state_material"
           ],
           "properties": {
             "branch": {
@@ -330,11 +331,6 @@
               {
                 "required": [
                   "unit"
-                ]
-              },
-              {
-                "required": [
-                  "mls_genesis_material"
                 ]
               },
               {
@@ -383,7 +379,7 @@
               },
               {
                 "required": [
-                  "mls_genesis_material"
+                  "mls_group_state_material"
                 ]
               },
               {
@@ -451,7 +447,7 @@
               },
               {
                 "required": [
-                  "mls_genesis_material"
+                  "mls_group_state_material"
                 ]
               },
               {
@@ -514,7 +510,7 @@
               },
               {
                 "required": [
-                  "mls_genesis_material"
+                  "mls_group_state_material"
                 ]
               },
               {
@@ -781,9 +777,9 @@
       ],
       "additionalProperties": false
     },
-    "mls_genesis_material": {
+    "mls_group_state_material": {
       "type": "object",
-      "description": "Raw epoch-0 public material of one forwarded ak.mls.genesis: the exact bytes of the GroupInfo and ratchet_tree Blobs named by the Genesis payload group_info_ref and ratchet_tree_ref, as unpadded base64url. It carries no ref or digest echo; the refs in the signed Genesis are the only digest carrier. Each member is at most 5592406 characters, so each decodes to at most 4194304 bytes and the two together never exceed 8388608 bytes, the ak.peer.mls.read.group_state_material.v1 response bound; a longer member is schema_violation and there is no separate aggregate bound.",
+      "description": "Exact raw GroupInfo and ratchet_tree Blob bytes for the new epoch published by an ak.mls.genesis or ak.mls.commit. Unpadded canonical base64url; no ref or digest echoes. The original producer-signed Event carries both content addresses. Each member is at most 5592406 characters and decodes to at most 4194304 bytes; their sum is bounded by 8388608 bytes, the existing group-state-material response budget. No separate aggregate refusal. Origin journals exact bytes with the outgoing intent; lost responses retry that same candidate.",
       "required": [
         "group_info_base64url",
         "ratchet_tree_base64url"

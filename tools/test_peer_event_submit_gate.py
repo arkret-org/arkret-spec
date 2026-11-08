@@ -160,13 +160,42 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             branch = self.defs(documents)["peer_submit_request_body"]["oneOf"][0]
             del branch["else"]
 
-        self.assert_red(mutate, "the Event kind alone must decide mls_genesis_material")
+        self.assert_red(mutate, "the Event kind alone must decide mls_group_state_material")
 
     def test_genesis_material_rejects_ref_echo(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["mls_genesis_material"]["properties"]["group_info_ref"] = {"type": "string"}
+            self.defs(documents)["mls_group_state_material"]["properties"]["group_info_ref"] = {"type": "string"}
 
         self.assert_red(mutate, "no ref or digest echo")
+
+    def test_commit_material_cannot_be_optional(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["peer_submit_request_body"]["oneOf"][1]["required"].remove("mls_group_state_material")
+
+        self.assert_red(mutate, "every forwarded MLS Commit requires exact mls_group_state_material")
+
+    def test_commit_material_cannot_be_forbidden(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_submit_request_body"]["oneOf"][1]
+            branch["not"]["anyOf"].append({"required": ["mls_group_state_material"]})
+
+        self.assert_red(mutate, "reject every cross-branch field")
+
+    def test_commit_branch_material_presence_and_cross_branch_rejection(self) -> None:
+        from jsonschema import Draft202012Validator
+
+        branch = self.defs(self.documents)["peer_submit_request_body"]["oneOf"][1]
+        validator = Draft202012Validator(branch)
+        publication = {"branch": "authority_forward", "mls_submission": {},
+                       "mls_group_state_material": {"group_info_base64url": "AQ", "ratchet_tree_base64url": "Ag"}}
+        self.assertTrue(validator.is_valid(publication))
+        missing = copy.deepcopy(publication)
+        del missing["mls_group_state_material"]
+        self.assertFalse(validator.is_valid(missing))
+        for field in ("event_submission", "replications", "unit", "atomic_submission", "atomic_producer_evidence"):
+            with self.subTest(field=field):
+                mixed = {**publication, field: {}}
+                self.assertFalse(validator.is_valid(mixed))
 
     def test_replication_outcome_record_rejects_optional_echo(self) -> None:
         def mutate(documents: dict) -> None:

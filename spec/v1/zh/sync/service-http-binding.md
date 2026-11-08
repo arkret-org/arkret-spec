@@ -159,8 +159,9 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   Event 决定：实际签名方是 Account 且 proof fragment 为 `ak:device:` 时必带，其它情况禁带，MLS 以 Commit Event
   的 producer 为准；缺失或多余为 `schema_violation`。forwarding Station 每次转发尝试前现签并先持久化，治理
   Station 按 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 验证后才接纳；
-  其它两支不得携带它。`event_submission` 的 Event 是 `ak.mls.genesis` 时必带、其它 kind 禁带
-  `mls_genesis_material`（Genesis 所引两个 Blob 的原始字节），治理 Station 核对内容寻址后在接纳事务内保存
+  其它两支不得携带它。`event_submission`的Event是`ak.mls.genesis`时及每份Commit `mls_submission`均必带
+  `mls_group_state_material`（原签Event所引两个Blob的原始字节），其它Event／atomic／replication禁带；
+  治理Station核对内容寻址、RFC GroupInfo签名／external_pub及exact post-context／tree后在接纳事务内保存
   （[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
   Agent runtime producer 改用正式 sibling `producer_agent_evidence`，human device/service producer 禁带；
   同携 Device 与 Agent 两类 producer evidence 或缺 required evidence 为 `schema_violation` 且零写入。实际 producer 以

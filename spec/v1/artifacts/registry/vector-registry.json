@@ -2648,15 +2648,15 @@
       ]
     },
     {
-      "vector_id": "ak.vector.federation.authority_forward_genesis_material.v1",
+      "vector_id": "ak.vector.federation.authority_forward_mls_material.v1",
       "status": "active",
       "domain": "federation",
       "applies_to_fixtures": [
-        "federation-authority-forward-genesis-material-fixture.json"
+        "federation-authority-forward-mls-material-fixture.json"
       ],
-      "description": "A cross-Station ak.mls.genesis is forwarded with mls_genesis_material holding the raw GroupInfo and ratchet_tree Blob bytes; the governance Station accepts it only when both hash to the Genesis refs under their embedded suites and the RFC 9420 epoch-0 public state verifies, stores both as public Blobs in the acceptance transaction and later serves them unchanged through ak.peer.mls.read.group_state_material.v1. A Genesis without the member or any other kind with it, a member longer than 5592406 characters or not canonical unpadded base64url, and addressed bytes that are no epoch-0 public state are schema_violation, and a digest mismatch is digest_mismatch, all with zero writes; two members at the bound decode to exactly the 8388608-byte response bound, so no aggregate refusal exists. The forwarding Station refuses a Genesis whose Blobs it does not hold or that do not address their refs with a bare failed_precondition and forwards nothing; an exact replay returns the original Commit.",
+      "description": "Genesis and ordinary Member or approved recovery External Commit forwards require the same mls_group_state_material carrier. Exact original signed refs, canonical encoding and byte limits, content addressing, RFC GroupInfo/external_pub, complete post-context and tree must verify before both objects are stored atomically with the winning transition; original accepted material is served unchanged through existing group-state-material reads. Wrong branches or missing carrier are schema_violation, digest mismatch is digest_mismatch, all with zero writes. Missing or non-addressing origin objects cause bare failed_precondition without forwarding. Exact retry preserves the original wire bytes and outcome; a changed base uses a new signed candidate. The carrier creates no new API, authority, private-state backup or public candidate Blob ACL.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
+        "spec/v1/artifacts/fixtures/federation-authority-forward-mls-material-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

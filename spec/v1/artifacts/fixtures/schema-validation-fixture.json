@@ -269,8 +269,8 @@
       }
     },
     {
-      "name": "mls_genesis_material_valid",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
+      "name": "mls_group_state_material_valid",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_group_state_material",
       "expect_valid": true,
       "instance": {
         "group_info_base64url": "AAEAAQ",
@@ -278,8 +278,8 @@
       }
     },
     {
-      "name": "mls_genesis_material_rejects_ref_echo",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
+      "name": "mls_group_state_material_rejects_ref_echo",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_group_state_material",
       "expect_valid": false,
       "first_expected_error": "contains:'group_info_ref' was unexpected",
       "instance": {
@@ -289,8 +289,8 @@
       }
     },
     {
-      "name": "mls_genesis_material_rejects_padded_base64",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
+      "name": "mls_group_state_material_rejects_padded_base64",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/mls_group_state_material",
       "expect_valid": false,
       "first_expected_error": "contains:does not match",
       "instance": {

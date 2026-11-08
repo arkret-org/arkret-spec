@@ -2466,7 +2466,8 @@
             "schema_kind": null,
             "required": [
               "branch",
-              "mls_submission"
+              "mls_submission",
+              "mls_group_state_material"
             ],
             "properties": [
               "branch"

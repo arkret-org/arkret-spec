@@ -216,13 +216,13 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request_body alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
-            {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "event_submission", "mls_group_state_material", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "mls_submission", "mls_group_state_material", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "atomic_submission", "atomic_producer_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
+        all_branch_fields = {"event_submission", "mls_group_state_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -233,23 +233,25 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request_body alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_group_state_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
         _fail(lint, SCHEMA, "peer_submit_request_body properties must be the exact branch field set")
     if "producer_managed_provenance" in peer_properties or "forward_managed_actor_provenance" in defs:
         _fail(lint, SCHEMA, "Realm actor must use its owning governor's control state, not foreign Account provenance")
-    if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
-        _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
-    genesis_material = defs.get("mls_genesis_material", {})
+    if _ref_name(peer_properties.get("mls_group_state_material")) != "#/$defs/mls_group_state_material":
+        _fail(lint, SCHEMA, "authority_forward mls_group_state_material must use the closed mls_group_state_material definition")
+    genesis_material = defs.get("mls_group_state_material", {})
     if genesis_material.get("additionalProperties") is not False or _required(genesis_material) != {"group_info_base64url", "ratchet_tree_base64url"} or set(genesis_material.get("properties", {})) != {"group_info_base64url", "ratchet_tree_base64url"}:
-        _fail(lint, SCHEMA, "mls_genesis_material must be exactly the two raw Blob byte members with no ref or digest echo")
+        _fail(lint, SCHEMA, "mls_group_state_material must be exactly the two raw Blob byte members with no ref or digest echo")
     if isinstance(branches, list) and branches:
         genesis_rule = branches[0]
         kind_const = (
             genesis_rule.get("if", {}).get("properties", {}).get("event_submission", {}).get("properties", {})
             .get("event", {}).get("properties", {}).get("kind", {}).get("const")
         )
-        if kind_const != "ak.mls.genesis" or _required(genesis_rule.get("then", {})) != {"mls_genesis_material"} or _required(genesis_rule.get("else", {}).get("not", {})) != {"mls_genesis_material"}:
-            _fail(lint, SCHEMA, "the Event kind alone must decide mls_genesis_material: required for ak.mls.genesis, forbidden otherwise")
+        if kind_const != "ak.mls.genesis" or _required(genesis_rule.get("then", {})) != {"mls_group_state_material"} or _required(genesis_rule.get("else", {}).get("not", {})) != {"mls_group_state_material"}:
+            _fail(lint, SCHEMA, "the Event kind alone must decide mls_group_state_material: required for ak.mls.genesis, forbidden otherwise")
+        if len(branches) > 1 and _required(branches[1]) != {"branch", "mls_submission", "mls_group_state_material"}:
+            _fail(lint, SCHEMA, "every forwarded MLS Commit requires exact mls_group_state_material")
     if _ref_name(peer_properties.get("producer_device_evidence")) != "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence":
         _fail(lint, SCHEMA, "authority_forward producer_device_evidence must directly reuse closed forward account-device-signer-evidence")
     if isinstance(branches, list):

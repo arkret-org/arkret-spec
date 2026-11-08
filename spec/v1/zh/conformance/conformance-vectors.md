@@ -44,11 +44,11 @@ DeviceMessage 或 MLS Commit+Welcome 并保持原队列与请求幂等 ledger �
 Commit replica，经 scan 已保存 Commit 后的重放补写 Welcome 并返回 `duplicate`，复制 Welcome 计入但不因容量被拒绝。
 `ak.vector.keypackage.recipient_claim_read.v1` MUST 证明：`ak.self.keys.keypackages.read.claim.v1` 只向 claim record
 的 exact endpoint 返回逐字节相同的原 claim outcome，其它情形统一 `keypackage_unknown`，接收端读取并验证 receipt 后才
-解密。`ak.vector.federation.authority_forward_genesis_material.v1` MUST 证明：跨站 Genesis 经 `authority_forward` 携
-`mls_genesis_material` 被接纳并保存为 public Blob，缺失／多余、成员超过 5592406 字符为 `schema_violation`，摘要不符为
+解密。`ak.vector.federation.authority_forward_mls_material.v1` MUST证明：跨站Genesis、普通Member及获准External Commit经`authority_forward`携
+`mls_group_state_material` 经原签refs、RFC GroupInfo／external_pub及exact post-context／tree核验后与winning Commit原子保存；缺失／多余、成员超过 5592406 字符为 `schema_violation`，摘要不符为
 `digest_mismatch`，均零写入；两个成员各自的上限已蕴含 8388608 bytes 的响应上限，不另设合计拒绝。三者分别由
 `mls-cross-station-welcome-replication-fixture.json`、`keypackage-recipient-claim-read-fixture.json` 与
-`federation-authority-forward-genesis-material-fixture.json` 的可执行用例承载。
+`federation-authority-forward-mls-material-fixture.json` 的可执行用例承载。
 
 ## 2. 领域向量
 

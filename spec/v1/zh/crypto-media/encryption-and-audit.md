@@ -654,18 +654,26 @@ signature key，并验证该 leaf 的 RFC 自签名；任一不符以 `failed_pr
 后来的成员须按 exact accepted Genesis Event／Commit 和历史签名 key 独立重验该绑定；
 缺 `creator_leaf_authority` 的旧 Genesis 不得被静默推断或由 current keys lookup 补齐。
 
-**跨站 Genesis 的 public material（normative）**：Genesis 引用的 GroupInfo 与 ratchet tree 是 creator 经
-`ak.self.blob.*` 上传到自己 Account Station 的内容寻址 Blob。creator 的 Account Station 不是治理 Station 时，它在接纳
+**跨站 MLS 状态的 public material（normative）**：Genesis 或 Commit 引用的 GroupInfo 与 ratchet tree 是 producer 经
+`ak.self.blob.*` 上传到自己 Account Station 的内容寻址 Blob。producer 的 Account Station 不是治理 Station 时，它在接纳
 self submit 进入转发队列前从本地 Blob 存储取两份原始字节并按 `group_info_ref`／`ratchet_tree_ref` 各自的 digest suite
-核对，缺失或不符以不带 reason 的 `failed_precondition` 拒绝；随后 `ak.peer.events.command.submit.v1` 的
-`authority_forward` 在 `event_submission` 旁携 `mls_genesis_material`（两份 unpadded base64url 原始字节）。该成员只对
-`ak.mls.genesis` 必带、对其它 kind 禁带，schema 以 Event kind 直接表达；同站 Genesis 读取本地 Blob，不经过该载体。
+核对，缺失或不符以不带 reason 的 `failed_precondition` 拒绝，不能先接受待补物料；随后 `ak.peer.events.command.submit.v1` 的
+`authority_forward` 在 `event_submission` 或 `mls_submission` 旁携 `mls_group_state_material`（两份 unpadded base64url 原始字节）。
+该成员对`ak.mls.genesis`的event_submission及每份`ak.mls.commit`的mls_submission均必带，
+包括普通Member与获准的恢复External Commit；其它Event、atomic及replication分支禁带。
+同站接纳读取本地Blob，执行完全相同的字节、RFC及耐久验证。
 两个成员各自至多 5592406 个 unpadded base64url 字符，即解码后每份至多 4194304 bytes，两份合计因而不会超过
 `ak.peer.mls.read.group_state_material.v1` 的 8388608 bytes 响应上限；任一成员超长或不是 canonical unpadded base64url 均为
 `schema_violation`，本载体没有另外的合计上限检查。治理 Station 在任何写入前解码两份字节，按 ref 内嵌 suite 重算 digest，
-与 Genesis payload 的 ref 逐字比较，不符以 `digest_mismatch` 零写入。随后按 §5.1.1 验证 RFC 9420 public state，并在接纳
-事务内把两份字节作为 public Blob 保存，供其后
-`ak.peer.mls.read.group_state_material.v1` 原样提供。exact 重复的 Genesis 返回原 outcome。
+与原producer签名的Genesis／Commit payload ref逐字比较，不符以`digest_mismatch`零写入。
+Genesis按§5.1.1验证epoch 0；Commit先沿exact accepted base完成原RFC握手验证，再独立验证新GroupInfo签名、
+所含external_pub及同epoch tree，完整GroupContext原字节和tree必须与该winning transition的post-state一致。
+仅比较epoch、binding或leaf集合不充分；恢复External Commit按§2.5.1核AAD和继承extensions，不能要求旧extension等于新binding。
+原签有效而公开物料不能供RFC ExternalInit使用、缺external_pub、错transcript／tree／epoch均为`schema_violation`零写入。
+两份原字节及其Blob记录必须与winning Event／RealmCommit在同一接纳事务耐久，不能只保留tracker生成的tree或稍后重新导出GroupInfo。
+随后既有`ak.peer.mls.read.group_state_material.v1`按原refs原样提供；候选prepare时即保留content-history §11.2的subject／episode私密ACL，
+接受后的公开握手读取仍受current／target cut门，不因携public material就公开PCR业务或候选Blob。
+origin与outgoing intent耐久冻结exact物料，终局未知仅重放原件；exact重复返回原outcome，不能换物料、Event或base。
 
 **MLS 准入的其它拒绝（normative）**：Genesis roster 不是恰好创建者一个 leaf、Commit 的 Welcome 与其新增 leaf 不
 一一对应、`keypackage_claim_ref` 所指 claim 已不再 live、Welcome recipient 不是该 scope 的 current joined 成员等

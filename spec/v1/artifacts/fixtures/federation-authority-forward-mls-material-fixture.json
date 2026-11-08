@@ -1,51 +1,74 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "ak.suite.federation.authority_forward_genesis_material.v1"
+    "entrypoint": "ak.suite.federation.authority_forward_mls_material.v1"
   },
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
-    "ak.vector.federation.authority_forward_genesis_material.v1"
+    "ak.vector.federation.authority_forward_mls_material.v1"
   ],
   "machine_contracts": [
     "registry/contract-registry.json",
     "registry/operations-error-mapping.json",
     "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
-    "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
+    "schemas/authority-commit-operations.schema.json#/$defs/mls_group_state_material",
     "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
     "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody"
   ],
-  "description": "Executable evidence for ak.vector.federation.authority_forward_genesis_material.v1 (zh/crypto-media/encryption-and-audit.md sections 5.1.1 and 5.1.2, zh/sync/federation.md section 4.1, decisions 0119 and 0123). The creator is a human device Account on the forwarding Station and a joined member of a Realm the governance Station governs, granted ak.mls.genesis. Unless a variant says otherwise the creator's epoch-0 group holds only its own leaf under the 0 -> 0 governance binding, both refs are sha256 content addresses of its exported GroupInfo and ratchet_tree, the forwarding Station holds both Blobs and forwards the Genesis through ak.peer.events.command.submit.v1 authority_forward with fresh producer_device_evidence and mls_genesis_material holding the exact bytes. carried, carried_mutation and carried_decoded_bytes replace what the forward carries; forwarded tells whether a request left the forwarding Station, realm_commits counts accepted Genesis Commits and public_blobs the Blobs the governance Station stores. Every case starts from fresh Stations and later variants continue from the state earlier ones left; a refused variant MUST leave both Stations exactly as before.",
+  "description": "Executable evidence for ak.vector.federation.authority_forward_mls_material.v1 (zh/crypto-media/encryption-and-audit.md sections 5.1.1 and 5.1.2, zh/sync/federation.md section 4.1, decisions 0119 and 0123). The creator is a human device Account on the forwarding Station and a joined member of a Realm the governance Station governs, granted ak.mls.genesis. Unless a variant says otherwise the creator's epoch-0 group holds only its own leaf under the 0 -> 0 governance binding, both refs are sha256 content addresses of its exported GroupInfo and ratchet_tree, the forwarding Station holds both Blobs and forwards the Genesis through ak.peer.events.command.submit.v1 authority_forward with fresh producer_device_evidence and mls_group_state_material holding the exact bytes. carried, carried_mutation and carried_decoded_bytes replace what the forward carries; forwarded tells whether a request left the forwarding Station, realm_commits counts accepted Genesis Commits and public_blobs the Blobs the governance Station stores. Every case starts from fresh Stations and later variants continue from the state earlier ones left; a refused variant MUST leave both Stations exactly as before. Commit cases start from a separately accepted exact base and exercise both ordinary Member and approved External recovery; material must be the new epoch public state, not base bytes. These named-suite cases are requirements for a native runner, not an assertion that service production admission is implemented by the specification tools.",
   "world": {
     "forwarding_station": "the creator's Account Station, a member Station of the Realm",
     "governance_station": "the Realm's current governance Station",
     "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
     "member_max_encoded_chars": 5592406,
     "member_max_decoded_bytes": 4194304,
-    "group_state_material_response_bound": 8388608
+    "group_state_material_response_bound": 8388608,
+    "publication_event_kinds": [
+      "ak.mls.genesis",
+      "ak.mls.commit"
+    ],
+    "commit_sender_classes": [
+      "member",
+      "new_member_commit"
+    ],
+    "forbidden_carrier_branches": [
+      "ordinary_event",
+      "atomic_submission",
+      "committed_replication",
+      "registered_atomic_unit"
+    ]
   },
   "decision_points": [
     {
       "id": "admit_store_and_serve",
-      "requirement": "A cross-Station ak.mls.genesis forwarded with mls_genesis_material whose bytes address the Genesis refs and verify as the RFC 9420 epoch-0 public state is committed; both Blobs are stored as public Blobs in the acceptance transaction and ak.peer.mls.read.group_state_material.v1 later returns them unchanged.",
+      "requirement": "Exact signed Genesis or Commit refs address both canonical public material objects. The RFC GroupInfo signature and external_pub, complete post-GroupContext and tree must match the exact validated transition; both objects are persisted atomically and served unchanged.",
       "accept": [
         "/cases/0/variants/0",
         "/cases/0/variants/1",
-        "/cases/5/variants/1"
+        "/cases/5/variants/1",
+        "/cases/6/variants/0",
+        "/cases/6/variants/2"
       ],
       "reject": [
-        "/cases/5/variants/0"
+        "/cases/5/variants/0",
+        "/cases/6/variants/4",
+        "/cases/6/variants/5",
+        "/cases/6/variants/6",
+        "/cases/6/variants/7",
+        "/cases/6/variants/8"
       ]
     },
     {
       "id": "material_presence",
-      "requirement": "An ak.mls.genesis forward without mls_genesis_material, or any other Event kind with it, is schema_violation with zero writes.",
+      "requirement": "Genesis event_submission and every Member or approved External Commit mls_submission require mls_group_state_material. Other Events, atomic and replication branches forbid it; missing or mixed material is schema_violation with zero writes.",
       "accept": [
         "/cases/2/variants/2"
       ],
       "reject": [
         "/cases/2/variants/0",
-        "/cases/2/variants/1"
+        "/cases/2/variants/1",
+        "/cases/6/variants/1",
+        "/cases/6/variants/3"
       ]
     },
     {
@@ -56,7 +79,8 @@
       ],
       "reject": [
         "/cases/3/variants/0",
-        "/cases/3/variants/1"
+        "/cases/3/variants/1",
+        "/cases/6/variants/9"
       ]
     },
     {
@@ -232,7 +256,7 @@
     },
     {
       "name": "material_presence_follows_the_event_kind",
-      "given": "the governance Station receives an authority_forward whose Event and mls_genesis_material vary per variant; every forward carries fresh producer_device_evidence",
+      "given": "the governance Station receives an authority_forward whose Event and mls_group_state_material vary per variant; every forward carries fresh producer_device_evidence",
       "variants": [
         {
           "name": "genesis_without_material",
@@ -431,6 +455,168 @@
             "forwarded": true,
             "realm_commits": 1,
             "public_blobs": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "every_commit_publishes_exact_post_state",
+      "given": "Each variant independently starts with an accepted base; a refused candidate leaves that base and all Blob visibility unchanged.",
+      "variants": [
+        {
+          "name": "member_exact_post_state",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "sender_class": "member",
+          "recovery_authorization": "not_applicable",
+          "carried": "exact_post_state",
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        },
+        {
+          "name": "member_none",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "sender_class": "member",
+          "recovery_authorization": "not_applicable",
+          "carried": "none",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "new_member_commit_exact_post_state",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "sender_class": "new_member_commit",
+          "recovery_authorization": "accepted_exact_replacement_inventory",
+          "carried": "exact_post_state",
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        },
+        {
+          "name": "new_member_commit_none",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "sender_class": "new_member_commit",
+          "recovery_authorization": "accepted_exact_replacement_inventory",
+          "carried": "none",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "base_epoch",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "base_epoch",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "wrong_post_transcript",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "wrong_post_transcript",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "wrong_post_tree",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "wrong_post_tree",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "no_external_pub",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "no_external_pub",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "bad_group_info_signature",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "bad_group_info_signature",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "different_content_address",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "event_kind": "ak.mls.commit",
+          "carried": "different_content_address",
+          "expected": {
+            "decision": "reject",
+            "error_code": "digest_mismatch",
+            "reason_code": null,
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
           }
         }
       ]

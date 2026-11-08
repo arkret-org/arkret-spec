@@ -237,8 +237,8 @@
       "sha256": "300943a5d56e19297b2035f81a690f78ca669574d1ced34310ea7e0710b8bedd"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
-      "sha256": "c9e45413f598edbd6fb9fb22afd618bfa3e99d682ef7d5c0b8616c3f7fc97994"
+      "path": "spec/v1/artifacts/fixtures/federation-authority-forward-mls-material-fixture.json",
+      "sha256": "92c4376fe8e1746893e66e0f60a8718000b9f935e74b5f08d5f2710639f37df4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json",
@@ -474,7 +474,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "f7cb72c930470dd75b05b911142ed4c320f06319d74a26dff2d9c93466e16d8f"
+      "sha256": "d883939379038ab8d6cfab5c1defead99d4bbea5873bf9591415ba2560c08fc0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
