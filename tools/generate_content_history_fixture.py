@@ -51,7 +51,7 @@ def build():
            "stream_ref": coordinate["effective_scope"], "stream_position": 0}
     request_ref = "ak:event:" + b64(b"\x01" + bytes([0x42]) * 32)
     grant = {"recipient": context["producer"], "recipient_hpke_key_base64url": b64(recipient_public),
-             "recipient_key_event_ref": request_ref, "history_cut": cut, "authorization_event_ref": event_ref,
+             "recipient_key_event_ref": request_ref, "history_cut": cut,
              "expires_at": "2026-11-08T00:15:00.000Z", "entries": []}
     hpke_cases = []
     for index, selected_key in enumerate((key, root)):

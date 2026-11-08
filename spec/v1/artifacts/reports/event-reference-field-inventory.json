@@ -577,20 +577,8 @@
     },
     {
       "schema": "content-encryption.schema.json",
-      "json_pointer": "/$defs/history_grant/properties/authorization_event_ref",
-      "field": "authorization_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "content-encryption.schema.json",
       "json_pointer": "/$defs/history_grant/properties/recipient_key_event_ref",
       "field": "recipient_key_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "content-encryption.schema.json",
-      "json_pointer": "/$defs/history_request/properties/authorization_event_ref",
-      "field": "authorization_event_ref",
       "classification": "complete_event_id"
     },
     {

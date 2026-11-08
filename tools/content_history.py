@@ -151,8 +151,56 @@ def mnemonic_backup_key(mnemonic, passphrase=""):
 
 
 def grant_header(grant, selector):
-    fields = ("recipient", "recipient_hpke_key_base64url", "recipient_key_event_ref", "history_cut", "authorization_event_ref", "expires_at")
+    fields = ("recipient", "recipient_hpke_key_base64url", "recipient_key_event_ref", "history_cut", "expires_at")
     return jcs({**{k: grant[k] for k in fields}, "selector": selector})
+
+
+def qualify_history_request(request, signer_actor, signer_endpoint, signer_authorization,
+                            current_leaf, current_read, created_at, now):
+    """Compose independently native-verified signer, leaf and read facts.
+
+    These inputs are not caller claims or a native provenance verifier. The
+    Event signature key was verified independently; it need not be the MLS key.
+    """
+    fields = {"recipient", "recipient_hpke_key_base64url", "history_cut", "expires_at"}
+    if set(request) != fields or not current_read or request["recipient"] != current_leaf:
+        raise ValueError("not the exact current readable endpoint")
+    recipient = request["recipient"]
+    if (recipient["actor_id"], recipient["endpoint"], recipient["authorization_event_ref"]) != (
+            signer_actor, signer_endpoint, signer_authorization):
+        raise ValueError("request signer differs from native leaf ownership")
+    moment = lambda value: datetime.fromisoformat(value.replace("Z", "+00:00"))
+    created, current, expiry = map(moment, (created_at, now, request["expires_at"]))
+    if not created <= current < expiry or not 0 < (expiry - created).total_seconds() <= 900:
+        raise ValueError("request is outside its validity window")
+    public = unb64(request["recipient_hpke_key_base64url"])
+    if len(public) != 32 or b64(public) != request["recipient_hpke_key_base64url"]:
+        raise ValueError("invalid canonical recipient key")
+    # A fresh local validation scalar rejects low-order/zero DH inputs. It
+    # neither issues a grant nor replaces native caller authorization.
+    X25519PrivateKey.generate().exchange(X25519PublicKey.from_public_bytes(public))
+    return recipient
+
+
+def qualify_history_grant(grant, accepted_request_ref, accepted_request,
+                          signer_actor, signer_endpoint, signer_authorization,
+                          current_leaf, recipient_read, issuer_disclose,
+                          selection_authorized, request_created_at, now):
+    """New issuance/delivery only, using independently native-qualified facts.
+
+    This is not the current-holder archival scan of historical PCR originals.
+    """
+    fields = {"recipient", "recipient_hpke_key_base64url", "recipient_key_event_ref",
+              "history_cut", "expires_at", "entries"}
+    if set(grant) != fields or not issuer_disclose or not selection_authorized:
+        raise ValueError("no current disclosure authority for this selection")
+    if grant["recipient_key_event_ref"] != accepted_request_ref or any(
+            grant[key] != accepted_request[key] for key in
+            ("recipient", "recipient_hpke_key_base64url", "history_cut", "expires_at")):
+        raise ValueError("grant differs from its original accepted request")
+    return qualify_history_request(accepted_request, signer_actor, signer_endpoint,
+                                   signer_authorization, current_leaf, recipient_read,
+                                   request_created_at, now)
 
 
 def coverage_pages(scope, genesis, cut, entries, backup_refs):

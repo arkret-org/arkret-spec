@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10372,
+    "total_properties": 10370,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2439,
       "optional_defaulted": 46,
-      "required": 7360,
+      "required": 7358,
       "required_nullable": 311,
       "tristate": 216
     },
@@ -5787,7 +5787,6 @@
         "/$defs/endpoint/properties/signature_key_base64url": "required",
         "/$defs/history_backup_access/properties/root_refs": "required",
         "/$defs/history_backup_access/properties/source": "required",
-        "/$defs/history_grant/properties/authorization_event_ref": "required",
         "/$defs/history_grant/properties/entries": "required",
         "/$defs/history_grant/properties/entries/items/properties/sealed_key_base64url": "required",
         "/$defs/history_grant/properties/entries/items/properties/selector": "required",
@@ -5808,7 +5807,6 @@
         "/$defs/history_recovery/properties/replacement": "required",
         "/$defs/history_recovery/properties/restored_event_count": "required",
         "/$defs/history_recovery/properties/state": "required",
-        "/$defs/history_request/properties/authorization_event_ref": "required",
         "/$defs/history_request/properties/expires_at": "required",
         "/$defs/history_request/properties/history_cut": "required",
         "/$defs/history_request/properties/recipient": "required",

@@ -154,11 +154,11 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         self.assertIn(("authority-commit-operations.schema.json", "$.$defs.committed_event_ref.properties", "event_id"), candidates)
         for candidate in (
             ("content-encryption.schema.json", "$.$defs.history_grant.properties", "recipient_key_event_ref"),
-            ("content-encryption.schema.json", "$.$defs.history_request.properties", "authorization_event_ref"),
+            ("content-encryption.schema.json", "$.$defs.endpoint.properties", "authorization_event_ref"),
             ("key-backup-active-series.schema.json", "$.properties", "custody_authorization_ref"),
         ):
             self.assertIn(candidate, candidates)
-        self.assertEqual(len(candidates), 53)
+        self.assertEqual(len(candidates), 51)
         for name in ("contact_requested_payload", "contact_accepted_payload", "contact_rejected_payload"):
             self.assertIn(("event-payload.schema.json", f"$.$defs.{name}.properties", "predecessor_event_ref"), candidates)
         self.assertEqual(len({key[0] for key in candidates}), 14)

@@ -17,6 +17,7 @@ from tools.content_history import SCHEME, STRATEGY, aad, content_key, content_ro
 from tools.content_history import b64, hpke_context, hpke_seal, hpke_open, grant_header, mnemonic_backup_key, verify_root_index, coverage_pages, inventory_digest, cleanup_digest, ordered_roster, verify_roster_keys, verify_recovery_source, recovery_path_leaf, authorize_history_read, roster_pages
 from tools.generate_content_history_fixture import build
 from tools.content_history import verify_external_recovery_binding
+from tools.content_history import qualify_history_request, qualify_history_grant
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "spec/v1/artifacts"
@@ -262,6 +263,78 @@ class ContentHistoryContractTest(unittest.TestCase):
             changed = copy.deepcopy(g); changed["recipient_key_event_ref"] = self.fixture["kat"]["root_context"]["group_state_ref"]
             with self.assertRaises(InvalidTag):
                 hpke_open(bytes.fromhex(f["recipient_private_hex"]), unb64(entry["sealed_key_base64url"]), grant_header(changed, entry["selector"]))
+
+    def _history_request(self):
+        request = copy.deepcopy(self.fixture["hpke_grant"]["grant"])
+        request.pop("entries"); request.pop("recipient_key_event_ref")
+        return request
+
+    def test_history_authorization_has_one_endpoint_reference_and_no_opaque_scope_grant(self):
+        grant = self.fixture["hpke_grant"]["grant"]
+        request = self._history_request()
+        self.assertNotIn("authorization_event_ref", grant)
+        self.assertNotIn("authorization_event_ref", request)
+        for name, value in (("history_request", request), ("history_grant", grant)):
+            self.validate("content-encryption.schema.json#/$defs/" + name, value)
+            stale = copy.deepcopy(value)
+            stale["authorization_event_ref"] = value["recipient"]["authorization_event_ref"]
+            self.invalid("content-encryption.schema.json#/$defs/" + name, stale)
+            missing = copy.deepcopy(value); del missing["recipient"]["authorization_event_ref"]
+            self.invalid("content-encryption.schema.json#/$defs/" + name, missing)
+
+    def test_nested_endpoint_authorization_is_authenticated_by_hpke(self):
+        case = self.fixture["hpke_grant"]; grant = case["grant"]; entry = grant["entries"][0]
+        mutations = {
+            "authorization_event_ref": grant["recipient_key_event_ref"],
+            "signature_key_base64url": b64(bytes([99]) * 32),
+            "endpoint": {"kind": "device", "device_id": "ak:device:019a0000-0000-7000-8000-000000000099"},
+        }
+        for field, value in mutations.items():
+            changed = copy.deepcopy(grant); changed["recipient"][field] = value
+            with self.assertRaises(InvalidTag):
+                hpke_open(bytes.fromhex(case["recipient_private_hex"]),
+                          unb64(entry["sealed_key_base64url"]), grant_header(changed, entry["selector"]))
+
+    def test_readonly_request_uses_native_leaf_binding_with_independent_event_key(self):
+        request = self._history_request(); endpoint = request["recipient"]
+        event_key = Ed25519PrivateKey.from_private_bytes(bytes([81]) * 32)
+        event_public = b64(event_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
+        self.assertNotEqual(event_public, endpoint["signature_key_base64url"])
+        args = (endpoint["actor_id"], endpoint["endpoint"], endpoint["authorization_event_ref"],
+                endpoint, True, "2026-11-08T00:00:00.000Z", "2026-11-08T00:01:00.000Z")
+        self.assertEqual(qualify_history_request(request, *args), endpoint)
+        altered = list(args); altered[4] = False
+        with self.assertRaises(ValueError): qualify_history_request(request, *altered)
+        for index, value in ((0, {"kind": "service", "service_id": "ak:did_core:web:other.example"}),
+                             (1, {"kind": "device", "device_id": "ak:device:019a0000-0000-7000-8000-000000000099"}),
+                             (2, self.fixture["hpke_grant"]["grant"]["recipient_key_event_ref"])):
+            altered = list(args); altered[index] = value
+            with self.assertRaises(ValueError): qualify_history_request(request, *altered)
+        low_order = copy.deepcopy(request); low_order["recipient_hpke_key_base64url"] = b64(bytes(32))
+        with self.assertRaises(ValueError): qualify_history_request(low_order, *args)
+        # Native current qualification is independent of the older history cut.
+        later = copy.deepcopy(request); later["recipient"]["authorization_event_ref"] = self.fixture["hpke_grant"]["grant"]["recipient_key_event_ref"]
+        args = (later["recipient"]["actor_id"], later["recipient"]["endpoint"],
+                later["recipient"]["authorization_event_ref"], later["recipient"], True,
+                "2026-11-08T00:00:30.000Z", "2026-11-08T00:01:00.000Z")
+        self.assertEqual(qualify_history_request(later, *args), later["recipient"])
+
+    def test_new_grant_rechecks_disclosure_read_selection_and_original_request(self):
+        grant = self.fixture["hpke_grant"]["grant"]; request = self._history_request(); endpoint = request["recipient"]
+        args = [grant["recipient_key_event_ref"], request, endpoint["actor_id"], endpoint["endpoint"],
+                endpoint["authorization_event_ref"], endpoint, True, True, True,
+                "2026-11-08T00:00:00.000Z", "2026-11-08T00:01:00.000Z"]
+        self.assertEqual(qualify_history_grant(grant, *args), endpoint)
+        for index in (6, 7, 8):
+            denied = args.copy(); denied[index] = False
+            with self.assertRaises(ValueError): qualify_history_grant(grant, *denied)
+        expired = args.copy(); expired[-1] = grant["expires_at"]
+        with self.assertRaises(ValueError): qualify_history_grant(grant, *expired)
+        for field, value in (("recipient_key_event_ref", endpoint["authorization_event_ref"]),
+                             ("recipient_hpke_key_base64url", b64(bytes([99]) * 32)),
+                             ("expires_at", "2026-11-08T00:14:00.000Z")):
+            altered = copy.deepcopy(grant); altered[field] = value
+            with self.assertRaises(ValueError): qualify_history_grant(altered, *args)
 
     def test_hpke_rejects_old_short_encoding_wrong_recipient_and_truncation(self):
         f = self.fixture["hpke_grant"]; g = f["grant"]; entry = g["entries"][0]; encoded = entry["sealed_key_base64url"]

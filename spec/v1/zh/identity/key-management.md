@@ -1274,7 +1274,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 
 #### 7.8.2 普通设备 unlock challenge 与耐久重试
 
-`ak.self.keys.backups.command.issue_unlock_challenge.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge`）使用 closed `{request_id}`；返回 `keys-operations.schema.json#/$defs/keys_backups_unlock_challenge`。服务端从当前 caller 与 immutable 备份记录填入完整 AccountId、requesting device、backup/series/ciphertext、audience/service、challenge_id、challenge、nonce、operation、issued_at/expires_at；TTL ≤ 300 秒，challenge 为 32-byte CSPRNG。不得接受 caller 自造 nonce。相同 `(AccountId,device_id,backup_id,request_id)` 的有效未消费 issuance 返回同一对象；challenge 存储、限额、消费与 exact result ledger MUST 跨实例耐久。
+`ak.self.keys.backups.command.issue_unlock_challenge.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge`）使用`keys-operations.schema.json`登记的closed请求：必带`request_id`，可选`subject_actor_id`／`custody_authorization_ref`及`content_history`严格按content-history §8绑定；返回`keys_backups_unlock_challenge`。服务端从当前caller与immutable备份记录填入完整AccountId、requesting device、backup/series/ciphertext、audience/service、challenge_id、challenge、nonce、operation、issued_at/expires_at；TTL ≤ 300秒，challenge为32-byte CSPRNG。不得接受caller自造nonce。相同`(AccountId,device_id,backup_id,request_id)`且完整canonical请求相同的有效未消费issuance返回同一对象；更改subject、custody或history选择必须幂等冲突，原challenge过期或消费不允许重绑请求。相同请求过期后的fresh issuance不复用旧challenge／nonce。challenge存储、限额、消费与exact result ledger MUST跨实例耐久。
 
 current_device proof 的 challenge_id、challenge、nonce、audience、service、account/device、backup/series/digest 逐字匹配服务端记录，`issued_at` 位于签发窗口，`expires_at` 等于签发截止时间；首次消费必须仍在窗口内。恢复分支复用 session.challenge 与 session.expires_at，不额外调用本接口。两分支均只授权一个 exact object，首次消费与结果引用原子提交；exact replay 仍校验当前 holder authority、对象未被撤销/删除、session 未完成且未过期。服务端不能以只发送 HTTP 成功作为耐久边界。
 

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:ab939e9f7453616cd6c4dcd7b75cd75ba009792813c4d1c5d05898fbf619a60a",
+  "contract_digest": "sha256:d9b8f262b446196e1959d9d397c71b01f2c21e41079694d2ed873ed3401b8c11",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -34842,12 +34842,14 @@
               },
               "authorization_event_ref": {
                 "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
+                "x-arkret-preimage-commitment": "fixed_event",
+                "description": "Exact native Device or Agent runtime endpoint authorization Event. This establishes the endpoint key instance, not scope read or disclosure permission."
               },
               "signature_key_base64url": {
                 "type": "string",
                 "pattern": "^[A-Za-z0-9_-]{43}$",
-                "x-arkret-member-role": "binary_encoding"
+                "x-arkret-member-role": "binary_encoding",
+                "description": "MLS endpoint signature key bound by the applicable original creator, Add or recovery authority. An Event producer key may differ only with an independently verified native endpoint-to-leaf binding; equating the two keys or trusting caller-supplied leaf ownership is forbidden."
               }
             },
             "additionalProperties": false
@@ -35110,7 +35112,6 @@
               "recipient_hpke_key_base64url",
               "recipient_key_event_ref",
               "history_cut",
-              "authorization_event_ref",
               "expires_at",
               "entries"
             ],
@@ -35129,10 +35130,6 @@
               },
               "history_cut": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
-              },
-              "authorization_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
               },
               "expires_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
@@ -35165,7 +35162,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Original signed grant references an accepted ak.mls.history_request authored by its exact recipient endpoint. HPKE info and aad equal JCS({recipient,recipient_hpke_key_base64url,recipient_key_event_ref,history_cut,authorization_event_ref,expires_at,selector}). sealed_key_base64url is canonical unpadded base64url(enc[32] || ciphertext || tag[16]), exactly 64 or 80 decoded bytes for a 16/32-byte key. Default RFC9180 suite is X25519/HKDF-SHA256/ChaCha20Poly1305, mode Base, seq=0; no wire nonce."
+            "description": "Original signed grant references an accepted ak.mls.history_request authored by its exact recipient endpoint. The complete recipient, recipient_hpke_key_base64url, history_cut and expires_at equal that request; endpoint authorization remains inside recipient. Issuer disclosure and recipient read authority are independently native-verified, not asserted by an opaque payload reference. HPKE info and aad equal JCS({recipient,recipient_hpke_key_base64url,recipient_key_event_ref,history_cut,expires_at,selector}). sealed_key_base64url is canonical unpadded base64url(enc[32] || ciphertext || tag[16]), exactly 64 or 80 decoded bytes for a 16/32-byte key. Default RFC9180 suite is X25519/HKDF-SHA256/ChaCha20Poly1305, mode Base, seq=0; no wire nonce."
           },
           "recovery_binding": {
             "type": "object",
@@ -35388,7 +35385,6 @@
               "recipient",
               "recipient_hpke_key_base64url",
               "history_cut",
-              "authorization_event_ref",
               "expires_at"
             ],
             "properties": {
@@ -35403,15 +35399,12 @@
               "history_cut": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
               },
-              "authorization_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
               "expires_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Exact recipient-native-endpoint signed history request. Endpoint authorization is recipient.authorization_event_ref. Scope read authority is independently verified at the accepting RealmCommit cut and again for new grant issuance/delivery; this object is not a permission grant. Its endpoint key is the native verified MLS leaf key and may differ from the independently verified Event producer key. No top-level authorization_event_ref exists."
           },
           "history_backup_access": {
             "type": "object",
@@ -112460,7 +112453,7 @@
     },
     {
       "file": "hpke-suite-registry.json",
-      "digest": "sha256:64a7536ee95898059ef431aedc46dc14f56b85650a1b0ceda332f511529bc440"
+      "digest": "sha256:f3543b280961164b0519c59f8efee238db9d73226249ee1887a2e4c21fbb63bf"
     },
     {
       "file": "keypackage-capability-registry.json",

@@ -94,18 +94,34 @@ coverage是既有committed Event scan／get及其原签protection的可重建派
 不得改用新leaf的Add时间。普通Realm仍受当前membership、exact scope、policy与retention约束。
 
 recipient先提交原签durable `ak.mls.history_request`，payload为closed history_request，
-以自身current native endpoint key签署recipient／fresh X25519公钥／history_cut／授权ref／expires_at。
+以自身current native endpoint的Event key签署recipient／fresh X25519公钥／history_cut／expires_at。
 主体只需该scope的current read资格，可为只读成员；request和recovery检查点采用self_authored_proof，
 禁止executed_by／authorization_ref代签；必须由payload绑定的exact当前endpoint自己签署，请求不授membership或披露key，
 不得套用issuer的管理员权限门。新公钥私钥仅在recipient端加密保存至请求消费／过期。
 
+端点授权唯一由`recipient.authorization_event_ref`绑定，request与grant均没有顶层
+`authorization_event_ref`；不得从一个opaque引用推导scope读取或issuer披露权限。
+接受request的原RealmCommit确定其接纳cut；原件及原生资格来源仍须按各自既有合同核验，
+不能把RealmCommit签名或request本身当成读取授权。
+资源读取资格、完整Actor的合法join实例／history floor及issuer披露权限，分别沿既有原生规则求值，
+不能以endpoint授权、当前MLS membership或原请求曾被接纳替代。合法读取授权可以晚于history_cut，
+不得因此拒绝获授权后加入者的旧历史。
+
+原Event signer必须与recipient完整Actor／endpoint及其原生授权实例匹配；
+`recipient.signature_key_base64url`绑定其已验证MLS leaf。Event设备签名key可以与leaf signer不同，
+但须由独立原生creator／Add／recovery绑定证明为同一exact端点，不能直接比等两把key，
+也不能接受调用者自报的leaf归属。新的request及grant交付均核exact当前端点；
+端点授权或leaf绑定失效时须创建新的request。§8的current-device历史根领取不依赖先发history_request，
+因此全设备丢失时不会因尚未恢复MLS leaf而阻塞24词归档恢复。
+
 唯一共享历史key载体是原签durable Event `ak.mls.history_grant`，复用现有Events提交／scan／get，
 其payload由`history_grant`定义。recipient_key_event_ref必须指向上述accepted request原件；
-核原request producer Actor／endpoint／授权实例／签名key、HPKE公钥和header逐字相等。
+核原request producer原签与原生端点绑定；grant的完整recipient、HPKE公钥、history_cut及expires_at
+必须与该request逐字段相等，不能换key、换授权实例或扩大cut。recipient_key_event_ref绑定原request Event。
 请求TTL最多900秒、expires_at大于created_at，过期请求不能签发或领取新的grant；
 issuer与recipient在交付时均重查current资格，不能以请求原来有效绕过撤销。
 issuer须有当前披露资格和对应材料；recipient须有当前读取资格，
-并与Actor／endpoint／HPKE key／授权cut／有效期逐字段绑定。该kind不授予membership、不修改MLS私态。
+并与Actor／endpoint／HPKE key／原请求及有效期逐字段绑定。该kind不授予membership、不修改MLS私态。
 其payload是metadata及HPKE密文，不再套进依赖待交付root的应用信封。原签覆盖全部成员。
 
 每entry的HPKE info与AAD均为schema所列closed header的JCS；default active HPKE suite，单发base mode，
