@@ -1864,6 +1864,13 @@
       "fragment": "#/$defs/scope_retirement_proof",
       "status": "active",
       "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+    },
+    {
+      "schema_id": "ak.schema.scope_retirement_delivery_attestation.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/scope_retirement_delivery_attestation",
+      "status": "active",
+      "description": "Fresh current-governor delivery binding an immutable historical scope proof and exact current request."
     }
   ]
 }

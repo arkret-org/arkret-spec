@@ -269,6 +269,8 @@ Handoff 必须绑定：连续 generation、旧/新 service identity、change Eve
 
 Watch 交接 MUST 保留全部已写 selector 的 durable current，包括带 revision 的 `value:null`，并完整验证其 accepted 来源与同 cut reducer 物化；新治理站只有完成该证明后才可通过本人 exact read 肯定返回 `never_written`。成员 snapshot 缺项不证明从未写入；完整性与交付规则见 [Strand §8.3.1](../models/strand-and-message.md#831-跨站本人精确-watch-读取normative)。
 
+content-history §10.1的scope恢复私有账本必须随合法Realm handoff完整导入：稳定I／nonce、pending及原终局、首次来源／历史methods、永久endpoint fence、各episode临时业务屏障与交付去重记录。新方须在激活前实际验证导入；历史proof保持原字节，新方只能以当前任期签独立fresh交付确认。公开handoff链不代替逐目标native import；缺项不得激活或伪报完成。本义务不改变§8.1／§8.2的交接资格，不迁Human／用户管理Agent PCR或Direct。
+
 新 generation 在每条已有 stream 上的第一个 Commit 必须以前一 generation 导入的该 stream final head 为 predecessor。旧方在 handoff 生效后永久拒绝新写；新方在未完整导入前不得启动。
 
 ### 8.1 PCR 治理归属与交接资格（normative）

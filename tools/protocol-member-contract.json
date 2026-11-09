@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:879b3ccfc8d4519ad11e67b25d04e83c98e57b47147c1b2e3d29fa6dd7737375",
+  "contract_digest": "sha256:45af562b655e8e515e7dcf80811f05215ffa58b9e85ed5ef586fdeb27934e639",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -35931,7 +35931,8 @@
               "inventory_digest",
               "effective_scope",
               "genesis_event_ref",
-              "nonce_base64url"
+              "nonce_base64url",
+              "delivery_challenge_base64url"
             ],
             "properties": {
               "authorization_event_ref": {
@@ -35949,12 +35950,18 @@
               },
               "nonce_base64url": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{43}$",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+                "x-arkret-member-role": "binary_encoding"
+              },
+              "delivery_challenge_base64url": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
                 "x-arkret-member-role": "binary_encoding"
               }
             },
             "additionalProperties": false,
-            "x-arkret-name-role": "request_body"
+            "x-arkret-name-role": "request_body",
+            "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body."
           },
           "recovery_scope_cleanup_authorization": {
             "type": "object",
@@ -35964,6 +35971,7 @@
               "inventory_entry",
               "destination_service_id",
               "nonce_base64url",
+              "delivery_challenge_base64url",
               "verification_method",
               "attested_at",
               "expires_at",
@@ -35985,7 +35993,12 @@
               },
               "nonce_base64url": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{43}$",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+                "x-arkret-member-role": "binary_encoding"
+              },
+              "delivery_challenge_base64url": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
                 "x-arkret-member-role": "binary_encoding"
               },
               "verification_method": {
@@ -36001,7 +36014,8 @@
                 "$ref": "./keypackage-operations.schema.json#/$defs/signature"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted."
           },
           "recovery_scope_cleanup_source": {
             "type": "object",
@@ -36094,7 +36108,7 @@
               },
               "nonce_base64url": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{43}$",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
                 "x-arkret-member-role": "binary_encoding"
               },
               "attested_at": {
@@ -36192,50 +36206,63 @@
               {
                 "type": "object",
                 "required": [
-                  "state",
-                  "effective_scope",
-                  "genesis_event_ref",
-                  "retirement_proof"
+                  "cleanup",
+                  "delivery_attestation"
                 ],
                 "properties": {
-                  "state": {
-                    "enum": [
-                      "removed",
-                      "terminated"
+                  "cleanup": {
+                    "type": "object",
+                    "required": [
+                      "state",
+                      "effective_scope",
+                      "genesis_event_ref",
+                      "retirement_proof"
                     ],
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/state",
-                      "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/state",
-                      "values": [
-                        "removed",
-                        "terminated"
-                      ]
-                    }
+                    "properties": {
+                      "state": {
+                        "enum": [
+                          "removed",
+                          "terminated"
+                        ],
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/cleanup/properties/state",
+                          "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/cleanup/properties/state",
+                          "values": [
+                            "removed",
+                            "terminated"
+                          ]
+                        }
+                      },
+                      "effective_scope": {
+                        "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+                      },
+                      "genesis_event_ref": {
+                        "$ref": "./common-ids.schema.json#/$defs/event_id"
+                      },
+                      "retirement_proof": {
+                        "$ref": "#/$defs/scope_retirement_proof"
+                      }
+                    },
+                    "additionalProperties": false
                   },
-                  "effective_scope": {
-                    "$ref": "./event-payload.schema.json#/$defs/effective_scope"
-                  },
-                  "genesis_event_ref": {
-                    "$ref": "./common-ids.schema.json#/$defs/event_id"
-                  },
-                  "retirement_proof": {
-                    "$ref": "#/$defs/scope_retirement_proof"
+                  "delivery_attestation": {
+                    "$ref": "#/$defs/scope_retirement_delivery_attestation"
                   }
                 },
                 "additionalProperties": false
               }
             ],
             "x-arkret-name-role": "response_body",
-            "description": "A pending obligation without counts or partial proof, or a complete native signed retirement result. An active entitled actor uses normal rekeying; this command never rejoins, removes leaves itself, or grants keys."
+            "description": "Pending observation, or an immutable historical cleanup plus a fresh current-governor delivery attestation. Current rejoin does not deny delivery of an existing terminal. The original pending observation is immutable for the full-body retry and challenge; it does not freeze native intent settlement. A subsequent observation uses a fresh delivery challenge."
           },
           "recovery_scope_cleanup_self_response_body": {
             "type": "object",
             "required": [
-              "cleanup"
+              "delivery"
             ],
             "properties": {
-              "cleanup": {
+              "delivery": {
                 "$ref": "#/$defs/recovery_scope_cleanup_response_body"
               },
               "attestor_signing_key": {
@@ -36255,7 +36282,30 @@
                   },
                   "public_key_base64url": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9_-]{43}$",
+                    "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+                    "x-arkret-member-role": "binary_encoding"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "delivery_signing_key": {
+                "type": "object",
+                "required": [
+                  "delivery_digest",
+                  "verification_method",
+                  "public_key_base64url"
+                ],
+                "properties": {
+                  "delivery_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "verification_method": {
+                    "$ref": "./common-ids.schema.json#/$defs/did_url"
+                  },
+                  "public_key_base64url": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
                     "x-arkret-member-role": "binary_encoding"
                   }
                 },
@@ -36268,14 +36318,14 @@
               {
                 "if": {
                   "properties": {
-                    "cleanup": {
+                    "delivery": {
                       "properties": {
                         "state": {
                           "const": "pending",
                           "x-arkret-value-ownership": {
                             "class": "owned_symbol",
-                            "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/cleanup/properties/state",
-                            "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/cleanup/properties/state",
+                            "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/delivery/properties/state",
+                            "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/delivery/properties/state",
                             "values": [
                               "pending"
                             ]
@@ -36290,18 +36340,93 @@
                 },
                 "then": {
                   "not": {
-                    "required": [
-                      "attestor_signing_key"
+                    "anyOf": [
+                      {
+                        "required": [
+                          "attestor_signing_key"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "delivery_signing_key"
+                        ]
+                      }
                     ]
                   }
                 },
                 "else": {
                   "required": [
-                    "attestor_signing_key"
+                    "attestor_signing_key",
+                    "delivery_signing_key"
                   ]
                 }
               }
             ]
+          },
+          "scope_retirement_delivery_attestation": {
+            "type": "object",
+            "required": [
+              "request_digest",
+              "authorization_digest",
+              "proof_digest",
+              "recipient_service_id",
+              "governance_station_id",
+              "governance_generation",
+              "nonce_base64url",
+              "delivery_challenge_base64url",
+              "attested_at",
+              "expires_at",
+              "verification_method",
+              "signature"
+            ],
+            "properties": {
+              "request_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "authorization_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "proof_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "recipient_service_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "governance_station_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "governance_generation": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "nonce_base64url": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+                "x-arkret-member-role": "binary_encoding"
+              },
+              "delivery_challenge_base64url": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+                "x-arkret-member-role": "binary_encoding"
+              },
+              "attested_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "expires_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "verification_method": {
+                "$ref": "./common-ids.schema.json#/$defs/did_url"
+              },
+              "signature": {
+                "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Current-governor signed delivery of one immutable historical proof. It certifies native proof and monotone fence retention/import at delivery, binds the exact fresh origin authorization, challenge, stable intent and recipient Station, and never rewrites the original proof. Signature domain: ak.mls.scope_retirement_delivery.v1 plus LF and JCS(attestation without signature). Freshness applies at receipt, not as a global completion lease."
           }
         }
       }
@@ -113148,7 +113273,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:d455e3c3892c31b8d86dcfa8317592a03a4f0f3c73980fe1b692b2fa4672c0aa"
+      "digest": "sha256:c4ede38a47b69896e8174c84b8269cafb9bff203e8f71ce28451a4ffc3a2cd35"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -113208,7 +113333,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:d2aec1b907d62d566048e9bf97c7ef5b7e3a0cfc87c7e1a74fc8337e309e8837"
+      "digest": "sha256:49536d9b267c0d319e540f785efcf49796a0e0d042204ced9226e2d69fad471d"
     },
     {
       "file": "operation-clause-registry.json",
@@ -113292,7 +113417,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:433eeee9dd32fdb4f954648dae327486dba64178e2b51474f76bbe7982813bd7"
+      "digest": "sha256:9f8b7212b2a30dc82a8bed45dac69b469f0163579fdf11f5dfdfaba573f0a6db"
     }
   ],
   "openapi": {
@@ -129008,6 +129133,18 @@
       "/_arkret/peer/mls/recovery-scope-cleanup": {
         "post": {
           "operationId": "ak.peer.mls.command.reconcile_recovery_scope",
+          "security": [
+            {
+              "httpMessageSignature": [],
+              "sourceServiceId": [],
+              "destinationServiceId": [],
+              "sourceTrustDomain": [],
+              "destinationTrustDomain": [],
+              "contentDigest": []
+            }
+          ],
+          "summary": "Reconcile one departed recovery scope without granting membership or keys.",
+          "description": "Full-body outer request idempotency and a separate stable native recovery intent. Current source destination and fresh delivery challenge are signed but excluded from the stable intent. Current origin and reader authorization are required before an existing terminal is read, including after rejoin or lawful handoff. First finalization requires lost eligibility and actual absence or irreversible termination. A terminal response preserves the original proof and carries an independent fresh current-governor delivery attestation after actual native proof and fence retention or import. A pending observation is immutable for the original request and challenge; subsequent observation uses a fresh challenge. No membership, roots, private PCR coordinates or generic history access is granted.",
           "parameters": [
             {
               "name": "Arkret-Operation",
@@ -129028,18 +129165,6 @@
               }
             }
           ],
-          "security": [
-            {
-              "httpMessageSignature": [],
-              "sourceServiceId": [],
-              "destinationServiceId": [],
-              "sourceTrustDomain": [],
-              "destinationTrustDomain": [],
-              "contentDigest": []
-            }
-          ],
-          "summary": "Reconcile one departed recovery scope without granting membership or keys.",
-          "description": "content-history.md section 10.1. Authenticate the owning Account Station and independently verify its short-lived native episode authorization, exact inventory entry and current destination authority. Persist the per-episode displaced-endpoint fence and reconcile original admissions under the same scope lock. Only lost-eligibility scopes may yield a signed removed or irreversible terminated proof. Pending is not completion. The command grants no membership, keys, generic PCR access or MLS signer authority. Current members use the existing recovery Commit path; actual Remove requires a legal MLS endpoint. Unknown/unauthorized targets are not_found; missing native proof is revision_unavailable. Exact intent replay remains current-authorized; freshness-only source renewal does not rebind the intent.",
           "requestBody": {
             "required": true,
             "content": {
@@ -129097,6 +129222,14 @@
       "/_arkret/self/mls/recovery-scope-cleanup": {
         "post": {
           "operationId": "ak.self.mls.command.reconcile_recovery_scope",
+          "security": [
+            {
+              "sessionGrantAuth": [],
+              "dpopProof": []
+            }
+          ],
+          "summary": "Reconcile one departed recovery scope without granting membership or keys.",
+          "description": "The current native subject or explicit Agent custodian selects an exact prepared episode and inventory entry. Full-body outer idempotency is separate from the stable subject/episode/nonce intent. The owning Station durably freezes its derived peer request before sending; exact retries reuse it. Source or route renewal and subsequent polling require a fresh delivery challenge. The unchanged peer delivery contains an immutable historical proof and a fresh current-governor attestation. Self projects proof-digest-bound historical and delivery-digest-bound current keys separately. Current rejoin does not deny an existing terminal; revoked holders, old episodes and unknown targets fail closed. Bare cached proof or expired delivery cannot satisfy a new request. No new membership or keys are granted; full group-chat archive recovery is not guaranteed.",
           "parameters": [
             {
               "name": "Arkret-Operation",
@@ -129117,14 +129250,6 @@
               }
             }
           ],
-          "security": [
-            {
-              "sessionGrantAuth": [],
-              "dpopProof": []
-            }
-          ],
-          "summary": "Reconcile one departed recovery scope without granting membership or keys.",
-          "description": "content-history.md section 10.1. Current native recovery subject or explicit current Agent history custodian selects one exact entry of the already prepared private episode by authorization Event and inventory digest. The owning Station supplies native source evidence, resolves current governance and invokes the peer command; it independently verifies the signed response and returns the unchanged result plus a proof-digest-bound historical governor public key. No caller-selected replacement, private inventory upload, new recovery episode, rejoin, history permission or root disclosure. Old endpoints/episodes and unknown targets are not_found. Native PCR completeness and client ready remain separate; full group-chat archive recovery is not guaranteed.",
           "requestBody": {
             "required": true,
             "content": {

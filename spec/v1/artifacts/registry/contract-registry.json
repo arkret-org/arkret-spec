@@ -12024,6 +12024,13 @@
         "fragment": "#/$defs/scope_retirement_proof",
         "status": "active",
         "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+      },
+      {
+        "schema_id": "ak.schema.scope_retirement_delivery_attestation.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/scope_retirement_delivery_attestation",
+        "status": "active",
+        "description": "Fresh current-governor delivery binding an immutable historical scope proof and exact current request."
       }
     ]
   },
@@ -18128,10 +18135,10 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source",
         "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
-        "notes": "content-history.md section 10.1. Authenticate the owning Account Station and independently verify its short-lived native episode authorization, exact inventory entry and current destination authority. Persist the per-episode displaced-endpoint fence and reconcile original admissions under the same scope lock. Only lost-eligibility scopes may yield a signed removed or irreversible terminated proof. Pending is not completion. The command grants no membership, keys, generic PCR access or MLS signer authority. Current members use the existing recovery Commit path; actual Remove requires a legal MLS endpoint. Unknown/unauthorized targets are not_found; missing native proof is revision_unavailable. Exact intent replay remains current-authorized; freshness-only source renewal does not rebind the intent. Idempotency hashes the canonical nonce_base64url string scoped to subject/episode; full intent digest equality is additionally required, and source freshness renewal preserves that intent.",
+        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes.",
         "idempotency_mechanism": "canonical_hash",
         "retry_safe": true,
-        "canonical_hash_input": "/attestation/nonce_base64url",
+        "canonical_hash_input": "full_body",
         "durable_effect": {
           "kind": "none",
           "rationale": "No Arkret Event or RealmCommit is admitted. Persist the native per-episode fence, exact intent, original source, private proof and current-authorized replay state atomically; no membership or secret is created."
@@ -18146,10 +18153,10 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body",
         "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
-        "notes": "content-history.md section 10.1. Current native recovery subject or explicit current Agent history custodian selects one exact entry of the already prepared private episode by authorization Event and inventory digest. The owning Station supplies native source evidence, resolves current governance and invokes the peer command; it independently verifies the signed response and returns the unchanged result plus a proof-digest-bound historical governor public key. No caller-selected replacement, private inventory upload, new recovery episode, rejoin, history permission or root disclosure. Old endpoints/episodes and unknown targets are not_found. Native PCR completeness and client ready remain separate; full group-chat archive recovery is not guaranteed. Idempotency hashes the canonical nonce_base64url string scoped to subject/episode; full intent digest equality is additionally required, and source freshness renewal preserves that intent.",
+        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes. Self wraps the unchanged peer delivery and separately projects proof-digest-bound historical and delivery-digest-bound current governor keys. Bare cached proof is not a fresh response.",
         "idempotency_mechanism": "canonical_hash",
         "retry_safe": true,
-        "canonical_hash_input": "/nonce_base64url",
+        "canonical_hash_input": "full_body",
         "durable_effect": {
           "kind": "none",
           "rationale": "No Arkret Event or RealmCommit is admitted. Persist the native per-episode fence, exact intent, original source, private proof and current-authorized replay state atomically; no membership or secret is created.",
@@ -24981,7 +24988,7 @@
       "durable_before_acceptance",
       "no_lossy_retention",
       "generation_fence_before_replay",
-      "all_scope_leaf_cleanup_before_complete"
+      "all_scope_security_closure_before_complete"
     ],
     "external_commit": {
       "allowed_only_with": "verified_current_recovery_binding",
@@ -25019,6 +25026,35 @@
       "terminated"
     ],
     "retirement_proof_schema_ref": "schemas/content-encryption.schema.json#/$defs/scope_retirement_proof",
-    "group_chat_full_archive_guarantee": false
+    "group_chat_full_archive_guarantee": false,
+    "retirement_delivery_schema_ref": "schemas/content-encryption.schema.json#/$defs/scope_retirement_delivery_attestation",
+    "retirement_idempotency": {
+      "outer": "full_body",
+      "inner": "subject_episode_nonce_and_stable_intent",
+      "intent_fields": [
+        "replacement",
+        "inventory_digest",
+        "inventory_entry",
+        "nonce_base64url"
+      ],
+      "route_is_intent": false,
+      "delivery_challenge_is_intent": false,
+      "terminal_proof_immutable": true,
+      "observation_binds_authorization_digest": true,
+      "derived_peer_request_durable_before_send": true
+    },
+    "recovery_send_barrier": {
+      "key": [
+        "effective_scope",
+        "genesis_event_ref",
+        "authorization_event_ref"
+      ],
+      "pending": "block_all_business_senders",
+      "rekeyed": "release_only_completed_episode_blocker",
+      "removed": "release_only_completed_episode_blocker",
+      "terminated": "permanent_lifecycle_gate",
+      "ordinary_gates_still_required": true,
+      "advance_key_access_revision": false
+    }
   }
 }

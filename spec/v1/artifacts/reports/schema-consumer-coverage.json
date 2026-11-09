@@ -39,7 +39,7 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 237,
+    "total_schemas": 238,
     "by_consumer": {
       "declared_wire": 61,
       "event_kind": 7,
@@ -47,14 +47,14 @@
       "outbound": 69,
       "prose": 107,
       "prose_only": 4,
-      "schema_reference": 170,
-      "startup_compile": 237,
+      "schema_reference": 171,
+      "startup_compile": 238,
       "vectors": 113
     },
     "without_wire_consumer": 3,
     "explicit_prose_only": 4,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 124,
+    "without_vector_coverage": 125,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -184,6 +184,7 @@
     "ak.schema.recovery_scope_cleanup_source.v1",
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_selector.v1",
+    "ak.schema.scope_retirement_delivery_attestation.v1",
     "ak.schema.scope_retirement_proof.v1",
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.security_rotation_local_commit.v1",
@@ -1597,6 +1598,7 @@
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_selector.v1",
+          "ak.schema.scope_retirement_delivery_attestation.v1",
           "ak.schema.scope_retirement_proof.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.search_service.v1",
@@ -2032,6 +2034,7 @@
           "ak.schema.recovery_scope_cleanup_response_body.v1",
           "ak.schema.recovery_scope_cleanup_self_response_body.v1",
           "ak.schema.recovery_scope_cleanup_source.v1",
+          "ak.schema.scope_retirement_delivery_attestation.v1",
           "ak.schema.scope_retirement_proof.v1",
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
@@ -3117,6 +3120,7 @@
           "ak.schema.recovery_scope_cleanup_response_body.v1",
           "ak.schema.recovery_scope_cleanup_self_response_body.v1",
           "ak.schema.recovery_scope_cleanup_source.v1",
+          "ak.schema.scope_retirement_delivery_attestation.v1",
           "ak.schema.scope_retirement_proof.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -4159,6 +4163,30 @@
       }
     },
     {
+      "schema_id": "ak.schema.scope_retirement_delivery_attestation.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.content_encryption.v1",
+          "ak.schema.content_encryption_context.v1",
+          "ak.schema.content_recovery_preparation.v1",
+          "ak.schema.recovery_scope_cleanup_request_body.v1",
+          "ak.schema.recovery_scope_cleanup_response_body.v1",
+          "ak.schema.recovery_scope_cleanup_self_response_body.v1",
+          "ak.schema.recovery_scope_cleanup_source.v1",
+          "ak.schema.scope_retirement_proof.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      },
+      "fragment": "#/$defs/scope_retirement_delivery_attestation"
+    },
+    {
       "schema_id": "ak.schema.scope_retirement_proof.v1",
       "file": "schemas/content-encryption.schema.json",
       "consumers": {
@@ -4175,7 +4203,8 @@
           "ak.schema.recovery_scope_cleanup_request_body.v1",
           "ak.schema.recovery_scope_cleanup_response_body.v1",
           "ak.schema.recovery_scope_cleanup_self_response_body.v1",
-          "ak.schema.recovery_scope_cleanup_source.v1"
+          "ak.schema.recovery_scope_cleanup_source.v1",
+          "ak.schema.scope_retirement_delivery_attestation.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
@@ -4678,6 +4707,7 @@
           "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
+          "ak.schema.scope_retirement_delivery_attestation.v1",
           "ak.schema.scope_retirement_proof.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.security_rotation_local_commit.v1",

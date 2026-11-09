@@ -397,7 +397,7 @@ proposal，repair Commit 按 §2.5.2 由任一 active、获权客户端构造。
 集合，仍由它作为唯一写者把 revision 加一，并照常要求 winning Commit 覆盖。两条门互不替代：revision 只记 Circle stream 的
 membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
 
-**残余窗口（informative）**：endpoint 撤销到 Remove Commit 接纳之间，其它成员仍可在旧 epoch 发送；被撤销 endpoint
+**残余窗口（informative）**：普通endpoint撤销且不处于content-history恢复专用屏障时，到Remove Commit接纳之间其它成员仍可在旧epoch发送；被撤销 endpoint
 若另行取得这些密文，仍能解密。它的 recipient queue 读取与 ACK 在撤销时即被阻断，自身发送被 send gate 拒绝。
 
 不存在 advisory 降级窗口。remove先 commit时旧 epoch新消息立即失败；消息先 commit时它是 remove前合法历史。
@@ -483,6 +483,8 @@ revision 小于 current revision 的材料仍可作为历史记录通过验证�
 winning Commit 覆盖而返回 `epoch_update_required`。
 
 #### 2.5.2 Send gate 与 self-heal
+
+**恢复屏障（normative）**：content-history §5／§10.1的原生pending义务在本scope阻断全部业务发送者，先于下文epoch匹配成功分支求值；同cut的subject／endpoint撤销与terminal生命周期门仍不可绕过。临时阻断按scope／genesis／episode独立登记；rekeyed／removed终局事务仅解除本episode阻断，不能清掉其它episode、membership／policy或key-access门。terminated永久禁止原group写入，不能因移除临时阻断而恢复。永久旧endpoint fence不随业务屏障释放，也不推进key_access_revision；历史证明续读不安装新业务屏障。
 
 encrypted application Event 携带 `epoch`、`group_state_ref` 与 `key_access_revision`。Station 仅在三者匹配
 current `mls_group` result 且 producer current-authorized 时提交。治理 Station MUST 先判定 current scope 的

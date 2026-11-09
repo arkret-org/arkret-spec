@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 信任方与角色
 
-v1 保留三类可被 Account Station 转达的权威结果：
+共享Event／状态finality由以下三类治理结果承载；本节后述MLS窄native证明不新增共享finality类型：
 
 - `RealmCommit`：证明 exact Event 已在某一 Realm/Circle/Sidecar stream 的唯一 position 被接纳；
 - `RealmStateSnapshot`：由其指定 authority generation 当时的治理 Station 签名确认同 cut 的内联 typed current rows、调用者获准 stream heads 与 history floors；当前 `/head` 必须属于当前任期，exact 历史 by-ref 可属于链内旧任期；
@@ -44,6 +44,13 @@ MLS roster 也按此分工：Account Station 验原时点完整方法权威，se
 与 RFC leaf。没有通用 `verified` 布尔捷径，也没有 MLS-only 方法历史例外；精确 carrier、授权与
 失败关闭见 [encryption-and-audit §2.2](../crypto-media/encryption-and-audit.md)。
 
+content-history §10.1的scope_retirement_proof及scope_retirement_delivery_attestation是只用于原episode收尾的窄native证明。
+原proof按首次终局cut／原governor／历史method验证；当前交付确认按fresh来源、challenge、current治理链／任期和实际native proof／fence保管或合法import验证。
+own Station分别核两套原生资格与签名历史，再返回proof_digest绑定的attestor_signing_key和delivery_digest绑定的delivery_signing_key。
+普通客户端从自己的已绑定Station消费，独立核原意图／scope、两个exact摘要、公钥及原签；不以当前群成员资格否决历史终局，也不以旧proof授当前API权。
+本节对这组窄结果明确复用§2的职责分工，不要求普通客户端原生Service verifier，不提供通用key、verified布尔、PCR或业务读取权限。
+两类证明及self投影只对当前subject／明确Agent custodian私密交付；上游终态来源仅公开按请求绑定的摘要，不披露外scope PCR坐标。
+
 ### 2.1 普通客户端消费既有治理结果（normative）
 
 上述治理链、Station 方法历史、治理签名与 nonce 验证由消费 Account Station 执行；独立审计者
@@ -54,8 +61,8 @@ MLS roster 也按此分工：Account Station 验原时点完整方法权威，se
 
 `ak.vector.authority_commit_projection.result_consumption_roles.v1` 验证本节的角色与输入边界。
 
-本合同只复用既有 self Account/committed-event 同步与 scan、typed exact current、Snapshot head/by-ref
-和 self submit outcome，不添加 `verified` 布尔、第二套 receipt、通用 Station key 或 discovery operation。
+本节普通Event／状态结果复用既有self Account/committed-event同步与scan、typed exact current、Snapshot head/by-ref和self submit outcome。
+§2已登记的scope收尾窄证明另经其self命令交付，不构成通用receipt或新的共享finality；两者均不添加`verified`布尔、通用Station key或discovery operation。
 自己的 Station MUST 在返回前独立验证该结果的原治理证明、同 stream 连续性、generation 与可见性；
 材料不可得或验证失败时 MUST 返回该 operation 既有不可用/拒绝结果，MUST NOT 返回可用于写入的伪成功。
 原 authority bytes MUST 原样保留，最终事实仍来自治理 Station，自己的 Station 不产生新 finality。

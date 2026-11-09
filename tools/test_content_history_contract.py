@@ -792,7 +792,7 @@ class ContentHistoryContractTest(unittest.TestCase):
 
 
 class ScopeRetirementContractTest(unittest.TestCase):
-    """Explicit native model inputs never substitute for production admission."""
+    """Crypto and explicit native-model assumptions, without production claims."""
 
     setUpClass = classmethod(ContentHistoryContractTest.setUpClass.__func__)
     validate = ContentHistoryContractTest.validate
@@ -803,186 +803,410 @@ class ScopeRetirementContractTest(unittest.TestCase):
         self.inventory = self.kat['inventory']
         self.entry = self.inventory['entries'][0]
         self.authorization = self.kat['authorization']
-        self.facts = self.kat['native_qualified_inputs']
+        self.reader = self.kat['reader_authority']
+        self.historical = self.kat['historical_completion_basis']
+        self.route = self.kat['current_delivery']
 
-    def verify(self, result=None, facts=None):
+    def verify(self, result=None, historical=None, authorization=None):
         from tools.recovery_scope_cleanup import verify_retirement
-        return verify_retirement(result or self.kat['results']['removed'], self.authorization,
-                                 self.inventory, self.entry, facts or self.facts,
-                                 self.kat['governor_public_key'])
+        return verify_retirement(result or self.kat['results']['removed'], authorization or self.authorization,
+                                 self.inventory, self.entry, historical or self.historical)
+
+    def consume(self, scenario=None, reader=None, route=None, now=None, response=None):
+        from tools.recovery_scope_cleanup import verify_self_retirement
+        scenario = scenario or self.kat
+        return verify_self_retirement(response or scenario['self_deliveries']['removed'], scenario['authorization'],
+            self.inventory, self.entry, reader or self.reader, self.historical,
+            route or scenario['current_delivery'], now or ('2026-11-09T00:06:02.000Z' if scenario is self.kat['handoff'] else '2026-11-09T00:00:03.000Z'))
 
     def test_retired_branches_are_signed_closed_and_do_not_deliver_roots(self):
         from tools.recovery_scope_cleanup import qualify_source, signing_bytes
-        qualify_source(self.authorization, self.inventory, self.entry, self.facts, '2026-11-09T00:00:01.000Z')
+        qualify_source(self.authorization, self.inventory, self.entry, self.reader, self.route, '2026-11-09T00:00:03.000Z')
         self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_authorization', self.authorization)
         self.assertEqual(signing_bytes(self.authorization, source=True).hex(), self.kat['authorization_signing_hex'])
-        for state, result in self.kat['results'].items():
-            self.validate('content-encryption.schema.json#/$defs/scope_cleanup', result)
-            self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body', result)
-            self.verify(result)
-            self.assertEqual(signing_bytes(result['retirement_proof']).hex(), self.kat[state + '_signing_hex'])
-            for field, val in [('root_refs', ['sha256:' + '0' * 64]), ('backup_refs', ['unrelated']),
-                               ('winning_commit', self.inventory['pcr_cut'])]:
-                self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', {**result, field: val})
+        for state, cleanup in self.kat['results'].items():
+            self.validate('content-encryption.schema.json#/$defs/scope_cleanup', cleanup)
+            self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body', self.kat['deliveries'][state])
+            self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body', self.kat['self_deliveries'][state])
+            self.verify(cleanup)
+            self.assertEqual(signing_bytes(cleanup['retirement_proof']).hex(), self.kat[state + '_signing_hex'])
+            for field, value in [('root_refs', ['sha256:' + '0' * 64]), ('backup_refs', ['unrelated']),
+                                  ('winning_commit', self.inventory['pcr_cut'])]:
+                self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', {**cleanup, field: value})
 
     def test_retirement_requires_native_absence_and_no_inflight_admission(self):
-        for field, val in [('old_endpoint_count', 1), ('pending_admission_count', 1),
-                           ('episode_fenced', False), ('current_episode', False),
-                           ('native_source_complete', False), ('current_eligible', True)]:
+        for field, value in [('old_endpoint_count', 1), ('pending_admission_count', 1),
+                             ('episode_fenced', False), ('native_source_complete', False), ('eligible_at_completion', True)]:
             with self.subTest(field=field), self.assertRaises(ValueError):
-                self.verify(facts={**self.facts, field: val})
+                self.verify(historical={**self.historical, field: value})
 
     def test_old_index_empty_does_not_prove_current_absence(self):
         self.assertEqual(self.entry['old_leaves'], [])
         with self.assertRaises(ValueError):
-            self.verify(facts={**self.facts, 'old_endpoint_count': 2})
+            self.verify(historical={**self.historical, 'old_endpoint_count': 2})
 
     def test_retirement_rejects_wrong_governance_cut_and_handoff_generation(self):
-        for field, val in [('governance_station_id', 'ak:did_core:web:wrong.example'),
-                           ('governance_generation', 1), ('epoch', '13'),
-                           ('group_state_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref']),
-                           ('scope_cut', {**self.facts['scope_cut'], 'stream_position': 999})]:
+        for field, value in [('governance_station_id', 'ak:did_core:web:wrong.example'), ('governance_generation', 1),
+                             ('epoch', '13'), ('group_state_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref']),
+                             ('scope_cut', {**self.historical['scope_cut'], 'stream_position': 999})]:
             with self.subTest(field=field), self.assertRaises(ValueError):
-                self.verify(facts={**self.facts, field: val})
+                self.verify(historical={**self.historical, field: value})
 
     def test_modified_nonce_inventory_scope_or_endpoint_breaks_signature(self):
-        for field, val in [('nonce_base64url', b64(bytes([1]) * 32)), ('inventory_digest', 'sha256:' + '0' * 64),
-                           ('inventory_entry_digest', 'sha256:' + '1' * 64), ('state', 'terminated'),
-                           ('replacement', self.fixture['kat']['content_context']['producer'])]:
+        for field, value in [('nonce_base64url', b64(bytes([1]) * 32)), ('inventory_digest', 'sha256:' + '0' * 64),
+                             ('inventory_entry_digest', 'sha256:' + '1' * 64), ('state', 'terminated'),
+                             ('replacement', self.fixture['kat']['content_context']['producer'])]:
             result = copy.deepcopy(self.kat['results']['removed'])
-            result['retirement_proof'][field] = val
+            result['retirement_proof'][field] = value
             with self.subTest(field=field), self.assertRaises((InvalidSignature, ValueError)):
                 self.verify(result)
 
     def test_resigning_cannot_change_native_scope_or_episode(self):
         from tools.recovery_scope_cleanup import sign
         key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
-        for field, val in [('inventory_digest', 'sha256:' + '0' * 64), ('nonce_base64url', b64(bytes([8]) * 32)),
-                           ('request_digest', 'sha256:' + '2' * 64),
-                           ('genesis_event_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref'])]:
+        for field, value in [('inventory_digest', 'sha256:' + '0' * 64), ('nonce_base64url', b64(bytes([8]) * 32)),
+                             ('request_digest', 'sha256:' + '2' * 64),
+                             ('genesis_event_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref'])]:
             result = copy.deepcopy(self.kat['results']['removed'])
-            proof = {**result['retirement_proof'], field: val}
-            result['retirement_proof'] = sign(proof, key)
+            result['retirement_proof'] = sign({**result['retirement_proof'], field: value}, key)
             with self.subTest(field=field), self.assertRaises(ValueError):
                 self.verify(result)
 
     def test_terminated_requires_registered_irreversible_all_writes_gate(self):
         result = self.kat['results']['terminated']
-        self.verify(result, {**self.facts, 'old_endpoint_count': 3})
-        for field, val in [('terminal_irreversible', False), ('terminal_all_writes_blocked', False),
-                           ('terminal_source_digest', 'sha256:' + '0' * 64)]:
+        self.verify(result, {**self.historical, 'old_endpoint_count': 3})
+        for field, value in [('terminal_irreversible', False), ('terminal_all_writes_blocked', False),
+                             ('terminal_source_digest', 'sha256:' + '0' * 64)]:
             with self.subTest(field=field), self.assertRaises(ValueError):
-                self.verify(result, {**self.facts, field: val})
-        changed = copy.deepcopy(result)
-        changed['retirement_proof']['remaining_old_leaf_count'] = 0
-        self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', changed)
-        changed = copy.deepcopy(self.kat['results']['removed'])
-        changed['retirement_proof']['terminal_source_digest'] = self.inventory['pcr_cut']
-        self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', changed)
+                self.verify(result, {**self.historical, field: value})
+        for state, field, value in [('terminated', 'remaining_old_leaf_count', 0),
+                                    ('removed', 'terminal_source_digest', 'sha256:' + '0' * 64)]:
+            altered = copy.deepcopy(self.kat['results'][state])
+            altered['retirement_proof'][field] = value
+            self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', altered)
 
     def test_current_origin_episode_and_source_ttl_are_not_signature_shortcuts(self):
         from tools.recovery_scope_cleanup import qualify_source
-        for field, val in [('origin_service_id', 'ak:did_core:web:other.example'),
-                           ('native_source_complete', False), ('current_episode', False), ('current_eligible', True)]:
+        for field, value in [('origin_service_id', 'ak:did_core:web:other.example'),
+                             ('origin_native_qualified', False), ('governance_active', False)]:
             with self.subTest(field=field), self.assertRaises(ValueError):
-                qualify_source(self.authorization, self.inventory, self.entry,
-                               {**self.facts, field: val}, '2026-11-09T00:00:01.000Z')
+                qualify_source(self.authorization, self.inventory, self.entry, self.reader,
+                               {**self.route, field: value}, '2026-11-09T00:00:03.000Z')
         with self.assertRaises(ValueError):
-            qualify_source(self.authorization, self.inventory, self.entry, self.facts, self.authorization['expires_at'])
+            qualify_source(self.authorization, self.inventory, self.entry, self.reader, self.route, self.authorization['expires_at'])
 
     def test_fresh_source_renewal_preserves_intent_but_nonce_rebinding_does_not(self):
-        from tools.recovery_scope_cleanup import request_digest, sign, qualify_source
-        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['origin_signing_seed_hex']))
-        renewed = sign({**self.authorization, 'attested_at': '2026-11-09T00:06:00.000Z',
-                        'expires_at': '2026-11-09T00:11:00.000Z'}, key, source=True)
-        self.assertEqual(request_digest(renewed), request_digest(self.authorization))
-        qualify_source(renewed, self.inventory, self.entry, self.facts, '2026-11-09T00:06:01.000Z')
-        self.assertNotEqual(request_digest({**renewed, 'nonce_base64url': b64(bytes([6]) * 32)}), request_digest(renewed))
-        self.assertNotEqual(request_digest({**renewed, 'destination_service_id': 'ak:did_core:web:new.example'}),
-                            request_digest(renewed))
+        from tools.recovery_scope_cleanup import request_digest, digest, qualify_source
+        after = self.kat['handoff']
+        self.assertEqual(request_digest(after['authorization']), request_digest(self.authorization))
+        self.assertNotEqual(digest(after['authorization']), digest(self.authorization))
+        qualify_source(after['authorization'], self.inventory, self.entry, self.reader, after['current_delivery'], '2026-11-09T00:06:02.000Z')
+        self.assertNotEqual(request_digest({**self.authorization, 'nonce_base64url': b64(bytes([6]) * 32)}), request_digest(self.authorization))
 
     def test_pending_is_closed_and_has_no_key_or_partial_proof(self):
         schema = 'content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body'
         self.validate(schema, {'state': 'pending'})
-        for field, val in [('remaining_old_leaf_count', 0), ('retirement_proof', self.kat['results']['removed']['retirement_proof'])]:
-            self.invalid(schema, {'state': 'pending', field: val})
-        self_schema = 'content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body'
-        self.validate(self_schema, {'cleanup': {'state': 'pending'}})
-        result = self.kat['results']['removed']
-        proof = result['retirement_proof']
-        key = {'proof_digest': 'sha256:' + hashlib.sha256(jcs(proof)).hexdigest(),
-               'verification_method': proof['verification_method'], 'public_key_base64url': self.kat['governor_public_key']}
-        self.validate(self_schema, {'cleanup': result, 'attestor_signing_key': key})
-        self.invalid(self_schema, {'cleanup': result})
-        self.invalid(self_schema, {'cleanup': {'state': 'pending'}, 'attestor_signing_key': key})
+        self.invalid(schema, {'state': 'pending', 'remaining_old_leaf_count': 0})
+        self.invalid(schema, self.kat['results']['removed'])
+        schema = 'content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body'
+        self.validate(schema, {'delivery': {'state': 'pending'}})
+        self.invalid(schema, {'delivery': {'state': 'pending'}, 'attestor_signing_key': self.kat['self_deliveries']['removed']['attestor_signing_key']})
+        self.invalid(schema, {'delivery': self.kat['deliveries']['removed']})
 
     def test_retired_entries_remain_in_cleanup_without_fake_roots(self):
         result = self.kat['results']['removed']
-        actual = cleanup_digest(self.inventory, [result])
         self.validate('content-encryption.schema.json#/$defs/cleanup_inventory', {
             'inventory_digest': inventory_digest(self.inventory), 'scope_cleanups': [result]})
-        self.assertTrue(actual.startswith('sha256:'))
-        with self.assertRaises(ValueError):
-            cleanup_digest(self.inventory, [])
-        with self.assertRaises(ValueError):
-            cleanup_digest(self.inventory, [{**result, 'state': 'rekeyed'}])
+        self.assertTrue(cleanup_digest(self.inventory, [result]).startswith('sha256:'))
+        for results in [[], [{**result, 'state': 'rekeyed'}]]:
+            with self.assertRaises(ValueError):
+                cleanup_digest(self.inventory, results)
+        self.assertNotIn('delivery_attestation', jcs(result).decode())
 
     def test_registered_commands_are_private_and_do_not_expand_chat_archive_guarantee(self):
         catalog = json.loads((ART / 'registry/contract-registry.json').read_text(encoding='utf-8'))
         ops = {op['operation_id']: op for op in catalog['operation_registry']['operations']}
         for prefix in ['self', 'peer']:
             op = ops[f'ak.{prefix}.mls.command.reconcile_recovery_scope.v1']
-            self.assertEqual(op['http'], f'POST /_arkret/{prefix}/mls/recovery-scope-cleanup')
-            self.assertIn('content-encryption.schema.json#/$defs/', op['request_schema_ref'])
+            self.assertEqual(op['canonical_hash_input'], 'full_body')
+            self.assertEqual(op['idempotency_mechanism'], 'canonical_hash')
+            self.assertTrue(op['retry_safe'])
         self.assertFalse(catalog['content_encryption_contract']['group_chat_full_archive_guarantee'])
-        self.assertEqual(catalog['content_encryption_contract']['scope_cleanup_states'], ['rekeyed', 'removed', 'terminated'])
+        identity = catalog['content_encryption_contract']['retirement_idempotency']
+        self.assertEqual(identity['intent_fields'], ['replacement', 'inventory_digest', 'inventory_entry', 'nonce_base64url'])
+        self.assertFalse(identity['route_is_intent'])
+        self.assertFalse(identity['delivery_challenge_is_intent'])
+        self.assertTrue(identity['observation_binds_authorization_digest'])
+        self.assertTrue(identity['derived_peer_request_durable_before_send'])
+        barrier = catalog['content_encryption_contract']['recovery_send_barrier']
+        self.assertEqual(barrier['pending'], 'block_all_business_senders')
+        self.assertEqual(barrier['removed'], 'release_only_completed_episode_blocker')
+        self.assertEqual(barrier['terminated'], 'permanent_lifecycle_gate')
+        self.assertFalse(barrier['advance_key_access_revision'])
 
     def test_service_method_and_first_finalization_window_are_bound(self):
         from tools.recovery_scope_cleanup import sign
         key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
-        for field, val in [('verification_method', 'did:web:governor.example#wrong'),
-                           ('attested_at', self.authorization['expires_at']),
-                           ('attested_at', '2026-11-08T00:00:00.000Z')]:
+        for field, value in [('verification_method', 'did:web:governor.example#wrong'),
+                             ('attested_at', self.authorization['expires_at']), ('attested_at', '2026-11-08T00:00:00.000Z')]:
             result = copy.deepcopy(self.kat['results']['removed'])
-            result['retirement_proof'] = sign({**result['retirement_proof'], field: val}, key)
-            with self.subTest(field=field, value=val), self.assertRaises(ValueError):
+            result['retirement_proof'] = sign({**result['retirement_proof'], field: value}, key)
+            with self.subTest(field=field), self.assertRaises(ValueError):
                 self.verify(result)
 
+    def test_cleanup_bindings_keep_authenticated_origin_and_current_holder_roles(self):
+        import yaml
+        api = yaml.safe_load((ART / 'openapi/arkret-service-api.openapi.yaml').read_text(encoding='utf-8'))
+        for prefix, schemes in [('peer', {'httpMessageSignature', 'sourceServiceId', 'destinationServiceId',
+                                          'sourceTrustDomain', 'destinationTrustDomain', 'contentDigest'}),
+                                ('self', {'sessionGrantAuth', 'dpopProof'})]:
+            operation = api['paths'][f'/_arkret/{prefix}/mls/recovery-scope-cleanup']['post']
+            self.assertEqual(len(operation['security']), 1)
+            self.assertEqual(set(operation['security'][0]), schemes)
+            self.assertIn('fresh', operation['description'])
+            self.assertIn('intent', operation['description'])
+
     def test_self_key_projection_cannot_be_swapped_or_rebound(self):
-        from tools.recovery_scope_cleanup import digest, verify_self_retirement
-        result = self.kat['results']['removed']
-        proof = result['retirement_proof']
-        response = {'cleanup': result, 'attestor_signing_key': {
-            'proof_digest': digest(proof), 'verification_method': proof['verification_method'],
-            'public_key_base64url': self.kat['governor_public_key']}}
-        verify = lambda value: verify_self_retirement(value, self.authorization, self.inventory,
-                                                      self.entry, self.facts, self.kat['governor_public_key'])
-        self.assertEqual(verify(response), proof)
-        self.assertIsNone(verify({'cleanup': {'state': 'pending'}}))
-        for field, value in [('proof_digest', 'sha256:' + '0' * 64),
-                             ('verification_method', 'did:web:wrong.example#key'),
-                             ('public_key_base64url', b64(bytes([8]) * 32))]:
-            altered = copy.deepcopy(response)
-            altered['attestor_signing_key'][field] = value
-            with self.subTest(field=field), self.assertRaises(ValueError):
-                verify(altered)
+        self.consume()
+        for projection, field, value in [
+            ('attestor_signing_key', 'proof_digest', 'sha256:' + '0' * 64),
+            ('attestor_signing_key', 'public_key_base64url', b64(bytes([8]) * 32)),
+            ('delivery_signing_key', 'delivery_digest', 'sha256:' + '1' * 64),
+            ('delivery_signing_key', 'verification_method', 'did:web:wrong.example#key')]:
+            response = copy.deepcopy(self.kat['self_deliveries']['removed'])
+            response[projection][field] = value
+            with self.subTest(projection=projection, field=field), self.assertRaises(ValueError):
+                self.consume(response=response)
 
     def test_terminal_source_commitment_hides_upstream_coordinates_and_binds_nonce(self):
         from tools.recovery_scope_cleanup import terminal_source_digest, sign
-        source = copy.deepcopy(self.inventory['pcr_cut'])
-        source['event_id'] = 'ak:event:' + b64(b'\x01' + bytes([17]) * 32)
-        source['stream_position'] = 991
+        source = {**self.inventory['pcr_cut'], 'event_id': 'ak:event:' + b64(b'\x01' + bytes([17]) * 32), 'stream_position': 991}
         nonce = self.authorization['nonce_base64url']
         committed = terminal_source_digest(self.entry, source, nonce)
         self.assertNotEqual(committed, terminal_source_digest(self.entry, source, b64(bytes([18]) * 32)))
-        changed = {**source, 'stream_position': 992}
-        self.assertNotEqual(committed, terminal_source_digest(self.entry, changed, nonce))
         result = copy.deepcopy(self.kat['results']['terminated'])
         key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
         result['retirement_proof'] = sign({**result['retirement_proof'], 'terminal_source_digest': committed}, key)
-        self.verify(result, {**self.facts, 'terminal_source_digest': committed})
+        self.verify(result, {**self.historical, 'terminal_source_digest': committed})
         self.assertNotIn(source['event_id'], jcs(result).decode())
-        self.assertNotIn('terminal_event_ref', jcs(result).decode())
+
+    def test_completed_rejoin_uses_terminal_before_first_eligibility_gate(self):
+        from tools.recovery_scope_cleanup import settle_intent
+        ledger = {}
+        expected = self.kat['results']['removed']
+        self.assertEqual(settle_intent(ledger, self.authorization, False, expected), expected)
+        self.assertEqual(settle_intent(ledger, self.authorization, True, None), expected)
+        with self.assertRaisesRegex(ValueError, 'failed_precondition'):
+            settle_intent({}, self.authorization, True, expected)
+        self.consume()
+
+    def test_rejoin_then_handoff_preserves_original_proof_and_uses_current_delivery(self):
+        from tools.recovery_scope_cleanup import signing_bytes, settle_intent
+        after = self.kat['handoff']
+        self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_authorization', after['authorization'])
+        self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body', after['deliveries']['removed'])
+        self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body', after['self_deliveries']['removed'])
+        original = jcs(self.kat['results']['removed']['retirement_proof'])
+        ledger = {}
+        settle_intent(ledger, self.authorization, False, self.kat['results']['removed'])
+        imported = copy.deepcopy(ledger)
+        current = settle_intent(imported, after['authorization'], True, None)
+        self.assertEqual(jcs(current['retirement_proof']), original)
+        self.assertEqual(self.consume(after), current['retirement_proof'])
+        self.assertEqual(signing_bytes(after['deliveries']['removed']['delivery_attestation'], delivery=True).hex(), self.kat['handoff_delivery_signing_hex'])
+        self.assertEqual(after['deliveries']['removed']['cleanup']['retirement_proof']['governance_generation'], 0)
+        self.assertEqual(after['deliveries']['removed']['delivery_attestation']['governance_generation'], 1)
+
+    def test_missing_import_or_fence_never_authorizes_delivery(self):
+        after = self.kat['handoff']
+        for field, value in [('proof_and_fence_retained', False), ('retained_proof_digests', []), ('governance_active', False)]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.consume(after, route={**after['current_delivery'], field: value})
+
+    def test_current_reader_revocation_episode_and_custody_are_independent(self):
+        for field, value in [('current_authorized', False), ('episode_current', False), ('inventory_prepared', False),
+                             ('authorization_event_ref', self.fixture['kat']['root_context']['genesis_event_ref'])]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.consume(reader={**self.reader, field: value})
+        self.consume(reader={**self.reader, 'role': 'agent_custodian', 'custody_current': True})
+        with self.assertRaises(ValueError):
+            self.consume(reader={**self.reader, 'role': 'agent_custodian', 'custody_current': False})
+
+    def test_full_body_outer_retry_and_inner_intent_settle_once_across_refresh(self):
+        from tools.recovery_scope_cleanup import transport_replay, settle_intent
+        outer, inner, calls = {}, {}, []
+        def first():
+            calls.append('first')
+            return settle_intent(inner, self.authorization, False, self.kat['results']['removed'])
+        a = transport_replay(outer, 'origin', 'peer', self.authorization, True, first)
+        b = transport_replay(outer, 'origin', 'peer', self.authorization, True, lambda: self.fail('outer retry reexecuted'))
+        refreshed = self.kat['handoff']['authorization']
+        c = transport_replay(outer, 'origin', 'peer', refreshed, True,
+            lambda: settle_intent(inner, refreshed, True, None))
+        self.assertEqual(a, b)
+        self.assertEqual(a, c)
+        self.assertEqual(calls, ['first'])
+        self.assertEqual(len(outer), 2)
+        self.assertEqual(len(inner), 1)
+        with self.assertRaisesRegex(ValueError, 'not_found'):
+            transport_replay(outer, 'origin', 'peer', self.authorization, False, first)
+
+    def test_inner_nonce_rebinding_conflicts_even_with_another_outer_body(self):
+        from tools.recovery_scope_cleanup import settle_intent, request_digest
+        from unittest.mock import patch
+        ledger = {}
+        settle_intent(ledger, self.authorization, False, self.kat['results']['removed'])
+        for field, value in [('inventory_digest', 'sha256:' + '0' * 64),
+                             ('inventory_entry', {**self.entry, 'epoch': '99'}),
+                             ('replacement', {**self.authorization['replacement'],
+                                              'signature_key_base64url': b64(bytes([10]) * 32)})]:
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'duplicate_conflict'):
+                settle_intent(ledger, {**self.authorization, field: value}, False, None)
+        with patch('tools.recovery_scope_cleanup.request_digest', return_value=request_digest(self.authorization)):
+            with self.assertRaisesRegex(ValueError, 'duplicate_conflict'):
+                settle_intent(ledger, {**self.authorization, 'inventory_digest': 'sha256:' + '0' * 64}, False, None)
+
+    def test_pending_outer_observation_is_not_rewritten_when_inner_finishes(self):
+        from tools.recovery_scope_cleanup import transport_replay, settle_intent, observe_delivery
+        outer, inner, observations = {}, {}, {}
+        pending = transport_replay(outer, 'origin', 'peer', self.authorization, True,
+            lambda: observe_delivery(observations, self.authorization,
+                lambda: settle_intent(inner, self.authorization, False, None)))
+        self.assertEqual(pending, {'state': 'pending'})
+        # Native completion occurs within the original live source window.
+        settle_intent(inner, self.authorization, False, self.kat['results']['removed'])
+        self.assertEqual(observe_delivery(observations, self.authorization,
+            lambda: self.fail('old observation executed native settlement')), pending)
+        later = self.kat['handoff']['authorization']
+        complete = transport_replay(outer, 'origin', 'peer', later, True,
+            lambda: observe_delivery(observations, later, lambda: settle_intent(inner, later, True, None)))
+        replayed = transport_replay(outer, 'origin', 'peer', self.authorization, True, lambda: self.fail('old body changed'))
+        self.assertEqual(replayed, pending)
+        self.assertEqual(complete, self.kat['results']['removed'])
+
+    def test_observation_challenge_cannot_rebind_source_even_with_same_intent(self):
+        from tools.recovery_scope_cleanup import observe_delivery, request_digest, sign
+        ledger = {}
+        observe_delivery(ledger, self.authorization, lambda: {'state': 'pending'})
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['origin_signing_seed_hex']))
+        changed = sign({**self.authorization, 'expires_at': '2026-11-09T00:04:00.000Z'}, key, source=True)
+        self.assertEqual(request_digest(changed), request_digest(self.authorization))
+        with self.assertRaisesRegex(ValueError, 'duplicate_conflict'):
+            observe_delivery(ledger, changed, lambda: self.fail('challenge conflict executed native effects'))
+
+    def test_current_governor_key_rotation_preserves_original_proof_key(self):
+        from tools.recovery_scope_cleanup import sign, digest
+        key = Ed25519PrivateKey.from_private_bytes(bytes([237]) * 32)
+        public = b64(key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
+        method = self.route['governor_verification_method'] + '-rotated'
+        route = {**self.route, 'governor_public_key': public, 'governor_verification_method': method}
+        response = copy.deepcopy(self.kat['self_deliveries']['removed'])
+        source = {**self.authorization, 'delivery_challenge_base64url': b64(bytes([96]) * 32)}
+        origin = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['origin_signing_seed_hex']))
+        source = sign(source, origin, source=True)
+        delivery = sign({**response['delivery']['delivery_attestation'], 'verification_method': method,
+                         'delivery_challenge_base64url': source['delivery_challenge_base64url'],
+                         'authorization_digest': digest(source)}, key, delivery=True)
+        response['delivery']['delivery_attestation'] = delivery
+        response['delivery_signing_key'] = {'delivery_digest': digest(delivery), 'verification_method': method,
+                                            'public_key_base64url': public}
+        from tools.recovery_scope_cleanup import verify_self_retirement
+        verified = verify_self_retirement(response, source, self.inventory, self.entry, self.reader,
+                                          self.historical, route, '2026-11-09T00:00:03.000Z')
+        self.assertEqual(verified, self.kat['results']['removed']['retirement_proof'])
+        self.assertNotEqual(response['attestor_signing_key']['public_key_base64url'], public)
+
+    def test_current_origin_key_rotation_does_not_rewrite_original_source(self):
+        from tools.recovery_scope_cleanup import sign, digest, verify_self_retirement
+        key = Ed25519PrivateKey.from_private_bytes(bytes([238]) * 32)
+        public = b64(key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
+        method = self.route['origin_verification_method'] + '-rotated'
+        route = {**self.route, 'origin_public_key': public, 'origin_verification_method': method}
+        source = sign({**self.authorization, 'verification_method': method,
+                       'delivery_challenge_base64url': b64(bytes([97]) * 32)}, key, source=True)
+        response = copy.deepcopy(self.kat['self_deliveries']['removed'])
+        governor = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+        delivery = sign({**response['delivery']['delivery_attestation'], 'authorization_digest': digest(source),
+                         'delivery_challenge_base64url': source['delivery_challenge_base64url']}, governor, delivery=True)
+        response['delivery']['delivery_attestation'] = delivery
+        response['delivery_signing_key']['delivery_digest'] = digest(delivery)
+        self.assertEqual(verify_self_retirement(response, source, self.inventory, self.entry, self.reader,
+            self.historical, route, '2026-11-09T00:00:03.000Z'), self.kat['results']['removed']['retirement_proof'])
+        self.assertNotEqual(self.historical['authorization']['verification_method'], method)
+
+    def test_nonce_and_challenge_require_canonical_32_byte_encoding(self):
+        from tools.recovery_scope_cleanup import canonical_nonce
+        for field in ('nonce_base64url', 'delivery_challenge_base64url'):
+            value = self.authorization[field]
+            for wrong in (value + '=', value[:-1], value[:-1] + 'B'):
+                with self.subTest(field=field, wrong=wrong), self.assertRaises(ValueError):
+                    canonical_nonce(wrong)
+                self.invalid('content-encryption.schema.json#/$defs/recovery_scope_cleanup_authorization',
+                             {**self.authorization, field: wrong})
+
+    def test_delivery_time_bounds_do_not_extend_current_source_window(self):
+        from tools.recovery_scope_cleanup import sign, digest
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+        for field, value in [('expires_at', '2026-11-09T00:05:01.000Z'),
+                             ('attested_at', '2026-11-08T23:59:59.000Z'),
+                             ('attested_at', '2026-11-09T00:00:04.000Z')]:
+            response = copy.deepcopy(self.kat['self_deliveries']['removed'])
+            delivery = sign({**response['delivery']['delivery_attestation'], field: value}, key, delivery=True)
+            response['delivery']['delivery_attestation'] = delivery
+            response['delivery_signing_key']['delivery_digest'] = digest(delivery)
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                self.consume(response=response)
+
+    def test_delivery_binds_fresh_challenge_audience_authorization_and_original_proof(self):
+        from tools.recovery_scope_cleanup import sign, digest
+        for field, value in [('delivery_challenge_base64url', b64(bytes([1]) * 32)),
+                             ('recipient_service_id', 'ak:did_core:web:wrong.example'),
+                             ('authorization_digest', 'sha256:' + '0' * 64), ('proof_digest', 'sha256:' + '1' * 64),
+                             ('request_digest', 'sha256:' + '2' * 64), ('governance_generation', 99)]:
+            response = copy.deepcopy(self.kat['self_deliveries']['removed'])
+            attestation = response['delivery']['delivery_attestation']
+            key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+            attestation = sign({**attestation, field: value}, key, delivery=True)
+            response['delivery']['delivery_attestation'] = attestation
+            response['delivery_signing_key']['delivery_digest'] = digest(attestation)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.consume(response=response)
+
+    def test_expired_delivery_rejected_but_historical_proof_has_no_completion_lease(self):
+        with self.assertRaises(ValueError):
+            self.consume(now='2026-11-09T00:05:00.000Z')
+        self.verify(authorization=self.kat['handoff']['authorization'])
+        self.consume(self.kat['handoff'])
+
+    def test_wrong_current_governor_cannot_reuse_valid_old_delivery(self):
+        after = self.kat['handoff']
+        with self.assertRaises((ValueError, InvalidSignature)):
+            self.consume(after, response=self.kat['self_deliveries']['removed'])
+        from tools.recovery_scope_cleanup import qualify_source
+        with self.assertRaises(ValueError):
+            qualify_source(self.authorization, self.inventory, self.entry, self.reader,
+                           after['current_delivery'], '2026-11-09T00:00:03.000Z')
+
+    def test_parallel_episode_blockers_release_independently_and_terminal_never_reopens(self):
+        from tools.recovery_scope_cleanup import business_send_allowed
+        blockers = {'episode-A', 'episode-B'}
+        self.assertFalse(business_send_allowed(blockers, True))
+        blockers.remove('episode-A')
+        self.assertFalse(business_send_allowed(blockers, True))
+        blockers.remove('episode-B')
+        self.assertTrue(business_send_allowed(blockers, True))
+        self.assertFalse(business_send_allowed(blockers, False))
+        self.assertFalse(business_send_allowed(blockers, True, terminal=True))
+
+    def test_delivery_signatures_have_separate_domains_and_cannot_replace_original(self):
+        from tools.recovery_scope_cleanup import verify_signature, signing_bytes
+        attestation = self.kat['deliveries']['removed']['delivery_attestation']
+        self.assertEqual(signing_bytes(attestation, delivery=True).hex(), self.kat['delivery_signing_hex'])
+        with self.assertRaises(InvalidSignature):
+            verify_signature(attestation, self.route['governor_public_key'])
+        with self.assertRaises(ValueError):
+            signing_bytes(attestation, source=True, delivery=True)
+
 
 
 if __name__ == "__main__":

@@ -1120,7 +1120,8 @@
         "inventory_digest",
         "effective_scope",
         "genesis_event_ref",
-        "nonce_base64url"
+        "nonce_base64url",
+        "delivery_challenge_base64url"
       ],
       "properties": {
         "authorization_event_ref": {
@@ -1138,12 +1139,18 @@
         },
         "nonce_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "delivery_challenge_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "x-arkret-member-role": "binary_encoding"
         }
       },
       "additionalProperties": false,
-      "x-arkret-name-role": "request_body"
+      "x-arkret-name-role": "request_body",
+      "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body."
     },
     "recovery_scope_cleanup_authorization": {
       "type": "object",
@@ -1153,6 +1160,7 @@
         "inventory_entry",
         "destination_service_id",
         "nonce_base64url",
+        "delivery_challenge_base64url",
         "verification_method",
         "attested_at",
         "expires_at",
@@ -1174,7 +1182,12 @@
         },
         "nonce_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "delivery_challenge_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "x-arkret-member-role": "binary_encoding"
         },
         "verification_method": {
@@ -1190,7 +1203,8 @@
           "$ref": "./keypackage-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted."
     },
     "recovery_scope_cleanup_source": {
       "type": "object",
@@ -1283,7 +1297,7 @@
         },
         "nonce_base64url": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "x-arkret-member-role": "binary_encoding"
         },
         "attested_at": {
@@ -1381,50 +1395,63 @@
         {
           "type": "object",
           "required": [
-            "state",
-            "effective_scope",
-            "genesis_event_ref",
-            "retirement_proof"
+            "cleanup",
+            "delivery_attestation"
           ],
           "properties": {
-            "state": {
-              "enum": [
-                "removed",
-                "terminated"
+            "cleanup": {
+              "type": "object",
+              "required": [
+                "state",
+                "effective_scope",
+                "genesis_event_ref",
+                "retirement_proof"
               ],
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/state",
-                "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/state",
-                "values": [
-                  "removed",
-                  "terminated"
-                ]
-              }
+              "properties": {
+                "state": {
+                  "enum": [
+                    "removed",
+                    "terminated"
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/cleanup/properties/state",
+                    "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/cleanup/properties/state",
+                    "values": [
+                      "removed",
+                      "terminated"
+                    ]
+                  }
+                },
+                "effective_scope": {
+                  "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+                },
+                "genesis_event_ref": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id"
+                },
+                "retirement_proof": {
+                  "$ref": "#/$defs/scope_retirement_proof"
+                }
+              },
+              "additionalProperties": false
             },
-            "effective_scope": {
-              "$ref": "./event-payload.schema.json#/$defs/effective_scope"
-            },
-            "genesis_event_ref": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            },
-            "retirement_proof": {
-              "$ref": "#/$defs/scope_retirement_proof"
+            "delivery_attestation": {
+              "$ref": "#/$defs/scope_retirement_delivery_attestation"
             }
           },
           "additionalProperties": false
         }
       ],
       "x-arkret-name-role": "response_body",
-      "description": "A pending obligation without counts or partial proof, or a complete native signed retirement result. An active entitled actor uses normal rekeying; this command never rejoins, removes leaves itself, or grants keys."
+      "description": "Pending observation, or an immutable historical cleanup plus a fresh current-governor delivery attestation. Current rejoin does not deny delivery of an existing terminal. The original pending observation is immutable for the full-body retry and challenge; it does not freeze native intent settlement. A subsequent observation uses a fresh delivery challenge."
     },
     "recovery_scope_cleanup_self_response_body": {
       "type": "object",
       "required": [
-        "cleanup"
+        "delivery"
       ],
       "properties": {
-        "cleanup": {
+        "delivery": {
           "$ref": "#/$defs/recovery_scope_cleanup_response_body"
         },
         "attestor_signing_key": {
@@ -1444,7 +1471,30 @@
             },
             "public_key_base64url": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+              "x-arkret-member-role": "binary_encoding"
+            }
+          },
+          "additionalProperties": false
+        },
+        "delivery_signing_key": {
+          "type": "object",
+          "required": [
+            "delivery_digest",
+            "verification_method",
+            "public_key_base64url"
+          ],
+          "properties": {
+            "delivery_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "public_key_base64url": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
               "x-arkret-member-role": "binary_encoding"
             }
           },
@@ -1457,14 +1507,14 @@
         {
           "if": {
             "properties": {
-              "cleanup": {
+              "delivery": {
                 "properties": {
                   "state": {
                     "const": "pending",
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/cleanup/properties/state",
-                      "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/cleanup/properties/state",
+                      "authority": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/delivery/properties/state",
+                      "owner": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/allOf/0/if/properties/delivery/properties/state",
                       "values": [
                         "pending"
                       ]
@@ -1479,18 +1529,93 @@
           },
           "then": {
             "not": {
-              "required": [
-                "attestor_signing_key"
+              "anyOf": [
+                {
+                  "required": [
+                    "attestor_signing_key"
+                  ]
+                },
+                {
+                  "required": [
+                    "delivery_signing_key"
+                  ]
+                }
               ]
             }
           },
           "else": {
             "required": [
-              "attestor_signing_key"
+              "attestor_signing_key",
+              "delivery_signing_key"
             ]
           }
         }
       ]
+    },
+    "scope_retirement_delivery_attestation": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "authorization_digest",
+        "proof_digest",
+        "recipient_service_id",
+        "governance_station_id",
+        "governance_generation",
+        "nonce_base64url",
+        "delivery_challenge_base64url",
+        "attested_at",
+        "expires_at",
+        "verification_method",
+        "signature"
+      ],
+      "properties": {
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "authorization_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "proof_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "recipient_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nonce_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "delivery_challenge_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "x-arkret-member-role": "binary_encoding"
+        },
+        "attested_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "signature": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Current-governor signed delivery of one immutable historical proof. It certifies native proof and monotone fence retention/import at delivery, binds the exact fresh origin authorization, challenge, stable intent and recipient Station, and never rewrites the original proof. Signature domain: ak.mls.scope_retirement_delivery.v1 plus LF and JCS(attestation without signature). Freshness applies at receipt, not as a global completion lease."
     }
   }
 }

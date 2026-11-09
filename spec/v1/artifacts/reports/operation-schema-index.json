@@ -9418,14 +9418,11 @@
       "response": {
         "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
         "schema_kind": "oneOf",
-        "required": [
-          "state"
-        ],
+        "required": [],
         "properties": [
           "state",
-          "effective_scope",
-          "genesis_event_ref",
-          "retirement_proof"
+          "cleanup",
+          "delivery_attestation"
         ],
         "closed": true,
         "variants": [
@@ -9444,16 +9441,12 @@
             "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
             "schema_kind": "object",
             "required": [
-              "state",
-              "effective_scope",
-              "genesis_event_ref",
-              "retirement_proof"
+              "cleanup",
+              "delivery_attestation"
             ],
             "properties": [
-              "state",
-              "effective_scope",
-              "genesis_event_ref",
-              "retirement_proof"
+              "cleanup",
+              "delivery_attestation"
             ],
             "closed": true
           }
@@ -9471,14 +9464,16 @@
           "inventory_digest",
           "effective_scope",
           "genesis_event_ref",
-          "nonce_base64url"
+          "nonce_base64url",
+          "delivery_challenge_base64url"
         ],
         "properties": [
           "authorization_event_ref",
           "inventory_digest",
           "effective_scope",
           "genesis_event_ref",
-          "nonce_base64url"
+          "nonce_base64url",
+          "delivery_challenge_base64url"
         ],
         "closed": true
       },
@@ -9486,11 +9481,12 @@
         "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
         "schema_kind": "object",
         "required": [
-          "cleanup"
+          "delivery"
         ],
         "properties": [
-          "cleanup",
-          "attestor_signing_key"
+          "delivery",
+          "attestor_signing_key",
+          "delivery_signing_key"
         ],
         "closed": true
       }

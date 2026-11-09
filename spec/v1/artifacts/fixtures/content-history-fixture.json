@@ -750,13 +750,14 @@
       },
       "destination_service_id": "ak:did_core:web:governor.example",
       "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+      "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
       "verification_method": "did:web:origin.example#retirement",
       "attested_at": "2026-11-09T00:00:00.000Z",
       "expires_at": "2026-11-09T00:05:00.000Z",
       "signature": {
         "kid": "did:web:origin.example#retirement",
         "signature_algorithm": "Ed25519",
-        "signature": "FmpyrpobvV4IOQEykgKTCpgRHcF0zQ0ZV9VTABcaOIraGWMEyz2Wrk36c8dLgUIClY0LQ5ACFR-JelEzkYnkAg"
+        "signature": "XgCcE0QsQENJWYosO8djT2FrQSOXCF_NZd3qpLzYaF2PAk23bF44FFTVZL0sh3pwe9kSbSLZuwuicxwkHsrzBw"
       }
     },
     "results": {
@@ -786,7 +787,7 @@
           },
           "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
           "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
-          "request_digest": "sha256:1483a631af3af03c58ce5ff452b4ac9448f351732ea821a5dfc6d795cd4c086e",
+          "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
           "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
@@ -812,7 +813,7 @@
           "signature": {
             "kid": "did:web:governor.example#retirement",
             "signature_algorithm": "Ed25519",
-            "signature": "RfjFEMQ_DGEDzb4AsbuMWGMYZeZlyhbotAtGf7-t1hfYUaigY7M2mPADJ7wgpBUcsSLi6DigcVuKQOksDy_XDA"
+            "signature": "haA_QYHbFKnPg6Eu1VYOhAHeqcXLA48LanFJ8IVTzd_o73k_LzqXy5JVEBEZNOgqqJI0SM1CzbBlZS7Q4Mq6BQ"
           }
         }
       },
@@ -842,7 +843,7 @@
           },
           "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
           "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
-          "request_digest": "sha256:1483a631af3af03c58ce5ff452b4ac9448f351732ea821a5dfc6d795cd4c086e",
+          "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
           "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
@@ -868,19 +869,72 @@
           "signature": {
             "kid": "did:web:governor.example#retirement",
             "signature_algorithm": "Ed25519",
-            "signature": "gGmYCQxdC1OuyntIB1yE1_suBFCcnNcRwXjSAw7RySUEnMKH2hg-Yg1ehskVbKkE6eYWBu4Y6ndR_kKT7CFRCA"
+            "signature": "xouZ17oPw2Imts1eSMH0bDko6P-gQz0OmoiCUTyHZqs-5kjhHtKF-z0077o6LM5PHPQt3SrtbpVY47Vwf_BHDg"
           }
         }
       }
     },
-    "native_qualified_inputs": {
-      "origin_service_id": "ak:did_core:web:origin.example",
-      "origin_verification_method": "did:web:origin.example#retirement",
-      "governor_verification_method": "did:web:governor.example#retirement",
+    "reader_authority": {
+      "subject_actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:web:origin.example"
+        }
+      },
+      "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+      "role": "subject_holder",
+      "current_authorized": true,
+      "episode_current": true,
+      "inventory_prepared": true,
+      "custody_current": false
+    },
+    "historical_completion_basis": {
+      "authorization": {
+        "replacement": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:origin.example"
+            }
+          },
+          "endpoint": {
+            "kind": "device",
+            "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+          },
+          "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+          "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+        },
+        "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+        "inventory_entry": {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "base_group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "epoch": "12",
+          "old_leaves": []
+        },
+        "destination_service_id": "ak:did_core:web:governor.example",
+        "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+        "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
+        "verification_method": "did:web:origin.example#retirement",
+        "attested_at": "2026-11-09T00:00:00.000Z",
+        "expires_at": "2026-11-09T00:05:00.000Z",
+        "signature": {
+          "kid": "did:web:origin.example#retirement",
+          "signature_algorithm": "Ed25519",
+          "signature": "XgCcE0QsQENJWYosO8djT2FrQSOXCF_NZd3qpLzYaF2PAk23bF44FFTVZL0sh3pwe9kSbSLZuwuicxwkHsrzBw"
+        }
+      },
       "origin_public_key": "76_EL0sZLltGYy_Lj4IWX1tYG5k73KbRAA-Zj5iNOeo",
-      "current_episode": true,
+      "origin_verification_method": "did:web:origin.example#retirement",
+      "governor_public_key": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4",
+      "governor_verification_method": "did:web:governor.example#retirement",
+      "eligible_at_completion": false,
       "native_source_complete": true,
-      "current_eligible": false,
       "episode_fenced": true,
       "pending_admission_count": 0,
       "old_endpoint_count": 0,
@@ -901,12 +955,751 @@
       "terminal_all_writes_blocked": true,
       "terminal_source_digest": "sha256:f4f1aca6935ee4a93fbd939d25533c8e197c791c5ec016cc6657fbf04da224d9"
     },
-    "governor_public_key": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4",
+    "current_delivery": {
+      "origin_service_id": "ak:did_core:web:origin.example",
+      "origin_verification_method": "did:web:origin.example#retirement",
+      "origin_public_key": "76_EL0sZLltGYy_Lj4IWX1tYG5k73KbRAA-Zj5iNOeo",
+      "origin_native_qualified": true,
+      "governance_active": true,
+      "governance_station_id": "ak:did_core:web:governor.example",
+      "governance_generation": 0,
+      "governor_verification_method": "did:web:governor.example#retirement",
+      "governor_public_key": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4",
+      "proof_and_fence_retained": true,
+      "retained_proof_digests": [
+        "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+        "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b"
+      ]
+    },
+    "deliveries": {
+      "removed": {
+        "cleanup": {
+          "state": "removed",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "retirement_proof": {
+            "state": "removed",
+            "replacement": {
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:web:origin.example"
+                }
+              },
+              "endpoint": {
+                "kind": "device",
+                "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+              },
+              "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+              "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+            },
+            "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+            "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "governance_station_id": "ak:did_core:web:governor.example",
+            "governance_generation": 0,
+            "scope_cut": {
+              "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+              "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "stream_position": 1
+            },
+            "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "epoch": "12",
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "attested_at": "2026-11-09T00:00:01.000Z",
+            "verification_method": "did:web:governor.example#retirement",
+            "remaining_old_leaf_count": 0,
+            "signature": {
+              "kid": "did:web:governor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "haA_QYHbFKnPg6Eu1VYOhAHeqcXLA48LanFJ8IVTzd_o73k_LzqXy5JVEBEZNOgqqJI0SM1CzbBlZS7Q4Mq6BQ"
+            }
+          }
+        },
+        "delivery_attestation": {
+          "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+          "authorization_digest": "sha256:1b9937e4c92b8e8a3c0b8b14df19e21f00ba4b6e944fe79bd86fa4757391f183",
+          "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+          "recipient_service_id": "ak:did_core:web:origin.example",
+          "governance_station_id": "ak:did_core:web:governor.example",
+          "governance_generation": 0,
+          "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+          "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
+          "attested_at": "2026-11-09T00:00:02.000Z",
+          "expires_at": "2026-11-09T00:05:00.000Z",
+          "verification_method": "did:web:governor.example#retirement",
+          "signature": {
+            "kid": "did:web:governor.example#retirement",
+            "signature_algorithm": "Ed25519",
+            "signature": "dP11wZ3SCwSAXb6xb15jPMYyzDDPUGm2z2FdxTSxaQPpru2sDn7Y2Ym6rHvMDYQuv3y_ZKxNcx7_KtdWvfjXBw"
+          }
+        }
+      },
+      "terminated": {
+        "cleanup": {
+          "state": "terminated",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "retirement_proof": {
+            "state": "terminated",
+            "replacement": {
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:web:origin.example"
+                }
+              },
+              "endpoint": {
+                "kind": "device",
+                "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+              },
+              "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+              "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+            },
+            "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+            "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "governance_station_id": "ak:did_core:web:governor.example",
+            "governance_generation": 0,
+            "scope_cut": {
+              "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+              "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "stream_position": 1
+            },
+            "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "epoch": "12",
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "attested_at": "2026-11-09T00:00:01.000Z",
+            "verification_method": "did:web:governor.example#retirement",
+            "terminal_source_digest": "sha256:f4f1aca6935ee4a93fbd939d25533c8e197c791c5ec016cc6657fbf04da224d9",
+            "signature": {
+              "kid": "did:web:governor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "xouZ17oPw2Imts1eSMH0bDko6P-gQz0OmoiCUTyHZqs-5kjhHtKF-z0077o6LM5PHPQt3SrtbpVY47Vwf_BHDg"
+            }
+          }
+        },
+        "delivery_attestation": {
+          "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+          "authorization_digest": "sha256:1b9937e4c92b8e8a3c0b8b14df19e21f00ba4b6e944fe79bd86fa4757391f183",
+          "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+          "recipient_service_id": "ak:did_core:web:origin.example",
+          "governance_station_id": "ak:did_core:web:governor.example",
+          "governance_generation": 0,
+          "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+          "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
+          "attested_at": "2026-11-09T00:00:02.000Z",
+          "expires_at": "2026-11-09T00:05:00.000Z",
+          "verification_method": "did:web:governor.example#retirement",
+          "signature": {
+            "kid": "did:web:governor.example#retirement",
+            "signature_algorithm": "Ed25519",
+            "signature": "teUqiuc1YhfbKkE_QxwfKU_d_04E3KUPqVCehZCcMxdpE78DEOtWfTB08fWzDr91sC4mXUsj8eUbNdIZ8Y4JCg"
+          }
+        }
+      }
+    },
+    "self_deliveries": {
+      "removed": {
+        "delivery": {
+          "cleanup": {
+            "state": "removed",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "retirement_proof": {
+              "state": "removed",
+              "replacement": {
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:web:origin.example"
+                  }
+                },
+                "endpoint": {
+                  "kind": "device",
+                  "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                },
+                "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+              },
+              "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+              "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "governance_station_id": "ak:did_core:web:governor.example",
+              "governance_generation": 0,
+              "scope_cut": {
+                "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                "stream_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "stream_position": 1
+              },
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "epoch": "12",
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "attested_at": "2026-11-09T00:00:01.000Z",
+              "verification_method": "did:web:governor.example#retirement",
+              "remaining_old_leaf_count": 0,
+              "signature": {
+                "kid": "did:web:governor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "haA_QYHbFKnPg6Eu1VYOhAHeqcXLA48LanFJ8IVTzd_o73k_LzqXy5JVEBEZNOgqqJI0SM1CzbBlZS7Q4Mq6BQ"
+              }
+            }
+          },
+          "delivery_attestation": {
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "authorization_digest": "sha256:1b9937e4c92b8e8a3c0b8b14df19e21f00ba4b6e944fe79bd86fa4757391f183",
+            "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+            "recipient_service_id": "ak:did_core:web:origin.example",
+            "governance_station_id": "ak:did_core:web:governor.example",
+            "governance_generation": 0,
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
+            "attested_at": "2026-11-09T00:00:02.000Z",
+            "expires_at": "2026-11-09T00:05:00.000Z",
+            "verification_method": "did:web:governor.example#retirement",
+            "signature": {
+              "kid": "did:web:governor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "dP11wZ3SCwSAXb6xb15jPMYyzDDPUGm2z2FdxTSxaQPpru2sDn7Y2Ym6rHvMDYQuv3y_ZKxNcx7_KtdWvfjXBw"
+            }
+          }
+        },
+        "attestor_signing_key": {
+          "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+          "verification_method": "did:web:governor.example#retirement",
+          "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+        },
+        "delivery_signing_key": {
+          "delivery_digest": "sha256:b1f58ff9c3e00dd926be1b5d035115d9003c949733e45020bfa9444836773406",
+          "verification_method": "did:web:governor.example#retirement",
+          "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+        }
+      },
+      "terminated": {
+        "delivery": {
+          "cleanup": {
+            "state": "terminated",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "retirement_proof": {
+              "state": "terminated",
+              "replacement": {
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:web:origin.example"
+                  }
+                },
+                "endpoint": {
+                  "kind": "device",
+                  "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                },
+                "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+              },
+              "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+              "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "governance_station_id": "ak:did_core:web:governor.example",
+              "governance_generation": 0,
+              "scope_cut": {
+                "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                "stream_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "stream_position": 1
+              },
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "epoch": "12",
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "attested_at": "2026-11-09T00:00:01.000Z",
+              "verification_method": "did:web:governor.example#retirement",
+              "terminal_source_digest": "sha256:f4f1aca6935ee4a93fbd939d25533c8e197c791c5ec016cc6657fbf04da224d9",
+              "signature": {
+                "kid": "did:web:governor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "xouZ17oPw2Imts1eSMH0bDko6P-gQz0OmoiCUTyHZqs-5kjhHtKF-z0077o6LM5PHPQt3SrtbpVY47Vwf_BHDg"
+              }
+            }
+          },
+          "delivery_attestation": {
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "authorization_digest": "sha256:1b9937e4c92b8e8a3c0b8b14df19e21f00ba4b6e944fe79bd86fa4757391f183",
+            "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+            "recipient_service_id": "ak:did_core:web:origin.example",
+            "governance_station_id": "ak:did_core:web:governor.example",
+            "governance_generation": 0,
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "delivery_challenge_base64url": "Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl4",
+            "attested_at": "2026-11-09T00:00:02.000Z",
+            "expires_at": "2026-11-09T00:05:00.000Z",
+            "verification_method": "did:web:governor.example#retirement",
+            "signature": {
+              "kid": "did:web:governor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "teUqiuc1YhfbKkE_QxwfKU_d_04E3KUPqVCehZCcMxdpE78DEOtWfTB08fWzDr91sC4mXUsj8eUbNdIZ8Y4JCg"
+            }
+          }
+        },
+        "attestor_signing_key": {
+          "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+          "verification_method": "did:web:governor.example#retirement",
+          "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+        },
+        "delivery_signing_key": {
+          "delivery_digest": "sha256:381c5ef0601396716b822323481b8aced28b463c8abccdd39fe312efd3a4fd7a",
+          "verification_method": "did:web:governor.example#retirement",
+          "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+        }
+      }
+    },
+    "handoff": {
+      "authorization": {
+        "replacement": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:web:origin.example"
+            }
+          },
+          "endpoint": {
+            "kind": "device",
+            "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+          },
+          "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+          "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+        },
+        "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+        "inventory_entry": {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "base_group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "epoch": "12",
+          "old_leaves": []
+        },
+        "destination_service_id": "ak:did_core:web:successor.example",
+        "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+        "delivery_challenge_base64url": "X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18",
+        "verification_method": "did:web:origin.example#retirement",
+        "attested_at": "2026-11-09T00:06:00.000Z",
+        "expires_at": "2026-11-09T00:11:00.000Z",
+        "signature": {
+          "kid": "did:web:origin.example#retirement",
+          "signature_algorithm": "Ed25519",
+          "signature": "abPG4PvqvGNIAVi3mbaR99ku7-0NN8MTro_vzN-elj3IGApS80RjrYeERs6BMPaLyr5X6rgMsQLcFQycDiKLDw"
+        }
+      },
+      "current_delivery": {
+        "origin_service_id": "ak:did_core:web:origin.example",
+        "origin_verification_method": "did:web:origin.example#retirement",
+        "origin_public_key": "76_EL0sZLltGYy_Lj4IWX1tYG5k73KbRAA-Zj5iNOeo",
+        "origin_native_qualified": true,
+        "governance_active": true,
+        "governance_station_id": "ak:did_core:web:successor.example",
+        "governance_generation": 1,
+        "governor_verification_method": "did:web:successor.example#retirement",
+        "governor_public_key": "edJ5zO8sw7FSS1bKlsOPtu10VmDMGozFzADjKssUKaQ",
+        "proof_and_fence_retained": true,
+        "retained_proof_digests": [
+          "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+          "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b"
+        ]
+      },
+      "deliveries": {
+        "removed": {
+          "cleanup": {
+            "state": "removed",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "retirement_proof": {
+              "state": "removed",
+              "replacement": {
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:web:origin.example"
+                  }
+                },
+                "endpoint": {
+                  "kind": "device",
+                  "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                },
+                "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+              },
+              "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+              "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "governance_station_id": "ak:did_core:web:governor.example",
+              "governance_generation": 0,
+              "scope_cut": {
+                "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                "stream_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "stream_position": 1
+              },
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "epoch": "12",
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "attested_at": "2026-11-09T00:00:01.000Z",
+              "verification_method": "did:web:governor.example#retirement",
+              "remaining_old_leaf_count": 0,
+              "signature": {
+                "kid": "did:web:governor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "haA_QYHbFKnPg6Eu1VYOhAHeqcXLA48LanFJ8IVTzd_o73k_LzqXy5JVEBEZNOgqqJI0SM1CzbBlZS7Q4Mq6BQ"
+              }
+            }
+          },
+          "delivery_attestation": {
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "authorization_digest": "sha256:0ffba6a911e7b790d343da9c3f2e3f602a20ebfab17babc01c72d9170b7704ab",
+            "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+            "recipient_service_id": "ak:did_core:web:origin.example",
+            "governance_station_id": "ak:did_core:web:successor.example",
+            "governance_generation": 1,
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "delivery_challenge_base64url": "X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18",
+            "attested_at": "2026-11-09T00:06:01.000Z",
+            "expires_at": "2026-11-09T00:11:00.000Z",
+            "verification_method": "did:web:successor.example#retirement",
+            "signature": {
+              "kid": "did:web:successor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "rpd8_5rczhjipai1zlXo5EU6Ui6OIC29YIdoB3NeHkn-rm42enHdQKOEcgSuCrk0gTuj2SSd6rHlYs_41spyBA"
+            }
+          }
+        },
+        "terminated": {
+          "cleanup": {
+            "state": "terminated",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            },
+            "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "retirement_proof": {
+              "state": "terminated",
+              "replacement": {
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:web:origin.example"
+                  }
+                },
+                "endpoint": {
+                  "kind": "device",
+                  "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                },
+                "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+              },
+              "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+              "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "governance_station_id": "ak:did_core:web:governor.example",
+              "governance_generation": 0,
+              "scope_cut": {
+                "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                "stream_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "stream_position": 1
+              },
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "epoch": "12",
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "attested_at": "2026-11-09T00:00:01.000Z",
+              "verification_method": "did:web:governor.example#retirement",
+              "terminal_source_digest": "sha256:f4f1aca6935ee4a93fbd939d25533c8e197c791c5ec016cc6657fbf04da224d9",
+              "signature": {
+                "kid": "did:web:governor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "xouZ17oPw2Imts1eSMH0bDko6P-gQz0OmoiCUTyHZqs-5kjhHtKF-z0077o6LM5PHPQt3SrtbpVY47Vwf_BHDg"
+              }
+            }
+          },
+          "delivery_attestation": {
+            "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+            "authorization_digest": "sha256:0ffba6a911e7b790d343da9c3f2e3f602a20ebfab17babc01c72d9170b7704ab",
+            "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+            "recipient_service_id": "ak:did_core:web:origin.example",
+            "governance_station_id": "ak:did_core:web:successor.example",
+            "governance_generation": 1,
+            "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+            "delivery_challenge_base64url": "X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18",
+            "attested_at": "2026-11-09T00:06:01.000Z",
+            "expires_at": "2026-11-09T00:11:00.000Z",
+            "verification_method": "did:web:successor.example#retirement",
+            "signature": {
+              "kid": "did:web:successor.example#retirement",
+              "signature_algorithm": "Ed25519",
+              "signature": "wVzmnKX_dumu8-uYg5a836zMYVizXgqGrOnyYD9BM72GQtkx26khKeIiqPkrSUYXr0pC8-73wLRfYTok4WQzAw"
+            }
+          }
+        }
+      },
+      "self_deliveries": {
+        "removed": {
+          "delivery": {
+            "cleanup": {
+              "state": "removed",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "retirement_proof": {
+                "state": "removed",
+                "replacement": {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:web:origin.example"
+                    }
+                  },
+                  "endpoint": {
+                    "kind": "device",
+                    "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                  },
+                  "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                  "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+                },
+                "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+                "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+                "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+                "effective_scope": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+                "governance_station_id": "ak:did_core:web:governor.example",
+                "governance_generation": 0,
+                "scope_cut": {
+                  "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                  "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                  "stream_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                  },
+                  "stream_position": 1
+                },
+                "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+                "epoch": "12",
+                "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+                "attested_at": "2026-11-09T00:00:01.000Z",
+                "verification_method": "did:web:governor.example#retirement",
+                "remaining_old_leaf_count": 0,
+                "signature": {
+                  "kid": "did:web:governor.example#retirement",
+                  "signature_algorithm": "Ed25519",
+                  "signature": "haA_QYHbFKnPg6Eu1VYOhAHeqcXLA48LanFJ8IVTzd_o73k_LzqXy5JVEBEZNOgqqJI0SM1CzbBlZS7Q4Mq6BQ"
+                }
+              }
+            },
+            "delivery_attestation": {
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "authorization_digest": "sha256:0ffba6a911e7b790d343da9c3f2e3f602a20ebfab17babc01c72d9170b7704ab",
+              "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+              "recipient_service_id": "ak:did_core:web:origin.example",
+              "governance_station_id": "ak:did_core:web:successor.example",
+              "governance_generation": 1,
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "delivery_challenge_base64url": "X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18",
+              "attested_at": "2026-11-09T00:06:01.000Z",
+              "expires_at": "2026-11-09T00:11:00.000Z",
+              "verification_method": "did:web:successor.example#retirement",
+              "signature": {
+                "kid": "did:web:successor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "rpd8_5rczhjipai1zlXo5EU6Ui6OIC29YIdoB3NeHkn-rm42enHdQKOEcgSuCrk0gTuj2SSd6rHlYs_41spyBA"
+              }
+            }
+          },
+          "attestor_signing_key": {
+            "proof_digest": "sha256:e64ab519398cf514bef4e12f9a90903e64be74f17dc3afe8933d70c329c5e295",
+            "verification_method": "did:web:governor.example#retirement",
+            "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+          },
+          "delivery_signing_key": {
+            "delivery_digest": "sha256:53359e2032dad9b949fa93153819ccf7cc46d72b3a9f32b818daf4d24c11a8ad",
+            "verification_method": "did:web:successor.example#retirement",
+            "public_key_base64url": "edJ5zO8sw7FSS1bKlsOPtu10VmDMGozFzADjKssUKaQ"
+          }
+        },
+        "terminated": {
+          "delivery": {
+            "cleanup": {
+              "state": "terminated",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+              },
+              "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "retirement_proof": {
+                "state": "terminated",
+                "replacement": {
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixture",
+                      "station_id": "ak:did_core:web:origin.example"
+                    }
+                  },
+                  "endpoint": {
+                    "kind": "device",
+                    "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"
+                  },
+                  "authorization_event_ref": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                  "signature_key_base64url": "tHQLpOD34FdvEegUnbuyUpwhIhPbZ5gx-10bIh6EVS0"
+                },
+                "inventory_digest": "sha256:59cfcb9d3bc4a889e9675f98bfb0cfb978bb76476d01a6bde58a812728a8f156",
+                "inventory_entry_digest": "sha256:155e323f270c7feb4b0f3b235835f658938a036dbdb05d481757a7a0b41a7754",
+                "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+                "effective_scope": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                },
+                "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+                "governance_station_id": "ak:did_core:web:governor.example",
+                "governance_generation": 0,
+                "scope_cut": {
+                  "event_id": "ak:event:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC",
+                  "commit_id": "ak:realm_commit:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND",
+                  "stream_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+                  },
+                  "stream_position": 1
+                },
+                "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+                "epoch": "12",
+                "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+                "attested_at": "2026-11-09T00:00:01.000Z",
+                "verification_method": "did:web:governor.example#retirement",
+                "terminal_source_digest": "sha256:f4f1aca6935ee4a93fbd939d25533c8e197c791c5ec016cc6657fbf04da224d9",
+                "signature": {
+                  "kid": "did:web:governor.example#retirement",
+                  "signature_algorithm": "Ed25519",
+                  "signature": "xouZ17oPw2Imts1eSMH0bDko6P-gQz0OmoiCUTyHZqs-5kjhHtKF-z0077o6LM5PHPQt3SrtbpVY47Vwf_BHDg"
+                }
+              }
+            },
+            "delivery_attestation": {
+              "request_digest": "sha256:0658a25ea6dc0a97ca3fbab91e5eddacb19fba22d93e3ed71665f6c0ce443a16",
+              "authorization_digest": "sha256:0ffba6a911e7b790d343da9c3f2e3f602a20ebfab17babc01c72d9170b7704ab",
+              "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+              "recipient_service_id": "ak:did_core:web:origin.example",
+              "governance_station_id": "ak:did_core:web:successor.example",
+              "governance_generation": 1,
+              "nonce_base64url": "XV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV0",
+              "delivery_challenge_base64url": "X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18",
+              "attested_at": "2026-11-09T00:06:01.000Z",
+              "expires_at": "2026-11-09T00:11:00.000Z",
+              "verification_method": "did:web:successor.example#retirement",
+              "signature": {
+                "kid": "did:web:successor.example#retirement",
+                "signature_algorithm": "Ed25519",
+                "signature": "wVzmnKX_dumu8-uYg5a836zMYVizXgqGrOnyYD9BM72GQtkx26khKeIiqPkrSUYXr0pC8-73wLRfYTok4WQzAw"
+              }
+            }
+          },
+          "attestor_signing_key": {
+            "proof_digest": "sha256:a7b037137e2e9c5ab711e0bed2ef54fb137dbd987b9f1e605788eba07be6845b",
+            "verification_method": "did:web:governor.example#retirement",
+            "public_key_base64url": "eGaud6Fe01mM54CsqhPbwygPFxalIKnzOEqk9wHJnm4"
+          },
+          "delivery_signing_key": {
+            "delivery_digest": "sha256:d4737c9bf1a670f008930b090679a1586317ef061e4dae3511127cb4db1a3961",
+            "verification_method": "did:web:successor.example#retirement",
+            "public_key_base64url": "edJ5zO8sw7FSS1bKlsOPtu10VmDMGozFzADjKssUKaQ"
+          }
+        }
+      }
+    },
     "origin_signing_seed_hex": "eaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaea",
     "governor_signing_seed_hex": "ebebebebebebebebebebebebebebebebebebebebebebebebebebebebebebebeb",
-    "authorization_signing_hex": "616b2e6d6c732e7265636f766572795f73636f70655f636c65616e75705f617574686f72697a6174696f6e2e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30302e3030305a222c2264657374696e6174696f6e5f736572766963655f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c22657870697265735f6174223a22323032362d31312d30395430303a30353a30302e3030305a222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e747279223a7b22626173655f67726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c226f6c645f6c6561766573223a5b5d7d2c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a6f726967696e2e6578616d706c65237265746972656d656e74227d",
-    "removed_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e742e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30312e3030305a222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22676f7665726e616e63655f67656e65726174696f6e223a302c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c2267726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e7472795f646967657374223a227368613235363a31353565333233663237306337666562346230663362323335383335663635383933386130333664626462303564343831373537613761306234316137373534222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c2272656d61696e696e675f6f6c645f6c6561665f636f756e74223a302c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22726571756573745f646967657374223a227368613235363a31343833613633316166336166303363353863653566663435326234616339343438663335313733326561383231613564666336643739356364346330383665222c2273636f70655f637574223a7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41554e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e44222c226576656e745f6964223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c2273747265616d5f706f736974696f6e223a312c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d7d2c227374617465223a2272656d6f766564222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a676f7665726e6f722e6578616d706c65237265746972656d656e74227d",
-    "terminated_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e742e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30312e3030305a222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22676f7665726e616e63655f67656e65726174696f6e223a302c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c2267726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e7472795f646967657374223a227368613235363a31353565333233663237306337666562346230663362323335383335663635383933386130333664626462303564343831373537613761306234316137373534222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22726571756573745f646967657374223a227368613235363a31343833613633316166336166303363353863653566663435326234616339343438663335313733326561383231613564666336643739356364346330383665222c2273636f70655f637574223a7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41554e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e44222c226576656e745f6964223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c2273747265616d5f706f736974696f6e223a312c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d7d2c227374617465223a227465726d696e61746564222c227465726d696e616c5f736f757263655f646967657374223a227368613235363a66346631616361363933356565346139336662643933396432353533336338653139376337393163356563303136636336363537666266303464613232346439222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a676f7665726e6f722e6578616d706c65237265746972656d656e74227d",
-    "qualification": "Primitive signature and closed contract KAT only. Native inputs are explicit model assumptions, not accepted RFC tree, lifecycle, Station method history, fence durability or production evidence."
+    "successor_signing_seed_hex": "ecececececececececececececececececececececececececececececececec",
+    "authorization_signing_hex": "616b2e6d6c732e7265636f766572795f73636f70655f636c65616e75705f617574686f72697a6174696f6e2e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30302e3030305a222c2264656c69766572795f6368616c6c656e67655f62617365363475726c223a22586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c34222c2264657374696e6174696f6e5f736572766963655f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c22657870697265735f6174223a22323032362d31312d30395430303a30353a30302e3030305a222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e747279223a7b22626173655f67726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c226f6c645f6c6561766573223a5b5d7d2c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a6f726967696e2e6578616d706c65237265746972656d656e74227d",
+    "removed_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e742e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30312e3030305a222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22676f7665726e616e63655f67656e65726174696f6e223a302c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c2267726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e7472795f646967657374223a227368613235363a31353565333233663237306337666562346230663362323335383335663635383933386130333664626462303564343831373537613761306234316137373534222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c2272656d61696e696e675f6f6c645f6c6561665f636f756e74223a302c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22726571756573745f646967657374223a227368613235363a30363538613235656136646330613937636133666261623931653565646461636231396662613232643933653365643731363635663663306365343433613136222c2273636f70655f637574223a7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41554e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e44222c226576656e745f6964223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c2273747265616d5f706f736974696f6e223a312c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d7d2c227374617465223a2272656d6f766564222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a676f7665726e6f722e6578616d706c65237265746972656d656e74227d",
+    "terminated_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e742e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30312e3030305a222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c2265706f6368223a223132222c2267656e657369735f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22676f7665726e616e63655f67656e65726174696f6e223a302c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c2267726f75705f73746174655f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22696e76656e746f72795f646967657374223a227368613235363a35396366636239643362633461383839653936373566393862666230636662393738626237363437366430316136626465353861383132373238613866313536222c22696e76656e746f72795f656e7472795f646967657374223a227368613235363a31353565333233663237306337666562346230663362323335383335663635383933386130333664626462303564343831373537613761306234316137373534222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c227265706c6163656d656e74223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303032222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a227448514c704f443334466476456567556e62757955707768496850625a3567782d31306249683645565330227d2c22726571756573745f646967657374223a227368613235363a30363538613235656136646330613937636133666261623931653565646461636231396662613232643933653365643731363635663663306365343433613136222c2273636f70655f637574223a7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41554e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e4451304e44222c226576656e745f6964223a22616b3a6576656e743a41554a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43516b4a43222c2273747265616d5f706f736974696f6e223a312c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d7d2c227374617465223a227465726d696e61746564222c227465726d696e616c5f736f757263655f646967657374223a227368613235363a66346631616361363933356565346139336662643933396432353533336338653139376337393163356563303136636336363537666266303464613232346439222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a676f7665726e6f722e6578616d706c65237265746972656d656e74227d",
+    "delivery_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e745f64656c69766572792e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30303a30322e3030305a222c22617574686f72697a6174696f6e5f646967657374223a227368613235363a31623939333765346339326238653861336330623862313464663139653231663030626134623665393434666537396264383666613437353733393166313833222c2264656c69766572795f6368616c6c656e67655f62617365363475726c223a22586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c3565586c34222c22657870697265735f6174223a22323032362d31312d30395430303a30353a30302e3030305a222c22676f7665726e616e63655f67656e65726174696f6e223a302c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c2270726f6f665f646967657374223a227368613235363a65363461623531393339386366353134626566346531326639613930393033653634626537346631376463336166653839333364373063333239633565323935222c22726563697069656e745f736572766963655f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65222c22726571756573745f646967657374223a227368613235363a30363538613235656136646330613937636133666261623931653565646461636231396662613232643933653365643731363635663663306365343433613136222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a676f7665726e6f722e6578616d706c65237265746972656d656e74227d",
+    "handoff_delivery_signing_hex": "616b2e6d6c732e73636f70655f7265746972656d656e745f64656c69766572792e76310a7b2261747465737465645f6174223a22323032362d31312d30395430303a30363a30312e3030305a222c22617574686f72697a6174696f6e5f646967657374223a227368613235363a30666662613661393131653762373930643334336461396333663265336636303261323065626661623137626162633031633732643931373062373730346162222c2264656c69766572795f6368616c6c656e67655f62617365363475726c223a2258313966583139665831396658313966583139665831396658313966583139665831396658313966583138222c22657870697265735f6174223a22323032362d31312d30395430303a31313a30302e3030305a222c22676f7665726e616e63655f67656e65726174696f6e223a312c22676f7665726e616e63655f73746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a737563636573736f722e6578616d706c65222c226e6f6e63655f62617365363475726c223a2258563164585631645856316458563164585631645856316458563164585631645856316458563164585630222c2270726f6f665f646967657374223a227368613235363a65363461623531393339386366353134626566346531326639613930393033653634626537346631376463336166653839333364373063333239633565323935222c22726563697069656e745f736572766963655f6964223a22616b3a6469645f636f72653a7765623a6f726967696e2e6578616d706c65222c22726571756573745f646967657374223a227368613235363a30363538613235656136646330613937636133666261623931653565646461636231396662613232643933653365643731363635663663306365343433613136222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a737563636573736f722e6578616d706c65237265746972656d656e74227d",
+    "qualification": "Primitive signatures and separated native-model assumptions only; no real Station history, RFC admission, durable transaction, physical import or production recovery is claimed."
   }
 }

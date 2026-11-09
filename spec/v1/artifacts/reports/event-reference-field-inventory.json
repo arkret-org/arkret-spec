@@ -619,7 +619,7 @@
     },
     {
       "schema": "content-encryption.schema.json",
-      "json_pointer": "/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/genesis_event_ref",
+      "json_pointer": "/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/cleanup/properties/genesis_event_ref",
       "field": "genesis_event_ref",
       "classification": "complete_event_id"
     },

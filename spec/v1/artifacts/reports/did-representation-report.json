@@ -2815,7 +2815,47 @@
       ]
     },
     {
+      "schema_path": "content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body/properties/delivery_signing_key/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "content-encryption.schema.json#/$defs/recovery_source_attestation/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "content-encryption.schema.json#/$defs/scope_retirement_delivery_attestation/properties/governance_station_id",
+      "property_name": "governance_station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "content-encryption.schema.json#/$defs/scope_retirement_delivery_attestation/properties/recipient_service_id",
+      "property_name": "recipient_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "content-encryption.schema.json#/$defs/scope_retirement_delivery_attestation/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",

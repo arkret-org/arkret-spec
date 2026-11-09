@@ -11818,6 +11818,22 @@ paths:
   /_arkret/peer/mls/recovery-scope-cleanup:
     post:
       operationId: ak.peer.mls.command.reconcile_recovery_scope
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Reconcile one departed recovery scope without granting membership or keys.
+      description: Full-body outer request idempotency and a separate stable native recovery intent. Current source
+        destination and fresh delivery challenge are signed but excluded from the stable intent. Current origin
+        and reader authorization are required before an existing terminal is read, including after rejoin or lawful
+        handoff. First finalization requires lost eligibility and actual absence or irreversible termination. A
+        terminal response preserves the original proof and carries an independent fresh current-governor delivery
+        attestation after actual native proof and fence retention or import. A pending observation is immutable
+        for the original request and challenge; subsequent observation uses a fresh challenge. No membership, roots,
+        private PCR coordinates or generic history access is granted.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -11832,22 +11848,6 @@ paths:
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1recovery-scope-cleanup/post/parameters/0/schema
             values:
             - ak.peer.mls.command.reconcile_recovery_scope.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Reconcile one departed recovery scope without granting membership or keys.
-      description: content-history.md section 10.1. Authenticate the owning Account Station and independently verify
-        its short-lived native episode authorization, exact inventory entry and current destination authority. Persist
-        the per-episode displaced-endpoint fence and reconcile original admissions under the same scope lock. Only
-        lost-eligibility scopes may yield a signed removed or irreversible terminated proof. Pending is not completion.
-        The command grants no membership, keys, generic PCR access or MLS signer authority. Current members use
-        the existing recovery Commit path; actual Remove requires a legal MLS endpoint. Unknown/unauthorized targets
-        are not_found; missing native proof is revision_unavailable. Exact intent replay remains current-authorized;
-        freshness-only source renewal does not rebind the intent.
       requestBody:
         required: true
         content:
@@ -11882,6 +11882,18 @@ paths:
   /_arkret/self/mls/recovery-scope-cleanup:
     post:
       operationId: ak.self.mls.command.reconcile_recovery_scope
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Reconcile one departed recovery scope without granting membership or keys.
+      description: The current native subject or explicit Agent custodian selects an exact prepared episode and
+        inventory entry. Full-body outer idempotency is separate from the stable subject/episode/nonce intent. The
+        owning Station durably freezes its derived peer request before sending; exact retries reuse it. Source or
+        route renewal and subsequent polling require a fresh delivery challenge. The unchanged peer delivery contains
+        an immutable historical proof and a fresh current-governor attestation. Self projects proof-digest-bound
+        historical and delivery-digest-bound current keys separately. Current rejoin does not deny an existing terminal;
+        revoked holders, old episodes and unknown targets fail closed. Bare cached proof or expired delivery cannot
+        satisfy a new request. No new membership or keys are granted; full group-chat archive recovery is not guaranteed.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -11896,17 +11908,6 @@ paths:
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1recovery-scope-cleanup/post/parameters/0/schema
             values:
             - ak.self.mls.command.reconcile_recovery_scope.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Reconcile one departed recovery scope without granting membership or keys.
-      description: content-history.md section 10.1. Current native recovery subject or explicit current Agent history
-        custodian selects one exact entry of the already prepared private episode by authorization Event and inventory
-        digest. The owning Station supplies native source evidence, resolves current governance and invokes the
-        peer command; it independently verifies the signed response and returns the unchanged result plus a proof-digest-bound
-        historical governor public key. No caller-selected replacement, private inventory upload, new recovery episode,
-        rejoin, history permission or root disclosure. Old endpoints/episodes and unknown targets are not_found.
-        Native PCR completeness and client ready remain separate; full group-chat archive recovery is not guaranteed.
       requestBody:
         required: true
         content:
