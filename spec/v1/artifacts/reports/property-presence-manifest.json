@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10390,
+    "total_properties": 10392,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2446,
       "optional_defaulted": 46,
-      "required": 7370,
+      "required": 7372,
       "required_nullable": 311,
       "tristate": 217
     },
@@ -10417,6 +10417,8 @@
         "/$defs/message_authoring_intent/properties/strand_id": "required",
         "/$defs/message_authoring_intent/properties/track_name": "required",
         "/$defs/message_encryption_context/properties/effective_scope": "required",
+        "/$defs/message_encryption_context/properties/outer_event_digest": "required",
+        "/$defs/message_encryption_context/properties/producer": "required",
         "/$defs/message_encryption_context/properties/scheme": "required",
         "/$defs/message_encryption_context/properties/sender_domain": "required"
       }

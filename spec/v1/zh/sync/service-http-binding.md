@@ -214,6 +214,19 @@ service-to-service authentication 绑定 source/destination service identity、o
 
 任何分支缺真实供料时 MUST 等待／拒绝构造，不从旧 context 推导持续授权，也不新增逐消息 draft endpoint。`message-authoring.schema.json` 的共享 intent／content／encryption context 保留为本地 typed 载体；不构成 HTTP 请求。
 
+该本地`message_encryption_context`按`scheme,effective_scope,sender_domain,producer,outer_event_digest`携带：
+`scheme`复用canonical encrypted envelope的`encryption_scheme`定义，并须等于正文和存在的metadata信封selector；
+`producer`是实际已核native endpoint对应的完整ContentEndpoint，`sender_domain`是其Actor的canonical JSON。
+`outer_event_digest = "sha256:" || lower_hex(SHA256(JCS(E)))`，其中E精确为完整原Event删除顶层
+`event_id,payload,producer_proof,unsigned`后的实际成员，不删除嵌套同名成员，不补缺席成员为null。
+seal前MUST固定Event意图、Direct／委托／semantic refs、实际endpoint与各内容槽的fresh salt；不能先seal再另取时间或补参与者授权。
+最终producer在本地派生Event ID及签名前MUST用同一Event serializer核对完整E摘要、scope、scheme与实际producer来源；
+已冻结Direct引用按新读native current精确重验，变化、缺失或重复均拒绝，不能静默换绑密文。
+正文和metadata的原群结果、root_ref与实际producer必须一致，但各自使用独立耐久fresh salt；
+本地authoring必须拒绝跨槽复用content_key_salt，更改AAD或MIME不能消除K／nonce复用。
+caller给出的producer／digest不构成native授权、当前设备资格、MLS membership或历史披露许可；这些门继续分别验证。
+新scheme仍需既有closed registry/schema登记，不接受旧`mls_rfc9420`、未知selector、缺失字段或兼容降级。
+
 **本地签名与耐久重试（normative）**：加密 scope 按 [encryption-and-audit §2.3](../crypto-media/encryption-and-audit.md) 先冻结 AAD 并本地加密，再构造 canonical Event，逐字段核对原意图和确切密文后原签。首次网络提交前 MUST 耐久冻结 exact signed Event、提交身份、密文及相应密码状态。unknown MUST 先按 [authority-commit-log](./authority-commit-log.md) 原 authority 终局规则恢复并重投原字节，MUST NOT 重加密、推进第二次 sender generation 或换签另一消息；后次请求失败不能证明前次未接纳。
 
 **current 接纳门保持（normative）**：submit 事务独立校验 actor／设备、membership／grant／DM、scope 与 MLS key-access。确定没有 accepted Genesis／current group 的加密提交返回 `failed_precondition`，不可静默明文回退；current 暂不可读返回 `temporarily_unavailable`。已覆盖 current checkpoint 但 frozen epoch／group_state_ref／key_access_revision 不符返回顶层 `epoch_mismatch`（409）；尚待 winning Commit 覆盖优先返回 `failed_precondition` + `epoch_update_required`。只有按终局规则确定允许重新 author 时才能获取当前本地 MLS state 后新尝试。历史 accepted Event／peer committed replication 按原历史 binding 验证，不套 current send gate。本地构造成功不是 accepted，位置与 RealmCommit 只由 current governor 接受事务产生。

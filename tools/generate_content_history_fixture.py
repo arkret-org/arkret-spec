@@ -1,5 +1,6 @@
 """Generate deterministic primitive KATs, not a native admission simulation."""
 import argparse
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -44,6 +45,17 @@ def build():
     plaintext = jcs({"text": "original recoverable content"})
     associated = aad(outer, envelope, context)
     envelope["ciphertext"] = b64(AESGCM(key).encrypt(bytes(12), plaintext, associated))
+    metadata_context = {**context, "content_key_salt": b64(bytes(range(96, 128)))}
+    metadata_key = content_key(root, metadata_context)
+    metadata_envelope = copy.deepcopy(envelope)
+    metadata_envelope["content_type"] = "application/vnd.arkret.message-metadata+json"
+    metadata_envelope["encryption_context"].update({
+        "content_key_salt": metadata_context["content_key_salt"],
+        "key_commitment": key_commitment(metadata_key, metadata_context),
+    })
+    metadata_plaintext = jcs({"title": "original metadata"})
+    metadata_aad = aad(outer, metadata_envelope, metadata_context)
+    metadata_envelope["ciphertext"] = b64(AESGCM(metadata_key).encrypt(bytes(12), metadata_plaintext, metadata_aad))
     original = jcs({"outer_event": outer, "envelope": envelope})
     mnemonic = " ".join(["abandon"] * 23 + ["art"])
     recipient_secret, recipient_public = mnemonic_backup_key(mnemonic)
@@ -109,6 +121,21 @@ def build():
             "security_evidence": [{"clause_id": "AK-NC-011", "vector_id": VECTOR, "decision_points": [
                 {"id": "registered_scheme_and_original_crypto_binding", "requirement": "Unknown construction or changed original metadata/ciphertext fails closed; reconstructed domain-separated keys cannot decrypt across endpoint, purpose, epoch or strategy basis.", "evidence": ["/kat/envelope", "/kat/aad_hex", "/kat/key_hex", "/kat/signature_base64url"]}
             ]}],
+            "local_message_authoring": {
+                "strand_id": "ak:strand:AT3ARBdH1FM6GjXK9ulTx-YMvQOXys39dlUzZV6KyID9",
+                "track_name": "discussion",
+                "content": {
+                    "kind": "mls", "encrypted_content": envelope, "encrypted_metadata": metadata_envelope,
+                    "encryption_context": {
+                        "scheme": SCHEME, "effective_scope": coordinate["effective_scope"],
+                        "sender_domain": jcs(actor).decode(), "producer": context["producer"],
+                        "outer_event_digest": "sha256:" + hashlib.sha256(jcs(outer)).hexdigest(),
+                    },
+                },
+            },
+            "metadata_kat": {"content_context": metadata_context, "key_hex": metadata_key.hex(),
+                             "aad_hex": metadata_aad.hex(), "plaintext_hex": metadata_plaintext.hex(),
+                             "envelope": metadata_envelope},
             "kat": {"exporter_secret_hex": exporter_secret.hex(), "root_context": coordinate, "root_hex": root.hex(),
                     "content_context": context, "key_hex": key.hex(), "aad_hex": associated.hex(), "outer_event": outer,
                     "envelope": envelope, "plaintext_hex": plaintext.hex(), "primitive_original_transcript_hex": original.hex(),

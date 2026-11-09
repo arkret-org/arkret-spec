@@ -1002,6 +1002,12 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "message-authoring.schema.json",
+      "json_pointer": "/$defs/message_encryption_context/properties/outer_event_digest",
+      "field": "outer_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
       "schema": "mimi-interop.schema.json",
       "json_pointer": "/$defs/content_mapping_receipt/properties/arkret_event_id",
       "field": "arkret_event_id",

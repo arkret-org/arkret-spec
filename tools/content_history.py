@@ -83,8 +83,41 @@ def key_commitment(key, context):
     return "sha256:" + hashlib.sha256(b"ak.content.key_commitment.v1\n" + jcs(context) + key).hexdigest()
 
 
+def content_outer_event(event):
+    return {k: v for k, v in event.items() if k not in {"event_id", "payload", "producer_proof", "unsigned"}}
+
+
+def content_outer_event_digest(event):
+    return "sha256:" + hashlib.sha256(jcs(content_outer_event(event))).hexdigest()
+
+
+def verify_local_message_binding(intent, original_event, actual_producer):
+    """Byte binding only; actual producer qualification is a native caller obligation."""
+    content = intent["content"]
+    context = content["encryption_context"]
+    expected_actor = original_event.get("executed_by", original_event["actor_id"])
+    if (content["kind"] != "mls" or context["scheme"] != SCHEME
+            or context["effective_scope"] != original_event["scope_ref"]
+            or context["producer"] != actual_producer
+            or actual_producer["actor_id"] != expected_actor
+            or context["sender_domain"] != jcs(actual_producer["actor_id"]).decode()
+            or context["outer_event_digest"] != content_outer_event_digest(original_event)):
+        raise ValueError("local encrypted context differs from its frozen Event or actual producer")
+    body = content["encrypted_content"]
+    envelopes = [body]
+    if "encrypted_metadata" in content:
+        envelopes.append(content["encrypted_metadata"])
+    for envelope in envelopes:
+        if (envelope["encryption_scheme"] != context["scheme"]
+                or any(envelope["encryption_context"][field] != body["encryption_context"][field]
+                       for field in ["epoch", "group_state_ref", "root_ref"])):
+            raise ValueError("local encrypted message mixes construction or original group state")
+    if len({e["encryption_context"]["content_key_salt"] for e in envelopes}) != len(envelopes):
+        raise ValueError("local encrypted content slots reuse the same key derivation domain")
+
+
 def aad(outer_event, envelope, context):
-    frozen = {k: v for k, v in outer_event.items() if k not in {"event_id", "payload", "producer_proof", "unsigned"}}
+    frozen = content_outer_event(outer_event)
     metadata = {k: v for k, v in envelope.items() if k != "ciphertext"}
     return jcs({"outer_event": frozen, "envelope": metadata, "content_context": context})
 

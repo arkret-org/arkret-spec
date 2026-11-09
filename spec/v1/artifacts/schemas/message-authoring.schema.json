@@ -9,19 +9,13 @@
       "required": [
         "scheme",
         "effective_scope",
-        "sender_domain"
+        "sender_domain",
+        "producer",
+        "outer_event_digest"
       ],
       "properties": {
         "scheme": {
-          "const": "mls_rfc9420",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
-            "owner": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
-            "values": [
-              "mls_rfc9420"
-            ]
-          }
+          "$ref": "./encrypted-envelope.schema.json#/properties/encryption_scheme"
         },
         "effective_scope": {
           "$ref": "./event-envelope.schema.json#/properties/scope_ref"
@@ -29,6 +23,13 @@
         "sender_domain": {
           "type": "string",
           "minLength": 1
+        },
+        "producer": {
+          "$ref": "./content-encryption.schema.json#/$defs/endpoint"
+        },
+        "outer_event_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "additionalProperties": false

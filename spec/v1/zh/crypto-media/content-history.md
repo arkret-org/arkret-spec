@@ -56,6 +56,11 @@ leaf签名公钥。Human不能只用Actor／counter／leaf index；Agent必须�
 其余C_item成员从原签外层、历史MLS及原producer事实重建，不相信随包复制的事实。
 令`E`为冻结Event删除`event_id,payload,producer_proof,unsigned`后实际存在的成员，`M`为信封删除ciphertext后
 的成员；正文AAD精确为`JCS({outer_event:E,envelope:M,content_context:C_item})`。
+本地消息起草carrier必须保留实际producer和完整E的SHA-256摘要，按service-http-binding §2.8的
+`message_encryption_context`合同在最终authoring逐字核对。Direct／委托／semantic refs与实际endpoint
+必须先于seal固定，不得在密文产生后另取时间或补授权；这些本地字段不替代原native来源或当前发送资格。
+同一本地消息的正文和metadata须绑定同一原群结果、root_ref和producer，并逐槽使用不同content_key_salt；
+最终authoring必须拒绝跨槽复用salt，不因MIME或AAD不同而放行。
 K仅使用一次，nonce固定12个零byte。原producer proof按既有Event规则覆盖完整原件及密文；
 key_commitment必须先核对再AEAD解密，不能把GCM当作key-committing构造。
 

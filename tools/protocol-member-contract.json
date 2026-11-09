@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:5040547abeeb3e08c62614e3ff3ae8788b4271538dec020a16a83202ab0b901c",
+  "contract_digest": "sha256:4afc071f162bcbaa728f98a69a26aaaa124ec28005a879ee9c835078f3970884",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -80157,19 +80157,13 @@
             "required": [
               "scheme",
               "effective_scope",
-              "sender_domain"
+              "sender_domain",
+              "producer",
+              "outer_event_digest"
             ],
             "properties": {
               "scheme": {
-                "const": "mls_rfc9420",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
-                  "owner": "message-authoring.schema.json#/$defs/message_encryption_context/properties/scheme",
-                  "values": [
-                    "mls_rfc9420"
-                  ]
-                }
+                "$ref": "./encrypted-envelope.schema.json#/properties/encryption_scheme"
               },
               "effective_scope": {
                 "$ref": "./event-envelope.schema.json#/properties/scope_ref"
@@ -80177,6 +80171,13 @@
               "sender_domain": {
                 "type": "string",
                 "minLength": 1
+              },
+              "producer": {
+                "$ref": "./content-encryption.schema.json#/$defs/endpoint"
+              },
+              "outer_event_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
               }
             },
             "additionalProperties": false
@@ -112687,7 +112688,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:b234122d26cb57e70af638168eaa34ebf60f22f1c434b702fd9129defc78a41a"
+      "digest": "sha256:8adc63b21e96c4b1d4aecbfff2f3e08a2dadd63b6cd5b575b1c3b5ce5201b443"
     },
     {
       "file": "operation-clause-registry.json",
