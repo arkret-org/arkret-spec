@@ -1447,6 +1447,7 @@ Realm Bot／Ghost 的业务历史验签使用 realm_device 最小事实；不披
 启用时校验同词派生的recovery-proof／backup公钥并登记accepted policy；未完成不得宣称恢复配置ready。
 成功接纳PCR原件必须与原件／blob／专用根及coverage耐久绑定，全部历史从genesis保留，不能best-effort或有损retention。
 恢复先原子提交policy unit／generation fence，历史读取不能覆盖current设备目录；各scope旧leaf清理及新备份隔离完成前不得显示完整成功。
+已退群／不可逆终止scope按可恢复内容§10.1保留库存并取得窄终态证明，不因此重入或取得新根；普通群聊不适用PCR的强制全历史保证。
 详细格式／carrier／current cut／故障重试及Agent例外统一见[可恢复内容](../crypto-media/content-history.md)。
 
 KeyBackup允许custodian_actor_id与custody_authorization_ref成对出现，仅用于已明确批准的Agent history_custody；

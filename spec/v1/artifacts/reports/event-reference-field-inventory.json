@@ -607,13 +607,43 @@
     },
     {
       "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/recovery_scope_cleanup_request_body/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/recovery_scope_cleanup_request_body/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/recovery_scope_cleanup_response_body/oneOf/1/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
       "json_pointer": "/$defs/root_context/properties/genesis_event_ref",
       "field": "genesis_event_ref",
       "classification": "complete_event_id"
     },
     {
       "schema": "content-encryption.schema.json",
-      "json_pointer": "/$defs/scope_cleanup/properties/genesis_event_ref",
+      "json_pointer": "/$defs/scope_cleanup/oneOf/0/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/scope_cleanup/oneOf/1/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/scope_retirement_proof/properties/genesis_event_ref",
       "field": "genesis_event_ref",
       "classification": "complete_event_id"
     },

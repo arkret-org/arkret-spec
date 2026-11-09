@@ -9398,6 +9398,102 @@
         ],
         "closed": true
       }
+    },
+    {
+      "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source",
+        "schema_kind": "object",
+        "required": [
+          "attestation",
+          "origin_resolution"
+        ],
+        "properties": [
+          "attestation",
+          "origin_resolution"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
+        "schema_kind": "oneOf",
+        "required": [
+          "state"
+        ],
+        "properties": [
+          "state",
+          "effective_scope",
+          "genesis_event_ref",
+          "retirement_proof"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
+            "schema_kind": "object",
+            "required": [
+              "state"
+            ],
+            "properties": [
+              "state"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
+            "schema_kind": "object",
+            "required": [
+              "state",
+              "effective_scope",
+              "genesis_event_ref",
+              "retirement_proof"
+            ],
+            "properties": [
+              "state",
+              "effective_scope",
+              "genesis_event_ref",
+              "retirement_proof"
+            ],
+            "closed": true
+          }
+        ]
+      }
+    },
+    {
+      "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authorization_event_ref",
+          "inventory_digest",
+          "effective_scope",
+          "genesis_event_ref",
+          "nonce_base64url"
+        ],
+        "properties": [
+          "authorization_event_ref",
+          "inventory_digest",
+          "effective_scope",
+          "genesis_event_ref",
+          "nonce_base64url"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
+        "schema_kind": "object",
+        "required": [
+          "cleanup"
+        ],
+        "properties": [
+          "cleanup",
+          "attestor_signing_key"
+        ],
+        "closed": true
+      }
     }
   ]
 }

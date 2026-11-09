@@ -288,6 +288,11 @@
     },
     {
       "page": "crypto-media/content-history.md",
+      "heading": "10.1 失去参与资格的scope收尾（normative）",
+      "fragment": "101-失去参与资格的scope收尾normative"
+    },
+    {
+      "page": "crypto-media/content-history.md",
       "heading": "11. Coverage的确定性重建（normative）",
       "fragment": "11-coverage的确定性重建normative"
     },

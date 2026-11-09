@@ -868,6 +868,14 @@ components:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body
     RecoveryCompletionGrantResponseBody:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_response_body
+    RecoveryScopeCleanupRequestBody:
+      $ref: ../schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body
+    RecoveryScopeCleanupResponseBody:
+      $ref: ../schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body
+    RecoveryScopeCleanupSelfResponseBody:
+      $ref: ../schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body
+    RecoveryScopeCleanupSource:
+      $ref: ../schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source
     RelationQuery:
       $ref: ../schemas/query.schema.json#/$defs/relation_query
     SearchRequestBody:
@@ -11807,6 +11815,129 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/realm-actor-material.schema.json#/$defs/realm_actor_material_response_body
+  /_arkret/peer/mls/recovery-scope-cleanup:
+    post:
+      operationId: ak.peer.mls.command.reconcile_recovery_scope
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.mls.command.reconcile_recovery_scope.v1
+          x-arkret-value-ownership:
+            class: namespaced_symbol
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1recovery-scope-cleanup/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1recovery-scope-cleanup/post/parameters/0/schema
+            values:
+            - ak.peer.mls.command.reconcile_recovery_scope.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Reconcile one departed recovery scope without granting membership or keys.
+      description: content-history.md section 10.1. Authenticate the owning Account Station and independently verify
+        its short-lived native episode authorization, exact inventory entry and current destination authority. Persist
+        the per-episode displaced-endpoint fence and reconcile original admissions under the same scope lock. Only
+        lost-eligibility scopes may yield a signed removed or irreversible terminated proof. Pending is not completion.
+        The command grants no membership, keys, generic PCR access or MLS signer authority. Current members use
+        the existing recovery Commit path; actual Remove requires a legal MLS endpoint. Unknown/unauthorized targets
+        are not_found; missing native proof is revision_unavailable. Exact intent replay remains current-authorized;
+        freshness-only source renewal does not rebind the intent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoveryScopeCleanupSource'
+      responses:
+        '200':
+          description: Pending obligation or a complete private retirement result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryScopeCleanupResponseBody'
+        '404':
+          description: Unknown or unauthorized target (not_found).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting nonce intent or ineligible state (duplicate_conflict or failed_precondition).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Required native evidence is unavailable (revision_unavailable).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /_arkret/self/mls/recovery-scope-cleanup:
+    post:
+      operationId: ak.self.mls.command.reconcile_recovery_scope
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.mls.command.reconcile_recovery_scope.v1
+          x-arkret-value-ownership:
+            class: namespaced_symbol
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1recovery-scope-cleanup/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1recovery-scope-cleanup/post/parameters/0/schema
+            values:
+            - ak.self.mls.command.reconcile_recovery_scope.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Reconcile one departed recovery scope without granting membership or keys.
+      description: content-history.md section 10.1. Current native recovery subject or explicit current Agent history
+        custodian selects one exact entry of the already prepared private episode by authorization Event and inventory
+        digest. The owning Station supplies native source evidence, resolves current governance and invokes the
+        peer command; it independently verifies the signed response and returns the unchanged result plus a proof-digest-bound
+        historical governor public key. No caller-selected replacement, private inventory upload, new recovery episode,
+        rejoin, history permission or root disclosure. Old endpoints/episodes and unknown targets are not_found.
+        Native PCR completeness and client ready remain separate; full group-chat archive recovery is not guaranteed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoveryScopeCleanupRequestBody'
+      responses:
+        '200':
+          description: Pending obligation or a complete private retirement result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryScopeCleanupSelfResponseBody'
+        '404':
+          description: Unknown or unauthorized target (not_found).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflicting nonce intent or ineligible state (duplicate_conflict or failed_precondition).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Required native evidence is unavailable (revision_unavailable).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/realm-actors/material:
     post:
       operationId: ak.self.realm_actor.read.material

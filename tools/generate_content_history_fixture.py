@@ -207,6 +207,10 @@ def build(include_sources=False):
                     "envelope": envelope, "plaintext_hex": plaintext.hex(), "primitive_original_transcript_hex": original.hex(),
                     "signing_seed_hex": bytes(range(32)).hex(), "signature_base64url": b64(signer.sign(original)),
                     "original_digest": "sha256:" + hashlib.sha256(original).hexdigest()}}
+    from tools.recovery_scope_cleanup import fixture as retirement_fixture
+    result['scope_retirement'] = retirement_fixture(replacement, {
+        'effective_scope': coordinate['effective_scope'], 'genesis_event_ref': coordinate['genesis_event_ref'],
+        'base_group_state_ref': coordinate['group_state_ref'], 'epoch': coordinate['epoch'], 'old_leaves': []}, preparation_cut)
     if include_sources:
         result['content_backup_source_encoding'] = {'human': human_source, 'agent': agent_source}
     return result

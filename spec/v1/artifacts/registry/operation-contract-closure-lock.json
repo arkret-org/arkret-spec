@@ -283,6 +283,10 @@
       "sha256": "sha256:6c01a74f47955631db5c8d005e073f5a3430d32f4c71c955e476489cca847f5b"
     },
     {
+      "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+      "sha256": "sha256:ac659a46cc7514a89afe1033a9269169cfa55c4924bade6b6067ea0d79330bd9"
+    },
+    {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
       "sha256": "sha256:0bdaebf39c06570047581b6ce5b67ccd4e411f43f6d872fc353ca9d5f7a5f7b2"
     },
@@ -765,6 +769,10 @@
     {
       "operation_id": "ak.self.media_service_binding.read.resolve.v1",
       "sha256": "sha256:6e6e651b79657dff93e7eb44558c1663126b4f54dd36ef1ded49bb2c70f48495"
+    },
+    {
+      "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
+      "sha256": "sha256:b3ac91bdb4b18722158136f484b4d430e69a58974a35d424609ea50254405431"
     },
     {
       "operation_id": "ak.self.mls.content_recovery.resource.get.v1",

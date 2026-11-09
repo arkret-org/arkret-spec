@@ -2280,6 +2280,30 @@
       ],
       "description": "Unknown, foreign, fenced, candidate and old-episode selectors are uniformly not_found. A valid current resource with unresolved remote obligations returns pending, not a partial inventory. Missing/inconsistent accepted source or required durable material is revision_unavailable; prepared never means client history-ready.",
       "codes": []
+    },
+    {
+      "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+      "http_alias": "POST /_arkret/peer/mls/recovery-scope-cleanup",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable",
+        "failed_precondition",
+        "duplicate_conflict"
+      ],
+      "description": "Private native recovery scope reconciliation; failed_precondition for a still-entitled actor or unprepared inventory. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
+      "codes": []
+    },
+    {
+      "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
+      "http_alias": "POST /_arkret/self/mls/recovery-scope-cleanup",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable",
+        "failed_precondition",
+        "duplicate_conflict"
+      ],
+      "description": "Private native recovery scope reconciliation; failed_precondition for a still-entitled actor or unprepared inventory. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
+      "codes": []
     }
   ],
   "cross_links": {

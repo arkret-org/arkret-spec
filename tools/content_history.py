@@ -278,8 +278,28 @@ def inventory_digest(inventory):
 def cleanup_digest(inventory, results):
     expected = [(x["effective_scope"], x["genesis_event_ref"]) for x in inventory["entries"]]
     actual = [(x["effective_scope"], x["genesis_event_ref"]) for x in results]
-    if actual != expected or any(x["remaining_old_leaf_count"] != 0 for x in results):
+    if actual != expected:
         raise ValueError("missing, reordered or unfinished cleanup")
+    for entry, result in zip(inventory['entries'], results):
+        if result.get('state') == 'rekeyed':
+            if (result.get('remaining_old_leaf_count') != 0 or not result.get('root_refs')
+                    or not result.get('backup_refs') or 'winning_commit' not in result
+                    or 'retirement_proof' in result):
+                raise ValueError('unfinished rekeyed cleanup')
+        elif result.get('state') in {'removed', 'terminated'}:
+            from tools.recovery_scope_cleanup import digest
+            proof = result.get('retirement_proof', {})
+            if (set(result) != {'state', 'effective_scope', 'genesis_event_ref', 'retirement_proof'}
+                    or proof.get('state') != result['state']
+                    or proof.get('replacement') != inventory['replacement']
+                    or proof.get('inventory_digest') != inventory_digest(inventory)
+                    or proof.get('inventory_entry_digest') != digest(entry)
+                    or any(proof.get(k) != entry[k] for k in ('effective_scope', 'genesis_event_ref'))
+                    or 'signature' not in proof):
+                raise ValueError('retirement does not bind the exact inventory entry')
+        else:
+            raise ValueError('unknown cleanup state')
+    # This structural digest does not verify native facts or signatures.
     value = {"inventory_digest": inventory_digest(inventory), "scope_cleanups": results}
     return "sha256:" + hashlib.sha256(b"ak.content.cleanup_inventory.v1\n" + jcs(value)).hexdigest()
 

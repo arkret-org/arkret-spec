@@ -11989,6 +11989,41 @@
         "fragment": "#/$defs/recovery_preparation",
         "status": "active",
         "description": "Private unit-derived content-recovery preparation, discovered by the accepted authorization Event; prepared material is distinct from client history-ready."
+      },
+      {
+        "schema_id": "ak.schema.recovery_scope_cleanup_request_body.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/recovery_scope_cleanup_request_body",
+        "status": "active",
+        "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+      },
+      {
+        "schema_id": "ak.schema.recovery_scope_cleanup_source.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/recovery_scope_cleanup_source",
+        "status": "active",
+        "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+      },
+      {
+        "schema_id": "ak.schema.recovery_scope_cleanup_response_body.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/recovery_scope_cleanup_response_body",
+        "status": "active",
+        "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+      },
+      {
+        "schema_id": "ak.schema.recovery_scope_cleanup_self_response_body.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/recovery_scope_cleanup_self_response_body",
+        "status": "active",
+        "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+      },
+      {
+        "schema_id": "ak.schema.scope_retirement_proof.v1",
+        "file": "schemas/content-encryption.schema.json",
+        "fragment": "#/$defs/scope_retirement_proof",
+        "status": "active",
+        "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
       }
     ]
   },
@@ -13805,7 +13840,8 @@
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.signal.command.relay.v1",
           "ak.peer.strand.watch.read.current.v1",
-          "ak.peer.strand.watch.command.audit_read.v1"
+          "ak.peer.strand.watch.command.audit_read.v1",
+          "ak.peer.mls.command.reconcile_recovery_scope.v1"
         ],
         "surface_class": "extension"
       },
@@ -13873,7 +13909,8 @@
           "ak.self.realm.resource.get.v1",
           "ak.self.realm.read.export.v1",
           "ak.self.mls.read.group_state_material.v1",
-          "ak.self.mls.read.roster_authority.v1"
+          "ak.self.mls.read.roster_authority.v1",
+          "ak.self.mls.command.reconcile_recovery_scope.v1"
         ],
         "surface_class": "extension"
       },
@@ -18081,6 +18118,46 @@
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_preparation",
         "notes": "Read the current private content-recovery preparation by the original accepted replacement authorization Event. Human recovery terminal admission atomically records the episode/fence intent and fixes its PCR cut; Agent preparation uses the actual native supersedes pairing/activation result, reconciled through registered interfaces. Background preparation freezes the complete native admission/claim/consume/outgoing-intent census. This GET neither creates an episode nor selects a replacement key. pending never returns an inventory ref; prepared returns the immutable private canonical inventory Blob, not client plaintext/history-ready evidence. Verify the current native endpoint-bound subject SessionGrant or current explicit Agent history custodian, accepted original identity/pairing source, same episode and private ACL on resource and every Blob read. Unknown, foreign, old endpoint or old episode selectors are indistinguishable not_found. No identity receipt mutation, recovery-session lifetime dependency, peer/open access or new signing/prepare command."
+      },
+      {
+        "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+        "http": "POST /_arkret/peer/mls/recovery-scope-cleanup",
+        "grpc": "PeerMls/ReconcileRecoveryScope",
+        "mq": "peer.mls.command.reconcile_recovery_scope",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source",
+        "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
+        "notes": "content-history.md section 10.1. Authenticate the owning Account Station and independently verify its short-lived native episode authorization, exact inventory entry and current destination authority. Persist the per-episode displaced-endpoint fence and reconcile original admissions under the same scope lock. Only lost-eligibility scopes may yield a signed removed or irreversible terminated proof. Pending is not completion. The command grants no membership, keys, generic PCR access or MLS signer authority. Current members use the existing recovery Commit path; actual Remove requires a legal MLS endpoint. Unknown/unauthorized targets are not_found; missing native proof is revision_unavailable. Exact intent replay remains current-authorized; freshness-only source renewal does not rebind the intent. Idempotency hashes the canonical nonce_base64url string scoped to subject/episode; full intent digest equality is additionally required, and source freshness renewal preserves that intent.",
+        "idempotency_mechanism": "canonical_hash",
+        "retry_safe": true,
+        "canonical_hash_input": "/attestation/nonce_base64url",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "No Arkret Event or RealmCommit is admitted. Persist the native per-episode fence, exact intent, original source, private proof and current-authorized replay state atomically; no membership or secret is created."
+        }
+      },
+      {
+        "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
+        "http": "POST /_arkret/self/mls/recovery-scope-cleanup",
+        "grpc": "SelfMls/ReconcileRecoveryScope",
+        "mq": "self.mls.command.reconcile_recovery_scope",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body",
+        "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
+        "notes": "content-history.md section 10.1. Current native recovery subject or explicit current Agent history custodian selects one exact entry of the already prepared private episode by authorization Event and inventory digest. The owning Station supplies native source evidence, resolves current governance and invokes the peer command; it independently verifies the signed response and returns the unchanged result plus a proof-digest-bound historical governor public key. No caller-selected replacement, private inventory upload, new recovery episode, rejoin, history permission or root disclosure. Old endpoints/episodes and unknown targets are not_found. Native PCR completeness and client ready remain separate; full group-chat archive recovery is not guaranteed. Idempotency hashes the canonical nonce_base64url string scoped to subject/episode; full intent digest equality is additionally required, and source freshness renewal preserves that intent.",
+        "idempotency_mechanism": "canonical_hash",
+        "retry_safe": true,
+        "canonical_hash_input": "/nonce_base64url",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "No Arkret Event or RealmCommit is admitted. Persist the native per-episode fence, exact intent, original source, private proof and current-authorized replay state atomically; no membership or secret is created.",
+          "cross_service_effects": [
+            "ak.peer.mls.command.reconcile_recovery_scope.v1"
+          ],
+          "irreversibility_note": "An accepted native displaced-endpoint fence remains monotone even if the self response is lost; reconcile the same nonce intent without rollback or rejoin."
+        }
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -19082,6 +19159,10 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.peer.mls.read.group_state_material.v1",
             "binding_kind": "http_json"
           },
@@ -19371,6 +19452,10 @@
           },
           {
             "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
             "binding_kind": "http_json"
           },
           {
@@ -24927,6 +25012,13 @@
     "history_recovery_event_kind": "ak.mls.history_recovery",
     "recovery_source_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_source",
     "pcr_private_profile_contract_ref": "registry/content-encryption-registry.json#/pcr_private_profile",
-    "agent_pcr_controller_endpoint_contract_ref": "registry/content-encryption-registry.json#/agent_pcr_controller_endpoint"
+    "agent_pcr_controller_endpoint_contract_ref": "registry/content-encryption-registry.json#/agent_pcr_controller_endpoint",
+    "scope_cleanup_states": [
+      "rekeyed",
+      "removed",
+      "terminated"
+    ],
+    "retirement_proof_schema_ref": "schemas/content-encryption.schema.json#/$defs/scope_retirement_proof",
+    "group_chat_full_archive_guarantee": false
   }
 }

@@ -147,6 +147,8 @@ Human／用户管理Agent不因此取得更换逻辑Station的能力；同Statio
 `history_access=all_history_for_current_members`必须有实际可读路径，不能只返回密文。
 `since_join`是显式披露策略，其floor按完整Actor的合法join实例求值；同Account换Device或同Agent换runtime
 不得改用新leaf的Add时间。普通Realm仍受当前membership、exact scope、policy与retention约束。
+个人24词的强制全历史保证仅适用于§5的PCR恢复集；本章不承诺普通群聊永久无损保管或仅凭24词恢复全部群聊历史。
+全scope安全收尾是旧endpoint隔离义务，不扩大任何业务scope的历史读取权限，也不改变普通retention。
 
 recipient先提交原签durable `ak.mls.history_request`，payload为closed history_request，
 以自身current native endpoint的Event key签署recipient／fresh X25519公钥／history_cut／expires_at。
@@ -210,10 +212,11 @@ PCR 私有 Profile 的唯一 typed 槽与精确原件路径见 profiles-presence
 
 完整安全库存必须覆盖所有相关PCR／Realm／Circle／Sidecar／Direct的旧endpoint，包括无内容空群，
 不等于非空root库。Join／Add／consume账本的登记及安全收尾须耐久；枚举与新membership／pairing有并发fence。
-每个目标根据已验证的RFC roster实际Remove旧leaf，更新epoch／新根备份，保留其它Actor及合法成员。
+仍有当前参与资格的目标根据已验证的RFC roster实际Remove旧leaf，更新epoch／新根备份，保留其它Actor及合法成员。
+已经失去资格或scope已不可逆终止的目标按§10.1取得removed／terminated窄证明，不重新入群、不领取新根。
 各治理方收到收尾义务后保持全发送者业务屏障；未确认／不可达目标保持pending，不能以过期缓存跳过。
 跨站收尾仅用已登记的participant／signer材料和Events authority-forward路径，不公开PCR历史、不给服务端私钥。
-最终成功必须同时具有PCR全历史精确读取及完整库存每个scope的winning收尾结果；身份unit completed本身不足。
+最终成功必须同时具有PCR全历史精确读取及完整库存每个scope经独立验证的收尾结果；身份unit completed本身不足。
 密码隔离保证从全scope收尾ready之后成立，不能谎称网络尚未确认的群已即时完成Remove。
 
 恢复沿原group External Commit接入：仅在`mls_commit_payload.recovery_binding`有效、原Actor当前仍joined、
@@ -499,12 +502,14 @@ claim原意图按device-lifecycle §9.0.1同时保存原签effective_scope、int
 此前pending admission须先对账或阻断接受，之后旧授权不得新增scope。不得以新建版本或旧数据兼容豁免漏记空群。
 服务不能把无法确认的遗漏报告为完整；这不是开放unsupported first-device PCR全历史验证分支。
 
-每个scope据当前已验证RFC tree重对库存中的原endpoint provenance，再清理所有匹配旧leaf；
+rekeyed／removed据当前已验证RFC tree重对库存中的原endpoint provenance，再清理所有匹配旧leaf；
 不能盲用曾经的leaf index删除已换成其它Actor的新leaf。base变化重新CAS／生成新binding，原库存承诺不改，
 已不存在的旧leaf以真实winning结果确认而不是伪造Remove。cleanup_inventory.scope_cleanups与库存entry一对一同序，
-每项有当前winning Commit、remaining_old_leaf_count=0、新根及充分备份引用。
+每项为closed `scope_cleanup`：`rekeyed`携实际winning Commit、remaining_old_leaf_count=0、新根及充分备份引用；
+`removed`或`terminated`仅携§10.1的原签retirement_proof。前者证明全部被替换endpoint已移除，后者证明原scope不可逆终止，
+不伪造剩余leaf计数。不能因失去membership删掉entry，亦不能为补齐根引用向失权主体交付新根。
 cleanup_inventory_digest=sha256(UTF8("ak.content.cleanup_inventory.v1\n") || JCS(cleanup_inventory))；
-missing／重复／错序／scope错配／任何旧leaf残留都不允许ready。
+missing／重复／错序／scope错配、rekeyed／removed中任何旧leaf残留或无效终止证明都不允许ready。
 
 inventory与cleanup preimage分别以原JCS字节存私密content-addressed Blob；history_recovery的inventory_blob_ref／
 cleanup_blob_ref指向它们，ready时二者必带。只用既有Blob读写及Range，不新增未登记endpoint；
@@ -516,8 +521,104 @@ coordinator按已完成的identity／pairing原件及当前exact replacement资�
 既有Blob读取门仅允许该subject当前holder
 或有效Agent custodian按相同current-device门取这些原签检查点引用，禁止匿名／peer公开或仅凭Blob ref读取。
 该授权只涵盖库存材料，不继承其中其它scope的内容读取权。客户端核检查点的原producer proof／accepted RealmCommit／exact subject、Blob digest及
-带域摘要，再独立从现有原件／roster／winning Commit和账本来源核全量结果；bool和digest本身都不是完整性证明。
+带域摘要，再按结果分支从现有原件／roster／winning Commit、§10.1原签终态证明和账本来源核全量结果；
+失权者仅消费窄证明，不为验证收尾读取完整roster。bool和digest本身都不是完整性证明。
 preimage可流式解析／散列，不截断账户的scope总数，也不为缩小receipt把未确认scope丢弃。
+
+### 10.1 失去参与资格的scope收尾（normative）
+
+本节只处理完整inventory中已激活的原scope，不产生membership、管理员权、历史权限或新的恢复episode。
+`rekeyed`继续§5的原group恢复；当前仍有合法参与资格的Actor不得用下述命令取代External／Remove／换根。
+资格包括§6.1原Agent PCR controller窄角色，不得仅因缺普通Member行将该角色误判为退群。
+
+失去资格且全部被替换endpoint已从原群移除时，结果为`removed`。原scope已因既有登记生命周期进入不可逆终态时，
+结果可为`terminated`，此时允许旧leaf仍存在，但从该终态起原group永远不得再接纳业务密文、新epoch内容或新根备份，
+不能restore、重铸同group或以successor恢复原group写权。`freeze`、archive、暂停、无在线成员、缓存过期、断连、
+治理站永久失联或缺树均不是终止证明；不激活原本禁止提交的`ak.realm.destroy`。
+原有历史根的充分保管／重封装仍按§8执行，不产生新R、不向失效recipient开放新分支。
+Circle／Sidecar从父Realm或controller派生的终态必须核真实上游accepted来源和既有级联规则，不能伪造子scope tombstone。
+若没有可验证的不可逆终态，仍须实际清理旧leaf；不可达或缺原生材料保持pending／明确故障，不能猜测完成。
+
+**登记命令与资格**：客户端经`ak.self.mls.command.reconcile_recovery_scope.v1`
+（`POST /_arkret/self/mls/recovery-scope-cleanup`）提交closed
+`recovery_scope_cleanup_request_body`，依次为authorization_event_ref、inventory_digest、effective_scope、genesis_event_ref、nonce_base64url。
+authorization ref唯一选择已经prepared的原生episode；scope／genesis须逐字命中其固定inventory中的一项。
+只允许该subject当前native holder或§8.2当前明确Agent custodian，旧端、旧episode、候选、异主及未知目标统一not_found。
+未prepared或Actor仍有当前参与资格为failed_precondition；命令不另授MLS签名资格。
+nonce为32-byte CSPRNG的canonical unpadded base64url，首次发送前与完整请求耐久；不得另携Idempotency-Key。
+同subject／episode／nonce只允许同一canonical意图，换scope、inventory或任何意图成员均duplicate_conflict、零新效果。
+operation的canonical_hash_input选择该nonce_base64url字符串（peer为/attestation/nonce_base64url），
+幂等identity为SHA256(JCS(该字符串))、按subject／episode分桶；除identity相同外还须逐字核完整意图I及其域分离摘要。
+
+own Station从自己的原生episode和完整账本取replacement／exact entry，独立验证当前资格，定位目标Realm的当前合法governor，
+构造`recovery_scope_cleanup_source`。它只由attestation与完整冻结origin_resolution组成；原客户端不能自报此来源。
+attestation的字段顺序为replacement、inventory_digest、inventory_entry、destination_service_id、nonce_base64url、verification_method、
+attested_at、expires_at、signature。完整entry只含本目标及其原endpoint，不发送其它scope库存、PCR cut／原件或私有Agent requested scope。
+来源只能由replacement完整Account的owning Station签发，且其原生恢复unit／Agent完整supersedes及当前activation均已核验，
+§6.1仍绑定实际Human replacement而非资源Agent。origin_resolution按attested_at独立验证其method-native Station服务角色与原签。
+签名字节唯一为`UTF8("ak.mls.recovery_scope_cleanup_authorization.v1\n") || JCS(attestation删除signature)`；
+signature使用既有Ed25519 service形状，kid等于verification_method。要求attested_at不晚于准入now、now早于expires_at，
+且有效期在(0,300秒]内。仅有有效Service签名、当前DID或调用者自报entry不替代原生资格。
+
+own Station经`ak.peer.mls.command.reconcile_recovery_scope.v1`
+（`POST /_arkret/peer/mls/recovery-scope-cleanup`）发送上述closed来源；同Station也执行相同原生门。
+peer必须通过既有Service HTTP认证，来源Station／实际caller／replacement.account.station_id须相符，destination须为当前合法governor。
+治理方独立核来源、原group／genesis／scope、原accepted entry basis及该原Actor endpoint参与事实；没有自己账本的参与事实不得受理。
+该资格只允许返本节结果，绝不允许返回完整roster、公开树、其它成员详情、业务原件、root或backup。
+
+**同锁收尾与终局**：治理方在同一原生scope／Actor锁序下持久登记该episode对被替换endpoint的fence及待决义务，
+对账已签发／claim／consume／outgoing admission及winning结果；fence必须拦截仍在有效期内的旧来源和旧授权再次Add。
+完整被替换集合来自原生恢复资格与完整账本，不能只看entry.old_leaves或其旧leaf index；这些字段可为空或已变化。
+实际匹配当前RFC tree中的原endpoint provenance，保留其它Actor及未被supersede的合法endpoint，不靠裸key或资源actor猜归属。
+非终态且旧leaf仍在时返回恰为`{state:"pending"}`；原有全发送者业务屏障继续，只有合法MLS endpoint可按原权限提交repair Remove。
+本命令不能替任何成员生成Commit、扩大replacement权限或绕过退群门。暂时没有合法在线签名者不构成完成。
+全部旧endpoint确已移除并且所有可能复活它们的原待决意图已终结／被fence时才签`removed`。
+`terminated`须同锁核scope永久终态及其完整上游来源、永久禁止原group新内容／新根；不以它声称leaf为零。
+完整事实、来源、fence和签署意图同事务耐久后才返回终局证明；proof.attested_at须落在该次原生准入使用的来源有效期内。
+不得先签证明后异步补fence；首次终局使用的exact来源与其完整历史证明须一并保留，续传的fresh来源不替换它。
+合法治理交接必须移交上述私有义务、原件和单调fence后才激活；保留原scope／group／Account／PCR，不授新的迁移能力。
+
+**精确原签证明**：`scope_retirement_proof`按schema顺序携state、replacement、inventory_digest、inventory_entry_digest、
+request_digest、effective_scope、genesis_event_ref、governance_station_id、governance_generation、scope_cut、group_state_ref、epoch、
+nonce_base64url、attested_at、verification_method，随后仅removed携remaining_old_leaf_count=0，仅terminated携terminal_source_digest，最后为signature。
+scope_cut是同锁事实cut的原CommittedEventRef，group_state_ref／epoch指其已接纳MLS结果；不公开对应业务Event。
+terminated仅携terminal_source_digest，不携上游Event／Commit引用或PCR坐标。令T为closed对象
+`{effective_scope,genesis_event_ref,terminal_event_ref,nonce_base64url}`，terminal_event_ref是原生私密保管的实际不可逆生命周期
+来源CommittedEventRef，其余字段逐字取本请求；terminal_source_digest=`sha256(UTF8("ak.mls.scope_terminal_source.v1\n") || JCS(T))`。
+T与完整来源仅在原生私有审计保存，按原级联核验而不跨stream比较position；ordinary／peer／self结果均不泄露T或外scope私有引用。
+inventory_entry_digest=`sha256(JCS(完整原entry))`。
+令I为来源attestation仅删除verification_method、attested_at、expires_at、signature后的完整对象；
+request_digest=`sha256(UTF8("ak.mls.recovery_scope_cleanup_request.v1\n") || JCS(I))`。
+proof签名字节为`UTF8("ak.mls.scope_retirement.v1\n") || JCS(proof删除signature)`，仍用标准Ed25519 service签名且kid等于verification_method。
+外层scope_cleanup的state／scope／genesis与原proof逐字一致；removed／terminated禁止winning_commit、root_refs、backup_refs或虚构Remove。
+
+nonce固定的意图终局未知时先以同意图对账；来源过期可重新原生核验、更新签名method／有效期与origin_resolution，I不得改变。
+同意图终局证明一经耐久保持原字节，重试不换proof cut／签名。pending是尚未完成的观察，允许重试后形成唯一终局。
+handoff后原proof的governance_generation仍是首次终局的合法任期，不与新的current任期机械比等；
+own Station须验证连续合法handoff已导入该proof、原native来源和单调fence，缺导入证据保持revision_unavailable。
+每次重试先核current调用者／episode与fresh来源；终局缓存不复活旧端或已撤销custody。更换合法目标governor使用新nonce，
+并由已验证handoff对账旧意图，不能在两个治理方各自产生冲突终局。失联不授权自行改governor。
+“仍有参与资格则failed_precondition”约束首次创建终局，不抹除此前已耐久的同意图历史终局。
+同episode完成后合法重新入群，不因新的join使原removed证明失效或要求重新取得旧群根；exact终局续读先核当前subject／episode，
+再核原cut资格与持续fence，不把当前joined状态倒灌成原cut资格。原结果不能替代新episode或新授权实例的收尾，
+无法确认原fence／handoff持续性仍revision_unavailable。
+
+**self消费与私密保管**：own Station独立核当前合法治理链／generation、attested_at的完整方法历史、原proof签名，
+以及I、native episode、entry／inventory摘要、原scope cut和同锁终局关系，不能将调用者公钥或单个verified布尔当作证明。
+self响应固定为cleanup及仅终局必带的attestor_signing_key；cleanup是原peer结果逐字不变。
+key投影为`{proof_digest,verification_method,public_key_base64url}`，proof_digest为`sha256(JCS(完整proof))`，
+公钥取已验原governor在attested_at的Ed25519 key；pending禁止该字段。客户端从自己已绑定Station消费，
+再逐项核原请求／episode／entry、nonce_base64url、state、摘要、exact key及原签后才能将原scope_cleanup写入私密cleanup Blob。
+该来源分工沿server-trusted-results，不建立第三方通用portable proof；native原生事实验证不能用此处的签名KAT替代。
+重启通过同nonce意图重新取得合法self结果，按首次终局的原来源有效期与历史方法验证，不拿续传fresh来源的时间否决旧终局；
+不接受本地任意key或另一episode的旧证明。
+proof／完整原生资格与历史method来源均按恢复证明保留；治理交接不丢失它们。
+本结果及cleanup Blob复用§10／§11当前subject或明确custodian的私密ACL，不进入普通成员复制或公开PCR历史。
+
+ready仍要求全部PCR原件实际恢复，全部库存目标逐项具有有效rekeyed／removed／terminated结果；
+旧设备从未被抹除的历史缓存不在保证内。终态分支仅解决安全收尾，不承诺普通群历史全部可恢复。
+声明支持本章内容恢复策略的owning Station与governor必须实现上述self／peer命令及其closed schema与资格门；
+schema接受、原语签名KAT或参考模型输入不能冒称具备原生RFC／生命周期／事务耐久实现。
 
 ## 11. Coverage的确定性重建（normative）
 

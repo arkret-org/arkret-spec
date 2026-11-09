@@ -876,6 +876,14 @@
     {
       "old": "ak.server.read.describe",
       "new": "ak.server.read.describe.v1"
+    },
+    {
+      "old": "ak.peer.mls.command.reconcile_recovery_scope",
+      "new": "ak.peer.mls.command.reconcile_recovery_scope.v1"
+    },
+    {
+      "old": "ak.self.mls.command.reconcile_recovery_scope",
+      "new": "ak.self.mls.command.reconcile_recovery_scope.v1"
     }
   ]
 }

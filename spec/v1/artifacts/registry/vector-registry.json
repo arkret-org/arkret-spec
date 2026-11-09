@@ -1657,7 +1657,7 @@
       "applies_to_fixtures": [
         "content-history-fixture.json"
       ],
-      "description": "Registered ciphertext/backup selectors, exact exporter and application AEAD KAT, original-byte signature binding, grant/root closed carriers and incomplete cleanup rejection. Native admission and durable multi-Station recovery require separate product E2E.",
+      "description": "Registered ciphertext/backup selectors, exact exporter and application AEAD KAT, original-byte signature binding, grant/root closed carriers, exact retirement source and governor signatures, private key projection, irreversible terminal and incomplete cleanup rejection. Native admission and durable multi-Station recovery require separate product E2E.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/content-history-fixture.json",
         "spec/v1/zh/crypto-media/content-history.md"

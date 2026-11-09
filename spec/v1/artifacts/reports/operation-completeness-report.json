@@ -15,10 +15,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 219,
+    "total_operations": 221,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 217
+      "typed_schema": 219
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -29,7 +29,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 135
+        "typed_schema": 137
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -999,6 +999,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsAddAuthorityAttestRequestBody",
         "response": "#/components/schemas/MlsAddAuthorityAttestResponseBody"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.mls.command.reconcile_recovery_scope.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/mls/recovery-scope-cleanup",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source",
+      "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RecoveryScopeCleanupSource",
+        "response": "#/components/schemas/RecoveryScopeCleanupResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2650,6 +2664,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MediaServiceBindingRequestBody",
         "response": "#/components/schemas/MediaServiceBindingResponseBody"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.mls.command.reconcile_recovery_scope.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/mls/recovery-scope-cleanup",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body",
+      "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RecoveryScopeCleanupRequestBody",
+        "response": "#/components/schemas/RecoveryScopeCleanupSelfResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

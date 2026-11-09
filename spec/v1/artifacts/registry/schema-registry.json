@@ -1829,6 +1829,41 @@
       "fragment": "#/$defs/recovery_preparation",
       "status": "active",
       "description": "Private unit-derived content-recovery preparation, discovered by the accepted authorization Event; prepared material is distinct from client history-ready."
+    },
+    {
+      "schema_id": "ak.schema.recovery_scope_cleanup_request_body.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/recovery_scope_cleanup_request_body",
+      "status": "active",
+      "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+    },
+    {
+      "schema_id": "ak.schema.recovery_scope_cleanup_source.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/recovery_scope_cleanup_source",
+      "status": "active",
+      "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+    },
+    {
+      "schema_id": "ak.schema.recovery_scope_cleanup_response_body.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/recovery_scope_cleanup_response_body",
+      "status": "active",
+      "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+    },
+    {
+      "schema_id": "ak.schema.recovery_scope_cleanup_self_response_body.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/recovery_scope_cleanup_self_response_body",
+      "status": "active",
+      "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
+    },
+    {
+      "schema_id": "ak.schema.scope_retirement_proof.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/scope_retirement_proof",
+      "status": "active",
+      "description": "Closed native recovery-scope retirement contract; see content-history.md section 10.1."
     }
   ]
 }

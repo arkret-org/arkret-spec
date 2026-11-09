@@ -574,7 +574,7 @@ class ContentHistoryContractTest(unittest.TestCase):
         with self.assertRaises(ValueError): inventory_digest(bad)
         reused = copy.deepcopy(inventory); reused["replacement"]["signature_key_base64url"] = self.fixture["kat"]["content_context"]["producer"]["signature_key_base64url"]
         with self.assertRaises(ValueError): inventory_digest(reused)
-        results = [{"effective_scope": x["effective_scope"], "genesis_event_ref": x["genesis_event_ref"], "winning_commit": inventory["pcr_cut"],
+        results = [{"state": "rekeyed", "effective_scope": x["effective_scope"], "genesis_event_ref": x["genesis_event_ref"], "winning_commit": inventory["pcr_cut"],
                     "remaining_old_leaf_count": 0, "root_refs": [self.fixture["kat"]["content_context"]["root_ref"]],
                     "backup_refs": self.fixture["kat"]["envelope"]["encryption_context"]["protection"]["backup_refs"]} for x in inventory["entries"]]
         value = {"inventory_digest": original, "scope_cleanups": results}; self.validate("content-encryption.schema.json#/$defs/cleanup_inventory", value)
@@ -789,6 +789,200 @@ class ContentHistoryContractTest(unittest.TestCase):
         with self.assertRaises(ValueError): verify_recovery_source(changed, key)
         changed = copy.deepcopy(record); changed["commit_event"]["payload"]["recovery_binding"]["authorization_event_ref"] = "ak:event:" + "B" * 44
         with self.assertRaises(ValueError): verify_recovery_source(changed, key)
+
+
+class ScopeRetirementContractTest(unittest.TestCase):
+    """Explicit native model inputs never substitute for production admission."""
+
+    setUpClass = classmethod(ContentHistoryContractTest.setUpClass.__func__)
+    validate = ContentHistoryContractTest.validate
+    invalid = ContentHistoryContractTest.invalid
+
+    def setUp(self):
+        self.kat = copy.deepcopy(self.fixture['scope_retirement'])
+        self.inventory = self.kat['inventory']
+        self.entry = self.inventory['entries'][0]
+        self.authorization = self.kat['authorization']
+        self.facts = self.kat['native_qualified_inputs']
+
+    def verify(self, result=None, facts=None):
+        from tools.recovery_scope_cleanup import verify_retirement
+        return verify_retirement(result or self.kat['results']['removed'], self.authorization,
+                                 self.inventory, self.entry, facts or self.facts,
+                                 self.kat['governor_public_key'])
+
+    def test_retired_branches_are_signed_closed_and_do_not_deliver_roots(self):
+        from tools.recovery_scope_cleanup import qualify_source, signing_bytes
+        qualify_source(self.authorization, self.inventory, self.entry, self.facts, '2026-11-09T00:00:01.000Z')
+        self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_authorization', self.authorization)
+        self.assertEqual(signing_bytes(self.authorization, source=True).hex(), self.kat['authorization_signing_hex'])
+        for state, result in self.kat['results'].items():
+            self.validate('content-encryption.schema.json#/$defs/scope_cleanup', result)
+            self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body', result)
+            self.verify(result)
+            self.assertEqual(signing_bytes(result['retirement_proof']).hex(), self.kat[state + '_signing_hex'])
+            for field, val in [('root_refs', ['sha256:' + '0' * 64]), ('backup_refs', ['unrelated']),
+                               ('winning_commit', self.inventory['pcr_cut'])]:
+                self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', {**result, field: val})
+
+    def test_retirement_requires_native_absence_and_no_inflight_admission(self):
+        for field, val in [('old_endpoint_count', 1), ('pending_admission_count', 1),
+                           ('episode_fenced', False), ('current_episode', False),
+                           ('native_source_complete', False), ('current_eligible', True)]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.verify(facts={**self.facts, field: val})
+
+    def test_old_index_empty_does_not_prove_current_absence(self):
+        self.assertEqual(self.entry['old_leaves'], [])
+        with self.assertRaises(ValueError):
+            self.verify(facts={**self.facts, 'old_endpoint_count': 2})
+
+    def test_retirement_rejects_wrong_governance_cut_and_handoff_generation(self):
+        for field, val in [('governance_station_id', 'ak:did_core:web:wrong.example'),
+                           ('governance_generation', 1), ('epoch', '13'),
+                           ('group_state_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref']),
+                           ('scope_cut', {**self.facts['scope_cut'], 'stream_position': 999})]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.verify(facts={**self.facts, field: val})
+
+    def test_modified_nonce_inventory_scope_or_endpoint_breaks_signature(self):
+        for field, val in [('nonce_base64url', b64(bytes([1]) * 32)), ('inventory_digest', 'sha256:' + '0' * 64),
+                           ('inventory_entry_digest', 'sha256:' + '1' * 64), ('state', 'terminated'),
+                           ('replacement', self.fixture['kat']['content_context']['producer'])]:
+            result = copy.deepcopy(self.kat['results']['removed'])
+            result['retirement_proof'][field] = val
+            with self.subTest(field=field), self.assertRaises((InvalidSignature, ValueError)):
+                self.verify(result)
+
+    def test_resigning_cannot_change_native_scope_or_episode(self):
+        from tools.recovery_scope_cleanup import sign
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+        for field, val in [('inventory_digest', 'sha256:' + '0' * 64), ('nonce_base64url', b64(bytes([8]) * 32)),
+                           ('request_digest', 'sha256:' + '2' * 64),
+                           ('genesis_event_ref', self.fixture['hpke_grant']['grant']['recipient_key_event_ref'])]:
+            result = copy.deepcopy(self.kat['results']['removed'])
+            proof = {**result['retirement_proof'], field: val}
+            result['retirement_proof'] = sign(proof, key)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.verify(result)
+
+    def test_terminated_requires_registered_irreversible_all_writes_gate(self):
+        result = self.kat['results']['terminated']
+        self.verify(result, {**self.facts, 'old_endpoint_count': 3})
+        for field, val in [('terminal_irreversible', False), ('terminal_all_writes_blocked', False),
+                           ('terminal_source_digest', 'sha256:' + '0' * 64)]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.verify(result, {**self.facts, field: val})
+        changed = copy.deepcopy(result)
+        changed['retirement_proof']['remaining_old_leaf_count'] = 0
+        self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', changed)
+        changed = copy.deepcopy(self.kat['results']['removed'])
+        changed['retirement_proof']['terminal_source_digest'] = self.inventory['pcr_cut']
+        self.invalid('content-encryption.schema.json#/$defs/scope_cleanup', changed)
+
+    def test_current_origin_episode_and_source_ttl_are_not_signature_shortcuts(self):
+        from tools.recovery_scope_cleanup import qualify_source
+        for field, val in [('origin_service_id', 'ak:did_core:web:other.example'),
+                           ('native_source_complete', False), ('current_episode', False), ('current_eligible', True)]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                qualify_source(self.authorization, self.inventory, self.entry,
+                               {**self.facts, field: val}, '2026-11-09T00:00:01.000Z')
+        with self.assertRaises(ValueError):
+            qualify_source(self.authorization, self.inventory, self.entry, self.facts, self.authorization['expires_at'])
+
+    def test_fresh_source_renewal_preserves_intent_but_nonce_rebinding_does_not(self):
+        from tools.recovery_scope_cleanup import request_digest, sign, qualify_source
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['origin_signing_seed_hex']))
+        renewed = sign({**self.authorization, 'attested_at': '2026-11-09T00:06:00.000Z',
+                        'expires_at': '2026-11-09T00:11:00.000Z'}, key, source=True)
+        self.assertEqual(request_digest(renewed), request_digest(self.authorization))
+        qualify_source(renewed, self.inventory, self.entry, self.facts, '2026-11-09T00:06:01.000Z')
+        self.assertNotEqual(request_digest({**renewed, 'nonce_base64url': b64(bytes([6]) * 32)}), request_digest(renewed))
+        self.assertNotEqual(request_digest({**renewed, 'destination_service_id': 'ak:did_core:web:new.example'}),
+                            request_digest(renewed))
+
+    def test_pending_is_closed_and_has_no_key_or_partial_proof(self):
+        schema = 'content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body'
+        self.validate(schema, {'state': 'pending'})
+        for field, val in [('remaining_old_leaf_count', 0), ('retirement_proof', self.kat['results']['removed']['retirement_proof'])]:
+            self.invalid(schema, {'state': 'pending', field: val})
+        self_schema = 'content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body'
+        self.validate(self_schema, {'cleanup': {'state': 'pending'}})
+        result = self.kat['results']['removed']
+        proof = result['retirement_proof']
+        key = {'proof_digest': 'sha256:' + hashlib.sha256(jcs(proof)).hexdigest(),
+               'verification_method': proof['verification_method'], 'public_key_base64url': self.kat['governor_public_key']}
+        self.validate(self_schema, {'cleanup': result, 'attestor_signing_key': key})
+        self.invalid(self_schema, {'cleanup': result})
+        self.invalid(self_schema, {'cleanup': {'state': 'pending'}, 'attestor_signing_key': key})
+
+    def test_retired_entries_remain_in_cleanup_without_fake_roots(self):
+        result = self.kat['results']['removed']
+        actual = cleanup_digest(self.inventory, [result])
+        self.validate('content-encryption.schema.json#/$defs/cleanup_inventory', {
+            'inventory_digest': inventory_digest(self.inventory), 'scope_cleanups': [result]})
+        self.assertTrue(actual.startswith('sha256:'))
+        with self.assertRaises(ValueError):
+            cleanup_digest(self.inventory, [])
+        with self.assertRaises(ValueError):
+            cleanup_digest(self.inventory, [{**result, 'state': 'rekeyed'}])
+
+    def test_registered_commands_are_private_and_do_not_expand_chat_archive_guarantee(self):
+        catalog = json.loads((ART / 'registry/contract-registry.json').read_text(encoding='utf-8'))
+        ops = {op['operation_id']: op for op in catalog['operation_registry']['operations']}
+        for prefix in ['self', 'peer']:
+            op = ops[f'ak.{prefix}.mls.command.reconcile_recovery_scope.v1']
+            self.assertEqual(op['http'], f'POST /_arkret/{prefix}/mls/recovery-scope-cleanup')
+            self.assertIn('content-encryption.schema.json#/$defs/', op['request_schema_ref'])
+        self.assertFalse(catalog['content_encryption_contract']['group_chat_full_archive_guarantee'])
+        self.assertEqual(catalog['content_encryption_contract']['scope_cleanup_states'], ['rekeyed', 'removed', 'terminated'])
+
+    def test_service_method_and_first_finalization_window_are_bound(self):
+        from tools.recovery_scope_cleanup import sign
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+        for field, val in [('verification_method', 'did:web:governor.example#wrong'),
+                           ('attested_at', self.authorization['expires_at']),
+                           ('attested_at', '2026-11-08T00:00:00.000Z')]:
+            result = copy.deepcopy(self.kat['results']['removed'])
+            result['retirement_proof'] = sign({**result['retirement_proof'], field: val}, key)
+            with self.subTest(field=field, value=val), self.assertRaises(ValueError):
+                self.verify(result)
+
+    def test_self_key_projection_cannot_be_swapped_or_rebound(self):
+        from tools.recovery_scope_cleanup import digest, verify_self_retirement
+        result = self.kat['results']['removed']
+        proof = result['retirement_proof']
+        response = {'cleanup': result, 'attestor_signing_key': {
+            'proof_digest': digest(proof), 'verification_method': proof['verification_method'],
+            'public_key_base64url': self.kat['governor_public_key']}}
+        verify = lambda value: verify_self_retirement(value, self.authorization, self.inventory,
+                                                      self.entry, self.facts, self.kat['governor_public_key'])
+        self.assertEqual(verify(response), proof)
+        self.assertIsNone(verify({'cleanup': {'state': 'pending'}}))
+        for field, value in [('proof_digest', 'sha256:' + '0' * 64),
+                             ('verification_method', 'did:web:wrong.example#key'),
+                             ('public_key_base64url', b64(bytes([8]) * 32))]:
+            altered = copy.deepcopy(response)
+            altered['attestor_signing_key'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                verify(altered)
+
+    def test_terminal_source_commitment_hides_upstream_coordinates_and_binds_nonce(self):
+        from tools.recovery_scope_cleanup import terminal_source_digest, sign
+        source = copy.deepcopy(self.inventory['pcr_cut'])
+        source['event_id'] = 'ak:event:' + b64(b'\x01' + bytes([17]) * 32)
+        source['stream_position'] = 991
+        nonce = self.authorization['nonce_base64url']
+        committed = terminal_source_digest(self.entry, source, nonce)
+        self.assertNotEqual(committed, terminal_source_digest(self.entry, source, b64(bytes([18]) * 32)))
+        changed = {**source, 'stream_position': 992}
+        self.assertNotEqual(committed, terminal_source_digest(self.entry, changed, nonce))
+        result = copy.deepcopy(self.kat['results']['terminated'])
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
+        result['retirement_proof'] = sign({**result['retirement_proof'], 'terminal_source_digest': committed}, key)
+        self.verify(result, {**self.facts, 'terminal_source_digest': committed})
+        self.assertNotIn(source['event_id'], jcs(result).decode())
+        self.assertNotIn('terminal_event_ref', jcs(result).decode())
 
 
 if __name__ == "__main__":
