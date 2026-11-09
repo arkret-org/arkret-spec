@@ -41,7 +41,8 @@
       "prose_lint",
       "public_type_semantics",
       "realm_invite_link_contract",
-      "content_history_contract"
+      "content_history_contract",
+      "recovery_scope_followup"
     ],
     "release_default": [
       "artifact_pipeline",
@@ -233,6 +234,11 @@
       "check_id": "realm_invite_link_contract",
       "label": "Realm invite link proof KAT, secret boundary and IVS withdrawal",
       "owner_script": "tools/check_realm_invite_link_contract.py"
+    },
+    {
+      "check_id": "recovery_scope_followup",
+      "label": "Recovery-scope failure, handoff and durable convergence contracts",
+      "owner_script": "tools/test_recovery_scope_followup.py"
     },
     {
       "check_id": "schema_constructability_test",

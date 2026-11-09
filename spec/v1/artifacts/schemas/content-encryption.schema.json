@@ -1368,7 +1368,7 @@
           }
         }
       ],
-      "description": "Governor-signed private native absence or irreversible terminal fact for one frozen recovery inventory entry. removed proves every displaced endpoint is absent after reconciliation and the episode fence; terminated proves a registered irreversible lifecycle and permanent no-future-content gate, not a fictional zero leaf count. No current membership, business history, other-member roster, root or backup is disclosed. The signature domain is ak.mls.scope_retirement.v1 followed by LF and JCS(proof without signature)."
+      "description": "Governor-signed private native absence or irreversible terminal fact for one frozen recovery inventory entry. removed proves every displaced endpoint is absent after reconciliation and the episode fence; terminated proves a registered irreversible lifecycle and permanent no-future-content gate, not a fictional zero leaf count. No current membership, business history, other-member roster, root or backup is disclosed. The signature domain is ak.mls.scope_retirement.v1 followed by LF and JCS(proof without signature). scope_cut belongs to the target scope. terminal_source_digest binds an independently native-qualified direct or registered upstream terminal source; that private source can belong to another stream and is not disclosed by the proof."
     },
     "recovery_scope_cleanup_response_body": {
       "oneOf": [

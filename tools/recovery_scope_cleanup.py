@@ -28,8 +28,7 @@ def request_digest(attestation):
 
 
 def terminal_source_digest(entry, source_ref, nonce):
-    if source_ref['stream_ref'] != entry['effective_scope']:
-        raise ValueError('terminal source belongs to another scope')
+    """Commit to the actual native source; registered cascades can cross streams."""
     binding = {'effective_scope': entry['effective_scope'], 'genesis_event_ref': entry['genesis_event_ref'],
                'terminal_event_ref': source_ref, 'nonce_base64url': nonce}
     return 'sha256:' + hashlib.sha256(b'ak.mls.scope_terminal_source.v1\n' + jcs(binding)).hexdigest()
@@ -159,6 +158,9 @@ def verify_retirement(result, attestation, inventory, entry, historical):
         if proof['remaining_old_leaf_count'] != 0 or historical['old_endpoint_count'] != 0:
             raise ValueError('displaced endpoints existed at finalization')
     elif (not historical['terminal_irreversible'] or not historical['terminal_all_writes_blocked']
+          or not historical['terminal_source_native_qualified']
+          or historical['terminal_source_digest'] != terminal_source_digest(
+              entry, historical['terminal_source_ref'], attestation['nonce_base64url'])
           or proof['terminal_source_digest'] != historical['terminal_source_digest']):
         raise ValueError('no original irreversible terminal source')
     return proof
@@ -286,7 +288,7 @@ def business_send_allowed(blockers, ordinary_gates, terminal=False):
     return ordinary_gates and not blockers and not terminal
 
 
-def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm'):
+def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm', terminal_source_ref=None):
     """Deterministic multi-signature transcript with explicit native-model assumptions."""
     from tools.content_history import inventory_digest
     replacement = copy.deepcopy(replacement)
@@ -303,6 +305,10 @@ def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm'):
     scope_cut = {**copy.deepcopy(pcr_cut), 'stream_ref': copy.deepcopy(entry['effective_scope']),
                  'event_id': entry['base_group_state_ref'],
                  'commit_id': 'ak:realm_commit:' + b64(b'\x01' + bytes([211]) * 32), 'stream_position': 17}
+    if terminal_source_ref is None:
+        if entry['effective_scope']['kind'] == 'sidecar':
+            raise ValueError('Sidecar terminal requires its actual upstream source')
+        terminal_source_ref = scope_cut
     scope_authority = {'kind': scope_kind, 'native_source_complete': True,
                        'effective_scope': copy.deepcopy(entry['effective_scope']),
                        'genesis_event_ref': entry['genesis_event_ref'], 'inception_governor': governor_id}
@@ -321,7 +327,8 @@ def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm'):
                   'scope_authority': scope_authority, 'handoff_native_qualified': False,
                   'scope_cut': scope_cut, 'group_state_ref': entry['base_group_state_ref'], 'epoch': entry['epoch'],
                   'terminal_irreversible': True, 'terminal_all_writes_blocked': True,
-                  'terminal_source_digest': terminal_source_digest(entry, scope_cut, authorization['nonce_base64url'])}
+                  'terminal_source_ref': copy.deepcopy(terminal_source_ref), 'terminal_source_native_qualified': True,
+                  'terminal_source_digest': terminal_source_digest(entry, terminal_source_ref, authorization['nonce_base64url'])}
     removed = {'state': 'removed', 'replacement': replacement, 'inventory_digest': inventory_digest(inventory),
                'inventory_entry_digest': digest(entry), 'request_digest': request_digest(authorization),
                'effective_scope': entry['effective_scope'], 'genesis_event_ref': entry['genesis_event_ref'],
@@ -388,8 +395,9 @@ def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm'):
 def qualify_scope_governance(inventory, entry, facts):
     """Consume explicit qualified native-model origin facts, never infer eligibility from a signature.
 
-    This reference covers ordinary Realm handoff and fixed Human/managed-Agent
-    PCR/Direct origins. It does not implement a Native genesis verifier or an
+    Child scopes follow their natively qualified parent Realm, never an
+    independently chosen governor. This reference does not implement a native
+    genesis verifier or an
     Organization PCR eligibility path. Unknown origins fail closed.
     """
     origin = facts['scope_authority']
@@ -400,18 +408,24 @@ def qualify_scope_governance(inventory, entry, facts):
         raise ValueError('scope has no exact accepted native origin')
     kind = origin['kind']
     is_subject_pcr = entry['effective_scope'] == inventory['pcr_cut']['stream_ref']
+    governing_realm_id = entry['effective_scope']['realm_id']
+    if not governing_realm_id or entry['effective_scope']['kind'] not in {'realm', 'circle', 'sidecar'}:
+        raise ValueError('scope has no exact native governing Realm mapping')
+    parent_is_subject_pcr = governing_realm_id == inventory['pcr_cut']['stream_ref']['realm_id']
     fixed_station = inventory['replacement']['actor_id']['account_id']['station_id']
     governor, generation = facts['governance_station_id'], facts['governance_generation']
     if kind == 'ordinary_realm':
-        if is_subject_pcr or entry['effective_scope']['kind'] != 'realm':
+        if parent_is_subject_pcr:
             raise ValueError('ordinary Realm classification cannot replace a PCR origin')
         if (generation < 0 or (generation == 0 and governor != origin['inception_governor'])
                 or (generation > 0 and not facts['handoff_native_qualified'])):
             raise ValueError('ordinary Realm handoff is not natively qualified')
     elif kind in {'human_pcr', 'user_managed_agent_pcr', 'direct'}:
         if (generation != 0 or governor != origin['inception_governor']
-                or (kind != 'direct' and (not is_subject_pcr or governor != fixed_station))
-                or (kind == 'direct' and is_subject_pcr)):
+                or (kind != 'direct' and governor != fixed_station)
+                or (kind == 'human_pcr' and not is_subject_pcr)
+                or (kind in {'human_pcr', 'user_managed_agent_pcr'} and entry['effective_scope']['kind'] != 'realm')
+                or (kind == 'direct' and parent_is_subject_pcr)):
             raise ValueError('fixed native origin forbids governance migration')
     else:
         raise ValueError('unknown native scope origin')

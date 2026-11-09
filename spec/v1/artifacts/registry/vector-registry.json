@@ -1657,7 +1657,7 @@
       "applies_to_fixtures": [
         "content-history-fixture.json"
       ],
-      "description": "Exact content crypto, root/grant carriers and multi-signature scope cleanup. Full-body transport replay and stable intent settlement, historical proof versus fresh current delivery, rejoin/handoff/key rotation, revoked readers, missing import and concurrent send blockers have positive and negative reference transcripts. Native execution and physical durability remain separate evidence.",
+      "description": "Exact content crypto, root/grant carriers and multi-signature scope cleanup. Full-body transport replay and stable intent settlement, historical proof versus fresh current delivery, rejoin/handoff/key rotation, revoked readers, missing import and concurrent send blockers have positive and negative reference transcripts. Native execution and physical durability remain separate evidence. The registered recovery_scope_followup artifact gate covers deterministic failures, protected receipt restart, scope/episode convergence, inherited child governance and private upstream terminal commitments.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/content-history-fixture.json",
         "spec/v1/zh/crypto-media/content-history.md"

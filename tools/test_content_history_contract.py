@@ -987,7 +987,7 @@ class ScopeRetirementContractTest(unittest.TestCase):
         result = copy.deepcopy(self.kat['results']['terminated'])
         key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.kat['governor_signing_seed_hex']))
         result['retirement_proof'] = sign({**result['retirement_proof'], 'terminal_source_digest': committed}, key)
-        self.verify(result, {**self.historical, 'terminal_source_digest': committed})
+        self.verify(result, {**self.historical, 'terminal_source_ref': source, 'terminal_source_digest': committed})
         self.assertNotIn(source['event_id'], jcs(result).decode())
 
     def test_completed_rejoin_uses_terminal_before_first_eligibility_gate(self):

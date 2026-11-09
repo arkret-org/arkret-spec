@@ -598,6 +598,9 @@ terminated仅公开terminal_source_digest，不公开上游PCR坐标。令T为cl
 `{effective_scope,genesis_event_ref,terminal_event_ref,nonce_base64url}`，terminal_event_ref为原生私密保管的真实不可逆来源CommittedEventRef，
 其余值取I；摘要为`sha256(UTF8("ak.mls.scope_terminal_source.v1\n") || JCS(T))`。T、原件和完整级联来源仅留原生私有审计，
 不向ordinary／peer／self披露T或外scope引用，也不跨stream比较position。
+proof.scope_cut始终属于目标scope；terminal_event_ref则为真实直接或已登记级联的上游终态来源，二者不要求同stream。
+例如Sidecar的controller principal终态可来自其PCR，父Realm终态可使Circle／Sidecar派生终止；治理方须独立核accepted原件、
+精确目标及完整原生级联关系，不能仅凭一个跨stream引用或合法签名推导终止，也不能伪造Sidecar tombstone Event。
 
 **当前交付确认**：terminal peer响应固定为`{cleanup,delivery_attestation}`，cleanup为原scope_cleanup逐字不变；
 即使两次交付由同一governor完成，也须有独立的fresh交付确认。它只在当前governor持同锁核原proof、原生来源与单调fence

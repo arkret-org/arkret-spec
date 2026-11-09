@@ -964,6 +964,16 @@
       "epoch": "12",
       "terminal_irreversible": true,
       "terminal_all_writes_blocked": true,
+      "terminal_source_ref": {
+        "event_id": "ak:event:AdLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS",
+        "commit_id": "ak:realm_commit:AdPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR"
+        },
+        "stream_position": 17
+      },
+      "terminal_source_native_qualified": true,
       "terminal_source_digest": "sha256:93f8f33168f3afd1ca9bba1ed6784df4b5023acc26f47b553665317122e56341"
     },
     "current_delivery": {
