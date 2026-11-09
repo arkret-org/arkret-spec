@@ -251,6 +251,30 @@ def cleanup_digest(inventory, results):
     return "sha256:" + hashlib.sha256(b"ak.content.cleanup_inventory.v1\n" + jcs(value)).hexdigest()
 
 
+def verify_preparation_resource(resource, authorization, replacement, pcr_cut, previous=None):
+    """Bind wire progress to independently qualified native source inputs.
+
+    This checks episode continuity only. It does not qualify a holder, prove
+    native census completeness, fetch/verify a Blob or attest plaintext ready.
+    """
+    expected = {"state", "replacement", "pcr_cut"}
+    state = resource.get("state")
+    if state == "prepared":
+        expected.add("inventory_blob_ref")
+    elif state != "pending":
+        raise ValueError("unknown preparation state")
+    if set(resource) != expected:
+        raise ValueError("missing or extra preparation fields")
+    if replacement["actor_id"].get("kind") != "account" or replacement["authorization_event_ref"] != authorization:
+        raise ValueError("wrong native replacement source")
+    if resource["replacement"] != replacement or resource["pcr_cut"] != pcr_cut:
+        raise ValueError("preparation differs from original episode")
+    if previous is not None:
+        verify_preparation_resource(previous, authorization, replacement, pcr_cut)
+        if previous["state"] == "prepared" and (state != "prepared" or resource["inventory_blob_ref"] != previous["inventory_blob_ref"]):
+            raise ValueError("prepared inventory cannot roll back or rebind")
+
+
 def verify_root_index(envelope, plaintext):
     for field in ("backup_id", "backup_kind", "series_id", "series_sequence"):
         if envelope[field] != plaintext[field]:

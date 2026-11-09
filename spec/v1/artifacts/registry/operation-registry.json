@@ -290,7 +290,8 @@
         "ak.self.keys.backups.command.unlock.v1",
         "ak.self.keys.backups.command.issue_delete_challenge.v1",
         "ak.self.keys.backups.command.issue_unlock_challenge.v1",
-        "ak.self.keys.backups.resource.delete.v1"
+        "ak.self.keys.backups.resource.delete.v1",
+        "ak.self.mls.content_recovery.resource.get.v1"
       ],
       "surface_class": "extension"
     },
@@ -4394,6 +4395,16 @@
         }
       },
       "max_canonical_body_bytes": 4194304
+    },
+    {
+      "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
+      "http": "GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}",
+      "grpc": "SelfMls/ContentRecoveryGet",
+      "mq": "self.mls.content_recovery.resource.get",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_preparation",
+      "notes": "Read the current private content-recovery preparation by the original accepted replacement authorization Event. Human recovery terminal admission atomically records the episode/fence intent and fixes its PCR cut; Agent preparation uses the actual native supersedes pairing/activation result, reconciled through registered interfaces. Background preparation freezes the complete native admission/claim/consume/outgoing-intent census. This GET neither creates an episode nor selects a replacement key. pending never returns an inventory ref; prepared returns the immutable private canonical inventory Blob, not client plaintext/history-ready evidence. Verify the current native endpoint-bound subject SessionGrant or current explicit Agent history custodian, accepted original identity/pairing source, same episode and private ACL on resource and every Blob read. Unknown, foreign, old endpoint or old episode selectors are indistinguishable not_found. No identity receipt mutation, recovery-session lifetime dependency, peer/open access or new signing/prepare command."
     }
   ],
   "direct_conversation_admission_mappings": {
@@ -5684,6 +5695,10 @@
         },
         {
           "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
           "binding_kind": "http_json"
         },
         {

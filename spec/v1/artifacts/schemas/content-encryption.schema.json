@@ -455,6 +455,100 @@
       },
       "additionalProperties": false
     },
+    "recovery_preparation": {
+      "type": "object",
+      "required": [
+        "state",
+        "replacement",
+        "pcr_cut"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "pending",
+            "prepared"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "content-encryption.schema.json#/$defs/recovery_preparation/properties/state",
+            "owner": "content-encryption.schema.json#/$defs/recovery_preparation/properties/state",
+            "values": [
+              "pending",
+              "prepared"
+            ]
+          }
+        },
+        "replacement": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "pcr_cut": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "inventory_blob_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "prepared",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/0/if/properties/state",
+                  "owner": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/0/if/properties/state",
+                  "values": [
+                    "prepared"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "inventory_blob_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "inventory_blob_ref"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "replacement": {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                  "properties": {
+                    "kind": {
+                      "const": "account",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id/properties/kind",
+                        "owner": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id/properties/kind",
+                        "values": [
+                          "account"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Private unit-derived content-recovery preparation resource. The path authorization Event equals replacement.authorization_event_ref. Replacement is projected from the exact accepted Human recovery Device key or activated Agent pairing runtime key; no caller-selected key or second episode ID. pending has no inventory ref; prepared fixes the complete canonical inventory Blob and does not attest plaintext restoration or client history-ready. Current native subject holders and accepted current Agent history custodians only; no peer, anonymous or candidate disclosure."
+    },
     "history_recovery": {
       "type": "object",
       "required": [
@@ -747,12 +841,12 @@
           "items": {
             "$ref": "#/$defs/recovery_inventory_entry"
           },
-          "minItems": 1,
+          "minItems": 0,
           "uniqueItems": true
         }
       },
       "additionalProperties": false,
-      "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence."
+      "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness."
     },
     "scope_cleanup": {
       "type": "object",
@@ -824,7 +918,7 @@
           "items": {
             "$ref": "#/$defs/scope_cleanup"
           },
-          "minItems": 1,
+          "minItems": 0,
           "uniqueItems": true
         }
       },

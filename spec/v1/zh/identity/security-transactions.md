@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-11-09
 ---
 
 # 安全事务资源
@@ -153,6 +153,10 @@ prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
 ## 2. RecoveryTransaction
 
 RecoveryTransaction 保留为账号恢复的单一原子事务，但客户端输入不再创建或携带 RealmCommit。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权，并在 terminal admission 内签发两笔连续 Commit。
+
+启用可恢复内容的账号在同一terminal权威事务内保留content-history §11.3的原生episode／fence意图，
+以原authorize Commit固定PCR cut；后台库存准备与客户端解密进度由该独立私密资源和原签检查点承接。
+不改写预签RecoveryReceipt或该identity transaction的completed终局，也不借旧recovery session续期或第二个prepare命令驱动内容恢复。
 
 ### 2.1 create 同时完成专用 prepare，但不产生恢复效果
 

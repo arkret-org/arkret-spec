@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d158a241de129e0ced24208d47640d7d181d13d58cf95e357a7bdbecdf1f3cae",
+  "contract_digest": "sha256:0f0753e32150c6592a2cbf695ae3f4c06214eca3e351a03a381d2e0b309f5b50",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -35246,6 +35246,100 @@
             },
             "additionalProperties": false
           },
+          "recovery_preparation": {
+            "type": "object",
+            "required": [
+              "state",
+              "replacement",
+              "pcr_cut"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "pending",
+                  "prepared"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "content-encryption.schema.json#/$defs/recovery_preparation/properties/state",
+                  "owner": "content-encryption.schema.json#/$defs/recovery_preparation/properties/state",
+                  "values": [
+                    "pending",
+                    "prepared"
+                  ]
+                }
+              },
+              "replacement": {
+                "$ref": "#/$defs/endpoint"
+              },
+              "pcr_cut": {
+                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+              },
+              "inventory_blob_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+              }
+            },
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "state": {
+                      "const": "prepared",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/0/if/properties/state",
+                        "owner": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/0/if/properties/state",
+                        "values": [
+                          "prepared"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "state"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "inventory_blob_ref"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "inventory_blob_ref"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "replacement": {
+                    "properties": {
+                      "actor_id": {
+                        "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                        "properties": {
+                          "kind": {
+                            "const": "account",
+                            "x-arkret-value-ownership": {
+                              "class": "owned_symbol",
+                              "authority": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id/properties/kind",
+                              "owner": "content-encryption.schema.json#/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id/properties/kind",
+                              "values": [
+                                "account"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "description": "Private unit-derived content-recovery preparation resource. The path authorization Event equals replacement.authorization_event_ref. Replacement is projected from the exact accepted Human recovery Device key or activated Agent pairing runtime key; no caller-selected key or second episode ID. pending has no inventory ref; prepared fixes the complete canonical inventory Blob and does not attest plaintext restoration or client history-ready. Current native subject holders and accepted current Agent history custodians only; no peer, anonymous or candidate disclosure."
+          },
           "history_recovery": {
             "type": "object",
             "required": [
@@ -35538,12 +35632,12 @@
                 "items": {
                   "$ref": "#/$defs/recovery_inventory_entry"
                 },
-                "minItems": 1,
+                "minItems": 0,
                 "uniqueItems": true
               }
             },
             "additionalProperties": false,
-            "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence."
+            "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness."
           },
           "scope_cleanup": {
             "type": "object",
@@ -35615,7 +35709,7 @@
                 "items": {
                   "$ref": "#/$defs/scope_cleanup"
                 },
-                "minItems": 1,
+                "minItems": 0,
                 "uniqueItems": true
               }
             },
@@ -112491,7 +112585,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:4e9d4b88b5c99d2ce10d41dbfc92dfe66c6bfd0f58540375aab64e1329bfb0e7"
+      "digest": "sha256:dd931121e3eb9a320bc6190ab7d374ecf364307904c763f81f729711903c756c"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -112559,7 +112653,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:f7ea61be6557b816ac272bfddab8206c06af93f7bb344d6339546396ea40b61e"
+      "digest": "sha256:00334d12ea6be1217ab09d2930bea330501a6b274ea63338b23e43bea4758f55"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -113080,6 +113174,9 @@
         },
         "ContactTombstoneRequestBody": {
           "$ref": "../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body"
+        },
+        "ContentRecoveryPreparation": {
+          "$ref": "../schemas/content-encryption.schema.json#/$defs/recovery_preparation"
         },
         "ControllerAccountGateAttestationIssueRequestBody": {
           "$ref": "../schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body"
@@ -120665,6 +120762,79 @@
                 "application/json": {
                   "schema": {
                     "$ref": "#/components/schemas/RealmJoinSelfPreviewResponseBody"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/_arkret/self/mls/content-recoveries/{authorization_event_ref}": {
+        "get": {
+          "operationId": "ak.self.mls.content_recovery.resource.get",
+          "parameters": [
+            {
+              "name": "Arkret-Operation",
+              "in": "header",
+              "required": true,
+              "description": "Required exact versioned operation_id selector for every canonical Arkret HTTP request.",
+              "schema": {
+                "type": "string",
+                "const": "ak.self.mls.content_recovery.resource.get.v1",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1content-recoveries~1{authorization_event_ref}/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1content-recoveries~1{authorization_event_ref}/get/parameters/0/schema",
+                  "values": [
+                    "ak.self.mls.content_recovery.resource.get.v1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "authorization_event_ref",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/EventId"
+              }
+            }
+          ],
+          "security": [
+            {
+              "sessionGrantAuth": [],
+              "dpopProof": []
+            }
+          ],
+          "summary": "Read private recovery preparation from its accepted replacement authorization.",
+          "description": "The native identity/pairing result fixes this episode. pending has no inventory ref; prepared exposes only the immutable private inventory locator and never attests client history-ready. Current subject or explicit current Agent custodian only. No body, caller-selected key, peer route or episode creation.",
+          "responses": {
+            "200": {
+              "description": "Current private preparation, pending or prepared.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ContentRecoveryPreparation"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Unknown, unauthorized, fenced or old-episode selector (not_found).",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
+            },
+            "503": {
+              "description": "Accepted source or required durable material is unavailable (revision_unavailable).",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
                   }
                 }
               }

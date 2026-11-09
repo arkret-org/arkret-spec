@@ -3,7 +3,7 @@ title: 可恢复内容加密与历史交付
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-08
+updated: 2026-11-09
 ---
 
 # 可恢复内容加密与历史交付
@@ -492,3 +492,54 @@ cleanup_inventory_digest；ready则必须cleanup_completed=true、带完整clean
 物料prepare时即在own Station按同一subject／episode设置私密Blob ACL，并绑定原identity/pairing授权来源；
 不是先公开Blob再等检查点引用。Inventory从coordinator冻结账本产生，当前replacement可经普通私密Blob接口领取，
 用其真实hash提交pending；其它Actor、旧端或未完成替换的候选无权领取。检查点不是新的远程历史权限oracle。
+
+### 11.3 原生episode与首次物料发现
+
+首次恢复端只需原identity／pairing结果中已有的replacement authorization Event引用，
+经`ak.self.mls.content_recovery.resource.get.v1`读取自己Station的私密preparation资源。
+HTTP为`GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}`，没有request body；
+不要求预先存在history_recovery检查点、另交Blob hash、选另一把leaf key或执行第二个公开prepare命令。
+该GET只观察已经耐久的原生episode，不创建episode、推进generation或接受客户端自报库存。
+
+Human的已接纳RecoveryTransaction terminal unit在同一PCR权威事务内保留episode／fence意图；
+固定`pcr_cut`为该unit最后一条authorize Event的CommittedEventRef。Agent从实际supersedes pairing的
+原authorize及原生activation结果保留同类意图，固定cut为该Agent PCR的原授权Commit；跨服务终局只经
+已登记网络接口耐久对账，不把两个服务数据库当作一个事务。缺实际pairing／activation来源保持不可用。
+在后台完整库存尚未准备好时，意图和并发fence已经生效；恢复后新membership／pairing及旧授权的
+来源签发不得越过该fence造成漏项。符合本恢复episode的控制metadata、对账和安全收尾沿其窄授权继续。
+
+replacement唯一取原生授权的完整Actor、Device或runtime endpoint、authorization Event及Ed25519公钥：
+Human取原device authorize的device_public_key_did，Agent取原key authorize的public_key与verification_method，
+不能把controller签署Agent authorize时的Human producer key当成runtime key。
+这与§9.1原recovery producer fact公钥相等、§10检查点同key的合同一致；普通非恢复MLS leaf仍可使用独立key。
+原生授权PoP与RFC External Commit的fresh path／signature PoP分别验证。
+接纳replacement之前还须核完整旧日常授权及MLS签名pub排除集，包括已发布／已claim而尚未进入当前tree的
+真实KeyPackage、Genesis／Add／Update和已移除端的原生来源；仅比较旧Device公钥或当前leaf不充分。
+公钥来源须核实际Actor／原授权实例及原PoP，不能用未验证的声明值任意污染该集合；缺完整来源不能假称fresh。
+
+资源使用`content-encryption.schema.json#/$defs/recovery_preparation`，字段依次为：
+
+| 字段 | 合同 |
+| --- | --- |
+| `state` | `pending`或`prepared`，只表示库存物料的准备阶段 |
+| `replacement` | 上述固定的原生endpoint；其authorization_event_ref逐字等于路径引用 |
+| `pcr_cut` | episode固定的原PCR cut，不能在重试／后台进度时换head |
+| `inventory_blob_ref` | 仅prepared必带；pending禁止该字段，不能发布部分库存 |
+
+读取者须为该subject当前native holder或当前明确获准的Agent history custodian；Human使用Standard
+Device绑定，Agent runtime须核当前原key授权，custodian仍核§8.2完整来源。候选、旧设备／runtime、
+另一Actor、旧episode、匿名或peer请求均不得取得该资源，unknown／未授权统一not_found；
+合法资源的必要原件缺损或不一致为revision_unavailable。远端义务未确认时返回pending并继续对账，
+不以缺失目标、超时、过期缓存或空数组冒充prepared。该查询不授予库存所列其它scope的内容读取权。
+
+后台coordinator只从§10完整原生账本准备一次canonical inventory；prepared后原Blob引用、
+replacement及pcr_cut不可重绑，prepared不得退回pending。重复GET返回该episode的当前物料阶段；
+新原生恢复授权开启新episode，旧实例结果不能覆盖它。物料prepare时即绑定subject／episode私密ACL；
+内容去重也不得复用公开Blob或其它主体的普通上传授权。资源及每次Blob／Range交付都重验current资格，
+不能把已知Blob ref或曾持旧会话当作读许可。原签检查点仍由replacement自己提交，coordinator／controller不能冒签。
+
+`prepared`不表示历史已解密、External／Remove已完成或客户端history-ready。客户端取得并核原JCS Blob、
+带域inventory摘要及全部原件／名册后，按§11.2提交自己的pending／ready进度，原RecoveryReceipt不变。
+若完整原生census证明从未激活任何MLS scope，inventory.entries和对应cleanup.scope_cleanups可都为空；
+仍须保存真实私密preimage并完成PCR全历史／coverage核验。已激活但无内容或无旧leaf的群必须保留真实entry，
+不得为凑非空数组伪造Genesis、leaf、External或winning Remove，也不得以schema／摘要能接受空数组证明库存完整。

@@ -18,6 +18,7 @@ from tools.content_history import b64, hpke_context, hpke_seal, hpke_open, grant
 from tools.generate_content_history_fixture import build
 from tools.content_history import verify_external_recovery_binding
 from tools.content_history import qualify_history_request, qualify_history_grant
+from tools.content_history import verify_preparation_resource
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "spec/v1/artifacts"
@@ -582,6 +583,73 @@ class ContentHistoryContractTest(unittest.TestCase):
             with self.assertRaises(ValueError): cleanup_digest(inventory, rows)
         bad = copy.deepcopy(results); bad[1]["remaining_old_leaf_count"] = 1
         with self.assertRaises(ValueError): cleanup_digest(inventory, bad)
+
+    def test_first_preparation_is_discovered_from_original_authorization_without_checkpoint(self):
+        inventory = self._inventory()
+        source = inventory["replacement"]
+        authorization = source["authorization_event_ref"]
+        pending = {"state": "pending", "replacement": source, "pcr_cut": inventory["pcr_cut"]}
+        schema = "content-encryption.schema.json#/$defs/recovery_preparation"
+        self.validate(schema, pending)
+        verify_preparation_resource(pending, authorization, source, inventory["pcr_cut"])
+        prepared = {**pending, "state": "prepared", "inventory_blob_ref": "ak:blob:sha256:" + hashlib.sha256(jcs(inventory)).hexdigest()}
+        self.validate(schema, prepared)
+        verify_preparation_resource(prepared, authorization, source, inventory["pcr_cut"], pending)
+        verify_preparation_resource(prepared, authorization, source, inventory["pcr_cut"], prepared)
+        for changed in ({**pending, "inventory_blob_ref": prepared["inventory_blob_ref"]},
+                        {**pending, "state": "ready"}, {**prepared, "inventory_blob_ref": None},
+                        {**prepared, "cleanup_completed": True}):
+            self.invalid(schema, changed)
+        missing = copy.deepcopy(prepared); missing.pop("inventory_blob_ref")
+        self.invalid(schema, missing)
+        realm = copy.deepcopy(prepared)
+        realm["replacement"]["actor_id"] = {"kind": "realm", "realm_actor_id": {
+            "realm_id": inventory["entries"][0]["effective_scope"]["realm_id"],
+            "principal_id": source["actor_id"]["account_id"]["principal_id"]}}
+        self.invalid(schema, realm)
+        wrong_token = bytearray(unb64(authorization.rsplit(":", 1)[1])); wrong_token[-1] ^= 1
+        with self.assertRaises(ValueError):
+            verify_preparation_resource(prepared, "ak:event:" + b64(bytes(wrong_token)), source, inventory["pcr_cut"])
+        changed = copy.deepcopy(prepared); changed["pcr_cut"]["stream_position"] = str(int(changed["pcr_cut"]["stream_position"]) + 1)
+        with self.assertRaises(ValueError): verify_preparation_resource(changed, authorization, source, inventory["pcr_cut"])
+        with self.assertRaises(ValueError): verify_preparation_resource(pending, authorization, source, inventory["pcr_cut"], prepared)
+        changed = {**prepared, "inventory_blob_ref": "ak:blob:sha256:" + "f" * 64}
+        with self.assertRaises(ValueError): verify_preparation_resource(changed, authorization, source, inventory["pcr_cut"], prepared)
+        changed = copy.deepcopy(prepared); changed["replacement"]["signature_key_base64url"] = b64(bytes([19]) * 32)
+        with self.assertRaises(ValueError): verify_preparation_resource(changed, authorization, source, inventory["pcr_cut"])
+
+    def test_no_activated_group_has_an_empty_census_without_fabricating_genesis(self):
+        inventory = self._inventory(); inventory["entries"] = []
+        self.validate("content-encryption.schema.json#/$defs/recovery_inventory", inventory)
+        cleanup = {"inventory_digest": inventory_digest(inventory), "scope_cleanups": []}
+        self.validate("content-encryption.schema.json#/$defs/cleanup_inventory", cleanup)
+        self.assertEqual(cleanup_digest(inventory, []), "sha256:" + hashlib.sha256(b"ak.content.cleanup_inventory.v1\n" + jcs(cleanup)).hexdigest())
+        activated = self._inventory(); activated["entries"] = [activated["entries"][0]]
+        activated["entries"][0]["old_leaves"] = []
+        self.assertNotEqual(inventory_digest(inventory), inventory_digest(activated))
+        with self.assertRaises(ValueError): cleanup_digest(activated, [])
+
+    def test_preparation_registry_exposes_only_a_private_existing_authorization_lookup(self):
+        registry = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))["operation_registry"]
+        operation = next(row for row in registry["operations"] if row["operation_id"] == "ak.self.mls.content_recovery.resource.get.v1")
+        self.assertEqual(operation["http"], "GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}")
+        self.assertNotIn("request_schema_ref", operation)
+        self.assertEqual(operation["response_schema_ref"], "schemas/content-encryption.schema.json#/$defs/recovery_preparation")
+        self.assertFalse(any("content_recovery.command.prepare" in row["operation_id"] for row in registry["operations"]))
+        receipt = json.loads((ART / "schemas/recovery-receipt.schema.json").read_text(encoding="utf-8"))
+        self.assertNotIn("content_recovery", receipt["properties"])
+
+    def test_preparation_wire_and_private_inventory_have_frozen_canonical_bytes(self):
+        value = self.fixture["recovery_preparation_encoding"]
+        pending, prepared = value["pending"], value["prepared"]
+        self.assertEqual(jcs(pending).hex(), value["pending_jcs_hex"])
+        self.assertEqual(jcs(prepared).hex(), value["prepared_jcs_hex"])
+        raw = bytes.fromhex(value["inventory_jcs_hex"])
+        self.assertEqual(raw, jcs(value["empty_inventory"]))
+        self.assertEqual(prepared["inventory_blob_ref"], "ak:blob:sha256:" + hashlib.sha256(raw).hexdigest())
+        self.validate("content-encryption.schema.json#/$defs/recovery_preparation", pending)
+        self.validate("content-encryption.schema.json#/$defs/recovery_preparation", prepared)
+        verify_preparation_resource(prepared, value["authorization_event_ref"], pending["replacement"], pending["pcr_cut"], pending)
 
     def test_mixed_roster_orders_recovery_and_retains_original_key_binding(self):
         native = self.fixture["public_recovery_wire"]; key = native["native_output_bindings"]["signature_key_base64url"]

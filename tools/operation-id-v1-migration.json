@@ -766,6 +766,10 @@
       "new": "ak.self.media_service_binding.read.resolve.v1"
     },
     {
+      "old": "ak.self.mls.content_recovery.resource.get",
+      "new": "ak.self.mls.content_recovery.resource.get.v1"
+    },
+    {
       "old": "ak.self.mls.read.group_state_material",
       "new": "ak.self.mls.read.group_state_material.v1"
     },

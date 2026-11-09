@@ -767,6 +767,10 @@
       "sha256": "sha256:6e6e651b79657dff93e7eb44558c1663126b4f54dd36ef1ded49bb2c70f48495"
     },
     {
+      "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
+      "sha256": "sha256:09f923631d09ec9735a86f940ecbe7abf04829f126b8c8c02bc656fe36d28369"
+    },
+    {
       "operation_id": "ak.self.mls.read.group_state_material.v1",
       "sha256": "sha256:543067639b5482b0586890ca56ccfebaaf1e5aa674163e072cd7d3aac23dcbad"
     },

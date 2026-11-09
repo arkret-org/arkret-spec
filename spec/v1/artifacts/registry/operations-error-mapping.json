@@ -2270,6 +2270,16 @@
       ],
       "description": "Source Station authentication and exact Account authority precede any private configuration write; original intent and result remain solely on the current governor.",
       "codes": []
+    },
+    {
+      "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
+      "http_alias": "GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}",
+      "operation_specific": [
+        "not_found",
+        "revision_unavailable"
+      ],
+      "description": "Unknown, foreign, fenced, candidate and old-episode selectors are uniformly not_found. A valid current resource with unresolved remote obligations returns pending, not a partial inventory. Missing/inconsistent accepted source or required durable material is revision_unavailable; prepared never means client history-ready.",
+      "codes": []
     }
   ],
   "cross_links": {

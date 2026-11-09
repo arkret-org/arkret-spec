@@ -84,9 +84,20 @@ def build():
     backup["ciphertext_digest"] = "sha256:" + hashlib.sha256(sealed_backup[32:]).hexdigest()
     backup_signature_transcript = jcs(backup)
     backup["signature_proof"]["signature"] = b64(signer.sign(backup_signature_transcript))
+    replacement = {**context["producer"], "endpoint": {"kind": "device", "device_id": "ak:device:019a0000-0000-7000-8000-000000000002"},
+                   "authorization_event_ref": request_ref, "signature_key_base64url": b64(Ed25519PrivateKey.from_private_bytes(bytes([211]) * 32).public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))}
+    preparation_cut = {**cut, "event_id": request_ref, "stream_position": 1}
+    empty_inventory = {"actor_id": actor, "replacement": replacement, "authorization_event_ref": request_ref,
+                       "pcr_cut": preparation_cut, "entries": []}
+    pending = {"state": "pending", "replacement": replacement, "pcr_cut": preparation_cut}
+    prepared = {**pending, "state": "prepared", "inventory_blob_ref": "ak:blob:sha256:" + hashlib.sha256(jcs(empty_inventory)).hexdigest()}
     return {"runner": {"kind": "named_suite", "entrypoint": "ak.suite.crypto.content_history.v1"}, "generated_by": "python -m tools.generate_content_history_fixture",
             "description": "RFC9420 exporter/ExpandWithLabel, original-byte Ed25519 and AES-GCM KAT. Signature is the explicitly stated primitive transcript, not an accepted Arkret Event or native authority proof. No product or storage durability claim.",
             "covers_vectors": [VECTOR], "event_kinds_covered": ["ak.mls.history_grant", "ak.mls.history_request", "ak.mls.history_recovery"],
+            "recovery_preparation_encoding": {"authorization_event_ref": request_ref, "pending": pending, "prepared": prepared,
+                                               "pending_jcs_hex": jcs(pending).hex(), "prepared_jcs_hex": jcs(prepared).hex(),
+                                               "empty_inventory": empty_inventory, "inventory_jcs_hex": jcs(empty_inventory).hex(),
+                                               "qualification": "Serialization-only coordinates; no native unit, empty-census completeness, Blob durability or current-holder authority is claimed."},
             "recovery_checkpoint": {"state": "ready", "pcr_cut": grant["history_cut"], "coverage_head_digest": "sha256:" + "1" * 64,
                                     "restored_event_count": "1", "cleanup_completed": True, "replacement": grant["recipient"],
                                     "inventory_blob_ref": "ak:blob:sha256:" + "2" * 64, "cleanup_blob_ref": "ak:blob:sha256:" + "3" * 64,

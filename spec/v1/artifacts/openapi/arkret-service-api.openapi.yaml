@@ -540,6 +540,8 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_response_body
     ContactTombstoneRequestBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body
+    ContentRecoveryPreparation:
+      $ref: ../schemas/content-encryption.schema.json#/$defs/recovery_preparation
     ControllerAccountGateAttestationIssueRequestBody:
       $ref: ../schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body
     ControllerAccountGateAttestationIssueResponseBody:
@@ -6072,6 +6074,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmJoinSelfPreviewResponseBody'
+  /_arkret/self/mls/content-recoveries/{authorization_event_ref}:
+    get:
+      operationId: ak.self.mls.content_recovery.resource.get
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.mls.content_recovery.resource.get.v1
+          x-arkret-value-ownership:
+            class: namespaced_symbol
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1content-recoveries~1{authorization_event_ref}/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1mls~1content-recoveries~1{authorization_event_ref}/get/parameters/0/schema
+            values:
+            - ak.self.mls.content_recovery.resource.get.v1
+      - name: authorization_event_ref
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EventId'
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read private recovery preparation from its accepted replacement authorization.
+      description: The native identity/pairing result fixes this episode. pending has no inventory ref; prepared
+        exposes only the immutable private inventory locator and never attests client history-ready. Current subject
+        or explicit current Agent custodian only. No body, caller-selected key, peer route or episode creation.
+      responses:
+        '200':
+          description: Current private preparation, pending or prepared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentRecoveryPreparation'
+        '404':
+          description: Unknown, unauthorized, fenced or old-episode selector (not_found).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Accepted source or required durable material is unavailable (revision_unavailable).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/mls/group-state-material/query:
     post:
       operationId: ak.self.mls.read.group_state_material

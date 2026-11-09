@@ -15,10 +15,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 218,
+    "total_operations": 219,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 216
+      "typed_schema": 217
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -29,7 +29,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 134
+        "typed_schema": 135
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2653,6 +2653,19 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
+      "surface_class": "extension",
+      "http": "GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_preparation",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ContentRecoveryPreparation"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.mls.read.group_state_material.v1",

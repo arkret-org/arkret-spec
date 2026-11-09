@@ -13,19 +13,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10376,
+    "total_properties": 10384,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2442,
+      "optional": 2444,
       "optional_defaulted": 46,
-      "required": 7361,
+      "required": 7366,
       "required_nullable": 311,
-      "tristate": 216
+      "tristate": 217
     },
-    "tristate_occurrences": 216,
-    "tristate_audit_targets": 169,
+    "tristate_occurrences": 217,
+    "tristate_audit_targets": 170,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 157,
+      "absent_null_equivalent": 158,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -91,6 +91,7 @@
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/0/then/properties/mirror_receipt",
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/1/then/properties/mirror_receipt",
     "contact-operations.schema.json/$defs/peer_contact_event_submit_response_body/allOf/2/then/properties/mirror_receipt",
+    "content-encryption.schema.json/$defs/recovery_preparation/allOf/1/properties/replacement",
     "current-state.schema.json/$defs/call_roster_entry/allOf/0/if/properties/value",
     "current-state.schema.json/$defs/call_roster_entry/allOf/0/if/properties/value/properties/participant",
     "current-state.schema.json/$defs/device_authorization_value/properties/expires_at",
@@ -674,6 +675,16 @@
         "/$defs/peer_contact_event_submit_response_body/allOf/0/then/properties/mirror_receipt",
         "/$defs/peer_contact_event_submit_response_body/allOf/1/then/properties/mirror_receipt",
         "/$defs/peer_contact_event_submit_response_body/allOf/2/then/properties/mirror_receipt"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "content-encryption.schema.json",
+      "shape": "/$defs/recovery_preparation",
+      "instance_path": "/replacement",
+      "occurrences": [
+        "/$defs/recovery_preparation/allOf/1/properties/replacement"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -5754,7 +5765,8 @@
     "content-encryption.schema.json": {
       "schema_ids": [
         "ak.schema.content_encryption.v1",
-        "ak.schema.content_encryption_context.v1 -> #/$defs/content_context"
+        "ak.schema.content_encryption_context.v1 -> #/$defs/content_context",
+        "ak.schema.content_recovery_preparation.v1 -> #/$defs/recovery_preparation"
       ],
       "properties": {
         "/$defs/cleanup_inventory/properties/inventory_digest": "required",
@@ -5841,6 +5853,14 @@
         "/$defs/recovery_inventory_entry/properties/old_leaves": "required",
         "/$defs/recovery_inventory_entry/properties/old_leaves/items/properties/endpoint": "required",
         "/$defs/recovery_inventory_entry/properties/old_leaves/items/properties/leaf_index": "required",
+        "/$defs/recovery_preparation/allOf/0/if/properties/state": "required",
+        "/$defs/recovery_preparation/allOf/1/properties/replacement": "tristate",
+        "/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id": "optional",
+        "/$defs/recovery_preparation/allOf/1/properties/replacement/properties/actor_id/properties/kind": "required",
+        "/$defs/recovery_preparation/properties/inventory_blob_ref": "optional",
+        "/$defs/recovery_preparation/properties/pcr_cut": "required",
+        "/$defs/recovery_preparation/properties/replacement": "required",
+        "/$defs/recovery_preparation/properties/state": "required",
         "/$defs/recovery_source/properties/attestation": "required",
         "/$defs/recovery_source/properties/origin_resolution": "required",
         "/$defs/recovery_source_attestation/properties/attested_at": "required",
@@ -5869,7 +5889,8 @@
       },
       "conditionally_required": [
         "/$defs/history_recovery/properties/cleanup_blob_ref",
-        "/$defs/history_recovery/properties/cleanup_inventory_digest"
+        "/$defs/history_recovery/properties/cleanup_inventory_digest",
+        "/$defs/recovery_preparation/properties/inventory_blob_ref"
       ]
     },
     "current-state.schema.json": {

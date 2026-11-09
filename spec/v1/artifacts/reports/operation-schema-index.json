@@ -9372,6 +9372,26 @@
         ],
         "closed": true
       }
+    },
+    {
+      "operation_id": "ak.self.mls.content_recovery.resource.get.v1",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_preparation",
+        "schema_kind": "object",
+        "required": [
+          "state",
+          "replacement",
+          "pcr_cut"
+        ],
+        "properties": [
+          "state",
+          "replacement",
+          "pcr_cut",
+          "inventory_blob_ref"
+        ],
+        "closed": true
+      }
     }
   ]
 }

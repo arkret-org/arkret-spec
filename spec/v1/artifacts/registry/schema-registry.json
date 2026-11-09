@@ -1822,6 +1822,13 @@
       "fragment": "#/$defs/welcome",
       "status": "active",
       "description": "Server authentication-success frame carrying effective connection and channel limits."
+    },
+    {
+      "schema_id": "ak.schema.content_recovery_preparation.v1",
+      "file": "schemas/content-encryption.schema.json",
+      "fragment": "#/$defs/recovery_preparation",
+      "status": "active",
+      "description": "Private unit-derived content-recovery preparation, discovered by the accepted authorization Event; prepared material is distinct from client history-ready."
     }
   ]
 }
