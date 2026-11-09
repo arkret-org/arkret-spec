@@ -179,6 +179,16 @@
           "$ref": "#/$defs/mls_group_state_material",
           "description": "Only authority_forward: required for an event_submission containing ak.mls.genesis and for every mls_submission containing ak.mls.commit, including approved External recovery. Forbidden on other Event kinds, atomic submissions and replication branches. The forwarding Actor's owning Station loads and freezes both raw Blob bytes from its own store before forwarding. The signed Event group_info_ref and ratchet_tree_ref are the only digest carriers. The governor checks canonical encoding, each embedded digest suite, RFC GroupInfo signature, external_pub, exact accepted-transition epoch, complete post-GroupContext and ratchet tree before any acceptance writes, then stores both Blobs atomically with the winning Commit. Missing/unavailable local material is bare failed_precondition without forwarding; a digest mismatch is digest_mismatch with zero writes. Candidate uploads retain the subject/episode private Blob ACL. See zh/crypto-media/encryption-and-audit.md section 5.1.2."
         },
+        "content_backup_sources": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./content-encryption.schema.json#/$defs/backup_source"
+          },
+          "description": "Only authority_forward: exactly one source per original Event containing registered epoch-content encrypted slots, in submission order (including the audit-paired carrier). Clear Events have no source. Every source is frozen before producer evidence, whose unchanged complete forward-body digest covers this field. The governor independently verifies physical Blob dependencies and commits this private audit source with the winning Event/Commit and coverage. Other ingress branches cannot substitute this source for their own native dependency checks. See content-history section 3.1."
+        },
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
           "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
@@ -464,6 +474,11 @@
                 "required": [
                   "atomic_producer_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "content_backup_sources"
+                ]
               }
             ]
           }
@@ -526,6 +541,11 @@
               {
                 "required": [
                   "atomic_producer_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "content_backup_sources"
                 ]
               }
             ]

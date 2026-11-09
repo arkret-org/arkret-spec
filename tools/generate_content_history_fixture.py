@@ -11,13 +11,48 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 from tools.content_history import SCHEME, STRATEGY, aad, b64, content_key, content_root, jcs, key_commitment, root_ref, hpke_seal, grant_header, mnemonic_backup_key, did_key
+from tools.content_backup_source import protections_digest, signing_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "spec/v1/artifacts/fixtures/content-history-fixture.json"
+SOURCE_OUTPUT = ROOT / "spec/v1/artifacts/fixtures/content-backup-source-fixture.json"
 VECTOR = "ak.vector.crypto.content_history.v1"
+SOURCE_VECTOR = "ak.vector.crypto.content_backup_source.v1"
 
 
-def build():
+def backup_source_encoding(outer, producer, signer, method, body, metadata, plaintexts, service_method):
+    """Actual primitive signatures and content IDs, without native admission claims."""
+    event = copy.deepcopy(outer)
+    event['payload'] = {'strand_id': 'ak:strand:AT3ARBdH1FM6GjXK9ulTx-YMvQOXys39dlUzZV6KyID9',
+                        'track_name': 'discussion', 'encrypted_content': body, 'encrypted_metadata': metadata}
+    digest = hashlib.sha256(jcs(event)).digest()
+    event['event_id'] = 'ak:event:' + b64(b'\x01' + digest)
+    binding = {'context': 'ak.event_proof.v1', 'event_digest': 'sha256:' + digest.hex(),
+               'actor_id': event['actor_id'], 'verification_method': method, 'created_at': event['created_at']}
+    event['producer_proof'] = {key: binding[key] for key in ['event_digest', 'verification_method', 'created_at']}
+    event['producer_proof'].update({'kind': 'detached_jws', 'jws': b64(b'{"alg":"Ed25519"}') + '..' + b64(signer.sign(jcs(binding)))})
+    slots = [{'content_path': '/payload/' + key, 'protection': event['payload'][key]['encryption_context']['protection']}
+             for key in ['encrypted_content', 'encrypted_metadata']]
+    origin = producer['actor_id']['account_id']['station_id']
+    service_seed = bytes([233]) * 32
+    service = Ed25519PrivateKey.from_private_bytes(service_seed)
+    attestation = {'event_ref': event['event_id'], 'event_original_digest': 'sha256:' + hashlib.sha256(jcs(event)).hexdigest(),
+                   'producer': producer, 'effective_scope': event['scope_ref'],
+                   'destination_service_id': 'ak:did_core:web:governor.example', 'protections_digest': protections_digest(slots),
+                   'verification_method': service_method, 'attested_at': '2026-11-08T00:00:01.000Z',
+                   'expires_at': '2026-11-08T00:05:01.000Z'}
+    transcript = signing_bytes(attestation)
+    attestation['signature'] = {'kid': service_method, 'signature_algorithm': 'Ed25519', 'signature': b64(service.sign(transcript))}
+    return {'event': event, 'attestation': attestation, 'producer': producer,
+            'origin_key': {'station_id': origin, 'verification_method': service_method,
+                           'public_key_base64url': b64(service.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))},
+            'signing_hex': transcript.hex(), 'producer_binding_hex': jcs(binding).hex(),
+            'service_signing_seed_hex': service_seed.hex(),
+            'plaintexts_hex': {k: v.hex() for k, v in plaintexts.items()},
+            'qualification': 'Real primitive Ed25519, content ID and AES-GCM bytes only; no native root PUT, Service method history, physical durability, allowed atomic unit or current signer qualification is asserted.'}
+
+
+def build(include_sources=False):
     governance = json.loads((ROOT / "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json").read_text(encoding="utf-8"))
     external_binding = {"encoding": "MlsGroupBinding deterministic CBOR without prefix",
                         "carrier": "FramedContent.authenticated_data",
@@ -56,6 +91,37 @@ def build():
     metadata_plaintext = jcs({"title": "original metadata"})
     metadata_aad = aad(outer, metadata_envelope, metadata_context)
     metadata_envelope["ciphertext"] = b64(AESGCM(metadata_key).encrypt(bytes(12), metadata_plaintext, metadata_aad))
+    human_producer = copy.deepcopy(context['producer'])
+    human_outer = {**outer, 'actor_id': human_producer['actor_id']}
+    agent_signer = Ed25519PrivateKey.from_private_bytes(bytes([234]) * 32)
+    agent = {'actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:agent.example',
+             'station_id': human_producer['actor_id']['account_id']['station_id']}},
+             'endpoint': {'kind': 'agent_runtime', 'verification_method': 'did:web:agent.example#runtime-key'},
+             'authorization_event_ref': event_ref,
+             'signature_key_base64url': b64(agent_signer.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))}
+    agent_outer = {**outer, 'actor_id': agent['actor_id']}
+    source_plaintexts = {'encrypted_content': jcs({'kind': 'ak.content.text', 'body': 'original recoverable content', 'format': 'plain'}),
+                         'encrypted_metadata': jcs({'fields': {'title': 'original metadata'}})}
+    def source_envelopes(source_outer, producer, first_salt):
+        result = []
+        for index, (source_context, source_envelope, source_plaintext) in enumerate([
+                (context, envelope, source_plaintexts['encrypted_content']), (metadata_context, metadata_envelope, source_plaintexts['encrypted_metadata'])]):
+            slot = {**source_context, 'producer': producer, 'content_key_salt': b64(bytes([first_salt + index]) * 32)}
+            slot_key = content_key(root, slot)
+            encoded = copy.deepcopy(source_envelope)
+            if index == 0:
+                encoded['content_type'] = 'application/vnd.arkret.message+json'
+            encoded['encryption_context'].update({'content_key_salt': slot['content_key_salt'],
+                                                   'key_commitment': key_commitment(slot_key, slot)})
+            encoded['ciphertext'] = b64(AESGCM(slot_key).encrypt(bytes(12), source_plaintext, aad(source_outer, encoded, slot)))
+            result.append(encoded)
+        return result
+    service_method = 'did:webvh:z6mkfixturestationexample:station.example#service-key-fixture'
+    human_source = backup_source_encoding(human_outer, human_producer, signer,
+        'did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001',
+        *source_envelopes(human_outer, human_producer, 242), source_plaintexts, service_method)
+    agent_source = backup_source_encoding(agent_outer, agent, agent_signer, agent['endpoint']['verification_method'],
+        *source_envelopes(agent_outer, agent, 240), source_plaintexts, service_method)
     original = jcs({"outer_event": outer, "envelope": envelope})
     mnemonic = " ".join(["abandon"] * 23 + ["art"])
     recipient_secret, recipient_public = mnemonic_backup_key(mnemonic)
@@ -103,7 +169,7 @@ def build():
                        "pcr_cut": preparation_cut, "entries": []}
     pending = {"state": "pending", "replacement": replacement, "pcr_cut": preparation_cut}
     prepared = {**pending, "state": "prepared", "inventory_blob_ref": "ak:blob:sha256:" + hashlib.sha256(jcs(empty_inventory)).hexdigest()}
-    return {"runner": {"kind": "named_suite", "entrypoint": "ak.suite.crypto.content_history.v1"}, "generated_by": "python -m tools.generate_content_history_fixture",
+    result = {"runner": {"kind": "named_suite", "entrypoint": "ak.suite.crypto.content_history.v1"}, "generated_by": "python -m tools.generate_content_history_fixture",
             "description": "RFC9420 exporter/ExpandWithLabel, original-byte Ed25519 and AES-GCM KAT. Signature is the explicitly stated primitive transcript, not an accepted Arkret Event or native authority proof. No product or storage durability claim.",
             "covers_vectors": [VECTOR], "event_kinds_covered": ["ak.mls.history_grant", "ak.mls.history_request", "ak.mls.history_recovery"],
             "recovery_preparation_encoding": {"authorization_event_ref": request_ref, "pending": pending, "prepared": prepared,
@@ -141,20 +207,43 @@ def build():
                     "envelope": envelope, "plaintext_hex": plaintext.hex(), "primitive_original_transcript_hex": original.hex(),
                     "signing_seed_hex": bytes(range(32)).hex(), "signature_base64url": b64(signer.sign(original)),
                     "original_digest": "sha256:" + hashlib.sha256(original).hexdigest()}}
+    if include_sources:
+        result['content_backup_source_encoding'] = {'human': human_source, 'agent': agent_source}
+    return result
+
+
+def source_fixture(document):
+    cases = document.pop('content_backup_source_encoding')
+    return {'runner': {'kind': 'named_suite', 'entrypoint': 'ak.suite.crypto.content_backup_source.v1'},
+            'generated_by': 'python -m tools.generate_content_history_fixture',
+            'description': 'Independent original Event, producer/service Ed25519, root AEAD and backup-source binding primitives. No native root PUT, physical retention, method-native Service qualification or allowed atomic-unit assertion.',
+            'covers_vectors': [SOURCE_VECTOR], 'event_kinds_covered': ['ak.message.create'],
+            'root_context': document['kat']['root_context'], 'root_hex': document['kat']['root_hex'],
+            'cases': [{'name': name, **case, 'assertions': ['original Event content ID and real producer signature verify',
+                'separate origin service signature and full original digest verify',
+                'registered body and metadata decrypt with distinct keys',
+                'validly re-signed wrong bindings, metadata omission, foreign Station and expiry reject']} for name, case in cases.items()],
+            'security_evidence': [{'clause_id': 'AK-NC-131', 'vector_id': SOURCE_VECTOR,
+                'decision_points': [{'id': 'explicit_origin_backup_source_binding',
+                    'requirement': 'Real original producer and service Ed25519 bytes bind exact original Event, actual endpoint, scope, destination, every registered protection slot and bounded observation window; native role and storage remain external.',
+                    'evidence': ['/cases/0', '/cases/1']}]}]}
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    encoded = json.dumps(build(), ensure_ascii=False, indent=2) + "\n"
-    if args.check:
-        if OUTPUT.read_text(encoding="utf-8") != encoded:
-            raise SystemExit("content history KAT drift")
-        print("content history deterministic KAT: PASS")
-    else:
-        OUTPUT.write_text(encoded, encoding="utf-8", newline="\n")
-        print("content-history-fixture.json generated")
+    document = build(include_sources=True)
+    source = source_fixture(document)
+    for path, value in [(OUTPUT, document), (SOURCE_OUTPUT, source)]:
+        encoded = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+        if args.check:
+            if path.read_text(encoding="utf-8") != encoded:
+                raise SystemExit(f"{path.name}: deterministic KAT drift")
+            print(f"{path.name}: deterministic KAT PASS")
+        else:
+            path.write_text(encoded, encoding="utf-8", newline="\n")
+            print(f"{path.name} generated")
 
 
 if __name__ == "__main__":

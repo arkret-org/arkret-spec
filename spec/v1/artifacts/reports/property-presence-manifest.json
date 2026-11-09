@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10392,
+    "total_properties": 10405,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2446,
+      "optional": 2447,
       "optional_defaulted": 46,
-      "required": 7372,
+      "required": 7384,
       "required_nullable": 311,
       "tristate": 217
     },
@@ -4448,6 +4448,7 @@
         "/$defs/peer_submit_request_body/properties/atomic_producer_evidence": "optional",
         "/$defs/peer_submit_request_body/properties/atomic_submission": "optional",
         "/$defs/peer_submit_request_body/properties/branch": "required",
+        "/$defs/peer_submit_request_body/properties/content_backup_sources": "optional",
         "/$defs/peer_submit_request_body/properties/event_submission": "optional",
         "/$defs/peer_submit_request_body/properties/mls_group_state_material": "optional",
         "/$defs/peer_submit_request_body/properties/mls_submission": "optional",
@@ -5769,6 +5770,18 @@
         "ak.schema.content_recovery_preparation.v1 -> #/$defs/recovery_preparation"
       ],
       "properties": {
+        "/$defs/backup_source/properties/attestation": "required",
+        "/$defs/backup_source/properties/origin_resolution": "required",
+        "/$defs/backup_source_attestation/properties/attested_at": "required",
+        "/$defs/backup_source_attestation/properties/destination_service_id": "required",
+        "/$defs/backup_source_attestation/properties/effective_scope": "required",
+        "/$defs/backup_source_attestation/properties/event_original_digest": "required",
+        "/$defs/backup_source_attestation/properties/event_ref": "required",
+        "/$defs/backup_source_attestation/properties/expires_at": "required",
+        "/$defs/backup_source_attestation/properties/producer": "required",
+        "/$defs/backup_source_attestation/properties/protections_digest": "required",
+        "/$defs/backup_source_attestation/properties/signature": "required",
+        "/$defs/backup_source_attestation/properties/verification_method": "required",
         "/$defs/cleanup_inventory/properties/inventory_digest": "required",
         "/$defs/cleanup_inventory/properties/scope_cleanups": "required",
         "/$defs/content_context/properties/content_key_salt": "required",

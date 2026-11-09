@@ -171,6 +171,9 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   compact state cache miss 为 `dependency_missing`，只能经同一 ingress 完整重交，不新增取回端点。
 Realm Bot／Ghost 直接由所属 Realm 当前治理方验证 realm_control 中的身份、控制、Device 与当前业务门；不得携跨站 Account 来源证明。普通 Account 的 producer_device_evidence 合同保持不变。历史复制只披露最小 realm_device fact，私有控制原件不进入成员 fanout。
   `authority_forward` 另有 closed `atomic_submission` alternative，仅携 `audit_paired_event` caller-signed unit；它与 `event_submission`／`mls_submission` exact XOR。两 slot 的 actual producer/key 必须一致，按 `atomic_producer_evidence[2]` 携两份同 origin cut、各自 Event-bound 的 fresh Device 或 Agent evidence并逐项核验，禁止 MLS material／顶层单 Event evidence。外层全 body replay 与内层 signed unit fence 分别验证。
+  含登记Epoch Content AEAD槽的原Event还须按原顺序携`content_backup_sources`，每Event恰好一份；
+  这是独立原生根保管来源，按[content-history §3.1](../crypto-media/content-history.md#31-跨station的根保管来源normative)验证。
+  先冻结此来源再签producer evidence；既有forward_body_digest包含该字段，不改签名投影或以signer证明代替保管。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，其中 `event_submission` 只能是
   `{event: 完整 source Event}`；`approval_signatures` MUST 省略，带该成员的 item 为 `schema_violation` 且零写入。

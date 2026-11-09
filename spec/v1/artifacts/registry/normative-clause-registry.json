@@ -876,6 +876,28 @@
       "evidence_refs": [
         "ak.vector.state.watch_audit_operations.v1"
       ]
+    },
+    {
+      "clause_id": "AK-NC-131",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/crypto-media/content-history.md#31-跨station的根保管来源normative",
+      "section_digest": "sha256:86ee573cbe70723bbabaf8d8581fdc2441ca3938e81264a537b1595ddfb21c81",
+      "requirement": "A separate backup-keeper source binds the complete original signed Event, independently qualified actual endpoint, exact scope and destination, and every registered protection slot. It is signed under its distinct fixed domain, rejects changed bindings and expired or unbounded observation windows, and cannot substitute signer-only evidence. Producer forward-body evidence covers the complete backup sources.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.crypto.content_backup_source.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-132",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/crypto-media/content-history.md#31-跨station的根保管来源normative",
+      "section_digest": "sha256:86ee573cbe70723bbabaf8d8581fdc2441ca3938e81264a537b1595ddfb21c81",
+      "requirement": "Every natively accepted epoch root has sufficient recoverable retention from its first PUT, independent of Event outcome. Deletion, compaction, policy changes, expiry, unknown and CAS loss cannot remove the last sufficient root. Origin issues a backup source only from its own locked native retained material and original-event journal; the governor separately checks Blob dependencies and durably binds the source with acceptance. Service databases and authorities stay isolated.",
+      "testability_grade": "audit",
+      "test_plan": "Audit native first-PUT root indexes, replacement mapping and recipient/deletion lock ordering; origin source issuance must use real accepted storage and method-native owning-Station service history, never caller booleans or copied ciphertext. Confirm governor physical Blob checks and atomic Event/Commit/coverage/private-source retention. Static signature KATs cannot prove physical storage, crash recovery or cross-service transactions; those require real PG/HTTP failure, concurrent deletion, unknown-result and process-restart execution under implementation owner1156. No such production result is claimed by this clause."
     }
   ]
 }

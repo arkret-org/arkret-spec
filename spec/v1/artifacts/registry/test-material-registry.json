@@ -520,6 +520,7 @@
       "value": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
       "role": "deployment_like_example",
       "sources": [
+        "spec/v1/artifacts/fixtures/content-backup-source-fixture.json",
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
       ]
     },
@@ -1103,6 +1104,13 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/artifacts/fixtures/mimi-key-material-claim-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/content-backup-source-fixture.json"
       ]
     }
   ]

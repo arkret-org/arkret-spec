@@ -92,6 +92,56 @@ coverage是既有committed Event scan／get及其原签protection的可重建派
 未登记的上传／读取API。服务在原接纳事务保存该索引；恢复端按独立验证的cut扫描全部原件重建并核对
 相同覆盖关系。缓存页可丢弃重建，原件／blob／根及其来源证明不可缺失；不能以缓存清单代替原件验证。
 
+### 3.1 跨Station的根保管来源（normative）
+
+`content_epoch_root`从首次原生PUT成功起即承担归档保管义务，不以某条Event已经接纳为前提。
+保管单位是完整备份主体、C_root及root_ref；没有成功业务原件、first-use失败、CAS loser、来源过期或
+终局未知均不解除该义务。包可依§8.3充分替换／压实，但最后充分根材料不得普通删除。
+这不是逐Event可过期租约、共享prepare阶段或第二套备份API；同epoch的重试不产生新的R。
+
+Account／Agent跨站`authority_forward`须按原提交顺序，在`content_backup_sources`中为每个含登记
+Epoch Content AEAD槽的Event携恰好一个closed `backup_source`；普通单Event最多一个，审计配对最多两个。
+无此槽的Event不携来源；遗漏、重复、额外或乱序均零接纳。来源不能用于committed_replication或
+registered_atomic_unit代替其原生依赖检查；其它合法首次接纳载体仍须证明本地完整依赖，不能略过缺失来源。
+
+`backup_source`由`attestation,origin_resolution`组成。attestation按canonical schema顺序携
+`event_ref,event_original_digest,producer,effective_scope,destination_service_id,protections_digest,
+verification_method,attested_at,expires_at,signature`。
+`event_original_digest = "sha256:" || lower_hex(SHA256(JCS(完整原Event)))`，包括实际producer_proof及
+所有实际出现的成员，不用E摘要、Event ID或删proof的摘要代替。`producer`须等于独立原生核验的实际
+ContentEndpoint，其Actor取executed_by存在时的值，否则取actor_id；跨站来源只由该完整Account的
+原Station保管服务签发，不能改为controller、目标governor、Account Authority或其它服务。
+
+令P为从该Event已登记schema槽逐项投影的`[{content_path,protection}]`，以RFC6901 JSON pointer的
+UTF-8字节序排序；每槽的protection保留原数组顺序，必须完整且path唯一。不得搜索任意extension中的
+envelope形状、忽略metadata或把正文嵌套附件的公开保护依赖丢掉。
+`protections_digest = "sha256:" || lower_hex(SHA256(JCS(P)))`，P为空时禁止来源。
+signature使用标准Ed25519 service签名形状，kid等于verification_method，签名字节精确为
+`UTF8("ak.content.backup_source.v1\n") || JCS(attestation删除signature)`。
+origin_resolution须在attested_at冻结完整method-native Service历史，独立验证该Station保管服务的
+实际签名method／公钥；不是调用方公钥、当前DID捷径或仅有签名者授权的证明。
+attested_at不得晚于首次准入now，`0 < expires_at-attested_at <= 300秒`且now早于expires_at；
+来源过期只要求重新核验签发，不允许删除根。已accepted exact retry仍先返回原结果，不重跑当前门。
+
+origin在自己的同一原生锁定cut核原Event／proof、原群结果、根包首次接纳索引、精确Root／backup引用、
+充分当前recipient及必要替代映射；根包、索引与既有§10原件来源日记共同耐久后才签发来源。
+先冻结此来源，再签Device／Agent／审计配对producer evidence；既有完整forward_body_digest投影
+包含content_backup_sources，不删除该字段或另试预像，因此没有循环签名依赖。
+仅复制备份密文、signer evidence或caller自报durable均不构成来源。
+
+governor独立核原签Event、实际producer当前准入、已验证来源、actual destination及P摘要，并验证其
+实际密文Blob／内容地址等依赖，在自己的同一事务保存原Event、winning Commit、coverage与完整来源私有审计。
+来源不授当前写入、membership、历史披露或原件accepted资格，不随普通成员复制公开PCR／custody信息。
+同Station路径直接执行相同原生根保管检查；不得伪造peer来源代替本地事实。
+不同服务不共享DB、配置、私钥或后端函数，只沿已登记网络接口取得所需原件及终局。
+origin暂时断连不等于根已丢失；已有未过期且独立验真的保管来源可支持接纳，恢复读取仍重试原Station。
+没有充分来源、根缺损或终局未知均不能猜测成功，也不能通过超时释放最后根。
+合法Realm治理交接须移交上述私有接纳来源及保管者引用，根仍由原Account Station保管；
+新destination的来源可沿已验证权威重新签发，不重签或重加密原Event。
+Human／用户管理Agent不因此取得更换逻辑Station的能力；同Station的hosting搬迁仍按原身份验证。
+独立字节向量`ak.vector.crypto.content_backup_source.v1`覆盖原件／service签名、完整槽绑定及拒绝分支；
+它不证明根包原生PUT、Service当前资格或故障后的物理耐久，后者须独立真实服务验收。
+
 ## 4. 获授权后加入者
 
 `history_access=all_history_for_current_members`必须有实际可读路径，不能只返回密文。
@@ -365,8 +415,11 @@ controller policy本身撤销则当前领取仍拒绝；解除日常runtime授�
 普通item公开索引精确为item_kind／secret_id；content_epoch_root另必带root_context／root_ref，
 解封后按完整索引投影逐项核对，重复secret_id、额外／遗漏root、错context／root_ref都失败。
 完整envelope签名覆盖所有索引；保留既有AAD构造，根值及索引的正确性须再以root_ref／原protection核对。
-受任何accepted PCR原件保护引用的根必须有可用的充分recipient包，普通DELETE／retention／series轮换
-不得删除最后一份必要包；同root_ref替代包必须先耐久且可由当前24词解开。账号正式终止／擦除是独立生命周期，
+每个首次原生PUT已接纳的content_epoch_root必须有可用的充分recipient包，不以已有accepted PCR引用为条件。
+普通DELETE／retention／series轮换、待决失败或来源过期不得删除最后一份必要包；同root_ref替代包必须先耐久且可由当前24词解开。
+recipient轮换及根包删除与该完整根索引使用同一原生互斥边界，覆盖从首次PUT起的全部根，不能只查已成功Event的引用。
+旧包可在充分替代后删除密文，但首次索引／原签引用到充分替代包的绑定须继续可验证，不新增查找API。
+账号正式终止／擦除是独立生命周期，
 不能把主动清空恢复集描述为仍可完整恢复的正常账号。
 
 ## 9. 恢复名册的唯一收集／排序合同（normative）

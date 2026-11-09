@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:4afc071f162bcbaa728f98a69a26aaaa124ec28005a879ee9c835078f3970884",
+  "contract_digest": "sha256:385fb9d0ee5895b07ace7aa1f278ca82451f4f5eda98a542e60fa9ae7d14b3b8",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -20407,6 +20407,16 @@
                 "$ref": "#/$defs/mls_group_state_material",
                 "description": "Only authority_forward: required for an event_submission containing ak.mls.genesis and for every mls_submission containing ak.mls.commit, including approved External recovery. Forbidden on other Event kinds, atomic submissions and replication branches. The forwarding Actor's owning Station loads and freezes both raw Blob bytes from its own store before forwarding. The signed Event group_info_ref and ratchet_tree_ref are the only digest carriers. The governor checks canonical encoding, each embedded digest suite, RFC GroupInfo signature, external_pub, exact accepted-transition epoch, complete post-GroupContext and ratchet tree before any acceptance writes, then stores both Blobs atomically with the winning Commit. Missing/unavailable local material is bare failed_precondition without forwarding; a digest mismatch is digest_mismatch with zero writes. Candidate uploads retain the subject/episode private Blob ACL. See zh/crypto-media/encryption-and-audit.md section 5.1.2."
               },
+              "content_backup_sources": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "./content-encryption.schema.json#/$defs/backup_source"
+                },
+                "description": "Only authority_forward: exactly one source per original Event containing registered epoch-content encrypted slots, in submission order (including the audit-paired carrier). Clear Events have no source. Every source is frozen before producer evidence, whose unchanged complete forward-body digest covers this field. The governor independently verifies physical Blob dependencies and commits this private audit source with the winning Event/Commit and coverage. Other ingress branches cannot substitute this source for their own native dependency checks. See content-history section 3.1."
+              },
               "producer_device_evidence": {
                 "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
                 "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
@@ -20692,6 +20702,11 @@
                       "required": [
                         "atomic_producer_evidence"
                       ]
+                    },
+                    {
+                      "required": [
+                        "content_backup_sources"
+                      ]
                     }
                   ]
                 }
@@ -20754,6 +20769,11 @@
                     {
                       "required": [
                         "atomic_producer_evidence"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "content_backup_sources"
                       ]
                     }
                   ]
@@ -35776,6 +35796,74 @@
             "properties": {
               "attestation": {
                 "$ref": "#/$defs/recovery_source_attestation"
+              },
+              "origin_resolution": {
+                "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+              }
+            },
+            "additionalProperties": false
+          },
+          "backup_source_attestation": {
+            "type": "object",
+            "required": [
+              "event_ref",
+              "event_original_digest",
+              "producer",
+              "effective_scope",
+              "destination_service_id",
+              "protections_digest",
+              "verification_method",
+              "attested_at",
+              "expires_at",
+              "signature"
+            ],
+            "properties": {
+              "event_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id",
+                "x-arkret-preimage-commitment": "fixed_event"
+              },
+              "event_original_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "producer": {
+                "$ref": "#/$defs/endpoint"
+              },
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+              },
+              "destination_service_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "protections_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "verification_method": {
+                "$ref": "./common-ids.schema.json#/$defs/did_url"
+              },
+              "attested_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "expires_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "signature": {
+                "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Origin backup-keeper statement over the exact complete original Event and registered protection slots. The issuer verifies native accepted root storage, sufficient recipient and permanent retention from first PUT; a signer-only proof or copied ciphertext cannot issue this statement. The statement grants no writer, membership, read or migration authority."
+          },
+          "backup_source": {
+            "type": "object",
+            "required": [
+              "attestation",
+              "origin_resolution"
+            ],
+            "properties": {
+              "attestation": {
+                "$ref": "#/$defs/backup_source_attestation"
               },
               "origin_resolution": {
                 "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
@@ -112688,7 +112776,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:8adc63b21e96c4b1d4aecbfff2f3e08a2dadd63b6cd5b575b1c3b5ce5201b443"
+      "digest": "sha256:d2aec1b907d62d566048e9bf97c7ef5b7e3a0cfc87c7e1a74fc8337e309e8837"
     },
     {
       "file": "operation-clause-registry.json",
@@ -112768,11 +112856,11 @@
     },
     {
       "file": "test-material-registry.json",
-      "digest": "sha256:3113b596cfc4146291681a583a4818b22c029e197ea68b107e4645e965b1e182"
+      "digest": "sha256:5efbeaa8e4fd2dcc221e191c701da67543fac4d9e88404a95674063a5d716ae9"
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:ce068fb357de5a003951476cdef41a0bcbc407f948dc60dfdd7c566aa0474d7b"
+      "digest": "sha256:e475f36c26a3157c41c318c24c45ac16c677cb2889e12a73cac8b8cb6136773a"
     }
   ],
   "openapi": {

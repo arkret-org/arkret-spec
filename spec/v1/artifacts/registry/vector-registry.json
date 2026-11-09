@@ -5282,6 +5282,19 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.crypto.content_backup_source.v1",
+      "status": "active",
+      "domain": "crypto",
+      "applies_to_fixtures": [
+        "content-backup-source-fixture.json"
+      ],
+      "description": "Independent complete original Event/producer/service signature, registered protection, destination and bounded-window byte bindings for Human and Agent. Native storage, current issuer role and full recovery are separate production obligations.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-backup-source-fixture.json",
+        "spec/v1/zh/crypto-media/content-history.md"
+      ]
     }
   ]
 }

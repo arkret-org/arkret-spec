@@ -260,7 +260,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:2f14145753070498a4ce49a67624867f0fd4aded4b57f6148ed86e0d6e303ac9"
+      "sha256": "sha256:808a5b4e79951e79cbbca331f3d0313acbd70d00bf929bfaa05ea63cd523d793"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",

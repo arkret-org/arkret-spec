@@ -1,0 +1,329 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.crypto.content_backup_source.v1"
+  },
+  "generated_by": "python -m tools.generate_content_history_fixture",
+  "description": "Independent original Event, producer/service Ed25519, root AEAD and backup-source binding primitives. No native root PUT, physical retention, method-native Service qualification or allowed atomic-unit assertion.",
+  "covers_vectors": [
+    "ak.vector.crypto.content_backup_source.v1"
+  ],
+  "event_kinds_covered": [
+    "ak.message.create"
+  ],
+  "root_context": {
+    "effective_scope": {
+      "kind": "realm",
+      "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+    },
+    "genesis_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+    "epoch": "12",
+    "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+    "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+    "encryption_backup_strategy": "ak.encryption_backup.epoch_content_roots.v1",
+    "backup_strategy_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+  },
+  "root_hex": "aeae3d7281e1bb171abd0a0bec98c8deb4862d8a906070486f022372e52692df",
+  "cases": [
+    {
+      "name": "human",
+      "event": {
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-11-08T00:00:00.000Z",
+        "payload": {
+          "strand_id": "ak:strand:AT3ARBdH1FM6GjXK9ulTx-YMvQOXys39dlUzZV6KyID9",
+          "track_name": "discussion",
+          "encrypted_content": {
+            "version": "1.0",
+            "content_type": "application/vnd.arkret.message+json",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1",
+            "encryption_context": {
+              "epoch": "12",
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "content_key_salt": "8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vI",
+              "root_ref": "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb",
+              "key_commitment": "sha256:22e0ff929cda3bf23670d6d8ee228b36b1ddcd17f480f4aa8a885b1f2d21c21e",
+              "protection": {
+                "root_refs": [
+                  "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
+            },
+            "ciphertext": "CK9KgwIte-d-T4fqKVxWRsZCkmQ6Fq84gttvDthUc9g9TTZ4JWCjnqGubbGuMgpELTGUK1vrOnKCu9xGdMQTpYAaJWGWi1laF9CK-FIwh7cnmFsJDyYfIJmxUff68xXAOQ"
+          },
+          "encrypted_metadata": {
+            "version": "1.0",
+            "content_type": "application/vnd.arkret.message-metadata+json",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1",
+            "encryption_context": {
+              "epoch": "12",
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "content_key_salt": "8_Pz8_Pz8_Pz8_Pz8_Pz8_Pz8_Pz8_Pz8_Pz8_Pz8_M",
+              "root_ref": "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb",
+              "key_commitment": "sha256:a68763d773c70240af35d91f9aa5f3c694ca62c5fae9c44d83c8db0ed10a84fa",
+              "protection": {
+                "root_refs": [
+                  "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
+            },
+            "ciphertext": "4q8r6_j4SpqSVeFIdes-Hd3P9pGtFau4lhINnSPFKo5UNg7KBBZYyEgkV7PlHYjQCbt9RilM8fw"
+          }
+        },
+        "event_id": "ak:event:AVji2pqoSe3fkBUgggMMaS0FXVb08v53vZ4iTzLHJFI0",
+        "producer_proof": {
+          "event_digest": "sha256:58e2da9aa849eddf90152082030c692d055d56f4f2fe77bd9e224f32c7245234",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+          "created_at": "2026-11-08T00:00:00.000Z",
+          "kind": "detached_jws",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..Te0jbS4AsDlaI_X_QcZtsDBJrMSdUZObyXS-fzcGDF-fLWxVMsvvSutWs86ITw2enurrtwFXmo5hbgTtVYlACQ"
+        }
+      },
+      "attestation": {
+        "event_ref": "ak:event:AVji2pqoSe3fkBUgggMMaS0FXVb08v53vZ4iTzLHJFI0",
+        "event_original_digest": "sha256:639777c9c130fb03599f105ba53bdaa6b6186787f12d95dc059e586596ff4c53",
+        "producer": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "endpoint": {
+            "kind": "device",
+            "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+          },
+          "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "signature_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+        },
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+        },
+        "destination_service_id": "ak:did_core:web:governor.example",
+        "protections_digest": "sha256:8a3a0fcbc79b12b22b925ae20ecd869afa510071a501ff2ab57771bf31700253",
+        "verification_method": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+        "attested_at": "2026-11-08T00:00:01.000Z",
+        "expires_at": "2026-11-08T00:05:01.000Z",
+        "signature": {
+          "kid": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+          "signature_algorithm": "Ed25519",
+          "signature": "NVdMPFE6rdL_WGXrblqfgRymZgnqquAsO_S3C0QK94yIK4CGkNeNBs9ANnDQOJsHBXU1PQjx7TXG9f4wqnSQDg"
+        }
+      },
+      "producer": {
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+        },
+        "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "signature_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+      },
+      "origin_key": {
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample",
+        "verification_method": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+        "public_key_base64url": "CoGZfXZziJ1Q-R-gz2ZPHHpqur0D9xzw_l1orXV20zc"
+      },
+      "signing_hex": "616b2e636f6e74656e742e6261636b75705f736f757263652e76310a7b2261747465737465645f6174223a22323032362d31312d30385430303a30303a30312e3030305a222c2264657374696e6174696f6e5f736572766963655f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c226576656e745f6f726967696e616c5f646967657374223a227368613235363a36333937373763396331333066623033353939663130356261353362646161366236313836373837663132643935646330353965353836353936666634633533222c226576656e745f726566223a22616b3a6576656e743a41566a693270716f536533666b42556767674d4d615330465856623038763533765a3469547a4c484a464930222c22657870697265735f6174223a22323032362d31312d30385430303a30353a30312e3030305a222c2270726f6475636572223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303031222c226b696e64223a22646576696365227d2c227369676e61747572655f6b65795f62617365363475726c223a2241364548765f504f454c3464634e3059353076416d57666b316a436270513166486479475a424a564d6267227d2c2270726f74656374696f6e735f646967657374223a227368613235363a38613361306663626337396231326232326239323561653230656364383639616661353130303731613530316666326162353737373162663331373030323533222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c653a73746174696f6e2e6578616d706c6523736572766963652d6b65792d66697874757265227d",
+      "producer_binding_hex": "7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22636f6e74657874223a22616b2e6576656e745f70726f6f662e7631222c22637265617465645f6174223a22323032362d31312d30385430303a30303a30302e3030305a222c226576656e745f646967657374223a227368613235363a35386532646139616138343965646466393031353230383230333063363932643035356435366634663266653737626439653232346633326337323435323334222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b666978747572653a616c6963652e6578616d706c6523616b3a6465766963653a30313961303030302d303030302d373030302d383030302d303030303030303030303031227d",
+      "service_signing_seed_hex": "e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9",
+      "plaintexts_hex": {
+        "encrypted_content": "7b22626f6479223a226f726967696e616c207265636f76657261626c6520636f6e74656e74222c22666f726d6174223a22706c61696e222c226b696e64223a22616b2e636f6e74656e742e74657874227d",
+        "encrypted_metadata": "7b226669656c6473223a7b227469746c65223a226f726967696e616c206d65746164617461227d7d"
+      },
+      "qualification": "Real primitive Ed25519, content ID and AES-GCM bytes only; no native root PUT, Service method history, physical durability, allowed atomic unit or current signer qualification is asserted.",
+      "assertions": [
+        "original Event content ID and real producer signature verify",
+        "separate origin service signature and full original digest verify",
+        "registered body and metadata decrypt with distinct keys",
+        "validly re-signed wrong bindings, metadata omission, foreign Station and expiry reject"
+      ]
+    },
+    {
+      "name": "agent",
+      "event": {
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:agent.example",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-11-08T00:00:00.000Z",
+        "payload": {
+          "strand_id": "ak:strand:AT3ARBdH1FM6GjXK9ulTx-YMvQOXys39dlUzZV6KyID9",
+          "track_name": "discussion",
+          "encrypted_content": {
+            "version": "1.0",
+            "content_type": "application/vnd.arkret.message+json",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1",
+            "encryption_context": {
+              "epoch": "12",
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "content_key_salt": "8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PA",
+              "root_ref": "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb",
+              "key_commitment": "sha256:239615f07ff8d391251837785ca85091cd382bdb6167de08dc135079ba78477a",
+              "protection": {
+                "root_refs": [
+                  "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
+            },
+            "ciphertext": "WSQqCNGbTF0tpb6k0EKWXXwPepp5ibaG_rOWiYb349BlD2vuo6JbOvx37oAM8LUjKcggcaRFjui2Hbr0lwA4YYvMZVqLMpPK9lh4721EuvziEZQnK4ibejuwCqdTfN1C6g"
+          },
+          "encrypted_metadata": {
+            "version": "1.0",
+            "content_type": "application/vnd.arkret.message-metadata+json",
+            "encryption_scheme": "ak.encryption.epoch_content_aead.v1",
+            "encryption_context": {
+              "epoch": "12",
+              "group_state_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+              "content_key_salt": "8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fE",
+              "root_ref": "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb",
+              "key_commitment": "sha256:a0d5886c5551986d9f42df7496e0f7f0530327de09f3a115e9bd301fc1c87bd4",
+              "protection": {
+                "root_refs": [
+                  "sha256:ea8d8880e1114602a644f5f65f56f4bc487a1ce3165c8ca744af86439989ddfb"
+                ],
+                "blob_refs": [],
+                "backup_refs": [
+                  "ak:backup:019a0000-0000-7000-8000-000000000001"
+                ]
+              }
+            },
+            "ciphertext": "fX3_24v7fFqb2x4SCZCNiVucEu9hA8p1qYuZ_BxFtzl3pK9QWTW-Af0yr18S82EAmf0NminhGrg"
+          }
+        },
+        "event_id": "ak:event:AXfx47LBOqz_M4gXL-lhGE1_Z5BlHZSHWsj6leYUgoWi",
+        "producer_proof": {
+          "event_digest": "sha256:77f1e3b2c13aacff3388172fe961184d7f6790651d94875ac8fa95e6148285a2",
+          "verification_method": "did:web:agent.example#runtime-key",
+          "created_at": "2026-11-08T00:00:00.000Z",
+          "kind": "detached_jws",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..EmILE9rzTuZN_9B7KDbwhsigKSEzQoNZiXXAio7mRMJgaKBO8R369mRmNER0QwJscbOBsvzyj3aFw0oQEvVaBQ"
+        }
+      },
+      "attestation": {
+        "event_ref": "ak:event:AXfx47LBOqz_M4gXL-lhGE1_Z5BlHZSHWsj6leYUgoWi",
+        "event_original_digest": "sha256:35f359cf395d93ee9a8b92574bdd45e6bd31b88e6df28c7ba4d0a6a7520729fc",
+        "producer": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:agent.example",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "endpoint": {
+            "kind": "agent_runtime",
+            "verification_method": "did:web:agent.example#runtime-key"
+          },
+          "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+          "signature_key_base64url": "76_EL0sZLltGYy_Lj4IWX1tYG5k73KbRAA-Zj5iNOeo"
+        },
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+        },
+        "destination_service_id": "ak:did_core:web:governor.example",
+        "protections_digest": "sha256:8a3a0fcbc79b12b22b925ae20ecd869afa510071a501ff2ab57771bf31700253",
+        "verification_method": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+        "attested_at": "2026-11-08T00:00:01.000Z",
+        "expires_at": "2026-11-08T00:05:01.000Z",
+        "signature": {
+          "kid": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+          "signature_algorithm": "Ed25519",
+          "signature": "kZDM3itKUAf2Ay6TG1-S9xNftj4gBHZiVhL-1O2pEfRBISBn8r2fYyVF4xfn6ZCp7ETU58YhEQwTYRQdE_cVBg"
+        }
+      },
+      "producer": {
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:agent.example",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "endpoint": {
+          "kind": "agent_runtime",
+          "verification_method": "did:web:agent.example#runtime-key"
+        },
+        "authorization_event_ref": "ak:event:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "signature_key_base64url": "76_EL0sZLltGYy_Lj4IWX1tYG5k73KbRAA-Zj5iNOeo"
+      },
+      "origin_key": {
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample",
+        "verification_method": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+        "public_key_base64url": "CoGZfXZziJ1Q-R-gz2ZPHHpqur0D9xzw_l1orXV20zc"
+      },
+      "signing_hex": "616b2e636f6e74656e742e6261636b75705f736f757263652e76310a7b2261747465737465645f6174223a22323032362d31312d30385430303a30303a30312e3030305a222c2264657374696e6174696f6e5f736572766963655f6964223a22616b3a6469645f636f72653a7765623a676f7665726e6f722e6578616d706c65222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642227d2c226576656e745f6f726967696e616c5f646967657374223a227368613235363a33356633353963663339356439336565396138623932353734626464343565366264333162383865366466323863376261346430613661373532303732396663222c226576656e745f726566223a22616b3a6576656e743a4158667834374c424f717a5f4d3467584c2d6c684745315f5a35426c485a534857736a366c655955676f5769222c22657870697265735f6174223a22323032362d31312d30385430303a30353a30312e3030305a222c2270726f6475636572223a7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a7765623a6167656e742e6578616d706c65222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22617574686f72697a6174696f6e5f6576656e745f726566223a22616b3a6576656e743a4155464251554642515546425155464251554642515546425155464251554642515546425155464251554642222c22656e64706f696e74223a7b226b696e64223a226167656e745f72756e74696d65222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a6167656e742e6578616d706c652372756e74696d652d6b6579227d2c227369676e61747572655f6b65795f62617365363475726c223a2237365f454c30735a4c6c744759795f4c6a3449575831745947356b37334b625241412d5a6a35694e4f656f227d2c2270726f74656374696f6e735f646967657374223a227368613235363a38613361306663626337396231326232326239323561653230656364383639616661353130303731613530316666326162353737373162663331373030323533222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c653a73746174696f6e2e6578616d706c6523736572766963652d6b65792d66697874757265227d",
+      "producer_binding_hex": "7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a7765623a6167656e742e6578616d706c65222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c22636f6e74657874223a22616b2e6576656e745f70726f6f662e7631222c22637265617465645f6174223a22323032362d31312d30385430303a30303a30302e3030305a222c226576656e745f646967657374223a227368613235363a37376631653362326331336161636666333338383137326665393631313834643766363739303635316439343837356163386661393565363134383238356132222c22766572696669636174696f6e5f6d6574686f64223a226469643a7765623a6167656e742e6578616d706c652372756e74696d652d6b6579227d",
+      "service_signing_seed_hex": "e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9",
+      "plaintexts_hex": {
+        "encrypted_content": "7b22626f6479223a226f726967696e616c207265636f76657261626c6520636f6e74656e74222c22666f726d6174223a22706c61696e222c226b696e64223a22616b2e636f6e74656e742e74657874227d",
+        "encrypted_metadata": "7b226669656c6473223a7b227469746c65223a226f726967696e616c206d65746164617461227d7d"
+      },
+      "qualification": "Real primitive Ed25519, content ID and AES-GCM bytes only; no native root PUT, Service method history, physical durability, allowed atomic unit or current signer qualification is asserted.",
+      "assertions": [
+        "original Event content ID and real producer signature verify",
+        "separate origin service signature and full original digest verify",
+        "registered body and metadata decrypt with distinct keys",
+        "validly re-signed wrong bindings, metadata omission, foreign Station and expiry reject"
+      ]
+    }
+  ],
+  "security_evidence": [
+    {
+      "clause_id": "AK-NC-131",
+      "vector_id": "ak.vector.crypto.content_backup_source.v1",
+      "decision_points": [
+        {
+          "id": "explicit_origin_backup_source_binding",
+          "requirement": "Real original producer and service Ed25519 bytes bind exact original Event, actual endpoint, scope, destination, every registered protection slot and bounded observation window; native role and storage remain external.",
+          "evidence": [
+            "/cases/0",
+            "/cases/1"
+          ]
+        }
+      ]
+    }
+  ]
+}

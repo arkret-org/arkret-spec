@@ -149,6 +149,10 @@
       "sha256": "5951da0968d1b6f16faed1e98d2d841fecaec5e49a3b790bd6435ac76eab64ba"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/content-backup-source-fixture.json",
+      "sha256": "2919573c33e4323f15815553f60d3aa804d989a2befc27742aa592b4d7661123"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
       "sha256": "dd8fa1414495c40f201d7c5307cad98e60c8dc3a7f7f626426bea90fa906b179"
     },

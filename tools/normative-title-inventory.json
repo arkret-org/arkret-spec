@@ -293,6 +293,11 @@
     },
     {
       "page": "crypto-media/content-history.md",
+      "heading": "3.1 跨Station的根保管来源（normative）",
+      "fragment": "31-跨station的根保管来源normative"
+    },
+    {
+      "page": "crypto-media/content-history.md",
       "heading": "8. 历史根领取、policy轮换与Agent备份主体（normative）",
       "fragment": "8-历史根领取policy轮换与agent备份主体normative"
     },

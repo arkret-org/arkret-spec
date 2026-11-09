@@ -991,6 +991,74 @@
         }
       },
       "additionalProperties": false
+    },
+    "backup_source_attestation": {
+      "type": "object",
+      "required": [
+        "event_ref",
+        "event_original_digest",
+        "producer",
+        "effective_scope",
+        "destination_service_id",
+        "protections_digest",
+        "verification_method",
+        "attested_at",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "event_original_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "producer": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "protections_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "attested_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Origin backup-keeper statement over the exact complete original Event and registered protection slots. The issuer verifies native accepted root storage, sufficient recipient and permanent retention from first PUT; a signer-only proof or copied ciphertext cannot issue this statement. The statement grants no writer, membership, read or migration authority."
+    },
+    "backup_source": {
+      "type": "object",
+      "required": [
+        "attestation",
+        "origin_resolution"
+      ],
+      "properties": {
+        "attestation": {
+          "$ref": "#/$defs/backup_source_attestation"
+        },
+        "origin_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
