@@ -208,9 +208,14 @@ def build(include_sources=False):
                     "signing_seed_hex": bytes(range(32)).hex(), "signature_base64url": b64(signer.sign(original)),
                     "original_digest": "sha256:" + hashlib.sha256(original).hexdigest()}}
     from tools.recovery_scope_cleanup import fixture as retirement_fixture
+    # The recovering subject keeps its original PCR. Only this independent
+    # ordinary Realm is eligible for the fixture's governance handoff.
+    retirement_genesis = 'ak:event:' + b64(b'\x01' + bytes([209]) * 32)
     result['scope_retirement'] = retirement_fixture(replacement, {
-        'effective_scope': coordinate['effective_scope'], 'genesis_event_ref': coordinate['genesis_event_ref'],
-        'base_group_state_ref': coordinate['group_state_ref'], 'epoch': coordinate['epoch'], 'old_leaves': []}, preparation_cut)
+        'effective_scope': {'kind': 'realm', 'realm_id': 'ak:realm:' + retirement_genesis.split(':', 2)[2]},
+        'genesis_event_ref': retirement_genesis,
+        'base_group_state_ref': 'ak:event:' + b64(b'\x01' + bytes([210]) * 32),
+        'epoch': coordinate['epoch'], 'old_leaves': []}, preparation_cut)
     if include_sources:
         result['content_backup_source_encoding'] = {'human': human_source, 'agent': agent_source}
     return result

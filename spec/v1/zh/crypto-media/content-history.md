@@ -622,7 +622,9 @@ own Station可缓存原证明及已验证历史来源以避免重取原件，但
 即使内层后来完成，旧challenge的pending观察也不改写。任何非逐字节外层重试的后继观察若更改来源签名／有效期／路由，须fresh challenge；
 仅更新同一原签source的等价历史resolution仍须独立native验真、形成新完整body身份，但不改变challenge已绑定的authorization_digest。
 同完整外层请求的合法exact retry只返回原still-valid响应、原pending观察或确定性failed_precondition，不改写已缓存响应字节；
-当前认证／授权先于cache命中。pending只表示尚未完成观察，不冻结内层终局；后续轮询使用fresh challenge形成新外层请求，
+当前认证／授权及本次来源窗口先于cache命中。首次资格核验所得确定性failed_precondition也须原子固定为该完整body／challenge的原outcome，
+不能在资格变化后用同body／challenge重算为成功；fresh challenge可在同I下形成新观察。revision_unavailable等暂不可核实原生来源的
+失败不被当作首次领域终局，也不得笼统缓存全部异常。pending只表示尚未完成观察，不冻结内层终局；后续轮询使用fresh challenge形成新外层请求，
 同I再次结算，已完成则返回同proof及新交付确认。响应／source过期后也使用fresh challenge与来源，新body不伪装成旧外层exact retry。
 终局未知先对账同I，不能改nonce创建第二意图；不存在以超时删除native obligation／永久fence的路径。
 
@@ -632,13 +634,18 @@ pending禁止两项key。前者为`{proof_digest,verification_method,public_key_
 own Station独立验证两种method各自时点的完整Service历史、合法current治理链／generation、源授权、原终局事实与本次原生交付，
 再按exact digest投影两把公钥；不让普通客户端执行Service／PCR原生verifier或信任调用者key。
 客户端从已绑定own Station消费，独立核原请求／episode／entry、I、challenge、两个摘要和两份原签；只有成功后才将cleanup导入私密cleanup Blob。
-短效delivery不写入不可变cleanup preimage；它用于本次交付验收。成功验收的exact请求／响应、key投影及episode绑定须耐久保存，
+短效delivery不写入不可变cleanup preimage；它用于本次交付验收。成功验收的exact请求／响应、key投影、episode绑定、当时验收时间及已核来源／路由依据须耐久保存，
 使重启可验证当时的合法交付，不用当前时钟否决历史验收；验证记录缺失时重新取得fresh确认，不能信本地自报verified布尔。
 原证明持续依靠不可逆fence；ready前仍核当前episode和全部scope各自结果。不能要求任意多scope的所有交付都在同一300秒窗口内。
 本窄native结果不是新的共享Event finality、membership或历史权限，消费分工与隐私例外见server-trusted-results §2。
 
 **屏障及最终完成**：临时业务屏障以effective_scope／genesis／replacement.authorization_event_ref逐episode登记，
 它与永久endpoint fence、普通membership／policy／key-access门和terminal生命周期分别维护。pending时本scope全部业务发送者阻断。
+同effective_scope／genesis／replacement.authorization_event_ref的原生收尾终局在rekeyed／removed／terminated之间互斥，
+由同一scope／episode锁序与耐久结果账本协调。失权scope收尾命令pending后若Actor重新获参与资格，必须沿§5正常rekeyed路径，
+仅在真实accepted RFC、零旧leaf及充分新根备份全部核实后，原子登记rekeyed终局并使该episode的pending retirement义务按此结果收敛；
+保留原I／来源及旧body／challenge观察，不改写旧pending，也不伪造retirement proof或经窄命令返回Root。
+已有rekeyed终局的episode不得再首次签发retirement，新的该类命令返回failed_precondition；后来再次失权也不覆盖已完成结果。
 rekeyed／removed的原生终局事务仅解除该episode的临时阻断，不等待客户端下载或全账号ready；其它并行episode阻断和普通门继续。
 removed不要求给失权者新根，实际Remove仍满足RFC的新epoch隔离。terminated永久禁止原group写入，不能通过清除临时阻断恢复。
 endpoint fence始终保留，以上变化不推进key_access_revision，不增加其唯一写者。历史终局重读不重新安装已完成的临时屏障。
@@ -728,7 +735,10 @@ replacement及pcr_cut不可重绑，prepared不得退回pending。重复GET返�
 不能把已知Blob ref或曾持旧会话当作读许可。原签检查点仍由replacement自己提交，coordinator／controller不能冒签。
 
 `prepared`不表示历史已解密、External／Remove已完成或客户端history-ready。客户端取得并核原JCS Blob、
-带域inventory摘要及全部原件／名册后，按§11.2提交自己的pending／ready进度，原RecoveryReceipt不变。
+带域inventory摘要与当前episode绑定后，即可按§11.2提交自己的pending进度；pending不以全部历史已到齐为前提。
+ready须按分支逐项验证：rekeyed核相应原件／名册、accepted RFC与充分Root备份；removed／terminated仅核§10.1
+窄原生证明及合法交付，不要求已失权scope的完整名册，也不由该证明获得业务历史。个人原PCR全部历史／coverage
+恢复及全库存终局仍是ready的必要条件，原RecoveryReceipt不变。
 若完整原生census证明从未激活任何MLS scope，inventory.entries和对应cleanup.scope_cleanups可都为空；
 仍须保存真实私密preimage并完成PCR全历史／coverage核验。已激活但无内容或无旧leaf的群必须保留真实entry，
 不得为凑非空数组伪造Genesis、leaf、External或winning Remove，也不得以schema／摘要能接受空数组证明库存完整。

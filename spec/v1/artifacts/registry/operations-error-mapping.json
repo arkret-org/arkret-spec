@@ -2290,7 +2290,7 @@
         "failed_precondition",
         "duplicate_conflict"
       ],
-      "description": "Private native recovery scope reconciliation; failed_precondition for a still-entitled actor or unprepared inventory. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
+      "description": "Private native recovery scope reconciliation; failed_precondition for unprepared inventory, a still-entitled actor at first retirement without a prior terminal, or an episode already finalized as rekeyed. An existing removed/terminated terminal remains readable after rejoin subject to current reader, source and fresh delivery checks. Deterministic first domain failures are exact-replay outcomes; temporary native unavailability is not finalization. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
       "codes": []
     },
     {
@@ -2302,7 +2302,7 @@
         "failed_precondition",
         "duplicate_conflict"
       ],
-      "description": "Private native recovery scope reconciliation; failed_precondition for a still-entitled actor or unprepared inventory. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
+      "description": "Private native recovery scope reconciliation; failed_precondition for unprepared inventory, a still-entitled actor at first retirement without a prior terminal, or an episode already finalized as rekeyed. An existing removed/terminated terminal remains readable after rejoin subject to current reader, source and fresh delivery checks. Deterministic first domain failures are exact-replay outcomes; temporary native unavailability is not finalization. No new effect on malformed, unauthorized, missing-source or conflicting nonce reuse.",
       "codes": []
     }
   ],

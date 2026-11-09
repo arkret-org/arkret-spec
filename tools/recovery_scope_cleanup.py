@@ -28,6 +28,8 @@ def request_digest(attestation):
 
 
 def terminal_source_digest(entry, source_ref, nonce):
+    if source_ref['stream_ref'] != entry['effective_scope']:
+        raise ValueError('terminal source belongs to another scope')
     binding = {'effective_scope': entry['effective_scope'], 'genesis_event_ref': entry['genesis_event_ref'],
                'terminal_event_ref': source_ref, 'nonce_base64url': nonce}
     return 'sha256:' + hashlib.sha256(b'ak.mls.scope_terminal_source.v1\n' + jcs(binding)).hexdigest()
@@ -87,6 +89,7 @@ def qualify_source(attestation, inventory, entry, reader, route, now):
     """
     from tools.content_history import inventory_digest
     qualify_reader(inventory, reader)
+    qualify_scope_governance(inventory, entry, route)
     if set(attestation) != SOURCE_FIELDS:
         raise ValueError('source is not closed')
     verify_signature(attestation, route['origin_public_key'], source=True)
@@ -111,6 +114,7 @@ def verify_retirement(result, attestation, inventory, entry, historical):
     from tools.content_history import inventory_digest
     if set(result) != {'state', 'effective_scope', 'genesis_event_ref', 'retirement_proof'}:
         raise ValueError('retirement result is not closed')
+    qualify_scope_governance(inventory, entry, historical)
     proof = result['retirement_proof']
     state = result['state']
     if state not in {'removed', 'terminated'} or state != proof['state']:
@@ -210,6 +214,13 @@ def verify_self_retirement(response, authorization, inventory, entry, reader, hi
     return proof
 
 
+class FirstFinalizationRejected(ValueError):
+    """A deterministic domain outcome after current/native qualification."""
+
+    def __init__(self):
+        super().__init__('failed_precondition')
+
+
 def settle_intent(ledger, authorization, first_eligible, candidate):
     """Native-model inner CAS. Existing terminal never re-runs first-finalization membership."""
     replacement = authorization['replacement']
@@ -223,35 +234,49 @@ def settle_intent(ledger, authorization, first_eligible, candidate):
         if row['cleanup'] is not None:
             return copy.deepcopy(row['cleanup'])
     if first_eligible:
-        raise ValueError('failed_precondition')
+        raise FirstFinalizationRejected()
     ledger[identity] = {'request_digest': intent, 'intent_bytes': intent_bytes, 'cleanup': copy.deepcopy(candidate)}
     return copy.deepcopy(candidate) if candidate is not None else {'state': 'pending'}
 
 
 def transport_replay(ledger, principal, operation, body, authorized, compute):
-    """Full-body outer replay model; the caller performs all current delivery-window checks."""
+    """Cache domain outcomes after caller current/window checks, not arbitrary failures."""
     if not authorized:
         raise ValueError('not_found')
     encoded = jcs(body)
     identity = (principal, operation, digest(body))
     if identity in ledger:
-        if ledger[identity]['body'] != encoded:
+        row = ledger[identity]
+        if row['body'] != encoded:
             raise ValueError('duplicate_conflict')
-        return copy.deepcopy(ledger[identity]['response'])
-    response = compute()
+        if row.get('failure') == 'failed_precondition':
+            raise FirstFinalizationRejected()
+        return copy.deepcopy(row['response'])
+    try:
+        response = compute()
+    except FirstFinalizationRejected:
+        ledger[identity] = {'body': encoded, 'failure': 'failed_precondition'}
+        raise
     ledger[identity] = {'body': encoded, 'response': copy.deepcopy(response)}
     return response
 
 
 def observe_delivery(ledger, authorization, compute):
-    """Check source/challenge replay before computing any new native effects."""
+    """Bind a challenge's domain outcome without freezing settlement of stable I."""
     identity = (request_digest(authorization), authorization['delivery_challenge_base64url'])
     source = digest(authorization)
     if identity in ledger:
-        if ledger[identity]['authorization_digest'] != source:
+        row = ledger[identity]
+        if row['authorization_digest'] != source:
             raise ValueError('duplicate_conflict')
-        return copy.deepcopy(ledger[identity]['observation'])
-    observation = compute()
+        if row.get('failure') == 'failed_precondition':
+            raise FirstFinalizationRejected()
+        return copy.deepcopy(row['observation'])
+    try:
+        observation = compute()
+    except FirstFinalizationRejected:
+        ledger[identity] = {'authorization_digest': source, 'failure': 'failed_precondition'}
+        raise
     ledger[identity] = {'authorization_digest': source, 'observation': copy.deepcopy(observation)}
     return observation
 
@@ -261,7 +286,7 @@ def business_send_allowed(blockers, ordinary_gates, terminal=False):
     return ordinary_gates and not blockers and not terminal
 
 
-def fixture(replacement, entry, pcr_cut):
+def fixture(replacement, entry, pcr_cut, scope_kind='ordinary_realm'):
     """Deterministic multi-signature transcript with explicit native-model assumptions."""
     from tools.content_history import inventory_digest
     replacement = copy.deepcopy(replacement)
@@ -273,6 +298,14 @@ def fixture(replacement, entry, pcr_cut):
     origin_id = replacement['actor_id']['account_id']['station_id']
     origin_method = 'did:web:origin.example#retirement'
     governor_id, governor_method = 'ak:did_core:web:governor.example', 'did:web:governor.example#retirement'
+    if scope_kind in {'human_pcr', 'user_managed_agent_pcr'}:
+        governor_id, governor_method = origin_id, 'did:web:origin.example#scope-retirement'
+    scope_cut = {**copy.deepcopy(pcr_cut), 'stream_ref': copy.deepcopy(entry['effective_scope']),
+                 'event_id': entry['base_group_state_ref'],
+                 'commit_id': 'ak:realm_commit:' + b64(b'\x01' + bytes([211]) * 32), 'stream_position': 17}
+    scope_authority = {'kind': scope_kind, 'native_source_complete': True,
+                       'effective_scope': copy.deepcopy(entry['effective_scope']),
+                       'genesis_event_ref': entry['genesis_event_ref'], 'inception_governor': governor_id}
     inventory = {'actor_id': replacement['actor_id'], 'replacement': replacement,
                  'authorization_event_ref': replacement['authorization_event_ref'], 'pcr_cut': pcr_cut, 'entries': [entry]}
     authorization = sign({'replacement': replacement, 'inventory_digest': inventory_digest(inventory),
@@ -285,13 +318,14 @@ def fixture(replacement, entry, pcr_cut):
                   'governor_verification_method': governor_method, 'eligible_at_completion': False,
                   'native_source_complete': True, 'episode_fenced': True, 'pending_admission_count': 0,
                   'old_endpoint_count': 0, 'governance_station_id': governor_id, 'governance_generation': 0,
-                  'scope_cut': pcr_cut, 'group_state_ref': entry['base_group_state_ref'], 'epoch': entry['epoch'],
+                  'scope_authority': scope_authority, 'handoff_native_qualified': False,
+                  'scope_cut': scope_cut, 'group_state_ref': entry['base_group_state_ref'], 'epoch': entry['epoch'],
                   'terminal_irreversible': True, 'terminal_all_writes_blocked': True,
-                  'terminal_source_digest': terminal_source_digest(entry, pcr_cut, authorization['nonce_base64url'])}
+                  'terminal_source_digest': terminal_source_digest(entry, scope_cut, authorization['nonce_base64url'])}
     removed = {'state': 'removed', 'replacement': replacement, 'inventory_digest': inventory_digest(inventory),
                'inventory_entry_digest': digest(entry), 'request_digest': request_digest(authorization),
                'effective_scope': entry['effective_scope'], 'genesis_event_ref': entry['genesis_event_ref'],
-               'governance_station_id': governor_id, 'governance_generation': 0, 'scope_cut': pcr_cut,
+               'governance_station_id': governor_id, 'governance_generation': 0, 'scope_cut': scope_cut,
                'group_state_ref': entry['base_group_state_ref'], 'epoch': entry['epoch'],
                'nonce_base64url': authorization['nonce_base64url'], 'attested_at': '2026-11-09T00:00:01.000Z',
                'verification_method': governor_method, 'remaining_old_leaf_count': 0}
@@ -307,6 +341,7 @@ def fixture(replacement, entry, pcr_cut):
               'inventory_prepared': True, 'custody_current': False}
     route = {'origin_service_id': origin_id, 'origin_verification_method': origin_method, 'origin_public_key': public(origin),
              'origin_native_qualified': True, 'governance_active': True, 'governance_station_id': governor_id,
+             'scope_authority': scope_authority, 'handoff_native_qualified': False,
              'governance_generation': 0, 'governor_verification_method': governor_method, 'governor_public_key': public(governor),
              'proof_and_fence_retained': True, 'retained_proof_digests': [digest(row['retirement_proof']) for row in results.values()]}
 
@@ -330,7 +365,7 @@ def fixture(replacement, entry, pcr_cut):
         return peers, selves
 
     peers, selves = deliveries(authorization, route, governor, '2026-11-09T00:00:02.000Z', '2026-11-09T00:05:00.000Z')
-    after = {**route, 'governance_station_id': 'ak:did_core:web:successor.example', 'governance_generation': 1,
+    after = {**route, 'handoff_native_qualified': True, 'governance_station_id': 'ak:did_core:web:successor.example', 'governance_generation': 1,
              'governor_verification_method': 'did:web:successor.example#retirement', 'governor_public_key': public(successor)}
     renewed = sign({**authorization, 'destination_service_id': after['governance_station_id'],
                     'delivery_challenge_base64url': b64(bytes([95]) * 32), 'attested_at': '2026-11-09T00:06:00.000Z',
@@ -348,3 +383,129 @@ def fixture(replacement, entry, pcr_cut):
             'handoff_delivery_signing_hex': signing_bytes(later_peers['removed']['delivery_attestation'], delivery=True).hex(),
             'qualification': 'Primitive signatures and separated native-model assumptions only; no real Station history, '
                              'RFC admission, durable transaction, physical import or production recovery is claimed.'}
+
+
+def qualify_scope_governance(inventory, entry, facts):
+    """Consume explicit qualified native-model origin facts, never infer eligibility from a signature.
+
+    This reference covers ordinary Realm handoff and fixed Human/managed-Agent
+    PCR/Direct origins. It does not implement a Native genesis verifier or an
+    Organization PCR eligibility path. Unknown origins fail closed.
+    """
+    origin = facts['scope_authority']
+    if (not origin['native_source_complete']
+            or origin['effective_scope'] != entry['effective_scope']
+            or origin['genesis_event_ref'] != entry['genesis_event_ref']
+            or ('scope_cut' in facts and facts['scope_cut']['stream_ref'] != entry['effective_scope'])):
+        raise ValueError('scope has no exact accepted native origin')
+    kind = origin['kind']
+    is_subject_pcr = entry['effective_scope'] == inventory['pcr_cut']['stream_ref']
+    fixed_station = inventory['replacement']['actor_id']['account_id']['station_id']
+    governor, generation = facts['governance_station_id'], facts['governance_generation']
+    if kind == 'ordinary_realm':
+        if is_subject_pcr or entry['effective_scope']['kind'] != 'realm':
+            raise ValueError('ordinary Realm classification cannot replace a PCR origin')
+        if (generation < 0 or (generation == 0 and governor != origin['inception_governor'])
+                or (generation > 0 and not facts['handoff_native_qualified'])):
+            raise ValueError('ordinary Realm handoff is not natively qualified')
+    elif kind in {'human_pcr', 'user_managed_agent_pcr', 'direct'}:
+        if (generation != 0 or governor != origin['inception_governor']
+                or (kind != 'direct' and (not is_subject_pcr or governor != fixed_station))
+                or (kind == 'direct' and is_subject_pcr)):
+            raise ValueError('fixed native origin forbids governance migration')
+    else:
+        raise ValueError('unknown native scope origin')
+
+
+def accept_self_retirement(ledger, response, authorization, inventory, entry, reader, historical, route, now):
+    """Model an atomic protected-store write after successful live source consumption."""
+    proof = verify_self_retirement(response, authorization, inventory, entry, reader, historical, route, now)
+    if proof is None:
+        raise ValueError('pending is not a durable retirement acceptance')
+    identity = digest({'authorization': authorization, 'response': response})
+    candidate = {'authorization': copy.deepcopy(authorization), 'response': copy.deepcopy(response),
+                 'inventory_digest': digest(inventory), 'entry_digest': digest(entry),
+                 'accepted_at': now, 'historical': copy.deepcopy(historical), 'route': copy.deepcopy(route)}
+    if identity in ledger:
+        if any(ledger[identity][key] != candidate[key] for key in candidate if key != 'accepted_at'):
+            raise ValueError('acceptance binding conflict')
+    else:
+        ledger[identity] = candidate
+    return identity
+
+
+def resume_accepted_retirement(ledger, identity, inventory, entry, reader):
+    """Reverify the protected original transcript at its durable acceptance time.
+
+    The ledger is a protected local-store model, not a caller-supplied portable
+    proof. Current reader/episode/custody remain independent prerequisites.
+    """
+    qualify_reader(inventory, reader)
+    if identity not in ledger:
+        raise ValueError('no durable acceptance; a fresh live delivery is required')
+    row = ledger[identity]
+    if (row['inventory_digest'] != digest(inventory) or row['entry_digest'] != digest(entry)
+            or identity != digest({'authorization': row['authorization'], 'response': row['response']})):
+        raise ValueError('durable acceptance binds another inventory or transcript')
+    return verify_self_retirement(row['response'], row['authorization'], inventory, entry, reader,
+                                  row['historical'], row['route'], row['accepted_at'])
+
+
+
+def scope_episode_identity(authorization):
+    entry, replacement = authorization['inventory_entry'], authorization['replacement']
+    return (jcs(replacement['actor_id']), replacement['authorization_event_ref'],
+            jcs(entry['effective_scope']), entry['genesis_event_ref'])
+
+
+def settle_retirement_for_scope(terminals, ledger, authorization, first_eligible, candidate):
+    """Shared native-model scope/episode CAS; the narrow command never returns roots."""
+    identity = scope_episode_identity(authorization)
+    if identity in terminals:
+        terminal = terminals[identity]
+        if terminal['inventory_digest'] != authorization['inventory_digest']:
+            raise ValueError('duplicate_conflict')
+        if terminal['cleanup']['state'] == 'rekeyed':
+            raise FirstFinalizationRejected()
+        if terminal['cleanup']['retirement_proof']['request_digest'] != request_digest(authorization):
+            raise ValueError('duplicate_conflict')
+        if not any(row['request_digest'] == request_digest(authorization)
+                   and row['intent_bytes'] == jcs(request_intent(authorization))
+                   and row['cleanup'] == terminal['cleanup'] for row in ledger.values()):
+            raise ValueError('revision_unavailable')
+    cleanup = settle_intent(ledger, authorization, first_eligible, candidate)
+    if cleanup.get('state') in {'removed', 'terminated'}:
+        terminal = {'inventory_digest': authorization['inventory_digest'], 'cleanup': copy.deepcopy(cleanup)}
+        if identity in terminals and terminals[identity] != terminal:
+            raise ValueError('duplicate_conflict')
+        terminals[identity] = terminal
+    return cleanup
+
+
+def complete_scope_rekey(terminals, blockers, authorization, result, native):
+    """An already qualified normal External Commit finalizes exactly one scope episode.
+
+    Qualified facts model the native RFC, backup durability and current scope
+    gates. This helper does not perform those verifiers or create a Commit.
+    """
+    entry = authorization['inventory_entry']
+    if (result.get('state') != 'rekeyed' or result.get('remaining_old_leaf_count') != 0
+            or result.get('effective_scope') != entry['effective_scope']
+            or result.get('genesis_event_ref') != entry['genesis_event_ref']
+            or not result.get('root_refs') or not result.get('backup_refs')
+            or result.get('winning_commit') != native['winning_commit']
+            or result['winning_commit']['stream_ref'] != entry['effective_scope']
+            or not native['current_eligible'] or not native['accepted_rfc_complete']
+            or not native['all_old_endpoints_removed'] or not native['roots_and_backups_durable']
+            or native['replacement'] != authorization['replacement']
+            or native['epoch'] <= int(entry['epoch'])):
+        raise ValueError('rekeyed completion is not natively qualified')
+    identity = scope_episode_identity(authorization)
+    terminal = {'inventory_digest': authorization['inventory_digest'], 'cleanup': copy.deepcopy(result)}
+    if identity in terminals and terminals[identity] != terminal:
+        raise ValueError('duplicate_conflict')
+    # The following models one durable atomic transaction. Other episodes and
+    # ordinary policy gates remain independent; the endpoint fence is retained.
+    terminals[identity] = terminal
+    blockers.discard(identity)
+    return copy.deepcopy(result)

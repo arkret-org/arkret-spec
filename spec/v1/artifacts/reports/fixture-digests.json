@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-history-fixture.json",
-      "sha256": "c3157081124f0c6d44fd2fee8b4793e48c4396340ac471ff331b8137f5092730"
+      "sha256": "bccd4f3049423714820bd52593075bf94d61af88e53fdada25b1b657c82534c5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

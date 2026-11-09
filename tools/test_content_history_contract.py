@@ -980,7 +980,7 @@ class ScopeRetirementContractTest(unittest.TestCase):
 
     def test_terminal_source_commitment_hides_upstream_coordinates_and_binds_nonce(self):
         from tools.recovery_scope_cleanup import terminal_source_digest, sign
-        source = {**self.inventory['pcr_cut'], 'event_id': 'ak:event:' + b64(b'\x01' + bytes([17]) * 32), 'stream_position': 991}
+        source = {**self.historical['scope_cut'], 'event_id': 'ak:event:' + b64(b'\x01' + bytes([17]) * 32), 'stream_position': 991}
         nonce = self.authorization['nonce_base64url']
         committed = terminal_source_digest(self.entry, source, nonce)
         self.assertNotEqual(committed, terminal_source_digest(self.entry, source, b64(bytes([18]) * 32)))
