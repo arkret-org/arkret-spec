@@ -5,6 +5,11 @@ from __future__ import annotations
 import hmac
 import textwrap
 
+try:
+    from ..mls_scope import verify_claim_scope
+except ImportError:
+    from mls_scope import verify_claim_scope
+
 from .core import (
     ARTIFACTS,
     Any,
@@ -3927,6 +3932,21 @@ def check_mls_keypackage_actor_ciphersuite_closure(lint: Lint) -> None:
     if not isinstance(definitions, dict):
         lint.fail(schema_path, "$defs must be an object")
         definitions = {}
+    for definition_name in ("keypackages_claim_request_body", "peer_keypackages_claim_fields"):
+        definition = definitions.get(definition_name, {})
+        if ("effective_scope" not in definition.get("required", [])
+            or definition.get("properties", {}).get("effective_scope", {}).get("$ref")
+            != "./event-payload.schema.json#/$defs/effective_scope"):
+            lint.fail(schema_path, f"$defs.{definition_name} must bind the complete executable target scope")
+    claim_inputs = [row.get("instance") for row in lifecycle.get("schema_validation_cases", []) if row.get("expect_valid")]
+    claim_inputs += [row.get("unsigned_request") for row in lifecycle.get("unsigned_selector_transcripts", [])]
+    claim_inputs += [row.get("unsigned_request") for row in lifecycle.get("cases", [])]
+    for index, request in enumerate(claim_inputs):
+        if isinstance(request, dict) and "claim_purpose" in request:
+            try:
+                verify_claim_scope(request)
+            except ValueError as error:
+                lint.fail(lifecycle_path, f"claim target scope {index}: {error}")
     for definition_name in ("keypackage_claim_record", "keypackages_upload_request_body"):
         definition = definitions.get(definition_name)
         required = definition.get("required") if isinstance(definition, dict) else None

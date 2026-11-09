@@ -1795,6 +1795,7 @@
         "required": [
           "claim_request_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
@@ -1809,6 +1810,7 @@
           "requester_account_id",
           "requester_actor_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
@@ -2667,6 +2669,7 @@
         "required": [
           "claim_request_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
@@ -2681,6 +2684,7 @@
           "requester_account_id",
           "requester_actor_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
@@ -7163,6 +7167,7 @@
         "required": [
           "claim_request_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",
@@ -7177,6 +7182,7 @@
           "requester_account_id",
           "requester_actor_id",
           "intended_realm_id",
+          "effective_scope",
           "mls_group_id",
           "claim_purpose",
           "required_capabilities",

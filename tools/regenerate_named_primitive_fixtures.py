@@ -103,6 +103,8 @@ def build(name, source):
             key = Ed25519PrivateKey.from_private_bytes(seed)
             kat[key_name]['public_key_base64url'] = b64(key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
             value = kat[object_name]
+            if object_name == 'attestation':
+                value['claim_receipt'] = copy.deepcopy(kat['claim_receipt'])
             unsigned = {key: item for key, item in value.items() if key != 'signature'}
             value['signature']['signature'] = b64(key.sign(domain.encode() + canonical(unsigned).encode()))
     elif name == 'websocket-binding-fixture.json':

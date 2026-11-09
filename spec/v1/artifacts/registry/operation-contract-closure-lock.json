@@ -192,7 +192,7 @@
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
-      "sha256": "sha256:0e54bac98e174cc59fb702604a2259fff99df2d4c318ff4715350350eb94e6e7"
+      "sha256": "sha256:eadd745d147f22631d8f899f92f4cc4efdc751b658d4e7a1a3a57b73badfd5bd"
     },
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
@@ -268,11 +268,11 @@
     },
     {
       "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:5e4dc2dd1ee3b2297b0bf403bd094db6adb3accb825957c7fc01a497f1cf6a7f"
+      "sha256": "sha256:9c09fe836cdd82878b5805cce992e4210b37e1b173abce3342f334ad837db1ef"
     },
     {
       "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
-      "sha256": "sha256:6e4cf891a1c0d9f142e79f043e0b2b1002887edf89009d194c07775c51626bec"
+      "sha256": "sha256:8d771ad622fefe909fd3fc50e7d42cb6b148b9683902978f20bac8ec1e703d64"
     },
     {
       "operation_id": "ak.peer.keys.read.lookup.v1",
@@ -280,7 +280,7 @@
     },
     {
       "operation_id": "ak.peer.mls.command.attest_add.v1",
-      "sha256": "sha256:16b22209958c8a645a6a7da7a6e8699749b78df5214ece9ea7a883edbe2eb3a9"
+      "sha256": "sha256:6c01a74f47955631db5c8d005e073f5a3430d32f4c71c955e476489cca847f5b"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
@@ -288,7 +288,7 @@
     },
     {
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
-      "sha256": "sha256:57a84fdf191c0ed0a0ff29f7168d0b3f9994e6f53ca530bd73c708402a6ac362"
+      "sha256": "sha256:7eb0f40f893c95105fb42b73f477aa51e4c23c008af1a185905b57b3ef0313d3"
     },
     {
       "operation_id": "ak.peer.realm_actor.read.material.v1",
@@ -720,7 +720,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:6caa6c185c0e7687e8ef69baffe532fcb22c4ef3facc7fb131d6c02bba7e5da3"
+      "sha256": "sha256:bd737528a26dba6413515c3b3057c14bd140e81469f1eb205a9fb5a7f0030a50"
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.consume.v1",
@@ -732,7 +732,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.read.claim.v1",
-      "sha256": "sha256:2341c59a1fa747c330c72e790c1450c83d1b68a01c28d55ac0cad1016a4ec324"
+      "sha256": "sha256:0120b825c88977361cafc8990305c00b67bc99ce4356161a079d06b1b219ba87"
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",
@@ -776,7 +776,7 @@
     },
     {
       "operation_id": "ak.self.mls.read.roster_authority.v1",
-      "sha256": "sha256:3e146ad2753acf7807a0da7e5b68f985c95a3e5d3f730e0d38e97388be68602d"
+      "sha256": "sha256:03b08d553a8014bd2a9502cac005e005d92ce8e983d431c6782eb386a325aa52"
     },
     {
       "operation_id": "ak.self.morph.read.list.v1",

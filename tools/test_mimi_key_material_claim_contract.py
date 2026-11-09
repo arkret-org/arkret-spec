@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
 from tools.generate_mimi_key_material_fixture import ART, OP, OUT, OUTCOME, REQUEST, build, digest, jcs
+from tools.mls_scope import verify_claim_scope
 
 
 def unb64(value):
@@ -17,6 +18,10 @@ def unb64(value):
 
 
 def adapter_accepts(request, world):
+    try:
+        verify_claim_scope(request)
+    except (ValueError, TypeError):
+        return False
     binding = request['service_binding']
     return (world['provider_id'] == world['source_id'] == binding['source_id']
         and world['destination_id'] == binding['destination_id']
@@ -24,6 +29,7 @@ def adapter_accepts(request, world):
         and world['room_uri'] == world['binding_room_uri']
         and world['binding_realm_id'] == request['intended_realm_id']
         and world['binding_group_id'] == request['mls_group_id']
+        and world['binding_effective_scope'] == request['effective_scope']
         and world['binding_active'] and world['native_authorized']
         and 'mimi.content.v1' in request['required_capabilities']
         and not request.get('last_resort_allowed', False))

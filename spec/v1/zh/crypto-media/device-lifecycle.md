@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-11-09
 ---
 
 ## 0. 规范语言
@@ -1001,6 +1001,20 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 `keypackages_claim_request_body`。requester 必须携带 §9.2.1 定义的 closed
 `device | agent` `requester_authorization`，并签名 exact unsigned request 与
 `service_binding`；不得携带 holder-only proof、额外 proof 容器或平行 transcript。
+
+**完整目标scope（normative）**：所有Human／Agent／Realm Actor、self／peer及MIMI复用的claim，
+原意图MUST显式携带`effective_scope`，仅可为Realm、Circle或Sidecar的closed ScopeRef；
+Direct使用其原Direct Realm的Realm scope。它与`intended_realm_id`、`mls_group_id`同时存在：
+scope的realm_id MUST逐字等于intended_realm_id，按realm-and-space §2.2固定公式派生的
+canonical MLS group ID MUST逐字等于mls_group_id。来源和目标在保留新意图／分配之前都必须校验，
+不能把只有opaque group ID的请求默认成Realm、反向解码hash或在之后从当前表猜测目标。
+effective_scope属于exact unsigned request，由原participant签名、request_digest及原签claim receipt的
+request一同绑定；重试与只读结果不改变该字段，改变scope即改变原意图。
+
+此字段仅补完整定位，不创建activation、membership、Add、内容读取或历史披露权。
+它只沿既有认证私密claim／原签结果交付；不得增加公开group-ID→scope查询或公开私有库存，
+Agent恢复库存不得由此混入controller其它私有scope。既有原件、Welcome、consume与winning结果仍须独立核验；
+claimed／expired／revoked或unknown都不能单独证明不存在已接受的Add或旧leaf。
 
 `service_binding` 必须显式绑定稳定的 source/destination Station DID。trust domain 属于部署态 transport
 坐标，不进入 participant transcript；source Station 必须从已验证的 ServiceResolution + ServiceDescribe

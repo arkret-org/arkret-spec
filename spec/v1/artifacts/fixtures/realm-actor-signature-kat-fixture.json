@@ -801,7 +801,7 @@
       "request": {
         "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
         "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "claim_purpose": "realm_membership",
         "required_capabilities": [
           "ak.content.v1"
@@ -810,6 +810,10 @@
         "target_device_ids": [
           "ak:device:019a0000-0000-7000-8000-000000000001"
         ],
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+        },
         "target_actor_id": {
           "kind": "realm",
           "realm_actor_id": {
@@ -823,7 +827,7 @@
       "signature": {
         "kid": "did:web:old-governor.example#claim",
         "signature_algorithm": "Ed25519",
-        "signature": "iz0CWzZXYPxkFodcNXmK406zh0YtZznEdqMYtnI-EZ41I7cW4Ab5iu2V2QChlZOZJTH-31HSrIVBsNFVsHjIDg"
+        "signature": "iWk2OpAsQc-qwaaSBhFwNb5JUgdglZAzGDfKkjdV8kNosn_q5MjuZGfjCiONGoRyPeUCBZ97DxSt9Dsn1SUeAA"
       },
       "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
     },
@@ -834,7 +838,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
       },
-      "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+      "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
       "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "commit_stream_position": 2,
@@ -864,7 +868,7 @@
         "request": {
           "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
           "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+          "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
           "claim_purpose": "realm_membership",
           "required_capabilities": [
             "ak.content.v1"
@@ -873,6 +877,10 @@
           "target_device_ids": [
             "ak:device:019a0000-0000-7000-8000-000000000001"
           ],
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
           "target_actor_id": {
             "kind": "realm",
             "realm_actor_id": {
@@ -886,7 +894,7 @@
         "signature": {
           "kid": "did:web:old-governor.example#claim",
           "signature_algorithm": "Ed25519",
-          "signature": "iz0CWzZXYPxkFodcNXmK406zh0YtZznEdqMYtnI-EZ41I7cW4Ab5iu2V2QChlZOZJTH-31HSrIVBsNFVsHjIDg"
+          "signature": "iWk2OpAsQc-qwaaSBhFwNb5JUgdglZAzGDfKkjdV8kNosn_q5MjuZGfjCiONGoRyPeUCBZ97DxSt9Dsn1SUeAA"
         },
         "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
       },
@@ -894,7 +902,7 @@
       "signature": {
         "kid": "did:web:new-governor.example#add",
         "signature_algorithm": "Ed25519",
-        "signature": "0AiCeK3nU0sv_n_AUKR7y1wmcqKkZTYyUDQK0Oy7iaxdX2IPev8ztoLRp6KKPucxV-Pmy-ydQm_hW4cviMHmBQ"
+        "signature": "nZjTrggozgstMZtSDTzcn-zbZGTxo0RYh72s14vFTNcCUPbCWBrKkdp61Jj1tGHTBQ2UzcvIRKXd934Qjz84Cg"
       },
       "claim_authority_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
     },

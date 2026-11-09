@@ -681,6 +681,7 @@
       "required": [
         "claim_request_id",
         "intended_realm_id",
+        "effective_scope",
         "mls_group_id",
         "claim_purpose",
         "required_capabilities",
@@ -708,6 +709,10 @@
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+          "description": "Exact executable MLS target scope, bound by the original participant signature and request digest. Its Realm and canonical MLS group ID must match intended_realm_id and mls_group_id; this locator grants no membership or disclosure."
         },
         "mls_group_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -800,6 +805,22 @@
               "pair_key"
             ],
             "properties": {
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                "properties": {
+                  "kind": {
+                    "const": "realm",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/effective_scope/properties/kind",
+                      "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/effective_scope/properties/kind",
+                      "values": [
+                        "realm"
+                      ]
+                    }
+                  }
+                }
+              },
               "last_resort_allowed": {
                 "const": false,
                 "x-arkret-value-ownership": {
@@ -1024,6 +1045,7 @@
       "required": [
         "claim_request_id",
         "intended_realm_id",
+        "effective_scope",
         "mls_group_id",
         "claim_purpose",
         "required_capabilities",
@@ -1053,6 +1075,10 @@
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+          "description": "Exact executable MLS target scope, bound by the original participant signature and request digest. Its Realm and canonical MLS group ID must match intended_realm_id and mls_group_id; this locator grants no membership or disclosure."
         },
         "mls_group_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -1151,6 +1177,22 @@
               "pair_key"
             ],
             "properties": {
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                "properties": {
+                  "kind": {
+                    "const": "realm",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/effective_scope/properties/kind",
+                      "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/effective_scope/properties/kind",
+                      "values": [
+                        "realm"
+                      ]
+                    }
+                  }
+                }
+              },
               "last_resort_allowed": {
                 "const": false,
                 "x-arkret-value-ownership": {

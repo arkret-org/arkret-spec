@@ -1,8 +1,10 @@
 """Single-boundary mutations for ordinary-client MLS verification responsibilities."""
 
 import copy
+import base64
 import unittest
 from unittest.mock import patch
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from tools.artifact_lint import mls_roster_client_roles as gate
 from tools.artifact_lint.core import Lint
@@ -23,6 +25,19 @@ class RosterClientRoleTests(unittest.TestCase):
 
     def test_committed_contract_and_signature_kat(self):
         self.assertEqual(self.run_gate(), [])
+
+    def test_valid_parent_signature_cannot_replace_original_claim_receipt(self):
+        def mutate(name, data):
+            if name == "mls-roster-client-roles-fixture.json":
+                kat = data["signature_binding_kat"]
+                parent = kat["attestation"]
+                parent["claim_receipt"]["signature"]["signature"] = base64.urlsafe_b64encode(bytes(64)).decode().rstrip("=")
+                signed = Ed25519PrivateKey.from_private_bytes(bytes(range(32, 64))).sign(
+                    gate.signing_bytes(parent, "ak.mls_add_authority_attestation.v1\n"))
+                parent["signature"]["signature"] = base64.urlsafe_b64encode(signed).decode().rstrip("=")
+                self.assertTrue(gate.verify_signature(parent, kat["attestation_signing_key"], "ak.mls_add_authority_attestation.v1\n"))
+        errors = self.run_gate(mutate)
+        self.assertTrue(any("byte-identical original signed claim receipt" in error for error in errors), errors)
 
     def test_ordinary_profile_cannot_require_history_or_network(self):
         for field in ("method_history_verifier", "live_did_discovery"):

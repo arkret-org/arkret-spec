@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "c9d0c202e1a6deadf1c9f21ab5983b6eebbdd20cf2469b593613d3bb2b1f432d"
+      "sha256": "739d55be0beceaf77d3500fd8c1205ca1f0fb2ed6a18a7817b88a88a4dc03882"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-key-material-claim-fixture.json",
-      "sha256": "ae64cb223201a3050cf63b971c6c4d33c043de1ef0322973da7054a9a5b7ff77"
+      "sha256": "b605f0f22326071b068082c5e55a6eb1188fe2e03f02e67fb42542824b402eb8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-room-binding-migration-fixture.json",
@@ -358,7 +358,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
-      "sha256": "0d700e817f2ad043ee3251539fd0b37f9bfcb25087d1b70ba968383ad845ac10"
+      "sha256": "73c21855ea67509a0e34fc7040f74cda8cca2d1121993ac83bb0787a426f7302"
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
@@ -430,7 +430,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "7fb37c9b116647e65503171f569c2a6e83653a243b4c4667a4663b05774c3ec6"
+      "sha256": "2e7f4207da230988fe0d51b0b2833b35cd29cd0e0f7ccc0a19b1a288df73a006"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json",

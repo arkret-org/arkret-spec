@@ -26,7 +26,7 @@
               "kind": "realm",
               "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
             },
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -105,7 +105,7 @@
               "kind": "realm",
               "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
             },
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -167,7 +167,7 @@
               "kind": "realm",
               "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
             },
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -232,7 +232,7 @@
               "kind": "realm",
               "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
             },
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -299,7 +299,7 @@
               "kind": "realm",
               "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
             },
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
             "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -387,7 +387,7 @@
             "station_id": "ak:did_core:web:bob-station.example"
           },
           "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+          "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
           "claim_purpose": "realm_membership",
           "required_capabilities": [
             "ak.content.v1"
@@ -395,7 +395,11 @@
           "expires_at": "2026-09-29T00:01:00.000Z",
           "target_device_ids": [
             "ak:device:019a0000-0000-7000-8000-000000000001"
-          ]
+          ],
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          }
         },
         "claimed_at": "2026-09-29T00:00:00.000Z",
         "expires_at": "2026-09-29T00:01:00.000Z",
@@ -418,7 +422,7 @@
           "kind": "realm",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
         },
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "commit_stream_position": 2,
@@ -452,7 +456,7 @@
               "station_id": "ak:did_core:web:bob-station.example"
             },
             "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+            "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
             "claim_purpose": "realm_membership",
             "required_capabilities": [
               "ak.content.v1"
@@ -460,7 +464,11 @@
             "expires_at": "2026-09-29T00:01:00.000Z",
             "target_device_ids": [
               "ak:device:019a0000-0000-7000-8000-000000000001"
-            ]
+            ],
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            }
           },
           "claimed_at": "2026-09-29T00:00:00.000Z",
           "expires_at": "2026-09-29T00:01:00.000Z",
@@ -489,7 +497,7 @@
           "kind": "realm",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
         },
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "target_epoch": "0",
         "caller_actor_id": {
@@ -511,7 +519,7 @@
           "kind": "realm",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
         },
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "target_epoch": "0",
         "caller_actor_id": {
@@ -535,7 +543,7 @@
           "kind": "realm",
           "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
         },
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "target_epoch": "0",
         "caller_actor_id": {
@@ -564,7 +572,7 @@
           "station_id": "ak:did_core:web:bob-station.example"
         },
         "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
         "claim_purpose": "realm_membership",
         "required_capabilities": [
           "ak.content.v1"
@@ -572,14 +580,18 @@
         "expires_at": "2026-09-29T00:01:00.000Z",
         "target_device_ids": [
           "ak:device:019a0000-0000-7000-8000-000000000001"
-        ]
+        ],
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+        }
       },
       "claimed_at": "2026-09-29T00:00:00.000Z",
       "expires_at": "2026-09-29T00:01:00.000Z",
       "signature": {
         "kid": "did:web:bob-station.example#key1",
         "signature_algorithm": "Ed25519",
-        "signature": "LpDewrW6f1HrI4vq7dC0tf17WLg5dT1_WUyMXjnfXjm-45UpzRCpW_rwyw_d7rv6ZPEU_CmQ4rB0GssJlZRVBg"
+        "signature": "HGCwHRtWntITDn6M6Xs6aGT-QgAFXoWKWF8BtGSiGwrCaU7Jrd4oFNP9J5vVxUlK-J1RvqjO7bwBX0D7-PBkDQ"
       }
     },
     "attestation": {
@@ -589,7 +601,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
       },
-      "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+      "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
       "genesis_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "commit_stream_position": 2,
@@ -623,7 +635,7 @@
             "station_id": "ak:did_core:web:bob-station.example"
           },
           "intended_realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+          "mls_group_id": "9mQDxHnZGnZ7xn9Rad0cNJUsMxbj3DCDioD0MWmT74M",
           "claim_purpose": "realm_membership",
           "required_capabilities": [
             "ak.content.v1"
@@ -631,21 +643,25 @@
           "expires_at": "2026-09-29T00:01:00.000Z",
           "target_device_ids": [
             "ak:device:019a0000-0000-7000-8000-000000000001"
-          ]
+          ],
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          }
         },
         "claimed_at": "2026-09-29T00:00:00.000Z",
         "expires_at": "2026-09-29T00:01:00.000Z",
         "signature": {
           "kid": "did:web:bob-station.example#key1",
           "signature_algorithm": "Ed25519",
-          "signature": "4Ff_XRaHpPUlZA3n9FJHHb0oAt9qjsOZ3DSalC40sgwpctsBGHiVNQ8M-Oyd4oXMEVtWwZ5_5e9d9FkqaMe9Bg"
+          "signature": "HGCwHRtWntITDn6M6Xs6aGT-QgAFXoWKWF8BtGSiGwrCaU7Jrd4oFNP9J5vVxUlK-J1RvqjO7bwBX0D7-PBkDQ"
         }
       },
       "attested_at": "2026-09-29T00:00:30.000Z",
       "signature": {
         "kid": "did:web:bob-station.example#key2",
         "signature_algorithm": "Ed25519",
-        "signature": "ABiajcr0Vs3vODkTe5qbX4_AaKM-I3DJdwTncMGOFUrruFMuUFlZaS2X0zMoMr0nLy94wE-tPVUHYPBr4CqfDQ"
+        "signature": "PHlpQd5AJH4zz9ZQQQrW5WW9ouTajWSnunxaqqVEhx38S2452N4BQ2m02i--dwjMQBz35tN5YvcY1CQOgsSaAA"
       }
     },
     "claim_receipt_signing_key": {

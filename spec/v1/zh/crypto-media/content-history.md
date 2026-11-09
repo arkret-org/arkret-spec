@@ -434,6 +434,9 @@ endpoint必须与冻结原RFC roster的Actor／原授权实例／签名key完全
 
 完整性来自own Station从首次Genesis／Add／External Commit开始的durable admission／claim／consume／
 outgoing-intent与accepted结果账本。origin在转发或发claim前先耐久登记exact目标，governor只接纳有该来源的入群；
+claim原意图按device-lifecycle §9.0.1同时保存原签effective_scope、intended_realm_id与mls_group_id，
+两端校验其同一目标绑定。尚无Welcome／consume的意图仍有完整scope定位；定位不证明已激活或已无旧leaf，
+不能从单向group ID反解scope、默认Realm或以claim终态替代原件／winning结果对账。
 结果沿既有committed replication／outcome对账冻结确认。恢复fence和该账本枚举在同一actor锁序下，
 此前pending admission须先对账或阻断接受，之后旧授权不得新增scope。不得以新建版本或旧数据兼容豁免漏记空群。
 服务不能把无法确认的遗漏报告为完整；这不是开放unsupported first-device PCR全历史验证分支。

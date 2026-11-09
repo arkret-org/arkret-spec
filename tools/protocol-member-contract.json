@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:0f0753e32150c6592a2cbf695ae3f4c06214eca3e351a03a381d2e0b309f5b50",
+  "contract_digest": "sha256:5040547abeeb3e08c62614e3ff3ae8788b4271538dec020a16a83202ab0b901c",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -75588,6 +75588,7 @@
             "required": [
               "claim_request_id",
               "intended_realm_id",
+              "effective_scope",
               "mls_group_id",
               "claim_purpose",
               "required_capabilities",
@@ -75615,6 +75616,10 @@
               },
               "intended_realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              },
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                "description": "Exact executable MLS target scope, bound by the original participant signature and request digest. Its Realm and canonical MLS group ID must match intended_realm_id and mls_group_id; this locator grants no membership or disclosure."
               },
               "mls_group_id": {
                 "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -75707,6 +75712,22 @@
                     "pair_key"
                   ],
                   "properties": {
+                    "effective_scope": {
+                      "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                      "properties": {
+                        "kind": {
+                          "const": "realm",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/effective_scope/properties/kind",
+                            "owner": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_fields/allOf/0/then/properties/effective_scope/properties/kind",
+                            "values": [
+                              "realm"
+                            ]
+                          }
+                        }
+                      }
+                    },
                     "last_resort_allowed": {
                       "const": false,
                       "x-arkret-value-ownership": {
@@ -75931,6 +75952,7 @@
             "required": [
               "claim_request_id",
               "intended_realm_id",
+              "effective_scope",
               "mls_group_id",
               "claim_purpose",
               "required_capabilities",
@@ -75960,6 +75982,10 @@
               },
               "intended_realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              },
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                "description": "Exact executable MLS target scope, bound by the original participant signature and request digest. Its Realm and canonical MLS group ID must match intended_realm_id and mls_group_id; this locator grants no membership or disclosure."
               },
               "mls_group_id": {
                 "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -76058,6 +76084,22 @@
                     "pair_key"
                   ],
                   "properties": {
+                    "effective_scope": {
+                      "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                      "properties": {
+                        "kind": {
+                          "const": "realm",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/effective_scope/properties/kind",
+                            "owner": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/0/then/properties/effective_scope/properties/kind",
+                            "values": [
+                              "realm"
+                            ]
+                          }
+                        }
+                      }
+                    },
                     "last_resort_allowed": {
                       "const": false,
                       "x-arkret-value-ownership": {

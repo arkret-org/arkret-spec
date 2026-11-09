@@ -60,6 +60,25 @@ class MlsKeypackageActorCiphersuiteClosureTest(unittest.TestCase):
     def test_shipped_closure_passes(self) -> None:
         self.assertEqual(self.run_gate(), [])
 
+    def test_claim_scope_is_required_in_both_signed_carriers(self) -> None:
+        relative = "schemas/keypackage-operations.schema.json"
+        for name in ["keypackages_claim_request_body", "peer_keypackages_claim_fields"]:
+            with self.subTest(name=name):
+                original = self.read(relative)
+                changed = json.loads(json.dumps(original))
+                changed["$defs"][name]["required"].remove("effective_scope")
+                self.write(relative, changed)
+                self.assert_rejected(self.run_gate(), "must bind the complete executable target scope")
+                self.write(relative, original)
+
+    def test_wrong_claim_scope_group_binding_fails_artifact_gate(self) -> None:
+        relative = "fixtures/keypackage-lifecycle-fixture.json"
+        value = self.read(relative)
+        request = value["schema_validation_cases"][0]["instance"]
+        request["mls_group_id"] = "A" * 43
+        self.write(relative, value)
+        self.assert_rejected(self.run_gate(), "claim target scope")
+
     def test_complete_actor_id_cannot_collapse_to_principal(self) -> None:
         relative = "fixtures/mls-keypackage-endpoint-kat-fixture.json"
         data = self.read(relative)

@@ -43,6 +43,10 @@
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
             "signature": "AA"
           }
+        },
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       }
     },
@@ -81,6 +85,10 @@
             "kid": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
             "signature": "AA"
           }
+        },
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       }
     },
@@ -572,10 +580,14 @@
         "required_capabilities": [
           "ak.content.v1"
         ],
-        "expires_at": "2026-08-24T00:05:00.000Z"
+        "expires_at": "2026-08-24T00:05:00.000Z",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
       },
-      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAQ\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4\",\"requester_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"required_capabilities\":[\"ak.content.v1\"],\"target_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"target_device_ids\":[\"ak:device:0196419b-0000-7000-8000-000000000002\"]}",
-      "request_digest": "sha256:fe02c61996dfef26f517d5d115b05e3e41db3097d7b0cbd2c6e16e2f5337368f"
+      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAQ\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4\",\"requester_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"required_capabilities\":[\"ak.content.v1\"],\"target_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"target_device_ids\":[\"ak:device:0196419b-0000-7000-8000-000000000002\"]}",
+      "request_digest": "sha256:1d6f600df1fda8eeb831a0fef7ae395413607ce4043578dd47d8ab1ba587e0ed"
     },
     {
       "branch": "agent",
@@ -594,10 +606,14 @@
         "required_capabilities": [
           "ak.content.v1"
         ],
-        "expires_at": "2026-08-24T00:05:00.000Z"
+        "expires_at": "2026-08-24T00:05:00.000Z",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
       },
-      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAg\",\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4\",\"requester_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"required_capabilities\":[\"ak.content.v1\"],\"target_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"target_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"target_agent_verification_method\":\"did:webvh:z6mkfixtureagent:agent.example#runtime-1\"}",
-      "request_digest": "sha256:78f7b25686f416b01fe368726366af1266c21cc0146536f01a9b04b492fb358a"
+      "canonical_jcs": "{\"claim_purpose\":\"realm_membership\",\"claim_request_id\":\"AAAAAAAAAAAAAAAAAAAAAg\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"expires_at\":\"2026-08-24T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"mls_group_id\":\"QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4\",\"requester_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturepsexample\"},\"required_capabilities\":[\"ak.content.v1\"],\"target_agent_id\":\"ak:did_core:webvh:z6mkfixtureagentexample\",\"target_agent_key_authorize_event_id\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"target_agent_verification_method\":\"did:webvh:z6mkfixtureagent:agent.example#runtime-1\"}",
+      "request_digest": "sha256:bb0334281b41b2f8a714b09e98b12719cfbaf1d21ed9b3d7add8a2b47e67aee5"
     }
   ],
   "security_evidence": [
@@ -1050,7 +1066,11 @@
         "required_capabilities": [
           "ak.content.v1"
         ],
-        "expires_at": "2026-07-31T00:05:00.000Z"
+        "expires_at": "2026-07-31T00:05:00.000Z",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
       },
       "service_binding": {
         "source_id": "ak:did_core:webvh:z6mkfixturepsexample",
@@ -1113,7 +1133,7 @@
       "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
       "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
       "strand_id": "ak:strand:AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
-      "mls_group_id": "fixture-dm-group-1",
+      "mls_group_id": "ptbBvkUKfqpoHLhFkMdKs13RIaY2e5402J9G6Cc3fnc",
       "last_resort_allowed": false,
       "negative_mutations": [
         "missing_requester_authorization",
@@ -1148,7 +1168,11 @@
         "business failures do not expose target inventory or per-device reasons",
         "claims_digest and the destination receipt cover returned evidence bytes but never replace the underlying identity-root, RealmCommit and current-authority verification",
         "device and Agent evidence branches are exact XOR and cannot fall back to one another"
-      ]
+      ],
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT"
+      }
     },
     {
       "name": "welcome_keypackage_hash",

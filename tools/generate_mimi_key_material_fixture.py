@@ -100,7 +100,7 @@ def build():
     case('old_narrow_keypackages_outcome_rejected', OUTCOME, {'keypackages': [{
         'device_id': claim['device_id'], 'keypackage_ref': claim['keypackage_ref'],
         'mls_keypackage': claim['keypackage']}]}, False)
-    for field in ('requester_authorization', 'service_binding', 'claim_request_id', 'target_account_id'):
+    for field in ('requester_authorization', 'service_binding', 'claim_request_id', 'target_account_id', 'effective_scope'):
         changed = deepcopy(request)
         del changed[field]
         case('missing_' + field, REQUEST, changed, False)
@@ -124,6 +124,7 @@ def build():
         'binding_room_uri': 'mimi://station.example/room',
         'binding_realm_id': request['intended_realm_id'],
         'binding_group_id': request['mls_group_id'],
+        'binding_effective_scope': request['effective_scope'],
         'binding_active': True, 'native_authorized': True,
     }
     decisions = [{'name': 'eligible_native_source', 'overrides': {}, 'expect_valid': True}]
@@ -133,6 +134,7 @@ def build():
         ('destination_id', request['service_binding']['source_id']),
         ('idempotency_key', 'another-request'), ('binding_room_uri', 'mimi://station.example/other'),
         ('binding_realm_id', 'another-realm'), ('binding_group_id', 'another-group'),
+        ('binding_effective_scope', {'kind': 'realm', 'realm_id': 'another-realm'}),
         ('binding_active', False), ('native_authorized', False),
     ):
         decisions.append({'name': 'reject_' + field, 'overrides': {field: value}, 'expect_valid': False})

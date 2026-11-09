@@ -11,6 +11,11 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .core import ARTIFACTS, Lint, load_json
 
+try:
+    from ..mls_scope import verify_claim_scope
+except ImportError:
+    from mls_scope import verify_claim_scope
+
 
 def signing_bytes(value: dict, domain: str) -> bytes:
     unsigned = {key: item for key, item in value.items() if key != "signature"}
@@ -115,6 +120,16 @@ def check_mls_roster_client_roles(lint: Lint) -> None:
     if not required_cases <= names:
         lint.fail(fixture_path, "required native/role/network/MLS named-suite cases missing")
     kat = fixture["signature_binding_kat"]
+    nested_receipt = kat["attestation"]["claim_receipt"]
+    if (nested_receipt != kat["claim_receipt"] or not verify_signature(
+            nested_receipt, kat["claim_receipt_signing_key"], "ak.peer-keypackage-claim-receipt-v1\n")):
+        lint.fail(fixture_path, "Add must embed the byte-identical original signed claim receipt")
+    try:
+        verify_claim_scope(kat["claim_receipt"]["request"])
+        if kat["claim_receipt"]["request"]["effective_scope"] != kat["attestation"]["effective_scope"]:
+            raise ValueError("claim and Add target scopes differ")
+    except ValueError as error:
+        lint.fail(fixture_path, f"claim target scope: {error}")
     for object_name, key_name, domain in (
         ("claim_receipt", "claim_receipt_signing_key", "ak.peer-keypackage-claim-receipt-v1\n"),
         ("attestation", "attestation_signing_key", "ak.mls_add_authority_attestation.v1\n"),
