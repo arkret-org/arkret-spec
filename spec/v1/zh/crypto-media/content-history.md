@@ -688,6 +688,28 @@ endpoint fence始终保留，以上变化不推进key_access_revision，不增�
 - 记录逐字绑定前序episode／I及义务集合、后继授权／因果链、源终局的exact摘要与实际accepted来源及覆盖依据；
   exact重复只读同记录，冲突为duplicate_conflict且零新增效果，缺原件或覆盖不足不释放。对多个前序逐项结算，未覆盖者继续阻断。
   若前序自身合法终局已在竞争锁序中先完成，则保留该原终局并视其义务已完成，不另造满足记录；两条路径不得互相覆盖。
+  若前序已被另一合法episode的满足记录完成，也必须核验并复用原记录，不能为本后继重建一份不同来源／cut的记录。
+  冻结关联仍列出该前序，既有完成事实使它不再需要新的满足写入；不能为避免冲突删除冻结引用或生成新nonce。
+
+**已有满足记录的复用与写入分离**：完成协调和ready检查在同锁下逐项选择“原自身终局”“原已验证满足记录”或“尚待满足”路径。
+复用须逐字核原前序I／义务集合及Actor／scope／genesis，原满足来源的后继授权、origin原签因果声明和当时完整Service方法来源，
+原安全终局／exact cut、端点／准入覆盖及永久fence。原授权声明按原合法接纳时点和原key验证，不对旧episode重新开放API或要求其source现在仍有效。
+记录与其原签来源、完整原生验证依据、accepted原件／引用须同事务保管；仅保存摘要、record key、verified bool或重算另一来源不足以复用。
+当前治理方每次复用还须核真实current authority、记录／原件实际保管或依法完整导入、所有相关永久fence及准入关闭状态；
+历史验证快照不能代替本次原生保管检查。缺损／未知／未导入为revision_unavailable并保持屏障，不以“已有记录”跳过。该门用于新的原生收尾／完成验收及交付，
+不回溯推翻已合法耐久验收的历史结果，也不把离线重启续用变成新的completion lease。
+核验成功仅消费原完成事实，原记录和旧观察逐字不变，不写成当前episode的新满足记录。显式尝试写入另一候选记录仍为duplicate_conflict；
+“合法原记录复用”与“不同候选覆盖写入”是不同的原生操作，不能用后者的CAS冲突规则阻断前者。
+当前后继自己的安全终局仍须在其exact cut核全关联集合覆盖；复用旧记录不豁免当前accepted RFC、隔离、充分备份和普通门。
+一个后继满足多个前序时逐项选择并验证，任一不充分则不发布后继完成或释放未核实义务。ready与完成协调使用相同复用判定。
+若原自身终局或原满足来源为terminated，原group的不可逆生命周期继续，不得支持终止后的新rekeyed／新epoch／新Root。
+合法早于终止的rekeyed／removed历史结果不回溯改写；目标scope的旧winning cut可以等于派生终止证明的最后目标cut，
+因为真实终态来源可能在另一个stream且没有子scope tombstone。只在同stream核目标cut顺序，不跨stream比较position；
+当前terminal写禁独立保持，历史结果的验收不授现在写权。每笔新原生接受都在其实际接受cut核生命周期，不能用旧snapshot签发新写入。
+
+所有winning／scope cut的exact committed ref均按authority-commit-log §3／§5的不可变Commit与exact四元组核原件：同commit_id不得更换Event、stream或position，
+同Event／同stream position也不得被另一成功Commit替代。候选引用与native局部镜像相同不够，必须与独立核实的原生原件索引逐字段相符；
+真实原件仍须重算ID、验签并核接受资格，schema形状、opaque测试ID或native已验证输入本身不替代这一步。
 
 该记录仅是私有原生安全账本，**不是第四种scope_cleanup、旧episode的rekeyed／retirement proof或可移植读取许可**。
 不将E2的Root、证明或授权替换进E1 cleanup Blob，不使旧episode重新ready；原历史proof／观察持续不可变，永久fence不删除。

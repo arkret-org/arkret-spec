@@ -783,3 +783,10 @@ fixture签名／schema及显式native模型输入不冒称真实RFC、原生事�
 - 反例：首次拒绝后同nonce换entry／scope／inventory／replacement（授权实例不变）、并发跨governor换绑均duplicate_conflict，
   fresh challenge、外层缓存过期、重签来源或handoff不能规避。当前资格／来源窗口／原生来源未通过不创建新预留；
   已预留后临时不可用不抹绑定，也不伪造终局。
+
+已有满足记录的具名组合还须覆盖：E2安全终局已形成、其E1满足记录延后，E3先冻结E1关联；随后E1由E2满足，E3核原记录并完成，原记录／观察／永久fence不改写。
+相反锁序、受保护重启、允许类别handoff后核实际导入、多个前序中“已有完成＋仍待满足”的混合均须收敛。
+缺当前原生保管、原签来源／历史方法／终局／exact cut、错I／Actor／scope／genesis、缺fence／准入关闭均不得因记录存在而放行；
+显式不同候选记录仍冲突。terminated原来源继续永久写禁，不能支持终止后的新rekeyed；合法的更早历史与相同目标cut的派生终态不被回溯否定，不能跨stream比position。
+前序自身先完成正例使用两个独立winning Commit与一致的native basis；反例覆盖同Commit ID改Event／scope／position、
+重复ID指向矛盾原件，以及候选和局部native镜像同时篡改但与独立已验证引用索引不一致。该索引是native模型输入，不宣称真实content-ID、RFC或authority验证已执行。

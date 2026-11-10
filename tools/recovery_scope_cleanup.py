@@ -4,6 +4,8 @@ import copy
 import hashlib
 from datetime import datetime
 
+from cryptography.exceptions import InvalidSignature
+
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
@@ -522,6 +524,26 @@ def settle_retirement_for_scope(terminals, ledger, authorization, first_eligible
     return cleanup
 
 
+def verify_exact_committed_ref(reference, accepted_refs):
+    """Compare all four members with a separately qualified native ref index.
+
+    Entries are a relevant subset of already verified native originals, not
+    self-declared candidates or a proof of complete stream/RFC verification.
+    """
+    identities, positions, events = {}, {}, {}
+    for item in accepted_refs:
+        identity = item['commit_id']
+        position = (jcs(item['stream_ref']), item['stream_position'])
+        event = item['event_id']
+        if (identity in identities and identities[identity] != item
+                or position in positions and positions[position] != item
+                or event in events and events[event] != item):
+            raise ValueError('inconsistent immutable native Commit references')
+        identities[identity], positions[position], events[event] = item, item, item
+    if identities.get(reference['commit_id']) != reference:
+        raise ValueError('exact Commit reference is not in the qualified native index')
+
+
 def complete_scope_rekey(terminals, blockers, authorization, result, native):
     """An already qualified normal External Commit finalizes exactly one scope episode.
 
@@ -536,10 +558,13 @@ def complete_scope_rekey(terminals, blockers, authorization, result, native):
             or result.get('winning_commit') != native['winning_commit']
             or result['winning_commit']['stream_ref'] != entry['effective_scope']
             or not native['current_eligible'] or not native['accepted_rfc_complete']
+            or native['terminal_at_completion_cut']
+            or not native['current_governance_qualified'] or not native['handoff_import_complete']
             or not native['all_old_endpoints_removed'] or not native['roots_and_backups_durable']
             or native['replacement'] != authorization['replacement']
             or native['epoch'] <= int(entry['epoch'])):
         raise ValueError('rekeyed completion is not natively qualified')
+    verify_exact_committed_ref(result['winning_commit'], native['accepted_commit_refs'])
     identity = scope_episode_identity(authorization)
     terminal = {'inventory_digest': authorization['inventory_digest'], 'cleanup': copy.deepcopy(result)}
     if identity in terminals and terminals[identity] != terminal:
@@ -551,24 +576,29 @@ def complete_scope_rekey(terminals, blockers, authorization, result, native):
     return copy.deepcopy(result)
 
 
-def satisfy_predecessor_obligation(terminals, obligations, satisfactions, blockers,
-                                   predecessor, successor, native):
-    """Private native audit CAS, never an old-episode cleanup or a reader permit.
-
-    Inputs model complete retained native sources and causality, not network
-    attestations or caller assertions. The source terminal must already have
-    passed its normal RFC/retirement verifiers. Each predecessor is settled
-    separately, even when one successor terminal covers several predecessors.
-    """
+def _satisfaction_record(terminals, obligations, predecessor, successor, native):
+    """Reconstruct an audit from retained, qualified facts, without mutating it."""
     old, new = scope_episode_identity(predecessor), scope_episode_identity(successor)
     if (old == new or old[0] != new[0] or old[2:] != new[2:]
             or old[1] not in successor['predecessor_authorization_event_refs']
-            or old not in obligations or old in terminals or new not in terminals):
+            or old not in obligations or new not in terminals):
         raise ValueError('no exact pending predecessor and qualified successor terminal')
     obligation, terminal = obligations[old], terminals[new]
     cleanup = terminal['cleanup']
     source_cut = (cleanup['winning_commit'] if cleanup['state'] == 'rekeyed'
                   else cleanup['retirement_proof']['scope_cut'])
+    entry = successor['inventory_entry']
+    if (cleanup['effective_scope'] != entry['effective_scope']
+            or cleanup['genesis_event_ref'] != entry['genesis_event_ref']
+            or source_cut['stream_ref'] != entry['effective_scope']):
+        raise ValueError('original source selects another target scope')
+    verify_exact_committed_ref(source_cut, native['accepted_commit_refs'])
+    if (set(successor) != SOURCE_FIELDS or not native['origin_native_qualified']
+            or native['origin_service_id'] != successor['replacement']['actor_id']['account_id']['station_id']
+            or native['origin_verification_method'] != successor['verification_method']
+            or not moment(successor['attested_at']) <= moment(native['causal_source_accepted_at']) < moment(successor['expires_at'])):
+        raise ValueError('original causal source is not natively qualified')
+    verify_signature(successor, native['origin_public_key'], source=True)
     chain = native['supersedes_chain']
     if (obligation['request_digest'] != request_digest(predecessor)
             or obligation['intent_bytes'] != jcs(request_intent(predecessor))
@@ -579,6 +609,7 @@ def satisfy_predecessor_obligation(terminals, obligations, satisfactions, blocke
             or native['source_cleanup_digest'] != digest(terminal['cleanup'])
             or native['coverage_source_ref'] != source_cut
             or not native['source_native_qualified'] or not native['source_facts_durable']
+            or not native['current_governance_qualified'] or not native['handoff_import_complete']
             or not native['supersedes_chain_qualified'] or len(chain) < 2
             or len(set(chain)) != len(chain) or chain[0] != old[1] or chain[-1] != new[1]
             or not set(obligation['endpoint_ids']) <= set(native['covered_endpoint_ids'])
@@ -588,21 +619,79 @@ def satisfy_predecessor_obligation(terminals, obligations, satisfactions, blocke
         raise ValueError('predecessor coverage, fences or native causality unavailable')
     state = terminal['cleanup']['state']
     if ((state in {'rekeyed', 'removed'} and not native['all_old_endpoints_removed'])
-            or (state == 'terminated' and (not native['terminal_irreversible']
+            or (state == 'terminated' and (not native['scope_terminal'] or not native['terminal_irreversible']
                                           or not native['terminal_all_writes_blocked']))
             or state not in {'rekeyed', 'removed', 'terminated'}):
         raise ValueError('source does not safely satisfy predecessor obligation')
-    record = {'predecessor_request_digest': request_digest(predecessor),
+    return {'predecessor_request_digest': request_digest(predecessor),
               'successor_authorization_event_ref': new[1],
               'source_cleanup_digest': native['source_cleanup_digest'], 'source_state': state,
               'source_scope_cut': copy.deepcopy(source_cut),
               'supersedes_chain': copy.deepcopy(chain),
               'endpoint_ids': sorted(set(obligation['endpoint_ids'])),
-              'admission_ids': sorted(set(obligation['admission_ids']))}
+              'admission_ids': sorted(set(obligation['admission_ids'])),
+              'source_authorization': copy.deepcopy(successor),
+              'source_native_basis': copy.deepcopy(native)}
+
+
+def satisfaction_custody(record, native):
+    """Project fresh qualified keeper facts; this is not a portable certificate.
+
+    A real provider must query current native authority, retained originals,
+    import and fence ledgers. Copying a prior snapshot or a caller boolean does
+    not establish these inputs. No current reader permission is conferred.
+    """
+    return {'record_digest': digest(record),
+            'actor_id': copy.deepcopy(native['subject_actor_id']),
+            'effective_scope': copy.deepcopy(native['effective_scope']),
+            'genesis_event_ref': native['genesis_event_ref'],
+            'current_governance_qualified': native['current_governance_qualified'],
+            'source_retention_complete': native['source_facts_durable'],
+            'handoff_import_complete': native['handoff_import_complete'],
+            'scope_terminal': native['scope_terminal'],
+            'retained_fence_endpoint_ids': copy.deepcopy(native['retained_fence_endpoint_ids']),
+            'closed_admission_ids': copy.deepcopy(native['closed_admission_ids'])}
+
+
+def verify_satisfaction_record(terminals, obligations, satisfactions, predecessor, custody):
+    """Reverify the original immutable audit and its fresh native custody."""
+    old = scope_episode_identity(predecessor)
+    try:
+        record, obligation = satisfactions[old], obligations[old]
+        if (custody is None or custody['record_digest'] != digest(record)
+                or custody['actor_id'] != predecessor['replacement']['actor_id']
+                or custody['effective_scope'] != predecessor['inventory_entry']['effective_scope']
+                or custody['genesis_event_ref'] != predecessor['inventory_entry']['genesis_event_ref']
+                or not custody['current_governance_qualified'] or not custody['source_retention_complete']
+                or not custody['handoff_import_complete']
+                or (record['source_state'] == 'terminated' and not custody['scope_terminal'])
+                or not set(obligation['endpoint_ids']) <= set(custody['retained_fence_endpoint_ids'])
+                or not set(obligation['admission_ids']) <= set(custody['closed_admission_ids'])):
+            raise ValueError('revision_unavailable: original satisfaction is not in current native custody')
+        expected = _satisfaction_record(terminals, obligations, predecessor,
+                                         record['source_authorization'], record['source_native_basis'])
+    except (KeyError, TypeError, InvalidSignature) as exc:
+        raise ValueError('revision_unavailable: original satisfaction sources are incomplete') from exc
+    if record != expected:
+        raise ValueError('duplicate_conflict')
+    return copy.deepcopy(record)
+
+
+def satisfy_predecessor_obligation(terminals, obligations, satisfactions, blockers,
+                                   predecessor, successor, native, custody=None):
+    """Private write CAS; a different candidate never overwrites a stored audit.
+
+    Reuse is a separate verified read, performed by completion/ready paths.
+    Sources in the audit are private native evidence, never a cleanup response.
+    """
+    old = scope_episode_identity(predecessor)
+    if old in terminals:
+        raise ValueError('predecessor own terminal already won')
+    record = _satisfaction_record(terminals, obligations, predecessor, successor, native)
     if old in satisfactions:
         if satisfactions[old] != record:
             raise ValueError('duplicate_conflict')
-        return copy.deepcopy(satisfactions[old])
+        return verify_satisfaction_record(terminals, obligations, satisfactions, predecessor, custody)
     # One native transaction persists the audit record and releases only this
     # obligation. Immutable old results, observations and fences are untouched.
     satisfactions[old] = record
@@ -610,7 +699,7 @@ def satisfy_predecessor_obligation(terminals, obligations, satisfactions, blocke
     return copy.deepcopy(record)
 
 
-def successor_completion_ready(terminals, obligations, satisfactions, successor, predecessors):
+def successor_completion_ready(terminals, obligations, satisfactions, successor, predecessors, custodies=None):
     """Qualified complete census gates outward completion, not a new wire flag.
 
     The predecessor list must come from the complete native census, not a
@@ -626,14 +715,43 @@ def successor_completion_ready(terminals, obligations, satisfactions, successor,
             return False
         own_terminal = terminals.get(identity)
         if own_terminal is not None and own_terminal['inventory_digest'] == old['inventory_digest']:
+            if (own_terminal['cleanup']['state'] == 'terminated' and terminal_blocks_rekey(
+                    own_terminal['cleanup']['retirement_proof']['scope_cut'], terminals[current]['cleanup'])):
+                return False
             continue
-        if identity not in obligations or identity not in satisfactions:
+        try:
+            verify_satisfaction_record(terminals, obligations, satisfactions, old,
+                                         (custodies or {}).get(identity))
+            if (satisfactions[identity]['source_state'] == 'terminated' and terminal_blocks_rekey(
+                    satisfactions[identity]['source_scope_cut'], terminals[current]['cleanup'])):
+                return False
+        except ValueError:
             return False
     return True
 
 
+def terminal_blocks_rekey(terminal_cut, cleanup):
+    """No new rekey after a known terminal boundary; earlier history remains valid.
+
+    A child scope can have no tombstone: its last target cut may be exactly an
+    earlier winning Commit, with termination sourced from a different stream.
+    Never compare positions across those two streams or infer a new root from
+    the terminal. Native lifecycle/acceptance verification remains required.
+    """
+    if cleanup['state'] != 'rekeyed':
+        return False
+    winning = cleanup['winning_commit']
+    if winning['stream_ref'] != terminal_cut['stream_ref']:
+        return True
+    try:
+        verify_exact_committed_ref(winning, [terminal_cut, winning])
+    except ValueError:
+        return True
+    return winning['stream_position'] > terminal_cut['stream_position']
+
+
 def finalize_successor_rekey(terminals, obligations, satisfactions, blockers,
-                             successor, result, rekey_native, predecessor_sources):
+                             successor, result, rekey_native, predecessor_sources, custodies=None):
     """Stage all native checks before the terminal/coverage atomic publication.
 
     predecessor_sources is the complete trusted census paired with historical
@@ -641,6 +759,7 @@ def finalize_successor_rekey(terminals, obligations, satisfactions, blockers,
     not a production persistence implementation.
     """
     staged_terminals, staged_records, staged_blockers = copy.deepcopy((terminals, satisfactions, blockers))
+    current_custodies = copy.deepcopy(custodies or {})
     refs = sorted(old['replacement']['authorization_event_ref'] for old, _ in predecessor_sources)
     if refs != successor['predecessor_authorization_event_refs']:
         raise ValueError('revision_unavailable: incomplete signed predecessor census')
@@ -648,10 +767,18 @@ def finalize_successor_rekey(terminals, obligations, satisfactions, blockers,
     for predecessor, native in predecessor_sources:
         old = scope_episode_identity(predecessor)
         if old not in staged_terminals:
-            satisfy_predecessor_obligation(staged_terminals, obligations, staged_records, staged_blockers,
-                                            predecessor, successor, native)
+            if old in staged_records:
+                # Current-cut safety still holds; the original audit keeps its
+                # own historical source instead of being rewritten for E3.
+                _satisfaction_record(staged_terminals, obligations, predecessor, successor, native)
+                verify_satisfaction_record(staged_terminals, obligations, staged_records, predecessor,
+                                             current_custodies.get(old))
+            else:
+                record = satisfy_predecessor_obligation(staged_terminals, obligations, staged_records, staged_blockers,
+                                                         predecessor, successor, native)
+                current_custodies[old] = satisfaction_custody(record, native)
     if not successor_completion_ready(staged_terminals, obligations, staged_records, successor,
-                                      [old for old, _ in predecessor_sources]):
+                                      [old for old, _ in predecessor_sources], current_custodies):
         raise ValueError('revision_unavailable')
     terminals.clear()
     terminals.update(staged_terminals)
@@ -704,6 +831,9 @@ def combination_fixture(base):
                'backup_refs': ['ak:backup:019b0000-0000-7000-8000-000000000001']}
     rekey_native = {'winning_commit': winning, 'current_eligible': True, 'accepted_rfc_complete': True,
                     'all_old_endpoints_removed': True, 'roots_and_backups_durable': True,
+                    'current_governance_qualified': True, 'handoff_import_complete': True,
+                    'terminal_at_completion_cut': False,
+                    'accepted_commit_refs': [historical['scope_cut'], winning],
                     'replacement': replacement, 'epoch': int(entry['epoch']) + 1}
     obligation = {'request_digest': request_digest(base['authorization']),
                   'intent_bytes_hex': jcs(request_intent(base['authorization'])).hex(),
@@ -713,6 +843,13 @@ def combination_fixture(base):
                 'genesis_event_ref': entry['genesis_event_ref'], 'source_cleanup_digest': digest(rekeyed),
                 'coverage_source_ref': winning,
                 'source_native_qualified': True, 'source_facts_durable': True,
+                'current_governance_qualified': True, 'handoff_import_complete': True,
+                'scope_terminal': False,
+                'accepted_commit_refs': [historical['scope_cut'], winning],
+                'origin_service_id': later['current_delivery']['origin_service_id'],
+                'origin_verification_method': later['current_delivery']['origin_verification_method'],
+                'origin_public_key': later['current_delivery']['origin_public_key'], 'origin_native_qualified': True,
+                'causal_source_accepted_at': '2026-11-09T00:10:03.000Z',
                 'supersedes_chain': [base['authorization']['replacement']['authorization_event_ref'],
                                      replacement['authorization_event_ref']],
                 'supersedes_chain_qualified': True,
@@ -720,7 +857,8 @@ def combination_fixture(base):
                 'closed_admission_ids': obligation['admission_ids'],
                 'retained_fence_endpoint_ids': obligation['endpoint_ids'] + ['displaced-D1'],
                 'all_admission_paths_closed': True,
-                'all_old_endpoints_removed': True, 'terminal_irreversible': True, 'terminal_all_writes_blocked': True}
+                'all_old_endpoints_removed': True, 'terminal_irreversible': False, 'terminal_all_writes_blocked': False}
+    reuse = satisfaction_reuse_fixture(base, later, source, rekeyed, rekey_native, coverage)
     return {'qualification': 'Real primitive source/proof signatures and explicit native-model premises only; '
                              'no real RFC, causal authority, native transaction or production recovery.',
             'first_rejection': {'inventory': inventory, 'first_source': first, 'other_source': second,
@@ -734,4 +872,42 @@ def combination_fixture(base):
                                     'historical': historical, 'retirement_results': retired,
                                     'rekeyed': rekeyed, 'rekey_native': rekey_native,
                                     'predecessor_obligation': obligation, 'coverage': coverage,
-                                    'expected': 'private_satisfaction_releases_exact_predecessor_not_old_ready'}}
+                                    'expected': 'private_satisfaction_releases_exact_predecessor_not_old_ready'},
+            'satisfaction_reuse': reuse}
+
+
+def satisfaction_reuse_fixture(base, previous, source, rekeyed, rekey_native, coverage,
+                                seed=241, ordinal=3, minute=20, predecessor_refs=None):
+    """A successor freezes unresolved ancestors before earlier audits settle."""
+    event = lambda seed: 'ak:event:' + b64(b'\x01' + bytes([seed]) * 32)
+    commit = lambda seed: 'ak:realm_commit:' + b64(b'\x01' + bytes([seed]) * 32)
+    replacement = copy.deepcopy(source['replacement'])
+    replacement['authorization_event_ref'] = event(seed)
+    replacement['endpoint']['device_id'] = f'ak:device:019a0000-0000-7000-8000-{ordinal + 1:012d}'
+    key = Ed25519PrivateKey.from_private_bytes(bytes([seed + 1]) * 32)
+    replacement['signature_key_base64url'] = b64(key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))
+    cut = {**previous['inventory']['pcr_cut'], 'event_id': replacement['authorization_event_ref'],
+           'commit_id': commit(seed + 2), 'stream_position': previous['inventory']['pcr_cut']['stream_position'] + 2}
+    third = fixture(replacement, source['inventory_entry'], cut)
+    origin = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(base['origin_signing_seed_hex']))
+    refs = sorted(predecessor_refs if predecessor_refs is not None else [base['authorization']['replacement']['authorization_event_ref']])
+    authorization = sign({**third['authorization'], 'predecessor_authorization_event_refs': refs,
+                          'attested_at': f'2026-11-09T00:{minute:02d}:00.000Z',
+                          'expires_at': f'2026-11-09T00:{minute + 5:02d}:00.000Z'},
+                         origin, source=True)
+    winning = {**rekeyed['winning_commit'], 'event_id': event(seed + 3), 'commit_id': commit(seed + 4),
+               'stream_position': rekeyed['winning_commit']['stream_position'] + 2}
+    result = {**copy.deepcopy(rekeyed), 'winning_commit': winning, 'root_refs': ['sha256:' + str(ordinal) * 64],
+              'backup_refs': [f'ak:backup:019b0000-0000-7000-8000-{ordinal:012d}']}
+    accepted = [*rekey_native['accepted_commit_refs'], winning]
+    native = {**copy.deepcopy(rekey_native), 'replacement': replacement, 'winning_commit': winning,
+              'accepted_commit_refs': accepted, 'epoch': rekey_native['epoch'] + 2}
+    basis = {**copy.deepcopy(coverage), 'source_cleanup_digest': digest(result), 'coverage_source_ref': winning,
+             'accepted_commit_refs': accepted, 'causal_source_accepted_at': f'2026-11-09T00:{minute:02d}:03.000Z',
+             'covered_endpoint_ids': coverage['covered_endpoint_ids'] + [f'displaced-D{ordinal - 1}'],
+             'retained_fence_endpoint_ids': coverage['retained_fence_endpoint_ids'] + [f'displaced-D{ordinal - 1}'],
+             'supersedes_chain': coverage['supersedes_chain'] + [replacement['authorization_event_ref']]}
+    return {'authorization': authorization, 'inventory': third['inventory'], 'reader': third['reader_authority'],
+            'route': {**third['current_delivery'], 'predecessor_authorization_event_refs': refs},
+            'rekeyed': result, 'rekey_native': native, 'coverage': basis,
+            'expected': 'reuse_original_verified_audit_without_rewriting_for_current_successor'}

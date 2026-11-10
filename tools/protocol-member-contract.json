@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d823c6d4c906e0dac97e5556c2880adc1e499559405e8758651b61b1029bb91d",
+  "contract_digest": "sha256:c3fa7c5806eeaf1e2ed304091be624d7d2b6bf02d2f00a15287dd0a30e53d539",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -113283,7 +113283,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:42ade54acbbe1917f30314c9d3c55931c9825981a0292f638079b8538e8e6959"
+      "digest": "sha256:7cd9043b3ae234ff7581fe265151363dc6f7637ff737be2cf080c4e214de4e22"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -113351,7 +113351,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:ac6c62dc6e0eb54a47f2e73b3f32537091bc6483228d7287d6b65bb84dab5a7f"
+      "digest": "sha256:22c8020fab43ce0e3b69ff384f0303dd51cff0fe0ec61eeb8b8cec61573005da"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -113427,7 +113427,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:56712cc480afa2e0ad692f927f73d771f3d4c97bcf96229952e0df67b5630a21"
+      "digest": "sha256:17b86fb96de1494d6486e11b2427187caca1025e5a2bc071374540e31877b6aa"
     }
   ],
   "openapi": {
