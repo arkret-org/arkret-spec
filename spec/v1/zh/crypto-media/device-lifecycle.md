@@ -1564,6 +1564,6 @@ Realm Bot／Ghost 的 current、控制原件及 exact 结果只通过
 
 ### 14.3 完整内容恢复结果
 
-RecoveryTransaction两Event unit的completed只表示身份原子提交。原签ak.mls.history_recovery检查点按content-encryption.schema.json独立表示pending／ready，原RecoveryReceipt不可事后修改；ready须PCR全原件恢复及完整scope库存清理完成。旧generation设备、session、队列和KeyPackage不得等TTL而继续使用；历史重放不恢复旧authorize。闭合空群库存、全发送者屏障、旧端新消息／备份隔离及24词充分路径见[可恢复内容 §5](./content-history.md#5-pcr24词恢复与旧端失效)。
+RecoveryTransaction两Event unit的completed只表示身份原子提交。内容尚pending不禁止下一次合法身份恢复；前序scope安全义务独立保管，按content-history §10.1的连续恢复满足规则收敛，新授权不恢复旧episode读取权或覆盖其历史结果。原签ak.mls.history_recovery检查点按content-encryption.schema.json独立表示pending／ready，原RecoveryReceipt不可事后修改；ready须PCR全原件恢复及完整scope库存清理完成。旧generation设备、session、队列和KeyPackage不得等TTL而继续使用；历史重放不恢复旧authorize。闭合空群库存、全发送者屏障、旧端新消息／备份隔离及24词充分路径见[可恢复内容 §5](./content-history.md#5-pcr24词恢复与旧端失效)。
 已退群或不可逆终止的目标仍保留在库存，按[可恢复内容 §10.1](./content-history.md#101-失去参与资格的scope收尾normative)
 以原签removed／terminated窄证明完成；不重新入群或交付新根，archive／断连不构成终态。

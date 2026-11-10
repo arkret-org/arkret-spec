@@ -484,7 +484,7 @@ winning Commit 覆盖而返回 `epoch_update_required`。
 
 #### 2.5.2 Send gate 与 self-heal
 
-**恢复屏障（normative）**：content-history §5／§10.1的原生pending义务在本scope阻断全部业务发送者，先于下文epoch匹配成功分支求值；同cut的subject／endpoint撤销与terminal生命周期门仍不可绕过。临时阻断按scope／genesis／episode独立登记；rekeyed／removed终局事务仅解除本episode阻断，不能清掉其它episode、membership／policy或key-access门。terminated永久禁止原group写入，不能因移除临时阻断而恢复。永久旧endpoint fence不随业务屏障释放，也不推进key_access_revision；历史证明续读不安装新业务屏障。
+**恢复屏障（normative）**：content-history §5／§10.1的原生pending义务在本scope阻断全部业务发送者，先于下文epoch匹配成功分支求值；同cut的subject／endpoint撤销与terminal生命周期门仍不可绕过。临时阻断按完整subject／scope／genesis／episode独立登记；rekeyed／removed终局事务直接解除本episode阻断。连续恢复仅可按content-history §10.1的原生因果链、完整前序endpoint／准入覆盖和耐久义务满足记录逐项解除对应前序阻断；其它episode、membership／policy或key-access门继续。旧episode失去读取资格、来源过期或新恢复发生本身都不解除旧义务；满足记录不改旧proof／观察、不授读取权。terminated永久禁止原group写入，不能因移除临时阻断而恢复。永久旧endpoint fence不随业务屏障释放，也不推进key_access_revision；历史证明续读不安装新业务屏障。
 
 encrypted application Event 携带 `epoch`、`group_state_ref` 与 `key_access_revision`。Station 仅在三者匹配
 current `mls_group` result 且 producer current-authorized 时提交。治理 Station MUST 先判定 current scope 的

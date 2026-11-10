@@ -940,7 +940,7 @@ class ScopeRetirementContractTest(unittest.TestCase):
         self.assertTrue(identity['derived_peer_request_durable_before_send'])
         barrier = catalog['content_encryption_contract']['recovery_send_barrier']
         self.assertEqual(barrier['pending'], 'block_all_business_senders')
-        self.assertEqual(barrier['removed'], 'release_only_completed_episode_blocker')
+        self.assertEqual(barrier['removed'], 'release_own_blocker_and_individually_satisfied_predecessor_obligations')
         self.assertEqual(barrier['terminated'], 'permanent_lifecycle_gate')
         self.assertFalse(barrier['advance_key_access_revision'])
 

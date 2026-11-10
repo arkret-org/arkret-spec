@@ -555,6 +555,13 @@ principal／operation作用域、24小时下限及同identity异body冲突严格
 I唯一为closed对象`{replacement,inventory_digest,inventory_entry,nonce_base64url}`，
 request_digest=`sha256(UTF8("ak.mls.recovery_scope_cleanup_request.v1\n") || JCS(I))`。
 同内层身份对应不同I须duplicate_conflict、零新效果；不同scope、entry、replacement或inventory不能借重试换绑。
+最小意图预留与scope业务效果分开：own Station在当前reader、prepared exact inventory与请求结构均合法后，
+须先在subject／episode／nonce锁序原子耐久固定完整I，再派生／签发任何peer来源；该表跨全部目标governor唯一，
+不得用每个governor各自的局部表代替。governor在当前来源与原生目标资格核实后也保管同I绑定，先于首次参与资格判定。
+首次领域failed_precondition仍保留该最小预留；预留本身不安装endpoint fence、scope义务或业务屏障，也不是cleanup终局。
+原外层body／challenge的拒绝观察保持不变；fresh challenge仅可继续同I，不同合法业务意图必须生成新nonce。
+当前认证、来源窗口、exact inventory或原生目标来源未通过时不得创建该层意图；暂不可用不伪造业务终局，
+但已合法耐久的最小预留不能因后续临时失败、超时、崩溃、24小时缓存到期或合法handoff被遗忘。
 目的governor、交付challenge、method／有效期／签名和origin_resolution均不进入I，但始终受完整外层body哈希及各自来源签名认证。
 刷新这些字段形成新的外层请求，内层仍对账同一I；不得静默删除通用幂等的完整body比较。
 
@@ -563,9 +570,19 @@ request_digest=`sha256(UTF8("ak.mls.recovery_scope_cleanup_request.v1\n") || JCS
 发送closed recovery_scope_cleanup_source：仅attestation及完整冻结origin_resolution。客户端禁止自报来源。
 own Station在首次peer发送前，须将派生的完整peer body及其self请求／内层身份／challenge绑定原子耐久；
 崩溃重启或self exact retry复用原签来源，不重新签发同challenge。未发送的过期来源也不能原地改签，须明确失败后由fresh challenge发起新观察。
-attestation字段顺序为replacement、inventory_digest、inventory_entry、destination_service_id、nonce_base64url、
+attestation字段顺序为replacement、inventory_digest、inventory_entry、destination_service_id、predecessor_authorization_event_refs、nonce_base64url、
 delivery_challenge_base64url、verification_method、attested_at、expires_at、signature。
 来源由replacement.actor_id.account_id.station_id的原生保管Station签发；§6.1绑定实际Human replacement，不按资源Agent猜Actor。
+predecessor_authorization_event_refs为本Actor在该exact scope／genesis关联的未完成前序恢复授权Event ref集合，按canonical字符串UTF8升序唯一；
+完整原生census没有关联时必带空数组，不能省略或截断。own Station在最小I预留时同时冻结该关联；它不进入四字段I摘要，
+但由完整source签名及外层body绑定，同I的fresh来源也不得改此集合，换绑为duplicate_conflict。原生义务后来已满足不重写该冻结集合。
+签发该source即由原生授权唯一保管origin明确证明：逐项前序授权已被本replacement的合法完整generation／supersedes链替代；
+完整私密身份原件、因果链及其验证留在origin，不要求governor另取Human／Agent私密PCR。governor验证完整Service历史和该原签声明，
+再与自己保管的同Actor／scope／genesis前序source与义务逐项关联、核全本地安全覆盖；未知引用、来源缺损或遗漏本地未满足义务不回落为无前序。
+这些引用只在受认证的own Station与该目标governor间流转，不进入普通roster、self终态证明或公开日志。
+即使Actor仍有参与资格、窄retirement命令返回failed_precondition，已验证的该source与最小绑定也须保管；
+后继正常rekeyed在发布完成前使用它核前序关联。没有这份具名签名来源时不得用裸bool或新时间替代跨站因果资格。
+
 核原Human recovery unit或Agent完整supersedes／activation、原scope参与账本及当前请求资格；只携本entry，不携其它scope库存、
 PCR cut／原件或Agent私有requested scope。signature为标准Ed25519 service形状，kid等于verification_method，
 签名字节唯一为`UTF8("ak.mls.recovery_scope_cleanup_authorization.v1\n") || JCS(attestation删除signature)`。
@@ -575,10 +592,10 @@ peer还须通过Service HTTP认证，实际caller／来源Station／replacement.
 治理方独立核原group／scope／genesis、accepted entry basis及自己账本中的原endpoint参与事实。无此原生参与来源不得受理。
 同Station也执行相同门；各服务仅经登记网络接口调用，数据库、配置、私钥和后端函数继续隔离。
 
-**首次签发与内层CAS**：当前认证／来源／reader门通过后，在同一原生scope／Actor锁序查询内层身份并核I。
+**首次签发与内层CAS**：当前认证／来源／reader及原生目标门通过后，在同一原生scope／Actor锁序先保管／核对最小I预留，再查询业务终局。
 同锁先核本challenge已绑定的来源及观察：异来源为duplicate_conflict且零新增效果；已有观察按后述缓存规则返回，
 即使内层已完成，也不得把旧pending改为终局。以下结算只适用于尚无观察的新challenge，不能先执行效果再发现challenge冲突。
-已有终局则取原proof，绝不重新执行首次成员资格、Remove、换根或临时业务屏障；原Actor后来合法重新入群仍可续读。
+已有终局则取原proof，绝不重新执行首次成员资格、Remove、换根或临时业务屏障；原Actor后来合法重新入群仍可续读。向外完成交付仍须通过下述关联前序义务满足门。
 没有终局时才检查本次首次签发的有效参与资格：仍有资格为failed_precondition，零新增收尾效果；该Actor应走§5。
 失权者登记episode对被替换endpoint的单调fence和待决义务，完整对账已签发／claim／consume／outgoing admission及winning结果。
 集合来自原生恢复资格和完整账本，不能只看entry.old_leaves、旧index或裸pub；fence拦截包括尚未过期来源在内的旧授权再次Add。
@@ -615,8 +632,8 @@ receiver首次验收时要求delivery.attested_at<=now<delivery.expires_at。错
 原证明历史资格与本次交付current资格分开核验；旧method正常轮换不撤销原签事实，当前非法governor却不能因持旧proof签新交付。
 
 **交接、缓存及重试**：只在authority-commit-log §8.1／§8.2允许的原Realm发生合法治理handoff；Human／用户管理Agent PCR、
-Direct及其它禁止类别不因本节新增迁移能力。新governor激活前必须实际导入本scope全部内层pending／终局、exact I、
-首次来源／proof／历史methods、单调endpoint fence、未完成业务屏障及交付去重账本，继续原身份和原group。
+Direct及其它禁止类别不因本节新增迁移能力。新governor激活前必须实际导入本scope全部内层预留（含首次拒绝）、pending／终局、exact I、
+首次来源／proof／历史methods、单调endpoint fence、前序义务／满足记录、未完成业务屏障及交付去重账本，继续原身份和原group。
 handoff只改变新的签名路由和当前交付任期，不改变稳定nonce／I／原proof。新current governor用fresh来源及fresh challenge
 签当前交付确认；原proof继续用首次任期的原key验证。未导入或来源缺损为revision_unavailable，不以cache补造确认。
 own Station可缓存原证明及已验证历史来源以避免重取原件，但新的网络交付始终要求当前governor的fresh确认，不能只回裸cache。
@@ -642,16 +659,49 @@ own Station独立验证两种method各自时点的完整Service历史、合法cu
 原证明持续依靠不可逆fence；ready前仍核当前episode和全部scope各自结果。不能要求任意多scope的所有交付都在同一300秒窗口内。
 本窄native结果不是新的共享Event finality、membership或历史权限，消费分工与隐私例外见server-trusted-results §2。
 
-**屏障及最终完成**：临时业务屏障以effective_scope／genesis／replacement.authorization_event_ref逐episode登记，
+**屏障及最终完成**：临时业务屏障以完整subject／effective_scope／genesis／replacement.authorization_event_ref逐episode登记，
 它与永久endpoint fence、普通membership／policy／key-access门和terminal生命周期分别维护。pending时本scope全部业务发送者阻断。
 同effective_scope／genesis／replacement.authorization_event_ref的原生收尾终局在rekeyed／removed／terminated之间互斥，
 由同一scope／episode锁序与耐久结果账本协调。失权scope收尾命令pending后若Actor重新获参与资格，必须沿§5正常rekeyed路径，
 仅在真实accepted RFC、零旧leaf及充分新根备份全部核实后，原子登记rekeyed终局并使该episode的pending retirement义务按此结果收敛；
 保留原I／来源及旧body／challenge观察，不改写旧pending，也不伪造retirement proof或经窄命令返回Root。
 已有rekeyed终局的episode不得再首次签发retirement，新的该类命令返回failed_precondition；后来再次失权也不覆盖已完成结果。
-rekeyed／removed的原生终局事务仅解除该episode的临时阻断，不等待客户端下载或全账号ready；其它并行episode阻断和普通门继续。
+rekeyed／removed的原生终局事务直接解除本episode临时阻断，不等待客户端下载或全账号ready；其它episode仅可按下述逐项义务满足规则收敛，普通门继续。
 removed不要求给失权者新根，实际Remove仍满足RFC的新epoch隔离。terminated永久禁止原group写入，不能通过清除临时阻断恢复。
 endpoint fence始终保留，以上变化不推进key_access_revision，不增加其唯一写者。历史终局重读不重新安装已完成的临时屏障。
+
+**连续恢复与前序义务满足**：已受理的安全义务属于原生scope账本，不以旧replacement继续在线、当前API读取资格、
+来源TTL或恢复session存活为执行租约。新恢复E2可在E1尚pending时合法发生；旧episode继续拒绝读取，不以E2冒签E1、
+重开旧授权、改写旧I、原观察或首次proof完成前序义务。原生worker仅维护已受理的安全义务，不借此新增Remove／Commit作者权限。
+它可用依法已接纳的正常rekeyed结果或原生removed／terminated终局满足前序义务；没有安全结果仍保持pending／明确不可用。
+
+治理方须在同一scope／Actor锁序逐项核验并原子耐久私有“义务满足记录”与对应屏障释放：
+
+- 前序确有已受理未完成义务；完整Actor／Account、effective_scope与genesis精确一致，且保管origin按上述签名集合证明的E1→E2
+  supersedes／generation因果关联（可跨多次恢复，完整私密身份链仍由origin原生验证），不能只凭较新时间、Event ref不同、同用户或同scope推导承接。
+- 源终局属于该合法后继授权，已经按自身分支独立完成全部原生验证。rekeyed须真实accepted RFC、新epoch、充分新Root备份；
+  removed须全部相关旧endpoint实际不在tree；terminated须真实不可逆终态及永久禁止原group新内容／新R。
+- 覆盖前序完整原生endpoint集合及所有issued／claim／consume／outgoing admission和竞争准入路径，不只entry.old_leaves或当前leaf。
+  rekeyed／removed须这些端全部实际移除且相关复活路径结束／fenced；terminated须所有路径均被不可逆生命周期门封死。
+  全部前序永久endpoint fence继续保管，不能用后继自己的零旧leaf计数替代前序覆盖。覆盖事实须在源终局的exact cut成立；
+  rekeyed绑定实际winning Commit，removed／terminated绑定原proof.scope_cut及真实终态来源，不能用后来current cut的安全事实补称旧cut已覆盖。
+- 记录逐字绑定前序episode／I及义务集合、后继授权／因果链、源终局的exact摘要与实际accepted来源及覆盖依据；
+  exact重复只读同记录，冲突为duplicate_conflict且零新增效果，缺原件或覆盖不足不释放。对多个前序逐项结算，未覆盖者继续阻断。
+  若前序自身合法终局已在竞争锁序中先完成，则保留该原终局并视其义务已完成，不另造满足记录；两条路径不得互相覆盖。
+
+该记录仅是私有原生安全账本，**不是第四种scope_cleanup、旧episode的rekeyed／retirement proof或可移植读取许可**。
+不将E2的Root、证明或授权替换进E1 cleanup Blob，不使旧episode重新ready；原历史proof／观察持续不可变，永久fence不删除。
+满足记录及其原生来源与义务同寿命保管，崩溃重启及允许类别handoff必须实际导入；历史签名或内存bool不代表已导入。
+治理方从已保管的accepted来源完成本地结算，经既有登记复制／对账合同协调，不访问其它服务数据库、私钥或新增私有接口。
+后继库存prepare须从完整原生账本纳入前序尚未满足义务的所有精确scope（即使当前无leaf／已失权）；保留前序集合关联，
+不能只枚举最新replacement的tree／root库。原先已经prepared的库存不改字节，前序义务通过独立原生账本关联并在ready门复核。
+后继本scope终局的安全语义包含上述关联前序集合：治理方在相关满足记录耐久前，不得将该scope对外报告为本次恢复已完成。
+本episode终局形成前就须核全关联前序集合在其exact cut的安全覆盖；不充分时不得登记该终局。满足记录可在该安全终局之后对账耐久，
+但对外完成交付／own Station的完整cleanup验收须等待所有关联前序记录耐久；否则维持pending／明确不可用。不得复用早先覆盖不足的终局并以后来cut补证。
+own Station按既有本episode三态结果及其分支原生来源完成验收，内部满足记录不增加wire字段、不公开前序私态，也不以未登记的跨站布尔回执补洞。
+当前episode每项仍须自身合法三态结果及全部相关前序义务已满足，不能以满足记录代替其cleanup结果；原生来源未知时不得ready。
+只有所有临时义务均已解除、普通门通过且非terminal，业务发送才恢复；不相关Actor、scope／genesis、无因果链或覆盖不足的episode不得随之清除。
+
 ready仍要求PCR全部原件实际恢复且完整库存各项有有效rekeyed／removed／terminated结果；原缓存历史不可远程抹除。
 该安全收尾不承诺24词恢复普通群全部历史；原retention与读取权限不变。声明支持本内容恢复策略的owning Station／governor
 须实现上述登记命令与合同；schema／签名KAT／reference模型不证明native RFC、物理import、事务耐久或生产支持。
@@ -733,7 +783,7 @@ Device绑定，Agent runtime须核当前原key授权，custodian仍核§8.2完�
 
 后台coordinator只从§10完整原生账本准备一次canonical inventory；prepared后原Blob引用、
 replacement及pcr_cut不可重绑，prepared不得退回pending。重复GET返回该episode的当前物料阶段；
-新原生恢复授权开启新episode，旧实例结果不能覆盖它。物料prepare时即绑定subject／episode私密ACL；
+新原生恢复授权开启新episode，旧实例结果不能覆盖它；前序未完成安全义务的库存完整性、关联及满足按§10.1继续，旧读取权不恢复。物料prepare时即绑定subject／episode私密ACL；
 内容去重也不得复用公开Blob或其它主体的普通上传授权。资源及每次Blob／Range交付都重验current资格，
 不能把已知Blob ref或曾持旧会话当作读许可。原签检查点仍由replacement自己提交，coordinator／controller不能冒签。
 

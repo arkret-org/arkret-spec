@@ -846,7 +846,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness."
+      "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness. Complete native census includes every unresolved predecessor-episode scope even without a current leaf or membership; prepared bytes remain immutable and private native obligations remain associated."
     },
     "scope_cleanup": {
       "oneOf": [
@@ -1150,7 +1150,7 @@
       },
       "additionalProperties": false,
       "x-arkret-name-role": "request_body",
-      "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body."
+      "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body. After current/native qualification, subject/episode/nonce durably reserves exact I even when first domain eligibility rejects; fresh delivery challenge cannot rebind I. Origin reservation is global across destinations and precedes source signing. Reservation alone installs no scope safety effect."
     },
     "recovery_scope_cleanup_authorization": {
       "type": "object",
@@ -1159,6 +1159,7 @@
         "inventory_digest",
         "inventory_entry",
         "destination_service_id",
+        "predecessor_authorization_event_refs",
         "nonce_base64url",
         "delivery_challenge_base64url",
         "verification_method",
@@ -1179,6 +1180,15 @@
         },
         "destination_service_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "predecessor_authorization_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id",
+            "x-arkret-preimage-commitment": "fixed_event"
+          },
+          "uniqueItems": true,
+          "description": "Canonical UTF-8 sorted exact prior recovery authorization refs for this Actor/scope, frozen with the prepared intent association. The qualified origin attests native full supersedes/generation causality to this replacement. Empty only when the complete census has no unresolved predecessor association. No private PCR originals or positions."
         },
         "nonce_base64url": {
           "type": "string",
@@ -1204,7 +1214,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted."
+      "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted. After current/native qualification, subject/episode/nonce durably reserves exact I even when first domain eligibility rejects; fresh delivery challenge cannot rebind I. Origin reservation is global across destinations and precedes source signing. Reservation alone installs no scope safety effect. The origin-signed predecessor_authorization_event_refs is a frozen native association to I, excluded from its four-field digest but immutable across observations. The governor associates only retained exact same-Actor/scope/genesis obligations; no unsigned or caller-provided causal relation is accepted."
     },
     "recovery_scope_cleanup_source": {
       "type": "object",

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:efc7c6c7e83db8de15dd0abdaca045143733ce031f4226fd31f2efd64cb5b49d",
+  "contract_digest": "sha256:d823c6d4c906e0dac97e5556c2880adc1e499559405e8758651b61b1029bb91d",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -35657,7 +35657,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness."
+            "description": "Private canonical Blob preimage, streamed/hashed without a global group-count truncation. Entries ordered by unsigned bytes of JCS({effective_scope,genesis_event_ref}), unique by that pair; old_leaves ordered by leaf_index. Includes empty scopes and exact native endpoint provenance; local Account Station durable membership/admission ledger is frozen at the recovery fence. Empty entries are valid only for a complete native census proving no activated MLS scope; an activated empty group still requires its real entry. The hash/schema alone never proves completeness. Complete native census includes every unresolved predecessor-episode scope even without a current leaf or membership; prepared bytes remain immutable and private native obligations remain associated."
           },
           "scope_cleanup": {
             "oneOf": [
@@ -35961,7 +35961,7 @@
             },
             "additionalProperties": false,
             "x-arkret-name-role": "request_body",
-            "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body."
+            "description": "Exact prepared episode and inventory entry. nonce_base64url is a stable native intent identity; delivery_challenge_base64url is fresh for each new observation. Both are canonical random 32-byte values. Outer idempotency always hashes the full request body. After current/native qualification, subject/episode/nonce durably reserves exact I even when first domain eligibility rejects; fresh delivery challenge cannot rebind I. Origin reservation is global across destinations and precedes source signing. Reservation alone installs no scope safety effect."
           },
           "recovery_scope_cleanup_authorization": {
             "type": "object",
@@ -35970,6 +35970,7 @@
               "inventory_digest",
               "inventory_entry",
               "destination_service_id",
+              "predecessor_authorization_event_refs",
               "nonce_base64url",
               "delivery_challenge_base64url",
               "verification_method",
@@ -35990,6 +35991,15 @@
               },
               "destination_service_id": {
                 "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "predecessor_authorization_event_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id",
+                  "x-arkret-preimage-commitment": "fixed_event"
+                },
+                "uniqueItems": true,
+                "description": "Canonical UTF-8 sorted exact prior recovery authorization refs for this Actor/scope, frozen with the prepared intent association. The qualified origin attests native full supersedes/generation causality to this replacement. Empty only when the complete census has no unresolved predecessor association. No private PCR originals or positions."
               },
               "nonce_base64url": {
                 "type": "string",
@@ -36015,7 +36025,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted."
+            "description": "Native current origin authorization. Stable I contains exactly replacement, inventory_digest, inventory_entry and nonce_base64url. Current destination, delivery challenge, method, validity and signature are signed but excluded from I. They are included in the full outer request hash; no nonce-only canonical hash is permitted. After current/native qualification, subject/episode/nonce durably reserves exact I even when first domain eligibility rejects; fresh delivery challenge cannot rebind I. Origin reservation is global across destinations and precedes source signing. Reservation alone installs no scope safety effect. The origin-signed predecessor_authorization_event_refs is a frozen native association to I, excluded from its four-field digest but immutable across observations. The governor associates only retained exact same-Actor/scope/genesis obligations; no unsigned or caller-provided causal relation is accepted."
           },
           "recovery_scope_cleanup_source": {
             "type": "object",
@@ -113273,7 +113283,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:6f4e5d0a4471fd06ac232723ade2657ae04445639e5743e896d78025ef7337ac"
+      "digest": "sha256:42ade54acbbe1917f30314c9d3c55931c9825981a0292f638079b8538e8e6959"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -113341,7 +113351,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:5dc7097c08673703887ea2906d8f20751d9b7ca16640c484d85613454edb242e"
+      "digest": "sha256:ac6c62dc6e0eb54a47f2e73b3f32537091bc6483228d7287d6b65bb84dab5a7f"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -113417,7 +113427,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:e7dbf9565cb41db84f0fbbee9cbcd5fdd8adf642d920b5593a0df099f3d517c7"
+      "digest": "sha256:56712cc480afa2e0ad692f927f73d771f3d4c97bcf96229952e0df67b5630a21"
     }
   ],
   "openapi": {

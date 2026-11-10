@@ -607,6 +607,12 @@
     },
     {
       "schema": "content-encryption.schema.json",
+      "json_pointer": "/$defs/recovery_scope_cleanup_authorization/properties/predecessor_authorization_event_refs",
+      "field": "predecessor_authorization_event_refs",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "content-encryption.schema.json",
       "json_pointer": "/$defs/recovery_scope_cleanup_request_body/properties/authorization_event_ref",
       "field": "authorization_event_ref",
       "classification": "complete_event_id"

@@ -216,6 +216,8 @@ def build(include_sources=False):
         'genesis_event_ref': retirement_genesis,
         'base_group_state_ref': 'ak:event:' + b64(b'\x01' + bytes([210]) * 32),
         'epoch': coordinate['epoch'], 'old_leaves': []}, preparation_cut)
+    from tools.recovery_scope_cleanup import combination_fixture
+    result['scope_retirement']['combination_boundaries'] = combination_fixture(result['scope_retirement'])
     if include_sources:
         result['content_backup_source_encoding'] = {'human': human_source, 'agent': agent_source}
     return result

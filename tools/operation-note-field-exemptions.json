@@ -134,6 +134,9 @@
     "ak.self.keys.keypackages.read.claim.v1": [
       "keypackage_claim_ref"
     ],
+    "ak.self.mls.command.reconcile_recovery_scope.v1": [
+      "predecessor_authorization_event_refs"
+    ],
     "ak.self.realm_organization.read.list.v1": [
       "owning_organization_ids"
     ],

@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10477,
+    "total_properties": 10478,
     "total_schema_documents": 177,
     "by_presence_class": {
       "optional": 2451,
       "optional_defaulted": 46,
-      "required": 7451,
+      "required": 7452,
       "required_nullable": 311,
       "tristate": 218
     },
@@ -5898,6 +5898,7 @@
         "/$defs/recovery_scope_cleanup_authorization/properties/inventory_digest": "required",
         "/$defs/recovery_scope_cleanup_authorization/properties/inventory_entry": "required",
         "/$defs/recovery_scope_cleanup_authorization/properties/nonce_base64url": "required",
+        "/$defs/recovery_scope_cleanup_authorization/properties/predecessor_authorization_event_refs": "required",
         "/$defs/recovery_scope_cleanup_authorization/properties/replacement": "required",
         "/$defs/recovery_scope_cleanup_authorization/properties/signature": "required",
         "/$defs/recovery_scope_cleanup_authorization/properties/verification_method": "required",

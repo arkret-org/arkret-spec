@@ -764,3 +764,22 @@ HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过�
 `ak.vector.realm_invite_link.possession_proof.v1` 固定独立 Ed25519 已知答案、完整账号、Realm、链接、request_id 与 accept／preview 目的分离，执行未知字段及原像反变异。测试 seed 仅用于密码学向量，不是已接纳邀请原件，不声明业务接纳覆盖。
 
 `ak.realm_invite_link.create`、`ak.realm_invite_link.revoke` 和 `ak.realm_invite_link.accept` 的工程验收 MUST 使用真实已签发会话、完整 producer source、已接纳原签 Event 与治理 RealmCommit；保留定义、生命周期、账号使用事实、成员与 outbox 的同事务闭包。必须覆盖同站／跨站接受、最后名额并发、撤销竞争、可信接纳时刻到期、每账号至多一次、精确 Event 重试、退群与恢复。打开／预览／prepare 不占次数；响应前拒绝与 mock 成功均不构成该合同覆盖。密码学向量通过也不能代替这些工程验收。
+
+## 恢复收尾的连续授权与拒绝后意图组合
+
+content-history §10.1的组合回归由`tools.test_recovery_scope_followup`执行，并进入严格release的artifact pipeline。
+`content-history-fixture.json`的`scope_retirement.combination_boundaries`保存两entry固定库存与连续恢复来源；
+fixture签名／schema及显式native模型输入不冒称真实RFC、原生事务、跨站历史验证或生产恢复。
+跨站前序关联使用现有source的origin签名predecessor_authorization_event_refs；完整私密身份链留在origin，governor核其已保管义务。
+漏签／改签／漏列／重复／错序、同I改关联、裸bool替代来源均拒绝；安全覆盖必须属于源终局exact cut，后来current cut不能补证。
+
+- 正例：E1已受理pending→替换设备再次丢失→同Actor合法E2，旧来源过期且旧episode拒绝读取；
+  E2正常rekeyed且完整覆盖E1义务，原子保存前序满足记录并仅解除E1相应阻断。removed／terminated源终局也须独立验证，
+  terminated保持永久写禁。多次恢复按经验证完整因果链逐项收敛，重启／exact重放保持同记录。
+- 反例：异Actor／scope／genesis、无原生因果链、后继仅pending、缺endpoint或任一准入路径、缺fence／实际移除／充分备份／
+  不可逆终态、未知来源／未导入、冲突记录均不得释放。无关并行屏障保留，不更改旧I／proof／观察，不让旧episode读取或ready。
+- 正例：同一prepared库存先以A首次请求得到failed_precondition；nonce→I最小预留跨重启保留，无scope业务效果。
+  fresh challenge继续同I可在资格改变后正常pending／完成，旧body仍拒绝；另一合法意图使用fresh nonce。
+- 反例：首次拒绝后同nonce换entry／scope／inventory／replacement（授权实例不变）、并发跨governor换绑均duplicate_conflict，
+  fresh challenge、外层缓存过期、重签来源或handoff不能规避。当前资格／来源窗口／原生来源未通过不创建新预留；
+  已预留后临时不可用不抹绑定，也不伪造终局。
