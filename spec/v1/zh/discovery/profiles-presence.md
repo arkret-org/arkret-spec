@@ -121,45 +121,22 @@ updated: 2026-07-03
   ]
 }
 ```
-Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Event 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile current state。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Event 使用 `payload.actor_profile_id` 与 `ak.profile.create` 共用同一 profile current state。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
-```json fragment
+```json schema=schemas/event-payload.schema.json#/$defs/actor_profile_update_payload
 {
-  "event_id": "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM",
-  "kind": "ak.profile.update",
-  "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
-  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "created_at": "2026-04-26T00:01:00Z",
-  "semantic_refs": [
-    {
-      "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
-      "role": "authorized_by",
-      "critical": true
-    }
-  ],
-  "payload": {
-    "target_ref": "ak:actor_profile:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-    "patch": {
-      "display_name": "Alice C.",
-      "profile_fields.status_message": "Back at work!"
-    }
-  },
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
-      "event_digest": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
-      "created_at": "2026-04-26T00:01:00Z",
-      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
-    }
-  ]
+  "actor_profile_id": "ak:actor_profile:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+  "patch": {
+    "display_name": "Alice C.",
+    "profile_fields.status_message": "Back at work!"
+  }
 }
 ```
 - `ak.profile.create` 初始化完整对象；`ak.profile.update` 仅携带发生变化的字段（delta 更新）
 - 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event、接纳该 Event 的 exact RealmCommit 与该 Event 所支撑的当前显示投影。服务端 MUST 验证 Event／Commit／PCR stream／authority generation 的逐字绑定，缺少覆盖 Commit 时返回 `profile_unavailable`，不得把本地缓存或 account aggregate 冒充 accepted profile。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.committed_event.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor、缺失 committed provenance 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event、covering RealmCommit 及其与该 actor 和其 Principal Control Realm stream 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 与其 Commit 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
 
-`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 current state，登记名为 **`actor_profile`**（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出），`state_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。本段曾把它写成 `profile_create:<target_actor_profile_id>`——那是一个 create-only 的拼法，而 update 写的是同一个值；登记名只有一个，不登记别名、也不另造 create-only family。`ak.profile.update` 的可选 `payload.expected_state_digest` 按 [`../sync/current-state.md` §2](../sync/current-state.md) 的统一算法对冻结的完整 `actor_profile` value 求摘要，失配以 `failed_precondition` 零写入拒绝。
+`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 current state，登记名为 **`actor_profile`**（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出），`state_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.actor_profile_id`。本段曾把它写成 `profile_create:<target_actor_profile_id>`——那是一个 create-only 的拼法，而 update 写的是同一个值；登记名只有一个，不登记别名、也不另造 create-only family。`ak.profile.update` 的可选 `payload.expected_state_digest` 按 [`../sync/current-state.md` §2](../sync/current-state.md) 的统一算法对冻结的完整 `actor_profile` value 求摘要，失配以 `failed_precondition` 零写入拒绝。
 
 ### 2.3.1 PCR 私有 Profile 字段
 
@@ -190,44 +167,21 @@ Realm override 和 Realm Bot／Ghost Profile。提交者 MUST 独立证明这是
 `ak.profile.realm_override` 是 Realm-scoped profile override 事件 kind，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ak:space:` 容器，也不创建 Space 级访问边界。
 
 该 Event 写 `actor_profile_realm_override` current state：目标 Realm 是结果作用域，selector 只取
-`payload.target_ref`；value 是 canonical Event dot 标记的完整 override payload assertion set。读取方按
+`payload.actor_profile_id`；value 是 canonical Event dot 标记的完整 override payload assertion set。读取方按
 accepted commit 顺序折叠 patch，所得当前值仅含 `display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、
 `accountable_principal_ids`、`profile_fields` 六条展示路径。集合从空集开始，首条 patch 不依赖隐式空对象；
 `expected_state_digest`（若存在）绑定折叠后的前态：摘要输入是把全部 assertion 按 accepted commit 顺序应用到 `{}` 后得到的展示对象（尚无 assertion 时为 `{}`），算法见 [`../sync/current-state.md` §2](../sync/current-state.md)；失配必须零写入拒绝。
 
-```json fragment
+```json schema=schemas/event-payload.schema.json#/$defs/profile_realm_override_payload
 {
-  "event_id": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
-  "kind": "ak.profile.realm_override",
-  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-  "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "created_at": "2026-04-26T00:02:00Z",
-  "semantic_refs": [
-    {
-      "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
-      "role": "authorized_by",
-      "critical": true
+  "actor_profile_id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+  "target_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "patch": {
+    "display_name": "alice-oss",
+    "avatar_blob_ref": {
+      "$op": "unset"
     }
-  ],
-  "payload": {
-    "target_ref": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
-    "target_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "patch": {
-      "display_name": "alice-oss",
-      "avatar_blob_ref": {
-        "$op": "unset"
-      }
-    }
-  },
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
-      "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "created_at": "2026-04-26T00:02:00Z",
-      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
-    }
-  ]
+  }
 }
 ```
 - Realm 覆写的优先级高于全局 Profile

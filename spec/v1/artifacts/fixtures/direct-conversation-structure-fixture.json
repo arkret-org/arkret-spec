@@ -417,7 +417,7 @@
       "case_id": "topic_set_cas",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "patch": {
           "topic": {
@@ -435,7 +435,7 @@
       "case_id": "topic_unset_cas",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "patch": {
           "topic": {
@@ -449,7 +449,7 @@
       "case_id": "topic_set_no_cas",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "patch": {
           "topic": {
             "$op": "set",
@@ -466,7 +466,7 @@
       "case_id": "topic_unset_no_cas",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "patch": {
           "topic": {
             "$op": "unset"
@@ -479,7 +479,7 @@
       "case_id": "topic_set_null",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "patch": {
           "topic": {
@@ -494,7 +494,7 @@
       "case_id": "topic_subpath",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "value": {
-        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "strand_id": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "patch": {
           "topic.rank": {

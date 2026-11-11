@@ -134,7 +134,7 @@ expected_revision 只在 typed payload；target 行首写显式 null，后继精
 新增纯派生：`realm_actor_accepted_event_ref` 是真实接受 Event／Commit 的四坐标；
 `realm_actor_resolution_projection` 是 create.initial_resolution、control.update／manager.change.next_resolution 或 control.reset 的 exact pending target，加
 resolution_event_ref=原 EventId、updated_at=Event.created_at；`realm_actor_profile_id` 在 create 时由 EventId
-retype，在 update 时为精确 target_ref；`realm_actor_profile_value` 在锁定的 actor-local Profile 上按允许字段创建／patch。
+retype，在 update 时为精确 actor_profile_id；`realm_actor_profile_value` 在锁定的 actor-local Profile 上按允许字段创建／patch。
 来源坐标在 Commit 定值后、同一接受事务写入，producer 不自报，且不进入自身 Event／Commit preimage。
 selector 的 literal 只允许 actor.create 的 owner／governance 两行及 recovery.begin 的 owner pause，不是通用循环或表达式。
 writer condition 可精确读取 `envelope.actor_id.kind`；admission envelope_path 只允许 `actor_id.kind`、`scope_ref.kind`。

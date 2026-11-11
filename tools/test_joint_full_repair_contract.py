@@ -38,16 +38,16 @@ class JointFullRepairContractTest(unittest.TestCase):
         target = 'ak:strand:' + 'A' * 44
         for path in ('tracks.synthesis.content', 'tracks.synthesis.encrypted_content', 'metadata.title'):
             with self.subTest(path=path):
-                self.assertTrue(validator.is_valid({'target_ref': target, 'patch': {path: 'value'}}))
+                self.assertTrue(validator.is_valid({'strand_id': target, 'patch': {path: 'value'}}))
         for path in ('tracks', 'tracks.synthesis', 'tracks.synthesis.enabled',
                      'tracks.discussion.content', 'tracks.synthesis.content.text'):
             with self.subTest(path=path):
-                self.assertFalse(validator.is_valid({'target_ref': target, 'patch': {path: 'value'}}))
+                self.assertFalse(validator.is_valid({'strand_id': target, 'patch': {path: 'value'}}))
 
     def test_track_configuration_cannot_replace_or_delete_content(self) -> None:
         validator = self.validator('event-payload.schema.json', 'strand_tracks_update_payload')
         target = 'ak:strand:' + 'A' * 44
-        valid = {'target_ref': target, 'patch': {'tracks.discussion.enabled': True,
+        valid = {'strand_id': target, 'patch': {'tracks.discussion.enabled': True,
                                               'tracks.synthesis.is_primary': False}}
         self.assertTrue(validator.is_valid(valid))
         for path in ('tracks', 'tracks.synthesis', 'tracks.synthesis.content',

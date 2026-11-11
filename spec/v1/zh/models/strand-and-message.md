@@ -298,7 +298,7 @@ Track **配置**写入只有 `ak.strand.tracks.update`：开关、primary、prof
 {
   "kind": "ak.strand.tracks.update",
   "payload": {
-    "target_ref": "ak:strand:...",
+    "strand_id": "ak:strand:...",
     "patch": {
       "tracks.discussion.enabled":   { "$op": "set", "value": true },
       "tracks.discussion.profile":   { "$op": "set", "value": "review" },

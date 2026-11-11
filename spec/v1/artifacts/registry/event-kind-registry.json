@@ -4017,7 +4017,7 @@
           "state_family": "morph",
           "state_selector": {
             "kind": "id:morph",
-            "field": "payload.target_ref"
+            "field": "payload.morph_id"
           },
           "state_projection": {
             "kind": "apply_patch",
@@ -4472,7 +4472,7 @@
           "state_family": "actor_profile_realm_override",
           "state_selector": {
             "kind": "id:actor_profile",
-            "field": "payload.target_ref"
+            "field": "payload.actor_profile_id"
           },
           "state_projection": {
             "kind": "keyed_set_add",
@@ -4484,7 +4484,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/actor_profile_realm_override_value",
-          "notes": "discovery/profiles-presence.md section 2.4. The result lives in payload.target_realm_id, which MUST equal the envelope Realm, so the selector contains only target_ref. The exact patch payload is retained under its canonical Event dot and readers fold assertions in accepted commit order; this makes the first patch an explicit set element rather than an update against an invented empty base. expected_state_digest freezes the folded prior override. Only the six display paths may change; identity and reducer-owned paths are rejected."
+          "notes": "discovery/profiles-presence.md section 2.4. The result lives in payload.target_realm_id, which MUST equal the envelope Realm, so the selector contains only actor_profile_id. The exact patch payload is retained under its canonical Event dot and readers fold assertions in accepted commit order; this makes the first patch an explicit set element rather than an update against an invented empty base. expected_state_digest freezes the folded prior override. Only the six display paths may change; identity and reducer-owned paths are rejected."
         }
       ]
     },
@@ -4504,7 +4504,7 @@
           "state_family": "actor_profile",
           "state_selector": {
             "kind": "id:actor_profile",
-            "field": "payload.target_ref"
+            "field": "payload.actor_profile_id"
           },
           "state_projection": {
             "kind": "apply_patch",
@@ -4539,7 +4539,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/actor-profile.schema.json",
-          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
+          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.actor_profile_id that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
           "condition": {
             "kind": "field_equals",
             "field": "envelope.actor_id.kind",
@@ -4550,7 +4550,7 @@
           "state_family": "actor_profile",
           "state_selector": {
             "kind": "id:actor_profile",
-            "field": "payload.target_ref"
+            "field": "payload.actor_profile_id"
           },
           "state_projection": {
             "kind": "apply_patch",
@@ -4585,7 +4585,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/actor-profile.schema.json",
-          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
+          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.actor_profile_id that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them. encrypted_private_fields is the independent optional PCR-only private Profile slot: whole-envelope set only, no descendant/unset/Realm override; native original Account PCR and content-root admission are required.",
           "condition": {
             "kind": "field_equals",
             "field": "envelope.actor_id.kind",
@@ -8332,7 +8332,7 @@
           "state_family": "strand",
           "state_selector": {
             "kind": "id:strand",
-            "field": "payload.target_ref"
+            "field": "payload.strand_id"
           },
           "state_projection": {
             "kind": "apply_patch",
@@ -8370,7 +8370,7 @@
           "state_family": "calendar_schedule_source",
           "state_selector": {
             "kind": "id:strand",
-            "field": "payload.target_ref"
+            "field": "payload.strand_id"
           },
           "state_projection": {
             "kind": "set",
@@ -8419,7 +8419,7 @@
           "state_family": "strand",
           "state_selector": {
             "kind": "id:strand",
-            "field": "payload.target_ref"
+            "field": "payload.strand_id"
           },
           "state_projection": {
             "kind": "apply_patch",
@@ -8465,7 +8465,7 @@
           "state_family": "calendar_schedule_source",
           "state_selector": {
             "kind": "id:strand",
-            "field": "payload.target_ref"
+            "field": "payload.strand_id"
           },
           "state_projection": {
             "kind": "set",

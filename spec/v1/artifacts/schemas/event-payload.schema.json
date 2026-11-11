@@ -150,11 +150,11 @@
       "type": "object",
       "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution current state. principal_id and actor_kind are create-locked by ak.profile.create: zh/discovery/profiles-presence.md section 2.3 decides which principal a profile is for at create, and nothing said an update could not move it, so this surface could rebind a profile to another principal or retype a user as an agent. All three are forbidden here; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
-        "target_ref",
+        "actor_profile_id",
         "patch"
       ],
       "properties": {
-        "target_ref": {
+        "actor_profile_id": {
           "$ref": "#/$defs/actor_profile_id"
         },
         "patch": {
@@ -7299,13 +7299,13 @@
     },
     "morph_update_payload": {
       "type": "object",
-      "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by target_ref. morph_kind is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
+      "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by morph_id. morph_kind is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
       "required": [
-        "target_ref",
+        "morph_id",
         "patch"
       ],
       "properties": {
-        "target_ref": {
+        "morph_id": {
           "$ref": "#/$defs/morph_id"
         },
         "patch": {
@@ -8463,14 +8463,14 @@
     },
     "profile_realm_override_payload": {
       "type": "object",
-      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution, principal_id and actor_kind are forbidden here for the same reasons they are forbidden on the generic profile write surface -- a per-Realm override is still not a place to rebind identity; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. actor_profile_id is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution, principal_id and actor_kind are forbidden here for the same reasons they are forbidden on the generic profile write surface -- a per-Realm override is still not a place to rebind identity; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
-        "target_ref",
+        "actor_profile_id",
         "target_realm_id",
         "patch"
       ],
       "properties": {
-        "target_ref": {
+        "actor_profile_id": {
           "$ref": "#/$defs/actor_profile_id"
         },
         "target_realm_id": {
@@ -10644,13 +10644,13 @@
     },
     "strand_patch_payload": {
       "type": "object",
-      "description": "Payload class for ak.strand.update. Patches ordinary Strand fields on the Strand identified by target_ref.",
+      "description": "Payload class for ak.strand.update. Patches ordinary Strand fields on the Strand identified by strand_id.",
       "required": [
-        "target_ref",
+        "strand_id",
         "patch"
       ],
       "properties": {
-        "target_ref": {
+        "strand_id": {
           "$ref": "#/$defs/strand_id"
         },
         "patch": {
@@ -11343,11 +11343,11 @@
       "type": "object",
       "description": "Closed configuration-only payload for ak.strand.tracks.update; content writes use ak.strand.update.",
       "required": [
-        "target_ref",
+        "strand_id",
         "patch"
       ],
       "properties": {
-        "target_ref": {
+        "strand_id": {
           "$ref": "#/$defs/strand_id"
         },
         "patch": {

@@ -54,12 +54,12 @@ class ContentHistoryContractTest(unittest.TestCase):
         target = "ak:actor_profile:" + self.fixture["kat"]["outer_event"]["realm_id"].split(":", 2)[2]
         update = "event-payload.schema.json#/$defs/actor_profile_update_payload"
         for slot in (envelope, {"$op": "set", "value": envelope}):
-            self.validate(update, {"target_ref": target, "patch": {"encrypted_private_fields": slot}})
+            self.validate(update, {"actor_profile_id": target, "patch": {"encrypted_private_fields": slot}})
         for slot in (None, {"$op": "unset"}, {"$op": "remove", "value": envelope}, {"op": "set", "value": envelope}):
-            self.invalid(update, {"target_ref": target, "patch": {"encrypted_private_fields": slot}})
-        self.invalid(update, {"target_ref": target, "patch": {"encrypted_private_fields.ciphertext": "changed"}})
+            self.invalid(update, {"actor_profile_id": target, "patch": {"encrypted_private_fields": slot}})
+        self.invalid(update, {"actor_profile_id": target, "patch": {"encrypted_private_fields.ciphertext": "changed"}})
         self.invalid("event-payload.schema.json#/$defs/profile_realm_override_payload", {
-            "target_ref": target, "target_realm_id": self.fixture["kat"]["outer_event"]["realm_id"],
+            "actor_profile_id": target, "target_realm_id": self.fixture["kat"]["outer_event"]["realm_id"],
             "patch": {"encrypted_private_fields": envelope}})
 
     def test_private_profile_plaintext_is_closed_and_uses_registered_fresh_content_domain(self):

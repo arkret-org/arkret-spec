@@ -282,6 +282,10 @@ expected_<role>_<kind>_id
 
 新增字段若只允许一个具体 canonical materialized object kind，且不是上述因果、proof、schema/profile、content-addressed 或 profile-scoped reference，MUST 使用 `_id` 而不是 `_ref`。
 
+**操作目标的判定边界（normative）**：以 canonical payload 定义中的目标字段为判定单元，先递归展开其 terminal constraint，再判断具体 kind；事件名或某一使用分支的局部收窄不改变共享字段的命名。独立的专用单态 payload 不继承通用 patch 的 `target_ref` 名称：`ak.strand.update` 与 `ak.strand.tracks.update` 使用 `strand_id`，`ak.morph.update` 使用 `morph_id`，`ak.profile.update` 与 `ak.profile.realm_override` 使用 `actor_profile_id`，均不接受旧名或双字段形态。Actor Profile 是普通物化对象 kind `actor_profile`，不属于扩展 Profile 引用例外；Realm override 的生效边界仍为 `target_realm_id`。
+
+共享 `object_lifecycle_payload`、audit 的多类目标与 Watch audit 的 Strand 局部约束继续使用同一多态字段；Reaction 保留 §9.8.2 的 Profile 扩展目标合同（见 [strand-and-message.md](./strand-and-message.md)），EncryptedPayload routing context 的 Event 目标仍属于 Event reference。`object_target_naming` 门禁从 canonical registry 的 typed state selector 推导操作目标角色，检查其 canonical payload 类型与具体 kind／后缀；未由该角色覆盖的字段仍须按本节逐项语义复审，不能把这道门禁视为所有 `_ref` 的通用裁决。
+
 #### 2.1.3 角色、表示后缀与主体类别
 
 <!-- rule_id: NC-IDROLE-001 --> **角色 + 主体类别 + carrier 后缀（normative）**：Arkret-owned identifier 字段由三个不可互相替代的轴组成：responsibility role 回答“承担什么职责”，subject class 回答“已验证为何种主体”，carrier 回答“以何种精度标识”。`DidCoreId` 的 principal/service/Station/hardware-module 形态分别为 `<role>_principal_id` / `<role>_service_id` / `<role>_station_id` / `<role>_hardware_module_id`；`AccountId` 与 `ActorId` 是仅有的两个 closed compound carrier，其 carrier-explicit 字段形态分别为 `account_id` / `<role>_account_id` 与 `actor_id` / `<role>_actor_id`。已有完整 identity role（例如 `member_id`、`issuer_id`、`actor_ids`）可保留通用 `_id` / `_ids`，但 schema terminal 必须机器可判定为单一 scalar/array identifier carrier；同名字段在不同上下文使用多个 carrier 时，必须登记精确 carrier 集合及每种 carrier 的语义。W3C DID、generic URI identity/reference、HTTP(S)/WS(S) network locator 与 key selector 分别使用 `<role>_did`、`<role>_uri`、`<role>_url`、`<role>_kid`。carrier 与可验证主体类别共同决定后缀，与对象内是否并列其它形态无关；字段名不得替代 schema/registry/admission evidence 来推断类别。`holder` / `controller` 不适用通用 `_id` 规则，必须使用与合同一致的显式形态，裸 identity 字段在 Arkret-owned v1 中无条件禁用。多主体类别必须使用 discriminator 驱动、branch-specific 字段互斥的 closed union。

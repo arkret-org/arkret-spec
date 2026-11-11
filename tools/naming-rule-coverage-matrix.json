@@ -718,19 +718,25 @@
       "applies_to": [
         "wire_property"
       ],
-      "enforcement_kind": "prose_only",
+      "enforcement_kind": "schema_type",
       "enforced_by": {
         "predicates": [],
-        "functions": [],
+        "functions": [
+          "object_target_naming.py:check_object_target_naming",
+          "object_target_naming.py:object_target_name_errors"
+        ],
         "registries": [
-          "tools/identifier-classification-registry.json"
+          "spec/v1/artifacts/registry/contract-registry.json"
         ]
       },
-      "entry_points": [],
-      "tests": [],
+      "entry_points": [
+        "object_target_naming"
+      ],
+      "tests": [
+        "tools/test_object_target_naming.py"
+      ],
       "coverage_level": "partial",
-      "manual_review_reason": "Deciding whether a field name contains the full slug of the one kind it admits needs the reviewer to know which kind is concrete in that context; the artifact-root exception of 2.1.1 deliberately allows `<artifact>_id`, so no predicate can tell a legal short stem from a colliding one. The confirmed collisions are pinned per path in pending_rename_convergence, which fails as soon as the path stops matching, so the accepted residual risk is limited to collisions nobody has found yet.",
-      "manual_review_owner": "spec review of every new identifier field"
+      "residual_gap": "Executable coverage derives ordinary operation-target roles from canonical typed state selectors and resolves the canonical payload terminal before event-local refinements. Single-kind targets require the full kind slug and _id; the shared object_ref contract and explicit multi-kind terminals require _ref. Event/Commit/proof roles are outside the ordinary materialized-object category. Other wire fields and semantic reference exceptions outside this target role still require individual review under common-fields.md 2.1.1/2.1.2; this gate does not claim all identifier or reference naming is mechanically decidable."
     },
     {
       "rule_id": "NC-REF-001",
@@ -743,17 +749,25 @@
       "applies_to": [
         "wire_property"
       ],
-      "enforcement_kind": "prose_only",
+      "enforcement_kind": "schema_type",
       "enforced_by": {
         "predicates": [],
-        "functions": [],
-        "registries": []
+        "functions": [
+          "object_target_naming.py:check_object_target_naming",
+          "object_target_naming.py:object_target_name_errors"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/contract-registry.json"
+        ]
       },
-      "entry_points": [],
-      "tests": [],
+      "entry_points": [
+        "object_target_naming"
+      ],
+      "tests": [
+        "tools/test_object_target_naming.py"
+      ],
       "coverage_level": "partial",
-      "manual_review_reason": "The allowed categories are causal, finality, proof, schema/profile, content-addressed and polymorphic reference; all six are semantic roles that the schema type cannot express, because a causal reference and an ordinary object reference can resolve to the same typed pattern. Review accepts this because a wrong choice here mis-describes a field but cannot make a receiver bind the wrong value: the terminal type still decides what is accepted.",
-      "manual_review_owner": "spec review of every new reference field"
+      "residual_gap": "Executable coverage derives ordinary operation-target roles from canonical typed state selectors and resolves the canonical payload terminal before event-local refinements. Single-kind targets require the full kind slug and _id; the shared object_ref contract and explicit multi-kind terminals require _ref. Event/Commit/proof roles are outside the ordinary materialized-object category. Other wire fields and semantic reference exceptions outside this target role still require individual review under common-fields.md 2.1.1/2.1.2; this gate does not claim all identifier or reference naming is mechanically decidable."
     },
     {
       "rule_id": "NC-SCOPE-001",

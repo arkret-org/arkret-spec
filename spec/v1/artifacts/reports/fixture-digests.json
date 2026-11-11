@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
-      "sha256": "c5b451f6d821ab6c0c07eeefef46052b2d666d25fa74a5de75ec555c9c5526df"
+      "sha256": "c578e21b56b3d6e8b602d9e426992c035df4f72c2582504befd360e2bc6be8be"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:c3fa7c5806eeaf1e2ed304091be624d7d2b6bf02d2f00a15287dd0a30e53d539",
+  "contract_digest": "sha256:d73df98aa281788a5b33b3d98a3328eb2937d61290f7e71d477f5e1343e702db",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -56316,11 +56316,11 @@
             "type": "object",
             "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution current state. principal_id and actor_kind are create-locked by ak.profile.create: zh/discovery/profiles-presence.md section 2.3 decides which principal a profile is for at create, and nothing said an update could not move it, so this surface could rebind a profile to another principal or retype a user as an agent. All three are forbidden here; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
             "required": [
-              "target_ref",
+              "actor_profile_id",
               "patch"
             ],
             "properties": {
-              "target_ref": {
+              "actor_profile_id": {
                 "$ref": "#/$defs/actor_profile_id"
               },
               "patch": {
@@ -63453,13 +63453,13 @@
           },
           "morph_update_payload": {
             "type": "object",
-            "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by target_ref. morph_kind is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
+            "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by morph_id. morph_kind is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
             "required": [
-              "target_ref",
+              "morph_id",
               "patch"
             ],
             "properties": {
-              "target_ref": {
+              "morph_id": {
                 "$ref": "#/$defs/morph_id"
               },
               "patch": {
@@ -64617,14 +64617,14 @@
           },
           "profile_realm_override_payload": {
             "type": "object",
-            "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution, principal_id and actor_kind are forbidden here for the same reasons they are forbidden on the generic profile write surface -- a per-Realm override is still not a place to rebind identity; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+            "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. actor_profile_id is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution, principal_id and actor_kind are forbidden here for the same reasons they are forbidden on the generic profile write surface -- a per-Realm override is still not a place to rebind identity; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
             "required": [
-              "target_ref",
+              "actor_profile_id",
               "target_realm_id",
               "patch"
             ],
             "properties": {
-              "target_ref": {
+              "actor_profile_id": {
                 "$ref": "#/$defs/actor_profile_id"
               },
               "target_realm_id": {
@@ -66792,13 +66792,13 @@
           },
           "strand_patch_payload": {
             "type": "object",
-            "description": "Payload class for ak.strand.update. Patches ordinary Strand fields on the Strand identified by target_ref.",
+            "description": "Payload class for ak.strand.update. Patches ordinary Strand fields on the Strand identified by strand_id.",
             "required": [
-              "target_ref",
+              "strand_id",
               "patch"
             ],
             "properties": {
-              "target_ref": {
+              "strand_id": {
                 "$ref": "#/$defs/strand_id"
               },
               "patch": {
@@ -67490,11 +67490,11 @@
             "type": "object",
             "description": "Closed configuration-only payload for ak.strand.tracks.update; content writes use ak.strand.update.",
             "required": [
-              "target_ref",
+              "strand_id",
               "patch"
             ],
             "properties": {
-              "target_ref": {
+              "strand_id": {
                 "$ref": "#/$defs/strand_id"
               },
               "patch": {
@@ -113283,7 +113283,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:7cd9043b3ae234ff7581fe265151363dc6f7637ff737be2cf080c4e214de4e22"
+      "digest": "sha256:56f2b56f08d71ef9de224d15976a9ed0beb20e3343979be5991d92b11d3e93f3"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
