@@ -4,6 +4,7 @@ import unittest
 import json
 import subprocess
 import tempfile
+from unittest.mock import patch
 from pathlib import Path
 from jsonschema import Draft202012Validator
 
@@ -12,6 +13,78 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_openapi_component_case_rejects_case_and_acronym_mutations(self):
+        from .artifact_lint.semantic_naming import openapi_component_name_errors
+        self.assertEqual(openapi_component_name_errors({'MlsCommitSubmission': {}, 'DidUrl': {}}), [])
+        for name in ('mls_commit_submission', 'mlsCommitSubmission', 'Mls-Commit', 'Mls Commit',
+                     'MLSCommitSubmission', 'DidURL', '1Payload'):
+            self.assertTrue(openapi_component_name_errors({name: {}}), name)
+
+    def test_enum_scalar_lexicons_and_exact_registered_authority(self):
+        from .artifact_lint.semantic_naming import registered_literal_values
+        owner = 'one.schema.json#/properties/value'
+
+        def node(kind, values, authority=owner):
+            return {'enum': values, 'x-arkret-value-ownership': {
+                'class': kind, 'authority': authority, 'owner': owner, 'values': values}}
+
+        valid = {'decimal_text': ['0', '9223372036854775807'], 'version_text': ['1.0', '1.0.0', '2025b'],
+                 'numeric_range': ['0', '1', '2-3', '128+'], 'uri': ['did:key', 'https://example.org/a%20b#part'],
+                 'media_type': ['text/plain;charset=utf-8', 'text/markdown;variant=GFM-MIMI'],
+                 'selector_grammar': ['realm', '*'], 'structured_literal': [{}, []], 'numeric': [0, False, None]}
+        invalid = {'decimal_text': [1, '01', '-1'], 'version_text': [1, '01.0', '128+', 'Bad-Version'],
+                   'numeric_range': [1, '3-2', '1-1', '01'], 'uri': [1, 'not/a/uri', 'https://example.org/%bad%zz'],
+                   'media_type': [1, 'snake_case', 'text/plain;broken'], 'selector_grammar': [1, 'Bad-Token'],
+                   'structured_literal': ['Bad-Token', 1], 'numeric': ['1', float('inf')]}
+        for kind, values in valid.items():
+            self.assertEqual(enum_errors(node(kind, values), owner), [], kind)
+        for kind, values in invalid.items():
+            for value in values:
+                with self.subTest(kind=kind, value=value):
+                    self.assertTrue(enum_errors(node(kind, [value]), owner))
+        self.assertTrue(enum_errors(node(['owned_symbol'], ['accepted']), owner))
+        mismatched_scalar = node('numeric', [True])
+        mismatched_scalar['x-arkret-value-ownership']['values'] = [1]
+        self.assertTrue(enum_errors(mismatched_scalar, owner))
+        self.assertTrue(enum_errors(node('registered_literal', [True]), owner, [1]))
+        for value in ['ak.family.value', 'ak.family_name.v1']:
+            self.assertEqual(enum_errors(node('namespaced_symbol', [value]), owner), [])
+        for value in ['ak._hidden.value', 'ak.family._hidden', 'ak.family.1', 'ak.family..value', 'ak.family_.value']:
+            self.assertTrue(enum_errors(node('namespaced_symbol', [value]), owner), value)
+        with tempfile.TemporaryDirectory() as directory:
+            from .artifact_lint import semantic_naming
+            artifacts = Path(directory)
+            schema_path = artifacts / 'schemas/one.schema.json'
+            authority = '../registry/terms.json#/terms/0/value'
+            documents = {artifacts / 'registry/registry-manifest.json': {'registries': [
+                {'file': 'registry/terms.json', 'source_role': 'canonical'}]},
+                artifacts / 'registry/terms.json': {'terms': [{'value': 'Exact-Registered-Value'}]}}
+            with patch.object(semantic_naming, 'ARTIFACTS', artifacts):
+                declaration = node('registered_literal', ['Exact-Registered-Value'], authority)
+                resolved = registered_literal_values(declaration, owner, schema_path, {}, documents.get)
+                self.assertEqual(enum_errors(declaration, owner, resolved), [])
+                for bad_authority in [owner, '../schemas/other.json#/value', authority + '/missing',
+                                      '../registry/terms.json#/terms/0']:
+                    disguised = node('registered_literal', ['Bad-Owned-Value'], bad_authority)
+                    resolved = registered_literal_values(disguised, owner, schema_path, {}, documents.get)
+                    self.assertTrue(enum_errors(disguised, owner, resolved), bad_authority)
+                wrong = node('registered_literal', ['Bad-Owned-Value'], authority)
+                resolved = registered_literal_values(wrong, owner, schema_path, {}, documents.get)
+                self.assertTrue(enum_errors(wrong, owner, resolved))
+
+    def test_schema_local_registered_literal_is_an_exact_review_not_a_general_escape(self):
+        from .artifact_lint import semantic_naming
+        owner = 'websocket-dpop-proof.schema.json#/$defs/claims/properties/htm'
+        def declaration(value, scope=owner):
+            return {'const': value, 'x-arkret-value-ownership': {'class': 'registered_literal',
+                    'authority': scope, 'owner': scope, 'values': [value]}}
+        for value, scope, expected in [('ARKRET-WEBSOCKET-AUTH', owner, False),
+                                       ('CHANGED-TOKEN', owner, True),
+                                       ('ARKRET-WEBSOCKET-AUTH', owner + '_other', True)]:
+            entry = declaration(value, scope)
+            resolved = semantic_naming.registered_literal_values(entry, scope, Path('unused'), {}, lambda _: None)
+            self.assertEqual(bool(enum_errors(entry, scope, resolved)), expected)
+
     def test_role_axes_preserve_domains_and_canonical_reuse(self):
         from .artifact_lint.naming import stacked_wrapper_words
         for name, role in [('View', 'domain_value'), ('CurrentView', 'current_state'),

@@ -19,12 +19,11 @@
   "classifications": [
     {
       "name": "action_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "document_local_symbol",
       "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "example_path": "current-state.schema.json#/$defs/current_policy_action/properties/selector/properties/action_id",
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/realm_action_name. Realm-owned action configuration name. The logical owner is the exact Realm, not an individual Event envelope or a Policy rule. Every carrier and update retains that same realm_id; first acceptance fixes (action, policy_scope), and later use must not rebind the name. The name alone is not a capability token, authorization subject, global object identity, or Event deduplication key."
     },
     {
       "name": "addressed_agent_ids",
@@ -37,27 +36,10 @@
     {
       "name": "admission_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
+      "category": "opaque_correlation",
       "occurrences": 3,
       "example_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/admission_id",
-      "reason": "Names the durable failed-join admission whose exact identity participates in the membership-compensation single-use CAS; no ak: admission kind is registered in current v1.",
-      "pending_convergence": true
-    },
-    {
-      "name": "agent_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "responsibility_identity_material",
-      "occurrences": 1,
-      "example_path": "agent-operations.schema.json#/$defs/agent_participation_response_body/properties/agent_id",
-      "reason": "Carries a responsibility-subject DID core but the schema still declares a loose terminal type; convergence is to pin did_core_id."
-    },
-    {
-      "name": "agent_key_authorize_event_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/agent_key_authorize_event_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/membership_admission_handle. One failed-join admission lifecycle, scoped by its exact source and destination Realm, subject Account and covered join Event/RealmCommit. The handle only correlates the delegation, terminal certificate and one-use compensation binding. Authority remains the verified executor, signed delegation, terminal evidence and current membership cut; the handle alone grants no authority and never replaces Event identity or deduplication."
     },
     {
       "name": "allowed_session_ids",
@@ -77,12 +59,11 @@
     },
     {
       "name": "approval_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 2,
-      "example_path": "event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approval_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "example_path": "current-state.schema.json#/$defs/current_agent_action_approval/properties/selector/properties/approval_id",
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/agent_confirmation_handle. One controller confirmation lifecycle for the exact Agent and pre-authored approved_event_id in the enclosing Realm. The handle correlates the immutable confirmation record; controller ActorId plus approval_nonce is the one-use admission coordinate. Controller authority, the exact signed Event, current authorization and nonce consumption remain mandatory. The handle alone is not an authorization bearer, principal identity, or Event deduplication key."
     },
     {
       "name": "approval_request_id",
@@ -197,14 +178,6 @@
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
-      "name": "device_authorize_event_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/device_authorize_event_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "device_pairing_request_id",
       "terminal_signature": "[[\"pattern\", \"^device_pairing_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$\"]]",
       "category": "opaque_correlation",
@@ -230,12 +203,11 @@
     },
     {
       "name": "draft_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 8,
-      "example_path": "event-payload.schema.json#/$defs/agent_action_approve_payload/properties/draft_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "example_path": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_key/properties/draft_id",
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/agent_draft_handle. One private pending-intent lifecycle under exact (controller_account_id, agent_id). Account Data and pending-intent carriers retain this same owner scope and the same UTF-8 literal; key derivation uses the registered domain-separated digests, not an alternate normalized identifier. The signed proposal, content commitment, accepted controller binding and source-gated CAS remain authority. The handle alone is not a principal identity, authorization bearer, or Event deduplication key."
     },
     {
       "name": "endpoint_id",
@@ -279,21 +251,11 @@
     },
     {
       "name": "focus_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/media_service_focus/properties/focus_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
-    },
-    {
-      "name": "focus_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 6,
-      "example_path": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/context/properties/focus_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "category": "opaque_correlation",
+      "occurrences": 7,
+      "example_path": "call-invitation-operations.schema.json#/$defs/admission_request_body/properties/focus_id",
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/media_focus_handle. One stable media focus lifecycle inside the exact Realm media-service configuration. Call, token, recording and exporter carriers retain the same realm_id, selected focus and accepted media authority. A matching opaque handle is only a correlation with the accepted foci configuration; it is not a global Arkret object identity, permission, or Event deduplication key. Existing Call, participant-binding and focus-election proof checks remain mandatory."
     },
     {
       "name": "from_version_id",
@@ -336,13 +298,20 @@
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
+      "name": "initial_contact_round_id",
+      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 12,
+      "example_path": "contact-operations.schema.json#/$defs/contact_current_proof/properties/initial_contact_round_id",
+      "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
+    },
+    {
       "name": "install_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "applet-install-operations.schema.json#/$defs/applet_install_response_body/properties/install_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/applet_install_handle. One Applet install operation lifecycle under the exact caller, applet_id and service_id. This response handle does not identify an independent authorization object: registration_event_ref, registration_epoch and the accepted capability/E2EE authorization references prove the installed state. It must not select authorization, replace the registration coordinate, or deduplicate an Event by itself."
     },
     {
       "name": "instance_id",
@@ -417,14 +386,6 @@
       "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
     },
     {
-      "name": "organization_id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "responsibility_identity_material",
-      "occurrences": 1,
-      "example_path": "handle-claim.schema.json#/$defs/claim_variant/oneOf/1/properties/organization_id",
-      "reason": "External organization claim identifier whose literal grammar is owned by the claim issuer; it is not the Arkret organization DID-core identity field used by protocol objects."
-    },
-    {
       "name": "package_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "opaque_correlation",
@@ -449,14 +410,6 @@
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
-      "name": "parent_space_id",
-      "terminal_signature": "[[\"type\", \"[\\\"string\\\", \\\"null\\\"]\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/SpaceView/properties/parent_space_id",
-      "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
       "name": "ping_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{16,128}$\"]]",
       "category": "opaque_correlation",
@@ -471,15 +424,6 @@
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/provider_directory/properties/mimi/properties/provider_id",
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
-    },
-    {
-      "name": "rate_limit_policy_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 1,
-      "example_path": "service-describe.schema.json#/properties/rate_limit_policy_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
     },
     {
       "name": "recording_id",
@@ -507,12 +451,11 @@
     },
     {
       "name": "rejection_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/agent_action_reject_payload/properties/rejection_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/agent_rejection_handle. One actor-private request-rejection lifecycle under exact (controller AccountId, agent_id, request_id). The handle correlates the rejection outcome; controller authority, signed rejection Event and request target-state CAS determine acceptance. It is not a standalone authorization object, principal identity, or Event deduplication key."
     },
     {
       "name": "request_id",
@@ -535,16 +478,16 @@
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{22,128}$\"]]",
       "category": "opaque_correlation",
       "reason": "Random creation intent correlation, scoped by Realm and Applet. The alphabet excludes the typed ID namespace.",
-      "occurrences": 4
+      "occurrences": 4,
+      "example_path": "realm-actor.schema.json#/$defs/create_payload/properties/request_id"
     },
     {
       "name": "revokes_statement_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/revokes_statement_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/organization_statement_handle. Organization endorsement audit lineage under exact (realm_id, organization_id, relationship). statement_id, supersedes_statement_id and revokes_statement_id use the same opaque profile and retain that same scope. They correlate audit/replacement/revocation records, not an external SIWE/OIDC identity or the current-state subject. Authority comes from the original signed Event, accepted organization control and current relationship cut; a handle alone grants no authority and never replaces Event deduplication."
     },
     {
       "name": "rule_id",
@@ -572,12 +515,11 @@
     },
     {
       "name": "statement_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/statement_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/organization_statement_handle. Organization endorsement audit lineage under exact (realm_id, organization_id, relationship). statement_id, supersedes_statement_id and revokes_statement_id use the same opaque profile and retain that same scope. They correlate audit/replacement/revocation records, not an external SIWE/OIDC identity or the current-state subject. Authority comes from the original signed Event, accepted organization control and current relationship cut; a handle alone grants no authority and never replaces Event deduplication."
     },
     {
       "name": "supersedes_registration_id",
@@ -589,12 +531,11 @@
     },
     {
       "name": "supersedes_statement_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "opaque_correlation",
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/supersedes_statement_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
+      "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/organization_statement_handle. Organization endorsement audit lineage under exact (realm_id, organization_id, relationship). statement_id, supersedes_statement_id and revokes_statement_id use the same opaque profile and retain that same scope. They correlate audit/replacement/revocation records, not an external SIWE/OIDC identity or the current-state subject. Authority comes from the original signed Event, accepted organization control and current relationship cut; a handle alone grants no authority and never replaces Event deduplication."
     },
     {
       "name": "target_device_ids",
@@ -683,14 +624,6 @@
       "occurrences": 1,
       "example_path": "view.schema.json#/$defs/dashboard_configuration/properties/widgets/items/properties/widget_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "initial_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 12,
-      "example_path": "contact-operations.schema.json#/$defs/contact_current_proof/properties/initial_contact_round_id",
-      "reason": "Fixed first confirmed Contact-round digest; not a second identity or object ID."
     }
   ]
 }

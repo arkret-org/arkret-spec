@@ -257,14 +257,7 @@
       ],
       "properties": {
         "approval_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_confirmation_handle"
         },
         "request_id": {
           "allOf": [
@@ -274,17 +267,11 @@
             {
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
-          ]
+          ],
+          "maxLength": 256
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -325,14 +312,7 @@
       ],
       "properties": {
         "rejection_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_rejection_handle"
         },
         "request_id": {
           "allOf": [
@@ -342,7 +322,8 @@
             {
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
-          ]
+          ],
+          "maxLength": 256
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -378,17 +359,11 @@
             {
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
-          ]
+          ],
+          "maxLength": 256
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -553,14 +528,7 @@
       ],
       "properties": {
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "agent_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1795,11 +1763,9 @@
           "additionalProperties": false
         },
         "focus_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^(?!ak:)",
-          "description": "Required with an SFU/MCU participant binding, absent for P2P/mesh. Freeze the selected focus in this roster entry so later focus changes cannot alter its signature input."
+          "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
+          "description": "Required with an SFU/MCU participant binding, absent for P2P/mesh. Freeze the selected focus in this roster entry so later focus changes cannot alter its signature input.",
+          "maxLength": 64
         }
       },
       "additionalProperties": false,
@@ -8075,14 +8041,7 @@
           "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "action_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/realm_action_name"
         },
         "value": {
           "$ref": "#/$defs/policy_action_document"
@@ -8393,8 +8352,9 @@
             "token": {
               "type": "object",
               "properties": {
-                "required": {
+                "token_required": {
                   "type": "boolean",
+                  "x-arkret-member-role": "obligation",
                   "default": false
                 },
                 "ttl_seconds": {
@@ -8402,14 +8362,15 @@
                   "minimum": 1,
                   "maximum": 604800
                 },
-                "bind_target_digest": {
+                "target_digest_binding_required": {
                   "type": "boolean",
+                  "x-arkret-member-role": "obligation",
                   "const": true,
                   "default": true,
                   "x-arkret-value-ownership": {
                     "class": "numeric",
-                    "authority": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/bind_target_digest",
-                    "owner": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/bind_target_digest",
+                    "authority": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/target_digest_binding_required",
+                    "owner": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/target_digest_binding_required",
                     "values": [
                       true
                     ]
@@ -8797,14 +8758,7 @@
       ],
       "properties": {
         "statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle",
           "description": "Stable id of this organization statement. It is audit identity, not the reducer current state subject; the reducer current state subject is (organization_id, relationship)."
         },
         "realm_id": {
@@ -8895,24 +8849,10 @@
           "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later AccountStatusRecord is required and remains subject to sequence and terminal rules."
         },
         "supersedes_statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
         },
         "revokes_statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
         },
         "realm_commit_ref": {
           "$ref": "common-ids.schema.json#/$defs/realm_commit_id",
@@ -10095,14 +10035,7 @@
       ],
       "properties": {
         "focus_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
+          "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
           "description": "Stable focus id inside this Realm media service. It enters the signed canonical bytes and the session_focus election (call-state.md section 4.1)."
         },
         "focus_kind": {

@@ -4543,6 +4543,8 @@
           "ak.schema.authority_commit_operations.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.calendar_event.v1",
+          "ak.schema.call_invitation_operations.v1",
+          "ak.schema.call_recording_artifact.v1",
           "ak.schema.circle.v1",
           "ak.schema.circle_operations.v1",
           "ak.schema.contact_operations.v1",

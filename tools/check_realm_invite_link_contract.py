@@ -32,6 +32,59 @@ def main():
     proof_schema={'$ref':'https://arkret.org/v1/schemas/realm-invite-link.schema.json#/$defs/proof'}
     proof_validator=Draft202012Validator(proof_schema,registry=resources)
     token_validator=Draft202012Validator(schemas['realm-invite-link-token.schema.json'],registry=resources)
+    link_defs=schemas['realm-invite-link.schema.json']['$defs']
+    for name,field,legacy in [
+        ('limits','max_use_count_per_link','max_uses_per_link'),
+        ('create_payload','max_use_count','max_uses'),
+        ('definition_value','max_use_count','max_uses'),
+        ('view','max_use_count','max_uses'),
+    ]:
+        shape=link_defs[name]
+        assert field in shape['required'] and legacy not in shape['properties']
+        assert shape['properties'][field]['x-arkret-member-role']=='count'
+    projection=next(r for r in read(ART/'registry/contract-registry.json')['event_kind_registry']['event_kinds']
+                    if r['event_kind']==PREFIX+'create')['state_writes'][0]['state_projection']['value_projection']['members']
+    assert {'name':'max_use_count','field':'payload.max_use_count'} in projection
+    payload={
+        'public_key':fixture['public_key'],
+        'expires_at':'2026-09-13T00:00:00.000Z',
+        'max_use_count':1,
+    }
+    create_validator=Draft202012Validator({'$ref':schemas['realm-invite-link.schema.json']['$id']+'#/$defs/create_payload'},registry=resources)
+    create_validator.validate(payload)
+    for changed in [
+        {**{k:v for k,v in payload.items() if k!='max_use_count'},'max_uses':1},
+        {**payload,'max_uses':1},
+        {**payload,'max_use_count':0},
+        {**payload,'max_use_count':None},
+    ]:
+        assert list(create_validator.iter_errors(changed)),'create accepted old, duplicate or invalid count field'
+    limits_validator=Draft202012Validator({'$ref':schemas['realm-invite-link.schema.json']['$id']+'#/$defs/limits'},registry=resources)
+    limits={'max_lifetime_seconds':2592000,'max_use_count_per_link':1000}
+    limits_validator.validate(limits)
+    for changed in [
+        {'max_lifetime_seconds':2592000,'max_uses_per_link':1000},
+        {**limits,'max_uses_per_link':1000},
+    ]:
+        assert list(limits_validator.iter_errors(changed)),'limits accepted old or duplicate count field'
+    view={
+        'realm_invite_link_id':fixture['accepted_proof_cases'][0]['binding']['realm_invite_link_id'],
+        'realm_id':fixture['accepted_proof_cases'][0]['binding']['realm_id'],
+        'inviter_account_id':fixture['accepted_proof_cases'][0]['binding']['subject_account_id'],
+        'expires_at':payload['expires_at'],
+        'max_use_count':1,
+        'use_count':0,
+        'status':'active',
+        'create_event_id':fixture['accepted_proof_cases'][0]['binding']['realm_invite_link_id'].replace('ak:realm_invite_link:','ak:event:'),
+        'evaluated_at':'2026-09-12T00:00:00.000Z',
+    }
+    view_validator=Draft202012Validator({'$ref':schemas['realm-invite-link.schema.json']['$id']+'#/$defs/view'},registry=resources)
+    view_validator.validate(view)
+    for changed in [
+        {**{k:v for k,v in view.items() if k!='evaluated_at'},'as_of':view['evaluated_at']},
+        {**view,'as_of':view['evaluated_at']},
+    ]:
+        assert list(view_validator.iter_errors(changed)),'view accepted old or duplicate instant field'
     key=Ed25519PrivateKey.from_private_bytes(decode(fixture['private_key_seed']))
     public=Ed25519PublicKey.from_public_bytes(decode(fixture['public_key']))
     assert b64(key.public_key().public_bytes(Encoding.Raw,PublicFormat.Raw))==fixture['public_key']

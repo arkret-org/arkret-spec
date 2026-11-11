@@ -6572,8 +6572,8 @@
                   "field": "payload.expires_at"
                 },
                 {
-                  "name": "max_uses",
-                  "field": "payload.max_uses"
+                  "name": "max_use_count",
+                  "field": "payload.max_use_count"
                 },
                 {
                   "name": "create_event_id",

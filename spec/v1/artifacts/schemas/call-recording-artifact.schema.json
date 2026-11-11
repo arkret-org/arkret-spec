@@ -170,8 +170,8 @@
         "exporter_label": {
           "const": "ak.rtc-recording-key/v1",
           "x-arkret-value-ownership": {
-            "class": "media_type",
-            "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
+            "class": "registered_literal",
+            "authority": "../registry/exporter-label-registry.json#/labels/5/label",
             "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
             "values": [
               "ak.rtc-recording-key/v1"
@@ -196,10 +196,7 @@
               "$ref": "#/$defs/call_id"
             },
             "focus_id": {
-              "type": "string",
-              "pattern": "^(?!ak:)",
-              "minLength": 1,
-              "maxLength": 256
+              "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle"
             },
             "recording_id": {
               "$ref": "#/$defs/recording_id"

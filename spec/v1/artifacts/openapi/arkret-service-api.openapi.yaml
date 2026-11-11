@@ -5601,7 +5601,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EffectiveGrantSnapshot'
-  /_arkret/self/device_messages:
+  /_arkret/self/device-messages:
     post:
       operationId: ak.self.device_messages.command.send
       security:
@@ -5621,8 +5621,8 @@ paths:
           const: ak.self.device_messages.command.send.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema
             values:
             - ak.self.device_messages.command.send.v1
       - in: header
@@ -5661,8 +5661,8 @@ paths:
           const: ak.self.device_messages.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema
             values:
             - ak.self.device_messages.read.list.v1
       - name: after
@@ -5686,7 +5686,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesGetResponseBody'
-  /_arkret/self/device_messages/ack:
+  /_arkret/self/device-messages/ack:
     post:
       operationId: ak.self.device_messages.command.ack
       parameters:
@@ -5699,8 +5699,8 @@ paths:
           const: ak.self.device_messages.command.ack.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema
             values:
             - ak.self.device_messages.command.ack.v1
       security:
@@ -8160,7 +8160,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
-  /_arkret/edge/applet/third_party/users:
+  /_arkret/edge/applet/third-party/users:
     get:
       operationId: ak.edge.applet.third_party_users.read.list
       security:
@@ -8177,8 +8177,8 @@ paths:
           const: ak.edge.applet.third_party_users.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema
             values:
             - ak.edge.applet.third_party_users.read.list.v1
       - in: query
@@ -8216,7 +8216,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyUserLookupResponseBody'
-  /_arkret/edge/applet/third_party/locations:
+  /_arkret/edge/applet/third-party/locations:
     get:
       operationId: ak.edge.applet.third_party_locations.read.list
       security:
@@ -8233,8 +8233,8 @@ paths:
           const: ak.edge.applet.third_party_locations.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema
             values:
             - ak.edge.applet.third_party_locations.read.list.v1
       - in: query
@@ -8547,7 +8547,7 @@ paths:
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
             values: *id008
-      - name: link_kind_allow
+      - name: allowed_link_kinds
         in: query
         required: false
         schema:
@@ -8847,7 +8847,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentRequestResponseBody'
-  /_arkret/self/account_data:
+  /_arkret/self/account-data:
     get:
       operationId: ak.self.account_data.read.list
       parameters:
@@ -8860,8 +8860,8 @@ paths:
           const: ak.self.account_data.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema
             values:
             - ak.self.account_data.read.list.v1
       security:
@@ -8875,7 +8875,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDataList'
-  /_arkret/self/account_data/{account_data_key}:
+  /_arkret/self/account-data/{account_data_key}:
     get:
       operationId: ak.self.account_data.resource.get
       security:
@@ -8892,8 +8892,8 @@ paths:
           const: ak.self.account_data.resource.get.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema
             values:
             - ak.self.account_data.resource.get.v1
       - in: path
@@ -8924,8 +8924,8 @@ paths:
           const: ak.self.account_data.resource.replace.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema
             values:
             - ak.self.account_data.resource.replace.v1
       - in: path
@@ -8962,8 +8962,8 @@ paths:
           const: ak.self.account_data.resource.delete.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema
             values:
             - ak.self.account_data.resource.delete.v1
       - in: path

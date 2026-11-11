@@ -983,6 +983,11 @@
     },
     {
       "page": "models/common-fields.md",
+      "heading": "2.0 命名域、词法与判定顺序（normative）",
+      "fragment": "20-命名域词法与判定顺序normative"
+    },
+    {
+      "page": "models/common-fields.md",
       "heading": "2.0.1 全域命名判据（normative）",
       "fragment": "201-全域命名判据normative"
     },
@@ -1180,6 +1185,16 @@
       "page": "sync/api-conventions.md",
       "heading": "2.4.2 写操作的 durable Event authorship 闭包（normative）",
       "fragment": "242-写操作的-durable-event-authorship-闭包normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "2.4.3 HTTP 名称的词法与作用域（normative）",
+      "fragment": "243-http-名称的词法与作用域normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "2.4.4 非 HTTP binding 名称（normative）",
+      "fragment": "244-非-http-binding-名称normative"
     },
     {
       "page": "sync/api-conventions.md",

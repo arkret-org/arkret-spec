@@ -20,7 +20,7 @@
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
     "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResponseBody MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings.",
-    "operation_id values MUST end with <kind>.<action>.v1. The kind segment MUST be one of read, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name. read is the only safe/idempotent computation kind; its exact GET, QUERY, or POST binding is declared by the operation row according to request shape.",
+    "operation_id values MUST end with <kind>.<action>.v1. The kind segment MUST be one of read, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT use post, put, or patch as a semantic action. The registered resource actions get, delete, and head retain their resource semantics and do not infer an HTTP binding. read is the only safe/idempotent computation kind; its exact GET, QUERY, or POST binding is declared by the operation row according to request shape.",
     "An operation row MUST declare exactly one HTTP binding and MUST NOT declare unregistered method/path aliases.",
     "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex read-body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract.",
     "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (read/stream/resource.get/resource.head) MUST NOT declare these fields.",
@@ -617,7 +617,7 @@
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
-      "http": "GET /_arkret/edge/applet/third_party/locations",
+      "http": "GET /_arkret/edge/applet/third-party/locations",
       "grpc": "EdgeApplet/ThirdPartyLocations",
       "mq": "edge.applet.third_party_locations.query.list",
       "body_class": "non_streaming_json",
@@ -627,7 +627,7 @@
     },
     {
       "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
-      "http": "GET /_arkret/edge/applet/third_party/users",
+      "http": "GET /_arkret/edge/applet/third-party/users",
       "grpc": "EdgeApplet/ThirdPartyUsers",
       "mq": "edge.applet.third_party_users.query.list",
       "body_class": "non_streaming_json",
@@ -2102,7 +2102,7 @@
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
-      "http": "GET /_arkret/self/account_data",
+      "http": "GET /_arkret/self/account-data",
       "grpc": "SelfAccountData/List",
       "mq": "self.account_data.query.list",
       "notes": "Lists the authenticated actor's account_data entries. content is stored verbatim and is opaque to the server.",
@@ -2112,7 +2112,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.delete.v1",
-      "http": "DELETE /_arkret/self/account_data/{account_data_key}",
+      "http": "DELETE /_arkret/self/account-data/{account_data_key}",
       "grpc": "SelfAccountData/Delete",
       "mq": "self.account_data.resource.delete",
       "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private current state subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_revision is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
@@ -2129,7 +2129,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.get.v1",
-      "http": "GET /_arkret/self/account_data/{account_data_key}",
+      "http": "GET /_arkret/self/account-data/{account_data_key}",
       "grpc": "SelfAccountData/Get",
       "mq": "self.account_data.resource.get",
       "notes": "Reads one account_data entry by account_data_key key, including its compare-and-set revision. Returns not_found when the key is unset or holds a tombstone; the not_found Problem extension members carry account_data_revision_problem_extensions so the caller still learns current_revision.",
@@ -2139,7 +2139,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.replace.v1",
-      "http": "PUT /_arkret/self/account_data/{account_data_key}",
+      "http": "PUT /_arkret/self/account-data/{account_data_key}",
       "grpc": "SelfAccountData/Replace",
       "mq": "self.account_data.resource.replace",
       "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
@@ -2978,7 +2978,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
-      "http": "POST /_arkret/self/device_messages/ack",
+      "http": "POST /_arkret/self/device-messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
       "mq": "self.device_messages.command.ack",
       "notes": "Explicit, cumulative, monotonic recipient-delivery acknowledgement for one authenticated human-device or Agent-runtime endpoint (client-sync.md §10.1). The token covers one ordered queue containing both DeviceMessageEnvelope and MlsWelcomeDelivery branches; only this operation prunes it. Account stream and list cursors are read-only. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Realm Bot/Ghost queues contain only MLS Welcome deliveries; DeviceMessage is forbidden and MUST NOT be processed or acknowledged. Ordinary Account and Agent behavior is unchanged.",
@@ -3002,7 +3002,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.send.v1",
-      "http": "POST /_arkret/self/device_messages",
+      "http": "POST /_arkret/self/device-messages",
       "grpc": "SelfDeviceMessages/Send",
       "mq": "self.device_messages.command.send",
       "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned device_message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_account_id, sender_device_id, device_message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/device_message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.v1. Full endpoint capacity returns universal quota_exceeded before any batch queue or idempotency write; it never evicts an unacknowledged DeviceMessage or Welcome. Realm Bot/Ghost Devices cannot call this operation and are not DeviceMessage senders or recipients; their Welcome delivery uses MLS Commit submission and the existing recipient queue.",
@@ -3019,7 +3019,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
-      "http": "GET /_arkret/self/device_messages",
+      "http": "GET /_arkret/self/device-messages",
       "grpc": "SelfDeviceMessages/Get",
       "mq": "self.device_messages.query.list",
       "body_class": "non_streaming_json",
@@ -3728,7 +3728,7 @@
       "http": "GET /_arkret/self/realms/{realm_id}/links",
       "grpc": "SelfRealmLink/List",
       "mq": "self.realm_link.query.list",
-      "notes": "Lists typed cross-Realm links projected from ak.realm.link. direction is outbound/inbound/both; link_kind_allow is a comma-separated allowlist of canonical link kinds.",
+      "notes": "Lists typed cross-Realm links projected from ak.realm.link. direction is outbound/inbound/both; allowed_link_kinds is a comma-separated allowlist of canonical link kinds.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
@@ -3967,7 +3967,7 @@
     {
       "operation_id": "ak.self.management_review.command.request.v1",
       "http": "POST /_arkret/self/management-reviews/requests",
-      "grpc": "SelfManagement/Management_ReviewCommandRequest",
+      "grpc": "SelfManagement/ManagementReviewCommandRequest",
       "mq": "self.management_review.command.request",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
@@ -3990,7 +3990,7 @@
     {
       "operation_id": "ak.self.management_review.command.decide.v1",
       "http": "POST /_arkret/self/management-reviews/decisions",
-      "grpc": "SelfManagement/Management_ReviewCommandDecide",
+      "grpc": "SelfManagement/ManagementReviewCommandDecide",
       "mq": "self.management_review.command.decide",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
@@ -4013,7 +4013,7 @@
     {
       "operation_id": "ak.self.management_review.read.status.v1",
       "http": "POST /_arkret/self/management-reviews/status",
-      "grpc": "SelfManagement/Management_ReviewReadStatus",
+      "grpc": "SelfManagement/ManagementReviewReadStatus",
       "mq": "self.management_review.read.status",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",

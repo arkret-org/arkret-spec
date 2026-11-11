@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-09
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -582,12 +582,12 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `sender_id` 只表示 Station 对 holder actor-private CAS current state 已接受 revision 的内部队列物化者，不把 service 冒充成 holder，也不授予任意 service 发送普通 to-device kind 的能力。该分支不走 holder device revocation gate，不排除所谓 origin device，而是 fanout 到 holder 的全部 active devices；service identity 由当前 authenticated Station transport / service resolution 绑定，MUST NOT 作为可跨服务转交的 bearer delegation。`ak.self.device_messages.command.send.v1` 是规范客户端 surface，MUST 拒绝任何试图提交或诱导物化 service sender 的请求；只有 Station 内部 actor-private materializer 可以产生该分支。
 
-To-device 消息不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 在新入队前拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息：未命中 exact 幂等记录的任一目标出现上述情形，整请求即以顶层 `param_invalid` 失败，零入队。默认最大入队 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。`expires_at` 限制新入队与接收端业务新鲜度，不是队列删除条件：未 ACK 的 DeviceMessage MUST 持久保留，`GET /_arkret/self/device_messages` MUST 继续返回，直到该 endpoint 的累计 ACK 取消它。接收端在处理密文或业务动作前独立判断过期；队列不得因过期或容量压力删除未确认项。容量满时按 [`client-sync.md` §10.1](../sync/client-sync.md) 与同队列 Welcome 的合计容量原子拒绝新入队且零部分写入。
+To-device 消息不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 在新入队前拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息：未命中 exact 幂等记录的任一目标出现上述情形，整请求即以顶层 `param_invalid` 失败，零入队。默认最大入队 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。`expires_at` 限制新入队与接收端业务新鲜度，不是队列删除条件：未 ACK 的 DeviceMessage MUST 持久保留，`GET /_arkret/self/device-messages` MUST 继续返回，直到该 endpoint 的累计 ACK 取消它。接收端在处理密文或业务动作前独立判断过期；队列不得因过期或容量压力删除未确认项。容量满时按 [`client-sync.md` §10.1](../sync/client-sync.md) 与同队列 Welcome 的合计容量原子拒绝新入队且零部分写入。
 
 发送接口：
 
 ```http
-POST /_arkret/self/device_messages
+POST /_arkret/self/device-messages
 Authorization: Bearer <token>
 Idempotency-Key: <opaque-string>
 Content-Type: application/json
@@ -651,7 +651,7 @@ Content-Type: application/json
 接收接口：
 
 ```http
-GET /_arkret/self/device_messages?after=<cursor>&limit=<n>
+GET /_arkret/self/device-messages?after=<cursor>&limit=<n>
 Authorization: Bearer <token>
 ```
 
@@ -681,7 +681,7 @@ Authorization: Bearer <token>
 确认接口：
 
 ```http
-POST /_arkret/self/device_messages/ack
+POST /_arkret/self/device-messages/ack
 Authorization: Bearer <token>
 Content-Type: application/json
 ```

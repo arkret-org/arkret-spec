@@ -47,7 +47,7 @@
       "type": "object",
       "required": [
         "max_lifetime_seconds",
-        "max_uses_per_link"
+        "max_use_count_per_link"
       ],
       "properties": {
         "max_lifetime_seconds": {
@@ -56,8 +56,9 @@
           "maximum": 4294967295,
           "default": 2592000
         },
-        "max_uses_per_link": {
+        "max_use_count_per_link": {
           "type": "integer",
+          "x-arkret-member-role": "count",
           "minimum": 1,
           "maximum": 4294967295,
           "default": 1000
@@ -106,7 +107,7 @@
       "required": [
         "public_key",
         "expires_at",
-        "max_uses"
+        "max_use_count"
       ],
       "properties": {
         "public_key": {
@@ -115,8 +116,9 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "max_uses": {
+        "max_use_count": {
           "type": "integer",
+          "x-arkret-member-role": "count",
           "minimum": 1,
           "maximum": 4294967295
         }
@@ -164,7 +166,7 @@
       "required": [
         "public_key",
         "expires_at",
-        "max_uses",
+        "max_use_count",
         "create_event_id",
         "creator_actor_id"
       ],
@@ -175,8 +177,9 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "max_uses": {
+        "max_use_count": {
           "type": "integer",
+          "x-arkret-member-role": "count",
           "minimum": 1,
           "maximum": 4294967295
         },
@@ -217,11 +220,11 @@
         "realm_id",
         "inviter_account_id",
         "expires_at",
-        "max_uses",
+        "max_use_count",
         "use_count",
         "status",
         "create_event_id",
-        "as_of"
+        "evaluated_at"
       ],
       "properties": {
         "realm_invite_link_id": {
@@ -236,8 +239,9 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "max_uses": {
+        "max_use_count": {
           "type": "integer",
+          "x-arkret-member-role": "count",
           "minimum": 1,
           "maximum": 4294967295
         },
@@ -252,8 +256,9 @@
         "create_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "as_of": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "x-arkret-member-role": "instant"
         }
       },
       "additionalProperties": false

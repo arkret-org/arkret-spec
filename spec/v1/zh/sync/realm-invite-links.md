@@ -3,7 +3,7 @@ title: Realm Invite Links
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-28
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -20,7 +20,7 @@ RealmInviteLink是一个Realm范围的独立授权对象；其 `realm_invite_lin
 
 ## 2. 客户端秘密与链接外壳
 
-创建者客户端 MUST 使用CSPRNG生成全新32-byte Ed25519链接专用seed，并只将对应公钥、expires_at和max_uses写入创建Event。seed不是用户身份密钥或Station私钥，不授予除该链接接受证明以外的权限；MUST NOT 写入任何Event、Realm current、HTTP请求／响应、服务日志、遥测、普通浏览器持久化存储或账号服务。SDK中的secret类型 MUST 清零并脱敏Debug／错误显示。
+创建者客户端 MUST 使用CSPRNG生成全新32-byte Ed25519链接专用seed，并只将对应公钥、expires_at和max_use_count写入创建Event。seed不是用户身份密钥或Station私钥，不授予除该链接接受证明以外的权限；MUST NOT 写入任何Event、Realm current、HTTP请求／响应、服务日志、遥测、普通浏览器持久化存储或账号服务。SDK中的secret类型 MUST 清零并脱敏Debug／错误显示。
 
 HTTPS分享外壳复用[对象地址](../discovery/object-addressing.md)：
 
@@ -36,9 +36,9 @@ tok MUST 只在HTTPS fragment内；客户端读取后 MUST 清理地址栏。lan
 
 ## 3. 创建与生成限制
 
-`ak.realm_invite_link.create` 是正常producer-signed Realm Event。创建权是独立登记的管理权限；普通定向邀请权不自动产生多次可转发链接创建权。payload中的public_key、expires_at、max_uses均必填、接纳后不可修改；expires_at使用canonical UTC timestamp，max_uses为正整数，不允许null／0／缺省表示无限。
+`ak.realm_invite_link.create` 是正常producer-signed Realm Event。创建权是独立登记的管理权限；普通定向邀请权不自动产生多次可转发链接创建权。payload中的public_key、expires_at、max_use_count均必填、接纳后不可修改；expires_at使用canonical UTC timestamp，max_use_count为正整数，不允许null／0／缺省表示无限。
 
-产品默认选择7天、1次，并在签名前明确显示。Realm policy bundle中的 `invite_link_limits` 是生成限制：max_lifetime_seconds默认2592000且不得小于60，max_uses_per_link默认1000且必须为正整数；创建寿命不得短于60秒，也不得超过该cut上的最大寿命。客户端使用既有Event可信时间窗口；治理方必须在接纳时确认尚未过期，且expires_at相对创建Event.created_at的寿命满足限制。超限拒绝，不修改已签payload。限制只约束新创建，不悄悄延长、缩短或增减已接纳链接；当前加入策略仍逐次生效。
+产品默认选择7天、1次，并在签名前明确显示。Realm policy bundle中的 `invite_link_limits` 是生成限制：max_lifetime_seconds默认2592000且不得小于60，max_use_count_per_link默认1000且必须为正整数；创建寿命不得短于60秒，也不得超过该cut上的最大寿命。客户端使用既有Event可信时间窗口；治理方必须在接纳时确认尚未过期，且expires_at相对创建Event.created_at的寿命满足限制。超限拒绝，不修改已签payload。限制只约束新创建，不悄悄延长、缩短或增减已接纳链接；当前加入策略仍逐次生效。
 
 创建Event、冻结定义与active生命周期 MUST 在同一个RealmCommit事务中持久化。得到真实accepted Commit前客户端 MUST NOT 将链接显示为可用。精确重试保留原Event与seed，不重新发钥。服务端只能读取公钥及授权定义，不能恢复链接秘密；丢失秘密后由有权管理者撤销旧链接、创建新链接。替换不另定义rotate alias，旧撤销必须先获得终局确认。
 
@@ -54,11 +54,11 @@ public_key是原创建Event冻结的32-byte Ed25519公钥；不是DID verificati
 
 ## 5. 接受、计次与成员原子性
 
-链接持有者显式确认后才签署接受Event。治理方在同一Realm授权锁定cut核对：创建原件／公钥、active且未撤销、接受线性化时点严格早于expires_at、创建者当前仍具适用Realm邀请权限、全部现行join_rule／join_policy／ban及主体资格门、同账号未使用、已用集合基数小于max_uses。会话退出和密钥轮换不追溯撤销创建事实，新的接受仍遵守当前Realm授权。
+链接持有者显式确认后才签署接受Event。治理方在同一Realm授权锁定cut核对：创建原件／公钥、active且未撤销、接受线性化时点严格早于expires_at、创建者当前仍具适用Realm邀请权限、全部现行join_rule／join_policy／ban及主体资格门、同账号未使用、已用集合基数小于max_use_count。会话退出和密钥轮换不追溯撤销创建事实，新的接受仍遵守当前Realm授权。
 
 接受者必须尚未join；已经是成员的打开或重复尝试不产生新Commit、使用记录或成员写入。`realm_invite_link_use` 的身份是(link ID,canonical_json(完整subject_account_id))，create-locked、不可删除或复用，记录必须引用本次真实接受Event／Commit。同一账号每链接至多一次；退出后不得再凭同链接入组，同principal在另一Station是另一个账号。次数以完整账号而非自然人为单位。
 
-使用记录、成员leave→join、原Event、RealmCommit、必要outbox与索引 MUST 同事务提交。max_uses前态在该事务内求值，MUST NOT 让producer签某个head或旧计数来模拟排序。最后一次额度并发只能一个成功；全部拒绝零共享写入。计数规范来源为已接纳使用事实的唯一集合基数；物化counter只是可重建索引，MUST NOT 独立修改、因退群返还、因GC或交接清零。集合完整性与基数约束必须登记为security admission合同。
+使用记录、成员leave→join、原Event、RealmCommit、必要outbox与索引 MUST 同事务提交。max_use_count前态在该事务内求值，MUST NOT 让producer签某个head或旧计数来模拟排序。最后一次额度并发只能一个成功；全部拒绝零共享写入。计数规范来源为已接纳使用事实的唯一集合基数；物化counter只是可重建索引，MUST NOT 独立修改、因退群返还、因GC或交接清零。集合完整性与基数约束必须登记为security admission合同。
 
 精确Event重试先恢复原accepted结果，不重复扣次或重新入组；创建、撤销、过期、耗尽和后续退群均不改写历史Commit。新Event不得凭旧成功回复重新入组。旧事件在到期后首次送达，或仅把created_at回填到到期前，MUST 拒绝。历史验证使用原Commit的接纳时点与冻结前态，不用backfill墙钟。
 
@@ -68,7 +68,7 @@ public_key是原创建Event冻结的32-byte Ed25519公钥；不是DID verificati
 
 `ak.realm_invite_link.revoke` 引用精确链接ID，由当前有相应权限的创建者或Realm管理者签署。撤销在同Realm stream提交active→revoked后永久生效；不能恢复或通过重写URL／seed绕过。原撤销Event精确重试返回原终局，不追加新状态改变。撤销先提交则后接受拒绝；接受先提交则保留已加入成员，踢人使用独立成员管理Event。
 
-存储生命周期只保存active／revoked。管理 `RealmInviteLinkView` 从原件及current派生期限、max_uses、use_count和显示status；显示优先级revoked、expired、exhausted、active，不把显示状态当独立授权。读取与分页复用正式Realm current／history面与其披露权限，不返回秘密或把Replica旧View当当前接纳权威。预览只披露现行政策允许的入组前摘要，不泄露成员列表、消息或MLS secrets。
+存储生命周期只保存active／revoked。管理 `RealmInviteLinkView` 从原件及current派生期限、max_use_count、use_count和显示status；评估时刻使用 `evaluated_at`，表示该 View 判断期限和展示状态时的 canonical UTC 时刻。显示优先级revoked、expired、exhausted、active，不把显示状态当独立授权。读取与分页复用正式Realm current／history面与其披露权限，不返回秘密或把Replica旧View当当前接纳权威。预览只披露现行政策允许的入组前摘要，不泄露成员列表、消息或MLS secrets。
 
 未知、撤销、过期、耗尽、错账号和无权认领对外统一not_found；管理员自身有权读取的状态可显示原因。schema、认证及已登记运行错误保留其原分类，不能以404掩盖内部错误。失败审计不得记录秘密。
 

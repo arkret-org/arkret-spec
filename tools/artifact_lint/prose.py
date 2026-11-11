@@ -612,7 +612,14 @@ def check_naming_predicates(lint: Lint) -> None:
             f"missing={missing_paths[:5]}, unexpected={unexpected_paths[:5]}",
         )
 
-    for artifact_path in raw_artifact_files():
+    # Filename grammar applies to every artifact format, including reports and
+    # opaque bytes, rather than only formats parsed by the JSON/YAML readers.
+    filename_surface = set(raw_artifact_files())
+    filename_surface.update(path for path in ARTIFACTS.rglob("*") if path.is_file())
+    for artifact_path in sorted(filename_surface):
+        # The one documentation landing page is not a machine artifact name.
+        if artifact_path == ARTIFACTS / "README.md":
+            continue
         if nc_artifact_001(artifact_path.name):
             lint.fail(artifact_path, "artifact filename violates NC-ARTIFACT-001 kebab-case rule")
 
@@ -626,6 +633,11 @@ def check_naming_predicates(lint: Lint) -> None:
     for component in component_schemas:
         if not isinstance(component, str):
             continue
+        if nc_hash_001(component):
+            adjudicate(
+                openapi_path, "NC-HASH-001", openapi_path.name,
+                f"/components/schemas/{component}", component,
+            )
         if (
             stacked_wrapper_words(component) is not None
             or unregistered_wrapper_word(component, rejected_wrapper_words) is not None

@@ -238,7 +238,7 @@
             "128+"
           ],
           "x-arkret-value-ownership": {
-            "class": "version_text",
+            "class": "numeric_range",
             "authority": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
             "owner": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
             "values": [

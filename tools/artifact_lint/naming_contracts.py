@@ -38,6 +38,7 @@ from .core import (
     TOOLS_ROOT,
     json,
     load_json,
+    load_yaml,
     re,
     read_text,
     resolve_json_pointer,
@@ -415,6 +416,46 @@ def check_naming_rule_coverage_matrix(lint: Lint) -> None:
 # --------------------------------------------------------------------------
 
 
+def _wire_property_owner_case_errors(pointer: str, node: dict[str, Any]) -> list[str]:
+    """Judge one declaring node; ownership never propagates to its children."""
+    properties = node.get("properties", {})
+    names = tuple(properties) if isinstance(properties, dict) else ()
+    marker = node.get(EXTERNAL_LITERAL_OBJECT_KEYWORD)
+    errors = []
+    for name in names:
+        if not isinstance(name, str):
+            errors.append(f"{pointer}/properties/{name} violates NC-FIELDCASE-001: property names must be strings in snake_case")
+    if marker is None:
+        for name in names:
+            if not isinstance(name, str):
+                continue
+            if nc_fieldcase_001(name):
+                escaped = name.replace("~", "~0").replace("/", "~1")
+                errors.append(
+                    f"{pointer}/properties/{escaped} violates NC-FIELDCASE-001 "
+                    f"(`{name}` is not snake_case); an object that mirrors an external "
+                    f"specification verbatim MUST declare {EXTERNAL_LITERAL_OBJECT_KEYWORD} "
+                    "on that exact node"
+                )
+        return errors
+    annotation = f"{pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD}"
+    if not names:
+        errors.append(f"{annotation} is a stale annotation: the annotated object declares no properties")
+    if not isinstance(marker, dict):
+        errors.append(f"{annotation} must be an object declaring {list(EXTERNAL_LITERAL_OBJECT_FIELDS)}")
+        return errors
+    unknown = sorted(set(marker) - set(EXTERNAL_LITERAL_OBJECT_FIELDS) - {"reason"}, key=str)
+    if unknown:
+        errors.append(f"{annotation} declares unknown members {unknown}")
+    specification = marker.get("specification")
+    if not isinstance(specification, str) or not specification.strip():
+        errors.append(f"{annotation} must name the external specification whose lexicon governs these property names")
+    anchor = marker.get("anchor")
+    if not isinstance(anchor, str) or not EXTERNAL_ANCHOR_URL_RE.fullmatch(anchor):
+        errors.append(f"{annotation}.anchor must be an https:// URL carrying the section fragment that defines these names")
+    return errors
+
+
 def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None:
     """Close NC-FIELDCASE-001: every declared property name is snake_case.
 
@@ -436,56 +477,9 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
     for file_name, document in documents.items():
         schema_path = SCHEMA_DIR / file_name
         for owner in enumerate_property_owners(file_name, document):
-            marker = owner.node.get(EXTERNAL_LITERAL_OBJECT_KEYWORD)
-            violations = [name for name in owner.names if nc_fieldcase_001(name)]
             reached |= {(owner.pointer, name) for name in owner.names}
-            if marker is None:
-                for name in violations:
-                    lint.fail(
-                        schema_path,
-                        f"{owner.pointer}/properties/{name} violates NC-FIELDCASE-001 "
-                        f"(`{name}` is not snake_case); an object that mirrors an external "
-                        f"specification verbatim MUST declare "
-                        f"{EXTERNAL_LITERAL_OBJECT_KEYWORD} on that exact node",
-                    )
-                continue
-            if not owner.names:
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} is a stale annotation: "
-                    "the annotated object declares no properties",
-                )
-            if not isinstance(marker, dict):
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} must be an object "
-                    f"declaring {list(EXTERNAL_LITERAL_OBJECT_FIELDS)}",
-                )
-                continue
-            unknown = sorted(set(marker) - set(EXTERNAL_LITERAL_OBJECT_FIELDS) - {"reason"})
-            if unknown:
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} declares unknown "
-                    f"members {unknown}",
-                )
-            specification = marker.get("specification")
-            if not isinstance(specification, str) or not specification.strip():
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD} must name the external "
-                    f"specification whose lexicon governs these property names",
-                )
-            anchor = marker.get("anchor")
-            if not isinstance(anchor, str) or not EXTERNAL_ANCHOR_URL_RE.fullmatch(anchor):
-                # A bare specification name cannot be checked against anything; the
-                # fragment is what pins the exemption to a section rather than to a
-                # whole document.
-                lint.fail(
-                    schema_path,
-                    f"{owner.pointer}/{EXTERNAL_LITERAL_OBJECT_KEYWORD}.anchor must be an "
-                    f"https:// URL carrying the section fragment that defines these names",
-                )
+            for error in _wire_property_owner_case_errors(owner.pointer, owner.node):
+                lint.fail(schema_path, error)
     # Walker duality. The owner walk and the occurrence walk are two views of one
     # population, so a regression in either one shrinks the judged surface without
     # failing anything unless they are compared.
@@ -500,6 +494,116 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
             "NC-FIELDCASE-001 owner walk disagrees with the property occurrence walk: "
             f"missing={sorted(expected - reached)[:5]}, extra={sorted(reached - expected)[:5]}",
         )
+
+
+def openapi_schema_positions(document: dict[str, Any]):
+    """Yield declarations, not dereferenced copies, at legal OAS schema slots.
+
+    Local component targets are visited at their declarations. Canonical external
+    JSON schemas have their own checker. A marker on a reference or parent node
+    therefore cannot exempt a target, sibling or nested declaring object.
+    """
+    def child(path, key):
+        return path + "/" + str(key).replace("~", "~0").replace("/", "~1")
+
+    def schema(node, path):
+        if not isinstance(node, dict):
+            return
+        yield path, node
+        for key in ("properties", "$defs", "definitions", "patternProperties", "dependentSchemas"):
+            values = node.get(key)
+            if isinstance(values, dict):
+                for name, value in values.items():
+                    yield from schema(value, child(child(path, key), name))
+        for key in ("allOf", "anyOf", "oneOf", "prefixItems"):
+            values = node.get(key)
+            if isinstance(values, list):
+                for index, value in enumerate(values):
+                    yield from schema(value, child(child(path, key), index))
+        for key in ("additionalProperties", "unevaluatedProperties", "propertyNames", "contains",
+                    "not", "if", "then", "else", "additionalItems", "unevaluatedItems", "contentSchema", "items"):
+            value = node.get(key)
+            if isinstance(value, list):
+                for index, value in enumerate(value):
+                    yield from schema(value, child(child(path, key), index))
+            else:
+                yield from schema(value, child(path, key))
+        dependencies = node.get("dependencies")
+        if isinstance(dependencies, dict):
+            for name, value in dependencies.items():
+                if isinstance(value, dict):
+                    yield from schema(value, child(child(path, "dependencies"), name))
+
+    def walk(node, path, kind):
+        if not isinstance(node, dict):
+            return
+        if kind == "schema":
+            yield from schema(node, path)
+            return
+        # Reference Objects do not acquire schema-bearing siblings. Path Items
+        # and JSON Schema references have different sibling rules and are kept.
+        if kind in {"parameter", "header", "request_body", "response", "callback"} and "$ref" in node:
+            return
+        singles = {
+            "parameter": {"schema": "schema"}, "header": {"schema": "schema"},
+            "media": {"schema": "schema", "itemSchema": "schema", "itemEncoding": "encoding"},
+            "operation": {"requestBody": "request_body"},
+        }
+        maps = {
+            "parameter": {"content": "media"}, "header": {"content": "media"},
+            "request_body": {"content": "media"}, "response": {"content": "media", "headers": "header"},
+            "media": {"encoding": "encoding"}, "encoding": {"headers": "header"},
+            "operation": {"responses": "response", "callbacks": "callback"},
+            "path_item": {"additionalOperations": "operation"},
+        }
+        for key, destination in singles.get(kind, {}).items():
+            yield from walk(node.get(key), child(path, key), destination)
+        for key, destination in maps.get(kind, {}).items():
+            values = node.get(key)
+            if isinstance(values, dict):
+                for name, value in values.items():
+                    if key != "responses" or not str(name).startswith("x-"):
+                        yield from walk(value, child(child(path, key), name), destination)
+        if kind in {"operation", "path_item"} and isinstance(node.get("parameters"), list):
+            for index, value in enumerate(node["parameters"]):
+                yield from walk(value, child(child(path, "parameters"), index), "parameter")
+        if kind == "media" and isinstance(node.get("prefixEncoding"), list):
+            for index, value in enumerate(node["prefixEncoding"]):
+                yield from walk(value, child(child(path, "prefixEncoding"), index), "encoding")
+        if kind == "path_item":
+            for method in ("get", "head", "post", "put", "delete", "patch", "options", "trace", "query"):
+                yield from walk(node.get(method), child(path, method), "operation")
+        if kind == "callback":
+            for expression, value in node.items():
+                if expression != "$ref" and not expression.startswith("x-"):
+                    yield from walk(value, child(path, expression), "path_item")
+
+    components = document.get("components", {})
+    if isinstance(components, dict):
+        for group, kind in {"schemas": "schema", "parameters": "parameter", "headers": "header",
+                            "requestBodies": "request_body", "responses": "response", "callbacks": "callback",
+                            "pathItems": "path_item"}.items():
+            values = components.get(group)
+            if isinstance(values, dict):
+                for name, node in values.items():
+                    yield from walk(node, child("/components/" + group, name), kind)
+    for group in ("paths", "webhooks"):
+        values = document.get(group)
+        if isinstance(values, dict):
+            for name, node in values.items():
+                if group != "paths" or not str(name).startswith("x-"):
+                    yield from walk(node, child("/" + group, name), "path_item")
+
+
+def check_openapi_wire_property_name_case(lint: Lint) -> None:
+    path = ARTIFACTS / "openapi/arkret-service-api.openapi.yaml"
+    document = load_yaml(lint, path)
+    if not isinstance(document, dict):
+        return
+    for pointer, node in openapi_schema_positions(document):
+        if isinstance(node.get("properties"), dict) or EXTERNAL_LITERAL_OBJECT_KEYWORD in node:
+            for error in _wire_property_owner_case_errors(pointer, node):
+                lint.fail(path, error)
 
 
 def check_typed_id_namespace_disjointness(
@@ -2031,6 +2135,7 @@ def check_identifier_value_categories(lint: Lint) -> None:
             lint.fail(IDENTIFIER_CLASSIFICATION_PATH, f"{where}.occurrences must be positive")
 
     observed: dict[tuple[str, str], int] = {}
+    observed_paths: dict[tuple[str, str], set[str]] = {}
     for file_name, document in documents.items():
         for occurrence in enumerate_schema_properties(file_name, document):
             name = occurrence.name
@@ -2042,6 +2147,7 @@ def check_identifier_value_categories(lint: Lint) -> None:
                 signature = json.dumps(terminals, ensure_ascii=False, sort_keys=True)
                 key = (name, signature)
                 observed[key] = observed.get(key, 0) + 1
+                observed_paths.setdefault(key, set()).add(f"{file_name}#{occurrence.pointer}")
                 registered = index.get(key)
                 category = registered.get("category") if isinstance(registered, dict) else None
             # An occurrence the type system cannot decide and the registry does
@@ -2050,6 +2156,16 @@ def check_identifier_value_categories(lint: Lint) -> None:
             # on the way to being registered.
             check_typed_id_namespace_disjointness(
                 lint, file_name, occurrence.pointer, name, category, terminals
+            )
+
+    for key, row in index.items():
+        example = row.get("example_path")
+        if not isinstance(example, str) or example not in observed_paths.get(key, set()):
+            lint.fail(
+                IDENTIFIER_CLASSIFICATION_PATH,
+                f"identifier classification `{key[0]}` example_path must name an actual "
+                "observed occurrence with the same property name and terminal signature; "
+                f"got={example!r}; observed={sorted(observed_paths.get(key, set()))[:3]}",
             )
 
     registered_counts = {key: row.get("occurrences") for key, row in index.items()}

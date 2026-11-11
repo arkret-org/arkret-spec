@@ -219,9 +219,10 @@
       "json_pointer": "/$defs/ServiceDidEndpoint/properties/type",
       "external_standard": "W3C DID Core",
       "external_field_path": "Service type",
-      "round_trip_requirement": "Preserve the raw DID service type field and value.",
+      "round_trip_requirement": "Preserve the DID Core service type field; the exact ArkretService profile value is registered by the canonical DID service contract, not owned by W3C.",
       "dispatch_authority": "external_standard",
-      "arkret_extensions_allowed": false
+      "arkret_extensions_allowed": true,
+      "extension_authority": "registry/contract-registry.json#/did_document_contract_registry/arkret_service_types/0/type"
     },
     {
       "schema_ref": "schemas/service-operation-dtos.schema.json",

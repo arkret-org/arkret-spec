@@ -157,6 +157,7 @@ from .fixtures import (
 )
 
 from .naming_contracts import (
+    check_openapi_wire_property_name_case,
     check_collection_field_contracts,
     check_duration_field_units,
     check_identifier_role_suffix_contracts,
@@ -168,6 +169,7 @@ from .naming_contracts import (
 
 from .http_signature import check_http_signature_contract_closure
 from .object_target_naming import check_object_target_naming
+from .http_naming import check_http_naming, check_transport_naming
 from .time_tolerances import check_protocol_time_tolerance_closure
 
 from .security_evidence import check_security_evidence_closure
@@ -873,7 +875,10 @@ def main(argv: list[str] | None = None) -> int:
             ("naming_predicates", lambda: check_naming_predicates(lint)),
             ("naming_rule_coverage", lambda: check_naming_rule_coverage_matrix(lint)),
             ("identifier_categories", lambda: check_identifier_value_categories(lint)),
+            ("openapi_property_case", lambda: check_openapi_wire_property_name_case(lint)),
             ("object_target_naming", lambda: check_object_target_naming(lint)),
+            ("http_naming", lambda: check_http_naming(lint)),
+            ("transport_naming", lambda: check_transport_naming(lint)),
             ("identifier_role_suffixes", lambda: check_identifier_role_suffix_contracts(lint)),
             ("collection_field_contracts", lambda: check_collection_field_contracts(lint)),
             ("duration_field_units", lambda: check_duration_field_units(lint)),

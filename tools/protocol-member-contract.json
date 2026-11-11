@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d0325e0da10028aa50ce61eeab930ef9153a9810f4790a1f2886f26ba92cd037",
+  "contract_digest": "sha256:a1e256dd3f26d7fbc2180e3130150dbea4d5ba26cfc756cb56377721bd8213b7",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -2295,8 +2295,9 @@
           "account_registration_verification_policy": {
             "type": "object",
             "properties": {
-              "required": {
+              "verification_required": {
                 "type": "boolean",
+                "x-arkret-member-role": "obligation",
                 "default": false
               },
               "code_digest": {
@@ -2308,8 +2309,9 @@
           "account_registration_invitation_policy": {
             "type": "object",
             "properties": {
-              "required": {
+              "invitation_required": {
                 "type": "boolean",
+                "x-arkret-member-role": "obligation",
                 "default": false
               },
               "token_digests": {
@@ -2351,8 +2353,9 @@
               "verification_code": {
                 "$ref": "#/$defs/account_registration_verification_policy"
               },
-              "organization_allowlist": {
+              "allowed_organization_labels": {
                 "type": "array",
+                "description": "Deployment-local account-admission organization labels. These are policy vocabulary, not Organization principal identifiers, DID control evidence, or membership assertions. Matching rules belong to the deployment admission policy and do not establish protocol identity or authority.",
                 "items": {
                   "$ref": "#/$defs/non_empty_string"
                 },
@@ -2373,8 +2376,9 @@
               "verification_code": {
                 "$ref": "#/$defs/non_empty_string"
               },
-              "organization": {
-                "$ref": "#/$defs/non_empty_string"
+              "organization_label": {
+                "$ref": "#/$defs/non_empty_string",
+                "description": "Deployment-local admission label compared against allowed_organization_labels. This untrusted label is not an Organization DID or proof of organization control, account ownership, or membership."
               },
               "invitation_token": {
                 "$ref": "#/$defs/non_empty_string"
@@ -3866,14 +3870,7 @@
                 "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               }
             },
             "additionalProperties": false
@@ -7511,14 +7508,7 @@
                 }
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "agent_id": {
                 "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -7566,14 +7556,7 @@
                 }
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "agent_id": {
                 "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -7760,14 +7743,7 @@
                 "$ref": "./event-payload.schema.json#/$defs/did_core_id"
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "proposed_action": {
                 "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
@@ -7843,14 +7819,7 @@
                 "$ref": "./event-payload.schema.json#/$defs/did_core_id"
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "proposed_action": {
                 "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
@@ -8779,7 +8748,8 @@
                   {
                     "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
                   }
-                ]
+                ],
+                "maxLength": 256
               },
               "verification_method": {
                 "$ref": "#/$defs/did_url"
@@ -10103,7 +10073,7 @@
             ],
             "properties": {
               "agent_id": {
-                "type": "string"
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
               },
               "participation_entries": {
                 "type": "array",
@@ -12310,8 +12280,9 @@
               "value_kind"
             ],
             "properties": {
-              "required": {
-                "type": "boolean"
+              "field_required": {
+                "type": "boolean",
+                "x-arkret-member-role": "obligation"
               },
               "enum_values": {
                 "type": "array",
@@ -13715,14 +13686,7 @@
             ],
             "properties": {
               "install_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/applet_install_handle"
               },
               "applet_id": {
                 "$ref": "#/$defs/applet_id"
@@ -18722,7 +18686,8 @@
             "type": "string",
             "pattern": "^(?!ak:)",
             "minLength": 1,
-            "description": "Distribution identifier only. Not a grant subject."
+            "description": "Distribution identifier only. Not a grant subject.",
+            "maxLength": 256
           },
           "applet_id": {
             "$ref": "#/$defs/applet_id"
@@ -22109,7 +22074,7 @@
             ],
             "properties": {
               "admission_id": {
-                "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+                "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
                 "format": "uuid"
               },
               "join_event_ref": {
@@ -22168,7 +22133,7 @@
             ],
             "properties": {
               "admission_id": {
-                "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+                "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
                 "format": "uuid"
               },
               "delegation_id": {
@@ -22205,7 +22170,7 @@
             ],
             "properties": {
               "admission_id": {
-                "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+                "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
                 "format": "uuid"
               },
               "delegation_id": {
@@ -25113,10 +25078,8 @@
                 "pattern": "^[A-Za-z0-9_-]{22,64}$"
               },
               "focus_id": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^(?!ak:)"
+                "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
+                "maxLength": 64
               },
               "desired_media": {
                 "$ref": "#/$defs/media"
@@ -25575,8 +25538,8 @@
               "exporter_label": {
                 "const": "ak.rtc-recording-key/v1",
                 "x-arkret-value-ownership": {
-                  "class": "media_type",
-                  "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
+                  "class": "registered_literal",
+                  "authority": "../registry/exporter-label-registry.json#/labels/5/label",
                   "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/exporter_label",
                   "values": [
                     "ak.rtc-recording-key/v1"
@@ -25601,10 +25564,7 @@
                     "$ref": "#/$defs/call_id"
                   },
                   "focus_id": {
-                    "type": "string",
-                    "pattern": "^(?!ak:)",
-                    "minLength": 1,
-                    "maxLength": 256
+                    "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle"
                   },
                   "recording_id": {
                     "$ref": "#/$defs/recording_id"
@@ -26733,7 +26693,7 @@
                   "128+"
                 ],
                 "x-arkret-value-ownership": {
-                  "class": "version_text",
+                  "class": "numeric_range",
                   "authority": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
                   "owner": "circle-operations.schema.json#/$defs/circle_preview/properties/member_count_bucket",
                   "values": [
@@ -34982,7 +34942,8 @@
               },
               "secret_id": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_.-]+$"
+                "pattern": "^[A-Za-z0-9_.-]+$",
+                "maxLength": 256
               },
               "root_context": {
                 "$ref": "#/$defs/root_context"
@@ -36763,7 +36724,7 @@
                     }
                   },
                   "approval_id": {
-                    "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approval_id"
+                    "$ref": "./string-profiles.schema.json#/$defs/agent_confirmation_handle"
                   }
                 },
                 "additionalProperties": false
@@ -40555,7 +40516,7 @@
                     "$ref": "./event-payload.schema.json#/$defs/policy_action_document/properties/action"
                   },
                   "action_id": {
-                    "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id"
+                    "$ref": "./string-profiles.schema.json#/$defs/realm_action_name"
                   }
                 },
                 "additionalProperties": false
@@ -56423,14 +56384,7 @@
             ],
             "properties": {
               "approval_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_confirmation_handle"
               },
               "request_id": {
                 "allOf": [
@@ -56440,17 +56394,11 @@
                   {
                     "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
                   }
-                ]
+                ],
+                "maxLength": 256
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "agent_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -56491,14 +56439,7 @@
             ],
             "properties": {
               "rejection_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_rejection_handle"
               },
               "request_id": {
                 "allOf": [
@@ -56508,7 +56449,8 @@
                   {
                     "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
                   }
-                ]
+                ],
+                "maxLength": 256
               },
               "agent_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -56544,17 +56486,11 @@
                   {
                     "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
                   }
-                ]
+                ],
+                "maxLength": 256
               },
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "agent_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -56719,14 +56655,7 @@
             ],
             "properties": {
               "draft_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
               },
               "agent_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -57961,11 +57890,9 @@
                 "additionalProperties": false
               },
               "focus_id": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^(?!ak:)",
-                "description": "Required with an SFU/MCU participant binding, absent for P2P/mesh. Freeze the selected focus in this roster entry so later focus changes cannot alter its signature input."
+                "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
+                "description": "Required with an SFU/MCU participant binding, absent for P2P/mesh. Freeze the selected focus in this roster entry so later focus changes cannot alter its signature input.",
+                "maxLength": 64
               }
             },
             "additionalProperties": false,
@@ -64229,14 +64156,7 @@
                 "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "action_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/realm_action_name"
               },
               "value": {
                 "$ref": "#/$defs/policy_action_document"
@@ -64547,8 +64467,9 @@
                   "token": {
                     "type": "object",
                     "properties": {
-                      "required": {
+                      "token_required": {
                         "type": "boolean",
+                        "x-arkret-member-role": "obligation",
                         "default": false
                       },
                       "ttl_seconds": {
@@ -64556,14 +64477,15 @@
                         "minimum": 1,
                         "maximum": 604800
                       },
-                      "bind_target_digest": {
+                      "target_digest_binding_required": {
                         "type": "boolean",
+                        "x-arkret-member-role": "obligation",
                         "const": true,
                         "default": true,
                         "x-arkret-value-ownership": {
                           "class": "numeric",
-                          "authority": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/bind_target_digest",
-                          "owner": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/bind_target_digest",
+                          "authority": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/target_digest_binding_required",
+                          "owner": "event-payload.schema.json#/$defs/preview_policy_payload/properties/value/properties/token/properties/target_digest_binding_required",
                           "values": [
                             true
                           ]
@@ -64950,14 +64872,7 @@
             ],
             "properties": {
               "statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ],
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle",
                 "description": "Stable id of this organization statement. It is audit identity, not the reducer current state subject; the reducer current state subject is (organization_id, relationship)."
               },
               "realm_id": {
@@ -65048,24 +64963,10 @@
                 "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later AccountStatusRecord is required and remains subject to sequence and terminal rules."
               },
               "supersedes_statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
               },
               "revokes_statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
               },
               "realm_commit_ref": {
                 "$ref": "common-ids.schema.json#/$defs/realm_commit_id",
@@ -66244,14 +66145,7 @@
             ],
             "properties": {
               "focus_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ],
+                "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
                 "description": "Stable focus id inside this Realm media service. It enters the signed canonical bytes and the session_focus election (call-state.md section 4.1)."
               },
               "focus_kind": {
@@ -68886,6 +68780,8 @@
           "constraint_id": {
             "type": "string",
             "pattern": "^(?!ak:)",
+            "minLength": 1,
+            "maxLength": 256,
             "description": "Optional stable identifier of this constraint within the grant; used for diagnostics and overrides."
           },
           "constraint_kind": {
@@ -69379,7 +69275,8 @@
             "items": {
               "type": "string",
               "pattern": "^(?!ak:)",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 256
             },
             "uniqueItems": true
           },
@@ -70376,8 +70273,7 @@
                     }
                   },
                   "organization_id": {
-                    "type": "string",
-                    "minLength": 1
+                    "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                   }
                 },
                 "additionalProperties": false
@@ -72996,7 +72892,7 @@
               },
               "handle_claim": {
                 "$ref": "./handle-claim.schema.json",
-                "description": "Signed HandleClaim status view proving that handle resolves to invite_address.account_id. The receiver MUST verify exact handle_claim.claim.subject_account_id equality, status=verified, the signed as_of/fresh_until window, null revocation fields, core/status proofs, core expiry, issuer trust, visibility/audience policy, and that handle_claim.claim.handle equals handle."
+                "description": "Signed HandleClaim status view proving that handle resolves to invite_address.account_id. The receiver MUST verify exact handle_claim.claim.subject_account_id equality, status=verified, the signed evaluated_at/cache_expires_at window, null revocation fields, core/status proofs, core expiry, issuer trust, visibility/audience policy, and that handle_claim.claim.handle equals handle."
               },
               "resolved_by": {
                 "$ref": "#/$defs/did_core_id",
@@ -73989,7 +73885,8 @@
               },
               "secret_id": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9_.-]+$"
+                "pattern": "^[A-Za-z0-9_.-]+$",
+                "maxLength": 256
               },
               "secret_base64url": {
                 "type": "string",
@@ -74911,7 +74808,8 @@
                 },
                 "secret_id": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9_.-]+$"
+                  "pattern": "^[A-Za-z0-9_.-]+$",
+                  "maxLength": 256
                 },
                 "root_context": {
                   "$ref": "./content-encryption.schema.json#/$defs/root_context"
@@ -75856,10 +75754,10 @@
                 "$ref": "#/$defs/keypackage_capability_set"
               },
               "device_authorize_event_id": {
-                "$ref": "#/$defs/non_empty_string"
+                "$ref": "./common-ids.schema.json#/$defs/event_id"
               },
               "agent_key_authorize_event_id": {
-                "$ref": "#/$defs/non_empty_string",
+                "$ref": "./common-ids.schema.json#/$defs/event_id",
                 "description": "Accepted active ak.agent.key.authorize Event that binds an Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
               },
               "expires_at": {
@@ -78466,7 +78364,8 @@
                   {
                     "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
                   }
-                ]
+                ],
+                "maxLength": 256
               },
               "key_digest": {
                 "$ref": "#/$defs/digest"
@@ -93594,7 +93493,7 @@
             "type": "object",
             "required": [
               "max_lifetime_seconds",
-              "max_uses_per_link"
+              "max_use_count_per_link"
             ],
             "properties": {
               "max_lifetime_seconds": {
@@ -93603,8 +93502,9 @@
                 "maximum": 4294967295,
                 "default": 2592000
               },
-              "max_uses_per_link": {
+              "max_use_count_per_link": {
                 "type": "integer",
+                "x-arkret-member-role": "count",
                 "minimum": 1,
                 "maximum": 4294967295,
                 "default": 1000
@@ -93653,7 +93553,7 @@
             "required": [
               "public_key",
               "expires_at",
-              "max_uses"
+              "max_use_count"
             ],
             "properties": {
               "public_key": {
@@ -93662,8 +93562,9 @@
               "expires_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
               },
-              "max_uses": {
+              "max_use_count": {
                 "type": "integer",
+                "x-arkret-member-role": "count",
                 "minimum": 1,
                 "maximum": 4294967295
               }
@@ -93711,7 +93612,7 @@
             "required": [
               "public_key",
               "expires_at",
-              "max_uses",
+              "max_use_count",
               "create_event_id",
               "creator_actor_id"
             ],
@@ -93722,8 +93623,9 @@
               "expires_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
               },
-              "max_uses": {
+              "max_use_count": {
                 "type": "integer",
+                "x-arkret-member-role": "count",
                 "minimum": 1,
                 "maximum": 4294967295
               },
@@ -93764,11 +93666,11 @@
               "realm_id",
               "inviter_account_id",
               "expires_at",
-              "max_uses",
+              "max_use_count",
               "use_count",
               "status",
               "create_event_id",
-              "as_of"
+              "evaluated_at"
             ],
             "properties": {
               "realm_invite_link_id": {
@@ -93783,8 +93685,9 @@
               "expires_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
               },
-              "max_uses": {
+              "max_use_count": {
                 "type": "integer",
+                "x-arkret-member-role": "count",
                 "minimum": 1,
                 "maximum": 4294967295
               },
@@ -93799,8 +93702,9 @@
               "create_event_id": {
                 "$ref": "./common-ids.schema.json#/$defs/event_id"
               },
-              "as_of": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
+              "evaluated_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp",
+                "x-arkret-member-role": "instant"
               }
             },
             "additionalProperties": false
@@ -94520,14 +94424,7 @@
             ],
             "properties": {
               "statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
               },
               "organization_id": {
                 "$ref": "#/$defs/did_core_id"
@@ -94556,24 +94453,10 @@
                 "$ref": "#/$defs/nullable_timestamp"
               },
               "supersedes_statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
               },
               "revokes_statement_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
+                "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
               },
               "realm_commit_ref": {
                 "$ref": "#/$defs/digest"
@@ -101103,9 +100986,7 @@
             "description": "Deployment/admin upper bound for subject-private invite/contact receive policies. Stations SHOULD expose this in describe so clients can show which user reachability preferences are capped by server policy."
           },
           "rate_limit_policy_id": {
-            "type": "string",
-            "pattern": "^(?!ak:)",
-            "minLength": 1,
+            "$ref": "./policy.schema.json#/properties/id",
             "description": "Identifier for a cacheable, verifiable rate-limit policy object with the same minimum fields as rate_limit_policy. See zh/sync/api-conventions.md §8."
           },
           "rate_limit_policy": {
@@ -101392,7 +101273,8 @@
                 "verification_run_id": {
                   "type": "string",
                   "pattern": "^(?!ak:)",
-                  "minLength": 1
+                  "minLength": 1,
+                  "maxLength": 256
                 },
                 "artifact_digest": {
                   "type": "string",
@@ -102904,9 +102786,7 @@
                     "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
                   },
                   "focus_id": {
-                    "type": "string",
-                    "pattern": "^(?!ak:)",
-                    "minLength": 1,
+                    "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
                     "maxLength": 64
                   },
                   "participant_id": {
@@ -102990,9 +102870,7 @@
                 "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "focus_id": {
-                "type": "string",
-                "pattern": "^(?!ak:)",
-                "minLength": 1,
+                "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
                 "maxLength": 64
               },
               "connect_url": {
@@ -103109,9 +102987,7 @@
                 "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Stations can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
               },
               "focus_id": {
-                "type": "string",
-                "pattern": "^(?!ak:)",
-                "minLength": 1,
+                "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
                 "maxLength": 64
               },
               "capability_refs": {
@@ -104829,9 +104705,13 @@
                 "$ref": "./encrypted-envelope.schema.json"
               },
               "parent_space_id": {
-                "type": [
-                  "string",
-                  "null"
+                "oneOf": [
+                  {
+                    "$ref": "./space.schema.json#/properties/parent_space_id"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
               "rank": {
@@ -105224,8 +105104,8 @@
               "type": {
                 "const": "ArkretService",
                 "x-arkret-value-ownership": {
-                  "class": "selector_grammar",
-                  "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
+                  "class": "registered_literal",
+                  "authority": "../registry/contract-registry.json#/did_document_contract_registry/arkret_service_types/0/type",
                   "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
                   "values": [
                     "ArkretService"
@@ -106868,7 +106748,8 @@
               "session_id": {
                 "type": "string",
                 "pattern": "^(?!ak:)",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 256
               },
               "credential_class": {
                 "$ref": "#/$defs/SessionGrantCredentialClass"
@@ -110570,6 +110451,45 @@
           "non_typed_identifier_floor": {
             "pattern": "^(?!ak:)",
             "description": "Lexical floor of every identifier value category that does NOT own the ak: namespace (opaque_correlation, document_local_symbol, external_system_identifier, registry_catalog_symbol, unregistered_object_identifier); see common-fields.md 2.1. The negative lookahead IS the floor: it mechanically proves the value cannot be an ak: typed id, which maxLength alone can never prove, while admitting every other value the field already accepted. It deliberately constrains nothing else - the per-field convergence direction (a registered typed kind, or a tighter opaque profile) is decided per object family, so a pattern-only floor composes with whatever profile the field already carries instead of pre-empting it."
+          },
+          "bounded_non_typed_identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^(?!ak:)",
+            "description": "Nonempty bounded non-typed identifier shape. Length is at most 256 Unicode code points and the ak: typed-ID namespace is excluded. This definition supplies lexical constraints only; each owning scoped profile separately defines semantic category, scope and authority boundaries."
+          },
+          "realm_action_name": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "Realm-owned action configuration name. The logical owner is the exact Realm, not an individual Event envelope or a Policy rule. Every carrier and update retains that same realm_id; first acceptance fixes (action, policy_scope), and later use must not rebind the name. The name alone is not a capability token, authorization subject, global object identity, or Event deduplication key."
+          },
+          "membership_admission_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One failed-join admission lifecycle, scoped by its exact source and destination Realm, subject Account and covered join Event/RealmCommit. The handle only correlates the delegation, terminal certificate and one-use compensation binding. Authority remains the verified executor, signed delegation, terminal evidence and current membership cut; the handle alone grants no authority and never replaces Event identity or deduplication."
+          },
+          "agent_confirmation_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One controller confirmation lifecycle for the exact Agent and pre-authored approved_event_id in the enclosing Realm. The handle correlates the immutable confirmation record; controller ActorId plus approval_nonce is the one-use admission coordinate. Controller authority, the exact signed Event, current authorization and nonce consumption remain mandatory. The handle alone is not an authorization bearer, principal identity, or Event deduplication key."
+          },
+          "agent_draft_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One private pending-intent lifecycle under exact (controller_account_id, agent_id). Account Data and pending-intent carriers retain this same owner scope and the same UTF-8 literal; key derivation uses the registered domain-separated digests, not an alternate normalized identifier. The signed proposal, content commitment, accepted controller binding and source-gated CAS remain authority. The handle alone is not a principal identity, authorization bearer, or Event deduplication key."
+          },
+          "media_focus_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One stable media focus lifecycle inside the exact Realm media-service configuration. Call, token, recording and exporter carriers retain the same realm_id, selected focus and accepted media authority. A matching opaque handle is only a correlation with the accepted foci configuration; it is not a global Arkret object identity, permission, or Event deduplication key. Existing Call, participant-binding and focus-election proof checks remain mandatory."
+          },
+          "applet_install_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One Applet install operation lifecycle under the exact caller, applet_id and service_id. This response handle does not identify an independent authorization object: registration_event_ref, registration_epoch and the accepted capability/E2EE authorization references prove the installed state. It must not select authorization, replace the registration coordinate, or deduplicate an Event by itself."
+          },
+          "agent_rejection_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "One actor-private request-rejection lifecycle under exact (controller AccountId, agent_id, request_id). The handle correlates the rejection outcome; controller authority, signed rejection Event and request target-state CAS determine acceptance. It is not a standalone authorization object, principal identity, or Event deduplication key."
+          },
+          "organization_statement_handle": {
+            "$ref": "#/$defs/bounded_non_typed_identifier",
+            "description": "Organization endorsement audit lineage under exact (realm_id, organization_id, relationship). statement_id, supersedes_statement_id and revokes_statement_id use the same opaque profile and retain that same scope. They correlate audit/replacement/revocation records, not an external SIWE/OIDC identity or the current-state subject. Authority comes from the original signed Event, accepted organization control and current relationship cut; a handle alone grants no authority and never replaces Event deduplication."
           }
         }
       }
@@ -112095,7 +112015,7 @@
               "htm": {
                 "const": "ARKRET-WEBSOCKET-AUTH",
                 "x-arkret-value-ownership": {
-                  "class": "selector_grammar",
+                  "class": "registered_literal",
                   "authority": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
                   "owner": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
                   "values": [
@@ -113271,7 +113191,7 @@
     },
     {
       "file": "classification-field-registry.json",
-      "digest": "sha256:044963fb9f6b97eebdbe1d75a7c04c5fc335fbdc1ffe8f3c56434f0f84d909f3"
+      "digest": "sha256:631c9b48f9a3dfb69240dd9237e027e517aa68a97a2d0008c4179af63129ea40"
     },
     {
       "file": "content-addressed-ref-digest-exemption-registry.json",
@@ -113283,7 +113203,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:56f2b56f08d71ef9de224d15976a9ed0beb20e3343979be5991d92b11d3e93f3"
+      "digest": "sha256:561eac920bf26f1d28c0a7d5790a6fa4953f494b5b890ba44bafe5d26c63494f"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -113343,7 +113263,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:49536d9b267c0d319e540f785efcf49796a0e0d042204ced9226e2d69fad471d"
+      "digest": "sha256:d75ddc6ddd3ae9c8a740156ab30d9a5eb05721094111e90f15a43c07132df82f"
     },
     {
       "file": "operation-clause-registry.json",
@@ -113351,7 +113271,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:22c8020fab43ce0e3b69ff384f0303dd51cff0fe0ec61eeb8b8cec61573005da"
+      "digest": "sha256:6a26f29d31751569eda14b17c21ab46d23b8a1a602225456782942b35d31a7b2"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -120774,7 +120694,7 @@
           }
         }
       },
-      "/_arkret/self/device_messages": {
+      "/_arkret/self/device-messages": {
         "post": {
           "operationId": "ak.self.device_messages.command.send",
           "security": [
@@ -120800,8 +120720,8 @@
                 "const": "ak.self.device_messages.command.send.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema",
                   "values": [
                     "ak.self.device_messages.command.send.v1"
                   ]
@@ -120864,8 +120784,8 @@
                 "const": "ak.self.device_messages.read.list.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema",
                   "values": [
                     "ak.self.device_messages.read.list.v1"
                   ]
@@ -120906,7 +120826,7 @@
           }
         }
       },
-      "/_arkret/self/device_messages/ack": {
+      "/_arkret/self/device-messages/ack": {
         "post": {
           "operationId": "ak.self.device_messages.command.ack",
           "parameters": [
@@ -120920,8 +120840,8 @@
                 "const": "ak.self.device_messages.command.ack.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema",
                   "values": [
                     "ak.self.device_messages.command.ack.v1"
                   ]
@@ -124312,7 +124232,7 @@
           }
         }
       },
-      "/_arkret/edge/applet/third_party/users": {
+      "/_arkret/edge/applet/third-party/users": {
         "get": {
           "operationId": "ak.edge.applet.third_party_users.read.list",
           "security": [
@@ -124333,8 +124253,8 @@
                 "const": "ak.edge.applet.third_party_users.read.list.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema",
                   "values": [
                     "ak.edge.applet.third_party_users.read.list.v1"
                   ]
@@ -124399,7 +124319,7 @@
           }
         }
       },
-      "/_arkret/edge/applet/third_party/locations": {
+      "/_arkret/edge/applet/third-party/locations": {
         "get": {
           "operationId": "ak.edge.applet.third_party_locations.read.list",
           "security": [
@@ -124420,8 +124340,8 @@
                 "const": "ak.edge.applet.third_party_locations.read.list.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema",
                   "values": [
                     "ak.edge.applet.third_party_locations.read.list.v1"
                   ]
@@ -124900,7 +124820,7 @@
               }
             },
             {
-              "name": "link_kind_allow",
+              "name": "allowed_link_kinds",
               "in": "query",
               "required": false,
               "schema": {
@@ -125356,7 +125276,7 @@
           }
         }
       },
-      "/_arkret/self/account_data": {
+      "/_arkret/self/account-data": {
         "get": {
           "operationId": "ak.self.account_data.read.list",
           "parameters": [
@@ -125370,8 +125290,8 @@
                 "const": "ak.self.account_data.read.list.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema",
                   "values": [
                     "ak.self.account_data.read.list.v1"
                   ]
@@ -125400,7 +125320,7 @@
           }
         }
       },
-      "/_arkret/self/account_data/{account_data_key}": {
+      "/_arkret/self/account-data/{account_data_key}": {
         "get": {
           "operationId": "ak.self.account_data.resource.get",
           "security": [
@@ -125421,8 +125341,8 @@
                 "const": "ak.self.account_data.resource.get.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema",
                   "values": [
                     "ak.self.account_data.resource.get.v1"
                   ]
@@ -125471,8 +125391,8 @@
                 "const": "ak.self.account_data.resource.replace.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema",
                   "values": [
                     "ak.self.account_data.resource.replace.v1"
                   ]
@@ -125531,8 +125451,8 @@
                 "const": "ak.self.account_data.resource.delete.v1",
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema",
+                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema",
+                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema",
                   "values": [
                     "ak.self.account_data.resource.delete.v1"
                   ]

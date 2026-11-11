@@ -311,7 +311,7 @@ def schema_shape_has_type(
 def nc_bool_001(candidate: str) -> bool:
     """R1: permission booleans end _allowed, obligation booleans end _required."""
 
-    if candidate.startswith(FORBIDDEN_BOOLEAN_PREFIXES):
+    if candidate in {"required", "allowed"} or candidate.startswith(FORBIDDEN_BOOLEAN_PREFIXES):
         return True
     return bool(re.match(r"(?:no|disallow)_", candidate))
 
@@ -412,13 +412,18 @@ def nc_evidence_001(candidate: str) -> bool:
 def nc_artifact_001(candidate: str) -> bool:
     """R7: artifact filenames are kebab-case."""
 
-    return "_" in candidate
+    return re.fullmatch(
+        r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\.(?:schema|openapi))?\.[a-z][a-z0-9]*",
+        candidate,
+    ) is None
 
 
 def nc_set_001(candidate: str) -> bool:
     """R8: allowlist/denylist arrays use allowed_ / denied_."""
 
-    return candidate.startswith(FORBIDDEN_SET_PREFIXES)
+    return (candidate.startswith(FORBIDDEN_SET_PREFIXES)
+            or candidate in {"allowlist", "denylist"}
+            or candidate.endswith(("_allowlist", "_denylist", "_allow", "_deny")))
 
 
 def split_name_words(name: str) -> list[str]:

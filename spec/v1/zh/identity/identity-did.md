@@ -3,7 +3,7 @@ title: DID Identity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-20
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -250,7 +250,7 @@ Arkret v1 core conformance 要求如下：
   - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。
   - **携带 build-time evidence 引用**：每条索引条目 MUST 记录其 build-time evidence 引用（被解析 DID、entry hash chain head / `versionId`、evidence 构建时间、controller-proof 验证结果摘要）；缺少该引用的索引条目视为"来源不可追溯"，degraded 期间 MUST 被拒绝。这关闭"在 outage 前用未经 controller-proof 验证或来源不明的数据建一份本地索引，再在 degraded 期间把它当作 verified 结果读出"的索引洗白路径——degraded 模式只能消费可回溯到 committed、age 合格、controller-proof 已验证 evidence 的索引，而不是任何"碰巧已落地的本地表"。
 - Resolver MUST 把 cache-only degraded 状态作为 service health / diagnostics 信号暴露给同 Realm peers（例如 `resolver_state=webvh_cache_only_degraded`、`cached_evidence_age_ms`、受影响 DID 集合摘要）。Peer 只在收到 operation/action registry 登记为 current-DID-dependent 的请求时据此 fail closed；普通 human PCR 写入不得读取该信号作为 authority gate。
-- **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_id`、`as_of`、`trust_domain` 与 freshness nonce。缺失或无法验证时，只对 `registration_control`、`current_external_claim`、`method_successor`、已启用的 `optional_did_root_recovery` 和登记的 `ongoing_governance` 调用 fail closed；不得外推到同一个主体的其它动作。
+- **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_id`、`evaluated_at`、`trust_domain` 与 freshness nonce。缺失或无法验证时，只对 `registration_control`、`current_external_claim`、`method_successor`、已启用的 `optional_did_root_recovery` 和登记的 `ongoing_governance` 调用 fail closed；不得外推到同一个主体的其它动作。
 - DID outage 下必须继续工作的 human 路径包括普通/高风险 PCR Event、device authorize/revoke、PCR-policy recovery、capability grant/revoke、MLS commit、membership/join/invite、session 恢复、账号删除/擦除与 Contact。它们仍须对自己的实际 authority fail closed，但不得要求 hosting 或 mirror 恢复。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时；超时后 resolver 对 current-DID-dependent 调用进入 `stale_history` 或 `write_unavailable`。该时钟不得改变 account/PCR status，也不得阻止 durable accepted-at evidence 的历史重放。

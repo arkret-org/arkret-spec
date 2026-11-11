@@ -41,7 +41,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "Every boolean occurrence is visited and forbidden prefixes or bare obligation/permission words are rejected. Declared semantic member roles enforce positive suffixes. Whether an undeclared boolean represents permission, obligation, fact, capability or request intent still needs semantic review; spelling alone cannot decide that role."
     },
     {
       "rule_id": "NC-COUNT-001",
@@ -74,7 +75,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "Forbidden length/size spellings are checked everywhere reached by the naming predicates; explicit member-role count annotations also check positive suffixes. Whether an unannotated integer means a count, capacity, duration, generation or reference still requires schema/profile semantic review."
     },
     {
       "rule_id": "NC-ENUM-001",
@@ -93,20 +95,23 @@
           "NC-ENUM-001"
         ],
         "functions": [
-          "prose.py:check_naming_predicates"
+          "prose.py:check_naming_predicates",
+          "semantic_naming.py:check_semantic_naming"
         ],
         "registries": [
           "tools/naming-convention-rules.json"
         ]
       },
       "entry_points": [
-        "naming_predicates"
+        "naming_predicates",
+        "semantic_naming"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_semantic_naming.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "The predicate decides snake_case for every literal it is handed, but deciding which enums are Arkret-owned rather than external is registry work that is not complete, so only the registered non-snake literals are currently swept."
+      "residual_gap": "Every discovered schema enum/const is checked against its exact owner and classified literal grammar, including registered byte literals and reviewed numeric ranges. Ownership metadata, profile purpose and external-authority semantics still require review; discovery and lexical success do not prove that classification is correct."
     },
     {
       "rule_id": "NC-TYPE-001",
@@ -177,7 +182,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "The predicate rejects adjudicated failure_code/rejection_code aliases. Distinguishing a machine reason from a protocol error or human explanation requires semantic review of each owning contract."
     },
     {
       "rule_id": "NC-LEXEME-001",
@@ -216,7 +222,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "The canonical lexeme registry closes known aliases and exact exceptions. No spelling predicate can prove that every word is unabbreviated or that a product prefix is semantically necessary; novel stems require human review."
     },
     {
       "rule_id": "NC-EVIDENCE-001",
@@ -285,7 +292,8 @@
         "tools/test_naming_gate_lint.py",
         "tools/test_artifact_metadata.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "All artifact filenames receive strict lexical checks and registered derivations are checked for drift. Choosing a semantic artifact category and proving the actual source ownership or data-flow direction still requires independent review."
     },
     {
       "rule_id": "NC-SET-001",
@@ -317,7 +325,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "The predicate rejects forbidden prefixes and allowlist/denylist suffix aliases. Whether an otherwise named collection expresses admission, support, acceptance or advertisement requires semantic review; the spelling alone cannot establish that role."
     },
     {
       "rule_id": "NC-HASH-001",
@@ -350,7 +359,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "Forbidden hash-word spellings are checked on declared schema fields, type definitions and OpenAPI components. Whether an arbitrary byte value is a digest, Merkle root or algorithm selector requires semantic review."
     },
     {
       "rule_id": "NC-CLASSIFICATION-001",
@@ -538,8 +548,8 @@
       "tests": [
         "tools/test_naming_gate_lint.py"
       ],
-      "coverage_level": "full",
-      "residual_gap": "Exact-path external literal objects, compound role stems and closed polymorphic subjects require explicit registry metadata; context-specific multi-representation field names are closed to the exact carrier set and per-profile meanings registered in identifier-role-suffix-registry.json."
+      "coverage_level": "partial",
+      "residual_gap": "Resolved carrier suffixes, cardinality and registered role grammar are checked mechanically. Whether the semantic role, subject class and external-owner claim match the actual protocol responsibility requires independent review."
     },
     {
       "rule_id": "NC-COLLECTION-001",
@@ -607,7 +617,8 @@
       "tests": [
         "tools/test_lint_artifacts_runtime.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "Typed-ID forms and registered symbol spellings receive mechanical checks. Namespace ownership and precise primitive-label versus catalog-symbol boundaries remain subject to registry and preimage review."
     },
     {
       "rule_id": "NC-IDKIND-001",
@@ -704,8 +715,8 @@
         "tools/test_naming_gate_lint.py",
         "tools/test_wire_lexical_closure_lint.py"
       ],
-      "coverage_level": "full",
-      "residual_gap": "Category assignment is closed in both directions and the reverse lexical closure now fails closed. The resolved terminal type decides what it can, every occurrence it cannot decide has an exact classification row that goes stale the moment the schema changes, and every non-owning category carries a terminal that provably rejects an ak: value - the shared floor is string-profiles.schema.json#/$defs/non_typed_identifier_floor. An occurrence whose terminal proves neither acceptance nor rejection is a lint failure rather than a silent pass, so a newly minted bare `type: string` identifier cannot reach the wire. The remaining judgement is per-field convergence direction (register a typed kind vs tighten the opaque profile), which is a naming decision rather than a namespace leak."
+      "coverage_level": "partial",
+      "residual_gap": "Terminal classification and ak: namespace disjointness fail closed. Exact signatures and representative paths close the manual registry against source drift, but grouped (name, terminal_signature) rows cannot prove every occurrence has the right semantic scope or authority. The reviewed canonical inventory has no pending categories; this is an audit conclusion, not automatic semantic coverage."
     },
     {
       "rule_id": "NC-IDSUFFIX-001",
@@ -885,7 +896,8 @@
       "tests": [
         "tools/test_lint_artifacts_runtime.py"
       ],
-      "coverage_level": "full"
+      "coverage_level": "partial",
+      "residual_gap": "Registered field groups and structural order constraints are checked. The completeness and semantic clustering of groups, including newly introduced fields, still require contract review."
     },
     {
       "rule_id": "NC-SYMBOLLIT-001",
@@ -893,7 +905,7 @@
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.",
-        "quote": "需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值"
+        "quote": "需要安全域分离的固定字符串 label 使用所属 primitive registry"
       },
       "applies_to": [
         "exporter_label",
@@ -1082,21 +1094,24 @@
           "NC-FIELDCASE-001"
         ],
         "functions": [
-          "naming_contracts.py:check_wire_property_name_case"
+          "naming_contracts.py:check_wire_property_name_case",
+          "naming_contracts.py:check_openapi_wire_property_name_case"
         ],
         "registries": [
           "tools/naming-convention-rules.json"
         ]
       },
       "entry_points": [
-        "identifier_categories"
+        "identifier_categories",
+        "openapi_property_case"
       ],
       "tests": [
+        "tools/test_openapi_property_case.py",
         "tools/test_wire_lexical_closure_lint.py",
         "tools/test_naming_gate_lint.py"
       ],
       "coverage_level": "full",
-      "residual_gap": "Every declared property name on every shipped schema is decided. The only exemption is an object that declares x-arkret-external-literal-object on its own node with an external https anchor, which covers the properties that node declares and nothing reached through $ref, a shared type name or a same-named property elsewhere; an annotation that stops exempting anything fails as stale."
+      "residual_gap": "All declared schema property names receive lexical checks and exact-owner external-marker validation. This mechanical coverage does not independently establish the truth of an external ownership claim."
     },
     {
       "rule_id": "NC-DURATION-001",
@@ -1155,6 +1170,74 @@
       ],
       "coverage_level": "partial",
       "residual_gap": "The slug field registry pins every bare `slug` occurrence to a declared owning context and the check closes the wire surface in both directions: a bare slug outside a registered context fails, a registered context whose pointer stops resolving fails, and a reference name must be `<entity>_slug` (with an optional role/time qualifier) for an entity that has a registered owning context. Whether a context genuinely is the owning object of its entity is the human judgement recorded per registry row, the same epistemic status as the identifier classification registry."
+    },
+    {
+      "rule_id": "NC-HTTP-001",
+      "title": "HTTP binding 命名合同",
+      "normative_anchor": {
+        "file": "spec/v1/zh/sync/api-conventions.md",
+        "section": "2.4.3",
+        "quote": "HTTP binding 命名合同"
+      },
+      "applies_to": [
+        "http_path",
+        "path_parameter",
+        "query_parameter",
+        "http_header",
+        "operation_id"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "http_naming.py:check_http_naming"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/operation-registry.json"
+        ]
+      },
+      "entry_points": [
+        "http_naming"
+      ],
+      "tests": [
+        "tools/test_http_naming.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "All declared machine bindings are enumerated and their lexical forms, uniqueness and authority links checked; semantic action choice and whether a literal belongs to an external standard remain human review. Prose candidates are inventoried separately and are not counted as machine-decided semantics."
+    },
+    {
+      "rule_id": "NC-TRANSPORT-001",
+      "title": "非 HTTP transport 命名合同",
+      "normative_anchor": {
+        "file": "spec/v1/zh/sync/api-conventions.md",
+        "section": "2.4.4",
+        "quote": "非 HTTP transport 命名合同"
+      },
+      "applies_to": [
+        "grpc_service",
+        "grpc_method",
+        "mq_topic",
+        "sse_event",
+        "libp2p_protocol"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "http_naming.py:check_transport_naming"
+        ],
+        "registries": [
+          "spec/v1/artifacts/registry/operation-registry.json"
+        ]
+      },
+      "entry_points": [
+        "transport_naming"
+      ],
+      "tests": [
+        "tools/test_http_naming.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "All declared machine bindings are enumerated and their lexical forms, uniqueness and authority links checked; semantic action choice and whether a literal belongs to an external standard remain human review. Prose candidates are inventoried separately and are not counted as machine-decided semantics."
     }
   ]
 }

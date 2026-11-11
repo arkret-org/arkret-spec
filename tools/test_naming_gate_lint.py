@@ -110,6 +110,24 @@ class MutationHarness(unittest.TestCase):
 
 
 class NamingGateBaselineTest(unittest.TestCase):
+    def test_artifact_full_stem_lexicon_has_no_basename_exemptions(self):
+        from tools.artifact_lint.naming import nc_artifact_001
+        for name in ('event-kind-registry.json', 'one.schema.json', 'service-api.openapi.yaml', 'run-report.log'):
+            self.assertFalse(nc_artifact_001(name), name)
+        for name in ('Bad.json', 'bad name.json', 'bad_name.json', 'bad.name.json', 'bad--name.json',
+                     '-bad.json', 'bad-.json', 'bad.JSON', 'README.md', 'foo/valid.json'):
+            self.assertTrue(nc_artifact_001(name), name)
+
+    def test_only_the_exact_artifact_documentation_landing_page_is_exempt(self):
+        from tools.artifact_lint import prose
+        for path, rejected in ((ARTIFACTS / 'README.md', False),
+                               (ARTIFACTS / 'registry/README.md', True),
+                               (ARTIFACTS / 'reports/Bad.json', True),
+                               (ARTIFACTS / 'reports/Bad.log', True)):
+            with self.subTest(path=path), patch.object(prose, 'raw_artifact_files', return_value=[path]):
+                errors = run_gate().errors
+                self.assertEqual(any('artifact filename' in error for error in errors), rejected, errors)
+
     def test_gate_is_green(self) -> None:
         lint = run_gate()
         self.assertEqual(lint.errors, [])
@@ -452,6 +470,21 @@ class WrapperWordTest(unittest.TestCase):
 
 
 class HashWordBoundaryTest(MutationHarness):
+    def test_openapi_component_names_cannot_escape_hash_vocabulary(self):
+        from tools.artifact_lint import prose
+        original_loader = prose.load_yaml
+
+        def mutated_loader(lint, path):
+            document = original_loader(lint, path)
+            if path.name == "arkret-service-api.openapi.yaml":
+                document = copy.deepcopy(document)
+                document["components"]["schemas"]["HashPayload"] = {"type": "object"}
+            return document
+
+        with patch.object(prose, "load_yaml", side_effect=mutated_loader):
+            errors = run_gate().errors
+        self.assertTrue(any("HashPayload" in error and "NC-HASH-001" in error for error in errors), errors)
+
     """NC-HASH-001 is a word rule, so casing must not create a hole in it."""
 
     def test_words_are_split_in_every_casing_style(self) -> None:

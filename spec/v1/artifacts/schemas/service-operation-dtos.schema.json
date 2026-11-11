@@ -672,9 +672,7 @@
               "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
             },
             "focus_id": {
-              "type": "string",
-              "pattern": "^(?!ak:)",
-              "minLength": 1,
+              "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
               "maxLength": 64
             },
             "participant_id": {
@@ -758,9 +756,7 @@
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "focus_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
+          "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
           "maxLength": 64
         },
         "connect_url": {
@@ -877,9 +873,7 @@
           "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Stations can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
         },
         "focus_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
+          "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
           "maxLength": 64
         },
         "capability_refs": {
@@ -2612,9 +2606,13 @@
           "$ref": "./encrypted-envelope.schema.json"
         },
         "parent_space_id": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "./space.schema.json#/properties/parent_space_id"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "rank": {
@@ -3019,8 +3017,8 @@
         "type": {
           "const": "ArkretService",
           "x-arkret-value-ownership": {
-            "class": "selector_grammar",
-            "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
+            "class": "registered_literal",
+            "authority": "../registry/contract-registry.json#/did_document_contract_registry/arkret_service_types/0/type",
             "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/type",
             "values": [
               "ArkretService"
@@ -4663,7 +4661,8 @@
         "session_id": {
           "type": "string",
           "pattern": "^(?!ak:)",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 256
         },
         "credential_class": {
           "$ref": "#/$defs/SessionGrantCredentialClass"

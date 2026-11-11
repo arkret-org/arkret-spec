@@ -3,7 +3,7 @@ title: Service API Schema（统一 OpenAPI）
 status: candidate
 normative: false
 stability: v1
-updated: 2026-08-20
+updated: 2026-11-12
 see_also:
   - service-http-binding.md
   - api-conventions.md
@@ -79,7 +79,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 目录发现 | `ak.find.directory.*` | `/_arkret/find/directory/*` |
 | Blob / media | `ak.self.blob.*` | `/_arkret/self/blob/*` |
 | 推送 | `ak.edge.push.*` | `/_arkret/edge/push/*` |
-| 设备加密 | `ak.self.device_messages.*`、`ak.self.keys.*` | `/_arkret/self/device_messages/*`、`/_arkret/self/keys/*` |
+| 设备加密 | `ak.self.device_messages.*`、`ak.self.keys.*` | `/_arkret/self/device-messages/*`、`/_arkret/self/keys/*` |
 | 授权 | `ak.self.authz.*` | `/_arkret/self/authz/*` |
 | 媒体服务 | `ak.self.media.*`、`ak.self.call.media.exchange.issue_token.v1` | `/_arkret/self/rtc/ice-config`、`/_arkret/self/rtc/token` |
 | 审核 | `ak.self.moderation.*` | `/_arkret/self/moderation/*` |
@@ -143,16 +143,16 @@ paths:
       operationId: ak.self.events.command.submit
   /_arkret/self/streams/scan:
     post:
-      operationId: ak.self.events.read.scan
+      operationId: ak.self.committed_event.read.scan
   /_arkret/self/realms/{realm_id}/streams:
     get:
       operationId: ak.self.realm.read.streams
   /_arkret/self/committed-events/subscribe:
     get:
-      operationId: ak.self.events.stream.subscribe
+      operationId: ak.self.committed_event.stream.subscribe
   /_arkret/self/committed-events/{event_id}:
     get:
-      operationId: ak.self.events.resource.get
+      operationId: ak.self.committed_event.resource.get
   /_arkret/self/signal:
     post:
       operationId: ak.self.signal.command.send
@@ -168,7 +168,7 @@ paths:
       operationId: ak.peer.events.command.submit
   /_arkret/peer/streams/scan:
     post:
-      operationId: ak.peer.events.read.scan
+      operationId: ak.peer.committed_event.read.scan
 
   /_arkret/self/account/viewer:
     get:
@@ -217,7 +217,7 @@ paths:
     post:
       operationId: ak.edge.push.command.notify
 
-  /_arkret/self/device_messages:
+  /_arkret/self/device-messages:
     post:
       operationId: ak.self.device_messages.command.send
     get:
@@ -304,10 +304,10 @@ paths:
   /_arkret/edge/applet/protocols/{protocol}:
     get:
       operationId: ak.edge.applet.read.protocol_metadata
-  /_arkret/edge/applet/third_party/users:
+  /_arkret/edge/applet/third-party/users:
     get:
       operationId: ak.edge.applet.third_party_users.read.list
-  /_arkret/edge/applet/third_party/locations:
+  /_arkret/edge/applet/third-party/locations:
     get:
       operationId: ak.edge.applet.third_party_locations.read.list
 ```
@@ -340,7 +340,7 @@ paths:
 | `ak.self.space.read.list.v1` / `ak.self.strand.read.list.v1` / `ak.self.morph.read.list.v1` / `ak.self.morph.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.morph.resource.get` |
 | `ak.self.blob.upload.create.v1` / `ak.self.blob.resource.head.v1` / `ak.self.blob.resource.get.v1` | `POST /_arkret/self/blob/upload`, `HEAD/GET /_arkret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
 | `ak.edge.push.command.register_device.v1` / `ak.edge.push.command.notify.v1` | `POST /_arkret/edge/push/register-device`, `POST /_arkret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
-| `ak.self.device_messages.command.send.v1` / `ak.self.device_messages.read.list.v1` | `POST /_arkret/self/device_messages`, `GET /_arkret/self/device_messages` | MQ device topic / 本地 IPC |
+| `ak.self.device_messages.command.send.v1` / `ak.self.device_messages.read.list.v1` | `POST /_arkret/self/device-messages`, `GET /_arkret/self/device-messages` | MQ device topic / 本地 IPC |
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | `POST /_arkret/self/keys/upload`, `POST /_arkret/self/keys/query`, `POST /_arkret/self/keys/claim` | E2EE key service binding |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | `PUT /_arkret/self/keys/backups/{backup_id}`, `GET /_arkret/self/keys/backups`, `POST /_arkret/self/keys/backups/{backup_id}/unlock`, `DELETE /_arkret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `ak.self.authz.read.check.v1` / `ak.self.authz.grants.read.effective.v1` / `ak.self.authz.invites.read.list.v1` | `POST /_arkret/self/authz/check`, `GET /_arkret/self/authz/effective-grants`, `GET /_arkret/self/authz/invites` | gRPC / policy 插件回调 |
