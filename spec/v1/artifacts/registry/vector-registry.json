@@ -4982,9 +4982,10 @@
       "applies_to_fixtures": [
         "arkret-private-kdf-fixture.json"
       ],
-      "description": "Byte-level MLS-Exporter ak.signal-root-v1 with canonical effective scope key context, followed by ak.signal-v1 ExpandWithLabel with the verified sender domain as raw UTF-8 context. Covers distinct sender keys under an equal nonce and label, context, sender, and epoch mutations.",
+      "description": "Byte-level MLS-Exporter ak.signal-root-v1 with canonical effective scope key context, then ak.signal-v1 ExpandWithLabel directly over RFC8785 JCS of the closed verified endpoint {actor_id,endpoint,authorization_event_ref,signature_key_base64url}. Covers same-Actor devices, complete Actor/Station separation, Human and Agent authorization/method/leaf-key changes, equal-nonce AEAD confidentiality and independent nonce replay domains, leaf-index reuse and stable restart counters; rejects Actor-only, bare-device, prehashed and string-wrapped contexts. Native authority, accepted MLS transitions, durable multi-writer allocation and business payload_sequence remain independent runtime obligations.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
+        "spec/v1/zh/sync/signal.md"
       ]
     },
     {

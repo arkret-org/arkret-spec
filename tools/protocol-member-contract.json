@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d73df98aa281788a5b33b3d98a3328eb2937d61290f7e71d477f5e1343e702db",
+  "contract_digest": "sha256:d0325e0da10028aa50ce61eeab930ef9153a9810f4790a1f2886f26ba92cd037",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -107193,7 +107193,7 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/signal-envelope.schema.json",
-        "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances RealmCommit coverage or reducer state.",
+        "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances RealmCommit coverage or reducer state. The Signal key context is the locally reconstructed, independently verified closed endpoint instance defined by content-encryption.schema.json#/$defs/endpoint and zh/sync/signal.md section 1; neither that context nor its digest is carried on this envelope. Key derivation, durable nonce allocation and AEAD nonce replay share the exact group/epoch/endpoint domain; payload_sequence keeps its separate business domain.",
         "type": "object",
         "required": [
           "realm_id",
@@ -113307,7 +113307,7 @@
     },
     {
       "file": "exporter-label-registry.json",
-      "digest": "sha256:a6096cc6a12fc5d3b9b324974c93f120b5626677e3f71027126cbb8739d24e48"
+      "digest": "sha256:e305cca1694f4ab3e97e5154a641fa6aed516de278823f4e0e2a79d1f2963380"
     },
     {
       "file": "forbidden-model-terms.json",
@@ -113427,7 +113427,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:17b86fb96de1494d6486e11b2427187caca1025e5a2bc071374540e31877b6aa"
+      "digest": "sha256:ec39fbe731c304b6fc5d3d7097ba200773dd2cf5e3828e190612aa6aea7cfe03"
     }
   ],
   "openapi": {

@@ -62,12 +62,16 @@
       "label": "ak.signal-v1",
       "primitive": "ExpandWithLabel",
       "parent_secret": "ak.signal-root-v1",
-      "purpose": "Per-verified-sender Signal AEAD key",
+      "purpose": "Per-verified-endpoint-instance Signal AEAD key",
       "defined_in": "zh/sync/signal.md §1",
       "context_fields": [
-        "sender_domain"
+        "actor_id",
+        "endpoint",
+        "authorization_event_ref",
+        "signature_key_base64url"
       ],
-      "context_encoding": "exact active LeafNode BasicCredential identity bytes",
+      "context_encoding": "UTF8(RFC8785_JCS(SignalSenderDomain)); direct closed endpoint object bytes, without prehashing or JSON string wrapping",
+      "context_schema_ref": "schemas/content-encryption.schema.json#/$defs/endpoint",
       "output_bytes": "AEAD.Nk",
       "applies_to_profiles": [],
       "grandfathered": false,

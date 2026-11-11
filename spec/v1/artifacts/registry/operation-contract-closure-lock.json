@@ -8,7 +8,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:7be1fe9464bcffaf85ae3af68f1a20875bf85fdd0fb92beb9d263d3607bccb47"
+      "sha256": "sha256:2daecf851b7ba71073983a8c3fe908fcf7749dad7497d6a998ee52c4267b00b6"
     },
     {
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
@@ -224,11 +224,11 @@
     },
     {
       "operation_id": "ak.peer.call.invitation.command.relay.v1",
-      "sha256": "sha256:56c5097453e578dad3277101786556104c27b51a37dd624b26b2123a0e49edaf"
+      "sha256": "sha256:0a0261ce6fb7c8635843ea2f97a3bdcbefd548ecdffb209cce8932f9386028ad"
     },
     {
       "operation_id": "ak.peer.call.invitation.read.admission.v1",
-      "sha256": "sha256:64ca016818b27c159b767a47fa1ae82cc664d45e23c903fce459870050dea223"
+      "sha256": "sha256:8f52e7efc3a74b325eb7b012e6e1dd85e4e421691fcbfb3976a10430da06e1ec"
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
@@ -312,7 +312,7 @@
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
-      "sha256": "sha256:8783d0fe679438b44968a941e3035d6cb2ab5fe7fa102629aae8e2375d1dee25"
+      "sha256": "sha256:f68dcf9cfedad90a44470aaa50d296b6816e51b46996e744b8abebc512d184a7"
     },
     {
       "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
@@ -548,11 +548,11 @@
     },
     {
       "operation_id": "ak.self.call.invitation.command.send.v1",
-      "sha256": "sha256:5b9cd3f04438671a94cf353925ac2393a34321ce162b6d38f81c4200e28c495f"
+      "sha256": "sha256:3319f62bf06bf26d7dc7e11454ba51bd1290602ac333786ee18b918f1d1cd661"
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token.v1",
-      "sha256": "sha256:5da36f9ff69101c703d4f59a3aaf771d087d4953fca754e15606ffa89cda0e8c"
+      "sha256": "sha256:5f5862f5da18dd9d03d6f3138f88be7eea80b4cacfece075fc3e0a943c050338"
     },
     {
       "operation_id": "ak.self.circle.command.create.v1",
@@ -856,11 +856,11 @@
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",
-      "sha256": "sha256:13fd0e06a5db7ee2f5dd0bedc0b4ef7056decbe7ea3b6de2f1a65962fc8046e5"
+      "sha256": "sha256:a9e7601be959ecffa2de0fd2adb87ed3cf8b5488e025e29affbe86bfaef113d3"
     },
     {
       "operation_id": "ak.self.signal.stream.subscribe.v1",
-      "sha256": "sha256:8c4f54530806c53b9e89d1d35466a2cecaa0ba85e990b6ab6803b3d03e3db7c5"
+      "sha256": "sha256:61c74af061a70b94d8b224c42ac7782ec82f4c05b3b49c9565fa8627bb90a977"
     },
     {
       "operation_id": "ak.self.signer_keys.read.resolve.v1",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signal-envelope.schema.json",
   "title": "Arkret Signal Envelope",
-  "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances RealmCommit coverage or reducer state.",
+  "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances RealmCommit coverage or reducer state. The Signal key context is the locally reconstructed, independently verified closed endpoint instance defined by content-encryption.schema.json#/$defs/endpoint and zh/sync/signal.md section 1; neither that context nor its digest is carried on this envelope. Key derivation, durable nonce allocation and AEAD nonce replay share the exact group/epoch/endpoint domain; payload_sequence keeps its separate business domain.",
   "type": "object",
   "required": [
     "realm_id",

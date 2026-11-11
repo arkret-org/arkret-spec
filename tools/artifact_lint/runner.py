@@ -6,6 +6,7 @@ from .metadata import check_artifact_metadata
 
 from .semantic_naming import check_semantic_naming, check_protocol_member_contract
 from .primitive_fixtures import check_named_primitive_fixtures
+from .signal_endpoint import check_signal_endpoint_contract
 
 from .direct_conversation_structure import check_direct_conversation_structure
 from .mls_roster_client_roles import check_mls_roster_client_roles
@@ -955,6 +956,7 @@ def main(argv: list[str] | None = None) -> int:
             ("field_order", lambda: check_field_order(lint)),
             ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
             ("exporter_labels", lambda: check_exporter_label_registry(lint)),
+            ("signal_endpoint", lambda: check_signal_endpoint_contract(lint)),
             ("repeated_enums", lambda: check_repeated_enum_drift(lint)),
             ("algs", lambda: check_alg_registry(lint)),
             (

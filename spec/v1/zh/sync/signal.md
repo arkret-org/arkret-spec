@@ -3,7 +3,7 @@ title: Signal Extension
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-03
+updated: 2026-11-11
 ---
 
 # Signal Extension
@@ -44,13 +44,58 @@ Station、session audience 或裸 principal 补造另一账号。完整 ActorId 
 字段同时进入 proof 与 AAD。destination 的 peer transport admission 不解析远端 authority、不验
 producer signature；recipient 的端到端验证义务见 §3，治理准入由其自己的 Station 执行。
 
-Signal 的 raw key 必须 per verified sender 派生；所有 MLS scope 都使用当前 epoch、不可交付的 `ak.signal-root-v1` exporter root。两者都以 exact active Leaf BasicCredential identity 作为
-`ak.signal-v1` context。Nonce 使用该 `(group,epoch,sender)` 域的 durable full-width counter：
+Signal 的 raw key MUST 按已验证端点实例派生；所有 MLS scope 都使用当前 epoch、不可交付的
+`ak.signal-root-v1` exporter root。`SignalSenderDomain` 复用
+[`content-encryption.schema.json#/$defs/endpoint`](../../artifacts/schemas/content-encryption.schema.json#/$defs/endpoint)
+的闭合形状，按下列顺序定义四个必填成员，不允许额外成员：
+
+```text
+SignalSenderDomain = {actor_id, endpoint, authorization_event_ref, signature_key_base64url}
+sender_domain = UTF8(RFC8785_JCS(SignalSenderDomain))
+```
+
+`actor_id` MUST 等于 exact active leaf 的完整 ActorId 和外层 `sender_actor_id`。
+Human 的 `endpoint` 是 `{kind:"device",device_id}`，device_id MUST 等于外层 `sender_device_id`；
+Agent 的 `endpoint` 是 `{kind:"agent_runtime",verification_method}`，完整 method MUST 等于
+current accepted runtime binding 与 proof method，且外层 MUST 省略 `sender_device_id`。
+`authorization_event_ref` 是该 leaf 已接纳 provenance 绑定的原生 Device／Agent 授权 Event；
+`signature_key_base64url` 是占据该 leaf 的 32-byte raw Ed25519 公钥的 canonical unpadded base64url。
+两者 MUST 由 accepted creator／Add／recovery 来源和当前端点授权独立核对；proof key 与 leaf key
+各依原生合同验证，不能因使用同一端点而假定二者必然相同，也不能从 proof key 直接补造 leaf key。
+发送者必须使用自己的 exact active leaf；接收者必须唯一解析该发送端点的 exact active leaf。
+来源缺失、多个匹配 leaf、完整 Actor／端点／授权实例／key 不一致或 current authority 已失效均 MUST
+在使用该 context 和推进接收状态前拒绝。调用者自报的四字段、未验证 proof、UI 字段和 leaf index
+均不构成端点权威。
+
+`sender_domain` MUST 直接作为 `ak.signal-v1` context 的字节输入，不先散列，不把它再编码为 JSON
+字符串。BasicCredential.identity 仍唯一为完整 ActorId 的 JCS，不承担端点区分；Actor-only identity、
+裸 DeviceId／principal、leaf index 或任意拼接串 MUST NOT 作为 Signal context。
+Nonce 使用该 `(MLS group,epoch,exact sender_domain bytes)` 域的 durable `u64` counter：
 
 ```text
 K_signal = ExpandWithLabel(signal_root[N], "ak.signal-v1", sender_domain, AEAD.Nk)
 nonce = I2OSP(counter, AEAD.Nn)
 ```
+
+key 派生、发送方 durable nonce allocator 和接收方 AEAD nonce replay MUST 使用同一个上述加密域。
+同 Actor 的不同 Device、不同 Agent 授权实例或不同 leaf key MUST 分离；它们在同 epoch 使用相同
+counter 不得复用 key／nonce 组合，也不得相互触发 nonce replay。四字段不变时 sender_domain 稳定；
+仅更改 leaf index、AAD、时间、authority stream head、session 或 payload_sequence 不创建新域。
+真实新端点／授权实例／leaf key 仅在原生授权 accepted 且该 scope 的 accepted MLS transition 就绪后
+才可发送，不能通过修改本地字段绕过旧端 fence。epoch 变化通过新 exporter root 分离 key。
+
+nonce allocator MUST 在密文离开发送端之前原子耐久预留；允许 block reservation，失败、crash、
+重试结果不确定和未用完的 block 尾部均可永久烧号，不能回退。多进程／多 tab MUST 共享原子
+store/CAS 或单写 owner；普通重启、session refresh、pause/resume 必须续用原域已预留高水位，
+不得从旧 MLS snapshot 恢复较小 counter。溢出 MUST 停止，禁止 wrap、随机 nonce／前缀 fallback
+和克隆同端点的独立 allocator。丢失 allocator 或无法证明未回退时 MUST 停止发送，按既有 Human
+恢复或 Agent new-key replacement 合同重新接入，取得已验证的新加密域后才可分配；不能仅改
+method／授权引用或读取某个 receiver 的高水位后清零。旧授权／key 失效的消息必须在写入
+nonce replay 和业务 high-water 前拒绝；新域不复活旧端授权。
+
+对应字节与安全回归向量为 `ak.vector.signal.exporter_key_kat.v1`；该域是本地 KDF 输入，不增加
+envelope、AAD header 或 plaintext 成员。未发布 candidate 不保留 Actor-only／裸 DeviceId context
+的双读或降级分支；root 不得因端点域变更变成可交付秘密。
 
 Signal encrypted payload 的 closed pre-encryption header 必须绑定 scope/sender/authority commit/class/time/scheme/group/epoch/state/
 counter；AAD 是该 header 的 JCS bytes。header 是下列对象，全部成员在 authority commit 前冻结，并只从 envelope 顶层、
@@ -143,8 +188,12 @@ scope 的新 MLS transition 就绪后，新 key domain MAY 从 0 开始；旧 ke
 失效，即使给出更大 sequence 也必须在推进 high-water 前拒绝。多个不同 raw key 的 authorization
 并发存活时不得选“较新”key，Signal fail closed 直到 controller 收敛。
 
-sequence domain 与 AEAD nonce domain 独立：新 signing key 或 sequence 清零不允许在旧
+sequence domain 与 §1 的 AEAD nonce domain 独立：新 signing key 或 sequence 清零不允许在旧
 `(group,epoch,sender_domain)` 下重用 nonce；必须完成 accepted MLS transition 并按实际新加密域持久预留。
+Human 的授权实例／leaf key 替换或 epoch 更新本身不重置原 Device/scope 的业务 sequence；Agent
+同 raw signing key 的重新授权也不重置业务 sequence。不得直接把 §1 的四字段 context 当作
+payload_sequence allocator／high-water 的新 namespace。nonce 重放、业务 sequence stale 与 exact
+envelope replay 是独立检查，须按各自域处理。
 
 上述 `sender_actor_id` 使用完整 ActorId 的 JCS 值。持久 namespace 已按完整 AccountId 隔离的
 account sender MAY 在该 namespace 内仅存 device/scope 子键，但 MUST 校验 namespace 与待发送
