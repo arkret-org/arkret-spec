@@ -15,6 +15,13 @@ from typing import Any
 
 import yaml
 
+try:
+    from .artifact_lint.naming import enumerate_schema_nodes
+    from .artifact_lint.naming_contracts import openapi_schema_positions
+except ImportError:
+    from artifact_lint.naming import enumerate_schema_nodes
+    from artifact_lint.naming_contracts import openapi_schema_positions
+
 SCHEMA_MAPS = {"$defs", "definitions", "properties", "patternProperties", "dependentSchemas"}
 SCHEMA_SINGLE = {
     "additionalProperties", "unevaluatedProperties", "propertyNames", "contains",
@@ -24,7 +31,7 @@ SCHEMA_ARRAYS = {"allOf", "anyOf", "oneOf", "prefixItems"}
 METHODS = {"get", "put", "post", "delete", "options", "head", "patch", "trace", "query"}
 COMPONENTS = {
     "schemas", "responses", "parameters", "examples", "requestBodies", "headers",
-    "securitySchemes", "links", "callbacks", "pathItems",
+    "securitySchemes", "links", "callbacks", "pathItems", "mediaTypes",
 }
 TOKEN = re.compile(r"(?:[A-Za-z_$][A-Za-z0-9_.$:/{}<>-]*)\Z")
 INLINE_CODE = re.compile(r"(?<!`)(`+)([^`\n]+?)\1(?!`)")
@@ -56,6 +63,7 @@ class Inventory:
     def __init__(self) -> None:
         self.records: list[dict[str, Any]] = []
         self.files: list[dict[str, str]] = []
+        self.openapi_schema_paths: set[tuple[str, str]] = set()
 
     def add(self, file: str, path: str, name: str, category: str, context: str,
             source_role: str, **metadata: Any) -> None:
@@ -75,7 +83,11 @@ class Inventory:
             category = "data.token_candidate" if TOKEN.fullmatch(value) else "data.string_value_candidate"
             self.add(file, path, value, category, context, role)
 
-    def schema(self, node: Any, file: str, path: str, context: str, role: str) -> None:
+    def schema(self, node: Any, file: str, path: str, context: str, role: str, *, recurse: bool = True) -> None:
+        if recurse:
+            for schema_path, schema_node in enumerate_schema_nodes(file, node, path, reference_document=node):
+                self.schema(schema_node, file, schema_path, context, role, recurse=False)
+            return
         if not isinstance(node, dict):
             return
         external = node.get("x-arkret-external-literal-object")
@@ -99,24 +111,17 @@ class Inventory:
                         if external:
                             metadata["external_owner"] = external
                     self.add(file, child_path, name, category, context, role, **metadata)
-                    self.schema(child, file, child_path, context, role)
+                    # Child schema nodes are emitted by the position walk.
             elif key in SCHEMA_SINGLE or key == "items":
                 if key in {"additionalProperties", "unevaluatedProperties"} and value is not False:
                     self.add(file, here, "*", "schema.dynamic_key_slot", context, role)
-                if isinstance(value, list):
-                    for index, child in enumerate(value):
-                        self.schema(child, file, pointer(here, index), context, role)
-                else:
-                    self.schema(value, file, here, context, role)
+                # Child schema nodes are emitted by the position walk.
             elif key in SCHEMA_ARRAYS and isinstance(value, list):
-                for index, child in enumerate(value):
-                    self.schema(child, file, pointer(here, index), context, role)
+                pass
             elif key == "dependencies" and isinstance(value, dict):
                 for name, child in value.items():
                     self.add(file, pointer(here, name), name, "schema.dependent_property_name", context, role)
-                    if isinstance(child, dict):
-                        self.schema(child, file, pointer(here, name), context, role)
-                    else:
+                    if not isinstance(child, dict):
                         self.data(child, file, pointer(here, name), "schema.property_dependency", role)
             elif key == "enum" and isinstance(value, list):
                 for index, literal in enumerate(value):
@@ -138,6 +143,13 @@ class Inventory:
                  declared_owner=owner.get("owner"), authority=owner.get("authority"))
 
     def openapi(self, node: Any, file: str, path: str, role: str, parent: str = "") -> None:
+        if path == "" and isinstance(node, dict):
+            for schema_path, schema_node in openapi_schema_positions(node):
+                self.openapi_schema_paths.add((file, schema_path))
+                context = "openapi_component_schema" if schema_path.startswith("/components/schemas/") else "openapi_inline_schema"
+                self.schema(schema_node, file, schema_path, context, role, recurse=False)
+        if (file, path) in self.openapi_schema_paths:
+            return
         if isinstance(node, list):
             for index, child in enumerate(node):
                 self.openapi(child, file, pointer(path, index), role, parent)
@@ -148,16 +160,14 @@ class Inventory:
             here = pointer(path, key)
             self.add(file, here, key, "openapi.keyword_or_member", "openapi_document", role)
             if key == "schema":
-                self.schema(value, file, here, "openapi_inline_schema", role)
+                if (file, here) not in self.openapi_schema_paths:
+                    self.data(value, file, here, "openapi_inactive_schema_sibling", role)
             elif path == "/components" and key in COMPONENTS and isinstance(value, dict):
                 for name, child in value.items():
                     declared = pointer(here, name)
                     category = "openapi.schema_component" if key == "schemas" else "openapi.component"
                     self.add(file, declared, name, category, "openapi_component_" + key, role)
-                    if key == "schemas":
-                        self.schema(child, file, declared, "openapi_component_schema", role)
-                    else:
-                        self.openapi(child, file, declared, role, key)
+                    self.openapi(child, file, declared, role, key)
             elif key in {"paths", "webhooks"} and isinstance(value, dict):
                 for name, child in value.items():
                     declared = pointer(here, name)

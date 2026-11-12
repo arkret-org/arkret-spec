@@ -13,6 +13,31 @@ from .protocol_member_contract import REFERENCE, check, compare, contract_shape,
 
 
 class SemanticNamingTests(unittest.TestCase):
+    def test_semantic_walk_keeps_oas_enums_and_local_resource_member_roles(self):
+        import yaml
+        from .artifact_lint import semantic_naming
+        from .artifact_lint.core import Lint
+        document = {'openapi': '3.2.0', 'components': {'schemas': {
+            'Counter': {'$anchor': 'counter', 'type': 'integer', 'x-arkret-member-role': 'count'},
+            'Payload': {'properties': {'bad_name': {'$ref': '#counter'}}},
+            'Choice': {'enum': ['Bad Symbol']}}}}
+        with tempfile.TemporaryDirectory() as temporary:
+            artifacts = Path(temporary)
+            (artifacts / 'schemas').mkdir()
+            (artifacts / 'openapi').mkdir()
+            (artifacts / 'openapi/api.yaml').write_text(yaml.safe_dump(document), encoding='utf-8')
+            nested = {'$id': 'https://example.org/root', '$defs': {'Nested': {
+                '$id': 'nested', '$defs': {'Counter': {'type': 'integer', 'x-arkret-member-role': 'count'}},
+                'properties': {'bad_name': {'$ref': '#/$defs/Counter'}}}}}
+            (artifacts / 'schemas/one.schema.json').write_text(json.dumps(nested), encoding='utf-8')
+            lint = Lint()
+            with patch.object(semantic_naming, 'ARTIFACTS', artifacts):
+                semantic_naming.check_semantic_naming(lint)
+        self.assertFalse(any('does not resolve' in error for error in lint.errors), lint.errors)
+        self.assertTrue(any('api.yaml' in error and 'positive name grammar' in error for error in lint.errors), lint.errors)
+        self.assertTrue(any('one.schema.json' in error and 'positive name grammar' in error for error in lint.errors), lint.errors)
+        self.assertTrue(any('/Choice' in error and 'enum' in error for error in lint.errors), lint.errors)
+
     def test_openapi_component_case_rejects_case_and_acronym_mutations(self):
         from .artifact_lint.semantic_naming import openapi_component_name_errors
         self.assertEqual(openapi_component_name_errors({'MlsCommitSubmission': {}, 'DidUrl': {}}), [])

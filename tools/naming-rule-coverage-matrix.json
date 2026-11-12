@@ -1107,6 +1107,7 @@
       ],
       "tests": [
         "tools/test_openapi_property_case.py",
+        "tools/test_schema_position_boundaries.py",
         "tools/test_wire_lexical_closure_lint.py",
         "tools/test_naming_gate_lint.py"
       ],

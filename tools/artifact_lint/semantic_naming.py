@@ -8,7 +8,8 @@ import json
 from typing import Any
 
 from .core import ARTIFACTS, ROOT, Lint, load_json, load_yaml, resolve_json_pointer
-from .naming import PASCAL_CASE_RE, enumerate_schema_nodes, enumerate_schema_properties
+from .naming import PASCAL_CASE_RE, enumerate_schema_nodes, external_anchor_is_valid, SchemaReferenceContext
+from .naming_contracts import openapi_schema_positions
 
 ROLE_TAILS = {
     "request_body": "request_body", "response_body": "response_body",
@@ -260,7 +261,7 @@ def enum_errors(node: dict, owner: str | None = None, registered_values: list | 
         return ['selector grammar terminals must be a snake_case kind or wildcard']
     if kind == 'registered_literal' and (registered_values is None or json.dumps(values, sort_keys=True) != json.dumps(registered_values, sort_keys=True)):
         return ['registered literal must equal the exact resolved authority values']
-    if kind == "external_literal" and not re.fullmatch(r"https://[^\s#]+#\S+", authority):
+    if kind == "external_literal" and not external_anchor_is_valid(authority):
         return ["external enum authority must be an exact HTTPS section anchor"]
     if kind == 'external_literal' and any(v is not None and (not isinstance(v, str) or not v) for v in values):
         return ['external symbolic literals must preserve nonempty string values']
@@ -381,36 +382,66 @@ def check_semantic_naming(lint: Lint) -> None:
                 lint.fail(path, error)
             for error in openapi_component_alias_errors(document.get('components', {}).get('schemas', {})):
                 lint.fail(path, error)
-        def role_shape(node, seen=None, context_path=path, context_document=document):
+        try:
+            schema_nodes = list(openapi_schema_positions(document) if path.suffix == ".yaml" else
+                                enumerate_schema_nodes(path.name, document, reference_document=document))
+        except ValueError as error:
+            lint.fail(path, f"semantic schema positions cannot be enumerated: {error}")
+            continue
+        context_cache = {}
+        def role_context(context_document):
+            key = id(context_document)
+            if key not in context_cache:
+                roots = list(openapi_schema_positions(context_document, follow_references=False)) if "openapi" in context_document else None
+                resolver = SchemaReferenceContext(context_document, roots)
+                context_cache[key] = (resolver, {id(value): pointer for pointer, value in resolver.nodes.items()})
+            return context_cache[key]
+        def role_shape(node, seen=None, context_path=path, context_document=document, source_pointer=None):
             if not isinstance(node, dict):
                 return {}
             seen = set() if seen is None else seen
-            reference = node.get("$ref")
-            if not isinstance(reference, str) or reference in seen:
+            reference = node.get("$ref", node.get("$dynamicRef"))
+            if not isinstance(reference, str):
                 return node
-            seen.add(reference)
-            file_name, _, fragment = reference.partition("#")
-            if file_name.startswith("https://arkret.org/v1/schemas/"):
-                target_path = ARTIFACTS / "schemas" / file_name.rsplit("/", 1)[-1]
-            else:
-                target_path = (context_path.parent / file_name).resolve() if file_name else context_path
-            if not target_path.resolve().is_relative_to(ARTIFACTS.resolve()):
+            resolver, pointers = role_context(context_document)
+            source_pointer = pointers.get(id(node), "") if source_pointer is None else source_pointer
+            edge = (str(context_path), source_pointer, reference)
+            if edge in seen:
                 return node
-            target_document = context_document if target_path == context_path else load_json(lint, target_path)
-            target = target_document
-            if not isinstance(target, dict):
-                return node
+            seen.add(edge)
             try:
-                target = resolve_json_pointer(target, "#" + fragment)
-            except (KeyError, IndexError, TypeError, ValueError):
-                lint.fail(path, f"semantic role reference does not resolve: {reference}")
+                local = resolver.resolve(reference, source_pointer)
+            except ValueError as error:
+                lint.fail(path, f"semantic role reference does not resolve: {reference}: {error}")
                 return node
+            if local is not None:
+                target_pointer, target = local
+                target_path, target_document = context_path, context_document
+            else:
+                file_name, _, fragment = reference.partition("#")
+                if file_name.startswith("https://arkret.org/v1/schemas/"):
+                    target_path = ARTIFACTS / "schemas" / file_name.rsplit("/", 1)[-1]
+                else:
+                    target_path = (context_path.parent / file_name).resolve() if file_name else context_path
+                if not target_path.resolve().is_relative_to(ARTIFACTS.resolve()):
+                    return node
+                target_document = context_document if target_path == context_path else load_json(lint, target_path)
+                if not isinstance(target_document, dict):
+                    return node
+                try:
+                    local = role_context(target_document)[0].resolve("#" + fragment)
+                    if local is None:
+                        raise ValueError("target resource is unavailable")
+                    target_pointer, target = local
+                except (KeyError, IndexError, TypeError, ValueError) as error:
+                    lint.fail(path, f"semantic role reference does not resolve: {reference}: {error}")
+                    return node
             if not isinstance(target, dict):
                 return node
-            resolved = role_shape(target, seen, target_path, target_document)
+            resolved = role_shape(target, seen, target_path, target_document, target_pointer)
             return {**{key: value for key, value in resolved.items() if key != "x-arkret-name-role"},
-                    **{key: value for key, value in node.items() if key != "$ref"}}
-        for pointer,node in enumerate_schema_nodes(path.name,document):
+                    **{key: value for key, value in node.items() if key not in {"$ref", "$dynamicRef"}}}
+        for pointer,node in schema_nodes:
             if not isinstance(node,dict):
                 continue
             if pointer == '' and path.suffix == '.json':
@@ -430,9 +461,16 @@ def check_semantic_naming(lint: Lint) -> None:
                                                   lambda target: load_json(lint, target))
             for error in enum_errors(node,owner,registered):
                 lint.fail(path,f"{pointer}: {error}")
-        for occurrence in enumerate_schema_properties(path.name,document):
-            for error in member_role_errors(occurrence.name,role_shape(occurrence.shape)):
-                lint.fail(path,f"{occurrence.pointer}: {error}")
+        for pointer, node in schema_nodes:
+            if not isinstance(node, dict) or not isinstance(node.get("properties"), dict):
+                continue
+            for name, shape in node["properties"].items():
+                if not isinstance(name, str):
+                    lint.fail(path, f"{pointer}/properties: property names must be strings")
+                    continue
+                member_pointer = pointer + "/properties/" + name.replace("~", "~0").replace("/", "~1")
+                for error in member_role_errors(name, role_shape(shape)):
+                    lint.fail(path, f"{member_pointer}: {error}")
 
 
 def check_protocol_member_contract(lint: Lint) -> None:

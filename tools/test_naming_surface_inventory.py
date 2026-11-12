@@ -150,6 +150,28 @@ class NamingSurfaceInventoryTests(unittest.TestCase):
             self.assertEqual(inventory["statistics"]["file_count"], 1)
             self.assertTrue(any(row["name"] == "CanonicalView" for row in inventory["occurrences"]))
 
+    def test_oas_media_reference_and_schema_target_use_actual_positions(self):
+        inventory = Inventory()
+        document = {'components': {'schemas': {'Root': {'$ref': '#/x-schema'}},
+            'mediaTypes': {'Payload': {'schema': {'properties': {'actual_name': {}}}},
+                          'Alias': {'$ref': '#/components/mediaTypes/Payload',
+                                    'schema': {'properties': {'inactiveName': {}}}}}},
+            'x-schema': {'properties': {'referenced_name': {}}},
+            'x-unused': {'properties': {'unusedName': {}}}}
+        inventory.openapi(document, 'api.yaml', '', 'schema_contract')
+        rows = inventory.report()['occurrences']
+        properties = [row for row in rows if row['category'] == 'schema.property_name']
+        self.assertEqual({row['name'] for row in properties}, {'actual_name', 'referenced_name'})
+        self.assertEqual(len(properties), 2)
+        self.assertTrue(any(row['name'] == 'Payload' and row['context'] == 'openapi_component_mediaTypes' for row in rows))
+        self.assertTrue(any(row['name'] == 'inactiveName' and row['category'] == 'data.member' for row in rows))
+        self.assertTrue(any(row['name'] == 'unusedName' and row['category'] == 'data.member' for row in rows))
+
+    def test_json_local_reference_adds_only_referenced_annotation_schema(self):
+        rows = self.rows({'$ref': '#/x-schema', 'x-schema': {'properties': {'actual_name': {}}},
+                          'examples': [{'properties': {'not_declared': {}}}]})
+        self.assertEqual([row['name'] for row in rows if row['category'] == 'schema.property_name'], ['actual_name'])
+
 
 if __name__ == "__main__":
     unittest.main()

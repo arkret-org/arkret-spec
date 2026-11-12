@@ -132,6 +132,75 @@ class OpenApiPropertyCaseTests(unittest.TestCase):
             'specification': 'External Example', 'anchor': 'https://example.org/spec#object'}
         self.assertTrue(self.errors({'components': {'schemas': {'Payload': schema}}}))
 
+    def test_recursive_local_references_activate_only_their_actual_targets(self):
+        document = {'components': {'schemas': {'Root': {'$ref': '#/x-schema'}}},
+                    'x-schema': {'properties': {'camelCase': {}, 'next_value': {'$ref': '#/x-schema'}}},
+                    'x-unused': self.bad()}
+        errors = self.errors(document)
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn('/x-schema/properties/camelCase', errors[0])
+        positions = [path for path, _ in naming_contracts.openapi_schema_positions(document)]
+        self.assertEqual(len(positions), len(set(positions)))
+
+    def test_missing_local_reference_is_a_diagnostic(self):
+        errors = self.errors({'components': {'schemas': {'Root': {'$ref': '#/missing'}}}})
+        self.assertTrue(any('does not resolve' in error for error in errors), errors)
+
+    def test_external_anchor_urls_keep_legal_iri_and_ipv6_authorities(self):
+        from tools.artifact_lint.naming import external_anchor_is_valid
+        for anchor in ('https://example.org/spec#section', 'https://例子.测试/spec#部分',
+                       'https://[2001:db8::1]:443/spec#section'):
+            self.assertTrue(external_anchor_is_valid(anchor), anchor)
+        for anchor in ('https://?q#part', 'https://example.org:/#part',
+                       'https://example.org:65536/#part', 'https://example.org:bad/#part',
+                       'https://example.org/\x00#part', 'https://example.org/#',
+                       'https://example.org/ bad#part'):
+            self.assertFalse(external_anchor_is_valid(anchor), anchor)
+
+    def test_json_anchor_index_ignores_instance_anchors_and_nested_resources(self):
+        from tools.artifact_lint.naming import enumerate_schema_properties
+        document = {'$id': 'https://example.org/root', '$defs': {
+            'Real': {'$anchor': 'real', 'properties': {'actual_name': {}}},
+            'Other': {'$id': 'other', '$anchor': 'real', 'properties': {'other_name': {}}}},
+            'allOf': [{'$ref': '#real'}],
+            'examples': [{'$anchor': 'real', 'properties': {'camelCase': {}}}]}
+        paths = [occurrence.pointer for occurrence in enumerate_schema_properties('one', document)]
+        self.assertEqual(len(paths), 2)
+        self.assertFalse(any('examples' in path for path in paths))
+
+    def test_referenced_media_schema_registers_its_own_resource(self):
+        document = {'components': {'mediaTypes': {'Payload': {'$ref': '#/x-media'}}},
+            'x-media': {'schema': {'$id': 'https://example.org/payload',
+                '$defs': {'Value': self.bad()}, '$ref': '#/$defs/Value'}}}
+        errors = self.errors(document)
+        self.assertTrue(any('/x-media/schema/$defs/Value/properties/camelCase' in error for error in errors), errors)
+
+    def test_dynamic_reference_and_nested_resource_follow_real_targets(self):
+        from tools.artifact_lint.naming import enumerate_schema_properties, naive_property_occurrences
+        document = {'$id': 'https://example.org/root', '$defs': {'Nested': {
+            '$id': 'nested', '$defs': {'Value': self.bad()}, '$ref': '#/$defs/Value'}},
+            '$dynamicRef': '#/x-schema', 'x-schema': self.bad()}
+        occurrences = list(enumerate_schema_properties('one', document))
+        self.assertEqual(len(occurrences), 2)
+        self.assertEqual({(value.pointer, value.name) for value in occurrences}, naive_property_occurrences(document))
+
+    def test_malformed_pointer_and_scalar_targets_fail_closed(self):
+        for document in ({'$ref': '#/x~2schema', 'x~2schema': {}}, {'$ref': '#/x-schema', 'x-schema': 'data'}):
+            with self.subTest(document=document):
+                errors = self.errors({'components': {'schemas': {'Root': document}}})
+                self.assertTrue(errors)
+
+    def test_json_owner_coverage_keeps_file_identity(self):
+        original = naming_contracts.enumerate_property_owners
+        def incomplete(file_name, document):
+            return original(file_name, document) if file_name == 'one.schema.json' else iter(())
+        documents = {name: {'properties': {'valid_name': {}}}
+                     for name in ('one.schema.json', 'two.schema.json')}
+        lint = Lint()
+        with patch.object(naming_contracts, 'enumerate_property_owners', side_effect=incomplete):
+            naming_contracts.check_wire_property_name_case(lint, documents)
+        self.assertTrue(any('disagrees' in error and 'two.schema.json' in error for error in lint.errors), lint.errors)
+
 
 if __name__ == '__main__':
     unittest.main()

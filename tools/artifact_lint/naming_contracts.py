@@ -44,7 +44,10 @@ from .core import (
     resolve_json_pointer,
 )
 from .naming import (
-    EXTERNAL_ANCHOR_URL_RE,
+    external_anchor_is_valid,
+    enumerate_schema_nodes,
+    local_schema_reference,
+    SchemaReferenceContext,
     EXTERNAL_LITERAL_OBJECT_FIELDS,
     EXTERNAL_LITERAL_OBJECT_KEYWORD,
     PREDICATES,
@@ -75,7 +78,7 @@ MECHANICAL_ENFORCEMENT_KINDS = frozenset({"predicate", "registry_closure", "sche
 
 IDENTIFIER_CATEGORY_MARKER_RE = re.compile(r"identifier_category:\s*([a-z_]+)")
 SECTION_HEADING_PREFIX = "^#{1,6}[ \t]+"
-SECTION_HEADING_SUFFIX = "[ \t　]"
+SECTION_HEADING_SUFFIX = "[ \t\u3000]"
 
 # Identifier-bearing wire property names. `_ref` / `_refs` are a different
 # contract (2.1.2) and are deliberately out of scope here.
@@ -451,7 +454,7 @@ def _wire_property_owner_case_errors(pointer: str, node: dict[str, Any]) -> list
     if not isinstance(specification, str) or not specification.strip():
         errors.append(f"{annotation} must name the external specification whose lexicon governs these property names")
     anchor = marker.get("anchor")
-    if not isinstance(anchor, str) or not EXTERNAL_ANCHOR_URL_RE.fullmatch(anchor):
+    if not external_anchor_is_valid(anchor):
         errors.append(f"{annotation}.anchor must be an https:// URL carrying the section fragment that defines these names")
     return errors
 
@@ -473,18 +476,18 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
     its required specification, anchor, and reason keep the exception auditable.
     """
 
-    reached: set[tuple[str, str]] = set()
+    reached: set[tuple[str, str, str]] = set()
     for file_name, document in documents.items():
         schema_path = SCHEMA_DIR / file_name
         for owner in enumerate_property_owners(file_name, document):
-            reached |= {(owner.pointer, name) for name in owner.names}
+            reached |= {(owner.file_name, owner.pointer, name) for name in owner.names}
             for error in _wire_property_owner_case_errors(owner.pointer, owner.node):
                 lint.fail(schema_path, error)
     # Walker duality. The owner walk and the occurrence walk are two views of one
     # population, so a regression in either one shrinks the judged surface without
     # failing anything unless they are compared.
     expected = {
-        (occurrence.pointer.rsplit("/properties/", 1)[0], occurrence.name)
+        (occurrence.file_name, occurrence.pointer.rsplit("/properties/", 1)[0], occurrence.name)
         for file_name, document in documents.items()
         for occurrence in enumerate_schema_properties(file_name, document)
     }
@@ -496,7 +499,7 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
         )
 
 
-def openapi_schema_positions(document: dict[str, Any]):
+def openapi_schema_positions(document: dict[str, Any], *, follow_references=True):
     """Yield declarations, not dereferenced copies, at legal OAS schema slots.
 
     Local component targets are visited at their declarations. Canonical external
@@ -506,44 +509,35 @@ def openapi_schema_positions(document: dict[str, Any]):
     def child(path, key):
         return path + "/" + str(key).replace("~", "~0").replace("/", "~1")
 
+    roots = list(openapi_schema_positions(document, follow_references=False)) if follow_references else None
+    resolver = SchemaReferenceContext(document, roots) if follow_references else SchemaReferenceContext(document, [])
+    reached = set()
+    visited_objects = set()
     def schema(node, path):
-        if not isinstance(node, dict):
-            return
-        yield path, node
-        for key in ("properties", "$defs", "definitions", "patternProperties", "dependentSchemas"):
-            values = node.get(key)
-            if isinstance(values, dict):
-                for name, value in values.items():
-                    yield from schema(value, child(child(path, key), name))
-        for key in ("allOf", "anyOf", "oneOf", "prefixItems"):
-            values = node.get(key)
-            if isinstance(values, list):
-                for index, value in enumerate(values):
-                    yield from schema(value, child(child(path, key), index))
-        for key in ("additionalProperties", "unevaluatedProperties", "propertyNames", "contains",
-                    "not", "if", "then", "else", "additionalItems", "unevaluatedItems", "contentSchema", "items"):
-            value = node.get(key)
-            if isinstance(value, list):
-                for index, value in enumerate(value):
-                    yield from schema(value, child(child(path, key), index))
-            else:
-                yield from schema(value, child(path, key))
-        dependencies = node.get("dependencies")
-        if isinstance(dependencies, dict):
-            for name, value in dependencies.items():
-                if isinstance(value, dict):
-                    yield from schema(value, child(child(path, "dependencies"), name))
+        for pointer, value in enumerate_schema_nodes("openapi", node, path, reference_document=document if follow_references else None, reference_roots=roots, reference_context=resolver if follow_references else None):
+            if pointer not in reached and isinstance(value, dict):
+                reached.add(pointer)
+                yield pointer, value
 
     def walk(node, path, kind):
         if not isinstance(node, dict):
             return
+        if (kind, path) in visited_objects:
+            return
+        visited_objects.add((kind, path))
         if kind == "schema":
             yield from schema(node, path)
             return
         # Reference Objects do not acquire schema-bearing siblings. Path Items
         # and JSON Schema references have different sibling rules and are kept.
-        if kind in {"parameter", "header", "request_body", "response", "callback"} and "$ref" in node:
-            return
+        if "$ref" in node:
+            target = resolver.resolve(node["$ref"], path)
+            if target is not None:
+                if not isinstance(target[1], dict):
+                    raise ValueError(f"OpenAPI {kind} reference target must be an object: {node['$ref']}")
+                yield from walk(target[1], target[0], kind)
+            if kind in {"parameter", "header", "request_body", "response", "callback", "media"}:
+                return
         singles = {
             "parameter": {"schema": "schema"}, "header": {"schema": "schema"},
             "media": {"schema": "schema", "itemSchema": "schema", "itemEncoding": "encoding"},
@@ -582,7 +576,7 @@ def openapi_schema_positions(document: dict[str, Any]):
     if isinstance(components, dict):
         for group, kind in {"schemas": "schema", "parameters": "parameter", "headers": "header",
                             "requestBodies": "request_body", "responses": "response", "callbacks": "callback",
-                            "pathItems": "path_item"}.items():
+                            "pathItems": "path_item", "mediaTypes": "media"}.items():
             values = components.get(group)
             if isinstance(values, dict):
                 for name, node in values.items():
@@ -600,10 +594,13 @@ def check_openapi_wire_property_name_case(lint: Lint) -> None:
     document = load_yaml(lint, path)
     if not isinstance(document, dict):
         return
-    for pointer, node in openapi_schema_positions(document):
-        if isinstance(node.get("properties"), dict) or EXTERNAL_LITERAL_OBJECT_KEYWORD in node:
-            for error in _wire_property_owner_case_errors(pointer, node):
-                lint.fail(path, error)
+    try:
+        for pointer, node in openapi_schema_positions(document):
+            if isinstance(node.get("properties"), dict) or EXTERNAL_LITERAL_OBJECT_KEYWORD in node:
+                for error in _wire_property_owner_case_errors(pointer, node):
+                    lint.fail(path, error)
+    except ValueError as error:
+        lint.fail(path, f"NC-FIELDCASE-001 cannot enumerate schema positions: {error}")
 
 
 def check_typed_id_namespace_disjointness(
