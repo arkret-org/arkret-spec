@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import base64
+import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 ARTIFACTS = ROOT / "spec/v1/artifacts"
 FIXTURES = ARTIFACTS / "fixtures"
 REGISTRY = ROOT / "tools/resolution-commitment-pointer-registry.json"
@@ -128,6 +131,22 @@ def human_vector() -> dict[str, Any]:
     }
 
 
+def native_vector(evidence_id: str, entry_index: int) -> dict[str, Any]:
+    from tools.realm_actor_contract import verify_native_recovery
+    source = "realm-actor-content-backup-fixture.json#/native_history"
+    document = json.loads((FIXTURES / source.split("#")[0]).read_text(encoding="utf-8"))
+    history = document["native_history"]
+    verify_native_recovery(history)
+    entry = history["log_entries"][entry_index]
+    did = entry["state"]["id"]
+    return {"evidence_id": evidence_id, "adapter_version": "did:webvh:1.0",
+            "native_history_ref": source, "native_entry_index": entry_index,
+            "verified_entry": entry,
+            "commitment": {"did": did, "method_history_head": "sha256:" + hashlib.sha256(canonical(entry).encode("utf-8")).hexdigest(),
+                           "version_id": entry["versionId"]},
+            "projected_core_id": "ak:did_core:webvh:" + did.split(":", 3)[2]}
+
+
 def resolve(document: Any, pointer: str) -> Any:
     node = document
     for raw in pointer.strip("/").split("/") if pointer else []:
@@ -169,6 +188,9 @@ def recalc_event_case(case: dict[str, Any]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
     rows = json.loads(REGISTRY.read_text(encoding="utf-8"))["pointers"]
     vectors = {
         row["evidence_id"]: row
@@ -178,14 +200,22 @@ def main() -> None:
             build_vector("calendar_service", "server-alpha.example", "2026-09-19T10:20:00Z"),
             build_vector("schema_service", "alice.example.net", "2026-09-19T10:30:00Z"),
             build_vector("websocket_service", "server.example", "2026-09-19T10:40:00Z"),
+            native_vector("native_realm_actor_inception", 0),
+            native_vector("native_realm_actor_manager_transition", 2),
         ]
     }
     documents = {
         name: json.loads((FIXTURES / name).read_text(encoding="utf-8"))
         for name in sorted({row["fixture"] for row in rows})
     }
+    native_sources = {"realm-actor-signature-kat-fixture.json", "realm-actor-content-backup-fixture.json"}
     for row in rows:
-        apply_pointer(documents[row["fixture"]], row["pointer"], vectors[row["evidence_id"]]["commitment"])
+        commitment = vectors[row["evidence_id"]]["commitment"]
+        if row["fixture"] in native_sources:
+            if resolve(documents[row["fixture"]], row["pointer"]) != commitment:
+                raise ValueError("signed native fixture differs from its actual native DID evidence; regenerate its owning fixture")
+        else:
+            apply_pointer(documents[row["fixture"]], row["pointer"], commitment)
 
     agent = documents["agent-vectors-fixture.json"]
     old_agent_did = "did:webvh:z6mkagent:agent.example"
@@ -244,8 +274,17 @@ def main() -> None:
     ):
         container["service_id"] = vectors[vector_id]["projected_core_id"]
 
+    def publish(path: Path, document: Any) -> None:
+        expected = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
+        if args.check:
+            if path.read_text(encoding="utf-8") != expected:
+                raise ValueError(f"resolution commitment artifact drift: {path.relative_to(ROOT)}")
+        elif path.read_text(encoding="utf-8") != expected:
+            path.write_text(expected, encoding="utf-8", newline="\n")
+
     for name, document in documents.items():
-        (FIXTURES / name).write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        if name not in native_sources:
+            publish(FIXTURES / name, document)
     output = {
 
         "generated_by": "tools/regenerate_resolution_commitments.py",
@@ -253,7 +292,7 @@ def main() -> None:
         "runner": {"kind": "known_answer_tests", "entrypoint": "ak.suite.identity.resolution_commitment.v1"},
         "vectors": list(vectors.values()),
     }
-    OUTPUT.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    publish(OUTPUT, output)
 
 
 if __name__ == "__main__":

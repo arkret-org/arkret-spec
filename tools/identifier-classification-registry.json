@@ -93,7 +93,7 @@
       "name": "challenge_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 4,
+      "occurrences": 5,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_delete_challenge/properties/challenge_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
@@ -485,7 +485,7 @@
       "name": "request_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 5,
+      "occurrences": 7,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body/properties/request_id",
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
     },

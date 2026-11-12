@@ -155,7 +155,7 @@ class ObjectTargetNamingTest(unittest.TestCase):
 
     def test_future_kind_and_cross_file_aliases_use_terminal_semantics(self):
         documents = copy.deepcopy(self.documents)
-        documents['alias.schema.json'] = {'$defs': {'target': {'oneOf': [
+        documents['alias.schema.json'] = {'$id': 'https://arkret.org/v1/schemas/alias.schema.json', '$defs': {'target': {'oneOf': [
             {'$ref': './event-payload.schema.json#/$defs/strand_id'}, {'type': 'null'}]}}}
         shape = {'allOf': [{'$ref': './alias.schema.json#/$defs/target'}]}
         for name, expected in [('strand_id', False), ('target_strand_id', False), ('target_ref', True), ('strand_ref', True), ('target_id', True)]:
@@ -163,6 +163,15 @@ class ObjectTargetNamingTest(unittest.TestCase):
         shape = {'type': 'string', 'pattern': '^ak:space:[A-Za-z0-9_-]{44}$'}
         self.assertTrue(object_target_name_errors(documents, 'alias.schema.json', 'target_ref', shape, 'space'))
         self.assertEqual(object_target_name_errors(documents, 'alias.schema.json', 'target_space_id', shape, 'space'), [])
+
+    def test_cross_file_terminal_requires_the_registered_resource_not_a_shared_basename(self):
+        for reference in (
+            'https://unregistered.invalid/event-payload.schema.json#/$defs/strand_id',
+            '../../untrusted/event-payload.schema.json#/$defs/strand_id',
+        ):
+            with self.subTest(reference=reference):
+                self.assertTrue(object_target_name_errors(self.documents, 'event-payload.schema.json',
+                    'strand_id', {'$ref': reference}, 'strand'))
 
     def test_shared_polymorphism_and_event_proof_roles_are_preserved(self):
         shape = {'$ref': '#/$defs/object_ref'}

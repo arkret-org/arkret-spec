@@ -1528,7 +1528,7 @@ history 与当前全部门。绑定随 Blob 和私有接纳账本治理交接，
 的 `device_authentication.operation_scope_rules`，必须与当前 operation allowlist 一一对应。
 `all_actions` 要求同一 scope 项含全部 actions；其中 Blob presign/get/head 同时要求自身服务动作与
 `ak.object.read_content`。Blob upload 要求自身服务动作，提交其引用时另验实际内容动作。
-其余 read／stream（包括 KeyPackage claim/query、Device queue list、MLS／signer／current／
+除下述四个原生备份 non-Event 分支外，其余普通 read／stream（包括 KeyPackage claim/query、Device queue list、MLS／signer／current／
 Event／snapshot）均要求实际目标 scope 的 `ak.event.read`，并保留 membership、history、
 parent 上界及内容读取的 `ak.object.read_content` 附加门。`submitted_business_actions` 从每条
 实际 Event 的正式 action 映射或完整 MLS submission 派生所有所需动作；MUST NOT 把 self/events
@@ -1537,12 +1537,25 @@ operation 字符串当作任意 Event 权限，禁止以 Device 提交新增 Dev
 `device_control` 只登记五个窄例外，不铸造通用业务 action：upload 只发布本人 Device、exact scope
 绑定的 KeyPackage，须该 scope 原签项、有效安装及原 E2EE 同意；revoke 只收回本人原 KeyPackage；
 consume 只消费本人已经验证并耐久接收的 exact Welcome／claim receipt；ACK 只确认本人已合法交付的
-exact durable items；material 只读取本人 exact Device 授权材料（见§17）。这些分支均须 exact scope 原签项、原 Realm Actor／Device／authorization 实例及各自原生
+exact durable items；material 只读取本人 exact Device 授权原件及原生备份本 Actor recovery＋exact scope series 两公共 current selector／合格 bound next_prepare_input（见§17与 Realm actors §10.9），不授其它控制原件或历史回放。这些分支均须 exact scope 原签项、原 Realm Actor／Device／authorization 实例及各自原生
 签名／幂等合同；revoke／consume／ACK 可在安装失效后仅作收权／完成旧交付，不返回新群材料或新内容。
 queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
 
+**仅四个原生备份 subject-only non-Event 分支**：`ak.self.keys.backups.resource.replace.v1`、
+`ak.self.keys.backups.read.list.v1`、`ak.self.keys.backups.command.issue_unlock_challenge.v1`、
+`ak.self.keys.backups.command.unlock.v1` 的已登记 action 可由该原生主体 current control 方法原签写入
+DeviceAuthorize 的 exact scope/actions 上界，并由 Device possession proof 认证完整列表。它们是 subject_only
+的 non_event_surface，不能铸入 Service parent／terminal child capability grant，不能由 owner/member 派生 mask
+代签，也不要求为这些动作捏造业务 grant。每次调用仍须真实 Device RFC9421／原授权实例／generation／窗口、
+metadata exact scope 与同一原签 action 上界、current manager／registration／installation／E2EE consent／status／
+membership、当前 MLS／root policy／quota 以及各 native branch 的完整门；Device 不得取得 Manager archive role／
+private key／其它 scope 或旧 Event。它们不继承真正业务 Event 的动作权，后续业务 Event 的真实 grant、审批、
+membership/history、Policy 和各持有人 quota 仍独立完整求值。
+
 配对命中只证明原 Device 授权上界，不替代 HTTP allowlist、current Device／generation／期限、
-实际业务 grant、membership／history、当前安装与 Policy；这些条件 MUST 求 AND。撤销 A 安装不误撤
+各操作实际适用的 membership／history、当前安装与 Policy；这些条件 MUST 求 AND。普通业务还必须独立验证
+实际业务 grant；上述恰四个 subject-only native 操作按其封闭非 Event 权威核验，不能因其不 grantable 而拒绝
+原 Controller 签入的 Device scope action，也不能把此例外扩到其它操作。撤销 A 安装不误撤
 独立合法的 B；新增 B 安装不扩展只签 A 的 Device。扩 B 必须由 Principal 原签 replacement authorize，
 候选 Device 再签包含完整新列表的原 possession transcript，沿所属 Realm 私有控制流的 generation／revision CAS 接纳。
 不新增签名域或预像，typed current 原样保留该列表；历史 accepted 事实按原时点和原授权实例复验。

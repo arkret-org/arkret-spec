@@ -21,7 +21,10 @@ def run_named_suite(fixture, catalog=None):
     generation=next((x for x in writes if x['state_family']=='realm_actor_device_generation'),None)
     if not generation or generation['state_projection'] != {'kind':'set','value_projection':{'kind':'object','members':[{'name':'current_device_generation_ref','literal':1}]}}: errors.append('generation must initialize to one')
     recovery=next((x for x in writes if x['state_family']=='realm_actor_recovery'),None)
-    if not recovery or recovery['state_projection'] != {'kind':'set','value_projection':{'kind':'object','members':[{'name':'kind','literal':'manager_native'},{'name':'enabled','literal':True},{'name':'pending','literal':None}]}}: errors.append('recovery must initialize enabled with no pending intent')
+    recovery_members=[{'name':'kind','literal':'manager_native'},{'name':'enabled','literal':True},{'name':'pending','literal':None},
+        {'name':'content_backup_recipient','derivation':'realm_actor_content_backup_recipient'},
+        {'name':'content_backup_recipient_ref','derivation':'realm_actor_content_backup_recipient_ref'}]
+    if not recovery or recovery['state_projection'] != {'kind':'set','value_projection':{'kind':'object','members':recovery_members}}: errors.append('recovery must initialize enabled with no pending intent and its exact original archive recipient')
     for kind in ['ak.device.authorize','ak.realm.actor.control.update','ak.realm.create']:
         if any(x['state_family']=='realm_actor_device_generation' for x in events[kind].get('state_writes',[])): errors.append(kind+' cannot reset Realm actor generation')
     return errors

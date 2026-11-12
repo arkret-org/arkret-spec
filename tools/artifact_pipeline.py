@@ -1365,6 +1365,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "artifact_metadata": lambda: subprocess.run([sys.executable, "-B", "tools/check_artifact_metadata.py"], cwd=ROOT).returncode,
         "public_type_semantics": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_semantic_naming", "tools.test_public_type_duplicates"], cwd=ROOT).returncode,
         "realm_actor_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_realm_actor_contract"], cwd=ROOT).returncode,
+        "realm_actor_content_backup_contract": lambda: subprocess.run([sys.executable, "-B", "-m", "tools.test_realm_actor_backup_contract"], cwd=ROOT).returncode,
         "applet_management_source_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_management_source"], cwd=ROOT).returncode,
         "applet_device_scope_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_device_scope_contract"], cwd=ROOT).returncode,
         "managed_governance_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_managed_governance_contract"], cwd=ROOT).returncode,

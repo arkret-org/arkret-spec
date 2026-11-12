@@ -1839,6 +1839,108 @@
       "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof",
       "domain": "ak.account_registration_control_proof.v1",
       "primitive": "detached_signature"
+    },
+    {
+      "domain": "ak.realm_actor_content_backup_admission_signature.v1",
+      "object_family": "realm_actor_content_backup_admission_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_admission",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_content_backup_admission_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f636f6e74656e745f6261636b75705f61646d697373696f6e5f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Actual governing Station at original native first-PUT acceptance, with independently verified historical tenure and Service method at accepted_at; never a current Device key or local boolean.",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-content-backup-fixture.json#/admission_case",
+      "unsigned_projection_schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_admission_signature_input"
+    },
+    {
+      "domain": "ak.realm_actor_content_backup_offer_signature.v1",
+      "object_family": "realm_actor_content_backup_offer_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_handover_offer",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_content_backup_offer_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f636f6e74656e745f6261636b75705f6f666665725f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Independently authenticated intended new manager Service; never a daily Device or a bearer/session identity. Verify actual historical method and full exact private offer/confirmation before manager change.",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-content-backup-fixture.json#/handover_offer_case",
+      "unsigned_projection_schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_handover_offer_signature_input"
+    },
+    {
+      "domain": "ak.realm_actor_content_backup_confirmation_signature.v1",
+      "object_family": "realm_actor_content_backup_confirmation_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_handover_confirmation",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_actor_content_backup_confirmation_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6163746f725f636f6e74656e745f6261636b75705f636f6e6669726d6174696f6e5f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Independently authenticated intended new manager Service; never a daily Device or a bearer/session identity. Verify actual historical method and full exact private offer/confirmation before manager change.",
+      "defined_in": "zh/extensions/realm-actors.md",
+      "known_answer_ref": "fixtures/realm-actor-content-backup-fixture.json#/handover_confirmation_case",
+      "unsigned_projection_schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_handover_confirmation_signature_input"
     }
   ]
 }

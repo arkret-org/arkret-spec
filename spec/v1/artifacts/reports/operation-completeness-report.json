@@ -2424,10 +2424,10 @@
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body",
       "openapi_component_refs": {
         "request": "../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
-        "response": "#/components/schemas/KeysBackupsUnlockChallenge"
+        "response": "#/components/schemas/KeysBackupsIssueUnlockChallengeResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2436,12 +2436,12 @@
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
-      "response_schema_ref": "schemas/key-backup.schema.json",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body",
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysBackupsUnlockRequestBody",
-        "response": "../schemas/key-backup.schema.json"
+        "response": "#/components/schemas/KeysBackupsUnlockResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2452,9 +2452,9 @@
       "http": "GET /_arkret/self/keys/backups",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/KeysBackupsPage"
+        "response": "#/components/schemas/KeysBackupsListResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

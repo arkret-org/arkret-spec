@@ -7,6 +7,7 @@
       "applet_management_source_contract",
       "applet_device_scope_contract",
       "realm_actor_contract",
+      "realm_actor_content_backup_contract",
       "authority_commit_protocol",
       "state_family_writer_gate",
       "current_principal_schema",
@@ -224,6 +225,11 @@
       "check_id": "published_did_registration_contract",
       "label": "Complete published-DID account initialization contract",
       "owner_script": "tools/test_published_did_registration_contract.py"
+    },
+    {
+      "check_id": "realm_actor_content_backup_contract",
+      "label": "Realm Actor native content-root custody contract",
+      "owner_script": "tools/test_realm_actor_backup_contract.py"
     },
     {
       "check_id": "realm_actor_contract",

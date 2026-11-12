@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/key-backup-active-series.schema.json",
   "title": "Arkret Key Backup Active Series Record",
-  "description": "Signed principal-control record selecting the backup series for one actor and backup kind. Servers verify the accepted record; ordinary clients consume BackupActiveSeriesState from their Account Station instead of replaying PCR history.",
+  "description": "Signed principal-control record selecting the backup series for one actor and backup kind. Servers verify the accepted record; ordinary clients consume BackupActiveSeriesState from their Account Station instead of replaying PCR history. Native records are signed by the real current manager Service, while record.actor_id is the target Realm actor. Source refs name strictly earlier accepted native writers; no self Event/Commit ID enters this preimage. The outer native manager Event is independently signed. Native version/predecessor comparison is scoped by full actor, exact effective_scope and backup_kind; Device publishers cannot select series. Recovery enabled=false is not a backup/series gate.",
   "type": "object",
   "required": [
     "schema",
@@ -11,7 +11,6 @@
     "active_series_id",
     "series_pointer_version",
     "previous_series_ids",
-    "source_commit_ref",
     "issued_at",
     "signature_proof"
   ],
@@ -61,8 +60,7 @@
       "required": [
         "verification_method",
         "signature_algorithm",
-        "signature",
-        "device_authorize_event_id"
+        "signature"
       ],
       "properties": {
         "verification_method": {
@@ -102,6 +100,71 @@
     "custody_authorization_ref": {
       "$ref": "./common-ids.schema.json#/$defs/event_id",
       "x-arkret-preimage-commitment": "fixed_event"
+    },
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "key-backup-active-series.schema.json#/properties/effective_scope/oneOf/0/properties/kind",
+                "owner": "key-backup-active-series.schema.json#/properties/effective_scope/oneOf/0/properties/kind",
+                "values": [
+                  "realm"
+                ]
+              }
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "key-backup-active-series.schema.json#/properties/effective_scope/oneOf/1/properties/kind",
+                "owner": "key-backup-active-series.schema.json#/properties/effective_scope/oneOf/1/properties/kind",
+                "values": [
+                  "circle"
+                ]
+              }
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "manager_ref": {
+      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+    },
+    "recovery_ref": {
+      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+    },
+    "recipient_ref": {
+      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
     }
   },
   "patternProperties": {
@@ -140,5 +203,114 @@
     "custody_authorization_ref": [
       "custodian_actor_id"
     ]
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "actor_id": {
+            "properties": {
+              "kind": {
+                "const": "realm",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup-active-series.schema.json#/allOf/0/if/properties/actor_id/properties/kind",
+                  "owner": "key-backup-active-series.schema.json#/allOf/0/if/properties/actor_id/properties/kind",
+                  "values": [
+                    "realm"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        },
+        "required": [
+          "actor_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "effective_scope",
+          "manager_ref",
+          "recovery_ref",
+          "recipient_ref"
+        ],
+        "properties": {
+          "actor_id": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+          },
+          "signature_proof": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "device_authorize_event_id"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "source_commit_ref"
+              ]
+            },
+            {
+              "required": [
+                "custodian_actor_id"
+              ]
+            },
+            {
+              "required": [
+                "custody_authorization_ref"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "source_commit_ref"
+        ],
+        "properties": {
+          "signature_proof": {
+            "required": [
+              "device_authorize_event_id"
+            ]
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "effective_scope"
+              ]
+            },
+            {
+              "required": [
+                "manager_ref"
+              ]
+            },
+            {
+              "required": [
+                "recovery_ref"
+              ]
+            },
+            {
+              "required": [
+                "recipient_ref"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

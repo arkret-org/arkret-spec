@@ -81,6 +81,34 @@ class ResolutionCommitmentCoverageTest(unittest.TestCase):
         self.overrides[path.resolve()] = document
         self.assertTrue(any("differs from evidence agent_inception" in error for error in self.run_gate()))
 
+    def test_native_transition_uses_its_actual_verified_entry(self) -> None:
+        row=next(row for row in self.vector["vectors"] if row["evidence_id"]=="native_realm_actor_manager_transition")
+        self.assertEqual(row["native_entry_index"],2)
+        self.assertTrue(row["commitment"]["version_id"].startswith("3-"))
+        row["verified_entry"]["state"]["id"]+="-other"
+        self.assertTrue(any("exact native original" in error for error in self.run_gate()))
+
+    def test_native_history_must_still_have_real_signatures_and_pre_rotation(self) -> None:
+        path=ARTIFACTS/"fixtures/realm-actor-content-backup-fixture.json"
+        document=load(path)
+        document["native_history"]["log_entries"][1]["versionTime"]="2026-11-09T00:00:00Z"
+        self.overrides[path.resolve()]=document
+        self.assertTrue(any("native resolution evidence invalid" in error for error in self.run_gate()))
+
+    def test_native_index_and_source_cannot_be_substituted(self) -> None:
+        baseline=copy.deepcopy(self.vector)
+        for field,value in [("native_entry_index",True),("native_entry_index",99),("native_history_ref","../agent-vectors-fixture.json#/cases")]:
+            self.vector=copy.deepcopy(baseline)
+            row=next(row for row in self.vector["vectors"] if row["evidence_id"]=="native_realm_actor_inception")
+            row[field]=value
+            with self.subTest(field=field,value=value):
+                self.assertTrue(any("native resolution evidence invalid" in error for error in self.run_gate()))
+
+    def test_native_resolution_pointer_cannot_be_reassigned_to_agent_inception(self) -> None:
+        row=next(row for row in self.registry["pointers"] if row["fixture"]=="realm-actor-signature-kat-fixture.json")
+        row["evidence_id"]="agent_inception"
+        self.assertTrue(any("differs from evidence agent_inception" in error for error in self.run_gate()))
+
     def test_runner_and_generator_are_wired(self) -> None:
         runner = (ROOT / "tools/artifact_lint/runner.py").read_text(encoding="utf-8")
         generator = (ROOT / "tools/regenerate_resolution_commitments.py").read_text(encoding="utf-8")

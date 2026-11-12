@@ -529,7 +529,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required`（grant 层开关；与 Realm 治理面 `policy_action.value.approval_required` 是两个独立开关，取严相交的裁决见 [`../models/governance-objects.md` §3.5](../models/governance-objects.md)） |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
-| `approval_actor_ids` | `claim_based` | `approval` | `approval_actor_ids` |
+| `approval_principal_ids` | `claim_based` | `approval` | `approval_principal_ids` |
 | `approval_relation` | `claim_based` | `approval` | `approval_relation` |
 | `accountability_required` | `claim_based` | `accountability` | `accountability_required` |
 | `guardian_approval_required` | `claim_based` | `accountability` | `guardian_approval_required` |

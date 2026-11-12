@@ -267,7 +267,8 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "allowed_space_refs": "allowed_space_ids",
     "denied_space_refs": "denied_space_ids",
     "realm_refs": "realm_ids",
-    "approval_actor_refs": "approval_actor_ids",
+    "approval_actor_refs": "approval_principal_ids",
+    "approval_actor_ids": "approval_principal_ids",
     # Hash → digest vocabulary unification (common-fields.md §2):
     # algorithm selectors use _algorithm; hash output bytes use _digest; tree roots use _root.
     "hash_profile": "digest_algorithm",
@@ -395,6 +396,8 @@ VALUE_PROJECTION_DERIVATIONS = {
     "realm_actor_profile_value",
     "realm_actor_recovery_enabled",
     "realm_actor_recovery_pending",
+    "realm_actor_content_backup_recipient",
+    "realm_actor_content_backup_recipient_ref",
     "realm_actor_recovered_control_method",
     "realm_actor_current_control_method",
     # Call state section 4.3 derives the complete axis from frozen accepted

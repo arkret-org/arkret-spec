@@ -303,6 +303,11 @@
     },
     {
       "page": "crypto-media/content-history.md",
+      "heading": "3.2 Realm Bot／Ghost 的原生根备份（normative）",
+      "fragment": "32-realm-botghost-的原生根备份normative"
+    },
+    {
+      "page": "crypto-media/content-history.md",
       "heading": "8. 历史根领取、policy轮换与Agent备份主体（normative）",
       "fragment": "8-历史根领取policy轮换与agent备份主体normative"
     },
@@ -668,6 +673,11 @@
     },
     {
       "page": "extensions/realm-actors.md",
+      "heading": "10.9 原生内容根 recipient 与归档保管（normative）",
+      "fragment": "109-原生内容根-recipient-与归档保管normative"
+    },
+    {
+      "page": "extensions/realm-actors.md",
       "heading": "8.1 Account 跨站私有审计材料读取（normative）",
       "fragment": "81-account-跨站私有审计材料读取normative"
     },
@@ -913,6 +923,11 @@
     },
     {
       "page": "identity/key-management.md",
+      "heading": "7.6.2 Realm Actor 的 scoped pointer 与列表（normative）",
+      "fragment": "762-realm-actor-的-scoped-pointer-与列表normative"
+    },
+    {
+      "page": "identity/key-management.md",
       "heading": "7.7 Recovery UI Requirements（normative）",
       "fragment": "77-recovery-ui-requirementsnormative"
     },
@@ -920,6 +935,11 @@
       "page": "identity/key-management.md",
       "heading": "7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）",
       "fragment": "771-backup-unlock-proof-与-plaintext-keybagnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.8.3 Realm Actor 原生密文读取（normative）",
+      "fragment": "783-realm-actor-原生密文读取normative"
     },
     {
       "page": "identity/key-management.md",
@@ -1325,6 +1345,11 @@
       "page": "sync/service-http-binding.md",
       "heading": "2.2.4 请求材料供给闭合（normative）",
       "fragment": "224-请求材料供给闭合normative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "2.2.5 Realm Actor 原生备份角色与供给（normative）",
+      "fragment": "225-realm-actor-原生备份角色与供给normative"
     },
     {
       "page": "sync/service-http-binding.md",

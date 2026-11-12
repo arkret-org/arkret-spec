@@ -294,7 +294,7 @@
           }
         }
       ],
-      "first_expected_error": "$: 'source_commit_ref' is a required property"
+      "first_expected_error": "$: 'source_ref' does not match any of the regexes: '^x_[a-z][a-z0-9_]{0,63}$'"
     },
     {
       "name": "key_backup_active_series_full_committed_event_ref_rejected",

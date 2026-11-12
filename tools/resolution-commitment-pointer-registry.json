@@ -3,7 +3,7 @@
   "rules": [
     "Every fixture object shaped as {did, method_history_head, version_id}, including one embedded in a canonical JSON string, MUST have exactly one row.",
     "The named vector MUST carry adapter evidence from which did, method_history_head and version_id recompute exactly; no placeholder or skip row is permitted.",
-    "The generator updates commitments through these pointers and recomputes any enclosing content-bound identifier."
+    "The generator updates legacy commitments through these pointers and recomputes enclosing identifiers; independently signed native fixtures are read-only sources whose values must match their fully verified native history entries."
   ],
   "pointers": [
     {
@@ -159,22 +159,22 @@
     {
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/0/candidate/initial_resolution",
-      "evidence_id": "agent_inception"
+      "evidence_id": "native_realm_actor_inception"
     },
     {
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/1/unsigned_projection/next_resolution",
-      "evidence_id": "agent_inception"
+      "evidence_id": "native_realm_actor_inception"
     },
     {
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/2/unsigned_projection/next_resolution",
-      "evidence_id": "agent_inception"
+      "evidence_id": "native_realm_actor_manager_transition"
     },
     {
       "fixture": "realm-actor-signature-kat-fixture.json",
       "pointer": "/cases/4/unsigned_projection/payload_without_control_signature/next_resolution",
-      "evidence_id": "agent_inception"
+      "evidence_id": "native_realm_actor_inception"
     },
     {
       "fixture": "schema-validation-fixture.json",
@@ -185,6 +185,26 @@
       "fixture": "websocket-binding-fixture.json",
       "pointer": "/bundle_closure_cases/0/instance/service_resolution",
       "evidence_id": "websocket_service"
+    },
+    {
+      "fixture": "realm-actor-content-backup-fixture.json",
+      "pointer": "/original_authority_reference/create_material/event/payload/initial_resolution",
+      "evidence_id": "native_realm_actor_inception"
+    },
+    {
+      "fixture": "realm-actor-content-backup-fixture.json",
+      "pointer": "/archive_inventory/entries/1/declaration/event/payload/initial_resolution",
+      "evidence_id": "native_realm_actor_inception"
+    },
+    {
+      "fixture": "realm-actor-content-backup-fixture.json",
+      "pointer": "/private_handover/plaintext/inventory_manifest/entries/1/declaration/event/payload/initial_resolution",
+      "evidence_id": "native_realm_actor_inception"
+    },
+    {
+      "fixture": "realm-actor-content-backup-fixture.json",
+      "pointer": "/manager_handover/acceptance_input/next_resolution",
+      "evidence_id": "native_realm_actor_manager_transition"
     }
   ]
 }

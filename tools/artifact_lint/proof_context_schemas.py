@@ -1210,11 +1210,12 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
 
     expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
     realm_contexts = ["ak.realm_actor_" + name + "_signature.v1" for name in ("creation", "control_acceptance", "manager_acceptance", "material", "recovery_acceptance")]
+    realm_contexts += ["ak.realm_actor_content_backup_" + name + "_signature.v1" for name in ("admission", "offer", "confirmation")]
     properties = signature_schema.get("properties")
     defs = signature_schema.get("$defs")
     enum = properties.get("context", {}).get("enum") if isinstance(properties, dict) else None
     if enum != expected_contexts + realm_contexts:
-        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain the six core plus five Realm actor detached-object contexts in canonical order")
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain the core, Realm actor and native custody detached contexts in canonical order")
     if not isinstance(defs, dict) or set(defs) != {
         config["definition"] for config in DETACHED_SIGNATURE_CONTEXTS.values()
     } | {context.removeprefix("ak.").removesuffix(".v1") for context in realm_contexts}:
@@ -1228,6 +1229,15 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
                 branch_context = None
             if branch_context != context:
                 lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"$defs.{config['definition']} must const-bind {context}")
+    if isinstance(defs, dict):
+        for context in realm_contexts:
+            branch = defs.get(context.removeprefix("ak.").removesuffix(".v1"), {})
+            try:
+                actual = branch["allOf"][1]["properties"]["context"]["const"]
+            except (KeyError, IndexError, TypeError):
+                actual = None
+            if actual != context:
+                lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"native detached branch must const-bind {context}")
     digest_schema = properties.get("signed_digest") if isinstance(properties, dict) else None
     if digest_schema != {
         "type": "string",

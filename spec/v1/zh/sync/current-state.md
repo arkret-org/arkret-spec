@@ -126,8 +126,14 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   `exchange_id`、`basis_event_ids` 与 `action` 折叠 coordinator / terminal 状态；
 - `applet_registration`：在所属 Realm 内以 `applet_id, service_id` 选择 accepted 完整 registration snapshot；安装管理员原 exact read 可取同 selector 的 revision／never_written，仍要求 ak.realm.admin；新增 Service 不覆盖其它 Service，registration Event 与 source_stream_ref 固定为所属 Realm stream；每个新 accepted Event 更新 revision，同安全 epoch 连续段保留授权实例起点，exact 原 Event 重试不新增 revision。registry 的 typed_pair 顺序固定为 AppletId、Service DidCoreId；内部可逆表示为 `applet_registration:<applet_id>:<service_id>`，先解析固定 UUID AppletId，再将余部作为完整 did_core（不得按冒号随意截断其 core），两个成员均按各自类型校验；它不是新增 wire ID、权限或通用 selector。package proof、
   `registration_epoch`、namespace 与 installer authority 全部在置换前验证；
-- `key_backup_active_series`：以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
+- `key_backup_active_series`：仅 Account／Agent 以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
   后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；
+- `realm_actor_key_backup_active_series`：以完整 RealmActorId、exact Realm／Circle `effective_scope` 和 `backup_kind`
+  独立选择原生 current，唯一写者是 `ak.key_backup.active_series` 的 current manager Service 分支；source stream
+  必须为该主体所属 Realm 的 `realm_control`，不能拿根的业务 scope 替代控制来源。value 仅含 active_series_id、
+  series_pointer_version、manager_ref、recovery_ref、recipient_ref；完整 record／previous_series_ids／inner proof
+  不进入 Device current。仅通过 Realm actor exact material 的本 Actor／exact scope 受限公共读取供给，不能以普通
+  成员 current 列表枚举，见 [Realm actors §10.9](../extensions/realm-actors.md#109-原生内容根-recipient-与归档保管normative)；
 - `member_identity_updates`：在 Realm 内以 `(member_id, segment)` 选择 append-only update assertion set；
   `replaces[]` 是读侧 effective-set fold，坏 replacement edge 不得删除被引用 Event；可选
   `expected_state_digest` 对该 fold 的前态作 CAS（摘要输入见本节下文）；

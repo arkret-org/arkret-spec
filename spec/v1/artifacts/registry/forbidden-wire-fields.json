@@ -2750,7 +2750,7 @@
       "context": "grant_constraint",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "allowed_view_ids / allowed_strand_ids / allowed_circle_ids / denied_strand_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_actor_ids",
+      "replacement": "allowed_view_ids / allowed_strand_ids / allowed_circle_ids / denied_strand_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_principal_ids",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -5218,6 +5218,24 @@
         "kind": "field",
         "values": [
           "commit_authorization_state"
+        ]
+      }
+    },
+    {
+      "id": "grant_constraint_approval_actor_ids_to_principal_ids",
+      "context": "grant_constraint",
+      "since_revision": "2026-11-12",
+      "rejection_level": "hard_reject",
+      "replacement": "approval_principal_ids",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The explicit approval roster contains DidCoreId principals, not tagged ActorId values. Reject the old field even when both names appear; the roster authority, vote rules and signature checks are unchanged.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "approval_actor_ids"
         ]
       }
     }

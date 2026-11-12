@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import ast
 import functools
+from urllib.parse import urldefrag, urljoin, urlsplit, unquote
 
 from .core import (
     ARTIFACTS,
@@ -42,6 +43,7 @@ from .core import (
     re,
     read_text,
     resolve_json_pointer,
+    schema_assertions,
 )
 from .naming import (
     external_anchor_is_valid,
@@ -668,6 +670,29 @@ def _schema_documents(lint: Lint) -> dict[str, Any]:
     return documents
 
 
+def _registered_schema_reference(documents: dict[str, Any], current_file: str, reference: str):
+    """Resolve only an exact registered resource URI or an owning schema file URI."""
+    if not isinstance(reference, str) or re.search(r"%(?![0-9A-Fa-f]{2})", reference):
+        return None
+    current = documents.get(current_file)
+    if not isinstance(current, dict):
+        return None
+    try:
+        base = current.get("$id", (SCHEMA_DIR / current_file).as_uri())
+        absolute = urldefrag(base)[0] + reference if reference.startswith("#") else urljoin(base, reference)
+        resource, fragment = urldefrag(absolute)
+        target_file = current_file if reference.startswith("#") else urlsplit(resource).path.rsplit("/", 1)[-1]
+        target = documents.get(target_file)
+        if not isinstance(target, dict):
+            return None
+        if resource not in {target.get("$id"), (SCHEMA_DIR / target_file).as_uri()}:
+            return None
+        fragment = unquote(fragment, errors="strict")
+        return target_file, "#" + fragment if fragment else ""
+    except (ValueError, UnicodeError):
+        return None
+
+
 def resolve_terminal_constraints(
     documents: dict[str, Any], file_name: str, shape: Any
 ) -> tuple[tuple[str, str], ...]:
@@ -687,6 +712,20 @@ def resolve_terminal_constraints(
             return out
         if node.get("x-arkret-composite-identifier") is True:
             required = set(node.get("required", []))
+            realm_identity = documents.get("common-ids.schema.json", {}).get("$defs", {}).get("realm_actor_id")
+            if current_file == "common-ids.schema.json" and node is realm_identity:
+                expected_properties = {
+                    "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+                    "principal_id": {"allOf": [
+                        {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                        {"pattern": r"^ak:did_core:webvh:[^\s/?#]+$"},
+                    ]},
+                }
+                if (node.get("type") == "object" and required == {"realm_id", "principal_id"}
+                        and node.get("additionalProperties") is False
+                        and schema_assertions(node.get("properties")) == expected_properties):
+                    return {("realm_actor_id", "closed_object")}
+                return {("type", '"object"')}
             if {"principal_id", "station_id"} <= required:
                 return {("account_id", "closed_object")}
             branches = node.get("oneOf", [])
@@ -700,15 +739,17 @@ def resolve_terminal_constraints(
             return {("composite_identifier", "closed_object")}
         ref = node.get("$ref")
         if isinstance(ref, str):
-            target, separator, fragment = ref.partition("#")
-            target_file = current_file if not target else Path(target).name
+            resolved_reference = _registered_schema_reference(documents, current_file, ref)
+            if resolved_reference is None:
+                return out
+            target_file, fragment = resolved_reference
             edge = (target_file, ref)
             if edge in seen or target_file not in documents:
                 return out
             seen.add(edge)
             try:
                 resolved = resolve_json_pointer(
-                    documents[target_file], f"#{fragment}" if separator else ""
+                    documents[target_file], fragment
                 )
             except (KeyError, TypeError, ValueError):
                 return out
@@ -749,15 +790,17 @@ def _shape_cardinalities(
             return set()
         ref = node.get("$ref")
         if isinstance(ref, str):
-            target, separator, fragment = ref.partition("#")
-            target_file = current_file if not target else Path(target).name
+            resolved_reference = _registered_schema_reference(documents, current_file, ref)
+            if resolved_reference is None:
+                return set()
+            target_file, fragment = resolved_reference
             edge = (target_file, ref)
             if edge in seen or target_file not in documents:
                 return set()
             seen.add(edge)
             try:
                 resolved = resolve_json_pointer(
-                    documents[target_file], f"#{fragment}" if separator else ""
+                    documents[target_file], fragment
                 )
             except (KeyError, TypeError, ValueError):
                 return set()
@@ -809,7 +852,7 @@ def _role_terminal_contract(
             # URI syntax does not decide URL-vs-URI field spelling.  Network
             # locators and generic URI identities are registered separately.
             categories.add(("uri", None))
-        elif kind in {"account_id", "actor_id", "composite_identifier"} and value == "closed_object":
+        elif kind in {"account_id", "actor_id", "realm_actor_id", "composite_identifier"} and value == "closed_object":
             categories.add((kind, "_ids" if plural else "_id"))
     # JSON Schema commonly combines a broad URI format with a narrower DID or
     # DID-URL lexical pattern. The pattern owns the representation category in
@@ -1134,6 +1177,7 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
         "did_url",
         "account_id",
         "actor_id",
+        "realm_actor_id",
     }
     multi_representation_contracts: dict[str, set[str]] = {}
     for index, row in enumerate(multi_representation_rows):
@@ -1601,25 +1645,33 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
                 continue
 
             carrier_suffixes = {
+                "_realm_actor_id": "realm_actor_id",
+                "_realm_actor_ids": "realm_actor_id",
                 "_principal_id": "did_core_id",
+                "_principal_ids": "did_core_id",
                 "_service_id": "did_core_id",
+                "_service_ids": "did_core_id",
                 "_station_id": "did_core_id",
+                "_station_ids": "did_core_id",
                 "_hardware_module_id": "did_core_id",
+                "_hardware_module_ids": "did_core_id",
                 "_account_id": "account_id",
+                "_account_ids": "account_id",
                 "_actor_id": "actor_id",
+                "_actor_ids": "actor_id",
             }
             matched_carrier = next(
                 (
                     (suffix, carrier)
-                    for suffix, carrier in carrier_suffixes.items()
-                    if name.endswith(suffix)
+                    for suffix, carrier in sorted(carrier_suffixes.items(), key=lambda entry: -len(entry[0]))
+                    if name.endswith(suffix) or (carrier == "realm_actor_id" and name == suffix.removeprefix("_"))
                 ),
                 None,
             )
             if matched_carrier is not None:
                 declared_suffix, required_carrier = matched_carrier
                 terminal_category, _ = _role_terminal_contract(
-                    terminals, plural=False
+                    terminals, plural=name.endswith("_ids")
                 )
                 if terminal_category != required_carrier:
                     lint.fail(
@@ -1664,7 +1716,7 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             if name.endswith(("_id", "_ids")) and (
                 ("type", '"object"') in terminals
                 or any(
-                    kind in {"account_id", "actor_id", "composite_identifier"}
+                    kind in {"account_id", "actor_id", "realm_actor_id", "composite_identifier"}
                     and value == "closed_object"
                     for kind, value in terminals
                 )
@@ -2009,7 +2061,7 @@ def derive_category(
                 categories.add("registry_catalog_symbol")
                 continue
             return None
-        if kind in {"account_id", "actor_id", "composite_identifier"} and value == "closed_object":
+        if kind in {"account_id", "actor_id", "realm_actor_id", "composite_identifier"} and value == "closed_object":
             categories.add("responsibility_identity_material")
             continue
         return None

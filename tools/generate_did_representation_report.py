@@ -25,6 +25,7 @@ DID_NAMES = {
     "did_url": "did_url",
     "account_id": "account_id",
     "actor_id": "actor_id",
+    "realm_actor_id": "realm_actor_id",
 }
 
 def _escape(value: str) -> str:
@@ -208,7 +209,7 @@ def build_report() -> dict[str, Any]:
     return {
 
         "generated_by": "tools/generate_did_representation_report.py",
-        "profiles": ["did_core_id", "did", "did_url", "account_id", "actor_id"],
+        "profiles": ["did_core_id", "did", "did_url", "account_id", "actor_id", "realm_actor_id"],
         "multi_representation_fields": multi_representation_entries,
         "entries": entries,
         "responsibility_fields": responsibility_entries,

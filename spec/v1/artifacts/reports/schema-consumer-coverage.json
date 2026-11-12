@@ -44,7 +44,7 @@
       "declared_wire": 61,
       "event_kind": 7,
       "inbound": 56,
-      "outbound": 69,
+      "outbound": 68,
       "prose": 107,
       "prose_only": 4,
       "schema_reference": 171,
@@ -1015,7 +1015,9 @@
           "ak.schema.applet_install_operations.v1",
           "ak.schema.applet_managed_actor_authoring_request.v1",
           "ak.schema.approval_signature.v1",
+          "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.event_payload.v1",
+          "ak.schema.keys_operations.v1",
           "ak.schema.management_review_operations.v1",
           "ak.schema.message.v1",
           "ak.schema.policy.v1",
@@ -2058,6 +2060,8 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.backup_series_erase_confirmation.v1",
+          "ak.schema.keys_operations.v1",
           "ak.schema.mls_welcome_delivery.v1",
           "ak.schema.realm_actor_create.v1",
           "ak.schema.realm_actor_material.v1",
@@ -2702,7 +2706,6 @@
       "file": "schemas/key-backup.schema.json",
       "consumers": {
         "inbound": "exact",
-        "outbound": "exact",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",

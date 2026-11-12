@@ -29,6 +29,27 @@ def _find(rows: Any, key: str, value: str) -> dict[str, Any] | None:
     return next((row for row in rows if isinstance(row, dict) and row.get(key) == value), None)
 
 
+def _shape(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: _shape(child) for key, child in value.items()
+                if key != "description" and not key.startswith("x-")}
+    if isinstance(value, list):
+        return [_shape(child) for child in value]
+    return value
+
+
+def _scope_shape() -> dict[str, Any]:
+    return {"oneOf": [
+        {"type": "object", "required": ["kind", "realm_id"],
+         "properties": {"kind": {"const": "realm"}, "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"}},
+         "additionalProperties": False},
+        {"type": "object", "required": ["kind", "realm_id", "circle_id"],
+         "properties": {"kind": {"const": "circle"}, "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+                        "circle_id": {"$ref": "./common-ids.schema.json#/$defs/circle_id"}},
+         "additionalProperties": False},
+    ]}
+
+
 def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
     key_backup = load_json(lint, KEY_BACKUP_SCHEMA)
     active_series = load_json(lint, ACTIVE_SERIES_SCHEMA)
@@ -44,8 +65,32 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
 
     required = active_series.get("required")
     properties = active_series.get("properties")
-    if not isinstance(required, list) or required.count("source_commit_ref") != 1:
-        _fail(lint, ACTIVE_SERIES_SCHEMA, "signed payload must require source_commit_ref exactly once")
+    branches = active_series.get("allOf", [])
+    branch = branches[0] if isinstance(branches, list) and len(branches) == 1 and isinstance(branches[0], dict) else {}
+    native_fields = ["effective_scope", "manager_ref", "recovery_ref", "recipient_ref"]
+    discriminator = {"properties": {"actor_id": {"properties": {"kind": {"const": "realm"}}, "required": ["kind"],
+        "$ref": "./common-ids.schema.json#/$defs/actor_id"}}, "required": ["actor_id"]}
+    if _shape(branch.get("if")) != discriminator:
+        _fail(lint, ACTIVE_SERIES_SCHEMA, "native/PCR branch discriminator must be exactly the Realm actor kind")
+    legacy = branch.get("else", {})
+    if (not isinstance(required, list) or "source_commit_ref" in required
+            or legacy.get("required") != ["source_commit_ref"]):
+        _fail(lint, ACTIVE_SERIES_SCHEMA, "PCR signed payload must require source_commit_ref exactly once")
+    legacy_shape = {"required": ["source_commit_ref"], "properties": {"signature_proof": {"required": ["device_authorize_event_id"]}},
+                    "not": {"anyOf": [{"required": [name]} for name in native_fields]}}
+    if _shape(legacy) != legacy_shape:
+        _fail(lint, ACTIVE_SERIES_SCHEMA, "PCR branch must retain its Device author and exclude native scope/source fields")
+    native_shape = {"required": native_fields, "properties": {"actor_id": {"$ref": "./common-ids.schema.json#/$defs/realm_actor"},
+                    "signature_proof": {"not": {"anyOf": [{"required": ["device_authorize_event_id"]}]}}},
+                    "not": {"anyOf": [{"required": [name]} for name in ["source_commit_ref", "custodian_actor_id", "custody_authorization_ref"]]}}
+    if _shape(branch.get("then")) != native_shape or active_series.get("additionalProperties") is not False:
+        _fail(lint, ACTIVE_SERIES_SCHEMA, "native branch must require exact scoped source refs and forbid PCR/custody/Device author")
+    if isinstance(properties, dict):
+        if _shape(properties.get("effective_scope")) != _scope_shape():
+            _fail(lint, ACTIVE_SERIES_SCHEMA, "native scope must remain a closed Realm/Circle union")
+        for name in native_fields[1:]:
+            if _shape(properties.get(name)) != {"$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"}:
+                _fail(lint, ACTIVE_SERIES_SCHEMA, "native source refs must reuse full committed originals")
     if not isinstance(properties, dict) or properties.get("source_commit_ref", {}).get("$ref") != "./key-backup.schema.json#/properties/source_commit_ref":
         _fail(lint, ACTIVE_SERIES_SCHEMA, "signed payload must expose only the canonical source_commit_ref definition")
     if isinstance(properties, dict) and "source_ref" in properties:
@@ -93,7 +138,14 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
     if not isinstance(schema_row, dict) or "source_commit_ref" not in str(schema_row.get("description", "")):
         _fail(lint, CONTRACT_REGISTRY, "schema row must name the sole canonical source anchor")
 
-    projection = keys_operations.get("$defs", {}).get("backup_active_series_state", {})
+    definitions = keys_operations.get("$defs", {})
+    union = definitions.get("keys_backups_list_response_body", {}).get("oneOf", [])
+    expected_refs = {"#/$defs/keys_backups_page", "#/$defs/realm_actor_archive_inventory_page", "#/$defs/realm_actor_backup_series_head_response_body"}
+    if (not isinstance(union, list) or len(union) != 3
+            or any(not isinstance(item, dict) or set(item) != {"$ref"} for item in union)
+            or {item.get("$ref") for item in union if isinstance(item, dict)} != expected_refs):
+        _fail(lint, KEYS_OPERATIONS_SCHEMA, "Station list response projection must be the closed three-role union")
+    projection = definitions.get("backup_active_series_state", {})
     projection_required = set(projection.get("required", []))
     projection_properties = projection.get("properties", {})
     if "authority_commit_id" not in projection_required or "source_commit_ref" in projection_required:
@@ -104,6 +156,25 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
         "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
     }:
         _fail(lint, KEYS_OPERATIONS_SCHEMA, "projection authority_commit_id must remain a strong RealmCommitId")
+    if (projection_required != {"account_id", "control_realm_id", "authority_commit_id", "secret_storage"}
+            or set(projection_properties) != projection_required or projection.get("additionalProperties") is not False):
+        _fail(lint, KEYS_OPERATIONS_SCHEMA, "PCR Station projection must retain its exact closed fields")
+
+    # This is the existing list-head state, not the Device's five-field public current value.
+    head = definitions.get("realm_actor_backup_series_head_response_body", {})
+    if head.get("properties", {}).get("active_series") != {"$ref": "#/$defs/realm_actor_backup_active_series_state"}:
+        _fail(lint, KEYS_OPERATIONS_SCHEMA, "native head response projection must reach its distinct native active-series state")
+    native = definitions.get("realm_actor_backup_active_series_state", {})
+    fields = {"realm_actor_id", "effective_scope", "manager_ref", "recovery_ref", "recipient_ref", "authority_commit_id", "secret_storage"}
+    native_properties = native.get("properties", {})
+    if (set(native.get("required", [])) != fields or set(native_properties) != fields
+            or native.get("additionalProperties") is not False
+            or native_properties.get("realm_actor_id") != {"$ref": "./common-ids.schema.json#/$defs/realm_actor_id"}
+            or _shape(native_properties.get("effective_scope")) != _scope_shape()
+            or native_properties.get("authority_commit_id") != {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"}
+            or native_properties.get("secret_storage") != {"$ref": "#/$defs/backup_active_series_pointer"}
+            or any(native_properties.get(name) != {"$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"} for name in native_fields[1:])):
+        _fail(lint, KEYS_OPERATIONS_SCHEMA, "native list-head projection must retain exact actor/scope/original refs and provenance")
 
     required_cases = {
         "key_backup_active_series_canonical_source_commit_ref_valid",

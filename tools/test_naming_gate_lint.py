@@ -714,6 +714,107 @@ class IdentifierClassificationTest(MutationHarness):
 class IdentifierRoleSuffixTest(MutationHarness):
     """NC-IDROLE-001: role semantics never suppress the value-category suffix."""
 
+    def test_realm_actor_compound_carrier_and_qualified_plural_are_unambiguous(self) -> None:
+        def mutate(document):
+            properties = document.setdefault("properties", {})
+            properties["realm_actor_id"] = {"$ref": "./common-ids.schema.json#/$defs/realm_actor_id"}
+            properties["requester_realm_actor_id"] = {"$ref": "./common-ids.schema.json#/$defs/realm_actor_id"}
+            properties["requester_realm_actor_ids"] = {
+                "type": "array", "items": {"$ref": "./common-ids.schema.json#/$defs/realm_actor_id"},
+            }
+
+        errors = self.lint_with_file(SCHEMA_DIR / "event-payload.schema.json", mutate,
+                                     check=check_identifier_role_suffix_contracts)
+        self.assertEqual(errors, [])
+
+    def test_realm_actor_carrier_rejects_other_identity_representations(self) -> None:
+        shapes = [
+            {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+            {"$ref": "./common-ids.schema.json#/$defs/account_id"},
+            {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+            {"type": "object", "required": ["realm_id"],
+             "properties": {"realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"}},
+             "additionalProperties": False, "x-arkret-composite-identifier": True},
+            {"type": "object", "required": ["realm_id", "principal_id"],
+             "properties": {
+                 "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+                 "principal_id": {"allOf": [
+                     {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+                     {"pattern": r"^ak:did_core:webvh:[^\s/?#]+$"},
+                 ]},
+             }, "additionalProperties": False, "x-arkret-composite-identifier": True},
+        ]
+        for shape in shapes:
+            with self.subTest(shape=shape):
+                def mutate(document):
+                    document.setdefault("properties", {})["realm_actor_id"] = shape
+                errors = self.lint_with_file(SCHEMA_DIR / "event-payload.schema.json", mutate,
+                                             check=check_identifier_role_suffix_contracts)
+                self.assertTrue(any("realm_actor_id" in error and "required carrier is realm_actor_id" in error
+                                    for error in errors), errors)
+
+    def test_realm_actor_pair_cannot_use_an_actor_carrier_suffix(self) -> None:
+        for name in ["requester_actor_id", "requester_actor_ids"]:
+            with self.subTest(name=name):
+                def mutate(document):
+                    shape = {"$ref": "./common-ids.schema.json#/$defs/realm_actor_id"}
+                    document.setdefault("properties", {})[name] = (
+                        {"type": "array", "items": shape} if name.endswith("_ids") else shape
+                    )
+                errors = self.lint_with_file(SCHEMA_DIR / "event-payload.schema.json", mutate,
+                                             check=check_identifier_role_suffix_contracts)
+                self.assertTrue(any(name in error and "required carrier is actor_id" in error for error in errors), errors)
+
+    def test_realm_actor_reference_requires_the_registered_resource_authority_and_path(self) -> None:
+        from tools.artifact_lint.naming_contracts import resolve_terminal_constraints, _shape_cardinalities
+
+        documents = dict(schema_documents())
+        canonical = documents["common-ids.schema.json"]["$id"] + "#/$defs/realm_actor_id"
+        for reference in ["./common-ids.schema.json#/$defs/realm_actor_id", canonical]:
+            shape = {"$ref": reference}
+            self.assertEqual(resolve_terminal_constraints(documents, "event-payload.schema.json", shape),
+                             (("realm_actor_id", "closed_object"),))
+            self.assertEqual(_shape_cardinalities(documents, "event-payload.schema.json", shape), {"scalar"})
+        for reference in [
+            "https://unregistered.invalid/common-ids.schema.json#/$defs/realm_actor_id",
+            "../../untrusted/common-ids.schema.json#/$defs/realm_actor_id",
+            canonical.replace(".json#", ".json?unregistered=1#"),
+            "./common-ids.schema.json#/$defs/%FF",
+        ]:
+            with self.subTest(reference=reference):
+                shape = {"$ref": reference}
+                self.assertEqual(resolve_terminal_constraints(documents, "event-payload.schema.json", shape), ())
+                self.assertEqual(_shape_cardinalities(documents, "event-payload.schema.json", shape), set())
+
+    def test_realm_actor_definition_must_remain_the_exact_closed_pair(self) -> None:
+        for change in ["missing", "extra", "open", "wrong_realm", "wrong_principal"]:
+            with self.subTest(change=change):
+                def mutate(document):
+                    shape = document["$defs"]["realm_actor_id"]
+                    if change == "missing": shape["required"].remove("principal_id")
+                    if change == "extra": shape["properties"]["station_id"] = {"$ref": "#/$defs/did_core_id"}
+                    if change == "open": shape["additionalProperties"] = True
+                    if change == "wrong_realm": shape["properties"]["realm_id"] = {"$ref": "#/$defs/event_id"}
+                    if change == "wrong_principal": shape["properties"]["principal_id"] = {"type": "string"}
+                errors = self.lint_with_file(SCHEMA_DIR / "common-ids.schema.json", mutate,
+                                             check=check_identifier_role_suffix_contracts)
+                self.assertTrue(any("realm_actor_id" in error and "required carrier is realm_actor_id" in error
+                                    for error in errors), errors)
+
+    def test_approval_principal_roster_cannot_regress_to_an_actor_suffix_or_carrier(self) -> None:
+        for change in ["old_name", "wrong_carrier"]:
+            with self.subTest(change=change):
+                def mutate(document):
+                    properties = document["properties"]
+                    if change == "old_name":
+                        properties["approval_actor_ids"] = properties.pop("approval_principal_ids")
+                    else:
+                        properties["approval_principal_ids"]["items"] = {
+                            "$ref": "./common-ids.schema.json#/$defs/actor_id"}
+                errors = self.lint_with_file(SCHEMA_DIR / "grant-constraint.schema.json", mutate,
+                                             check=check_identifier_role_suffix_contracts)
+                self.assertTrue(any("approval_" in error and "required carrier" in error for error in errors), errors)
+
     def test_gate_is_green(self) -> None:
         lint = run_check(check_identifier_role_suffix_contracts)
         self.assertEqual(lint.errors, [])

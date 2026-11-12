@@ -5296,6 +5296,20 @@
         "spec/v1/artifacts/fixtures/content-backup-source-fixture.json",
         "spec/v1/zh/crypto-media/content-history.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.realm_actor.content_backup.v1",
+      "status": "active",
+      "domain": "realm_actor",
+      "applies_to_fixtures": [
+        "realm-actor-content-backup-fixture.json"
+      ],
+      "description": "Real reference HPKE and Ed transcripts for the closed native root-only packet, public prepare echo, scope-separated manager series, native source/role and first-PUT custody boundaries. Crypto vectors do not claim physical PUT durability, complete archive import, runtime vault isolation or full joint acceptance.",
+      "source_refs": [
+        "spec/v1/zh/extensions/realm-actors.md",
+        "spec/v1/zh/crypto-media/content-history.md",
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ]
     }
   ]
 }

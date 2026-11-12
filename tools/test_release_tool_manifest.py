@@ -23,6 +23,7 @@ class ReleaseToolManifestTest(unittest.TestCase):
         self.assertIn("contact_current_contract", body["pipelines"]["artifact_check"])
         self.assertIn("applet_management_source_contract", body["pipelines"]["artifact_check"])
         self.assertIn("realm_actor_contract", body["pipelines"]["artifact_check"])
+        self.assertIn("realm_actor_content_backup_contract", body["pipelines"]["artifact_check"])
 
     def test_missing_owner_script_is_rejected(self) -> None:
         body = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))

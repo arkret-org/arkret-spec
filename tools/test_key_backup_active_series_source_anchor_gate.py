@@ -61,7 +61,8 @@ class KeyBackupActiveSeriesSourceAnchorGateTest(unittest.TestCase):
         def mutate(documents: dict) -> None:
             schema = documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]
             schema["properties"]["source_ref"] = schema["properties"].pop("source_commit_ref")
-            schema["required"][schema["required"].index("source_commit_ref")] = "source_ref"
+            required=schema["allOf"][0]["else"]["required"]
+            required[required.index("source_commit_ref")] = "source_ref"
 
         self.assert_red(mutate, "require source_commit_ref exactly once")
 
@@ -98,6 +99,45 @@ class KeyBackupActiveSeriesSourceAnchorGateTest(unittest.TestCase):
             projection["required"][projection["required"].index("authority_commit_id")] = "source_commit_ref"
 
         self.assert_red(mutate, "projection provenance")
+
+    def test_native_and_pcr_discriminator_cannot_be_weakened(self) -> None:
+        def mutate(documents):
+            documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]["allOf"][0]["if"]["properties"]["actor_id"]["properties"]["kind"]["const"]="account"
+        self.assert_red(mutate,"branch discriminator")
+
+    def test_native_sources_cannot_be_missing_pcr_or_device_authored(self) -> None:
+        for failure in ["missing_scope","missing_ref","pcr","device","open_scope","weak_ref"]:
+            def mutate(documents):
+                schema=documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]
+                native=schema["allOf"][0]["then"]
+                if failure=="missing_scope":native["required"].remove("effective_scope")
+                if failure=="missing_ref":native["required"].remove("recipient_ref")
+                if failure=="pcr":native["not"]["anyOf"].pop(0)
+                if failure=="device":native["properties"]["signature_proof"].clear()
+                if failure=="open_scope":schema["properties"]["effective_scope"]["oneOf"][1]["additionalProperties"]=True
+                if failure=="weak_ref":schema["properties"]["manager_ref"]={"type":"object"}
+            with self.subTest(failure=failure):self.assert_red(mutate,"native")
+
+    def test_pcr_branch_cannot_acquire_native_fields(self) -> None:
+        def mutate(documents):
+            documents[gate.ACTIVE_SERIES_SCHEMA.resolve()]["allOf"][0]["else"]["not"]["anyOf"].pop()
+        self.assert_red(mutate,"PCR branch")
+
+    def test_station_projection_union_and_native_sources_are_closed(self) -> None:
+        for failure in ["extra_branch","wrong_native_ref","missing_native_ref","open_native","weak_provenance","pcr_leak","wrong_scope","wrong_head_state"]:
+            def mutate(documents):
+                defs=documents[gate.KEYS_OPERATIONS_SCHEMA.resolve()]["$defs"]
+                native=defs["realm_actor_backup_active_series_state"]
+                union=defs["keys_backups_list_response_body"]["oneOf"]
+                if failure=="extra_branch":union.append({})
+                if failure=="wrong_native_ref":union[1]={"$ref":"#/$defs/backup_active_series_pointer"}
+                if failure=="missing_native_ref":native["required"].remove("recovery_ref")
+                if failure=="open_native":native["additionalProperties"]=True
+                if failure=="weak_provenance":native["properties"]["authority_commit_id"]={"type":"object"}
+                if failure=="pcr_leak":native["properties"]["source_commit_ref"]={"type":"object"}
+                if failure=="wrong_scope":native["properties"]["effective_scope"]["oneOf"].pop()
+                if failure=="wrong_head_state":defs["realm_actor_backup_series_head_response_body"]["properties"]["active_series"]={"$ref":"#/$defs/backup_active_series_state"}
+            with self.subTest(failure=failure):self.assert_red(mutate,"projection")
 
     def test_registry_must_pin_canonical_shape(self) -> None:
         def mutate(documents: dict) -> None:

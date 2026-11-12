@@ -1,6 +1,9 @@
 {
   "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
   "operations": {
+    "ak.edge.applet.third_party_users.read.list.v1": [
+      "applet_id"
+    ],
     "ak.gate.account.command.finalize_device_pairing.v1": [
       "account_handoff_grant",
       "new_device_public_key"
@@ -59,12 +62,12 @@
     "ak.open.invite_locator.read.resolve.v1": [
       "principal_locator"
     ],
-    "ak.peer.mls.read.group_state_material.v1": [
-      "leaf_index"
-    ],
     "ak.peer.invites.command.submit.v1": [
       "invite_receive_policy",
       "invitee_account_id"
+    ],
+    "ak.peer.mls.read.group_state_material.v1": [
+      "leaf_index"
     ],
     "ak.root.identity.recovery_session.command.submit_proof.v1": [
       "request_id"
@@ -131,20 +134,27 @@
       "block_peer",
       "subject_id"
     ],
+    "ak.self.keys.backups.read.list.v1": [
+      "agent_id"
+    ],
+    "ak.self.keys.backups.resource.replace.v1": [
+      "archive_revision",
+      "native_source"
+    ],
     "ak.self.keys.keypackages.read.claim.v1": [
       "keypackage_claim_ref"
     ],
     "ak.self.mls.command.reconcile_recovery_scope.v1": [
       "predecessor_authorization_event_refs"
     ],
+    "ak.self.realm_actor.read.material.v1": [
+      "creation_scope"
+    ],
     "ak.self.realm_organization.read.list.v1": [
       "owning_organization_ids"
     ],
     "ak.self.realm_state_snapshot.read.by_ref.v1": [
       "preview_only"
-    ],
-    "ak.edge.applet.third_party_users.read.list.v1": [
-      "applet_id"
     ]
   }
 }

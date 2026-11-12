@@ -189,7 +189,17 @@
         "has_more",
         "next_cursor"
       ],
-      "reason": "key-backup list paginates backups"
+      "reason": "the Account/Agent key-backup list branch paginates backups; the native Device head branch is not a paginated list"
+    },
+    {
+      "file": "keys-operations.schema.json",
+      "pointer": "/$defs/realm_actor_archive_inventory_page",
+      "collection_field": "entries",
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
+      "reason": "the manager-only archive inventory page advances complete typed entries at the same full Actor and frozen inventory cut"
     },
     {
       "file": "mimi-operations.schema.json",

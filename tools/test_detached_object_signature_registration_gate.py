@@ -156,6 +156,13 @@ class DetachedObjectSignatureRegistrationGateTest(unittest.TestCase):
             "removed snapshot proof context",
         )
 
+    def test_native_custody_context_cannot_be_rebound_to_another_domain(self) -> None:
+        for name in ("admission", "offer", "confirmation"):
+            definition="realm_actor_content_backup_"+name+"_signature"
+            def mutate(document, definition=definition):
+                document["signature_schema"]["$defs"][definition]["allOf"][1]["properties"]["context"]["const"]="ak.realm_actor_material_signature.v1"
+            with self.subTest(name=name):self.assert_red(mutate,"native detached branch")
+
 
 if __name__ == "__main__":
     unittest.main()

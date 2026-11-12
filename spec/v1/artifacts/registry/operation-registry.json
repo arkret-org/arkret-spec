@@ -524,7 +524,7 @@
               "expires"
             ],
             "node_to_applet": "Current governing Station HTTP key and private recipient eligibility are always verified. Business deliveries bind the effective destination Applet registration epoch. Pure historical creation confirmation (authoring_context exact creation Event only) binds the original accepted creation signer fact registration epoch and does not require a currently active installation or grant; it grants no Device, membership, MLS, content or business access.",
-            "applet_to_arkret_inbound": "Applet registration webhook_signature_policy.key_ref; its canonical bare did MUST be validated by the registered method adapter and project to both Source-Service-ID and the active effective install service_id. The effective registration_epoch and actual verification key digest are bound. Direct DID/core-id comparison and did_core_id fragment concatenation are forbidden.",
+            "applet_to_arkret_inbound": "Ordinary business delivery uses the current effective install and registration webhook_signature_policy.key_ref, projecting the independently method-verified exact signing Service to Source-Service-ID. The only native realm_actor_backup branch instead uses its exact accepted current manager registration and standing maintenance role, without a business active-install/grant requirement; actual HTTP freshness/current Service key/registration_epoch/key digest remain mandatory. It permits owner/governance paused or recovery disabled, rejects either retired gate/Realm terminal/pending, and grants no Device or business operation. Never direct-compare bare DID/core ID or concatenate fragments.",
             "equality": "Receivers recompute sha256(UTF8(digest_domain + newline) || RFC8785_JCS(record)); equal recomputed digests define replay equality. Caller-supplied records or digests are forbidden."
           },
           "idempotency_identity_fields": [
@@ -548,14 +548,42 @@
             "duplicate_conflict",
             "applet_registration_unauthorized",
             "applet_namespace_mismatch"
-          ]
+          ],
+          "native_manager_maintenance": {
+            "admission_class": "realm_actor_backup",
+            "event_kind": "ak.key_backup.active_series",
+            "payload_actor_kind": "realm",
+            "producer": "actual_current_manager_Service",
+            "target": "full_payload_RealmActor_and_exact_existing_Realm_or_Circle_of_that_Realm",
+            "submission_operation_id": "ak.edge.applet.command.transaction.v1",
+            "submission_member": "events",
+            "required_checks": [
+              "fresh_actual_HTTP_Service_RFC9421_transcript_and_source_destination",
+              "actual_outer_Event_and_inner_record_Service_Ed_signatures",
+              "exact_accepted_current_manager_and_registration_source",
+              "original_manager_recovery_recipient_refs_before_Event_same_target",
+              "exact_known_scope_no_Sidecar_PCR_or_cross_Realm",
+              "pending_null",
+              "both_status_gates_not_retired",
+              "Realm_not_terminal",
+              "same_actor_root_namespace_lock_scoped_pointer_CAS"
+            ],
+            "owner_paused_allowed": true,
+            "governance_paused_allowed": true,
+            "recovery_disabled_allowed": true,
+            "active_business_install_required": false,
+            "business_capability_grant_required": false,
+            "authorization_ref_or_executed_by_allowed": false,
+            "Device_PUT_or_business_permission_granted": false,
+            "other_Service_Event_exceptions_added": false
+          }
         }
       },
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery. Historical creation completion is independent of current business installation, subject to exact private material eligibility; continuing business requires current installation and action authorization. Recovery follows its independent authority. Refreshed material/new governor uses a new delivery identity while original creation Event/Commit/fact remains immutable."
+      "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery. Historical creation completion is independent of current business installation, subject to exact private material eligibility; continuing business requires current installation and action authorization. Recovery follows its independent authority. Refreshed material/new governor uses a new delivery identity while original creation Event/Commit/fact remains immutable. Only native payload.actor_id.kind=realm ak.key_backup.active_series has the disjoint realm_actor_backup standing manager-maintenance branch: no executed_by/authorization_ref or business active-install/grant gate. Actual HTTP/producer/record Ed, accepted registration/current manager, known exact scope, original recipient/recovery refs, pending=null, both statuses non-retired, Realm nonterminal and CAS remain mandatory; owner/governance paused and recovery disabled do not deny this maintenance. All ordinary business Event and Device PUT gates are unchanged."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -3050,7 +3078,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Service authentication admits its exact permitted Applet Service Event, including realm.actor.create. Realm controller authentication admits only registered private control Events from the current accepted method, with native predicates and actual payload authorization where required. It never substitutes for a Device business signature or permits private stream enumeration. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10.",
+      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Service authentication admits its exact permitted Applet Service Event, including realm.actor.create. Realm controller authentication admits only registered private control Events from the current accepted method, with native predicates and actual payload authorization where required. It never substitutes for a Device business signature or permits private stream enumeration. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. The native RealmActor ak.key_backup.active_series manager-maintenance branch is excluded from this self operation even though its actual producer is a Service; its only ingress is ak.edge.applet.command.transaction.v1 events[]. No new Service SessionGrant/Bearer permission follows from the native branch.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
@@ -3289,17 +3317,30 @@
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge",
       "grpc": "SelfKeys/BackupsIssueUnlockChallenge",
       "mq": "self.keys.backups.command.issue_unlock_challenge",
-      "notes": "Issue a durable current-device-only challenge with lifetime at most 300 seconds. Recovery unlock reuses its recovery session challenge.",
+      "notes": "Issue a durable current-device-only challenge with lifetime at most 300 seconds. Recovery unlock reuses its recovery session challenge. Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
       "canonical_hash_input": "/request_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      },
+      "auth_requirements": {
+        "managed_device_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+          "alternative_to_session_grant": true,
+          "contract": "Native Device branch only. Require exact authenticated original RealmActor/Device/authorization/generation/metadata scope and the matching registered subject_only native action in that same original DeviceAuthorize scope entry. This is a bounded intrinsic subject operation, not a Service parent or terminal-child capability grant. Retain current manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and this operation's exact native branch gates. It grants no ordinary business authority; future business Events keep their independent full grant/approval requirements. Exact accepted PUT replay follows its separate current original credential/generation recovery rule without redoing new business admission."
+        },
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Only independently authenticated exact current manager Service of the complete native RealmActor for purpose=archive_recovery. No Account/Device impersonation, Device subject-action grant, general self permission, raw root/private archive key or Service PUT. Archive disclosure and current target authority remain independent of historical packet author refs; all exact source/scope/challenge/digest/current manager gates apply."
+        }
       }
     },
     {
@@ -3308,17 +3349,30 @@
       "grpc": "SelfKeys/BackupsUnlock",
       "mq": "self.keys.backups.command.unlock",
       "body_class": "non_streaming_json",
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
       "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
-      "response_schema_ref": "schemas/key-backup.schema.json",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body",
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
       "canonical_hash_input": "/proof",
-      "notes": "Exact challenge and proof bind optional subject_actor_id/custody_authorization_ref and content_history. Current-device history-only access to original protected content roots survives generation/policy changes and identity transaction completion; old sessions and revoked callers remain refused. No implicit active-state restoration."
+      "notes": "Exact challenge and proof bind optional subject_actor_id/custody_authorization_ref and content_history. Current-device history-only access to original protected content roots survives generation/policy changes and identity transaction completion; old sessions and revoked callers remain refused. No implicit active-state restoration. Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT. Native Device receives only the current selected-series exact head; manager requester refs remain current while immutable target original refs stay historical. The Device reply is a closed complete packet/minimal admission pair without sibling authorization scopes; the separately manager-qualified archive reply contains full native_source; Account/Agent reply bytes remain the original KeyBackup.",
+      "auth_requirements": {
+        "managed_device_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+          "alternative_to_session_grant": true,
+          "contract": "Native Device branch only. Require exact authenticated original RealmActor/Device/authorization/generation/metadata scope and the matching registered subject_only native action in that same original DeviceAuthorize scope entry. This is a bounded intrinsic subject operation, not a Service parent or terminal-child capability grant. Retain current manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and this operation's exact native branch gates. It grants no ordinary business authority; future business Events keep their independent full grant/approval requirements. Exact accepted PUT replay follows its separate current original credential/generation recovery rule without redoing new business admission."
+        },
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Only independently authenticated exact current manager Service of the complete native RealmActor for purpose=archive_recovery. No Account/Device impersonation, Device subject-action grant, general self permission, raw root/private archive key or Service PUT. Archive disclosure and current target authority remain independent of historical packet author refs; all exact source/scope/challenge/digest/current manager gates apply."
+        }
+      }
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
@@ -3327,8 +3381,22 @@
       "mq": "self.keys.backups.query.list",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
-      "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing."
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body",
+      "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing. Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT. Native realm_actor_id uses deepObject/explode=true with both typed realm_id/principal_id components; optional circle_id selects exact scope; reject partial, duplicate, unknown and agent_id mixtures. The disjoint archive_inventory query is current-manager Service only, no circle/series/class filter; complete frozen all-scope manifest includes first-PUT packets regardless of Event success and immutable original producer sources. Cursor and digest bind actor/manager/role/full physical cut; no private keys are disclosed. Native Device series_predecessor returns metadata plus minimal immutable admission only, maximum one current head, empty for empty series, no cursor/limit/previous-series/ciphertext. Full original requires exact-head unlock.",
+      "query_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_query",
+      "auth_requirements": {
+        "managed_device_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+          "alternative_to_session_grant": true,
+          "contract": "Native Device branch only. Require exact authenticated original RealmActor/Device/authorization/generation/metadata scope and the matching registered subject_only native action in that same original DeviceAuthorize scope entry. This is a bounded intrinsic subject operation, not a Service parent or terminal-child capability grant. Retain current manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and this operation's exact native branch gates. It grants no ordinary business authority; future business Events keep their independent full grant/approval requirements. Exact accepted PUT replay follows its separate current original credential/generation recovery rule without redoing new business admission."
+        },
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Only independently authenticated exact current manager Service of the complete native RealmActor for purpose=archive_inventory. No Account/Device impersonation, Device subject-action grant, general self permission, raw root/private archive key or Service PUT. Archive disclosure and current target authority remain independent of historical packet author refs; all exact source/scope/challenge/digest/current manager gates apply."
+        }
+      }
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
@@ -3362,7 +3430,14 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": ""
+      "notes": " Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT. Native Device replies MUST carry only the minimal immutable admission receipt for that exact packet. Full native_source is verified and retained with real original author authority and governing Service admission signature in the first-PUT transaction, then disclosed only to qualified current-manager archive operations. Current key/boolean/local journal is not original source. Exact replay does not increment archive_revision.",
+      "auth_requirements": {
+        "managed_device_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+          "alternative_to_session_grant": true,
+          "contract": "Native Device branch only. Require exact authenticated original RealmActor/Device/authorization/generation/metadata scope and the matching registered subject_only native action in that same original DeviceAuthorize scope entry. This is a bounded intrinsic subject operation, not a Service parent or terminal-child capability grant. Retain current manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and this operation's exact native branch gates. It grants no ordinary business authority; future business Events keep their independent full grant/approval requirements. Exact accepted PUT replay follows its separate current original credential/generation recovery rule without redoing new business admission."
+        }
+      }
     },
     {
       "operation_id": "ak.self.keys.command.claim.v1",
@@ -4360,7 +4435,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is allowed only for purpose=event targeting its own exact authorization Event, with a currently allowed business scope; no current/history enumeration. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. Real Accounts use their own Account Station, with exact audit authority; foreign governance is reached only through ak.peer.realm_actor.read.material.v1 and final local credential delivery validation. Unknown or invisible targets and authenticated callers without exact disclosure/audit rights return uniform not_found. Credential and signature failures retain their universal errors; missing native originals remain unavailable rather than an empty success.",
+      "notes": "Exact target-only private Realm actor current/Event/original outcome material. Same-cut values are signed with request digest, nonce, authenticated audience and current governance tenure. See extensions/realm-actors.md section 8. No list, wildcard or business permission is granted. Managed Device authentication is restricted to its own full actor and exact signed metadata scope. For purpose=current it may request only public realm_actor_recovery and exact-scope realm_actor_key_backup_active_series selectors together, with pending=null and current original Device authorization/generation; only a complete same-cut qualified result may carry non-null next_prepare_input{auth_binding,content_backup_recipient,active_series_id} for exact echo. For purpose=event it may read only its own exact Device authorization original, preserving the old narrow permission. Current recipient declarations (including creation_scope/external_ref), series Event originals and their DID/governance sources are not Device-readable. Station independently validates them before supplying bound typed next_prepare_input; Device has no need to read/replay them. Station internally verifies reset-to-exact-accepted-begin closure without disclosing begin or requiring Device control-history replay. No other current/history/control enumeration, arbitrary recipient/series, sibling authorization original or private archive source is granted. Controller authentication requires a current accepted method. Realm actor recovery uses current manager Service authentication and accepted standing recovery authority; begin/finish never require the lost control key or a business grant. Exact lifecycle outcomes remain separate from immutable Event acceptance. See extensions/realm-actors.md section 10. Real Accounts use their own Account Station, with exact audit authority; foreign governance is reached only through ak.peer.realm_actor.read.material.v1 and final local credential delivery validation. Unknown or invisible targets and authenticated callers without exact disclosure/audit rights return uniform not_found. Credential and signature failures retain their universal errors; missing native originals remain unavailable rather than an empty success.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
@@ -4371,6 +4446,25 @@
           "signature_scenario_id": "ak.http_signature.scenario.realm_actor_control.v1",
           "standard": "RFC 9421 HTTP Message Signature",
           "bearer_only_allowed": false
+        },
+        "managed_device_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "metadata_binding": "exact_current_full_RealmActor_Device_authorization_instance_generation_and_exact_scope",
+          "current_selectors": [
+            "realm_actor_recovery",
+            "realm_actor_key_backup_active_series"
+          ],
+          "current_requires_same_cut_complete_pair_and_pending_null": true,
+          "event_targets": [
+            "own_exact_Device_authorization_original"
+          ],
+          "Station_internal_begin_closure_disclosed": false,
+          "all_other_private_or_general_control_reads_allowed": false,
+          "recipient_or_series_Event_original_disclosed": false,
+          "control_rule": "own_exact_device_authorization_or_native_backup_current_material_read",
+          "control_rule_source": "registry/applet-managed-authority-registry.json#/device_authentication/operation_scope_rules"
         }
       },
       "max_canonical_body_bytes": 4194304

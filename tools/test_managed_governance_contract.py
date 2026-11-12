@@ -56,6 +56,47 @@ def lineage_effective(state):
                     for key in ["applet_id", "registration_epoch", "effect", "evaluation_class"]))
 
 
+NATIVE_BACKUP_DEVICE_OPERATIONS = frozenset({
+    "ak.self.keys.backups.resource.replace.v1",
+    "ak.self.keys.backups.read.list.v1",
+    "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+    "ak.self.keys.backups.command.unlock.v1",
+})
+
+
+def native_backup_device_permission_errors(contract):
+    """Check the registered Device ceiling, not a runtime authorization decision."""
+    errors = []
+    device = contract["device_authentication"]
+    allowed = device["operations"]
+    if len(allowed) != len(set(allowed)):
+        errors.append("duplicate Device operation")
+    if {op for op in allowed if ".keys.backups." in op} != NATIVE_BACKUP_DEVICE_OPERATIONS:
+        errors.append("native Device backup operation set differs from exact four")
+    if any("recovery" in op or "pair_device" in op for op in allowed):
+        errors.append("Device gained an account recovery or pairing operation")
+    for operation in NATIVE_BACKUP_DEVICE_OPERATIONS:
+        rows = [row for row in device["operation_scope_rules"] if row["operation_id"] == operation]
+        if len(rows) != 1 or rows[0].get("mode") != "all_actions" or rows[0].get("actions") != [operation]:
+            errors.append(f"{operation}: exact signed action upper bound is missing")
+        elif rows[0].get("control_rule") != "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role":
+            errors.append(f"{operation}: native scope/role control rule changed")
+    scope = device["scope_matching"]
+    for name, expected in {"scope_equality": "exact_closed_realm_or_circle", "one_entry_per_scope": True,
+                           "cross_entry_combination": False, "realm_includes_circle": False,
+                           "sidecar_supported": False, "unknown_scope_or_action": "reject"}.items():
+        if scope.get(name) != expected:
+            errors.append(f"native scope ceiling changed: {name}")
+    backup = device["content_backup_contract"]
+    if backup.get("publisher") != "exact_current_native_Device_only":
+        errors.append("native publisher is not the exact current Device")
+    if backup.get("manager_inventory_or_archive_recovery") is not False:
+        errors.append("Device gained a Manager archive role")
+    if backup.get("scope") != "one_exact_Realm_or_Circle_entry_no_cross_entry_combination":
+        errors.append("native backup scope entry may be combined or widened")
+    return errors
+
+
 class ReviewLedger:
     """Reference atomic visibility model for an exact immutable candidate."""
     def __init__(self, digest, current):
@@ -350,11 +391,70 @@ class ManagedGovernanceTests(unittest.TestCase):
                           "ak.self.device_messages.command.ack.v1", "ak.self.mls.read.group_state_material.v1",
                           "ak.self.blob.resource.get.v1", "ak.self.events.command.submit.v1"]:
             self.assertIn(operation, allowed)
-        self.assertFalse(any("recovery" in op or "backups" in op or "pair_device" in op for op in allowed))
+        self.assertEqual(native_backup_device_permission_errors(contract), [])
+        actions = {row["action"]: row for row in self.catalog["capability_action_registry"]["actions"]}
+        for operation in NATIVE_BACKUP_DEVICE_OPERATIONS:
+            action = actions[operation]
+            self.assertIs(action["subject_only"], True)
+            self.assertEqual(action["category"], "service")
+            self.assertEqual(action["event_mapping_kind"], "non_event_surface")
+            self.assertEqual(action["target_event_kinds"], [])
+        self.assertNotIn("ak.self.keys.backups.resource.delete.v1", allowed)
+        self.assertNotIn("ak.self.keys.backups.command.issue_delete_challenge.v1", allowed)
         self.assertEqual(contract["personal_agent_source"], "owned_agent")
         self.assertFalse(contract["creation_scope_revoke_is_global_device_revoke"])
-        for mode, governance, caller in [(True, False, True), (False, True, True), (True, True, False)]:
-            self.assertFalse(mode and governance and caller)
+
+    def test_native_backup_device_ceiling_rejects_missing_extra_or_widened_permissions(self):
+        contract = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
+        for operation in NATIVE_BACKUP_DEVICE_OPERATIONS:
+            with self.subTest(missing=operation):
+                changed = copy.deepcopy(contract)
+                changed["device_authentication"]["operations"].remove(operation)
+                self.assertTrue(native_backup_device_permission_errors(changed))
+        for operation in ("ak.self.keys.backups.resource.delete.v1",
+                          "ak.self.keys.backups.command.issue_delete_challenge.v1",
+                          "ak.gate.account.command.pair_device.v1",
+                          "ak.root.identity.recovery_session.command.create.v1"):
+            with self.subTest(extra=operation):
+                changed = copy.deepcopy(contract)
+                changed["device_authentication"]["operations"].append(operation)
+                self.assertTrue(native_backup_device_permission_errors(changed))
+        for key, value in (("cross_entry_combination", True), ("realm_includes_circle", True),
+                           ("sidecar_supported", True), ("scope_equality", "parent_realm")):
+            changed = copy.deepcopy(contract)
+            changed["device_authentication"]["scope_matching"][key] = value
+            self.assertTrue(native_backup_device_permission_errors(changed), key)
+        changed = copy.deepcopy(contract)
+        changed["device_authentication"]["content_backup_contract"]["manager_inventory_or_archive_recovery"] = True
+        self.assertTrue(native_backup_device_permission_errors(changed))
+        for operation in NATIVE_BACKUP_DEVICE_OPERATIONS:
+            changed = copy.deepcopy(contract)
+            row = next(row for row in changed["device_authentication"]["operation_scope_rules"]
+                       if row["operation_id"] == operation)
+            row["actions"] = []
+            self.assertTrue(native_backup_device_permission_errors(changed), operation)
+
+    def test_native_device_head_query_and_results_cannot_become_archive_sources(self):
+        realm_actor = self.fixture["identities"]["bot"]["realm_actor_id"]
+        query = {"purpose": "series_predecessor", "realm_actor_id": realm_actor}
+        validator = self.validator("keys-operations.schema.json", "#/$defs/keys_backups_list_query/oneOf/1")
+        self.assertTrue(validator.is_valid(query))
+        for key, value in (("purpose", "archive_inventory"), ("cursor", "opaque"), ("limit", 1),
+                           ("series_id", "ak:backup_series:01904100-0000-7000-8000-000000000001"),
+                           ("backup_kind", "secret_storage"), ("native_source", {}),
+                           ("full_source", True), ("agent_id", realm_actor["principal_id"])):
+            changed = copy.deepcopy(query)
+            changed[key] = value
+            self.assertFalse(validator.is_valid(changed), key)
+        schema = json.loads((ART / "schemas/keys-operations.schema.json").read_text(encoding="utf-8"))["$defs"]
+        for definition, fields in (("realm_actor_backup_head_entry", {"metadata", "admission"}),
+                                   ("realm_actor_backup_unlock_response_body", {"backup", "admission"})):
+            self.assertEqual(set(schema[definition]["properties"]), fields)
+            self.assertEqual(set(schema[definition]["required"]), fields)
+            self.assertFalse(schema[definition]["additionalProperties"])
+        manager = schema["realm_actor_archive_unlock_response_body"]
+        self.assertEqual(set(manager["properties"]), {"backup", "native_source"})
+        self.assertFalse(manager["additionalProperties"])
 
 
 if __name__ == "__main__":

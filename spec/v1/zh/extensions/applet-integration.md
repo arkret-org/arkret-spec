@@ -345,7 +345,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 ```
 scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）；与具体 Applet install 的安全绑定 MUST 另外使用标准 `constraint_kind="authority_control" + constraint_subkind="applet_authority"`，完整携带 `applet_id`、`executed_by`、`registration_epoch`。创建 grant／Service 业务 parent 的 executor 为 accepted Service ActorId；受管 terminal child 的 executor 为其具体 Bot／Ghost Realm actor subject，唯一受限重绑定与普通收窄按 [managed-governance §4](../authz/managed-governance.md) 校验。§5.1 accepted 主体／受管 current manager 与 §11 Event envelope 的 `applet_id` / `authorization_ref` 是使用时的交叉校验，不能替代 grant 自身的绑定。
 
-除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
+普通业务写入时，除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。§7.3.1／§8 明确登记的原生 `ak.key_backup.active_series` standing-manager 维护分支按其 current manager／registration／known scope／原件／状态／CAS 门接纳，不依赖业务 grant；该唯一例外不扩成其它 Service 或 Device 业务写入权。
 
 ## 7. Applet API
 
@@ -361,7 +361,7 @@ Base URL 来自 registration 的 `base_url`。
 - **Event kind（进 Realm history）**：`ak.applet.registration` 与 `ak.applet.bridge_error`。这些是 durable Arkret Event，进入 Realm history，由 reducer 按 schema 校验；`ak.applet.bridge_error` payload 以 `artifacts/schemas/event-payload.schema.json` 与 `applet-schema.md` §7 为权威。Applet runtime 的调用进度、私有 session id、opaque params/detail 与实现状态只属于 operation response/stream 或部署本地状态，MUST NOT 写入共享 Realm history；跨实现有意义的业务结果必须落为既有 Event、Strand、Message、Morph、Relation 或封闭的 result artifact。
 - **operation_id（HTTP，不进 history）**：本节表中的 edge operations、§4b 的 install/revoke operations，以及 §9.1 的 `ak.self.applet.ghost.command.preview.v1` / `ak.self.applet.ghost.command.provision.v1` 是 HTTP API operation 标识符，只描述 Arkret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
-`ak.edge.applet.command.transaction.v1` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Arkret 的事实由具体 Event Envelope 的 signed `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
+`ak.edge.applet.command.transaction.v1` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Arkret 的事实由具体 Event Envelope 的 signed `applet_id`、适用 `external_ref`、event signature 与其正式 admission 表达；普通业务另携真实 `authorization_ref`／capability grant，原生 series 维护按§7.3.1禁止业务 grant 替身。
 
 字段级接口索引：
 
@@ -371,7 +371,7 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- | --- |
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?, producer_signer_fact?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。除 §7.3.2 的历史创建结果确认外，接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、current manager／普通账号的真实委托和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?, producer_signer_fact?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。除 §7.3.2 的历史创建结果确认外，接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、current manager 与对应 admission；普通业务另核真实 capability／普通账号委托，原生 series 维护只按§7.3.1的 standing-manager 分支，不执行 active install／业务 grant 门；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，受管分支按 accepted creation／current manager 路由，仅其当前治理 Station 可查；普通账号不使用此受管查询，不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -494,7 +494,17 @@ Arkret Station 向 Applet 的 base_url 仅交付管理材料，包括按 §7.3.2
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 的 accepted service key binding 取得当前有效 verification method，并逐次验证 HTTP Message Signature；逐次验签不等于逐次在线解析 DID。新 service / key、binding invalidation 或显式 freshness 失效时才进入 DID authority resolution。`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_signature_policy` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_signature_policy.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 signed `applet_id`、`Source-Service-ID` 与 exact Event `scope_ref` 唯一选择 §4b 接受的 active install，并用 `Source-Service-ID`（service `did_core_id`）验证其来源与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_signature_policy.key_ref`；接收方从该 DID URL 取得 bare controller `did`，用已登记 adapter 验证并要求 `project(did) == registration.service_id == Source-Service-ID`，不得把 DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、`webhook_signature_policy.key_ref` 未被该 Applet service 当前状态授权或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向）：普通业务 transaction 必须用 signed `applet_id`、`Source-Service-ID` 与 exact Event `scope_ref` 唯一选择 §4b 接受的 active install；原生 `ak.key_backup.active_series` 则只按下述 standing-manager 维护分支选择真实当前 manager／registration，不能先经过业务 install／grant 门。两者均以 `Source-Service-ID`（service `did_core_id`）验证当前 effective Applet registration，要求签名 `keyid` / verification method 等于其 `webhook_signature_policy.key_ref`；接收方从该 DID URL 取得 bare controller `did`，用已登记 adapter 验证并要求 `project(did) == registration.service_id == Source-Service-ID`，不得把 DID 与 core header 直接比较，并逐次验签。缺签名、签名无效、投影不一致、registration／来源 key 无效均拒绝；普通业务缺 active install 亦拒绝。
+
+**唯一原生 series 维护分支（normative）**：只有 [Realm actors §10.9](./realm-actors.md#109-原生内容根-recipient-与归档保管normative)
+登记的 RealmActor `ak.key_backup.active_series`，才可沿同一 `events[]` 入口使用真实 current manager Service 的
+standing-manager 权威。必须逐条核完整目标 Actor／Applet、真实 current registration／manager、已登记 exact
+known scope、原 recovery／recipient／manager refs、record 与 outer producer Ed、scoped pointer CAS 和 pending=null；
+owner／governance 任一 retired 或 Realm terminal 均拒绝，owner／governance paused 与 identity recovery.enabled=false
+本身不阻断此维护。`authorization_ref`、`executed_by`、Device／Account／PCR 替身均禁止，不依赖业务 grant 或 active
+install，不放宽其它 Event／Signal，也不允许同批业务项继承维护权。未知 scope 不可借此探索，当前注册失效仍拒绝。
+真实 Device PUT 仍独立执行 current installation／consent／双业务状态／exact scope/action／MLS epoch 等完整门，
+维护 pointer 不令 Device 或业务自动就绪；Manager 的私密 custody 读取也不授业务历史／明文权。
 
 **覆盖 header 集（MUST）**：本场景是 [`../sync/service-http-binding.md` §8](../sync/service-http-binding.md)
 的 `ak.http_signature.scenario.applet_transaction.v1`；签名 transcript MUST 覆盖以下
@@ -531,11 +541,11 @@ RFC 9421 derived components 与 header：
 - `operation_id` 固定为 `ak.edge.applet.command.transaction.v1`；`direction` 只允许 `node_to_applet` 或 `applet_to_arkret_inbound`。
 - `source_id` / `destination_id` 是已与 header、实际连接目标及 registration 交叉验证的 `did_core_id`。
 - `signature_label` 是 receiver 选中并成功验证的 RFC 9421 signature label；`verification_method` 是 canonical DID URL；`verification_key_digest` 是 registered DID-method adapter 对实际 verification public key 的 canonical key bytes 所计算的 `sha256:` digest；`signature_algorithm` 是已登记的 canonical algorithm name。记录不复制随机或可变长的 `Signature` bytes。
-- `registration_epoch` 对业务投递是本次方向所使用的 effective Applet registration epoch；它必须承诺该方向适用的 `webhook_signature_policy.key_ref` / algorithm policy。业务 registration 不适用、已撤销或无法得到唯一 effective epoch 时不得形成记录。仅 §7.3.2 的历史创建结果确认使用原 accepted creation signer fact 所绑定的原 registration epoch；该历史绑定不授予当前业务权，当前 HTTP 来源 key、治理路由及接收资格仍逐次验证。
+- `registration_epoch` 对业务投递是本次方向所使用的 effective Applet registration epoch；它必须承诺该方向适用的 `webhook_signature_policy.key_ref` / algorithm policy。业务 registration 不适用、已撤销或无法得到唯一 effective epoch 时不得形成记录。原生 series 维护使用真实 current manager 的当前有效 registration epoch，不依赖业务 active install；仅 §7.3.2 的历史创建结果确认使用原 accepted creation signer fact 所绑定的原 registration epoch；该历史绑定不授予当前业务权，当前 HTTP 来源 key、治理路由及接收资格仍逐次验证。
 - `idempotency_key` 是 header `Idempotency-Key` 的 exact value；`content_digest` 是通过 §2.5.1 profile 校验后的 canonical `Content-Digest` structured-field value，绑定 exact canonical body bytes。
 - `covered_components` 按 receiver 实际验证的 `Signature-Input` 顺序保存 canonical lowercase component identifier，必须包含本节 required set；`created` / `expires` 是同一 signature parameters 中的整数 UNIX seconds。
 
-记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。每次投递 MUST 先独立验证完整 RFC 9421 transcript、当前来源 key 与时效窗口。业务投递另验证当前 registration / active install；§7.3.2 的纯历史创建结果确认按该节验证原 registration 绑定与当前私有接收资格，不要求当前安装有效。`created` / `expires` 保存在本次认证记录中供 freshness 验证与 audit，**仅这两个成员**不参与稳定幂等绑定；发送方以新的有效签名时间重试同一 body，不得因此成为另一项外部副作用。其 digest 固定为：
+记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。每次投递 MUST 先独立验证完整 RFC 9421 transcript、当前来源 key 与时效窗口。业务投递另验证当前 registration / active install；原生 series 维护按本节 standing-manager 分支独立核 current registration／manager／状态／来源，不执行业务 install／grant 门；§7.3.2 的纯历史创建结果确认按该节验证原 registration 绑定与当前私有接收资格，不要求当前安装有效。`created` / `expires` 保存在本次认证记录中供 freshness 验证与 audit，**仅这两个成员**不参与稳定幂等绑定；发送方以新的有效签名时间重试同一 body，不得因此成为另一项外部副作用。其 digest 固定为：
 
 ```text
 stable_delivery_authentication_binding =
@@ -547,9 +557,9 @@ delivery_authentication_record_digest =
     RFC8785_JCS(stable_delivery_authentication_binding)))
 ```
 
-receiver MUST 从本地派生记录重算 digest，不得信任 caller 或 cache 输入的预算值。domain label 不是 `delivery_authentication_record` 的成员，实现 **MUST NOT** 把它以 `domain`、`profile` 或任何其他键插入记录后改算 `SHA256(JCS(record))`；该标签只以上式的 UTF-8 前缀形态参与摘要。记录的字段集封闭为本节列出的成员，**MUST NOT** 追加 `Signature` bytes、原始 `Signature-Input` 字符串、webhook 认证配置或请求摘要等本节未列出的成员。幂等 / replay equality 是上述稳定投影重算后的 digest 相等，MUST NOT 再比较完整记录中的 `created` / `expires`。完整记录与两个时间成员仍必须保存；接收方可以另存逐次 audit，但不得刷新原 outcome、重做副作用或用旧窗口代替本次 freshness 验证；实现私有 audit metadata 可以与记录并列保存，但不得改变该 equality。实现不得只用裸 `Idempotency-Key` 或 body 内 `source_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧记录当成新授权。
+receiver MUST 从本地派生记录重算 digest，不得信任 caller 或 cache 输入的预算值。domain label 不是 `delivery_authentication_record` 的成员，实现 **MUST NOT** 把它以 `domain`、`profile` 或任何其他键插入记录后改算 `SHA256(JCS(record))`；该标签只以上式的 UTF-8 前缀形态参与摘要。记录的字段集封闭为本节列出的成员，**MUST NOT** 追加 `Signature` bytes、原始 `Signature-Input` 字符串、webhook 认证配置或请求摘要等本节未列出的成员。幂等 / replay equality 是上述稳定投影重算后的 digest 相等，MUST NOT 再比较完整记录中的 `created` / `expires`。完整记录与两个时间成员仍必须保存；接收方可以另存逐次 audit，但不得刷新原 outcome、重做副作用或用旧窗口代替本次 freshness 验证；实现私有 audit metadata 可以与记录并列保存，但不得改变该 equality。实现不得只用裸 `Idempotency-Key` 或 body 内 `source_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或业务 active install 撤销后把旧记录当成新授权。原生维护仍须逐次通过当前 manager／registration 及其具名 gate，不能用旧认证记录延长已失效的维护权。
 
-`source_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`producer_proof`、accepted manager / capability grant（普通 Account 另核其真实委托）；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
+`source_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、适用的 `authorization_ref`、`external_ref` / provenance、`producer_proof` 与该 Event 的正式 admission。普通业务核真实 manager／capability grant（普通 Account 另核其真实委托）；原生 series 维护按上文核 standing-manager 权威并禁止业务 authorization_ref；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
 
 **失败码（normative）**：
 
@@ -561,10 +571,10 @@ code 与 `type` URI，接收方 MUST 直接返回该 code，MUST NOT 返回通�
 - 缺 `Signature` / 纯 bearer：`http_signature_required`（401，`type=https://arkret.org/problems/http_signature_required`）。
 - 签名验证失败、`Content-Digest` header profile 不符合 [`../sync/service-http-binding.md` §8.2](../sync/service-http-binding.md)、digest 不覆盖 exact HTTP content bytes、wire 本身不是 canonical JSON，或 `source_id` 与 header / transcript 不一致：`http_signature_invalid`（401，`type=https://arkret.org/problems/http_signature_invalid`）。
 - `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`signature_window_invalid`（401，`type=https://arkret.org/problems/signature_window_invalid`）。
-- inbound 方向 exact `(applet_id,Source-Service-ID,scope_ref)` 从未存在可验证 accepted install，或 `Source-Service-ID` 与该 install registration service 不一致：`applet_registration_unauthorized`（403）。已验证 exact install 因 revoke fence / capability revoke 失效时返回 `applet_revoked`；不得搜索其它 scope 的 install 来替代，也不得把 revoked install 误报为从未授权。认证失败仍优先返回对应签名失败 code，不泄露安装状态。
+- 普通业务 inbound 方向 exact `(applet_id,Source-Service-ID,scope_ref)` 从未存在可验证 accepted install，或 `Source-Service-ID` 与该 install registration service 不一致：`applet_registration_unauthorized`（403）。已验证 exact install 因 revoke fence / capability revoke 失效时返回 `applet_revoked`；不得搜索其它 scope 的 install 来替代，也不得把 revoked install 误报为从未授权。认证失败仍优先返回对应签名失败 code，不泄露安装状态。
 - 幂等 identity 已存在但 canonical body digest 或稳定 `delivery_authentication_record_digest` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回上述对应的认证失败 code，避免泄露历史 transaction 状态。
 
-transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`producer_proof`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `producer_proof`。
+transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条写入的 envelope signature（`producer_proof`）与具名 admission：普通业务仍核真实 capability grant；原生 series 维护只用本节封闭 standing-manager 分支，不能伪填 grant，也不豁免独立 Event／record 签名。arkret 接纳每条 durable Event 时，仍按 §8／§11 核 actor／Applet／原件及其实际 admission。
 
 #### 7.3.2 已确认 managed Actor 的 authoring 初始化
 
@@ -687,7 +697,7 @@ GET /_arkret/edge/applet/third-party/locations?protocol=slack&external_id=C456
 
 Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` 的 Applet→Station `events[]` 提交 producer-only `EventAdmissionSubmission`，见 §7.3.1 / §11.1。Applet service 不持有 SessionGrant，不得把 `/_arkret/self/events` 的 Bearer session 路径作为替代入口。§4b service install、§9.1 Bot/Ghost provision 与设备授权等正式登记的 aggregate / operation 仍使用各自封闭载体。
 
-每个 Applet-originated 写入 Event MUST 包含下列 signed Event Envelope 字段（这些字段均进入 `producer_proof.event_digest`；不得只放在 `unsigned` 中）：
+每个普通业务 Applet-originated 写入 Event MUST 包含下列 signed Event Envelope 字段（这些字段均进入 `producer_proof.event_digest`；不得只放在 `unsigned` 中）：
 
 - `actor_id`
 - `applet_id`
@@ -695,7 +705,7 @@ Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` �
 - `authorization_ref`
 - `producer_proof`
 
-`authorization_ref` MUST 引用本次 admission 合同规定的真实 accepted active `ak.capability.grant`，并与 exact installation、service authority、`applet_id`、registration epoch 和 producer-signed `scope_ref` 交叉验证。其用途由 event-kind registry 的 admission 合同及实际 producer 决定：
+上述普通业务分支的 `authorization_ref` MUST 引用本次 admission 合同规定的真实 accepted active `ak.capability.grant`，并与 exact installation、service authority、`applet_id`、registration epoch 和 producer-signed `scope_ref` 交叉验证。其用途由 event-kind registry 的 admission 合同及实际 producer 决定：
 
 - capability-gated Event 必须验证该 grant 覆盖具体 action / resource；不能以安装成功替代 action 权限。实际 Bot／Ghost Realm Device 本人签署时，该 ref MUST 是 Service 签发给该完整 realm ActorId 的 terminal child，按 [managed-governance §4](../authz/managed-governance.md) 追溯真实 Service parent／所有贡献祖先，并在本次接纳 cut 重验 exact installation 和各自原约束／原持有人 quota。它不是第二个 installation ref，也不授权 Service 借 child 代签 Realm 主体 Event。
 - 本人 `ak.circle.member.state{join}` 属于上述 capability-gated 分支：使用实际 Circle 的 `ak.circle.member.add` child，同时额外满足 `ak.applet.join` 的管理／治理审批，保持 Circle join rule／FSM、原签父 membership revision 与独立 E2EE 同意。Realm subject-only join 的安装引用规则不得套用于 Circle；Realm 安装／pair 不覆盖 Circle。
@@ -704,9 +714,15 @@ Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` �
 按事件签署主体进一步区分：
 
 - **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor）：`authorization_ref` 必须满足上述 admission 分支；capability-gated 写入须覆盖 Event action / resource（见 §9.1 与 §11）。`ak.identity.accountability_grant` 只证明责任归属，MUST NOT 被解释为 action authorization。
-- **Service-actor 自署事件**（`actor_id` 为 `ActorId.service`，`service_id` 等于 registration 的 Applet service，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`executed_by` MUST 省略，`authorization_ref` MUST 指向该 Applet 的 active capability grant，而非 registration Event 或某个 ghost 的 accountability grant。install grant subject是与producer逐字段相同的ActorId.service；verifier另验exact installation/scope/hosting Station，不构造Service Accountpair或把account/service类型等价。签名只证明来源，不能替代 action / resource 授权。
+- **普通业务 Service-actor 自署事件**（`actor_id` 为 `ActorId.service`，`service_id` 等于 registration 的 Applet service，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`executed_by` MUST 省略，`authorization_ref` MUST 指向该 Applet 的 active capability grant，而非 registration Event 或某个 ghost 的 accountability grant。install grant subject是与producer逐字段相同的ActorId.service；verifier另验exact installation/scope/hosting Station，不构造Service Accountpair或把account/service类型等价。签名只证明来源，不能替代 action / resource 授权。
 
-§4b 的合规安装必须为该 Applet 铸造一个或多个与 `(applet_id, service_id, effective_scope, registration_epoch)` 绑定的 active grant。安装若未产生覆盖待写 action/resource 的真实 grant，就尚未形成可写入状态，Applet MUST NOT 发送携 `applet_id` 的 Event。需要创建 portal Strand 的 grant 必须覆盖 `ak.strand.create`；需要写入 bridge 审计错误的 grant 必须覆盖 `ak.applet.bridge_error`。不得使用 sentinel ref、静态占位 grant、service 签名或隐式部署特权代替。grant 被 revoke 后，新的 portal Strand 创建与新的 `ak.applet.bridge_error` 都 MUST fail closed；撤销事实由撤销动作及部署侧安全审计记录，不要求已失去授权的 Applet 再写 Realm 审计 Event。
+**原生 series 维护例外**：§7.3.1／Realm actors §10.9 的 exact `ak.key_backup.active_series` 不属于上述普通业务
+分支；它保留真实 Service actor、applet_id 与 producer_proof，禁止 authorization_ref／executed_by，按 current
+manager／registration／known scope／recipient 原件／refs／CAS／pending=null 验证。任一 retired／Realm terminal
+仍拒绝；owner 或 governance paused、identity recovery disabled、业务 active install／grant 不存在本身不阻断维护。
+它不准许 portal 创建、bridge error、其它 Service Event 或 Device PUT 借此通过。
+
+§4b 的普通业务合规安装必须为该 Applet 铸造一个或多个与 `(applet_id, service_id, effective_scope, registration_epoch)` 绑定的 active grant。安装若未产生覆盖待写 action/resource 的真实 grant，就尚未形成该普通业务的可写入状态，Applet MUST NOT 发送对应业务 Event；不得以此阻断前述已登记的原生维护分支。需要创建 portal Strand 的 grant 必须覆盖 `ak.strand.create`；需要写入 bridge 审计错误的 grant 必须覆盖 `ak.applet.bridge_error`。不得使用 sentinel ref、静态占位 grant、service 签名或隐式部署特权代替。grant 被 revoke 后，新的 portal Strand 创建与新的 `ak.applet.bridge_error` 都 MUST fail closed；撤销事实由撤销动作及部署侧安全审计记录，不要求已失去授权的 Applet 再写 Realm 审计 Event。
 
 `ak.applet.bridge_error` 是 `capabilities.md` §3.2 与 owner compiled `grant_authority_rule.include_actions[]` 登记的 exact grant issuer exception：root/co-owner 可在安装事务中为此 action 签发上述专用 grant，但这不授予 owner 直接 author 该 Event，也不扩展到其它 Applet profile action。安装及入站接纳仍 MUST 验证完整Service ActorId subject与producer逐字段相等、精确 installation/registration epoch/resource、producer 签名与当前 revoke fence。
 
@@ -882,7 +898,7 @@ Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示
 
 管理员授权 exact install，Applet 构造、签署并可靠重试普通 Event，任意合资格接收站独立验证安装授权、Applet producer 与 scope 并保存原始 Event；安装绑定不产生普通 Event 的排他准入站。
 
-`ak.edge.applet.command.transaction.v1` 按方向验证：Applet→Station 的 `events[]` MUST 是 producer-only caller submissions，由接收 Station 接纳后产生真实 Commit；Station→Applet 的 `committed_events[]` MUST 是完整 accepted `{commit,event}` 对，接收方验证 Event 与 Commit 签名、Event 在 Commit 中的 exact 绑定及可见权限，随后仅从已验收的配对派生 `committed_event_refs[]`。无 Commit 的裸 Event 不得在 Station→Applet 方向得到成功回执或伪造坐标。只有 Signal 被接纳时成功回执的 `committed_event_refs` 是空数组；`partial` 时数组恰好包含已接纳的 durable Event，不能包含被拒项目。HTTP RFC 9421 来源验签逐次执行，不能替代每条 Event 的 producer、grant、epoch 或安装检查。Signal 保留独立规则。
+`ak.edge.applet.command.transaction.v1` 按方向验证：Applet→Station 的 `events[]` MUST 是 producer-only caller submissions，由接收 Station 接纳后产生真实 Commit；Station→Applet 的 `committed_events[]` MUST 是完整 accepted `{commit,event}` 对，接收方验证 Event 与 Commit 签名、Event 在 Commit 中的 exact 绑定及可见权限，随后仅从已验收的配对派生 `committed_event_refs[]`。无 Commit 的裸 Event 不得在 Station→Applet 方向得到成功回执或伪造坐标。只有 Signal 被接纳时成功回执的 `committed_event_refs` 是空数组；`partial` 时数组恰好包含已接纳的 durable Event，不能包含被拒项目。HTTP RFC 9421 来源验签逐次执行，不能替代每条 Event 的真实 producer 与正式 admission。普通业务仍核 grant、epoch 与安装；原生 series 维护只按§7.3.1的封闭 manager／registration／来源／状态／CAS 分支，不以业务 grant 或 active install 阻断。Signal 保留独立规则。
 
 Station→Applet 的每个 `committed_events[]` 项还执行**由原 Event 决定的设备证据 presence**：实际
 producer（有 `executed_by` 时取它，否则取 `actor_id`）为 Account 且原 proof method fragment 是
@@ -1046,6 +1062,29 @@ Device HTTP 使用 Arkret-Managed-Device 的完整 realm actor 元数据，直�
 membership、Policy 与审批。允许 Circle-only 的父成员依赖不自动授父内容读取。
 Blob、MLS material、历史验签与 to-device 队列采用同一完整身份和 current 门；scope 不能互相拼接。
 Device 的具体 operation/action 配对以 applet-managed-authority-registry.json 为准。
+其中仅原生备份 PUT／head-list／unlock-challenge／unlock 四个 subject-only non-Event action 可由当前 Principal
+control 原签纳入 DeviceAuthorize exact scope/actions；不要求或铸造 Service parent／terminal child 业务 grant。
+按 [device-lifecycle §16.2](../crypto-media/device-lifecycle.md#162-已登记-operation-的配对消费normative) 仍完整核实际
+Device／授权实例／generation／Scope／manager／registration／installation／consent／status／membership／MLS／
+Policy／quota，真实业务 Event 另核全部 grant／审批，不能从备份动作继承权限。
+
+原生内容根的首次 PUT、exact-scope metadata 与 predecessor 密文使用本受限 Device 身份，
+manager 的归档密文／完整库存则用独立真实 Service 身份，具体职责见
+[content-history §3.2](../crypto-media/content-history.md#32-realm-botghost-的原生根备份normative) 与
+[Realm actors §10.9](./realm-actors.md#109-原生内容根-recipient-与归档保管normative)。
+Device 不持 archive HPKE 私钥、不签选 active series，也不得读取 manager-only archive_inventory。
+Device head／unlock／PUT ACK 只供最小 signed admission；完整原授权／native_source 由 Station 保管并独立验真，
+不能将 sibling DeviceAuthorize 内其它私密 Circle scopes 随 predecessor 下发。
+公共 current 供给仅为本 Actor recovery＋exact scope series 两项及合格 bound next_prepare_input；Device 逐字 echo。
+event 读取仍只保留本 Device exact authorize 原件，不增加 recipient／series／create／reset／manager.change／begin
+控制原件权限。Station 独立验完整原声明和同 cut 来源，不能为 Device 准备备份而泄漏 creation_scope／external_ref
+或要求 Device 回放 Actor DID／governance；metadata／typed 输入不冒充嵌套 Event 的历史证据。
+合法 PUT 成功只来自原生耐久事务，不可用 frozen packet、Human seed 或本地 journal 代替；
+identity recovery.enabled=false 不单独阻断其它当前业务门均成立的 PUT。
+原生 root KeyBackup 禁止 expires_at（含 null），原生 head metadata 也不含 expiry；首次 PUT 的持久 custody
+不可被通用 envelope expiry 查询／过滤／清理隐藏或删除，Account／Agent 原 expiry 合同不变。
+manager-only archive vault 必须与本 Host 的日常 authoring／Device KEK 和 generic decrypt 能力隔离。
+
 
 ## 19. 管理配置与治理接纳
 

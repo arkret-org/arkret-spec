@@ -536,6 +536,21 @@
       ]
     },
     {
+      "category": "realm_actor_identity",
+      "terminal_categories": [
+        "realm_actor_id"
+      ],
+      "subject_class": "realm_actor",
+      "exact_names": [
+        "realm_actor_id",
+        "realm_actor_ids"
+      ],
+      "suffixes": [
+        "_realm_actor_id",
+        "_realm_actor_ids"
+      ]
+    },
+    {
       "category": "actor_identity",
       "terminal_categories": [
         "actor_id"
@@ -556,6 +571,7 @@
         "typed_object_id",
         "account_id",
         "actor_id",
+        "realm_actor_id",
         "composite_identifier"
       ],
       "exact_names": [
@@ -840,14 +856,6 @@
         "mixed[did_core_id,typed_object_id]"
       ],
       "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization current state (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
-    },
-    {
-      "file": "common-ids.schema.json",
-      "pointer": "/$defs/actor_id/oneOf/2/properties/realm_actor_id",
-      "terminal_categories": [
-        "composite_identifier"
-      ],
-      "reason": "Exact RealmActorId composite carrier; the outer ActorId discriminator supplies kind and the inner composite contains RealmId plus DID core."
     },
     {
       "file": "event-payload.schema.json",
