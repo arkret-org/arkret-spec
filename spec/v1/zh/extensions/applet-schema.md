@@ -103,7 +103,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `schema` | yes | 固定 `ak.schema.applet_package.v1`。 |
-| `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
+| `package_id` | yes | 仅用于 package 分发的非 typed identifier：1–256 个 Unicode code points，MUST NOT 以 `ak:` 开头；不表示 Applet identity、Grant subject 或 authority。DID URL 字面量也须满足同一上界。 |
 | `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；其它形态均不合法。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
 | `controller_principal_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
