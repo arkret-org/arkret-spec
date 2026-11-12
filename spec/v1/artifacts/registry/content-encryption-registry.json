@@ -62,5 +62,15 @@
     "runtime_replacement_preserves_controller_leaves": true,
     "ordinary_scope_exception": false,
     "normative_ref": "zh/crypto-media/content-history.md#61-controller-的独立-pcr-mls-endpoint"
+  },
+  "realm_actor_native_custody": {
+    "contract_ref": "registry/contract-registry.json#/realm_actor_contract/content_backup_contract",
+    "scope": "exact_full_RealmActor_and_Realm_or_Circle",
+    "first_use": "native_Device_real_root_PUT_before_salt_and_Event",
+    "native_origin": "owning_Realm_current_governance_Station_with_exact_accepted_tenure_and_handoff_archive_import",
+    "Account_origin_unchanged": true,
+    "manager_private_keys_in_Station": false,
+    "restore_lane": "history_only_current_membership_scope_and_retention_gates",
+    "new_public_R_API": false
   }
 }

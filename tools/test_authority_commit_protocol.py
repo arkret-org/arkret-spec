@@ -4,6 +4,7 @@ import base64
 import json
 import re
 import unittest
+import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 from pathlib import Path
@@ -16,6 +17,77 @@ ARTIFACTS = ROOT / "spec/v1/artifacts"
 
 def read(relative: str):
     return json.loads((ARTIFACTS / relative).read_text(encoding="utf-8"))
+
+
+REMOVED_STATE_MACHINE_TERMS = {
+    "EventInitialSubmission",
+    "Control Move",
+    "Move",
+    "ordinary Event",
+    "Lattice",
+    "lattice",
+    "sequenced_state",
+    "causal_register",
+    "or_set",
+    "ordered_log",
+    "state_model",
+    "observed-remove",
+    "observed_dot",
+    "dot_ids",
+    "authority_revision",
+    "auth_context",
+    "data_basis",
+    "reducer_profile",
+    "reducer profile",
+    "supported_reducer_profiles",
+    "state-slot:",
+    "ak.component.",
+    "head_eq",
+    "effect_projection",
+    "notary",
+    "Notary",
+    "ControlProposal",
+    "control_proposal",
+    "peer reconciliation",
+    "frontier_digest",
+    "frontier_ref",
+    "control_frontier",
+}
+
+
+def removed_state_machine_terms(text):
+    return sorted(term for term in REMOVED_STATE_MACHINE_TERMS if term in text)
+
+
+def protocol_registry_lifecycle_errors(document):
+    """Check protocol catalog rows, never nested Actor lifecycle state."""
+    errors = []
+    events = document.get("event_kind_registry", document).get("event_kinds", [])
+    for index, row in enumerate(events):
+        if row.get("status") != "active":
+            errors.append(f"event_kinds/{index}/status: expected active, got {row.get('status')!r}")
+    operations = document.get("operation_registry", document).get("operations", [])
+    for index, row in enumerate(operations):
+        if "status" in row and row["status"] != "active":
+            errors.append(f"operations/{index}/status: expected active, got {row['status']!r}")
+        if row.get("deprecated") is True:
+            errors.append(f"operations/{index}/deprecated: current operation cannot be deprecated")
+    return errors
+
+
+def openapi_operation_lifecycle_errors(document):
+    from tools.artifact_lint.http_naming import HTTP_METHODS, _resolve
+
+    errors = []
+    for path, raw_item in document.get("paths", {}).items():
+        where = "#/paths/" + path.replace("~", "~0").replace("/", "~1")
+        item = _resolve(document, raw_item, where, errors, path_item=True)
+        if not isinstance(item, dict):
+            continue
+        for method, operation in item.items():
+            if method in HTTP_METHODS and isinstance(operation, dict) and operation.get("deprecated") is True:
+                errors.append(f"{where}/{method}/deprecated: current operation cannot be deprecated")
+    return errors
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
@@ -196,72 +268,46 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         )
 
     def test_current_v1_has_no_removed_state_machine_vocabulary(self):
-        roots = [ROOT / "spec/v1/zh", ARTIFACTS]
-        forbidden = {
-            "EventInitialSubmission",
-            "Control Move",
-            "Move",
-            "ordinary Event",
-            "Lattice",
-            "lattice",
-            "sequenced_state",
-            "causal_register",
-            "or_set",
-            "ordered_log",
-            "state_model",
-            "observed-remove",
-            "observed_dot",
-            "dot_ids",
-            "authority_revision",
-            "auth_context",
-            "data_basis",
-            "reducer_profile",
-            "reducer profile",
-            "supported_reducer_profiles",
-            "state-slot:",
-            "ak.component.",
-            "head_eq",
-            "effect_projection",
-            "notary",
-            "Notary",
-            "ControlProposal",
-            "control_proposal",
-            "peer reconciliation",
-            "frontier_digest",
-            "frontier_ref",
-            "control_frontier",
-            "Retired",
-            "retired",
-            "deprecated",
-            "legacy",
-            "退役",
-        }
         findings = []
-        for root in roots:
+        for root in (ROOT / "spec/v1/zh", ARTIFACTS):
             for path in root.rglob("*"):
                 if not path.is_file() or path.suffix not in {".md", ".json", ".yaml", ".yml"}:
                     continue
                 text = path.read_text(encoding="utf-8")
-                if path.name in {"contract-registry.json", "event-kind-registry.json"}:
-                    document = json.loads(text)
-                    registry = document.get("event_kind_registry", document)
-                    for row in registry.get("event_kinds", []):
-                        if row.get("event_kind") != "ak.realm.actor.status.set":
-                            continue
-                        for write in row.get("state_writes", []):
-                            condition = write.get("condition")
-                            if write.get("state_family") == "realm_actor_recovery" and condition == {
-                                "kind": "field_equals", "field": "payload.state", "const": "retired"
-                            }:
-                                # Actor lifecycle, not a removed protocol registry status.
-                                condition["const"] = "actor_lifecycle_terminal"
-                    text = json.dumps(document, ensure_ascii=False)
-                for term in forbidden:
-                    if term in {"retired", "退役"} and (path.name in {"realm-actors.md", "realm-actor.schema.json", "current-state.schema.json", "managed-governance.md", "realm-actor-signature-kat-fixture.json"}):
-                        continue
-                    if term in text:
-                        findings.append(f"{path.relative_to(ROOT)}: {term}")
+                findings.extend(f"{path.relative_to(ROOT)}: {term}" for term in removed_state_machine_terms(text))
+        for relative in ("registry/contract-registry.json", "registry/event-kind-registry.json",
+                         "registry/operation-registry.json"):
+            findings.extend(f"{relative}: {error}" for error in protocol_registry_lifecycle_errors(read(relative)))
+        api = yaml.safe_load((ARTIFACTS / "openapi/arkret-service-api.openapi.yaml").read_text(encoding="utf-8"))
+        findings.extend(openapi_operation_lifecycle_errors(api))
         self.assertEqual(findings, [])
+
+    def test_protocol_lifecycle_gate_preserves_actor_terminal_states_without_file_exemptions(self):
+        document = {"event_kinds": [{"event_kind": "ak.realm.actor.status.set", "status": "active",
+            "notes": "A retired Realm Actor remains terminal, not a legacy protocol row.",
+            "state_writes": [{"condition": {"kind": "field_equals", "field": "payload.state", "const": "retired"}}]}]}
+        original = json.dumps(document, sort_keys=True)
+        self.assertEqual(protocol_registry_lifecycle_errors(document), [])
+        self.assertEqual(removed_state_machine_terms(json.dumps(document)), [])
+        self.assertEqual(json.dumps(document, sort_keys=True), original)
+        for status in ("retired", "Retired", "deprecated", "legacy", "退役", None):
+            with self.subTest(status=status):
+                changed = json.loads(original)
+                changed["event_kinds"][0]["status"] = status
+                self.assertTrue(protocol_registry_lifecycle_errors(changed))
+        self.assertIn("ControlProposal", removed_state_machine_terms("ControlProposal must not return"))
+
+    def test_current_operation_deprecation_is_checked_at_the_operation_object(self):
+        api = {"paths": {"/_arkret/self/example": {"get": {"description": "Reject retired Actors",
+            "deprecated": False}}}, "components": {"schemas": {"Actor": {"enum": ["retired"]}}}}
+        self.assertEqual(openapi_operation_lifecycle_errors(api), [])
+        api["paths"]["/_arkret/self/example"]["get"]["deprecated"] = True
+        self.assertTrue(openapi_operation_lifecycle_errors(api))
+        api["paths"] = {"/_arkret/self/example": {"$ref": "#/components/pathItems/Example"}}
+        api["components"]["pathItems"] = {"Example": {"get": {"deprecated": True}}}
+        self.assertTrue(openapi_operation_lifecycle_errors(api))
+        for status in ("retired", "deprecated", "legacy"):
+            self.assertTrue(protocol_registry_lifecycle_errors({"operations": [{"operation_id": "ak.self.example.read.list.v1", "status": status}]}))
 
     def test_reducer_profile_registry_is_not_part_of_current_v1(self):
         self.assertFalse((ARTIFACTS / "registry/reducer-profile-registry.json").exists())

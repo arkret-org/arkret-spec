@@ -288,6 +288,9 @@
     },
     {
       "$ref": "#/$defs/current_realm_invite_link_use"
+    },
+    {
+      "$ref": "#/$defs/current_realm_actor_key_backup_active_series"
     }
   ],
   "$defs": {
@@ -557,7 +560,31 @@
               }
             },
             "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              "allOf": [
+                {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                },
+                {
+                  "not": {
+                    "properties": {
+                      "kind": {
+                        "const": "realm",
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "current-state.schema.json#/$defs/current_key_backup_active_series/properties/selector/properties/actor_id/allOf/1/not/properties/kind",
+                          "owner": "current-state.schema.json#/$defs/current_key_backup_active_series/properties/selector/properties/actor_id/allOf/1/not/properties/kind",
+                          "values": [
+                            "realm"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                }
+              ]
             },
             "backup_kind": {
               "$ref": "./key-backup-active-series.schema.json#/$defs/backup_kind"
@@ -6199,7 +6226,9 @@
       "required": [
         "kind",
         "enabled",
-        "pending"
+        "pending",
+        "content_backup_recipient",
+        "content_backup_recipient_ref"
       ],
       "properties": {
         "kind": {
@@ -6225,9 +6254,16 @@
               "type": "null"
             }
           ]
+        },
+        "content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "content_backup_recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": " content_backup_recipient_ref is derived from the real accepted create/reset/manager.change Commit that installed this exact key. Preserving writers keep that original ref. recovery.enabled governs identity reset only, not a valid active Device backup PUT. Pending recovery continues to block new business."
     },
     "realm_actor_recovery_selector": {
       "type": "object",
@@ -6422,6 +6458,155 @@
       },
       "additionalProperties": false,
       "x-arkret-name-role": "current_state"
+    },
+    "realm_actor_key_backup_active_series_selector": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "effective_scope",
+        "backup_kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor_key_backup_active_series",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/kind",
+            "values": [
+              "realm_actor_key_backup_active_series"
+            ]
+          }
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "backup_kind": {
+          "const": "secret_storage",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/backup_kind",
+            "owner": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/backup_kind",
+            "values": [
+              "secret_storage"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "current_realm_actor_key_backup_active_series": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/realm_actor_key_backup_active_series_selector"
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_actor_key_backup_active_series_value"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "current_state"
+    },
+    "realm_actor_key_backup_active_series_value": {
+      "type": "object",
+      "required": [
+        "active_series_id",
+        "series_pointer_version",
+        "manager_ref",
+        "recovery_ref",
+        "recipient_ref"
+      ],
+      "properties": {
+        "active_series_id": {
+          "$ref": "./keys-operations.schema.json#/$defs/backup_series_id"
+        },
+        "series_pointer_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-name-role": "domain_value",
+      "description": "Minimal typed public native series selection. Selector binds the full actor, exact scope and class; source stream/revision binds the accepted original. Do not expand the full signed record, previous_series_ids, record signature or Event payload to a Device. Station independently verifies and retains the original; Manager exact-source/inventory roles preserve complete originals."
     }
   }
 }

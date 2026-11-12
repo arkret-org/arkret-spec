@@ -157,7 +157,8 @@ class EventAdmissionContractTest(unittest.TestCase):
         definitions = schema_definitions(self.canonical)
         # Selector test only: the generated admission shape carries the branch
         # guards without the complete-Event reference.
-        validator = Draft202012Validator(copy.deepcopy(definitions["registered_admission_shape"]))
+        selector_schema = {"$id": self.envelope["$id"], **copy.deepcopy(definitions["registered_admission_shape"])}
+        validator = Draft202012Validator(selector_schema, registry=self.resources)
         classes = self.canonical["authority_commit_admission_contract"]["native_admission_classes"]
         covered = set()
         for row in self.canonical["event_kinds"]:
@@ -169,12 +170,25 @@ class EventAdmissionContractTest(unittest.TestCase):
                     continue
                 event = {"kind": row["event_kind"], "producer_proof": {}}
                 when = variant["when"]
-                if "payload_path" in when:
-                    target = event.setdefault("payload", {})
-                    parts = when["payload_path"].split(".")
+                if "payload_path" in when or "envelope_path" in when:
+                    target = event.setdefault("payload", {}) if "payload_path" in when else event
+                    parts = when.get("payload_path", when.get("envelope_path")).split(".")
                     for part in parts[:-1]:
                         target = target.setdefault(part, {})
-                    target[parts[-1]] = when["const"]
+                    target[parts[-1]] = when["const"] if "const" in when else "account"
+                    if "not_const" in when:
+                        self.assertNotEqual(target[parts[-1]], when["not_const"])
+                if variant["admission"] == "realm_actor_backup":
+                    event.update(actor_id={"kind":"service","service_id":"ak:did_core:web:manager.example"}, scope_ref={"kind":"realm_control"}, applet_id="fixture")
+                for container in [event, event.get("payload", {})]:
+                    actor = container.get("actor_id")
+                    if isinstance(actor, dict):
+                        if actor.get("kind") == "account":
+                            actor["account_id"] = {"principal_id":"ak:did_core:web:alice.example","station_id":"ak:did_core:web:station.example"}
+                        elif actor.get("kind") == "realm":
+                            actor["realm_actor_id"] = {"realm_id":"ak:realm:"+"A"*44,"principal_id":"ak:did_core:web:bot.example"}
+                        elif actor.get("kind") == "service":
+                            actor["service_id"] = "ak:did_core:web:manager.example"
                 for field in when.get("top_level_fields_present", []):
                     event[field] = "fixture"
                 if "ref_role" in when and when.get("ref_exact_count", 1):

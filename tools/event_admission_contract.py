@@ -15,6 +15,8 @@ except ImportError:
 
 def nested(path: str, value: dict) -> dict:
     for part in reversed(path.split(".")):
+        if part == "actor_id":
+            value = {"$ref": "./common-ids.schema.json#/$defs/actor_id", **value}
         value = {"properties": {part: value}, "required": [part]}
     return value
 
@@ -106,6 +108,19 @@ def schema_definitions(registry: dict) -> dict:
         durable.append(kind)
         kind_guard = {"properties": {"kind": {"const": kind}}, "required": ["kind"]}
         branches = selected_branches(row)
+        for admission, branch in branches:
+            if admission == "realm_actor_backup":
+                guards.append({
+                    "if": {"allOf": [kind_guard, branch]},
+                    "then": {
+                        "required": ["actor_id", "scope_ref", "applet_id"],
+                        "properties": {
+                            "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id", "properties": {"kind": {"const": "service"}}, "required": ["kind"]},
+                            "scope_ref": {"properties": {"kind": {"const": "realm_control"}}, "required": ["kind"]},
+                        },
+                        "not": {"anyOf": [{"required": ["executed_by"]}, {"required": ["authorization_ref"]}]},
+                    },
+                })
         if row.get("admission") == "conditional":
             guards.append({"if": kind_guard, "then": {"anyOf": [g for a, g in branches if a != "deny"]}})
     result = {

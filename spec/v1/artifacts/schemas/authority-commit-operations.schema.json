@@ -3206,7 +3206,8 @@
           "pattern": "^[A-Za-z0-9_-]{22,64}$"
         },
         "state_digest": {
-          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA256 of the complete canonical private management-state export at the exact frozen Realm governance handoff cut, including every native RealmActor root namespace. Native domains include all first-PUT packets and immutable author/admission/governance sources even without an Event or with failed first use, losing CAS or lost ACK; complete scoped series/current pointers and original recipient declarations; persisted archive_revision, all root/coverage/replacement/last-sufficient retention obligations, original idempotency/fixed outcomes and challenge/nonce ledgers. Export and freeze share the native namespace locks and final_stream_heads cut. New authority independently verifies originals, physically imports and re-exports the complete retained state, comparing this digest before activation; a matching manifest/summary/file alone is insufficient. Preserve archive_revision and exact originals/results; never reconstruct only from successful business Event references. Format/domain unsupported or missing native state rejects activation. Manager archive private keys, ordinary Service signing keys and member private MLS state are excluded. Existing management_private_state_digest salted commitment and both handoff signature formulas are unchanged; no new public carrier or API."
         }
       },
       "additionalProperties": false
@@ -3399,7 +3400,8 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Original private current-manager Service producer fact for exactly recovery.begin, control.reset, or the native RealmActor branch of ak.key_backup.active_series. For native series, target_actor_id equals payload.actor_id; manager_ref/recovery_ref equal the earlier accepted source fields, not this Event. Actual Service Ed proof and original registration are required. recovery.enabled gates identity recovery begin/reset only, never native archive series or PUT. Not a business Service fact, public signer directory or generic Device fallback."
     },
     "agent_runtime_historical_signer_fact": {
       "type": "object",

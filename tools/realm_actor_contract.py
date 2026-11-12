@@ -69,22 +69,28 @@ def verify(context, unsigned, signature, public_key):
 
 
 def signature_fixture():
-    time = "2026-10-19T00:00:00.000Z"
-    vector = next(x for x in json.loads((ART / "fixtures/resolution-commitment-fixture.json").read_text(encoding="utf-8"))["vectors"] if x["evidence_id"] == "agent_inception")
+    time = "2026-11-08T00:00:00.000Z"
+    from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+    archive_public = X25519PrivateKey.from_private_bytes(bytes([171]) * 32).public_key().public_bytes_raw()
+    next_archive_public = X25519PrivateKey.from_private_bytes(bytes([172]) * 32).public_key().public_bytes_raw()
+    history = native_recovery_fixture(content_backup_public_keys=[archive_public, archive_public, next_archive_public])
+    first = history["log_entries"][0]
+    vector = {"commitment": {"did": history["did"], "method_history_head": digest(first), "version_id": first["versionId"]},
+        "verified_entry": first, "projected_core_id": "ak:did_core:webvh:" + history["scid"]}
     resolution = vector["commitment"]
     did = resolution["did"]
-    method = did + "#update-key-1"
-    evidence = {"evidence_kind": "webvh_log", "boundary": {"from_method_history_head": resolution["method_history_head"], "from_version_id": resolution["version_id"], "to_method_history_head": resolution["method_history_head"], "to_version_id": resolution["version_id"]}, "evidence": {"kind": "ak.did.binding_evidence.v1", "method": "webvh", "document_digest": "sha256:" + "1" * 64, "method_proofs": []}, "log_entries": [vector["verified_entry"]], "witness_records": []}
+    method = did + "#control-0"
+    evidence = {"evidence_kind": "webvh_log", "boundary": {"from_method_history_head": resolution["method_history_head"], "from_version_id": resolution["version_id"], "to_method_history_head": resolution["method_history_head"], "to_version_id": resolution["version_id"]}, "evidence": {"kind": "ak.did.binding_evidence.v1", "method": "webvh", "document_digest": digest(first["state"]), "method_proofs": []}, "log_entries": [vector["verified_entry"]], "witness_records": [history["witness_records"][0]]}
     applet = "ak:applet:0195be74-0000-7000-8000-000000000001"
     service = "ak:did_core:webvh:zAppletFixture"
-    create = {"schema": "ak.schema.realm_actor_create.v1", "actor_id": actor(), "applet_id": applet, "service_id": service, "actor_role": "bot", "request_id": "A" * 22, "creation_scope": {"kind": "realm", "realm_id": token("realm")}, "registration_ref": token("event", 5), "creation_authorization_ref": token("grant", 6), "initial_resolution": resolution, "method_history_evidence": evidence, "control_method_kid": method, "expires_at": "2026-10-19T00:01:00.000Z"}
+    create = {"schema": "ak.schema.realm_actor_create.v1", "actor_id": actor(), "applet_id": applet, "service_id": service, "actor_role": "bot", "request_id": "A" * 22, "creation_scope": {"kind": "realm", "realm_id": token("realm")}, "registration_ref": token("event", 5), "creation_authorization_ref": token("grant", 6), "initial_resolution": resolution, "method_history_evidence": evidence, "control_method_kid": method, "expires_at": "2026-11-08T00:01:00.000Z"}
     control = {"actor_id": actor(), "expected_revision": revision(), "next_resolution": resolution, "method_history_evidence": evidence, "next_control_method_kid": method}
     manager = {"actor_id": actor(), "applet_id": applet, "expected_manager_revision": revision(), "expected_control_revision": revision(7, 4), "expected_device_generation_revision": revision(), "expected_generation": 1, "new_generation": 2, "new_service_id": "ak:did_core:webvh:zNewAppletFixture", "new_registration_ref": token("event", 8), "management_authorization_ref": token("grant", 9)}
     selector = {"kind": "realm_actor_recovery", "actor_id": actor()}
     request = {"actor_id": actor(), "purpose": "current", "request_nonce": "B" * 22, "selectors": [selector]}
     source = committed()
     row = {"selector": selector, "source_stream_ref": source["stream_ref"], "revision": {"commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "value": {"kind": "manager_native", "enabled": True, "pending": None}}
-    material = {"realm_id": token("realm"), "actor_id": actor(), "purpose": "current", "request_digest": digest(request), "request_nonce": request["request_nonce"], "requester_actor_id": {"kind": "service", "service_id": service}, "governance_generation": "0", "authority_ref": token("event"), "control_stream_head": {"stream_ref": source["stream_ref"], "commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "issued_at": time, "expires_at": "2026-10-19T00:01:00.000Z", "material": {"entries": [{"status": "present", "current_state": row, "source_ref": source}]}}
+    material = {"realm_id": token("realm"), "actor_id": actor(), "purpose": "current", "request_digest": digest(request), "request_nonce": request["request_nonce"], "requester_actor_id": {"kind": "service", "service_id": service}, "governance_generation": "0", "authority_ref": token("event"), "control_stream_head": {"stream_ref": source["stream_ref"], "commit_id": source["commit_id"], "stream_position": source["stream_position"]}, "issued_at": time, "expires_at": "2026-11-08T00:01:00.000Z", "material": {"entries": [{"status": "present", "current_state": row, "source_ref": source}]}}
     def bind_actor(value):
         if isinstance(value, dict):
             if value.get("kind") == "realm" and "realm_actor_id" in value:
@@ -94,8 +100,20 @@ def signature_fixture():
             for child in value: bind_actor(child)
     for host in [create, control, manager, material, request]: bind_actor(host)
     material["request_digest"] = digest(request)
-    create["recovery"] = {"kind": "manager_native", "enabled": True}
-    manager.update(next_resolution=resolution, method_history_evidence=evidence)
+    descriptor = {"key_agreement_ref": did + "#content-backup", "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1", "public_key_base64url": b64(archive_public)}
+    create["recovery"] = {"kind": "manager_native", "enabled": True, "content_backup_recipient": descriptor}
+    row["value"].update(content_backup_recipient=descriptor, content_backup_recipient_ref=source)
+    manager.update(next_content_backup_recipient={**descriptor, "public_key_base64url": b64(next_archive_public)},
+        content_backup_inventory_digest=digest({"realm_actor_id":create["actor_id"]["realm_actor_id"], "manager_ref":source, "archive_revision":0, "entries":[]}),
+        content_backup_handover_digest=digest({"actor_id": create["actor_id"], "entries": [], "new_service_id": manager["new_service_id"]}))
+    target = history["log_entries"][2]
+    target_resolution = {"did": did, "method_history_head": digest(target), "version_id": target["versionId"]}
+    target_evidence = copy.deepcopy(evidence)
+    target_evidence["boundary"].update(to_method_history_head=target_resolution["method_history_head"], to_version_id=target_resolution["version_id"])
+    target_evidence["evidence"]["document_digest"] = digest(target["state"])
+    target_evidence["log_entries"] = history["log_entries"][:3]
+    target_evidence["witness_records"] = history["witness_records"][:3]
+    manager.update(next_resolution=target_resolution, method_history_evidence=target_evidence)
     recovery = {"applet_id": applet, "service_id": service, "payload_without_control_signature": {
         "target_actor_id": create["actor_id"], "request_id": "R" * 22, "manager_ref": committed(), "recovery_ref": committed(),
         "expected_control_revision": revision(), "expected_owner_status_revision": revision(), "expected_governance_status_revision": revision(),
@@ -106,7 +124,7 @@ def signature_fixture():
     refs.append("realm-actor.schema.json#/$defs/recovery_acceptance_transcript")
     cases = []
     for i, (context, host, schema_ref) in enumerate(zip(CONTEXTS, hosts, refs, strict=True)):
-        seed = bytes([i + 1]) * 32
+        seed = bytes([80 if i < 2 else i + 1]) * 32
         signature, message, pub = sign(context, host, seed, method if i < 2 else "did:webvh:z6mkfixturegovernor:governor.example#fixture", time)
         cases.append({"context": context, "unsigned_schema_ref": "schemas/" + schema_ref, "test_seed_hex": seed.hex(), "public_key_base64url": b64(pub), "unsigned_projection": host, "canonical_hex": canonical(host).hex(), "signature_input_hex": message.hex(), "signature": signature})
     original = cases[0].pop("unsigned_projection")
@@ -280,13 +298,30 @@ def native_verify(document, proof, public):
     Ed25519PublicKey.from_public_bytes(raw_key[2:]).verify(unbase58(proof["proofValue"][1:]), data)
 
 
-def native_recovery_fixture(*, relocate=False, portable=True):
+def native_recovery_fixture(*, relocate=False, portable=True, content_backup_public_keys=None, seed_offset=0, station_endpoint=None):
     """Construct a bounded native chain; public test seeds, no live resolver."""
-    roots = [Ed25519PrivateKey.from_private_bytes(bytes([70 + i]) * 32) for i in range(5)]
-    controls = [Ed25519PrivateKey.from_private_bytes(bytes([80 + i]) * 32) for i in range(3)]
-    witness = Ed25519PrivateKey.from_private_bytes(bytes([90]) * 32)
+    roots = [Ed25519PrivateKey.from_private_bytes(bytes([70 + seed_offset + i]) * 32) for i in range(5)]
+    controls = [Ed25519PrivateKey.from_private_bytes(bytes([80 + seed_offset + i]) * 32) for i in range(3)]
+    witness = Ed25519PrivateKey.from_private_bytes(bytes([90 + seed_offset]) * 32)
     placeholder = "did:webvh:{SCID}:applet.example:actors:bot"
     document = lambda did, i: {"@context": ["https://www.w3.org/ns/did/v1"], "id": did, "verificationMethod": [{"id": did + f"#control-{i}", "controller": did, "type": "Multikey", "publicKeyMultibase": multikey(controls[i])}], "authentication": [did + f"#control-{i}"]}
+    if content_backup_public_keys is not None:
+        original_document = document
+        def document(did, i):
+            value = original_document(did, i)
+            public = content_backup_public_keys[min(i, len(content_backup_public_keys) - 1)]
+            method = did + "#content-backup"
+            value["verificationMethod"].append({"id": method, "controller": did,
+                "type": "Multikey", "publicKeyMultibase": "z" + base58(b"\xec\x01" + public)})
+            value["keyAgreement"] = [method]
+            return value
+    if station_endpoint is not None:
+        actor_document = document
+        def document(did, i):
+            value = actor_document(did, i)
+            value["service"] = [{"id": did + "#arkret", "type": "ArkretService",
+                "serviceKind": "station", "serviceEndpoint": station_endpoint}]
+            return value
     first = {"versionId": "{SCID}", "versionTime": "2026-10-20T00:00:00Z", "parameters": {"method": "did:webvh:1.0", "scid": "{SCID}", "portable": portable, "updateKeys": [multikey(roots[0])], "nextKeyHashes": [multihash(multikey(roots[1]).encode())], "witness": {"threshold": 1, "witnesses": [{"id": "did:key:" + multikey(witness)}]}}, "state": document(placeholder, 0)}
     scid = multihash(canonical(first))
     first = json.loads(json.dumps(first).replace("{SCID}", scid))
@@ -300,7 +335,7 @@ def native_recovery_fixture(*, relocate=False, portable=True):
         entries.append(entry)
         witnesses.append({"versionId": entry["versionId"], "proof": [native_sign({"versionId": entry["versionId"]}, witness, entry["versionTime"])]})
         previous = entry["versionId"]
-    return {"description": "Native inception, lost-control reset, manager transition and new-manager successor. W3C eddsa-jcs-2022 proofs sign the final unsigned log entry; entry hashes separately replace versionId with its predecessor. Each entry consumes a fresh committed key. This bounded reference verifier is not a network resolver or production admission.", "root_test_seeds_hex": [(bytes([70+i])*32).hex() for i in range(5)], "control_test_seeds_hex": [(bytes([80+i])*32).hex() for i in range(3)], "witness_test_seed_hex": (bytes([90])*32).hex(), "did": did, "scid": scid, "log_entries": entries, "witness_records": witnesses}
+    return {"description": "Native inception, lost-control reset, manager transition and new-manager successor. W3C eddsa-jcs-2022 proofs sign the final unsigned log entry; entry hashes separately replace versionId with its predecessor. Each entry consumes a fresh committed key. This bounded reference verifier is not a network resolver or production admission.", "root_test_seeds_hex": [(bytes([70+seed_offset+i])*32).hex() for i in range(5)], "control_test_seeds_hex": [(bytes([80+seed_offset+i])*32).hex() for i in range(3)], "witness_test_seed_hex": (bytes([90 + seed_offset])*32).hex(), "did": did, "scid": scid, "log_entries": entries, "witness_records": witnesses}
 
 
 def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):

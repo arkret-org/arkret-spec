@@ -1087,37 +1087,81 @@
       "x-arkret-name-role": "response_body"
     },
     "keys_backups_replace_response_body": {
-      "type": "object",
-      "required": [
-        "status",
-        "backup_id",
-        "ciphertext_digest"
-      ],
-      "properties": {
-        "status": {
-          "type": "string",
-          "enum": [
-            "accepted",
-            "duplicate"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "backup_id",
+            "ciphertext_digest"
           ],
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/properties/status",
-            "owner": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/properties/status",
-            "values": [
-              "accepted",
-              "duplicate"
-            ]
-          }
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "duplicate"
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/oneOf/0/properties/status",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/oneOf/0/properties/status",
+                "values": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
+            },
+            "backup_id": {
+              "$ref": "#/$defs/backup_id"
+            },
+            "ciphertext_digest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "additionalProperties": false,
+          "x-arkret-name-role": "response_body"
         },
-        "backup_id": {
-          "$ref": "#/$defs/backup_id"
-        },
-        "ciphertext_digest": {
-          "$ref": "#/$defs/digest"
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "backup_id",
+            "ciphertext_digest",
+            "admission"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "accepted",
+                "duplicate"
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/oneOf/1/properties/status",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_replace_response_body/oneOf/1/properties/status",
+                "values": [
+                  "accepted",
+                  "duplicate"
+                ]
+              }
+            },
+            "backup_id": {
+              "$ref": "#/$defs/backup_id"
+            },
+            "ciphertext_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "admission": {
+              "$ref": "#/$defs/realm_actor_content_backup_admission"
+            }
+          },
+          "additionalProperties": false,
+          "x-arkret-name-role": "response_body",
+          "description": "Native Device PUT requires exact immutable admission receipt bound to this complete packet and real first durable acceptance. Full native_source is atomically retained by Station and disclosed only through current-manager archive operations. Do not return native_source, sibling authorization originals/facts or unrelated scope names in this Device reply. A response bound to a native request cannot select the old Account reply branch. Exact replay preserves the original admission/accepted_at and does not increment archive_revision."
         }
-      },
-      "additionalProperties": false,
+      ],
       "x-arkret-name-role": "response_body"
     },
     "keys_backups_page": {
@@ -1392,35 +1436,203 @@
       "description": "Exact selected subject account and PCR basis. For agent_id list selection, account_id/control_realm_id belong to the Agent, while the authenticated controller and current custody are independently authorized; no caller/subject substitution."
     },
     "keys_backups_issue_unlock_challenge_request_body": {
-      "type": "object",
-      "description": "Exact current-device single-object challenge request. Idempotency binds current caller/device/generation, backup_id, request_id and the complete canonical request including subject/custody/content_history. Identical still-current replay returns identical challenge; changed intent is a conflict, never a widened or rebound challenge. Response echoes all optional scope fields exactly.",
-      "required": [
-        "request_id"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/request_id"
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Exact current-device single-object challenge request. Idempotency binds current caller/device/generation, backup_id, request_id and the complete canonical request including subject/custody/content_history. Identical still-current replay returns identical challenge; changed intent is a conflict, never a widened or rebound challenge. Response echoes all optional scope fields exactly.",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "#/$defs/request_id"
+            },
+            "subject_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "custody_authorization_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "x-arkret-preimage-commitment": "fixed_event"
+            },
+            "content_history": {
+              "$ref": "./content-encryption.schema.json#/$defs/history_backup_access"
+            }
+          },
+          "additionalProperties": false,
+          "dependentRequired": {
+            "subject_actor_id": [
+              "custody_authorization_ref"
+            ],
+            "custody_authorization_ref": [
+              "subject_actor_id"
+            ]
+          }
         },
-        "subject_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "custody_authorization_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "x-arkret-preimage-commitment": "fixed_event"
-        },
-        "content_history": {
-          "$ref": "./content-encryption.schema.json#/$defs/history_backup_access"
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "kind",
+            "purpose",
+            "realm_actor_id",
+            "effective_scope",
+            "envelope_digest"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "#/$defs/request_id"
+            },
+            "kind": {
+              "enum": [
+                "realm_actor_device",
+                "realm_actor_manager"
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/kind",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/kind",
+                "values": [
+                  "realm_actor_device",
+                  "realm_actor_manager"
+                ]
+              }
+            },
+            "purpose": {
+              "enum": [
+                "series_predecessor",
+                "archive_recovery"
+              ],
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/purpose",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/purpose",
+                "values": [
+                  "series_predecessor",
+                  "archive_recovery"
+                ]
+              }
+            },
+            "realm_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+            },
+            "effective_scope": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "realm_id"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "realm",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/0/properties/kind",
+                        "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/0/properties/kind",
+                        "values": [
+                          "realm"
+                        ]
+                      }
+                    },
+                    "realm_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "realm_id",
+                    "circle_id"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "const": "circle",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/1/properties/kind",
+                        "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/1/properties/kind",
+                        "values": [
+                          "circle"
+                        ]
+                      }
+                    },
+                    "realm_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                    },
+                    "circle_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "envelope_digest": {
+              "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "kind": {
+                    "const": "realm_actor_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/if/properties/kind",
+                      "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/if/properties/kind",
+                      "values": [
+                        "realm_actor_device"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "purpose": {
+                    "const": "series_predecessor",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/then/properties/purpose",
+                      "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/then/properties/purpose",
+                      "values": [
+                        "series_predecessor"
+                      ]
+                    }
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "purpose": {
+                    "const": "archive_recovery",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/else/properties/purpose",
+                      "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/allOf/0/else/properties/purpose",
+                      "values": [
+                        "archive_recovery"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "description": " envelope_digest is SHA256(JCS(complete original KeyBackup including signature_proof.signature)); it is distinct from supersedes_digest. Bind it to the selected exact original and reject any complete-packet mutation, including signature-only mutation."
         }
-      },
-      "additionalProperties": false,
-      "dependentRequired": {
-        "subject_actor_id": [
-          "custody_authorization_ref"
-        ],
-        "custody_authorization_ref": [
-          "subject_actor_id"
-        ]
-      }
+      ],
+      "x-arkret-name-role": "request_body",
+      "description": " Native manager_ref/recovery_ref identify current requesting qualification; historical target packet original auth_binding and original author remain unchanged. recipient_ref selects the exact target original recipient declaration. Device challenge is current selected head only and binds current requester/authorization/generation/full actor/exact scope/complete envelope digest. Manager known exact-packet archive recovery remains independent of bulk inventory and requires current actor/scope/history qualification."
     },
     "keys_backups_unlock_challenge": {
       "type": "object",
@@ -1667,6 +1879,1742 @@
         }
       },
       "additionalProperties": false
+    },
+    "realm_actor_backup_active_series_state": {
+      "type": "object",
+      "required": [
+        "realm_actor_id",
+        "effective_scope",
+        "manager_ref",
+        "recovery_ref",
+        "recipient_ref",
+        "authority_commit_id",
+        "secret_storage"
+      ],
+      "properties": {
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "authority_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "secret_storage": {
+          "$ref": "#/$defs/backup_active_series_pointer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "keys_backups_list_query": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "agent_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "series_id": {
+              "$ref": "#/$defs/backup_series_id"
+            },
+            "backup_kind": {
+              "$ref": "#/$defs/backup_kind"
+            },
+            "cursor": {
+              "$ref": "#/$defs/cursor"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "purpose",
+            "realm_actor_id"
+          ],
+          "properties": {
+            "purpose": {
+              "const": "series_predecessor",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_list_query/oneOf/1/properties/purpose",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_list_query/oneOf/1/properties/purpose",
+                "values": [
+                  "series_predecessor"
+                ]
+              }
+            },
+            "realm_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+            },
+            "circle_id": {
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false,
+          "description": "realm_actor_id is a standard deepObject/explode=true query parameter. Both realm_actor_id[realm_id] and realm_actor_id[principal_id] are required together; percent-encode brackets. circle_id absent selects the Realm, present selects only that exact Circle. Raw typed parser rejects partial, duplicate, unknown or agent_id-mixed keys; no generic JSON-query decoder. Device actor/scope must exactly match signed metadata. Only current selected series current head, or empty for an empty series. Device cursor, limit, arbitrary series_id and backup_kind filters are forbidden. This gives ciphertext for exact same-scope continuation/current-root identity only, not archive private keys, plaintext roots or Event history. Sibling authors verify using their immutable first-PUT source, never today's Device directory."
+        },
+        {
+          "type": "object",
+          "required": [
+            "purpose",
+            "realm_actor_id"
+          ],
+          "properties": {
+            "purpose": {
+              "const": "archive_inventory",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/keys_backups_list_query/oneOf/2/properties/purpose",
+                "owner": "keys-operations.schema.json#/$defs/keys_backups_list_query/oneOf/2/properties/purpose",
+                "values": [
+                  "archive_inventory"
+                ]
+              }
+            },
+            "realm_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+            },
+            "cursor": {
+              "$ref": "#/$defs/cursor"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "additionalProperties": false,
+          "description": "Only current manager Service; same standard deepObject complete realm_actor_id encoding, no Device/Account, circle_id, series_id, backup_kind or agent_id. This all-scope view closes first-PUT custody inventory, not ordinary history enumeration."
+        }
+      ]
+    },
+    "realm_actor_content_backup_admission": {
+      "type": "object",
+      "required": [
+        "backup_id",
+        "envelope_digest",
+        "ciphertext_digest",
+        "realm_actor_id",
+        "effective_scope",
+        "device_id",
+        "device_authorize_ref",
+        "device_generation",
+        "device_public_key_base64url",
+        "manager_ref",
+        "recovery_ref",
+        "recipient_ref",
+        "accepted_at",
+        "service_id",
+        "governance_generation",
+        "authority_ref",
+        "signature"
+      ],
+      "properties": {
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "envelope_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA256(RFC8785 JCS of the complete immutable original KeyBackup including signature_proof.signature and every actually present optional/x_* member). Never the signature-excluding predecessor supersedes_digest."
+        },
+        "ciphertext_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorize_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "device_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "device_public_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_generation": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "authority_ref": {
+          "$ref": "./realm-commit.schema.json#/properties/authority_ref"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_content_backup_admission_signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable native first-PUT custody admission, fixed and signed only in the same durable transaction as exact ciphertext, original native Device authority and root index. envelope_digest hashes the complete canonical KeyBackup including its real producer proof. No EventId, RealmCommitId, fake stream position or boolean substitutes for this non-Event receipt. Validate the original Device public key against original authorization and verify actual Ed; current Device revocation does not change accepted-at validity. Signature uses the registered detached context and accepted_at; actual issuer/tenure and historical method must independently verify.",
+      "x-arkret-signature-domain": "ak.realm_actor_content_backup_admission_signature.v1"
+    },
+    "realm_actor_content_backup_source": {
+      "type": "object",
+      "required": [
+        "admission",
+        "device_authorization",
+        "origin_resolution",
+        "governance_history"
+      ],
+      "properties": {
+        "admission": {
+          "$ref": "#/$defs/realm_actor_content_backup_admission"
+        },
+        "device_authorization": {
+          "$ref": "./realm-actor-material.schema.json#/$defs/event_material"
+        },
+        "origin_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        },
+        "governance_history": {
+          "$ref": "#/$defs/realm_actor_backup_governance_history"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable original source returned only to qualified own publisher/current manager. device_authorization is the real original native Device authorize Event/Commit/private signer fact, not a receipt invented as a Commit. Its exact coordinates/key/generation and scope match admission. origin_resolution freezes complete issuer method-native history at accepted_at; verifier checks historical governance tenure and signature, not today's Device key or a new nonce-bound material response. No private archive key is disclosed. governance_history independently proves the actual historical governance tenure; origin_resolution alone only proves the Service method and is insufficient."
+    },
+    "realm_actor_archive_backup_entry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "backup",
+        "native_source"
+      ],
+      "properties": {
+        "kind": {
+          "const": "backup",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_backup_entry/properties/kind",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_backup_entry/properties/kind",
+            "values": [
+              "backup"
+            ]
+          }
+        },
+        "backup": {
+          "allOf": [
+            {
+              "$ref": "./key-backup.schema.json"
+            },
+            {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                }
+              }
+            }
+          ]
+        },
+        "native_source": {
+          "$ref": "#/$defs/realm_actor_content_backup_source"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Every native first-PUT packet, including packets with no successful business Event, losing Event CAS, response loss or failed first use. Full original ciphertext and source remain immutable; matching only backup_id or a local ACK journal is insufficient."
+    },
+    "realm_actor_archive_series_entry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "effective_scope",
+        "record",
+        "source_ref",
+        "source"
+      ],
+      "properties": {
+        "kind": {
+          "const": "series",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/kind",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/kind",
+            "values": [
+              "series"
+            ]
+          }
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "record": {
+          "allOf": [
+            {
+              "$ref": "./key-backup-active-series.schema.json"
+            },
+            {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                }
+              }
+            }
+          ]
+        },
+        "source_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "source": {
+          "$ref": "./realm-actor-material.schema.json#/$defs/event_material"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Every retained accepted native scope-series record and its exact real accepted source, not only the current primary. No raw Device signing/recipient private key appears. source is the immutable full original Event/Commit/fact exactly matching source_ref and record; no history-floor or current-selector bypass is inferred from a bare ref."
+    },
+    "realm_actor_archive_recipient_entry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "recipient_ref",
+        "content_backup_recipient",
+        "declaration"
+      ],
+      "properties": {
+        "kind": {
+          "const": "recipient",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_recipient_entry/properties/kind",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_recipient_entry/properties/kind",
+            "values": [
+              "recipient"
+            ]
+          }
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "declaration": {
+          "$ref": "./realm-actor-material.schema.json#/$defs/event_material"
+        },
+        "recovery_begin": {
+          "$ref": "./realm-actor-material.schema.json#/$defs/event_material"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Every original accepted archive-recipient declaration required by any retained packet. declaration is immutable Event/Commit/necessary original fact. For a replacement installed by control.reset, recovery_begin MUST be the unique immutable exact accepted begin named by that reset, and its signed replacement matches. Otherwise recovery_begin is forbidden. No fresh material wrapper/nonce/clock is part of the manifest.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "declaration": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.realm.actor.control.reset",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_recipient_entry/allOf/0/if/properties/declaration/properties/event/properties/kind",
+                          "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_recipient_entry/allOf/0/if/properties/declaration/properties/event/properties/kind",
+                          "values": [
+                            "ak.realm.actor.control.reset"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            },
+            "required": [
+              "declaration"
+            ]
+          },
+          "then": {
+            "required": [
+              "recovery_begin"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "recovery_begin"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "realm_actor_archive_inventory_entry": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_actor_archive_backup_entry"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_archive_series_entry"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_archive_recipient_entry"
+        }
+      ]
+    },
+    "realm_actor_archive_inventory_manifest": {
+      "type": "object",
+      "required": [
+        "realm_actor_id",
+        "manager_ref",
+        "archive_revision",
+        "entries"
+      ],
+      "properties": {
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "archive_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_actor_archive_inventory_entry"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact full all-scope native root namespace at one persisted private archive_revision, never a page or local-journal subset. Entry ordering is unsigned UTF8 lexical order of RFC8785 JCS typed identity keys: backup->[backup,backup_id], series->[series,effective_scope,record.active_series_id,record.series_pointer_version], recipient->[recipient,recipient_ref]. Reject duplicate typed identities even if other bytes differ. inventory_digest is SHA256(JCS(this full manifest)); no temporary nonce, current-material response, receipt-as-Event, arrival order or timestamp ordering is introduced."
+    },
+    "realm_actor_archive_inventory_page": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "realm_actor_id",
+        "manager_ref",
+        "archive_revision",
+        "inventory_digest",
+        "entries",
+        "has_more"
+      ],
+      "properties": {
+        "purpose": {
+          "const": "archive_inventory",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_inventory_page/properties/purpose",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_inventory_page/properties/purpose",
+            "values": [
+              "archive_inventory"
+            ]
+          }
+        },
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "archive_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_actor_archive_inventory_entry"
+          },
+          "maxItems": 200
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Manager-Service-only complete archive inventory. Current actor/manager/role, frozen full namespace cut, inventory digest, page position and authorization epoch bind the opaque cursor. Independent all-page collection verifies exact completeness and full manifest digest. Device/Account requests, circle/series filters, partial/mixed selectors, duplicate/unknown raw keys and stale/foreign cursor are refused. Native immutable admission receipts and original authorities are verified historically. Maximum canonical body4MiB; no private key is returned.",
+      "x-arkret-name-role": "page",
+      "x-arkret-max-canonical-bytes": 4194304,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "has_more": {
+                "const": true,
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_inventory_page/allOf/0/if/properties/has_more",
+                  "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_inventory_page/allOf/0/if/properties/has_more",
+                  "values": [
+                    true
+                  ]
+                }
+              }
+            },
+            "required": [
+              "has_more"
+            ]
+          },
+          "then": {
+            "required": [
+              "next_cursor"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "next_cursor"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "realm_actor_backup_governance_original": {
+      "type": "object",
+      "required": [
+        "event",
+        "commit"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "producer_signer_fact": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Original governance Event and accepting Commit. Require exactly the matching original producer fact iff Commit carries producer_signer_fact_digest; verify actual original producer Ed signature and authority chain. Missing, extra, invented or current-key-derived facts reject.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "commit": {
+                "required": [
+                  "producer_signer_fact_digest"
+                ]
+              }
+            },
+            "required": [
+              "commit"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_signer_fact"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "producer_signer_fact"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "realm_actor_backup_governance_transition": {
+      "type": "object",
+      "required": [
+        "original",
+        "handoff",
+        "from_resolution",
+        "to_resolution"
+      ],
+      "properties": {
+        "original": {
+          "$ref": "#/$defs/realm_actor_backup_governance_original"
+        },
+        "handoff": {
+          "$ref": "./realm-authority-handoff.schema.json"
+        },
+        "from_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        },
+        "to_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One actual accepted governance change with its original old/new Service method-native evidence and dual-signed handoff. Verify exact Realm, consecutive generations, immutable Event/Commit IDs and handoff signatures; no local/private index is a Commit."
+    },
+    "realm_actor_backup_governance_history": {
+      "type": "object",
+      "required": [
+        "genesis",
+        "genesis_resolution",
+        "authority_transitions"
+      ],
+      "properties": {
+        "genesis": {
+          "$ref": "#/$defs/realm_actor_backup_governance_original"
+        },
+        "genesis_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        },
+        "authority_transitions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_actor_backup_governance_transition"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable RealmId-bound genesis and consecutive accepted governance transitions through the exact native admission issuer tenure. This evidence is independently verified, including original producer proofs and Service methods at the corresponding historical times. Receipt realm_actor_id.realm_id, authority_ref, governance_generation, service_id and accepted_at must agree with that tenure. Never include nonce-bound current assertions, response timestamps, route hints or a current-material wrapper in the archive digest. Current caller authentication remains independently mandatory."
+    },
+    "realm_actor_content_backup_handover_offer": {
+      "type": "object",
+      "required": [
+        "realm_actor_id",
+        "manager_ref",
+        "new_service_id",
+        "next_content_backup_recipient",
+        "inventory_digest",
+        "archive_revision",
+        "expires_at",
+        "nonce",
+        "signature"
+      ],
+      "properties": {
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "new_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "next_content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "archive_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_content_backup_offer_signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private existing manager offer/transfer channel only, not a new public operation. New Service signs this exact offer before old manager sends private material. It binds independently generated fresh X25519 next recipient, exact full actor/old manager/full inventory/revision/expiry and fresh nonce. Signature independently verifies the intended new Service and original method; an offered public key not yet accepted grants no native PUT or current recovery authority. Verify next keyAgreement against the accepted replacement actor DID declaration at manager change.",
+      "x-arkret-signature-domain": "ak.realm_actor_content_backup_offer_signature.v1"
+    },
+    "realm_actor_content_backup_private_recipient_key": {
+      "type": "object",
+      "required": [
+        "recipient_ref",
+        "content_backup_recipient",
+        "private_key_base64url"
+      ],
+      "properties": {
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "private_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])",
+          "writeOnly": true,
+          "description": "Secret raw 32-byte X25519 private key, owned only by the manager archive capability. SDK uses zeroizing SecretBytes and redacted Debug. Never serialize to an Event, ordinary DeviceStore, account data or public inventory. Derive the public key and require exact descriptor equality."
+        }
+      },
+      "additionalProperties": false,
+      "description": "One original recipient private key and its immutable original accepted declaration identity. No current DID lookup or signature key conversion supplies this secret. Historical keys remain history-only and cannot authorize future PUT after replacement."
+    },
+    "realm_actor_content_backup_handover_plaintext": {
+      "type": "object",
+      "required": [
+        "offer_digest",
+        "inventory_manifest",
+        "recipient_keys",
+        "challenge_base64url"
+      ],
+      "properties": {
+        "offer_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "inventory_manifest": {
+          "$ref": "#/$defs/realm_actor_archive_inventory_manifest"
+        },
+        "recipient_keys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_actor_content_backup_private_recipient_key"
+          },
+          "uniqueItems": true
+        },
+        "challenge_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])",
+          "writeOnly": true,
+          "description": "Fresh independent 32-byte CSPRNG challenge, secret and domain-bound to this actual HPKE transfer. SDK uses zeroizing SecretBytes/redacted Debug; never shared Event or ordinary DeviceStore."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete private handover payload. Verify SHA256(JCS(offer))=offer_digest and full manifest inventory digest/revision/actor/manager equals offer; verify every immutable first-PUT source, original packet, scope-series and recipient original and all required private keys, rejecting missing/extra/duplicate recipient identities and key/public mismatches. handover_digest is SHA256(JCS(this exact plaintext including challenge)), never a page, local ACK subset or self-reported count. Preserve old original packet/declaration bytes. New manager durably imports the full validated custody and independent manager-only keys before any confirmation/acceptance signature."
+    },
+    "realm_actor_content_backup_sealed_handover": {
+      "type": "object",
+      "required": [
+        "offer",
+        "hpke_suite",
+        "enc",
+        "ciphertext_base64url"
+      ],
+      "properties": {
+        "offer": {
+          "$ref": "#/$defs/realm_actor_content_backup_handover_offer"
+        },
+        "hpke_suite": {
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_sealed_handover/properties/hpke_suite",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_sealed_handover/properties/hpke_suite",
+            "values": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1"
+            ]
+          }
+        },
+        "enc": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        },
+        "ciphertext_base64url": {
+          "type": "string",
+          "minLength": 22,
+          "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private existing offer/transfer channel, RFC9180 HPKE base mode only. Recipient is the fresh exact next_content_backup_recipient in independently verified new-Service offer. Info = UTF8(\"ak.realm_actor_content_backup_handover.v1\\n\") || JCS({realm_actor_id,manager_ref,new_service_id,offer_digest,inventory_digest}); offer_digest=SHA256(JCS(full signed offer)). AAD=JCS(full signed offer). Plaintext is the exact handover_plaintext. This independent domain never reuses daily Device Welcome keys, Ed keys, update seed, authoring KEK or ordinary KeyBackup HPKE info/AAD. No public endpoint, rootKeyBackup content item or shared Event carries this private object."
+    },
+    "realm_actor_content_backup_handover_confirmation": {
+      "type": "object",
+      "required": [
+        "offer_digest",
+        "inventory_digest",
+        "handover_digest",
+        "challenge_response_base64url",
+        "signature"
+      ],
+      "properties": {
+        "offer_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "handover_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "challenge_response_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_actor_content_backup_confirmation_signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "New Service signs only after actual HPKE open, complete original/source/private-key validation and durable import. challenge_response_base64url is unpadded base64url HMAC-SHA256(key=decoded challenge, data=UTF8(\"ak.realm_actor_content_backup_handover_confirmation.v1\\n\") || JCS({offer_digest,inventory_digest,handover_digest})). Old manager verifies response with its original secret challenge, exact offer/cut and new-Service signature before submitting manager.change. The public manager acceptance separately signs the same inventory/handover digests and fresh recipient. This private challenge roundtrip is not a new public PoP algorithm, HTTP API or mathematical proof of physical retention; code and genuine import tests enforce the custody boundary. No private key or challenge is exposed publicly.",
+      "x-arkret-signature-domain": "ak.realm_actor_content_backup_confirmation_signature.v1"
+    },
+    "realm_actor_backup_metadata": {
+      "type": "object",
+      "required": [
+        "backup_id",
+        "actor_id",
+        "device_id",
+        "backup_kind",
+        "backup_version",
+        "series_id",
+        "series_sequence",
+        "created_at",
+        "ciphertext_digest",
+        "encryption",
+        "auth_binding"
+      ],
+      "properties": {
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "backup_kind": {
+          "const": "secret_storage",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/backup_kind",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/backup_kind",
+            "values": [
+              "secret_storage"
+            ]
+          }
+        },
+        "backup_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "series_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supersedes_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/backup_id"
+            }
+          ]
+        },
+        "supersedes_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "encryption": {
+          "type": "object",
+          "required": [
+            "recipient_method",
+            "recipient_key_ref",
+            "hpke_suite"
+          ],
+          "properties": {
+            "recipient_method": {
+              "const": "realm_actor_recovery",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/encryption/properties/recipient_method",
+                "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/encryption/properties/recipient_method",
+                "values": [
+                  "realm_actor_recovery"
+                ]
+              }
+            },
+            "recipient_key_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "hpke_suite": {
+              "const": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/encryption/properties/hpke_suite",
+                "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_metadata/properties/encryption/properties/hpke_suite",
+                "values": [
+                  "ak.hpke_x25519_aead_chacha20poly1305.v1"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "auth_binding": {
+          "$ref": "./key-backup.schema.json#/$defs/realm_actor_backup_auth_binding"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed native current-head metadata only, projecting exact immutable accepted packet fields. No ciphertext, AEAD encapsulation, plaintext root, private archive key or complete-packet signature verification claim is included. admission.envelope_digest binds the complete original packet; obtain it only through the exact current-head challenge/unlock and verify the real original producer proof, HPKE AAD, complete packet/ciphertext digests and immutable original authorization. These metadata fields alone are not a signed full KeyBackup. Native metadata has no expires_at, including null; original first-PUT custody is not a time lease. created_at remains original packet time and is distinct from admission.accepted_at."
+    },
+    "realm_actor_backup_head_entry": {
+      "type": "object",
+      "required": [
+        "metadata",
+        "admission"
+      ],
+      "properties": {
+        "metadata": {
+          "$ref": "#/$defs/realm_actor_backup_metadata"
+        },
+        "admission": {
+          "$ref": "#/$defs/realm_actor_content_backup_admission"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact current-head metadata plus minimum immutable first-PUT admission receipt only. No full native_source, sibling DeviceAuthorize Event, original fact, governance/DID bundle or unrelated Circle scope appears. Own Station independently verifies and durably retains full immutable source. Device validates the authenticated own-Station bound result and exact receipt/metadata actor, scope, original author key and complete packet digest; metadata is not full packet signature proof. No new receipt-signer network or governance discovery is allowed."
+    },
+    "realm_actor_backup_unlock_response_body": {
+      "type": "object",
+      "required": [
+        "backup",
+        "admission"
+      ],
+      "properties": {
+        "backup": {
+          "allOf": [
+            {
+              "$ref": "./key-backup.schema.json"
+            },
+            {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                }
+              }
+            }
+          ]
+        },
+        "admission": {
+          "$ref": "#/$defs/realm_actor_content_backup_admission"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Native Device-only complete current selected-series head and minimal immutable admission. No full native_source, sibling authorization original/fact, governance/DID bundle or unrelated Circle scope. Own Station verifies and retains full immutable accepted-at source before producing its authenticated current bound result. After verifying that own-Station result, Device checks receipt exact actor/scope/packet/ciphertext digest/authorization coordinates and uses receipt.device_public_key_base64url to independently verify the actual original KeyBackup Ed proof, including a sibling or revoked old author. Never substitute today's key, assume own authorization, query a new receipt signer network, or perform client governance discovery. Ciphertext/receipt alone grants no history/plaintext-root authority."
+    },
+    "keys_backups_unlock_response_body": {
+      "oneOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "./key-backup.schema.json"
+            },
+            {
+              "not": {
+                "properties": {
+                  "actor_id": {
+                    "properties": {
+                      "kind": {
+                        "const": "realm",
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "keys-operations.schema.json#/$defs/keys_backups_unlock_response_body/oneOf/0/allOf/1/not/properties/actor_id/properties/kind",
+                          "owner": "keys-operations.schema.json#/$defs/keys_backups_unlock_response_body/oneOf/0/allOf/1/not/properties/actor_id/properties/kind",
+                          "values": [
+                            "realm"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                  }
+                },
+                "required": [
+                  "actor_id"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "$ref": "#/$defs/realm_actor_backup_unlock_response_body"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_archive_unlock_response_body"
+        }
+      ],
+      "x-arkret-name-role": "response_body"
+    },
+    "realm_actor_archive_unlock_response_body": {
+      "type": "object",
+      "required": [
+        "backup",
+        "native_source"
+      ],
+      "properties": {
+        "backup": {
+          "allOf": [
+            {
+              "$ref": "./key-backup.schema.json"
+            },
+            {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                }
+              }
+            }
+          ]
+        },
+        "native_source": {
+          "$ref": "#/$defs/realm_actor_content_backup_source"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Current-manager-only known exact archived packet and full immutable native_source for complete private historical verification/handover. Current manager qualification covers full target actor and independently current scope/history permission; original packet author/manager/recovery/recipient refs remain historical. Never return this branch to a native Device, even by optional flag. It can contain private sibling authorization scope lists and is not a Device DTO."
+    },
+    "realm_actor_content_backup_admission_signature_input": {
+      "type": "object",
+      "required": [
+        "backup_id",
+        "envelope_digest",
+        "ciphertext_digest",
+        "realm_actor_id",
+        "effective_scope",
+        "device_id",
+        "device_authorize_ref",
+        "device_generation",
+        "device_public_key_base64url",
+        "manager_ref",
+        "recovery_ref",
+        "recipient_ref",
+        "accepted_at",
+        "service_id",
+        "governance_generation",
+        "authority_ref"
+      ],
+      "properties": {
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "envelope_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA256(RFC8785 JCS of the complete immutable original KeyBackup including signature_proof.signature and every actually present optional/x_* member). Never the signature-excluding predecessor supersedes_digest."
+        },
+        "ciphertext_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission_signature_input/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission_signature_input/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorize_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "device_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "device_public_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_generation": {
+          "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+        },
+        "authority_ref": {
+          "$ref": "./realm-commit.schema.json#/properties/authority_ref"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact closed unsigned projection of realm_actor_content_backup_admission: remove only the signature member, preserving every other actual host field, required member, order and constraint. This object is hashed by the registered detached proof transcript, not a complete signed host and not an Event. Reject signature, null, extra or omitted required members.",
+      "x-arkret-name-role": "signature_input"
+    },
+    "realm_actor_content_backup_handover_offer_signature_input": {
+      "type": "object",
+      "required": [
+        "realm_actor_id",
+        "manager_ref",
+        "new_service_id",
+        "next_content_backup_recipient",
+        "inventory_digest",
+        "archive_revision",
+        "expires_at",
+        "nonce"
+      ],
+      "properties": {
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "new_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "next_content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "archive_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact closed unsigned projection of realm_actor_content_backup_handover_offer: remove only the signature member, preserving every other actual host field, required member, order and constraint. This object is hashed by the registered detached proof transcript, not a complete signed host and not an Event. Reject signature, null, extra or omitted required members.",
+      "x-arkret-name-role": "signature_input"
+    },
+    "realm_actor_content_backup_handover_confirmation_signature_input": {
+      "type": "object",
+      "required": [
+        "offer_digest",
+        "inventory_digest",
+        "handover_digest",
+        "challenge_response_base64url"
+      ],
+      "properties": {
+        "offer_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "handover_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "challenge_response_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact closed unsigned projection of realm_actor_content_backup_handover_confirmation: remove only the signature member, preserving every other actual host field, required member, order and constraint. This object is hashed by the registered detached proof transcript, not a complete signed host and not an Event. Reject signature, null, extra or omitted required members.",
+      "x-arkret-name-role": "signature_input"
+    },
+    "realm_actor_backup_series_head_response_body": {
+      "type": "object",
+      "required": [
+        "purpose",
+        "realm_actor_id",
+        "effective_scope",
+        "active_series",
+        "items"
+      ],
+      "properties": {
+        "purpose": {
+          "const": "series_predecessor",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_series_head_response_body/properties/purpose",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_series_head_response_body/properties/purpose",
+            "values": [
+              "series_predecessor"
+            ]
+          }
+        },
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "active_series": {
+          "$ref": "#/$defs/realm_actor_backup_active_series_state"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_actor_backup_head_entry"
+          },
+          "maxItems": 1
+        }
+      },
+      "additionalProperties": false,
+      "description": "Current native selected-series head metadata and minimal immutable admission only, or zero items for empty selected series. No ciphertext, full native_source, sibling authorization originals, unrelated scope names, next_cursor, previous-series enumeration, archive key or plaintext root. Exact-head challenge/unlock returns the one complete packet plus minimal admission. Current manager archival recovery uses its independently qualified separate response.",
+      "x-arkret-name-role": "response_body"
+    },
+    "keys_backups_list_response_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/keys_backups_page"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_backup_series_head_response_body"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_archive_inventory_page"
+        }
+      ],
+      "x-arkret-name-role": "response_body",
+      "description": "Closed response union selected by authenticated role and registered query: original Account/Agent metadata Page, exact native Device current-head response, or current Manager complete archive inventory Page. No client flag may select a more privileged branch; native head is not a Page and has no cursor/has_more."
+    },
+    "realm_actor_backup_unlock_challenge": {
+      "type": "object",
+      "required": [
+        "challenge_id",
+        "challenge",
+        "nonce",
+        "operation",
+        "backup_id",
+        "audience",
+        "service_id",
+        "request_id",
+        "issued_at",
+        "expires_at",
+        "series_id",
+        "ciphertext_digest",
+        "kind",
+        "purpose",
+        "realm_actor_id",
+        "effective_scope",
+        "manager_ref",
+        "recovery_ref",
+        "recipient_ref",
+        "envelope_digest"
+      ],
+      "properties": {
+        "challenge_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128,
+          "description": "Server-issued single-use challenge identifier."
+        },
+        "challenge": {
+          "$ref": "#/$defs/base64url",
+          "description": "Server-issued CSPRNG challenge bytes (base64url, no padding).",
+          "minLength": 43,
+          "maxLength": 43
+        },
+        "nonce": {
+          "$ref": "#/$defs/base64url",
+          "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
+        },
+        "operation": {
+          "const": "ak.self.keys.backups.command.unlock.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/operation",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/operation",
+            "values": [
+              "ak.self.keys.backups.command.unlock.v1"
+            ]
+          }
+        },
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "audience": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Exact authenticated unlock service origin."
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id",
+          "description": "Echo of the issuance request_id this challenge was minted for."
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "series_id": {
+          "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "kind": {
+          "enum": [
+            "realm_actor_device",
+            "realm_actor_manager"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/kind",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/kind",
+            "values": [
+              "realm_actor_device",
+              "realm_actor_manager"
+            ]
+          }
+        },
+        "purpose": {
+          "enum": [
+            "series_predecessor",
+            "archive_recovery"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/purpose",
+            "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/purpose",
+            "values": [
+              "series_predecessor",
+              "archive_recovery"
+            ]
+          }
+        },
+        "realm_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
+        },
+        "effective_scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "realm",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/0/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/0/properties/kind",
+                    "values": [
+                      "realm"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "realm_id",
+                "circle_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/1/properties/kind",
+                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/1/properties/kind",
+                    "values": [
+                      "circle"
+                    ]
+                  }
+                },
+                "realm_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                },
+                "circle_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recipient_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "requesting_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "device_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "envelope_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "realm_actor_device",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/if/properties/kind",
+                  "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/if/properties/kind",
+                  "values": [
+                    "realm_actor_device"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "purpose": {
+                "const": "series_predecessor",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/then/properties/purpose",
+                  "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/then/properties/purpose",
+                  "values": [
+                    "series_predecessor"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "requesting_device_id",
+              "device_authorize_event_id",
+              "device_generation"
+            ]
+          },
+          "else": {
+            "properties": {
+              "purpose": {
+                "const": "archive_recovery",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/else/properties/purpose",
+                  "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/allOf/0/else/properties/purpose",
+                  "values": [
+                    "archive_recovery"
+                  ]
+                }
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "requesting_device_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "device_authorize_event_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "device_generation"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "description": " envelope_digest is SHA256(JCS(complete original KeyBackup including signature_proof.signature)); it is distinct from supersedes_digest. Bind it to the selected exact original and reject any complete-packet mutation, including signature-only mutation.",
+      "x-arkret-name-role": "domain_value"
+    },
+    "keys_backups_issue_unlock_challenge_response_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/keys_backups_unlock_challenge"
+        },
+        {
+          "$ref": "#/$defs/realm_actor_backup_unlock_challenge"
+        }
+      ],
+      "x-arkret-name-role": "response_body",
+      "description": "Closed issued-challenge response selected by authenticated request role. The Account/Agent branch preserves its original Challenge object. Native Device predecessor and current Manager archive roles use the separately closed native Challenge. Current requester manager/recovery/Device qualification remains separate from target original recipient and complete signed packet digest."
     }
   }
 }

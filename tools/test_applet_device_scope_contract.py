@@ -31,15 +31,27 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
         rules = contract['operation_scope_rules']
         self.assertEqual([r['operation_id'] for r in rules], contract['operations'])
-        self.assertEqual(len(rules), 22)
+        self.assertEqual(len(rules), 26)
+        native_backups = {
+            'ak.self.keys.backups.resource.replace.v1',
+            'ak.self.keys.backups.read.list.v1',
+            'ak.self.keys.backups.command.issue_unlock_challenge.v1',
+            'ak.self.keys.backups.command.unlock.v1',
+        }
+        self.assertEqual({r['operation_id'] for r in rules if '.keys.backups.' in r['operation_id']}, native_backups)
         actions = {r['action'] for r in json.loads((ART / 'registry/capability-action-registry.json').read_text(encoding='utf-8'))['actions']}
         for r in rules:
             self.assertTrue(set(r['actions']) <= actions)
             self.assertIn(r['mode'], ['all_actions', 'device_control', 'submitted_business_actions'])
             self.assertEqual(bool(r['actions']), r['mode'] == 'all_actions')
-            self.assertEqual('control_rule' in r, r['mode'] == 'device_control')
+            native_backup = r['operation_id'] in native_backups
+            self.assertEqual('control_rule' in r, r['mode'] == 'device_control' or native_backup)
+            if native_backup:
+                self.assertEqual(r['mode'], 'all_actions')
+                self.assertEqual(r['actions'], [r['operation_id']])
+                self.assertEqual(r['control_rule'], 'exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role')
         material = next(r for r in rules if r['operation_id'] == 'ak.self.realm_actor.read.material.v1')
-        self.assertEqual(material['control_rule'], 'own_exact_device_authorization_material_read')
+        self.assertEqual(material['control_rule'], 'own_exact_device_authorization_or_native_backup_current_material_read')
         self.assertEqual(sum(r['mode'] == 'device_control' for r in rules), 5)
 
     def test_payload_and_possession_use_the_same_pairs(self):

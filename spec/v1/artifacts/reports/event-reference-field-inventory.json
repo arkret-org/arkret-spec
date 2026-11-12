@@ -948,6 +948,12 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "key-backup-unlock-proof.schema.json",
+      "json_pointer": "/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "key-backup.schema.json",
       "json_pointer": "/properties/signature_proof/properties/agent_authorization_event_ref",
       "field": "agent_authorization_event_ref",
@@ -1028,6 +1034,12 @@
     {
       "schema": "keys-operations.schema.json",
       "json_pointer": "/$defs/forward_device_projection_attestation_core/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keys-operations.schema.json",
+      "json_pointer": "/$defs/realm_actor_backup_unlock_challenge/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
       "classification": "complete_event_id"
     },

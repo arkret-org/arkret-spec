@@ -133,7 +133,36 @@ class RealmActorContractTests(unittest.TestCase):
         self.assertFalse(queue["device_message_sender"])
         self.assertFalse(queue["device_message_recipient"])
         self.assertNotIn("ak.self.device_messages.command.send.v1", auth["operations"])
-        self.assertEqual(22, len(auth["operations"]))
+        expected_operations = {
+            'ak.self.blob.command.presign.v1',
+            'ak.self.blob.resource.get.v1',
+            'ak.self.blob.resource.head.v1',
+            'ak.self.blob.upload.create.v1',
+            'ak.self.committed_event.read.scan.v1',
+            'ak.self.committed_event.resource.get.v1',
+            'ak.self.committed_event.stream.subscribe.v1',
+            'ak.self.current_state.read.exact.v1',
+            'ak.self.device_messages.command.ack.v1',
+            'ak.self.device_messages.read.list.v1',
+            'ak.self.events.command.submit.v1',
+            'ak.self.keys.backups.command.issue_unlock_challenge.v1',
+            'ak.self.keys.backups.command.unlock.v1',
+            'ak.self.keys.backups.read.list.v1',
+            'ak.self.keys.backups.resource.replace.v1',
+            'ak.self.keys.keypackages.command.claim.v1',
+            'ak.self.keys.keypackages.command.consume.v1',
+            'ak.self.keys.keypackages.command.revoke.v1',
+            'ak.self.keys.keypackages.read.claim.v1',
+            'ak.self.keys.keypackages.upload.create.v1',
+            'ak.self.mls.read.group_state_material.v1',
+            'ak.self.mls.read.roster_authority.v1',
+            'ak.self.realm_actor.read.material.v1',
+            'ak.self.realm_state_snapshot.read.by_ref.v1',
+            'ak.self.realm_state_snapshot.read.manifest_head.v1',
+            'ak.self.signer_keys.read.resolve.v1',
+        }
+        self.assertEqual(set(auth["operations"]), expected_operations)
+        self.assertEqual(len(auth["operations"]), len(expected_operations))
         self.assertEqual("reject_without_processing_or_ack", queue["unexpected_delivery"])
         fixture = json.loads((ART / "fixtures/protocol-edge-cases-fixture.json").read_text(encoding="utf-8"))
         expected = next(row["expected"] for row in fixture["cases"] if row["name"] == "explicit_delivery_ack")
@@ -612,6 +641,8 @@ class RealmActorContractTests(unittest.TestCase):
 
     def test_kr_private_recovery_current_and_terminal_carrier(self):
         value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":committed()["commit_id"],"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
+        material = signature_fixture()["cases"][3]["unsigned_projection"]["material"]["entries"][0]["current_state"]["value"]
+        value["value"] = copy.deepcopy(material)
         self.validator("current-state","#/$defs/current_realm_actor_recovery").validate(value)
         self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","current_state":value,"source_ref":committed()})
         self.assertFalse(self.validator("realm-actor-material","#/$defs/current_entry").is_valid({"status":"never_written","selector":value["selector"]}))

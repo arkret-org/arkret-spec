@@ -653,7 +653,7 @@
       ],
       "profile": "ak.profile.principal_control_realm.v1",
       "root_control_only": true,
-      "notes": "Only the exact current native controller of the target Agent PCR may select its backup series under the immutable provision history_custody binding. Never grantable to Realm members, co-owners or runtime keys. The Human self-authored proof branch remains subject-native.",
+      "notes": "Only the exact current native controller of the target Agent PCR may select its backup series under the immutable provision history_custody binding. Never grantable to Realm members, co-owners or runtime keys. The Human self-authored proof branch remains subject-native. A disjoint native RealmActor branch is non-grantable current-manager maintenance in realm_control, scoped by exact actor/scope/class; it is not Agent custody, PCR or Device write authority. recovery.enabled is not its gate.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -2249,6 +2249,50 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.self.keys.backups.resource.replace.v1",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "subject_only": true,
+      "notes": "Closed native RealmActor self operation for an accepted Device. Principal current control may include this registered action in exact DeviceAuthorize.scopes.actions as a finite delegation ceiling; the original Device possession proof authenticates the complete scope/action list. It is not grantable, never minted into a Service parent/terminal child or derived owner/member mask, and does not delegate ordinary business authority. Every actual native call still requires matching original Device authorization/action/scope, current Device/generation, manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and exact branch gates. Existing ordinary business operations keep their own independent capability grants, approvals and quotas. Manager archive alternatives are separately authenticated standing-manager roles, not this Device action. Existing Account/Agent branches are unchanged.",
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.keys.backups.read.list.v1",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "subject_only": true,
+      "notes": "Closed native RealmActor self operation for an accepted Device. Principal current control may include this registered action in exact DeviceAuthorize.scopes.actions as a finite delegation ceiling; the original Device possession proof authenticates the complete scope/action list. It is not grantable, never minted into a Service parent/terminal child or derived owner/member mask, and does not delegate ordinary business authority. Every actual native call still requires matching original Device authorization/action/scope, current Device/generation, manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and exact branch gates. Existing ordinary business operations keep their own independent capability grants, approvals and quotas. Manager archive alternatives are separately authenticated standing-manager roles, not this Device action. Existing Account/Agent branches are unchanged.",
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "subject_only": true,
+      "notes": "Closed native RealmActor self operation for an accepted Device. Principal current control may include this registered action in exact DeviceAuthorize.scopes.actions as a finite delegation ceiling; the original Device possession proof authenticates the complete scope/action list. It is not grantable, never minted into a Service parent/terminal child or derived owner/member mask, and does not delegate ordinary business authority. Every actual native call still requires matching original Device authorization/action/scope, current Device/generation, manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and exact branch gates. Existing ordinary business operations keep their own independent capability grants, approvals and quotas. Manager archive alternatives are separately authenticated standing-manager roles, not this Device action. Existing Account/Agent branches are unchanged.",
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.keys.backups.command.unlock.v1",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "subject_only": true,
+      "notes": "Closed native RealmActor self operation for an accepted Device. Principal current control may include this registered action in exact DeviceAuthorize.scopes.actions as a finite delegation ceiling; the original Device possession proof authenticates the complete scope/action list. It is not grantable, never minted into a Service parent/terminal child or derived owner/member mask, and does not delegate ordinary business authority. Every actual native call still requires matching original Device authorization/action/scope, current Device/generation, manager/registration/install/E2EE consent/status/membership/MLS/policy/storage quota and exact branch gates. Existing ordinary business operations keep their own independent capability grants, approvals and quotas. Manager archive alternatives are separately authenticated standing-manager roles, not this Device action. Existing Account/Agent branches are unchanged.",
+      "event_mapping_kind": "non_event_surface"
     }
   ],
   "event_mapping_kind_definitions": {

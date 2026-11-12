@@ -279,6 +279,7 @@ from .account_data_revision_name import check_account_data_revision_name
 from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .key_backup_envelope_source_anchor import check_key_backup_envelope_source_anchor
 from .signer_key_historical_coordinate import check_signer_key_historical_coordinate
+from .realm_actor_backup import check_realm_actor_content_backup_contract
 from .direct_conversation_admission import check_direct_conversation_admission_producers, check_direct_conversation_signal_admission
 from .proof_context_schemas import (
     check_asserted_state_families_are_registered,
@@ -661,6 +662,10 @@ def main(argv: list[str] | None = None) -> int:
         phase_count,
         "Fixtures、样例与向量",
         [
+            (
+                "realm_actor_content_backup_contract",
+                lambda: check_realm_actor_content_backup_contract(lint),
+            ),
             ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
             ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),

@@ -971,6 +971,10 @@ SessionGrant 签发而扩张为日常 Event signer。
 
 ## 7. 密钥备份
 
+Account／Agent 沿原账号与 PCR 合同。Realm Bot／Ghost 仅使用本章§7.5.6／§7.6.2／§7.8.3
+及 [content-history §3.2](../crypto-media/content-history.md#32-realm-botghost-的原生根备份normative) 的独立
+原生分支；不得伪造账号、Human Device、24词恢复凭证、PCR 或 recovery session。
+
 ### 7.1 备份内容
 
 `backup_kind=secret_storage` 是 v1 唯一的 portable key-backup 内容类型。它承载closed secret-storage items及专用content_epoch_root条目；禁止原始MLS group state、epoch/exporter secret、sender counter、pending Welcome及leaf signer。专用应用根不是底层exporter_secret，必须遵守content-history.md的scope／policy／耐久边界。
@@ -979,9 +983,9 @@ MLS authoring state只能由已验证本地状态、新Add／Welcome或content-h
 
 ### 7.2 Backup Envelope
 
-`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。Human上传必须用当前accepted device key签署完整metadata与ciphertext digest，并携device_authorize_event_id；Agent-subject上传／原生runtime签名分支和custodian锚按content-history §8.2执行，不能伪造Device。`source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
+`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。Human上传必须用当前accepted device key签署完整metadata与ciphertext digest，并携device_authorize_event_id；Agent-subject上传／原生runtime签名分支和custodian锚按content-history §8.2执行，不能伪造Device。Account Device 的 `source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
 
-envelope genesis／successor 的唯一公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 signature_proof.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_sequence + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
+Account Device envelope genesis／successor 的公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 signature_proof.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_sequence + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
 
 `domain_separation` 只携带 producer 选择的 `subdomain` 与可选 `aead_aad_extensions`；不得携带 `hkdf_info` 或固定 AAD 成员的 wire 镜像。`hkdf_info` 的唯一派生式是 `arkret-key-backup/<backup_kind>/<subdomain>/v1`。AEAD/HPKE AAD 的唯一构造过程如下，sealer 与 opener MUST 使用同一过程，任一输入缺失、扩展名非法或扩展与固定字段冲突时 MUST 在解密前 fail closed：
 
@@ -989,8 +993,9 @@ envelope `contents` 是必填、非空、闭合的明文 item 索引；普通项
 
 1. 从 `contents[].item_kind` 取 UTF-8 字节串，按 unsigned UTF-8 bytewise lexicographic order 排序，并按逐字 byte equality 去重，得到唯一的 `item_kinds` 数组；content 原始顺序和重复 item 不得改变 AAD。
 2. 构造固定 base object：`{schema:"ak.schema.key_backup.v1",actor_id,device_id,backup_kind,backup_version,created_at,item_kinds,recipient_method}`。`device_id` 缺失时 base 中该 key 的值固定为 JSON `null`；`recipient_method` 从 `encryption.recipient_method` 派生。仅当 `encryption.recipient_key_ref` 实际存在时，向 base 加入 `recipient_key_ref`。
-3. 将 `domain_separation.aead_aad_extensions` 的每个 `x_*` 成员逐字合并进 base；extension map 不得包含非 `x_*` 名称，也不得覆盖任何固定成员。
-4. `aead_aad_bytes = RFC8785_JCS(merged_base)`。该字节串同时用于对称 AEAD AAD 与 §7.5.2 HPKE `aad`；无扩展时对空 map 不增加任何成员。
+3. 仅 `realm_actor_recovery` 原生分支将完整 `auth_binding` 以同名成员加入 base；其它分支禁止该成员，原 Account／Agent AAD 不改变。
+4. 将 `domain_separation.aead_aad_extensions` 的每个 `x_*` 成员逐字合并进 base；extension map 不得包含非 `x_*` 名称，也不得覆盖任何固定成员。
+5. `aead_aad_bytes = RFC8785_JCS(merged_base)`。该字节串同时用于对称 AEAD AAD 与 §7.5.2 HPKE `aad`；无扩展时对空 map 不增加任何成员。
 
 Envelope 的签名输入固定为 `RFC8785_JCS(envelope 删除 signature_proof.signature)`。因此顶层所有实际存在的 required、optional 与 `x_*` 成员，以及 `signature_proof` 中除 `signature` 外的成员，都自动进入同一转录；缺席的 optional 成员不进入对象，producer 不得改写为 `null`。wire 上不携字段名清单，receiver 也不得按调用方提供的清单选择投影。
 
@@ -998,7 +1003,7 @@ server 只存 ciphertext、索引和 signed metadata，不能解密、重签或�
 
 ### 7.3 恢复流程
 
-恢复流程：
+Account 的恢复流程：
 
 1. 新设备生成 device key。
 2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 完成 `device_quorum` / `trusted_recovery_service` / `did_root` 授权；仅当目标是 `passphrase_kdf` envelope 时才输入对应口令（§7.5.1）。
@@ -1066,7 +1071,7 @@ KeyPackage 对外 claim 不携带 PCR/device history sidecar。账号当前所�
 
 ### 7.5 Recipient Method Profiles
 
-`ak.schema.key_backup.v1.encryption.recipient_method` 枚举 3 种 envelope 解锁方式。每种方式 MUST 按下列 normative 约束实现；服务端遇到本节未定义的 `recipient_method` MUST fail closed。
+`ak.schema.key_backup.v1.encryption.recipient_method` 为 Account／Agent 保留以下三种 envelope 解锁方式；Realm Actor 另有§7.5.6的严格原生分支。每种方式 MUST 按下列 normative 约束实现；服务端遇到本节未定义的 `recipient_method` MUST fail closed。
 
 #### 7.5.0 `backup_kind` 与 recipient method（normative）
 
@@ -1108,11 +1113,11 @@ recovery policy 的 signing entry MUST 内联独立 `backup_hpke` entry：`recov
 - `recipient_key_ref` MUST 命名一个已经在该设备 device-local secret storage（参见 `crypto-media/device-lifecycle.md` §11 `ak.secret_storage.v1`）中存在的 key id（例如 `mls_group_secrets_backup_key`）。
 - 新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap：它必须先经 recovery policy 接受 recovery proof，再由用户 recovery secret 派生 backup-HPKE private key以打开 `recovery_public_key` envelope，之后才能拉取 `secret_storage_key` envelope。
 - 这是为了消除"新设备能解 wire envelope"的循环依赖。
-- **AEAD nonce 唯一性（normative）**：`secret_storage_key` 是长期复用的对称 wrap key，因此 `aead.nonce` MUST 在该 `recipient_key_ref` key 的整个生命周期内对每条 envelope 唯一——producer MUST 为每条新 envelope 生成至少 96-bit 的随机 nonce（或在该 key 下严格单调不回绕的 counter），且 MUST NOT 用同一 (`recipient_key_ref` key, `aead.nonce`) 对写第二条 envelope；需要更新内容时 MUST 生成新 `backup_id` 与新 `nonce`，并 SHOULD 轮换底层 wrap key。`nonce` 作为 `encryption.aead` 成员自动进入 §7.2 的完整 envelope 签名转录，并进入 AEAD AAD。该约束与 `passphrase_kdf` 的 `nonce_salt` deterministic derivation（§7.5.1）、`recovery_public_key` 的 HPKE 内部 nonce 派生共同关闭三种 `recipient_method` 的 nonce-reuse 面。
+- **AEAD nonce 唯一性（normative）**：`secret_storage_key` 是长期复用的对称 wrap key，因此 `aead.nonce` MUST 在该 `recipient_key_ref` key 的整个生命周期内对每条 envelope 唯一——producer MUST 为每条新 envelope 生成至少 96-bit 的随机 nonce（或在该 key 下严格单调不回绕的 counter），且 MUST NOT 用同一 (`recipient_key_ref` key, `aead.nonce`) 对写第二条 envelope；需要更新内容时 MUST 生成新 `backup_id` 与新 `nonce`，并 SHOULD 轮换底层 wrap key。`nonce` 作为 `encryption.aead` 成员自动进入 §7.2 的完整 envelope 签名转录，并进入 AEAD AAD。该约束与 `passphrase_kdf` 的 `nonce_salt` deterministic derivation（§7.5.1）、`recovery_public_key` 的 HPKE 内部 nonce 派生共同关闭 Account／Agent 三种 `recipient_method` 的 nonce-reuse 面；原生 HPKE 分支同样必须 fresh ephemeral 且禁止复用上下文。
 
 #### 7.5.4 恢复授权因子不是 recipient method
 
-`ak.schema.key_backup.v1.encryption.recipient_method` 的封闭枚举只有 §7.5.1–§7.5.3 三项。recovery policy 的 `methods[]`（`did_root` / `recovery_unlock` / `device_quorum` / `trusted_recovery_service`）是 policy 层的解锁因子，MUST NOT 出现在 `recipient_method` 位置；`threshold_recovery`、`hardware_wrapped_key`、`device_snapshot_secret` 既不是 v1 recovery method 也不是 v1 recipient method，receiver / validator MUST fail closed。
+`ak.schema.key_backup.v1.encryption.recipient_method` 的封闭枚举由 §7.5.1–§7.5.3 的 Account／Agent 三项与§7.5.6的 Realm Actor 原生项组成，各分支不得混用。recovery policy 的 `methods[]`（`did_root` / `recovery_unlock` / `device_quorum` / `trusted_recovery_service`）是 policy 层的解锁因子，MUST NOT 出现在 `recipient_method` 位置；`threshold_recovery`、`hardware_wrapped_key`、`device_snapshot_secret` 既不是 v1 recovery method 也不是 v1 recipient method，receiver / validator MUST fail closed。
 
 - 恢复授权在 policy 层完成后才释放 recovery private key 或 secret-storage root，客户端随后用 `recovery_public_key` 或 `secret_storage_key` 解开 envelope；授权本身不解密任何 envelope。
 - 释放出的 recovery secret、PRK 或任一派生 private key MUST NOT 写入在线持久化存储；上下文在用途结束后立即清除。
@@ -1125,11 +1130,48 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 - closed recovery policy 不接受自定义 hardware profile、wrap key id、hardware holder 或 attestation 字段；不得以这些字段、任意 `did:key` 或“硬件已解锁”的本地标记满足恢复授权。v1 没有 `attestation_required` 之类的可配置外观，实现 MUST NOT 复活它。
 - `recipient_method=hardware_wrapped_key` MUST 被 schema/receiver 拒绝为未知枚举值。未来若引入可互操作的硬件证明，必须先定义签名原像、session/challenge 绑定、受信 profile、key identity、验证与失败合同，再登记对应能力；v1 不承诺可配置该能力。
 
+#### 7.5.6 `realm_actor_recovery`
+
+仅 `actor_id.kind=realm` 的原生 content_epoch_root 包可使用此 recipient method；两项必须同现。
+反向禁止 Account／Agent 使用本 method 或 auth_binding。完整 envelope／Device signature 仍按本章 JCS 签署，
+原生 AAD 依§7.2加入完整 auth_binding，其余原有 HPKE info／suite／AEAD 及完整 plaintext-index 检查继续生效。
+
+recipient 公钥只从当前受验 material 的 next_prepare_input.content_backup_recipient 取得，不能来自本地配置、
+Device Welcome key、今日 DID 方法或 envelope 自报公钥。该 descriptor 只携 key_agreement_ref、hpke_suite、
+public_key_base64url，其来源为 [Realm actors §10.9](../extensions/realm-actors.md#109-原生内容根-recipient-与归档保管normative)
+的原签 create／reset／manager.change。Station 在供给前必须核声明时的真实 DID keyAgreement 与 raw key；
+reset 分支必须由 Station 从原 accepted begin 的精确 recovery_begin_ref 追溯，不要求日常 Device 回放私有控制历史。
+Device 的 event 读取只保留自身 exact DeviceAuthorize 原件；本次不授 recipient／series／create／reset／manager.change／
+begin 原件读取。它只 echo 已认证 bound next_prepare_input，不能从 current metadata／嵌套值外推 Event 坐标，
+亦不能为声明 signer 另行发现 Actor DID／governance 网络。Station 的完整原始验真与 Manager 私密库存原件义务不变。
+
+原生 auth_binding 精确为 kind=realm_device、manager_ref、recovery_ref、recipient_ref、device_generation；
+四项来源由同一 accepted current cut 提供，Device 逐字 echo。device_generation 是正整数 Realm-native 代次，
+不借用 Human PCR device_generation_ref。原生 body 必带自己的 DeviceId，signature_proof 必带实际
+DeviceId／device_authorize_event_id／verification_method／Ed25519 signature。只允许一个真实 root item，
+并把 exact effective_scope 与元数据、scoped series、完整 Actor 绑定。
+原生 envelope MUST NOT 携 expires_at，含 null 亦拒；原生 metadata 不含 expiry。已首次 PUT 的持久 custody
+不得被通用 expiry 过滤或清理隐藏／移除，原包、来源和最后充分根义务依 content-history §3.2 保留。
+这不改变 Account／Agent 的原 expires_at／expiry 合同。
+本原生 Device PUT／head-list／unlock-challenge／unlock 恰四个操作是 subject-only non-Event：原 Principal control
+签署 DeviceAuthorize 的 exact scope/action 上界与真实 Device proof 是其有限授权，不要求或铸造 parent／terminal
+child 业务 grant；各当前 Device／manager／registration／install／consent／status／membership／MLS／Policy／quota
+门仍按 [device-lifecycle §16.2](../crypto-media/device-lifecycle.md#162-已登记-operation-的配对消费normative) 执行，
+真正业务 Event 的 grant／审批权独立，不因 root 已存而放宽。
+
+原生分支禁止 recovery_policy_ref、source_commit_ref、custodian_actor_id、custody_authorization_ref、
+Agent signature、passphrase_kdf、recovery_public_key 及 mixed_secret_storage=true。manager-only vault
+独立持有 recipient 私钥，日常 Device 不持该 key 或 vault 解锁能力。服务端原生 PUT、历史密文与当前权威
+分工、首次归档和 last-root 保管义务以 content-history §3.2 为准；所有未知／混合／null／额外分支字段必须拒绝。
+原生 admission.envelope_digest 认证完整原 signed envelope，包含 signature；既有 supersedes_digest 仍使用其
+原删签名投影，不因本分支改动。已 accepted exact PUT retry 先在原 requester 当前认证仍有效后恢复原回执，
+不重跑新 epoch／recipient／业务 gate 或递增库存 revision；真正原 Credential／Device generation 失效仍拒。
+
 ### 7.6 Backup Series & Freshness
 
-每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_sequence` 与 digest-bound `supersedes_id` 链。Active-series record由Human主体当前accepted device签名；Agent-subject则由显式custodian的当前accepted device签名并携custodian pair（content-history §8.2）。签名输入固定为 `RFC8785_JCS(record 删除 signature_proof.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己Station的当前指针结果，不验证PCR历史或要求列表携completeness/witness evidence。content-history §8.1的current-device、原件保护绑定history-only领取例外不受该创建时generation陈旧判据阻断；普通active读取及所有新写入继续本规则。
+Account／Agent 每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_sequence` 与 digest-bound `supersedes_id` 链。Active-series record由Human主体当前accepted device签名；Agent-subject则由显式custodian的当前accepted device签名并携custodian pair（content-history §8.2）。签名输入固定为 `RFC8785_JCS(record 删除 signature_proof.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己Station的当前指针结果，不验证PCR历史或要求列表携completeness/witness evidence。content-history §8.1的current-device、原件保护绑定history-only领取例外不受该创建时generation陈旧判据阻断；普通active读取及所有新写入继续本规则。
 
-Active-series signed payload 的来源锚只有一个 canonical wire 形状：顶层成员必须逐字为
+Account／Agent active-series signed payload 的来源锚只有一个 canonical wire 形状：顶层成员必须逐字为
 `source_commit_ref`，其闭合值必须逐字为 `{realm_commit_id, device_generation_ref}`。
 `realm_commit_id` 直接采用强类型 `RealmCommitId`；payload 不携 `source_ref`、内层 `commit_ref`，也不携
 `CommittedEventRef` 的 Event、stream 或 position 成员。producer、verifier 与签名转录不得接受别名、双读或
@@ -1137,6 +1179,9 @@ Active-series signed payload 的来源锚只有一个 canonical wire 形状：�
 fail closed。
 
 #### 7.6.1 自己 Station 的 active series 与有界列表
+
+本小节描述 Account／Agent 的普通 metadata 页。Realm Actor 的独立 active state／exact-scope head 回复与
+manager-only 完整库存分支依§7.6.2及 content-history §3.2.5，不能套用本小节的 Account／PCR 成员。
 
 `ak.self.keys.backups.read.list.v1` 的 `KeysBackupsPage` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
@@ -1173,9 +1218,51 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 恢复只读取所需 active series 的 metadata 页与确切 envelope；备份链、signed envelope 用户/recipient 绑定、HPKE/AEAD
 和密文 digest 认证仍在端到端客户端完成。服务器确认治理可用性不表示它读取或认证了加密明文。
 
+#### 7.6.2 Realm Actor 的 scoped pointer 与列表（normative）
+
+Realm Actor 的 active pointer 必须按完整 Actor、exact effective_scope 和 secret_storage 独立；不能以全 Actor
+单一 series 泄漏另一个 Circle 的 predecessor。当前 manager Service 在 realm_control 以既有
+ak.key_backup.active_series 原生分支签选；其独立 current family 为 realm_actor_key_backup_active_series，
+按完整 Actor、ScopeRef、backup_kind 的新登记派生合同定位，不改变旧 Account／Agent current-key helper 的 arity。record／原生 Service 签名及 CAS 依 Realm actors §10.9；
+Service 维护必须按 Realm actors §10.9／Applet integration §7.3.1 的 standing-manager 分支，不依赖业务 grant／
+active install；仍核 current registration／manager、exact known scope、recipient／refs／CAS、pending=null，拒任一
+retired／Realm terminal，允许 owner／governance paused 或 identity recovery disabled。此分支不放宽 Device PUT 的
+current install／consent／业务状态／scope／MLS epoch。Device 的公共 native current value 仅为 active_series_id、series_pointer_version、manager_ref、recovery_ref、
+recipient_ref；selector 绑定完整 Actor／exact scope／class，原 source／revision 仍保留，不下发完整 record／
+previous_series_ids／inner proof。Device 不得签选 pointer，亦不使用 PCR source_commit_ref。首次选定可为空 series，pointer version=1；
+该 scope 的首个真实 PUT 使用 sequence=0，之后只认同 scope 直接 predecessor 的 sequence 和 supersedes digest。
+
+GET /_arkret/self/keys/backups 的原生 query 必须同时提供完整 realm_actor_id 的两个 deepObject 成员
+realm_actor_id[realm_id]、realm_actor_id[principal_id]；circle_id 缺席表示该 Realm，出现表示该同 Realm 的一个
+exact Circle。按标准 percent encoding 编码括号及值，禁止用任意 JSON query string 替代。
+agent_id 与原生分支互斥；partial、重复、未知参数或混用必须拒绝，不能悄悄忽略。原生只允许 secret_storage。
+Device 使用 purpose=series_predecessor，query 必须与签名 metadata 的 Actor／scope 逐字匹配，仅返回当前
+selected series 当前 head 的 metadata；空 series 返回空。禁止 cursor、series_id、previous series、任意旧包或
+跨 scope 枚举；Device 同样禁止 limit／backup_kind 过滤。Manager list 只使用 purpose=archive_inventory，
+依 content-history §3.2.5 列出该完整 Actor 全部 first-PUT、scope series 与历史 recipient 来源；此独立分页分支
+只允许适用的 limit／cursor，禁止 Device／Account／Agent、circle_id／series_id／backup_kind／agent_id 子集过滤，
+不能将库存当业务 scope 授权。manager 的 archive_recovery challenge／unlock 仍逐对象绑定一个 exact scope。
+
+原生 Device 的 realm_actor_backup_series_head_response_body 按 purpose、realm_actor_id、effective_scope、active_series、items 排列，items 最多一项
+closed `{metadata,admission}`，metadata 是 realm_actor_backup_metadata 投影，不含 ciphertext，也没有
+has_more／next_cursor；空 series 必须是已确认的空。
+完整包仅沿 exact current-head unlock 的 `{backup,admission}` 取得，Device PUT ACK 也只回最小 admission；
+metadata／receipt 不替代完整 envelope 的 Ed／AAD／digest 验证。Device 不得获得 sibling 原 DeviceAuthorize／
+其它 Circle scopes、完整 native_source、producer fact 或治理历史；Station 必须独立验并保管这些原始闭包，
+Device 核本次 own-Station bound response 后以 admission 的原公钥验真实包 Ed，不自行查 signer／DID／governance。
+原生 active_series closed shape 携完整 Actor、effective_scope、manager_ref、recovery_ref、
+recipient_ref、authority_commit_id 和 secret_storage pointer，不得携 account_id／control_realm_id 或假 Account。
+原生 manager cursor 还必须绑定真实 manager role、完整 subject／scope、manager 与 recipient cut，
+每页重查当前资格；Device 不接受 cursor。不能因另一 scope 的 pointer、旧包签名或缓存结果扩大范围。缺确认 basis 返回既有不可用，
+不能用 absent／空页／null 伪装。
+
+manager.change 保持 owner paused，直至实际完整旧 archive 已导入、fresh recipient 已接受且必要 scopes 的
+fresh series 与覆盖就绪，再显式 resume。旧 recipient 仅历史解封，不授权新 PUT；Device 换代或日常 control
+轮换不能自行换 recipient、重置 pointer 或复活旧设备。
+
 ### 7.7 Recovery UI Requirements（normative）
 
-恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
+以下 Account 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
 - 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope；硬件只能作为 §7.5.5 的本地保护层。恢复 UI MUST NOT 要求用户设置独立 vault passphrase 作为标准凭证；仅当目标 envelope 是 `passphrase_kdf`（§7.5.1）时，MAY 提示输入对应口令完成解密，并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope（§7.5.2，按 §7.6 series 规则开新链或追加）。
 - 在尝试解密任何备份 envelope 之前，向用户展示：`backup_kind`、`series_id`、`series_sequence`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）与 `source_commit_ref.device_generation_ref`。
@@ -1188,7 +1275,7 @@ cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完�
 
 ### 7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）
 
-每次读取并尝试解密 key backup 都 MUST 产出一条 unlock proof，明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
+Account／Agent 每次读取并尝试解密 key backup 都 MUST 产出一条对应 unlock proof；Realm Actor 使用§7.8.3的独立分支。明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
 
 - unlock proof MUST validate as `ak.schema.key_backup_unlock_proof.v1`；签名输入为 `RFC8785_JCS(proof 删除 signature_proof.signature)`，闭合分支全部实际存在字段均被认证。公共字段为 `kind/account_id/requesting_device_id/backup_id/backup_kind/series_id/ciphertext_digest/challenge/audience/service_id/issued_at/expires_at/signature_proof`。`kind="current_device"` 另携 `challenge_id/nonce`，MUST NOT 携 session id，由 exact AccountId 当前 accepted、active、未撤销且 generation 匹配的设备 identity key 签署。`kind="recovery_session"` 仅另携 `recovery_session_id`，由 session 创建时冻结的 `requesting_device_public_key_did` 对应 replacement identity key 签署，MUST NOT 使用恢复因子 key。恢复分支的 challenge、audience/service、有效期与完整 AccountId/device 必须精确匹配该 verified、未过期、未完成、未撤销 session；实际恢复方法只读取其 durable proof_summary，不由 object proof 重报。grant/JKT 必须与冻结 session 相同，不能降级为 bearer 或任意 DID resolver fallback。Completed 后的新设备读取必须走 current_device。
 - 取回完整 ciphertext 的协议操作是 `ak.self.keys.backups.command.unlock.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_revision_stale` / `series_chain_broken` / `signature_invalid`）。
@@ -1279,6 +1366,40 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
 `ak.self.keys.backups.command.issue_unlock_challenge.v1`（`POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge`）使用`keys-operations.schema.json`登记的closed请求：必带`request_id`，可选`subject_actor_id`／`custody_authorization_ref`及`content_history`严格按content-history §8绑定；返回`keys_backups_unlock_challenge`。服务端从当前caller与immutable备份记录填入完整AccountId、requesting device、backup/series/ciphertext、audience/service、challenge_id、challenge、nonce、operation、issued_at/expires_at；TTL ≤ 300秒，challenge为32-byte CSPRNG。不得接受caller自造nonce。相同`(AccountId,device_id,backup_id,request_id)`且完整canonical请求相同的有效未消费issuance返回同一对象；更改subject、custody或history选择必须幂等冲突，原challenge过期或消费不允许重绑请求。相同请求过期后的fresh issuance不复用旧challenge／nonce。challenge存储、限额、消费与exact result ledger MUST跨实例耐久。
 
 current_device proof 的 challenge_id、challenge、nonce、audience、service、account/device、backup/series/digest 逐字匹配服务端记录，`issued_at` 位于签发窗口，`expires_at` 等于签发截止时间；首次消费必须仍在窗口内。恢复分支复用 session.challenge 与 session.expires_at，不额外调用本接口。两分支均只授权一个 exact object，首次消费与结果引用原子提交；exact replay 仍校验当前 holder authority、对象未被撤销/删除、session 未完成且未过期。服务端不能以只发送 HTTP 成功作为耐久边界。
+
+#### 7.8.3 Realm Actor 原生密文读取（normative）
+
+沿用逐对象 unlock-challenge／unlock，不新增 backup resource GET、batch unlock 或 raw-R RPC。
+原生 proof.kind 为 realm_actor_device 或 realm_actor_manager，两者与 current_device／recovery_session 的
+Account 分支、Agent custody 严格互斥。各自绑定完整 Actor、exact effective_scope、manager_ref／recovery_ref／
+recipient_ref、backup／series／ciphertext digest、服务端 challenge_id／nonce、audience／service、有效期和真实
+角色签名；Device 的 challenge 必须逐字绑定本次 current requester 原 Device／generation、完整 Actor、exact scope、
+current head 与 packet digest，发放及消费均核 current head，不能以旧 challenge 取并发替换后的旧包。
+缺失、null、额外、混合身份或过期均拒绝。TTL≤300秒、fresh challenge、单次消费、同请求 exact
+结果恢复与实际交付 CAS 仍同事务；合法性不能由调用者自报角色或 decrypted 标记决定。
+
+Device 分支只用于 purpose=series_predecessor，另带真实 requesting_device_id、device_authorize_event_id、
+device_generation，以 current native Device 身份只取得本 Actor／exact scope 当前 selected series 的当前 head
+签名密文；空 series 不发旧包 challenge。只能用于严格续链和 current root 识别，不得选 previous series、任意旧包
+或以 cursor 枚举。head 的原作者可为同 Actor 的 sibling Device，Station 必须以原 first-PUT 原授权／key／cut
+独立验并保管完整源，Device 只取最小 admission 并在 authenticated bound response 后以原公钥验包 Ed，
+不与今日 Device key 比较，也不自行网络发现历史 signer。此维护来源不返回 archive 私钥、明文根、旧 Event 读取资格、任意旧控制材料或其它
+scope。manager 分支只用于 purpose=archive_recovery，由当前
+真实 manager Service 认证和签名，禁止 Device／Account／session 字段；只提供该主体该 scope 的原始加密包。
+原包历史 Device 已过期／撤销不否定原签真实性，当前调用者仍须通过自己的资格及披露门，旧 manager 无权读取。
+proof 的 manager_ref／recovery_ref 与当前 requester Device／generation 按本次 current cut 验资格；recipient_ref
+必须等于目标原包的历史 accepted recipient 声明，独立历史验真并与完整 signed envelope_digest 绑定，不要求等于
+当前 recipient。目标原包 auth_binding／admission 的所有历史 refs 逐字冻结，不能改写为当前 refs，也不能以原作者
+历史权威代替当前 requester 权限。
+native Device unlock 的 closed response 为 `{backup,admission}`，Manager archive unlock 则为 `{backup,native_source}`；
+二者严格按已验角色／purpose 选定，不接受混用或 Device 的 fullSource 参数。原 Account／Agent 单独 KeyBackup
+形态也不可满足任一 native 请求。Manager 的完整原源只供本 Actor 私密 custody，不授业务历史或明文权。
+
+管理 vault 在本地独立验证原声明、原 first-admission 来源、历史签名、密文 digest、HPKE 与完整索引，再按当前
+目标 Device／scope／membership／history cut 通过受限 local capability 恢复 history-only 根。下载密文不表示
+拥有解密能力，解封根不表示活跃 MLS 或业务权。identity recovery.enabled 不替代本节 current 权威或归档保管。
+Native Device 不取得 DELETE／delete-challenge 权限；普通删除、retention 与 series 轮换仍必须保护从首次 PUT
+起的最后充分包，不能以没有成功业务 Event／失败 first-use／丢响应解除义务。
 
 ### 7.9 Algorithm Agility & Forward Compatibility
 

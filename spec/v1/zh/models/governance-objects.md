@@ -258,7 +258,7 @@ approval constraint。它 MUST 在跨 grant 合并
   [constraint-schema §9.1](../authz/constraint-schema.md) 的 `approver_capability_action` override，
   改验对实际 scope 的显式 `ak.realm.admin` grant，不以 root/owner 身份替代。签名 action 与被批准的
   `(A, T)` 不变。`policy_action.value` 不携带
-  `approval_actor_ids`，所以有资格投票的集合由这一条定义，MUST NOT 放宽成「任意 Realm 成员」——
+  `approval_principal_ids`，所以有资格投票的集合由这一条定义，MUST NOT 放宽成「任意 Realm 成员」——
   否则任何人都能凑齐 quorum。
 
 **一票 = 一个互不相同的 `approver_did`**。同一 actor 的多份签名（无论 nonce 是否不同）计一票。
@@ -299,7 +299,7 @@ capability grant constraint 的 `approval_required`
 后者挂在**一份具体 grant** 上、随该 grant 的签发与撤销进出。
 
 两层 MUST 按取严相交：任一层要求审批，该操作就需要审批；两层都要求时，两层的要求
-MUST **各自**被满足——grant constraint 侧按 §9 的 `approval_actor_ids` / `approval_threshold`
+MUST **各自**被满足——grant constraint 侧按 §9 的 `approval_principal_ids` / `approval_threshold`
 判定，本层按上文的 quorum 判定；不取最大值，也不用一层的满足替代另一层。
 一份 approval signature 若同时满足两层的资格条件，MAY 同时计入两层。
 

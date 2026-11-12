@@ -300,12 +300,19 @@ class HumanPcrAdmissionSelectorTest(unittest.TestCase):
         )
 
     def test_realm_envelope_selector_is_closed_and_preserves_missing_field_rejection(self):
+        identities = load("fixtures/managed-governance-fixture.json")["identities"]
+        resources = schema_registry()
         for path in ["scope_ref.kind", "actor_id.kind"]:
-            guard = Draft202012Validator(predicate_schema({"envelope_path":path,"const":"realm"}))
+            guard = Draft202012Validator({"$id": self.envelope["$id"],
+                **predicate_schema({"envelope_path":path,"const":"realm"})}, registry=resources)
             first, second = path.split(".")
-            self.assertTrue(guard.is_valid({first:{second:"realm"}}))
+            valid = identities["bot"] if first == "actor_id" else {"kind": "realm", "realm_id": identities["realm_id"]}
+            wrong_kind = identities["alice"] if first == "actor_id" else {"kind": "account"}
+            self.assertTrue(guard.is_valid({first: valid}))
             self.assertFalse(guard.is_valid({}))
-            self.assertFalse(guard.is_valid({first:{second:"account"}}))
+            self.assertFalse(guard.is_valid({first: wrong_kind}))
+            if first == "actor_id":
+                self.assertFalse(guard.is_valid({first: {second: "realm"}}))
         with self.assertRaises(ValueError):predicate_schema({"envelope_path":"authorization_ref","const":"x"})
 
     @staticmethod

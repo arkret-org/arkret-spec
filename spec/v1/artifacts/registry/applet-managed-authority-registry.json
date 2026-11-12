@@ -48,7 +48,11 @@
       "ak.self.realm_state_snapshot.read.by_ref.v1",
       "ak.self.realm_state_snapshot.read.manifest_head.v1",
       "ak.self.events.command.submit.v1",
-      "ak.self.realm_actor.read.material.v1"
+      "ak.self.realm_actor.read.material.v1",
+      "ak.self.keys.backups.resource.replace.v1",
+      "ak.self.keys.backups.read.list.v1",
+      "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+      "ak.self.keys.backups.command.unlock.v1"
     ],
     "replay_key": [
       "actor_id",
@@ -252,7 +256,44 @@
         "operation_id": "ak.self.realm_actor.read.material.v1",
         "mode": "device_control",
         "actions": [],
-        "control_rule": "own_exact_device_authorization_material_read"
+        "control_rule": "own_exact_device_authorization_or_native_backup_current_material_read",
+        "binding": "Only this current authenticated full RealmActor/Device/original authorization instance/generation and exact signed metadata scope. purpose=event preserves only own exact DeviceAuthorize original. Native backup purpose=current selects exactly public realm_actor_recovery plus that exact-scope realm_actor_key_backup_active_series at one cut, pending=null, with optional qualified bound next_prepare_input for byte-exact echo. Station independently validates all recipient/DID/reset-begin/series originals; Device cannot read them, expand Event payload/previous IDs/innerproof, synthesize source coordinates or discover signer/governance network. Existing nonce/audience/request digest/governance tenure/current reader lifetime/freshness and missing-dependency refusal remain; no other current/Event/history/control disclosure or business authority."
+      },
+      {
+        "operation_id": "ak.self.keys.backups.resource.replace.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.keys.backups.resource.replace.v1"
+        ],
+        "control_rule": "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role",
+        "binding": "Only its registered native subject_only Device action in one original exact scope entry; this action is not a grant and never requires a Service parent/terminal child containing it. Native branch gates/current Device/gen/manager/registration/install/consent/status/membership/MLS/Policy/quota still apply. Real business Events independently retain all their real grant/approval gates; no inheritance. Manager archive purpose uses its separate exact Service role, never Device authority or Service PUT."
+      },
+      {
+        "operation_id": "ak.self.keys.backups.read.list.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.keys.backups.read.list.v1"
+        ],
+        "control_rule": "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role",
+        "binding": "Only its registered native subject_only Device action in one original exact scope entry; this action is not a grant and never requires a Service parent/terminal child containing it. Native branch gates/current Device/gen/manager/registration/install/consent/status/membership/MLS/Policy/quota still apply. Real business Events independently retain all their real grant/approval gates; no inheritance. Manager archive purpose uses its separate exact Service role, never Device authority or Service PUT."
+      },
+      {
+        "operation_id": "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.keys.backups.command.issue_unlock_challenge.v1"
+        ],
+        "control_rule": "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role",
+        "binding": "Only its registered native subject_only Device action in one original exact scope entry; this action is not a grant and never requires a Service parent/terminal child containing it. Native branch gates/current Device/gen/manager/registration/install/consent/status/membership/MLS/Policy/quota still apply. Real business Events independently retain all their real grant/approval gates; no inheritance. Manager archive purpose uses its separate exact Service role, never Device authority or Service PUT."
+      },
+      {
+        "operation_id": "ak.self.keys.backups.command.unlock.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.keys.backups.command.unlock.v1"
+        ],
+        "control_rule": "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role",
+        "binding": "Only its registered native subject_only Device action in one original exact scope entry; this action is not a grant and never requires a Service parent/terminal child containing it. Native branch gates/current Device/gen/manager/registration/install/consent/status/membership/MLS/Policy/quota still apply. Real business Events independently retain all their real grant/approval gates; no inheritance. Manager archive purpose uses its separate exact Service role, never Device authority or Service PUT."
       }
     ],
     "recipient_queue": {
@@ -265,6 +306,27 @@
       "unexpected_delivery": "reject_without_processing_or_ack",
       "cursor_and_ack": "existing_exact_realm_actor_device_scope_binding",
       "channel_content": "authorized_native_event_stream"
+    },
+    "content_backup_contract": {
+      "contract_ref": "contract-registry.json#/realm_actor_contract/content_backup_contract",
+      "publisher": "exact_current_native_Device_only",
+      "manager_inventory_or_archive_recovery": false,
+      "recovery_enabled_is_business_gate": false,
+      "scope": "one_exact_Realm_or_Circle_entry_no_cross_entry_combination",
+      "next_prepare_input": "echo_authenticated_current_material_public_object_no_synthetic_coordinates"
+    },
+    "native_backup_subject_actions": {
+      "actions": [
+        "ak.self.keys.backups.resource.replace.v1",
+        "ak.self.keys.backups.read.list.v1",
+        "ak.self.keys.backups.command.issue_unlock_challenge.v1",
+        "ak.self.keys.backups.command.unlock.v1"
+      ],
+      "registration_role": "subject_only_non_event_surface",
+      "original_authority": "current_native_Principal_control_signature_and_Device_PoP_bind_exact_scope_action_upper_bound",
+      "parent_or_terminal_child_grant_required": false,
+      "derived_owner_or_member_permission_granted": false,
+      "gate_contract_ref": "registry/contract-registry.json#/realm_actor_contract/content_backup_contract/native_device_action_authority"
     }
   },
   "content_delivery": "exact_realm_actor_device_via_current_realm_governor",

@@ -6911,7 +6911,7 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "request_id"
         ],
@@ -6919,26 +6919,66 @@
           "request_id",
           "subject_actor_id",
           "custody_authorization_ref",
-          "content_history"
+          "content_history",
+          "kind",
+          "purpose",
+          "realm_actor_id",
+          "effective_scope",
+          "envelope_digest"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+            "schema_kind": "object",
+            "required": [
+              "request_id"
+            ],
+            "properties": [
+              "request_id",
+              "subject_actor_id",
+              "custody_authorization_ref",
+              "content_history"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body",
+            "schema_kind": "object",
+            "required": [
+              "request_id",
+              "kind",
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "envelope_digest"
+            ],
+            "properties": [
+              "request_id",
+              "kind",
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "envelope_digest"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
-        "schema_kind": "object",
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body",
+        "schema_kind": "oneOf",
         "required": [
           "challenge_id",
           "challenge",
           "nonce",
           "operation",
-          "account_id",
           "backup_id",
           "audience",
           "service_id",
           "request_id",
           "issued_at",
           "expires_at",
-          "requesting_device_id",
           "series_id",
           "ciphertext_digest"
         ],
@@ -6959,14 +6999,118 @@
           "ciphertext_digest",
           "subject_actor_id",
           "custody_authorization_ref",
-          "content_history"
+          "content_history",
+          "kind",
+          "purpose",
+          "realm_actor_id",
+          "effective_scope",
+          "manager_ref",
+          "recovery_ref",
+          "recipient_ref",
+          "device_authorize_event_id",
+          "device_generation",
+          "envelope_digest"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge",
+            "schema_kind": "object",
+            "required": [
+              "challenge_id",
+              "challenge",
+              "nonce",
+              "operation",
+              "account_id",
+              "backup_id",
+              "audience",
+              "service_id",
+              "request_id",
+              "issued_at",
+              "expires_at",
+              "requesting_device_id",
+              "series_id",
+              "ciphertext_digest"
+            ],
+            "properties": [
+              "challenge_id",
+              "challenge",
+              "nonce",
+              "operation",
+              "account_id",
+              "backup_id",
+              "audience",
+              "service_id",
+              "request_id",
+              "issued_at",
+              "expires_at",
+              "requesting_device_id",
+              "series_id",
+              "ciphertext_digest",
+              "subject_actor_id",
+              "custody_authorization_ref",
+              "content_history"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge",
+            "schema_kind": "object",
+            "required": [
+              "challenge_id",
+              "challenge",
+              "nonce",
+              "operation",
+              "backup_id",
+              "audience",
+              "service_id",
+              "request_id",
+              "issued_at",
+              "expires_at",
+              "series_id",
+              "ciphertext_digest",
+              "kind",
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "manager_ref",
+              "recovery_ref",
+              "recipient_ref",
+              "envelope_digest"
+            ],
+            "properties": [
+              "challenge_id",
+              "challenge",
+              "nonce",
+              "operation",
+              "backup_id",
+              "audience",
+              "service_id",
+              "request_id",
+              "issued_at",
+              "expires_at",
+              "series_id",
+              "ciphertext_digest",
+              "kind",
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "manager_ref",
+              "recovery_ref",
+              "recipient_ref",
+              "requesting_device_id",
+              "device_authorize_event_id",
+              "device_generation",
+              "envelope_digest"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
-      "success_shape_kind": "schema_resource",
+      "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
         "schema_kind": "object",
@@ -6979,71 +7123,135 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/key-backup.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "backup_id",
-          "actor_id",
-          "backup_kind",
-          "backup_version",
-          "series_id",
-          "series_sequence",
-          "created_at",
-          "encryption",
-          "domain_separation",
-          "contents",
-          "ciphertext",
-          "ciphertext_digest",
-          "signature_proof"
-        ],
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body",
+        "schema_kind": "oneOf",
+        "required": [],
         "properties": [
-          "backup_id",
-          "actor_id",
-          "device_id",
-          "backup_kind",
-          "mixed_secret_storage",
-          "backup_version",
-          "series_id",
-          "series_sequence",
-          "supersedes_id",
-          "supersedes_digest",
-          "source_commit_ref",
-          "recovery_policy_ref",
-          "expires_at",
-          "created_at",
-          "updated_at",
-          "encryption",
-          "domain_separation",
-          "contents",
-          "ciphertext",
-          "ciphertext_digest",
-          "plaintext_commitment",
-          "signature_proof",
-          "retention",
-          "custodian_actor_id",
-          "custody_authorization_ref"
+          "backup",
+          "admission",
+          "native_source"
         ],
-        "closed": true
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body",
+            "schema_kind": null,
+            "required": [],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_backup_unlock_response_body",
+            "schema_kind": "object",
+            "required": [
+              "backup",
+              "admission"
+            ],
+            "properties": [
+              "backup",
+              "admission"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_archive_unlock_response_body",
+            "schema_kind": "object",
+            "required": [
+              "backup",
+              "native_source"
+            ],
+            "properties": [
+              "backup",
+              "native_source"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
-        "schema_kind": "object",
-        "required": [
-          "backups",
-          "active_series",
-          "has_more"
-        ],
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body",
+        "schema_kind": "oneOf",
+        "required": [],
         "properties": [
           "backups",
           "active_series",
           "next_cursor",
-          "has_more"
+          "has_more",
+          "purpose",
+          "realm_actor_id",
+          "effective_scope",
+          "items",
+          "manager_ref",
+          "archive_revision",
+          "inventory_digest",
+          "entries"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_page",
+            "schema_kind": "object",
+            "required": [
+              "backups",
+              "active_series",
+              "has_more"
+            ],
+            "properties": [
+              "backups",
+              "active_series",
+              "next_cursor",
+              "has_more"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_backup_series_head_response_body",
+            "schema_kind": "object",
+            "required": [
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "active_series",
+              "items"
+            ],
+            "properties": [
+              "purpose",
+              "realm_actor_id",
+              "effective_scope",
+              "active_series",
+              "items"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_archive_inventory_page",
+            "schema_kind": "object",
+            "required": [
+              "purpose",
+              "realm_actor_id",
+              "manager_ref",
+              "archive_revision",
+              "inventory_digest",
+              "entries",
+              "has_more"
+            ],
+            "properties": [
+              "purpose",
+              "realm_actor_id",
+              "manager_ref",
+              "archive_revision",
+              "inventory_digest",
+              "entries",
+              "next_cursor",
+              "has_more"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -7110,6 +7318,7 @@
           "ciphertext_digest",
           "plaintext_commitment",
           "signature_proof",
+          "auth_binding",
           "retention",
           "custodian_actor_id",
           "custody_authorization_ref"
@@ -7118,7 +7327,7 @@
       },
       "response": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "status",
           "backup_id",
@@ -7127,9 +7336,44 @@
         "properties": [
           "status",
           "backup_id",
-          "ciphertext_digest"
+          "ciphertext_digest",
+          "admission"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "backup_id",
+              "ciphertext_digest"
+            ],
+            "properties": [
+              "status",
+              "backup_id",
+              "ciphertext_digest"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "backup_id",
+              "ciphertext_digest",
+              "admission"
+            ],
+            "properties": [
+              "status",
+              "backup_id",
+              "ciphertext_digest",
+              "admission"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

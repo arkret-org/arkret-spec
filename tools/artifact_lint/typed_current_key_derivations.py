@@ -59,6 +59,16 @@ _FAMILIES = {
             ("key_id", "wire_scalar", {"item.key_id", "payload.key_id"}),
         ],
     },
+    "realm_actor_key_backup_active_series": {
+        "derivation_id": "ak.current_key.realm_actor_key_backup_active_series.v1",
+        "api_name": "derive_realm_actor_key_backup_active_series_current_key",
+        "parameters": [("realm_actor_id", "RealmActorId"), ("effective_scope", "ScopeRef"), ("backup_kind", "BackupKind")],
+        "components": [
+            ("realm_actor_id", "rfc8785_jcs_value", {"payload.actor_id.realm_actor_id"}),
+            ("effective_scope", "rfc8785_jcs_value", {"payload.effective_scope"}),
+            ("backup_kind", "wire_scalar", {"payload.backup_kind"}),
+        ],
+    },
     "key_backup_active_series": {
         "derivation_id": "ak.current_key.key_backup_active_series.v1",
         "api_name": "derive_key_backup_active_series_current_key",
@@ -168,9 +178,9 @@ def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
         return
     values = [arguments[name] for name in parameter_names]
     for value, (_, parameter_type) in zip(values, expected["parameters"]):
-        if parameter_type in {"ActorId", "AccountId"} and not isinstance(value, dict):
+        if parameter_type in {"ActorId", "AccountId", "RealmActorId", "ScopeRef"} and not isinstance(value, dict):
             _fail(lint, f"family {family!r} {parameter_type} KAT argument must be an object")
-        elif parameter_type not in {"ActorId", "AccountId"} and not isinstance(value, str):
+        elif parameter_type not in {"ActorId", "AccountId", "RealmActorId", "ScopeRef"} and not isinstance(value, str):
             _fail(lint, f"family {family!r} {parameter_type} KAT argument must be a string")
     if kat.get("normalized_components") != values:
         _fail(lint, f"family {family!r}.kat normalized components must preserve typed arguments")
@@ -185,18 +195,42 @@ def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
         _fail(lint, f"family {family!r}.kat.expected_output does not recompute")
 
     negatives = kat.get("negative_cases")
-    if not isinstance(negatives, dict) or set(negatives) != {
-        "reordered_components",
-        "wrong_family_domain",
-        "extra_component",
-        "type_mismatch",
-    }:
+    required_negatives = {"reordered_components", "wrong_family_domain", "extra_component", "type_mismatch"}
+    if family == "realm_actor_key_backup_active_series":
+        required_negatives |= {"wrong_actor_kind", "cross_realm_scope", "scope_omitted", "unsupported_sidecar"}
+    if not isinstance(negatives, dict) or set(negatives) != required_negatives:
         _fail(lint, f"family {family!r}.kat.negative_cases is not the closed mutation set")
         return
     if negatives.get("extra_component") != {"disposition": "reject_before_hash"}:
         _fail(lint, f"family {family!r} must reject an extra component before hashing")
     if negatives.get("type_mismatch") != {"disposition": "reject_before_hash"}:
         _fail(lint, f"family {family!r} must reject a typed-parameter mismatch before hashing")
+
+    if family == "realm_actor_key_backup_active_series":
+        from tools.realm_actor_backup_contract import derive_native_series_current_key
+        try:
+            _, typed_output = derive_native_series_current_key(*values)
+            if typed_output != output:
+                _fail(lint, "native scope current-key typed derivation disagrees with its JCS KAT")
+        except (ValueError, TypeError):
+            _fail(lint, "native current-key KAT does not satisfy its closed typed input")
+        for name in ["wrong_actor_kind", "cross_realm_scope", "scope_omitted", "unsupported_sidecar"]:
+            if negatives.get(name) != {"disposition": "reject_before_hash"}:
+                _fail(lint, f"native current-key {name} must reject before hashing")
+        if len(values) == 3 and isinstance(values[0], dict) and isinstance(values[1], dict):
+            invalid = [
+                ({"kind": "realm", "realm_actor_id": values[0]}, values[1], values[2]),
+                (values[0], {**values[1], "realm_id": "ak:realm:other"}, values[2]),
+                (values[0], None, values[2]),
+                (values[0], {**values[1], "kind": "sidecar"}, values[2]),
+            ]
+            for arguments in invalid:
+                try:
+                    derive_native_series_current_key(*arguments)
+                except (ValueError, TypeError):
+                    pass
+                else:
+                    _fail(lint, "native current-key typed mutation unexpectedly hashes")
 
     reordered = negatives.get("reordered_components")
     if len(values) == 1:

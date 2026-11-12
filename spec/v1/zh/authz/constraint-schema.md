@@ -72,7 +72,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resource_count` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = accepted PCR device 表达。 | `ak.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 approval workflow（v1 只有 `approval_mode=before_commit`）；审批证据是 §9.2 的 approval signature。 | `ak.profile.constraint.approval_workflow.v1` |
-| `claim_based` | `accountability` | extension | grant-local 责任主体、guardian / controller 审批关系；使用 `accountability_required`、`approval_relation`、`approval_actor_ids` 等已注册字段。 | `ak.profile.constraint.claim_based.v1` |
+| `claim_based` | `accountability` | extension | grant-local 责任主体、guardian / controller 审批关系；使用 `accountability_required`、`approval_relation`、`approval_principal_ids` 等已注册字段。 | `ak.profile.constraint.claim_based.v1` |
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`redacted_history_allowed`。 | `ak.profile.constraint.visibility_control.v1` |
 
@@ -116,7 +116,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 
 ### 2.4 字段扁平化与未来嵌套化（normative for new fields）
 
-v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_ids` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等），简化 schema 验证。
+v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_principal_ids` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等），简化 schema 验证。
 
 **新字段命名规则（normative，对扩展 profile 适用）**：扩展 profile 引入新的 approval / claim / accountability 子字段时，应避免展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
@@ -560,7 +560,7 @@ v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`�
   "effect": "require_review",
   "approval_required": true,
   "approval_mode": "before_commit",
-  "approval_actor_ids": [
+  "approval_principal_ids": [
     "ak:did_core:webvh:z6mkfixturemanager"
   ],
   "approval_relation": "controller",
@@ -584,7 +584,7 @@ v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`�
 reason=`approval_required`。同一 approver 的多份签名只计一票；不得以收到的票数作为 majority
 分母，也不得以任意 Realm 成员补足 grant 自己的 eligible roster。
 
-grant 的唯一审批 roster 是 `approval_actor_ids`；它声明的不同 principal 必须分别通过本节已有
+grant 的唯一审批 roster 是 `approval_principal_ids`；它声明的不同 principal 必须分别通过本节已有
 current membership、action/scope capability、时间与签名资格检查。没有显式 roster 不能从
 `approval_relation`、Realm 角色或 membership 推导替代集合。`approval_relation` 仅描述签发者为该
 显式 roster 指定的责任分类，不是另一份授权来源；guardian/controller approval flags 仍要求此
@@ -849,7 +849,7 @@ approval proof 提交时，签名本身**真实有效**且密钥可解析，但�
 ### 9.3 与 Realm 治理面审批配置的关系（normative）
 
 本节 §9.1–§9.2 定义的是**挂在一份具体 grant 上**的审批要求：它随该 grant 的签发与撤销进出，
-`approval_actor_ids` / `approval_relation` / `approval_threshold` 由该 grant 自己携带。
+`approval_principal_ids` / `approval_relation` / `approval_threshold` 由该 grant 自己携带。
 
 v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `policy_action` 配置，它挂在
 `(action token, scope)` 上，对所有持 grant 的 actor 一律生效。两者的字段同名
@@ -859,7 +859,7 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
 
 对本节实现者只有三条后果：
 
-1. 两层 MUST 按取严相交，且 MUST **各自**被满足——本节按 `approval_actor_ids` /
+1. 两层 MUST 按取严相交，且 MUST **各自**被满足——本节按 `approval_principal_ids` /
    `approval_threshold` 判定，治理面层按它自己的 quorum 判定；MUST NOT 用一层的满足替代另一层，
    也 MUST NOT 把两层的票数合并成一个阈值。
 2. 本节 constraint 写 `approval_required=false` 的含义是「**本层**不施加要求」，
@@ -917,7 +917,7 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "effect": "allow",
   "accountability_required": true,
   "approval_relation": "guardian",
-  "approval_actor_ids": [
+  "approval_principal_ids": [
     "ak:did_core:webvh:z2vHtethmmzFY86zLhnqXP4rr"
   ]
 }
@@ -931,7 +931,7 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "effect": "require_review",
   "guardian_approval_required": true,
   "approval_relation": "guardian",
-  "approval_actor_ids": [
+  "approval_principal_ids": [
     "ak:did_core:webvh:z82PFJkUuQZejFmNvW4u3ZU59",
     "ak:did_core:webvh:z6TTT4uWX85mtomzdpBz259yF"
   ],
@@ -1425,7 +1425,7 @@ field_access 的 admit／deny 与§16.2.1的敏感读输出是两项独立义务
       "effect": "allow",
       "accountability_required": true,
       "approval_relation": "controller",
-      "approval_actor_ids": [
+      "approval_principal_ids": [
         "ak:did_core:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY"
       ]
     },
@@ -1554,7 +1554,7 @@ Grant envelope 字段、签名规则与必填性以
   "constraint_subkind": "approval",
   "effect": "require_review",
   "approval_mode": "before_commit",
-  "approval_actor_ids": [
+  "approval_principal_ids": [
     "ak:did_core:webvh:zGd8mMoLD7F4He4Kf8PpXJur1"
   ],
   "approval_threshold": 1,

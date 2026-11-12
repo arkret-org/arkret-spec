@@ -88,8 +88,9 @@ info:
 
     relationship and attack-surface class. The "trust circle" terminology is an
 
-    explanatory metaphor, not an authorization result. The current classifiers are: `self` (the authenticated session
-    of the caller), `gate` (authentication entry), `root` (identity /
+    explanatory metaphor, not an authorization result. The current classifiers are: `self` (the authenticated owning
+    context under an explicitly registered session or native role), `gate` (authentication entry), `root` (identity
+    /
 
     DID trust root; not root/admin privilege), `find` (directory discovery), `peer` (federation server-to-server
 
@@ -171,9 +172,11 @@ components:
       type: apiKey
       in: header
       name: Signature
-      description: 'RFC 9421 HTTP Message Signature applied with the source service DID''s
+      description: 'RFC 9421 HTTP Message Signature under the exact role registered for the operation.
 
-        verification key. When present, the request MUST also include
+        Service requests use the authenticated source Service method; managed Device requests use the
+
+        original accepted Device key and managedDeviceMetadata. Service requests MUST also include
 
         Source-Service-ID / Destination-Service-ID / Content-Digest (the
 
@@ -689,6 +692,10 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
     KeysBackupsIssueDeleteChallengeRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body
+    KeysBackupsIssueUnlockChallengeResponseBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body
+    KeysBackupsListResponseBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body
     KeysBackupsPage:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_page
     KeysBackupsReplaceResponseBody:
@@ -697,6 +704,8 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge
     KeysBackupsUnlockRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
+    KeysBackupsUnlockResponseBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body
     KeysClaimRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_request_body
     KeysClaimResponseBody:
@@ -2009,7 +2018,9 @@ paths:
       description: Ordinary Event and MLS submissions keep their single-submit semantics. Direct Conversation founding
         is an ordered four-Event all-or-nothing unit and membership compensation is a one-Event aggregate with closed
         transport-only evidence and a single-use CAS. The Account Station reports committed only after receiving
-        the authority-signed RealmCommit(s).
+        the authority-signed RealmCommit(s). Native manager Service ak.key_backup.active_series Events use only
+        the existing ak.edge.applet.command.transaction.v1 events[] closed Service-producer ingress. This operation
+        grants no new Service SessionGrant, Bearer or generic self/events permission.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6345,9 +6356,38 @@ paths:
   /_arkret/self/keys/backups/{backup_id}:
     put:
       operationId: ak.self.keys.backups.resource.replace
+      description: Account uploads retain their existing session/Device policy. The native alternative accepts only
+        the registered realm_actor_recovery root-only envelope from its exact current managed Device. This and the
+        native Device head-list/unlock-challenge/unlock are exactly four subject-only non-Event actions bounded
+        by the Principal-control-signed DeviceAuthorize scopes/action list and actual Device possession/signature.
+        They neither require nor mint a Service parent/terminal-child business grant. All real current Device, generation,
+        exact scope, manager/registration/install/consent/status/membership/MLS/policy/quota gates remain mandatory;
+        actual business Events independently keep every real grant/approval gate. It rechecks native manager/recovery/recipient
+        sources, device_generation, both business gates, exact scope/action, installation, accepted MLS root context
+        and scope-specific active series at the durable accepting cut. Identity recovery.enabled alone is not a
+        PUT gate. Native root envelopes forbid expires_at, including explicit null; native metadata has no expiry.
+        Accepted first-PUT custody must not disappear from generic expiry filtering or background cleanup; original
+        packets/sources/indices/outcomes/coverage remain durable under root-custody rules. Account/Agent expiry
+        contracts stay unchanged. Native ciphertext, original first-admission sources, first-PUT root inventory,
+        series CAS and exact outcome commit atomically before this acknowledgement. A native Device request requires
+        the native response branch with minimal immutable signed admission. The Station independently verifies and
+        durably retains complete original Device/issuer/governance authority, but returns no full native_source,
+        sibling DeviceAuthorize, other private scopes or history to the Device. The packet created_at remains its
+        original producer-signed value; admission.accepted_at is the real first durable acceptance clock and never
+        copied from client time. Account reply shape or accepted=true is insufficient. Exact retries preserve original
+        admission/accepted_at and archive revision. Once accepted, an exact retry with still-valid original-requester
+        authentication restores that fixed outcome before new epoch/recipient/business admission gates; actual Credential
+        or original Device-generation invalidation still denies. The receipt envelope digest includes the complete
+        original signature, independently of the existing unsigned supersedes digest. Any full-body/signature difference
+        at the same backup ID is a zero-effect conflict. A local frozen packet is not an acknowledgement; exact
+        retries retain the original packet identity.
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+        contentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6478,9 +6518,23 @@ paths:
   /_arkret/self/keys/backups/{backup_id}/unlock-challenge:
     post:
       operationId: ak.self.keys.backups.command.issue_unlock_challenge
+      description: Issue one short-lived, exact-object challenge under the authenticated role. Native Device series_predecessor
+        and current manager Service archive_recovery are disjoint closed branches, bound to full RealmActor, one
+        exact Realm/Circle scope and current requester manager/recovery/Device authority. recipient_ref binds the
+        target packet historical accepted declaration, independently verified against its complete signed envelope_digest,
+        never forced equal to the current recipient. The target auth_binding stays immutable. Backup/series/ciphertext,
+        audience and nonce also bind; mixed credentials reject.
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+        contentDigest: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6509,24 +6563,38 @@ paths:
               $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body
       responses:
         '200':
-          description: Durable one-use challenge bound to the current device and exact backup
+          description: Durable one-use challenge bound to the exact authenticated role, subject, scope and backup
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysBackupsUnlockChallenge'
+                $ref: '#/components/schemas/KeysBackupsIssueUnlockChallengeResponseBody'
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
       operationId: ak.self.keys.backups.command.unlock
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+        contentDigest: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.key_backup_unlock_proof.v1
-          object; the server MUST verify it against the recovery session, caller, requesting device key, active-series
-          record, and target envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
+        notes: A bearer token alone is insufficient. Account/Agent retain their existing closed proof branches.
+          Native realm_actor_device is limited to series_predecessor under its real current Device, authorization
+          and device_generation; realm_actor_manager is limited to archive_recovery under the current real manager
+          Service. Both bind exact Actor/scope, current requester manager/recovery authority and Device/generation
+          where applicable; recipient_ref is the target packet original accepted recipient declaration, independently
+          historically verified and bound to complete signed envelope_digest, not forced to current recipient. Target
+          auth_binding remains frozen. Backup/series/ciphertext, fresh single-use challenge, audience/service and
+          time also bind. No Account/PCR substitution, private recipient key, raw root or generic control history
+          is returned; current disclosure and atomic delivery gates apply.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6555,17 +6623,43 @@ paths:
               $ref: '#/components/schemas/KeysBackupsUnlockRequestBody'
       responses:
         '200':
-          description: Encrypted key backup object released after unlock-proof verification
+          description: Original Account/Agent KeyBackup, native Device current head plus minimal admission, or Manager
+            known archive packet plus full native_source; closed role-bound branches after exact unlock verification
           content:
             application/json:
               schema:
-                $ref: ../schemas/key-backup.schema.json
+                $ref: '#/components/schemas/KeysBackupsUnlockResponseBody'
   /_arkret/self/keys/backups:
     get:
       operationId: ak.self.keys.backups.read.list
+      description: Return the closed role-specific typed list response, with the confirmed active-series state.
+        Account/Agent retain their bounded metadata page; native Device returns a non-paginated current-head response
+        body; current Manager archive inventory remains its separately bounded page. Native mode requires both realm_actor_id
+        components. Device mode optionally selects circle_id; absence selects that Realm, presence selects one exact
+        Circle of the same Realm. It forbids agent_id, partial, duplicate, unknown or mixed native selectors. Managed
+        Device metadata must match the complete actor/scope. Device purpose=series_predecessor returns only the
+        current selected-series head (empty for an empty series), forbids cursor, limit, backup_kind, series_id,
+        previous-series and old-packet enumeration. Head items contain typed native metadata and minimal immutable
+        signed admission, never ciphertext/full native_source or sibling DeviceAuthorize/private scopes. Only exact
+        current-head unlock returns the full original KeyBackup plus minimal admission for append/current-root recognition,
+        not archive keys, raw roots or old Event access. Station independently verifies/retains full original author
+        authority; the Device uses the original key bound by its live own-Station response to verify actual packet
+        Ed, never today's Device key or fresh DID/governance discovery from a receipt signer. Current manager Service
+        list requires purpose=archive_inventory and enumerates the complete subject custody inventory across scopes;
+        Device/Account/Agent cannot use that alternative, which forbids circle_id, series_id and backup_kind subset
+        filters. Native active_series uses its canonical closed native shape, not a dummy Account/PCR. Native head
+        response has at most one metadata item, no cursor/has_more; metadata cannot replace full-envelope signature,
+        digest or AAD verification. Manager inventory alone returns full original encrypted packets and source;
+        its cursor binds full actor/current manager/frozen inventory cut rather than an ordinary Device scope page.
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6583,15 +6677,17 @@ paths:
       - in: query
         name: series_id
         required: false
-        description: Filter by backup series. When present, response metadata is ordered by series_sequence ascending
-          so clients can rebuild the chain.
+        description: Filter by backup series for Account/Agent. Native Device series_predecessor and manager archive_inventory
+          forbid this filter. When present, response metadata is ordered by series_sequence ascending so qualified
+          clients can rebuild the chain.
         schema:
           type: string
           pattern: ^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
         name: backup_kind
         required: false
-        description: Filter by key-backup class.
+        description: Account/Agent-only backup class filter. Both native Device head and manager archive inventory
+          branches forbid this filter.
         schema:
           type: string
           enum: &id003
@@ -6604,12 +6700,16 @@ paths:
       - in: query
         name: cursor
         required: false
-        description: Account and filter bound opaque continuation; changed list or active pointers invalidate it.
+        description: Account/Agent filter-bound or native manager archive-inventory continuation; changed list or
+          active pointers invalidate it. Native Device series_predecessor forbids cursor and returns only the current
+          selected-series head.
         schema:
           $ref: ../schemas/keys-operations.schema.json#/$defs/cursor
       - in: query
         name: limit
         required: false
+        description: Account/Agent metadata or native manager archive-inventory page limit; forbidden in native
+          Device head mode.
         schema:
           type: integer
           minimum: 1
@@ -6623,13 +6723,53 @@ paths:
           and subject independently.
         schema:
           $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
+      - in: query
+        name: realm_actor_id
+        required: false
+        style: deepObject
+        explode: true
+        description: Native-only complete RealmActorId. Both realm_actor_id[realm_id] and realm_actor_id[principal_id]
+          are required together, with standard percent encoding for brackets and values. A JSON string, either component
+          alone, duplicate/unknown members or agent_id co-occurrence is invalid. Native authentication derives the
+          same exact complete subject independently; current manager-only purpose=archive_inventory uses this complete
+          subject with no scope/series subset filter.
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_actor_id
+      - in: query
+        name: circle_id
+        required: false
+        description: Native-only exact Circle selector paired with realm_actor_id; absence selects that Realm. The
+          Circle must belong to that Realm and the authenticated exact scope. No inherited or cross-Circle view.
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
+      - in: query
+        name: purpose
+        required: false
+        description: 'Native Device requires series_predecessor: only the complete own actor, exact scope and current
+          selected-series head; cursor/limit/backup_kind/series_id/previous-series enumeration is forbidden, empty
+          series is empty. Native manager may select archive_inventory: complete realm_actor_id is required and
+          Account/Agent/ managed Device, circle_id, series_id and backup_kind filters are forbidden. The typed inventory
+          page includes every first-PUT custody source, scope-series original and historical recipient declaration
+          at one frozen private archive cut, with full inventory_digest. Neither branch grants plaintext-root or
+          old-Event access.'
+        schema:
+          type: string
+          enum: &id004
+          - series_predecessor
+          - archive_inventory
+          x-arkret-value-ownership:
+            class: owned_symbol
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
+            values: *id004
       responses:
         '200':
-          description: Encrypted key backup metadata list
+          description: Exact-scope encrypted backup metadata page or the disjoint current-manager complete native
+            archive inventory page
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysBackupsPage'
+                $ref: '#/components/schemas/KeysBackupsListResponseBody'
   /_arkret/open/principals/{principal_id}/resolution:
     get:
       operationId: ak.open.identity.read.resolution
@@ -7768,6 +7908,16 @@ paths:
   /_arkret/edge/applet/transactions:
     post:
       operationId: ak.edge.applet.command.transaction
+      description: 'Existing closed Service-producer events[] ingress. Native ak.key_backup.active_series is a private
+        realm_control manager-maintenance branch: the real current manager Service signs both record and outer Event
+        for the exact target RealmActor/effective_scope, against original manager/recovery/recipient refs and scoped
+        CAS. This grants no Device, Account/PCR, ordinary business-grant or self/events session fallback. Source
+        signature and per-delivery replay checks remain mandatory; the registered maintenance role is checked independently
+        from ordinary business-event permission. It requires current registration/manager, an already registered
+        exact known scope, accepted recipient/refs, scoped CAS and no pending recovery; no business grant or active
+        installation is required. Either retired gate or terminal Realm rejects; owner/governance paused or identity
+        recovery disabled alone does not. This does not relax Device PUT current installation/consent/business-status/scope/MLS-epoch
+        gates or any other Service Event.'
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -7786,7 +7936,10 @@ paths:
                 MUST equal the Applet registration service_id.
               applet_to_arkret_inbound: Applet registration webhook_signature_policy.key_ref; its canonical bare
                 did MUST be validated by the registered method adapter and project to both Source-Service-ID and
-                the active effective install service_id. Direct DID/core-id comparison and did_core_id fragment
+                the active effective install service_id for ordinary business, or the exact independently current
+                manager registration service_id for only the registered native active-series maintenance branch.
+                That branch checks original refs/known scope/CAS/pending and nonretired/nonterminal status without
+                business grant/active-install dependence. Direct DID/core-id comparison and did_core_id fragment
                 concatenation are forbidden.
           covered_components:
           - '@method'
@@ -8333,7 +8486,7 @@ paths:
         required: false
         schema:
           type: string
-          enum: &id004
+          enum: &id005
           - outbound
           - inbound
           - both
@@ -8341,7 +8494,7 @@ paths:
             class: owned_symbol
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
-            values: *id004
+            values: *id005
       - name: allowed_link_kinds
         in: query
         required: false
@@ -9414,7 +9567,7 @@ paths:
                   - detail
                   properties:
                     type:
-                      enum: &id005
+                      enum: &id006
                       - https://arkret.org/problems/duplicate_conflict
                       - https://arkret.org/problems/session_grant_replay_indeterminate
                       - https://arkret.org/problems/device_revocation_pending
@@ -9424,7 +9577,7 @@ paths:
                         class: uri
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
-                        values: *id005
+                        values: *id006
                     title:
                       type: string
                       minLength: 1
@@ -9512,14 +9665,14 @@ paths:
                       $ref: ../schemas/common-ids.schema.json#/$defs/session_grant_id
                     state:
                       type: string
-                      enum: &id006
+                      enum: &id007
                       - revoked
                       - superseded
                       x-arkret-value-ownership:
                         class: owned_symbol
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
-                        values: *id006
+                        values: *id007
                   additionalProperties: true
         '410':
           description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state
@@ -9681,14 +9834,14 @@ paths:
                 - detail
                 properties:
                   type:
-                    enum: &id007
+                    enum: &id008
                     - https://arkret.org/problems/duplicate_conflict
                     - https://arkret.org/problems/session_grant_replay_indeterminate
                     x-arkret-value-ownership:
                       class: uri
                       authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1revoke/post/responses/409/content/application~1problem+json/schema/properties/type
                       owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1revoke/post/responses/409/content/application~1problem+json/schema/properties/type
-                      values: *id007
+                      values: *id008
                   title:
                     type: string
                     minLength: 1
@@ -9804,7 +9957,7 @@ paths:
                   - detail
                   properties:
                     type:
-                      enum: &id008
+                      enum: &id009
                       - https://arkret.org/problems/duplicate_conflict
                       - https://arkret.org/problems/session_grant_replay_indeterminate
                       - https://arkret.org/problems/device_revocation_pending
@@ -9814,7 +9967,7 @@ paths:
                         class: uri
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
-                        values: *id008
+                        values: *id009
                     title:
                       type: string
                       minLength: 1
@@ -9902,14 +10055,14 @@ paths:
                       $ref: ../schemas/common-ids.schema.json#/$defs/session_grant_id
                     state:
                       type: string
-                      enum: &id009
+                      enum: &id010
                       - revoked
                       - superseded
                       x-arkret-value-ownership:
                         class: owned_symbol
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
-                        values: *id009
+                        values: *id010
                   additionalProperties: true
         '410':
           description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates
@@ -11737,6 +11890,20 @@ paths:
   /_arkret/self/realm-actors/material:
     post:
       operationId: ak.self.realm_actor.read.material
+      description: Preserve existing exact native material roles. For native backup preparation a managed Device
+        may read only its own public recovery/recipient and one exact-scope active-series current selection. That
+        native series current value has only active_series_id, series_pointer_version, manager_ref, recovery_ref
+        and recipient_ref; its selector binds full actor/exact scope/class and original source/revision remain intact.
+        Full record/previous_series_ids/inner proof are not disclosed to Device. Require pending=null and the same
+        live Device authorization/generation. Only a complete same-cut result may return the optional non-null closed
+        next_prepare_input containing auth_binding, content_backup_recipient and active_series_id for byte-exact
+        echo. Device Event reads retain only its own exact DeviceAuthorize; this adds no recipient/series/create/reset/manager-change/begin
+        control original reads. The Station independently verifies complete declaration/DID/series/current-reset-to-exact-begin
+        closure at the same current cut; it does not disclose creation_scope/external_ref or other out-of-scope
+        control information. Public metadata/typed next input is an authenticated bound supply, not nested Event
+        historical evidence or permission for client Actor-DID/governance/receipt-signer network discovery. Manager
+        archive/source retains its complete immutable originals. No archive private key, inferred Event coordinates
+        or raw root is supplied.
       parameters:
       - name: Arkret-Operation
         in: header

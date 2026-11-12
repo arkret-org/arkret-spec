@@ -340,6 +340,137 @@
         "version_id": "1-QmRHnZHNmAMEZAhwvJwJeW7cJH6xie36NnGQwMEbeSLje7"
       },
       "projected_core_id": "ak:did_core:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9"
+    },
+    {
+      "evidence_id": "native_realm_actor_inception",
+      "adapter_version": "did:webvh:1.0",
+      "native_history_ref": "realm-actor-content-backup-fixture.json#/native_history",
+      "native_entry_index": 0,
+      "verified_entry": {
+        "versionId": "1-QmYbZjuUYKpZFcehzET49wDERVmW8z53SkHzQZXD6PJHiq",
+        "versionTime": "2026-10-20T00:00:00Z",
+        "parameters": {
+          "method": "did:webvh:1.0",
+          "scid": "QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC",
+          "portable": true,
+          "updateKeys": [
+            "z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj"
+          ],
+          "nextKeyHashes": [
+            "QmQtVLN9y4ag3MZKTnyRt2nWgZrfAwECCC2r6owmrL2eEt"
+          ],
+          "witness": {
+            "threshold": 1,
+            "witnesses": [
+              {
+                "id": "did:key:z6MkfMo6gxqdBhaHMNnmfhgZFBjpCDTkmJMJLoypsBZS9PwD"
+              }
+            ]
+          }
+        },
+        "state": {
+          "@context": [
+            "https://www.w3.org/ns/did/v1"
+          ],
+          "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+          "verificationMethod": [
+            {
+              "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-0",
+              "controller": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+              "type": "Multikey",
+              "publicKeyMultibase": "z6Mkigx47SBJifgafUEcSj7c54prQ8EpuVwvdqwaHkVGPpft"
+            },
+            {
+              "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup",
+              "controller": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+              "type": "Multikey",
+              "publicKeyMultibase": "z6LSrz1onRBUyNTTu9bbvBqSKdTYGUu1TCMTBUj2P5t9yHNx"
+            }
+          ],
+          "authentication": [
+            "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-0"
+          ],
+          "keyAgreement": [
+            "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup"
+          ]
+        },
+        "proof": [
+          {
+            "type": "DataIntegrityProof",
+            "cryptosuite": "eddsa-jcs-2022",
+            "created": "2026-10-20T00:00:00Z",
+            "verificationMethod": "did:key:z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj#z6MkvWZewdy3fHn65T4SSYwhBtxivtta1WQEp1zWaLSwP4vj",
+            "proofPurpose": "assertionMethod",
+            "proofValue": "z61K8X8UerP7UXmLEXRyE9t887GUXEsVFECbYY3bFgNikWC6VBAJD32XQhdwQ7k2k9cw1CHvrhqShaLTfBhUKtasH"
+          }
+        ]
+      },
+      "commitment": {
+        "did": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+        "method_history_head": "sha256:57ca59094697199368082ffe0976453d4b9a989e148afd90b4d6e4157b467a19",
+        "version_id": "1-QmYbZjuUYKpZFcehzET49wDERVmW8z53SkHzQZXD6PJHiq"
+      },
+      "projected_core_id": "ak:did_core:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC"
+    },
+    {
+      "evidence_id": "native_realm_actor_manager_transition",
+      "adapter_version": "did:webvh:1.0",
+      "native_history_ref": "realm-actor-content-backup-fixture.json#/native_history",
+      "native_entry_index": 2,
+      "verified_entry": {
+        "versionId": "3-QmT8Q5CNhtnoseap1XCR6Lt6A3hQizV88qynP7gF8RJnEu",
+        "versionTime": "2026-10-20T00:02:00Z",
+        "parameters": {
+          "updateKeys": [
+            "z6MktnTdkL6pctG9M9F9MaAZW33iozYnWADS3YWwbH5JuBFe"
+          ],
+          "nextKeyHashes": [
+            "QmUnHVVZJPKetqLFvSnmfu3Rp7tx2Yw9uJubrtnmEpJitA"
+          ]
+        },
+        "state": {
+          "@context": [
+            "https://www.w3.org/ns/did/v1"
+          ],
+          "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+          "verificationMethod": [
+            {
+              "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-2",
+              "controller": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+              "type": "Multikey",
+              "publicKeyMultibase": "z6MkgcTiPMbTofzVghWywkKDM7SeNYnG4jPbFxerG2rVnV8A"
+            },
+            {
+              "id": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup",
+              "controller": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+              "type": "Multikey",
+              "publicKeyMultibase": "z6LShkKf5e7b2n1XtT9GrqVQ73A7Qygpo7z7CDV5cnHxhPxA"
+            }
+          ],
+          "authentication": [
+            "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-2"
+          ],
+          "keyAgreement": [
+            "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup"
+          ]
+        },
+        "proof": [
+          {
+            "type": "DataIntegrityProof",
+            "cryptosuite": "eddsa-jcs-2022",
+            "created": "2026-10-20T00:02:00Z",
+            "verificationMethod": "did:key:z6MktnTdkL6pctG9M9F9MaAZW33iozYnWADS3YWwbH5JuBFe#z6MktnTdkL6pctG9M9F9MaAZW33iozYnWADS3YWwbH5JuBFe",
+            "proofPurpose": "assertionMethod",
+            "proofValue": "z2LqyhkXyPf7yn5MtZf8XDiatxunjZePvZyPPwCaEQ228eNSYMhYmMVttpkq3dmKhuEaNUwzxYQYzGfq9V8TjLroV"
+          }
+        ]
+      },
+      "commitment": {
+        "did": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+        "method_history_head": "sha256:c158f82874368135750783a14323fd412af08414c1dd29135b1a211b870c7c07",
+        "version_id": "3-QmT8Q5CNhtnoseap1XCR6Lt6A3hQizV88qynP7gF8RJnEu"
+      },
+      "projected_core_id": "ak:did_core:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC"
     }
   ]
 }

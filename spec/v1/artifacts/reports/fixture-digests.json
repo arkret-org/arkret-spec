@@ -286,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "16178302504577179c78aaca9043e7c75117abdff616b1652a7341902c4b538b"
+      "sha256": "50ddfe93f9c7f1bf8101af55933073780c3896bcc573a6d8fb5eeba0a1b4cec7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -433,8 +433,12 @@
       "sha256": "45db16fa810cebf9c18aba3797ca295dfb6c7bce24465c631ea4e81d8715548d"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+      "sha256": "8e7552400f33ef3c650071b2657fc47374d0e71d428b8e10564c1d383eec967d"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "2e7f4207da230988fe0d51b0b2833b35cd29cd0e0f7ccc0a19b1a288df73a006"
+      "sha256": "016da306aff6a23c899f28f66f2d50dcc3de8b556b711816401e84a2914453fc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json",
@@ -466,7 +470,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
-      "sha256": "889b8e3866cd364b5aa450ed373dc6ca131984d4dd656972e4c48c1ee12bd999"
+      "sha256": "6f31de8c02a0fc516ec1736188ab373af4b60a3cdbd595feffb06ec8e110ff44"
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
@@ -482,7 +486,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "088a6955db2d6e5e66df1938c18fafea0529ef881b8dbc0f9c0e4e995c07e2e6"
+      "sha256": "a4b375e84c8d280cad0672303a0e7cd1bdee1228c7bf0928522a4af55b45887a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",

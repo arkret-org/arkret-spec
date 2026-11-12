@@ -152,7 +152,8 @@
           "type": "object",
           "required": [
             "kind",
-            "enabled"
+            "enabled",
+            "content_backup_recipient"
           ],
           "properties": {
             "kind": {
@@ -176,6 +177,9 @@
                   true
                 ]
               }
+            },
+            "content_backup_recipient": {
+              "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
             }
           },
           "additionalProperties": false
@@ -304,7 +308,8 @@
           "type": "object",
           "required": [
             "kind",
-            "enabled"
+            "enabled",
+            "content_backup_recipient"
           ],
           "properties": {
             "kind": {
@@ -328,6 +333,9 @@
                   true
                 ]
               }
+            },
+            "content_backup_recipient": {
+              "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
             }
           },
           "additionalProperties": false
@@ -511,7 +519,10 @@
         "management_authorization_ref",
         "new_service_signature",
         "next_resolution",
-        "method_history_evidence"
+        "method_history_evidence",
+        "next_content_backup_recipient",
+        "content_backup_inventory_digest",
+        "content_backup_handover_digest"
       ],
       "properties": {
         "expected_manager_revision": {
@@ -548,9 +559,19 @@
         },
         "method_history_evidence": {
           "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "next_content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "content_backup_inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "content_backup_handover_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": " The next archive recipient MUST be fresh and independent. Before signing the new Service acceptance, the new manager MUST durably import all retained-root old recipient private keys, original declarations and complete custody indices covered by content_backup_handover_digest. Digest equality or an acceptance signature alone is not physical custody. Switching preserves owner paused until every required scope has a fresh series and complete retained coverage. content_backup_inventory_digest MUST match the complete physically retained all-scope archive inventory rederived under the same paused full-Actor namespace lock at acceptance. Native first-PUT, series and recipient changes increment the persisted archive_revision, while identical replay does not. The private handover manifest includes that exact inventory digest; neither local ACK journal nor new Service self-reported count proves completeness."
     },
     "manager_acceptance_transcript": {
       "type": "object",
@@ -566,7 +587,10 @@
         "new_registration_ref",
         "management_authorization_ref",
         "next_resolution",
-        "method_history_evidence"
+        "method_history_evidence",
+        "next_content_backup_recipient",
+        "content_backup_inventory_digest",
+        "content_backup_handover_digest"
       ],
       "properties": {
         "actor_id": {
@@ -606,10 +630,20 @@
         },
         "method_history_evidence": {
           "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "next_content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
+        },
+        "content_backup_inventory_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "content_backup_handover_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
         }
       },
       "additionalProperties": false,
-      "x-arkret-signature-domain": "ak.realm_actor_manager_acceptance_signature.v1"
+      "x-arkret-signature-domain": "ak.realm_actor_manager_acceptance_signature.v1",
+      "description": " The next archive recipient MUST be fresh and independent. Before signing the new Service acceptance, the new manager MUST durably import all retained-root old recipient private keys, original declarations and complete custody indices covered by content_backup_handover_digest. Digest equality or an acceptance signature alone is not physical custody. Switching preserves owner paused until every required scope has a fresh series and complete retained coverage. content_backup_inventory_digest MUST match the complete physically retained all-scope archive inventory rederived under the same paused full-Actor namespace lock at acceptance. Native first-PUT, series and recipient changes increment the persisted archive_revision, while identical replay does not. The private handover manifest includes that exact inventory digest; neither local ACK journal nor new Service self-reported count proves completeness."
     },
     "control_http_metadata": {
       "type": "object",
@@ -729,6 +763,10 @@
         "next_control_method_kid": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
+        "next_content_backup_recipient": {
+          "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient",
+          "description": "Optional non-null replacement frozen in the new-control acceptance transcript and accepted begin original. Absence preserves the current recipient. Finish MUST install exactly this candidate and cannot inject a different key."
+        },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
@@ -823,6 +861,9 @@
             },
             "next_control_method_kid": {
               "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "next_content_backup_recipient": {
+              "$ref": "./realm-actor.schema.json#/$defs/content_backup_recipient"
             },
             "expires_at": {
               "$ref": "./time.schema.json#/$defs/timestamp"
@@ -951,6 +992,36 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 1048576
+    },
+    "content_backup_recipient": {
+      "type": "object",
+      "required": [
+        "key_agreement_ref",
+        "hpke_suite",
+        "public_key_base64url"
+      ],
+      "properties": {
+        "key_agreement_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "hpke_suite": {
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "realm-actor.schema.json#/$defs/content_backup_recipient/properties/hpke_suite",
+            "owner": "realm-actor.schema.json#/$defs/content_backup_recipient/properties/hpke_suite",
+            "values": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1"
+            ]
+          }
+        },
+        "public_key_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Archive-only X25519 public key. The accepted native declaration MUST bind this exact key_agreement_ref to the same canonical non-low-order 32-byte public key in the independently verified actor DID keyAgreement at that declaration. Never infer authorization from a current DID document. The private key belongs to a separate manager-only custody capability, not a Device Welcome HPKE key, daily control key, update seed or authoring-store KEK."
     }
   },
   "$ref": "#/$defs/create_payload"

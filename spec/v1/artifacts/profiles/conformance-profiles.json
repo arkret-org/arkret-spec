@@ -584,7 +584,8 @@
         "vector_evidence": {
           "vectors": [
             "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
-            "ak.vector.webrtc.media_plaintext_downgrade.v1"
+            "ak.vector.webrtc.media_plaintext_downgrade.v1",
+            "ak.vector.realm_actor.content_backup.v1"
           ],
           "decision_points": [
             {
@@ -612,6 +613,23 @@
                 {
                   "fixture_ref": "fixtures/webrtc-media-plaintext-fixture.json",
                   "case_id": "no_media_key_is_published_on_any_of_the_three_refusals"
+                }
+              ]
+            },
+            {
+              "id": "native_archive_recipient_is_manager_only_and_publication_is_not_faked_by_local_freeze",
+              "requirement": "Native RealmActor root-only Device publication uses accepted original recipient/authority and exact scope series with real HPKE/Ed. The private archive key stays in an independent manager-only capability; no fake Account/PCR or local-freeze-as-PUT. Canonical vectors prove byte/shape/source refusal; real physical PUT, storage/import completeness and process isolation require separate runtime/data-flow audit evidence.",
+              "vectors": [
+                "ak.vector.realm_actor.content_backup.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/realm-actor-content-backup-fixture.json",
+                  "case_id": "native_archive_recipient_requires_original_independent_private_key"
+                },
+                {
+                  "fixture_ref": "fixtures/realm-actor-content-backup-fixture.json",
+                  "case_id": "native_local_freeze_needs_verified_reference_admission_before_publication"
                 }
               ]
             }

@@ -776,11 +776,12 @@
         ]
       }
     },
-    "approval_actor_ids": {
+    "approval_principal_ids": {
       "type": "array",
       "items": {
         "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      }
+      },
+      "description": "Explicit distinct-principal approval roster of DidCoreId values, as defined by constraint-schema section 9.1. These are principal identities, not ActorId or AccountId carriers. The rename changes no approval threshold, identity, authorization or vote semantics; no old-name alias is accepted."
     },
     "approval_relation": {
       "type": "string",
@@ -791,7 +792,7 @@
         "realm_admin",
         "custom"
       ],
-      "description": "Responsibility classification of this grant explicit approval_actor_ids roster. It never creates a second dynamic roster or supplies action/scope capability. Missing explicit roster cannot satisfy approval.",
+      "description": "Responsibility classification of this grant explicit approval_principal_ids roster. It never creates a second dynamic roster or supplies action/scope capability. Missing explicit roster cannot satisfy approval.",
       "x-arkret-value-ownership": {
         "class": "owned_symbol",
         "authority": "grant-constraint.schema.json#/properties/approval_relation",

@@ -1067,6 +1067,18 @@
         ],
         "note": "All source completeness, link/account uniqueness, bounded cardinality, current policy and membership gates are evaluated at one accepting Realm authority cut."
       }
+    },
+    {
+      "state_kind": "realm_actor_key_backup_active_series",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/current_realm_actor_key_backup_active_series",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "identity/key-management.md native Realm actor archive series",
+          "extensions/realm-actors.md native content backup"
+        ],
+        "note": "Exact full Realm actor, exact Realm/Circle scope and secret_storage. Current manager selects; Device only consumes authenticated public next_prepare_input and cannot select series or read other scope predecessors."
+      }
     }
   ],
   "call_current_contract": {

@@ -726,6 +726,35 @@ def check_resolution_commitment_coverage(lint: Lint) -> None:
         if not isinstance(entry, dict) or not isinstance(commitment, dict):
             lint.fail(vector_path, f"{evidence_id} must carry verified_entry and commitment")
             continue
+        if "native_history_ref" in row:
+            from tools.realm_actor_contract import verify_native_recovery
+            try:
+                ref = row["native_history_ref"]
+                filename, separator, pointer = ref.partition("#")
+                if (not separator or not pointer.startswith("/") or Path(filename).name != filename
+                        or not filename.endswith(".json")):
+                    raise ValueError("native history must name an exact fixture JSON Pointer")
+                document = load_json(lint, ARTIFACTS / "fixtures" / filename)
+                history = pointer_get(document, pointer)
+                verify_native_recovery(history)
+                index = row.get("native_entry_index")
+                if type(index) is not int or not 0 <= index < len(history["log_entries"]):
+                    raise ValueError("native entry index is outside its verified chain")
+                original = history["log_entries"][index]
+                if entry != original:
+                    raise ValueError("verified entry differs from its exact native original")
+                did = original["state"]["id"]
+                expected = {"did": did, "method_history_head": "sha256:" + hashlib.sha256(canonical_json(original).encode("utf-8")).hexdigest(),
+                            "version_id": original["versionId"]}
+                if commitment != expected:
+                    raise ValueError("commitment does not recompute from its verified native chain entry")
+                if row.get("projected_core_id") != "ak:did_core:webvh:" + did.split(":", 3)[2]:
+                    raise ValueError("projected core does not follow the verified native adapter")
+                if row.get("adapter_version") != "did:webvh:1.0":
+                    raise ValueError("native adapter version differs")
+            except Exception as error:
+                lint.fail(vector_path, f"{evidence_id} native resolution evidence invalid: {error}")
+            continue
         parameters = entry.get("parameters")
         state = entry.get("state")
         scid = parameters.get("scid") if isinstance(parameters, dict) else None

@@ -23,7 +23,7 @@ see_also:
 ## 1. Surface 分层
 
 - `/_arkret/gate/*` 是无 Realm 会话前置流程；它不能接纳 Realm Event。
-- `/_arkret/self/*` 由已认证账号调用自己的 Account Station。
+- `/_arkret/self/*` 由已认证主体调用其登记的 own Station：Account 使用自己的 Account Station；Realm Actor 仅在明确登记的原生角色中直达所属 Realm 当前治理方，不伪造账号或授予一般 Service self 权。
 - `/_arkret/peer/*` 只用于验证过的 Station-to-Station 转发、复制和计划 handoff。
 - `/_arkret/open/*` 只返回明确登记的公开对象；返回 locator 不等于证明 authority。
 
@@ -106,6 +106,85 @@ Station-to-Station binding。
 
 机器门禁：`tools/artifact_lint` 的 `request_material_supply` 与 `fsm_reachability`，
 随 release gate `--strict` 强制执行；例外表与本节双向绑定（门禁查表 + 反向校验行未失效）。
+
+#### 2.2.5 Realm Actor 原生备份角色与供给（normative）
+
+沿既有 keys/backups operation，不新增 backup resource GET、batch unlock、raw-R RPC 或另一个认证服务。
+Account／Agent 原分支保持原 session／proof 合同；原生 Realm Actor 角色必须按 exact operation、完整 subject、
+actual HTTP method/path 和已登记签名场景选择，混合 SessionGrant／DPoP、managed Device、control 或 Service
+凭据必须拒绝。self URL 前缀不把原生 Realm Actor 伪装成 Account，也不授权任意 Service 使用 session 例外。
+
+| 既有 operation | 新原生角色与边界 |
+| --- | --- |
+| ak.self.keys.backups.resource.replace.v1 | 真实 current managed Device；只 PUT 自己 exact scope 的 root-only native envelope，重核 auth_binding、原 Device／device_generation、manager、双业务 gates、安装／scope/action、当前 MLS root、recipient 与 scoped series |
+| ak.self.keys.backups.read.list.v1 | Device 的 purpose=series_predecessor 只读本 Actor/exact scope/current selected series 当前 head（空 series 为空，禁 cursor／series_id／旧包枚举）；manager 仅 purpose=archive_inventory 全量库存分支，后者 Device／Account／Agent 禁用 |
+| ak.self.keys.backups.command.issue_unlock_challenge.v1 | current Device 的 series_predecessor 或 current manager Service 的 archive_recovery，按独立 closed native 请求签发单次 exact-object challenge |
+| ak.self.keys.backups.command.unlock.v1 | 相同原生 role／purpose、完整 challenge 与真实签名；Device 仅完整当前 head＋最小 admission，Manager 已知单包 archive 为完整原包＋native_source，不返回私钥／R／活跃 MLS state |
+| ak.edge.applet.command.transaction.v1 | 沿既有 events[] 封闭入口提交真实 Service 原签 ak.key_backup.active_series 的 native realm_control 分支；已登记身份 create／begin／reset／manager.change 仍按各自原签入口，不新增 Service self/events Session 或 Bearer 权 |
+| ak.self.realm_actor.read.material.v1 | Device 只新增 current 本 Actor recovery＋exact scope series 两公共 selector 和合格 bound next_prepare_input；event 保旧仅自身 exact authorize 原件，不加声明／series 控制原件读取 |
+
+列表的规范响应为 schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body，按已验角色闭合
+为原 Account／Agent keys_backups_page、原生 Device realm_actor_backup_series_head_response_body 或 Manager
+realm_actor_archive_inventory_page；只有真正分页对象保留 Page 名称及 continuation 合同。unlock-challenge 使用
+schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body，原 Account／Agent
+keys_backups_unlock_challenge 与原生 realm_actor_backup_unlock_challenge 分支互斥。unlock 使用
+schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body；不能用 bare KeyBackup 资源类型
+替代跨角色响应。OpenAPI 的三操作均经各自 typed response-body 组件绑定同一 schema_ref，原 Page／Challenge
+组件仍只表示原 closed Account／Agent 载体。
+
+四个 native Device 备份操作仅作为 subject-only non-Event 执行 Controller 原签 DeviceAuthorize scope/action
+上界，不要求或铸造 Service parent／terminal child 业务 grant；真实 Device／实例／generation／exact scope、当前
+manager／registration／installation／consent／status／membership／MLS／Policy／quota 仍全部核验。该例外不授
+其它操作或实际业务 Event 的 grant／审批权，见 [device-lifecycle §16.2](../crypto-media/device-lifecycle.md#162-已登记-operation-的配对消费normative)。
+
+managed Device 的 RFC9421 场景绑定 Arkret-Managed-Device、operation、destination 和实际 target URI，body
+存在时覆盖 content digest，PUT 还覆盖原幂等键。Service 的管理请求使用实际当前 manager Service 的独立签名、
+source/destination 与重放窗口，不使用 Device key、裸 control 方法或自报 manager flag；每次重查原 manager
+绑定／登记及该原生维护操作的权限，不以业务安装或普通 grant 冒充归档权。
+原生 series Event 的 edge transaction standing-manager 分支须 current registration／manager、exact known scope、
+recipient／refs／CAS 与 pending=null；拒 owner／governance 任一 retired 和 Realm terminal，但不以业务 active
+install／grant、owner／governance paused 或 identity recovery disabled 阻断。该窄分支不放宽 Device PUT 或其它
+Service 写入；Device PUT 仍完整核 current installation／consent／业务状态／scope/action／MLS epoch。
+unlock proof 的 manager_ref／recovery_ref 与 requester Device／generation 属于本次当前资格，recipient_ref 则是
+目标原包的历史 accepted 声明，独立历史验并与完整 signed envelope_digest 绑定，不强逼等于当前 recipient；
+原 target auth_binding／admission 仍全冻结。
+
+普通原生 list 的 realm_actor_id 是 composite identifier，OAS 必须 style=deepObject、explode=true：
+realm_actor_id[realm_id] 与 realm_actor_id[principal_id] 必须同时出现，按标准 percent encoding 编码括号和值。
+Device 的 circle_id 缺席选择该 Realm，出现只选择同 Realm 的一个 exact Circle；series_predecessor 仅当前
+head，禁止 cursor／limit／series_id／backup_kind／previous-series 枚举；Manager inventory 仅保适用 limit／cursor，
+禁止 scope／series／backup_kind 子集筛选。两分支均禁止 agent_id 混用、
+任意 JSON query string、partial／重复／未知键。SDK raw-pair parser 是唯一协议解析器，不能依赖框架静默丢弃
+未知参数。manager-only archive_inventory 明确禁止 scope／series 子集过滤，以独立 typed page、冻结 cut、
+确定排序及 inventory_digest 表达完整 first-PUT、scoped series 与原声明库存，见 content-history §3.2.5。
+
+current material 仅在本次相同 Actor／Scope 的 recovery 和原生 scoped-series 两项完整、pending=null、原 Device／
+device_generation／current series 同 cut 均有效时提供 optional non-null closed
+next_prepare_input={auth_binding,content_backup_recipient,active_series_id}。public native series current value 仅含
+active_series_id、series_pointer_version、manager_ref、recovery_ref、recipient_ref；完整 record／previous_series_ids／
+inner proof 不给 Device，selector／source／revision 仍分别绑定完整 Actor／exact Scope／class 和原接受 ref。
+Device 逐字 echo 该正式输入，不能从
+嵌套 Event 猜坐标或自行重命名、拼装引用；否则无可 author 容器并沿既有不可用合同处理。Station 负责 current
+reset→exact accepted begin 的来源验证，日常 Device 不回放控制历史。Device 的 purpose=event 仅保留自身 exact
+DeviceAuthorize，不能读取 current recipient／series、create／reset／manager.change／begin 的完整控制 Event，
+防止其 creation_scope／external_ref 等超出有限 scope 的资料泄漏。公共 metadata／typed 输入不冒充嵌套 Event
+历史来源，不授 Actor DID／governance／signer 网络发现权。Nonce、request epoch、audience、签名和 reader 生命周期
+全部保留；该容器不授 writer 资格，也不返回任何 secret。Manager full archive/source 仍保完整原件。
+
+原生 root PUT 禁止 expires_at（含 null），head metadata 也无 expiry。已有 first-PUT 原包／source／索引／
+固定结果与 coverage 不得被通用 expiry 过滤／清理隐藏或删除；保管与充分替代合同独立执行，Account／Agent
+原 expiry 分支不变。
+
+Device 的 head／unlock／PUT ACK 仅披露最小 signed admission；Station 独立验并保管完整原 first-PUT 权威，
+本次 bound response 绑定原公钥后 Device 验真实包 Ed。禁止下发 sibling DeviceAuthorize／其它私密 scopes、
+完整 native_source 或让 Device 自行网络发现 signer。Manager inventory／archive unlock 才按本 Actor custody
+目的交付完整源，两角色响应必须封闭互斥，不接受 Device fullSource 参数。
+
+manager.change 另签 content_backup_inventory_digest，并在 owner paused、同 Actor root namespace 锁内与治理方
+当前持久全库存重算值比较；new-Service acceptance 的 content_backup_handover_digest 还绑定真正导入的私钥／
+旧声明／库存和上述摘要。不能从 signed digest／本地 journal 推定完整保管，不为尚未 accepted 的新 recipient
+伪造 PUT ACK 或引入 staging。首次 PUT、archive inventory、pointer、recipient、删除与结果保管共用明确原生 cut，
+失败／并发丢方／丢响应不解除最后充分根义务；服务端不取得 archive private key。
 
 ### 2.3 幂等与不确定结果
 
@@ -735,9 +814,9 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.invite_receive_policy.resource.replace.v1` | `PUT /_arkret/self/invite-receive-policy` | - | - | request_schema_ref=schemas/invite-receive-policy.schema.json; response_schema_ref=schemas/invite-receive-policy.schema.json |
 | `ak.self.invites.command.dispatch.v1` | `POST /_arkret/self/invites/dispatch` | - | - | request_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body; response_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_response_body |
 | `ak.self.keys.backups.command.issue_delete_challenge.v1` | `POST /_arkret/self/keys/backups/{backup_id}/delete-challenge` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge |
-| `ak.self.keys.backups.command.issue_unlock_challenge.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge |
-| `ak.self.keys.backups.command.unlock.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body; response_schema_ref=schemas/key-backup.schema.json |
-| `ak.self.keys.backups.read.list.v1` | `GET /_arkret/self/keys/backups` | - | - | response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_page |
+| `ak.self.keys.backups.command.issue_unlock_challenge.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_response_body |
+| `ak.self.keys.backups.command.unlock.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_response_body |
+| `ak.self.keys.backups.read.list.v1` | `GET /_arkret/self/keys/backups` | - | - | response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body |
 | `ak.self.keys.backups.resource.delete.v1` | `DELETE /_arkret/self/keys/backups/{backup_id}` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body |
 | `ak.self.keys.backups.resource.replace.v1` | `PUT /_arkret/self/keys/backups/{backup_id}` | - | - | request_schema_ref=schemas/key-backup.schema.json; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body |
 | `ak.self.keys.command.claim.v1` | `POST /_arkret/self/keys/claim` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_claim_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_claim_response_body |

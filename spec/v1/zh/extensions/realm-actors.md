@@ -81,14 +81,15 @@ Device 业务授权、Circle／Sidecar 创建或通用 capability 的 effective 
 | `ak.realm.actor.recovery.begin` | 当前管理 Service | §10 的持续恢复权、原生计划、新 PoP；先暂停并隔离旧设备 |
 | `ak.realm.actor.control.reset` | 当前管理 Service | §10 的 exact pending 与已发布原生证据；完成同身份恢复 |
 | `ak.realm.actor.recovery.set` | 有权 Account 的真实 Device | 具名 manage 与适用审批，设置恢复许可；不授业务权限 |
+| `ak.key_backup.active_series`，原生分支 | 当前 manager Service | §10.9；realm_control 内维护完整 Actor／exact scope 的原生 pointer，不借 Human／Device 签名 |
 | `ak.device.authorize`／`ak.device.revoke` 的 realm 分支 | 主体当前控制方法 | §5 的有限设备授权或真实撤销安全事务 |
 | `ak.profile.create`／`ak.profile.update` 的 realm 分支 | 主体当前控制方法 | 本人私有资料维护；全主体 create-once 与后继 CAS；公开使用另核实际 scope 的 publish／review |
 
-上述控制分支都只写本主体所在 realm_control。Service 或 Device 签名 **MUST NOT** 冒充控制方法；两个恢复 Service 分支按§10单独验证。
+上述控制分支都只写本主体所在 realm_control。Service 或 Device 签名 **MUST NOT** 冒充控制方法；恢复 Service 分支及§10.9的 scoped active-series manager-maintenance 分支分别单独验证。
 create 与业务 Event 的 `applet_id`、真实 `authorization_ref` 仍必填且精确绑定。
 本人控制分支要求 `applet_id` 等于 accepted identity，**MUST NOT** 携带 `executed_by` 或 envelope
 `authorization_ref`；这是精确的 realm actor＋允许 kind＋控制方法例外，不是全局取消 Applet 授权。
-governance status 与 recovery.set 不命中例外。recovery.begin／control.reset 是仅限当前 manager Service 的另一封闭例外，按§10核 accepted 恢复权且不带业务 authorization_ref。manager.change 在 payload 中另持真实 `management_authorization_ref`。
+governance status 与 recovery.set 不命中例外。recovery.begin／control.reset 是仅限当前 manager Service 的另一封闭例外，按§10核 accepted 恢复权且不带业务 authorization_ref。manager.change 在 payload 中另持真实 `management_authorization_ref`。原生 ak.key_backup.active_series 另按§10.9只允许真实 current manager Service 维护 exact scope pointer，不授业务例外。
 
 创建保留 `ak.applet.bot.provision`／`ak.applet.ghost.provision`，按 candidate.creation_scope 验权。
 创建许可与安装是不同事实；安装不会自动创建主体、Device、成员、Profile、grant child 或 MLS 成员。
@@ -121,7 +122,8 @@ realm_control；revision 复用 `{commit_id,stream_position}`，来自原接受 
 | realm_actor_manager | actor_id | service_id、registration_ref、binding_ref；create／manager.change |
 | realm_actor_status | actor_id、gate | active／paused／retired；create 两行／status.set 指定行／recovery.begin 的 owner paused |
 | realm_actor_device_generation | actor_id | current_device_generation_ref；create=1，devices.reset／manager.change／recovery.begin=old+1；control.reset 不再递增 |
-| realm_actor_recovery | actor_id | kind、enabled、pending；create／recovery.begin／control.reset／recovery.set／status.set(retired) |
+| realm_actor_recovery | actor_id | kind、enabled、pending、content_backup_recipient、content_backup_recipient_ref；create／recovery.begin／control.reset／manager.change／recovery.set／status.set(retired) |
+| realm_actor_key_backup_active_series | actor_id、effective_scope、backup_kind | scope 独立的原生 series pointer；ak.key_backup.active_series 的 current manager Service 分支 |
 | realm_actor_device_authorization | actor_id、device_id | 准确 realm Device 授权及原 authorize EventId；device.authorize |
 | realm_actor_device_revocation_proposals | actor_id、device_id | 原不可变 proposal 与真实命令结果折叠；device.revoke |
 | realm_actor_profile | actor_id | profile_id 与允许的 Profile 值；profile.create／update |
@@ -199,7 +201,7 @@ RFC9420 BasicCredential 使用完整 ActorId 的 canonical bytes；Device 与 ke
 唯一创建 payload 是 `ak.schema.realm_actor_create.v1` 的 RealmActorCreateCandidate，包含完整 actor、
 Applet、Service、角色、128-bit 以上随机 request_id、creation_scope、registration_ref、
 creation_authorization_ref、initial_resolution、完整 method_history_evidence、control_method_kid、expires_at、
-仅 Ghost 必填的 external_ref、control_signature、recovery={kind:"manager_native",enabled:true}。所有精确成员以 closed schema 为准。
+仅 Ghost 必填的 external_ref、control_signature、recovery={kind:"manager_native",enabled:true,content_backup_recipient}；content_backup_recipient 的原签与密钥职责见§10.9。所有精确成员以 closed schema 为准。
 WebVH 证据遵守既有 1 MiB／4096 log entries 等限制。主体控制方法必须由这些原生证据授权。
 
 candidate.control_signature 使用 `ak.realm_actor_creation_signature.v1`，签完整 candidate 仅删除此签名。
@@ -359,6 +361,13 @@ exact ScopeRef、实际上传 Actor、原 Device／authorization 实例、接受
 新站必须实际导入并重导出比对，不能只验证 manifest 摘要后宣布就绪。
 缺任一接受所需私态或未导入已签 acceptance，均拒绝启用新任期；旧站不得在换任后接受新写。
 不转 Applet 私钥／私有 MLS 状态，不把管理记录转交宣称为无原生材料的身份恢复。
+原生内容根还 MUST 导入完整首次 PUT 库存、密文／原始准入来源、scoped active series、challenge／nonce／幂等结果及最后充分包义务；
+没有业务 Event 引用的根也在其中。所有这些 native first-PUT 原包／完整原源／索引／scoped pointers／
+archive_revision／挑战去重固定结果／coverage 必须同 cut 纳入既有 management_private_state canonical 私有导出，
+其 state_digest／既有 handoff 承诺覆盖全集，新站从真实导入存储重导出比对；缺未引用包、错 cut、只比较 manifest
+均不可激活。精确绑定依 [content-history §3.2.4](../crypto-media/content-history.md#324-完整保管管理转交与治理交接)
+与 [authority-commit-log §10](../sync/authority-commit-log.md#10-applet-管理私态的既有交接)，不新建 carrier／API。
+它们随所属 Realm 的合法交接迁入，manager-only recipient 私钥／解锁能力与成员 MLS 私态不进入治理数据库，见§10.9。
 
 规范验证至少覆盖身份隔离、独立流初建、候选／审批篡改、正常／错误轮换、Device PoP／generation／CAS、
 material 值与 nonce／requester_actor_id／cut 绑定、双 gate／撤权竞态、管理转交、完整导入与隐私十组。
@@ -390,7 +399,7 @@ schema 验证只证明结构；真实签名 KAT、跨字段接纳、事务效果
 
 与未公开 next key 的分离检查使用 control 公钥的标准 multikey hash 对比 nextKeyHashes，不要求提前公开 next 私钥或破坏预承诺隐藏性。验证者可核验已登记材料和证明，不能据创建成功声称已经证明未来备份一定可恢复。
 
-创建候选新增 closed `recovery: {kind:"manager_native", enabled:true}`，其内容进入既有候选持钥签名、Service Event 和创建批准摘要。创建检查 WebVH inception 的 active update key 和非空 next commitment，并验证独立 control 方法。创建即初始化恢复 current，不等待首设备，也不把普通安装或普通成员资格当作恢复权。
+创建候选新增 closed `recovery: {kind:"manager_native", enabled:true, content_backup_recipient}`，其内容进入既有候选持钥签名、Service Event 和创建批准摘要。创建检查 WebVH inception 的 active update key 和非空 next commitment，并验证独立 control 方法。创建即初始化恢复 current，不等待首设备，也不把普通安装或普通成员资格当作恢复权。
 
 #### 10.1.2 使用标准 WebVH 原生连续性，不发明管理者万能签名
 
@@ -417,7 +426,7 @@ schema 验证只证明结构；真实签名 KAT、跨字段接纳、事务效果
 
 ### 10.2 Realm 恢复授权与停用规则
 
-新增第九类 current `realm_actor_recovery`，selector 为完整 `actor_id`，来源为所属 Realm 的 `realm_control`，revision 沿用原 `{commit_id,stream_position}`。value 为 closed `{kind:"manager_native", enabled:boolean, pending:null|RecoveryIntent}`。create 初始化 enabled=true、pending=null；不单独复制一个可能与 manager 漂移的 service_id。恢复每次同时读取并锁定本 row 和 `realm_actor_manager`。
+身份恢复 current `realm_actor_recovery`，selector 为完整 `actor_id`，来源为所属 Realm 的 `realm_control`，revision 沿用原 `{commit_id,stream_position}`。value 为 closed `{kind:"manager_native", enabled:boolean, pending:null|RecoveryIntent, content_backup_recipient, content_backup_recipient_ref}`，两个内容归档成员依§10.9。create 初始化 enabled=true、pending=null；不单独复制一个可能与 manager 漂移的 service_id。恢复每次同时读取并锁定本 row 和 `realm_actor_manager`。
 
 `RecoveryIntent` 固定为 `{begin_ref,candidate_digest,manager_revision,control_revision,device_generation_ref}`：begin_ref 是原接受 begin 的完整 CommittedEventRef；candidate_digest 为该 Event payload 的 SHA256(JCS)，包含新方法签名；两项 revision 冻结 begin 前态，device_generation_ref 为 begin 产生的新代次。精确目标和原生计划从 begin_ref 对应不可变原件取得，不接受另一份未绑定的候选副本；begin_ref 在 Commit 定值后同事务写入，不进入自身签名原像。策略前态从该原件的 recovery_ref 追溯。
 
@@ -431,7 +440,7 @@ schema 验证只证明结构；真实签名 KAT、跨字段接纳、事务效果
 
 WebVH 日志发布与 Station 接纳不是同一数据库事务。不能假装一次跨服务写天然原子：先发布新日志可能使旧控制方法已失效，Station 却尚未接受新方法；只在最后撤旧设备又留下恢复期间旧设备继续写入的窗口。
 
-新增 `ak.realm.actor.recovery.begin` 和 `ak.realm.actor.control.reset` 两个 durable Event，都进入原 `realm_control`。加上 recovery.set，本轮是**新增三个 Event、一个 current family、一个 detached context**；不新增 Realm、Account、PCR、SessionGrant 或另一个恢复 HTTP 服务。
+`ak.realm.actor.recovery.begin` 和 `ak.realm.actor.control.reset` 两个 durable Event 都进入原 `realm_control`。加上 recovery.set，本节身份 reset 使用三个已登记 Event、realm_actor_recovery current 与原 detached context；不新增 Realm、Account、PCR、SessionGrant 或另一个恢复 HTTP 服务。
 
 #### 10.3.1 begin：冻结精确意图，先隔离旧设备
 
@@ -530,15 +539,133 @@ recovery.set 将 enabled 设为相同值的新 Event 以 failed_precondition 拒
 
 ### 10.8 恢复 Service 的私有历史验签事实
 
-`realm_recovery_service` 仅用于 `realm.actor.recovery.begin` 与 `realm.actor.control.reset` 的原生产者事实。字段顺序为 kind、event_id、actor_id、target_actor_id、verification_method、public_key_base64url、accepted_at、applet_id、registration_epoch、registration_ref、manager_ref、recovery_ref；全部必填，禁止额外字段。actor_id MUST 为实际签名 Service，target_actor_id MUST 为完整 Realm ActorId；Event 的 Realm、Applet、目标主体和记录 MUST 一致。该事实不含业务 authorization_ref，不改变原恢复资格。
+`realm_recovery_service` 仅用于 `realm.actor.recovery.begin`、`realm.actor.control.reset` 及§10.9的原生 ak.key_backup.active_series manager-maintenance 分支的原生产者事实。字段顺序为 kind、event_id、actor_id、target_actor_id、verification_method、public_key_base64url、accepted_at、applet_id、registration_epoch、registration_ref、manager_ref、recovery_ref；全部必填，禁止额外字段。actor_id MUST 为实际签名 Service，target_actor_id MUST 为完整 Realm ActorId；Event 的 Realm、Applet、目标主体和记录 MUST 一致。该事实不含业务 authorization_ref，不改变原恢复资格。
 
 registration_ref MUST 是接纳截点有效且经方法原生验证的 Applet Service 登记原件的完整 CommittedEventRef；registration_epoch MUST 绑定该登记，不能用业务安装有效性代替。verification_method 与 public_key_base64url MUST 来自该登记在 accepted_at 的真实 DID 历史，并验证原 Event producer proof。
 
-manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_revision；reset 的 manager_ref MUST 满足 expected_manager_revision。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。登记、管理关系、恢复 enabled／pending、双 gate、原生恢复材料及 CAS 仍依本节原接纳规则检查，缺失或不一致 MUST 拒绝且零副作用。
+manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_revision；reset 的 manager_ref MUST 满足 expected_manager_revision。原生 active-series 的两引用 MUST 逐字匹配其 record.manager_ref／recovery_ref，并以 record.actor_id 绑定目标。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。身份恢复分支仍核 enabled／pending、原生恢复材料与原 gates／CAS；原生 series 分支不以 enabled 作 gate，pending 必须为空，owner／governance paused 及 identity recovery disabled 本身不阻断该维护，但任一 gate retired 或 Realm terminal 均拒绝，不授业务权限。缺失或不一致 MUST 拒绝且零副作用。
 
 原 Event、fact、绑定 fact 摘要的 RealmCommit、恢复 current、generation／fence 及请求结果 MUST 在同一事务冻结。fact 不含自身 target Commit，不能形成摘要环。治理交接 MUST 按完整私有 signer inventory 移交这些原件；缺项或篡改 MUST 阻止导入激活。历史验签沿原接受治理链验证 Commit、fact 摘要及原 Service 签名，不重新要求当前安装、当前业务 grant 或当前管理者仍有效。
 
 该分支只经 realm-actors/material 具名 exact event、获准私有审计及治理私有移交披露；普通成员 signer query、scan、snapshot、subscribe 和普通 peer 复制不得返回该材料。记录只含原签名公钥及授权来源坐标，不含私钥、原生日志或恢复计划。卸载及业务 grant 撤销后的合法恢复 MUST 可验证；错主体、错 Service／登记、错 manager／recovery 原写入、错误签名、越权披露 MUST 拒绝。本条不修改普通 Account／组织／个人 Agent 的身份与恢复，也不新增恢复 HTTP 接口。
+
+### 10.9 原生内容根 recipient 与归档保管（normative）
+
+本节扩展既有 recovery current，不增加 Account、PCR、Device generation 类型或恢复 HTTP 服务。
+机器真源为 realm-actor.schema.json 的 content_backup_recipient、对应 current-state writer、
+key-backup.schema.json 的原生分支与 key-backup-active-series.schema.json 的原生 manager record。
+规范参考转录为 `ak.vector.realm_actor.content_backup.v1`，登记于 [vector registry](../../artifacts/registry/vector-registry.json)，
+原始输入见 [native backup fixture](../../artifacts/fixtures/realm-actor-content-backup-fixture.json)。该参考只覆盖协议
+转录／签验及其反例，不替代实际服务 PG 事务、丢响应／冷重启、跨站网络或真实 archive 私钥／根包耐久保管证据。
+
+**原签写入与保持**：create_payload.recovery 及 creation transcript 必带 content_backup_recipient；
+受 candidate control signature、Service Event、创建许可及适用审批共同认证。descriptor 的字段依次为
+key_agreement_ref、hpke_suite、public_key_base64url；必须是独立有效 X25519 archive key，且与原声明时
+该主体 DID keyAgreement 方法的 raw key 相同。manager 先耐久保管相应私钥再签候选，不能先接受不可恢复公钥。
+普通 Device、control、DID update／next 或 Service 日常 signing key 不能兼任该 archive key。
+
+recovery begin 及其新控制 PoP transcript 可带非 null next_content_backup_recipient；缺席保持现值，
+出现则作为原 pending 候选冻结。control.reset 不接收另一份 replacement key，只从 accepted begin 和已发布、
+完整验真的原生方法证据安装同一候选。manager.change 及 new-Service acceptance transcript 必带
+next_content_backup_recipient、content_backup_handover_digest 和 content_backup_inventory_digest；future recipient 必须 fresh 且不同于旧值。
+新 Service 仍须完成§7／§10.6 的真实原生更新权交接，不能仅凭备份密钥或摘要接管主体。
+
+current realm_actor_recovery 必带 content_backup_recipient 与 content_backup_recipient_ref。
+后者为安装该 descriptor 的 create／reset／manager.change 的完整 CommittedEventRef，在接受 Commit 定值后
+同事务派生，不自指签名原像。control.update、devices.reset、status 和 recovery.set 保留二者，
+即便这些 Event 改变 recovery row 的 current revision；control.reset 的 accepted begin 未提供 replacement 时也必须
+同时保留原 descriptor／recipient_ref，仅真正 replacement 才以该 reset 的原件安装新 ref。
+不能从最新 row revision 猜原 recipient 声明。
+recovery.enabled 继续只管同身份 reset。其 false 不撤销 active Device 的合法备份 PUT，也不替换 recipient；
+recovery pending 仍按原合同 fence 业务 Device。显式 recipient 替换后，相关 scope 必须先有绑定新 recipient 的
+active series 才可新的 first-use，旧 writer／旧 recipient 不可借历史包复活。
+
+**scope series 唯一权威**：manager 用既有 ak.key_backup.active_series 的原生 manager-maintenance 分支，
+在该主体所属 Realm 的 realm_control 接纳。外层 actor_id 是真实 current manager Service，payload record 的
+actor_id 是完整 Realm Actor，applet_id 与目标固定；禁止 executed_by、假 Device／Account／PCR 和业务
+child authorization_ref。该窄分支不使 Service 成为普通业务 producer。record 必带 exact effective_scope、
+manager_ref、recovery_ref、recipient_ref，签名 proof 只含真实 Service method、Ed25519 算法与签名，
+不得带 device_authorize_event_id。Service 原签 durable Event 必须沿既有 ak.edge.applet.command.transaction.v1
+的 events[] 封闭入口提交，依 applet-integration §11；本分支不授 self/events Session 或 Bearer 权。
+接纳必须同时核真实 Service HTTP/producer/record 签名、current registration／manager、已登记 exact known scope、
+原 recovery／recipient／manager 来源与 scoped pointer CAS，pending 必须为 null；不依赖业务 active install／grant。
+owner／governance 任一 retired 或 Realm terminal 均拒绝；owner／governance paused 与 identity recovery.enabled=false
+本身不阻断此 standing-manager 维护。它不令其它 Service Event／Signal 或 Device PUT 绕过业务门；真实 Device
+PUT 仍核 current installation／consent／双业务状态／scope/action／MLS epoch 等完整当前条件。其私有历史 signer fact 使用 realm_recovery_service 的显式本分支，按 record.actor_id 绑定
+目标及真实 registration／manager／recovery／accepted_at，禁止泛化成任意 Service 例外。
+
+每个完整 Actor＋一个 Realm/Circle scope＋secret_storage 各自从 pointer version 1 开始，严格后继与 CAS。
+允许先选择空 series，再由真正有权的 Device 发序号0首包；选定 record 自身就是签名来源，不伪造 PCR checkpoint。
+同 manager 的普通控制轮换／Device generation 变化不自动重置 scoped pointer 或归档密钥；Device 的业务资格
+仍按最新代次与原授权独立求值。manager.change 后新 manager 按 scope 明确选择 fresh series，不能继续旧
+manager 的新写权限。current pointer、其确认 basis 和 predecessor 不得跨 Circle 互作来源。
+
+**受限材料供给**：既有 material purpose=current 对原生 Device 仅开放本 actor 的公共 recovery 与 exact scope
+active-series 两种 selector，且 Device 必须仍 current、pending 为 null、元数据 scope 与请求一致。只有本次两项
+在同一个受验 cut 完整成立、Device 原授权／device_generation 与 current scoped series 均匹配时，才可提供
+optional、非 null、closed next_prepare_input，字段精确为 auth_binding、content_backup_recipient、active_series_id。
+Device 逐字 echo 该对象，不拼装 refs、推导嵌套 Event 坐标或补默认代次；缺依赖不得返回可 author 容器。
+scoped series 的公共 current value 仅为 active_series_id、series_pointer_version、manager_ref、recovery_ref、
+recipient_ref 五字段，selector 绑定完整 Actor／exact Scope／class，source／revision 保留真实原接受 ref。
+完整 record／previous_series_ids／inner proof 不进入 Device current；Manager 库存中的完整原件仍必须保留。
+purpose=event 保持原权限，只披露本 Device 自己的 exact authorize 原件；本次不增加 current recipient 声明／
+series 或 create／reset／manager.change／begin 控制 Event 的读取权。Station 在供给前独立验完整声明／DID／series
+和 reset→accepted begin，同 cut 后只给上述公共 current／bound next_prepare_input；Device 不自行回放，也不由
+metadata／嵌套值推导 Event 坐标。此 typed 供给不冒充完整历史原件，不能泄漏 creation_scope／external_ref 或
+其它 scope 资料。manager 仍走其已认证当前管理关系的完整库存／原件分支，不因此缩减原始保管与验证义务。
+Material 的 nonce、audience、治理任期、签名、request digest、过期及 reader 生命周期门全部保留，响应不含私钥。
+
+**Device 原生存储动作上界**：只有备份 PUT／head-list／unlock-challenge／unlock 恰四个已登记 non-Event
+subject-only action 可由 current Principal control 原签纳入 DeviceAuthorize exact scope/actions，并由候选 Device
+PoP 认证完整列表；不能铸造 Service parent／terminal child grant，也不要求业务 grant。实际调用仍核真实 Device
+签名／实例／generation／窗口、exact scope/action、current manager／registration／install／consent／status／
+membership／MLS／Policy／quota，按 [device-lifecycle §16.2](../crypto-media/device-lifecycle.md#162-已登记-operation-的配对消费normative)
+封闭执行。此存储上界不授 Manager archive key／role 或真正业务 Event 的 grant／审批权限，后者仍另行全部核验。
+
+**持久根包**：原生 root envelope 的 expires_at 禁止出现（含 null），metadata 也无 expiry。首次 PUT 已形成
+持久 custody，不能被通用过期过滤／后台清理隐去或删掉；原包／来源／索引／固定结果／coverage 及最后充分根
+依 content-history §3.2 保管，Account／Agent expiry 合同不变。
+
+**Device 续链来源**：purpose=series_predecessor 的 list／challenge／unlock 只允许本 Actor、exact scope、当前
+selected series 的当前 head，空 series 返回空；禁止 cursor、任意 series_id、previous series 或旧包枚举。它仅
+交付 head metadata／完整签名密文与最小 signed admission 用于续链和 current root 识别；Station 必须独立
+保管／验完整原 first-PUT 授权闭包，Device 只在本次 own-Station bound response 验证后以 receipt 原公钥验包 Ed。
+Device 不得获得 sibling 原 DeviceAuthorize、其它 Circle scopes 或完整 native_source，也不自行查 signer／治理。此来源不授 archive key、明文根或旧 Event／业务历史读取资格。
+
+**归档私钥与换端**：archive vault 必须使用 manager-only 的独立存储／解锁 capability；Device Runtime 的
+通用 authoring KEK、DeviceRecord、RootStore 或 generic decrypt 入口均不得解开该 vault。使用同一类库或同一
+进程不证明隔离，部署必须证明日常 Device 能力拿不到该私钥／解锁材料。新 Device 只获得公共 descriptor、
+真实原生授权和允许的业务 scope；manager 的本地恢复 capability 还须核其 current 身份、membership、history
+floor、历史原件和精确 scope。输出只能是已获权 history-only 根，不构造活跃 MLS state 或公共 raw-R RPC。
+
+**manager 转交的完整性与暂停边界**：新 manager 在签 acceptance 前，必须实际私密导入所有仍承担保管义务的
+旧 recipient 私钥、原签声明、根包／完整 first-PUT 索引、scope series、覆盖、固定结果和未决意图。
+content_backup_handover_digest 绑定该完整私有 manifest 及其原生库存摘要；content_backup_inventory_digest
+必须等于治理方在实际接受 cut 重算的完整库存摘要。摘要／签名自身不证明物理导入，缺必要材料不得接受。
+转交不要求对尚未接受的新 recipient 预 PUT，也不引入 staging、伪 ACK 或另一恢复服务。
+现有 manager offer／transfer 的私有 archive 必须独立域 HPKE 封装给 new-Service 原签 offer 绑定的 fresh next
+archive public key；在核真实转交资格后交付。新 Service 必须实际 open、逐旧 key 重算公钥核原声明、核全部
+原包及同一治理库存 cut，并完成耐久导入；随后按 content-history §3.2.5 的秘密 HPKE challenge／HMAC confirmation
+roundtrip 验证实际 open，再签 public acceptance。签名／roundtrip 不单独证明物理保管，必须有真实导入验收。
+共享 Event 只携摘要、公开 recipient 与原件 refs，不裸放 private keys；治理方不取得这些私钥。
+完整库存来源必须沿 content-history §3.2.5 的 manager-only archive_inventory 分页求得，不能以本地 ACK journal
+或已提交业务 Event 子集代替。manager.change 在 owner paused、同 Actor root namespace 锁内重算并逐字比较
+content_backup_inventory_digest；库存变化、缺原作者证据或私密导入不全均拒绝接受并保持 paused。
+
+manager.change 原子安装 fresh future recipient、manager 和新 Device generation；旧 manager 立即失 current
+权限。旧 key／声明只供旧包历史验签和解封，不授权新 PUT。owner 保持 paused，直到必要 scopes 的新 pointer、
+库存／覆盖与原身份／Device／MLS安全条件全部就绪，才按原显式 resume 恢复业务。不能以启用新 key 隐瞒旧根丢失。
+同 Service 的部署搬迁不改变 manager、generation、recipient 或 series，仍严格执行单一 custody writer。
+
+**治理与部署隔离**：本主体没有独立 PCR；服务端原生根保管随所属 Realm 的合法 governance handoff 完整迁入，
+包含未被业务 Event 引用的首次 PUT 与所有去重／challenge／nonce／结果，不迁 manager 的 archive 私钥或成员
+private MLS state。Account／Agent 固定原 Station 的规则不变。各独立 Service 只沿已登记网络操作交付精确材料，
+不得连接对方数据库、共享私钥或把本地 verified 标记当对端凭证；实际来源不支持或无法证实时保持不可用。
+
+验收必须实际覆盖独立 Bot／Ghost 首次 PUT→真实 ACK→journal→业务发送、Scope/Circle 隔离、无效角色／引用／
+签名／代次／recipient 零效果、同包并发和丢响应重启、identity recovery disabled 的合法 PUT、pending／撤权竞态、
+最后充分根拒删、完整及缺项 manager archive 转交、fresh scoped series 后显式 resume、旧 manager 拒绝、
+合法 Realm handoff 的实际完整导入，以及新 Device 的 history-only 恢复；schema／reference tests 不代替真实链路。
 
 ## 11. MLS 领取与跨治理交接续跑
 
