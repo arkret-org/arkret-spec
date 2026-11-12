@@ -42,6 +42,14 @@
       "reason": "Exact semantic scope and actual authority are defined by string-profiles.schema.json#/$defs/membership_admission_handle. One failed-join admission lifecycle, scoped by its exact source and destination Realm, subject Account and covered join Event/RealmCommit. The handle only correlates the delegation, terminal certificate and one-use compensation binding. Authority remains the verified executor, signed delegation, terminal evidence and current membership cut; the handle alone grants no authority and never replaces Event identity or deduplication."
     },
     {
+      "name": "agent_key_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)(?:did:[a-z0-9]+:[^\\\\s#]+#[^\\\\s#]+|[a-zA-Z0-9._:-]{1,256})(?![\\\\s\\\\S])\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 2,
+      "example_path": "agent-authority-evidence.schema.json#/$defs/agent_key_authorization/properties/agent_key_id",
+      "reason": "Signing-key selector scoped to the exact Agent. The shared agent_key_id terminal bounds both the DID URL form and local token form, excludes the typed-ID namespace and retains the literal. The verified accepted authorize Event and its covering RealmCommit carry authority; the selector is not principal identity material or a standalone authorization bearer."
+    },
+    {
       "name": "allowed_session_ids",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "opaque_correlation",
@@ -333,9 +341,17 @@
       "name": "key_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "agent-operations.schema.json#/$defs/agent_key_authorization_state/properties/key_id",
+      "occurrences": 1,
+      "example_path": "keys-operations.schema.json#/$defs/signed_prekey/properties/key_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
+    },
+    {
+      "name": "key_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)(?:did:[a-z0-9]+:[^\\\\s#]+#[^\\\\s#]+|[a-zA-Z0-9._:-]{1,256})(?![\\\\s\\\\S])\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 4,
+      "example_path": "agent-operations.schema.json#/$defs/agent_key_authorization_state/properties/key_id",
+      "reason": "Signing-key selector scoped to the exact Agent. The shared agent_key_id terminal bounds both the DID URL form and local token form, excludes the typed-ID namespace and retains the literal. The verified accepted authorize Event and its covering RealmCommit carry authority; the selector is not principal identity material or a standalone authorization bearer."
     },
     {
       "name": "location_id",

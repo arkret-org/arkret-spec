@@ -763,8 +763,10 @@
     },
     "agent_key_id": {
       "type": "string",
-      "pattern": "^(did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})$",
-      "description": "Stable key identifier within the agent DID. Prefer the DID URL verification method id when available."
+      "pattern": "^(?!ak:)(?:did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})(?![\\s\\S])",
+      "description": "Stable non-typed signing-key selector within the exact Agent. The same terminal governs authorize, revoke, supersedes, current authorization, authority evidence and current selector. Preserve the literal DID URL or local token vocabulary; require 1 to 256 Unicode code points and exclude the ak: typed-ID namespace. Prefer the DID URL verification method id when it fits this bound; verification_method remains its independent DID URL carrier. The selector alone grants no authority.",
+      "minLength": 1,
+      "maxLength": 256
     },
     "agent_key_revoke_payload": {
       "type": "object",

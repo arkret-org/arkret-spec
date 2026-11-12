@@ -664,15 +664,7 @@
       ],
       "properties": {
         "key_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
-          "maxLength": 256
+          "$ref": "./event-payload.schema.json#/$defs/agent_key_id"
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"

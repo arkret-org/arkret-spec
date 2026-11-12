@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:3de1f52b88eb7d323f5e93aea4e23b426975037c1d153fa4f0e6ceb1bf0ccc22",
+  "contract_digest": "sha256:d6c58bc2f0eb23602e103c4ff19e58dd6a4411edcec83a1dfd9157df2f6ee3c6",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -8741,15 +8741,7 @@
             ],
             "properties": {
               "key_id": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ],
-                "maxLength": 256
+                "$ref": "./event-payload.schema.json#/$defs/agent_key_id"
               },
               "verification_method": {
                 "$ref": "#/$defs/did_url"
@@ -56890,8 +56882,10 @@
           },
           "agent_key_id": {
             "type": "string",
-            "pattern": "^(did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})$",
-            "description": "Stable key identifier within the agent DID. Prefer the DID URL verification method id when available."
+            "pattern": "^(?!ak:)(?:did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})(?![\\s\\S])",
+            "description": "Stable non-typed signing-key selector within the exact Agent. The same terminal governs authorize, revoke, supersedes, current authorization, authority evidence and current selector. Preserve the literal DID URL or local token vocabulary; require 1 to 256 Unicode code points and exclude the ak: typed-ID namespace. Prefer the DID URL verification method id when it fits this bound; verification_method remains its independent DID URL carrier. The selector alone grants no authority.",
+            "minLength": 1,
+            "maxLength": 256
           },
           "agent_key_revoke_payload": {
             "type": "object",
