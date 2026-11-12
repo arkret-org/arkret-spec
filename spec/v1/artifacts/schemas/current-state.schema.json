@@ -319,7 +319,7 @@
               }
             },
             "approval_id": {
-              "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approval_id"
+              "$ref": "./string-profiles.schema.json#/$defs/agent_confirmation_handle"
             }
           },
           "additionalProperties": false
@@ -4111,7 +4111,7 @@
               "$ref": "./event-payload.schema.json#/$defs/policy_action_document/properties/action"
             },
             "action_id": {
-              "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id"
+              "$ref": "./string-profiles.schema.json#/$defs/realm_action_name"
             }
           },
           "additionalProperties": false

@@ -3,7 +3,7 @@ title: Applet Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-17
+updated: 2026-11-12
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
@@ -586,7 +586,7 @@ Realm／portal alias 解析、外部协议元数据、外部用户映射和外�
 该操作只属于 `ak.operation_bundle.applet_service.applet.v1`，不属于 `ak.operation_bundle.station.applet.v1` 或 Coland Station 部署原型。治理 Station 是调用方，不能把所有已安装 Applet 的主体汇总为本站 Applet 目录提供此操作；响应由已接受的当前 manager Applet Service 提供。
 
 ```text
-GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
+GET /_arkret/edge/applet/actors/{actor_id}
 ```
 
 受管分支仅供该 Realm 当前治理 Station 向已接受的 manager Service 核对已知完整主体；不从 DID namespace 猜测 Service 或发现未知 Bot／Ghost。接收 Applet MUST 验 HTTP 来源签名、当前 Realm 治理链与自己的 accepted manager 绑定；不向无权 Station、旧 manager 或任意请求人公开主体目录／external tuple。普通 Account 继续使用原账号目录与委托合同，不进入本受管查询。缺失或不可见目标均返回相同 not_found。
@@ -652,12 +652,13 @@ GET /_arkret/edge/applet/protocols/{protocol}
   "icon_blob_ref": "ak:blob:sha256:...",
   "field_definitions": {
     "team": {
-      "label": "Workspace",
-      "type": "string"
+      "description": "Workspace",
+      "value_kind": "string",
+      "field_required": true
     },
     "channel": {
-      "label": "Channel",
-      "type": "string"
+      "description": "Channel",
+      "value_kind": "string"
     }
   },
   "instances": [
@@ -671,11 +672,11 @@ GET /_arkret/edge/applet/protocols/{protocol}
 ### 7.7 Third-Party Lookup
 
 ```text
-GET /_arkret/edge/applet/third_party/users?applet_id=ak%3Aapplet%3A01904100-0000-7000-8000-000000000001&realm_id=ak%3Arealm%3AAcDBmaLJmexYp8de9kbZez_sjHqo3WTTKGdS8F_Tamb6&protocol=slack&instance_id=T123&external_id=U123
+GET /_arkret/edge/applet/third-party/users?applet_id=ak%3Aapplet%3A01904100-0000-7000-8000-000000000001&realm_id=ak%3Arealm%3AAcDBmaLJmexYp8de9kbZez_sjHqo3WTTKGdS8F_Tamb6&protocol=slack&instance_id=T123&external_id=U123
 ```
 
 ```text
-GET /_arkret/edge/applet/third_party/locations?protocol=slack&external_id=C456
+GET /_arkret/edge/applet/third-party/locations?protocol=slack&external_id=C456
 ```
 
 用于把外部用户或 location 映射到 Arkret actor / portal Realm。

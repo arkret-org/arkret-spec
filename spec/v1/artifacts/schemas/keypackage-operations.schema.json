@@ -294,10 +294,10 @@
           "$ref": "#/$defs/keypackage_capability_set"
         },
         "device_authorize_event_id": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "agent_key_authorize_event_id": {
-          "$ref": "#/$defs/non_empty_string",
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "Accepted active ak.agent.key.authorize Event that binds an Agent runtime verification method to this KeyPackage. Mutually exclusive with device_authorize_event_id."
         },
         "expires_at": {

@@ -3,7 +3,7 @@ title: Contact & Direct Conversation Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-21
+updated: 2026-11-12
 see_also:
   - consent-model.md
   - ../crypto-media/device-lifecycle.md
@@ -203,7 +203,7 @@ contact_address 唯一 recipient 为完整 ContactPeer；human 用完整 Account
 
 ## 3. Directional scope、current head 与终态
 
-`contact_lineage` 是确切本方操作的 source 认证，保留原 Event／producer／accepted_at 与本方 version。`contact_current_proof` 另认证同一 durable cut 的完整 holder／peer／domain、本方 head/version、固定首次身份、适用的 round、逐 scope 原实例、原源关闭及 issued_at/fresh_until。**MUST** 独立验证合法 source、原签、真实确认和所有引用，不能只比较序号或 accepted 布尔。
+`contact_lineage` 是确切本方操作的 source 认证，保留原 Event／producer／accepted_at 与本方 version。`contact_current_proof` 另认证同一 durable cut 的完整 holder／peer／domain、本方 head/version、固定首次身份、适用的 round、逐 scope 原实例、原源关闭及 issued_at/cache_expires_at。**MUST** 独立验证合法 source、原签、真实确认和所有引用，不能只比较序号或 accepted 布尔。
 
 scope 是 `granted_to_peer_scopes[]` 的完整替换；首次 request／normal acceptance 中的 scope 只有在确切 round 成立后才授权。每个连续 scope 以原 grant Event 作为实例，source proof 的 `scope_instances` **MUST** 与当前 full-set 和真实确认事实一致。连续保留不换实例；移除关闭原实例；重加以该次 scope.update 开新实例。不增加独立 generation 计数器。空集合仍为非 terminal accepted，tombstone 则关闭整轮，原轮不得 widen 复活。
 

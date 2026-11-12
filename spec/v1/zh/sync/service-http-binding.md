@@ -3,7 +3,7 @@ title: Service HTTP Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-11-12
 see_also:
   - authority-commit-log.md
   - service-api-schema.mdx
@@ -34,7 +34,7 @@ see_also:
 
 ### 2.1 REST API 命名空间组织
 
-`gate/self/peer/open/root/edge/find/server` 前缀只表达认证与网络边界，不改变同一 operation 的 typed schema 和 authority-commit 语义。
+`gate/self/peer/open/root/edge/find` 七个前缀表达认证与网络边界；`/_arkret/describe` 是独立的 server 元描述入口而非第八个 trust surface。路径和各 transport 命名见 [`api-conventions.md` §2.4.3／§2.4.4](./api-conventions.md)。这些前缀与入口不改变同一 operation 的 typed schema 和 authority-commit 语义。
 
 #### 2.1.2 Account authentication
 
@@ -569,8 +569,8 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.edge.applet.read.ping.v1` | `GET /_arkret/edge/applet/ping` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_ping_response_body |
 | `ak.edge.applet.read.protocol_metadata.v1` | `GET /_arkret/edge/applet/protocols/{protocol}` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata |
 | `ak.edge.applet.realm.read.resolve.v1` | `GET /_arkret/edge/applet/realms/{realm_id_or_alias}` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view |
-| `ak.edge.applet.third_party_locations.read.list.v1` | `GET /_arkret/edge/applet/third_party/locations` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view |
-| `ak.edge.applet.third_party_users.read.list.v1` | `GET /_arkret/edge/applet/third_party/users` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body |
+| `ak.edge.applet.third_party_locations.read.list.v1` | `GET /_arkret/edge/applet/third-party/locations` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view |
+| `ak.edge.applet.third_party_users.read.list.v1` | `GET /_arkret/edge/applet/third-party/users` | - | - | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_lookup_response_body |
 | `ak.edge.push.command.apply_registration.v1` | `POST /_arkret/edge/push/registrations:apply` | - | - | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_registration_handoff_response_body |
 | `ak.edge.push.command.notify.v1` | `POST /_arkret/edge/push/notify` | - | - | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_notify_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_notify_response_body |
 | `ak.edge.push.command.register_device.v1` | `POST /_arkret/edge/push/register-device` | - | - | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_register_device_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_register_device_response_body |
@@ -664,10 +664,10 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.account.read.describe.v1` | `GET /_arkret/self/account/describe` | - | - | response_schema_ref=schemas/service-describe.schema.json |
 | `ak.self.account.read.viewer.v1` | `GET /_arkret/self/account/viewer` | - | - | response_schema_ref=schemas/account-operations.schema.json#/$defs/account_view |
 | `ak.self.account.stream.subscribe.v1` | `GET /_arkret/self/account/subscribe` | - | - | response_schema_ref=schemas/account-subscribe-frame.schema.json |
-| `ak.self.account_data.read.list.v1` | `GET /_arkret/self/account_data` | - | - | response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_list |
-| `ak.self.account_data.resource.delete.v1` | `DELETE /_arkret/self/account_data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body |
-| `ak.self.account_data.resource.get.v1` | `GET /_arkret/self/account_data/{account_data_key}` | - | - | response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
-| `ak.self.account_data.resource.replace.v1` | `PUT /_arkret/self/account_data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
+| `ak.self.account_data.read.list.v1` | `GET /_arkret/self/account-data` | - | - | response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_list |
+| `ak.self.account_data.resource.delete.v1` | `DELETE /_arkret/self/account-data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_response_body |
+| `ak.self.account_data.resource.get.v1` | `GET /_arkret/self/account-data/{account_data_key}` | - | - | response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
+| `ak.self.account_data.resource.replace.v1` | `PUT /_arkret/self/account-data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
 | `ak.self.actor_private_events.command.submit.v1` | `POST /_arkret/self/actor-private-events` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitResponseBody |
 | `ak.self.actor_profile.read.resolve.v1` | `POST /_arkret/self/actor-profiles/query` | - | - | request_schema_ref=schemas/actor-profile-operations.schema.json#/$defs/resolve_request_body; response_schema_ref=schemas/actor-profile-operations.schema.json#/$defs/resolve_response_body |
 | `ak.self.agent.command.deactivate.v1` | `POST /_arkret/self/agents/{agent_id}/deactivate` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/operation_status_view |
@@ -721,9 +721,9 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.contact.read.list.v1` | `GET /_arkret/self/contacts` | - | - | response_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_page |
 | `ak.self.current_principal.read.resolve.v1` | `POST /_arkret/self/account/current-principal` | - | - | request_schema_ref=schemas/identity-resolution.schema.json#/$defs/current_principal_request_body; response_schema_ref=schemas/identity-resolution.schema.json#/$defs/current_principal_response_body |
 | `ak.self.current_state.read.exact.v1` | `POST /_arkret/self/current-state/exact` | - | - | request_schema_ref=schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body; response_schema_ref=schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_response_body |
-| `ak.self.device_messages.command.ack.v1` | `POST /_arkret/self/device_messages/ack` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementResponseBody |
-| `ak.self.device_messages.command.send.v1` | `POST /_arkret/self/device_messages` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody |
-| `ak.self.device_messages.read.list.v1` | `GET /_arkret/self/device_messages` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponseBody |
+| `ak.self.device_messages.command.ack.v1` | `POST /_arkret/self/device-messages/ack` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAcknowledgementResponseBody |
+| `ak.self.device_messages.command.send.v1` | `POST /_arkret/self/device-messages` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendResponseBody |
+| `ak.self.device_messages.read.list.v1` | `GET /_arkret/self/device-messages` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponseBody |
 | `ak.self.direct_conversation.read.resolve.v1` | `POST /_arkret/self/direct-conversations/resolve` | - | - | request_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request_body; response_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_response_body |
 | `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body |
 | `ak.self.events.read.delivery_status.v1` | `QUERY /_arkret/self/events/delivery-status` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusResponseBody |
@@ -753,8 +753,8 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.management_review.read.status.v1` | `POST /_arkret/self/management-reviews/status` | - | - | request_schema_ref=schemas/management-review-operations.schema.json#/$defs/management_review_status_request_body; response_schema_ref=schemas/management-review-operations.schema.json#/$defs/response_body |
 | `ak.self.media.read.ice_config.v1` | `POST /_arkret/self/rtc/ice-config` | - | - | request_schema_ref=schemas/media-operations.schema.json#/$defs/media_ice_configuration_request_body; response_schema_ref=schemas/media-ice-configuration-response-body.schema.json |
 | `ak.self.media_service_binding.read.resolve.v1` | `POST /_arkret/self/media-service-bindings/query` | - | - | request_schema_ref=schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_request_body; response_schema_ref=schemas/media-service-binding-operations.schema.json#/$defs/media_service_binding_response_body |
-| `ak.self.mls.content_recovery.resource.get.v1` | `GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}` | - | - | response_schema_ref=schemas/content-encryption.schema.json#/$defs/recovery_preparation |
 | `ak.self.mls.command.reconcile_recovery_scope.v1` | `POST /_arkret/self/mls/recovery-scope-cleanup` | - | - | request_schema_ref=schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body; response_schema_ref=schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body |
+| `ak.self.mls.content_recovery.resource.get.v1` | `GET /_arkret/self/mls/content-recoveries/{authorization_event_ref}` | - | - | response_schema_ref=schemas/content-encryption.schema.json#/$defs/recovery_preparation |
 | `ak.self.mls.read.group_state_material.v1` | `POST /_arkret/self/mls/group-state-material/query` | - | - | request_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialResponseBody |
 | `ak.self.mls.read.roster_authority.v1` | `POST /_arkret/self/mls/roster-authority/query` | - | - | request_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body; response_schema_ref=schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_response_body |
 | `ak.self.morph.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/morphs` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MorphPage |

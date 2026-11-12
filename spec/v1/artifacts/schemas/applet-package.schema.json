@@ -45,7 +45,8 @@
       "type": "string",
       "pattern": "^(?!ak:)",
       "minLength": 1,
-      "description": "Distribution identifier only. Not a grant subject."
+      "description": "Distribution identifier only. Not a grant subject.",
+      "maxLength": 256
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id"

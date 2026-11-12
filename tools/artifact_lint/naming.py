@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import re
 import string
+from urllib.parse import unquote, urlsplit, urljoin, urldefrag
 from typing import Any, Callable, Iterator, NamedTuple
 
 FORBIDDEN_BOOLEAN_PREFIXES = ("allow_", "require_", "requires_", "deny_", "force_")
@@ -87,6 +88,27 @@ EXTERNAL_LITERAL_OBJECT_KEYWORD = "x-arkret-external-literal-object"
 EXTERNAL_LITERAL_OBJECT_FIELDS = ("specification", "anchor")
 EXTERNAL_ANCHOR_URL_RE = re.compile(r"https://[^\s#]+#\S+\Z")
 
+
+def external_anchor_is_valid(value: Any) -> bool:
+    """Validate URL structure without claiming the source's semantic authority."""
+    if not isinstance(value, str) or any(c.isspace() or ord(c) < 32 or 127 <= ord(c) <= 159 for c in value):
+        return False
+    if "\\" in value or re.search(r"%(?![0-9A-Fa-f]{2})", value):
+        return False
+    try:
+        parsed = urlsplit(value)
+        host = parsed.hostname
+        parsed.port  # Validate malformed, negative and out-of-range ports.
+        if parsed.scheme != "https" or not parsed.netloc or not host or not parsed.fragment or parsed.netloc.endswith(":"):
+            return False
+        if ":" not in host:
+            host = host.encode("idna").decode("ascii")
+            if not re.fullmatch(r"[A-Za-z0-9._~!$&'()*+,;=%-]+", host):
+                return False
+        return True
+    except (ValueError, UnicodeError):
+        return False
+
 # Reserved grammar directive keys carry a `$` sigil precisely so they cannot
 # collide with the snake_case data-field namespace; the remainder still has to be
 # snake_case, so this is a lexical rule and not an escape hatch.
@@ -130,41 +152,168 @@ class TypeNameOccurrence(NamedTuple):
 def _escape(token: str) -> str:
     """RFC 6901 escaping."""
 
-    return token.replace("~", "~0").replace("/", "~1")
+    return str(token).replace("~", "~0").replace("/", "~1")
 
 
-def enumerate_schema_nodes(
-    file_name: str, node: Any, pointer: str = ""
-) -> Iterator[tuple[str, Any]]:
-    """Yield every node in a schema document with its RFC 6901 pointer.
+SCHEMA_MAP_KEYWORDS = frozenset({"properties", "$defs", "definitions", "patternProperties", "dependentSchemas"})
+SCHEMA_ARRAY_KEYWORDS = frozenset({"allOf", "anyOf", "oneOf", "prefixItems"})
+SCHEMA_SINGLE_KEYWORDS = frozenset({"not", "if", "then", "else", "contains", "propertyNames", "items",
+                                   "additionalProperties", "unevaluatedProperties", "additionalItems",
+                                   "unevaluatedItems", "contentSchema"})
 
-    Name-map keywords are traversed through their values but their keys are not
-    treated as schema keywords, so ``$defs`` content is reached exactly once.
+
+class SchemaReferenceContext:
+    """Document-local schema resources; no network or annotation inference.
+
+    Roots must be actual schema positions. Explicit JSON-pointer references may
+    activate additional positions. Anchors in examples and other unreferenced
+    data cannot join the index. External resources are checked independently.
     """
+    def __init__(self, document: Any, schema_roots=None):
+        self.document = document
+        self.nodes = {}
+        for pointer, node in schema_roots if schema_roots is not None else [("", document)]:
+            self.nodes.update(enumerate_schema_nodes("resource", node, pointer))
+        self.resources = {}
+        self.scopes = {}
+        self._index_resources()
+        # Pointer targets can introduce schema declarations under extensions.
+        while True:
+            additions = {}
+            for pointer, node in list(self.nodes.items()):
+                if not isinstance(node, dict):
+                    continue
+                for keyword in ("$ref", "$dynamicRef"):
+                    reference = node.get(keyword)
+                    if isinstance(reference, str) and urldefrag(reference)[1].startswith("/"):
+                        target = self.resolve(reference, pointer, anchors=False)
+                        if target is not None and target[0] not in self.nodes:
+                            additions.update(enumerate_schema_nodes("resource", target[1], target[0]))
+            if not additions:
+                break
+            self.nodes.update(additions)
+            self._index_resources()
 
-    yield pointer, node
-    if isinstance(node, dict):
-        for key, value in node.items():
-            child = f"{pointer}/{_escape(key)}"
-            if key in _NAME_MAP_KEYWORDS and isinstance(value, dict):
-                # The map itself is not a schema node. Yielding it would make a
-                # property literally named `properties` look like the keyword and
-                # invent a phantom path one level deeper.
-                for name, shape in value.items():
-                    yield from enumerate_schema_nodes(
-                        file_name, shape, f"{child}/{_escape(name)}"
-                    )
-            else:
-                yield from enumerate_schema_nodes(file_name, value, child)
-    elif isinstance(node, list):
-        for index, item in enumerate(node):
-            yield from enumerate_schema_nodes(file_name, item, f"{pointer}/{index}")
+    @staticmethod
+    def _under(pointer, ancestor):
+        return not ancestor or pointer == ancestor or pointer.startswith(ancestor + "/")
+
+    def _index_resources(self):
+        self.resources = {"": ("", self.document)}
+        self.scopes = {"": ""}
+        for pointer, node in sorted(self.nodes.items(), key=lambda item: (item[0].count("/"), item[0])):
+            if not isinstance(node, dict) or not isinstance(node.get("$id"), str):
+                continue
+            parent_pointer = max((base for base in self.scopes if base != pointer and self._under(pointer, base)), key=len, default="")
+            identifier = urljoin(self.scopes.get(parent_pointer, ""), node["$id"])
+            identifier, fragment = urldefrag(identifier)
+            if fragment:
+                raise ValueError(f"schema resource $id must not carry a nonempty fragment: {node['$id']}")
+            previous = self.resources.get(identifier)
+            if previous is not None and previous[0] != pointer:
+                raise ValueError(f"schema resource identifier is ambiguous: {identifier}")
+            self.resources[identifier] = (pointer, node)
+            self.scopes[pointer] = identifier
+        # The document URI and an explicit root $id identify the same resource.
+        if isinstance(self.document, dict) and isinstance(self.document.get("$id"), str):
+            self.resources[""] = ("", self.document)
+
+    def resolve(self, reference: Any, source_pointer: str = "", *, anchors=True):
+        if not isinstance(reference, str):
+            return None
+        if re.search(r"%(?![0-9A-Fa-f]{2})", reference):
+            raise ValueError(f"malformed percent escape in schema reference: {reference}")
+        scope_pointer = max((base for base in self.scopes if self._under(source_pointer, base)), key=len)
+        base_uri = self.scopes[scope_pointer]
+        # urljoin drops unknown absolute schemes for fragment-only references.
+        absolute = (base_uri + reference) if reference.startswith("#") else urljoin(base_uri, reference)
+        resource_uri, fragment = urldefrag(absolute)
+        resource = self.resources.get(resource_uri)
+        if resource is None:
+            return None
+        root_pointer, value = resource
+        fragment = unquote(fragment, errors="strict")
+        if not fragment:
+            return root_pointer, value
+        if fragment.startswith("/"):
+            if re.search(r"~(?![01])", fragment):
+                raise ValueError(f"invalid JSON pointer escape in schema reference: {reference}")
+            try:
+                for token in fragment[1:].split("/"):
+                    token = token.replace("~1", "/").replace("~0", "~")
+                    if isinstance(value, list):
+                        if not re.fullmatch(r"0|[1-9][0-9]*", token):
+                            raise ValueError(f"invalid array index in schema reference: {reference}")
+                        value = value[int(token)]
+                    else:
+                        value = value[token]
+            except (KeyError, IndexError, TypeError) as error:
+                raise ValueError(f"local schema reference does not resolve: {reference}") from error
+            if not isinstance(value, (dict, bool)):
+                raise ValueError(f"local schema reference target is not a schema object or boolean: {reference}")
+            return root_pointer + fragment, value
+        if not anchors:
+            return None
+        matches = []
+        for pointer, node in self.nodes.items():
+            if not isinstance(node, dict):
+                continue
+            node_scope = max((base for base in self.scopes if self._under(pointer, base)), key=len)
+            if self.scopes[node_scope] != resource_uri:
+                continue
+            if node.get("$anchor") == fragment or node.get("$dynamicAnchor") == fragment:
+                matches.append((pointer, node))
+        if len(matches) != 1:
+            raise ValueError(f"local schema anchor must resolve uniquely within its resource: {reference}")
+        return matches[0]
+
+
+def local_schema_reference(document: Any, reference: Any, *, source_pointer="", schema_roots=None):
+    return SchemaReferenceContext(document, schema_roots).resolve(reference, source_pointer)
+
+
+def enumerate_schema_nodes(file_name: str, node: Any, pointer: str = "", *, reference_document: Any = None, reference_roots=None, reference_context=None) -> Iterator[tuple[str, Any]]:
+    """Only schema positions, plus explicitly referenced local schema targets.
+
+    Annotation/default/example instances and arbitrary extension data are not
+    subschemas. A real local reference can make such a target a schema, without
+    promoting its unreferenced siblings or inheriting an external-owner marker.
+    """
+    seen = set()
+    pending = [(pointer, node)]
+    resolver = reference_context if reference_context is not None else (SchemaReferenceContext(reference_document, reference_roots) if reference_document is not None else None)
+    while pending:
+        path, value = pending.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        yield path, value
+        if not isinstance(value, dict):
+            continue
+        for key in sorted(SCHEMA_MAP_KEYWORDS):
+            children = value.get(key)
+            if isinstance(children, dict):
+                pending.extend((f"{path}/{key}/{_escape(name)}", child) for name, child in children.items())
+        for key in sorted(SCHEMA_ARRAY_KEYWORDS | SCHEMA_SINGLE_KEYWORDS):
+            children = value.get(key)
+            if isinstance(children, list) and (key in SCHEMA_ARRAY_KEYWORDS or key == "items"):
+                pending.extend((f"{path}/{key}/{index}", child) for index, child in enumerate(children))
+            elif key in SCHEMA_SINGLE_KEYWORDS and isinstance(children, (dict, bool)):
+                pending.append((f"{path}/{key}", children))
+        for name, child in value.get("dependencies", {}).items() if isinstance(value.get("dependencies"), dict) else []:
+            if isinstance(child, dict):
+                pending.append((f"{path}/dependencies/{_escape(name)}", child))
+        if resolver is not None:
+            for keyword in ("$ref", "$dynamicRef"):
+                target = resolver.resolve(value.get(keyword), path)
+                if target is not None:
+                    pending.append(target)
 
 
 def enumerate_schema_properties(file_name: str, document: Any) -> Iterator[PropertyOccurrence]:
     """Yield every declared property occurrence, including inside ``$defs``."""
 
-    for pointer, node in enumerate_schema_nodes(file_name, document):
+    for pointer, node in enumerate_schema_nodes(file_name, document, reference_document=document):
         if not isinstance(node, dict):
             continue
         properties = node.get("properties")
@@ -188,7 +337,7 @@ def enumerate_property_owners(file_name: str, document: Any) -> Iterator[Propert
     the node does not declare directly.
     """
 
-    for pointer, node in enumerate_schema_nodes(file_name, document):
+    for pointer, node in enumerate_schema_nodes(file_name, document, reference_document=document):
         if not isinstance(node, dict):
             continue
         properties = node.get("properties")
@@ -198,13 +347,13 @@ def enumerate_property_owners(file_name: str, document: Any) -> Iterator[Propert
 
 
 def enumerate_schema_enums(file_name: str, document: Any) -> Iterator[EnumOccurrence]:
-    for pointer, node in enumerate_schema_nodes(file_name, document):
+    for pointer, node in enumerate_schema_nodes(file_name, document, reference_document=document):
         if isinstance(node, dict) and isinstance(node.get("enum"), list):
             yield EnumOccurrence(file_name, f"{pointer}/enum", node["enum"])
 
 
 def enumerate_schema_type_names(file_name: str, document: Any) -> Iterator[TypeNameOccurrence]:
-    for pointer, node in enumerate_schema_nodes(file_name, document):
+    for pointer, node in enumerate_schema_nodes(file_name, document, reference_document=document):
         if not isinstance(node, dict):
             continue
         definitions = node.get("$defs")
@@ -215,31 +364,36 @@ def enumerate_schema_type_names(file_name: str, document: Any) -> Iterator[TypeN
 
 
 def naive_property_occurrences(document: Any) -> set[tuple[str, str]]:
-    """Independently enumerate every declared property pointer and name.
-
-    Deliberately structure-blind: it recurses through every container and
-    collects every key of every ``properties`` object it meets. This must retain
-    occurrence identity: comparing names alone would miss a skipped path when
-    the same property name is declared elsewhere in the schema.
-    """
-
+    """Independent keyword-position walk; annotation instances are not schemas."""
     found: set[tuple[str, str]] = set()
-
-    def walk(node: Any, pointer: str) -> None:
-        if isinstance(node, dict):
-            for key, value in node.items():
-                child = f"{pointer}/{_escape(key)}"
-                if key == "properties" and isinstance(value, dict):
-                    for name, shape in value.items():
-                        property_pointer = f"{child}/{_escape(name)}"
-                        found.add((property_pointer, name))
-                        walk(shape, property_pointer)
-                else:
-                    walk(value, child)
-        elif isinstance(node, list):
-            for index, item in enumerate(node):
-                walk(item, f"{pointer}/{index}")
-
+    visited = set()
+    resolver = SchemaReferenceContext(document)
+    def walk(node, pointer):
+        if pointer in visited or not isinstance(node, dict):
+            return
+        visited.add(pointer)
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            found.update((f"{pointer}/properties/{_escape(name)}", name) for name in properties)
+        for key, value in node.items():
+            base = f"{pointer}/{_escape(key)}"
+            if key in SCHEMA_MAP_KEYWORDS and isinstance(value, dict):
+                for name, child in value.items():
+                    walk(child, f"{base}/{_escape(name)}")
+            elif key in SCHEMA_ARRAY_KEYWORDS | SCHEMA_SINGLE_KEYWORDS:
+                if isinstance(value, list) and (key in SCHEMA_ARRAY_KEYWORDS or key == "items"):
+                    for index, child in enumerate(value):
+                        walk(child, f"{base}/{index}")
+                elif key in SCHEMA_SINGLE_KEYWORDS:
+                    walk(value, base)
+            elif key == "dependencies" and isinstance(value, dict):
+                for name, child in value.items():
+                    if isinstance(child, dict):
+                        walk(child, f"{base}/{_escape(name)}")
+        for keyword in ("$ref", "$dynamicRef"):
+            target = resolver.resolve(node.get(keyword), pointer)
+            if target is not None:
+                walk(target[1], target[0])
     walk(document, "")
     return found
 
@@ -311,7 +465,7 @@ def schema_shape_has_type(
 def nc_bool_001(candidate: str) -> bool:
     """R1: permission booleans end _allowed, obligation booleans end _required."""
 
-    if candidate.startswith(FORBIDDEN_BOOLEAN_PREFIXES):
+    if candidate in {"required", "allowed"} or candidate.startswith(FORBIDDEN_BOOLEAN_PREFIXES):
         return True
     return bool(re.match(r"(?:no|disallow)_", candidate))
 
@@ -412,13 +566,18 @@ def nc_evidence_001(candidate: str) -> bool:
 def nc_artifact_001(candidate: str) -> bool:
     """R7: artifact filenames are kebab-case."""
 
-    return "_" in candidate
+    return re.fullmatch(
+        r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\.(?:schema|openapi))?\.[a-z][a-z0-9]*",
+        candidate,
+    ) is None
 
 
 def nc_set_001(candidate: str) -> bool:
     """R8: allowlist/denylist arrays use allowed_ / denied_."""
 
-    return candidate.startswith(FORBIDDEN_SET_PREFIXES)
+    return (candidate.startswith(FORBIDDEN_SET_PREFIXES)
+            or candidate in {"allowlist", "denylist"}
+            or candidate.endswith(("_allowlist", "_denylist", "_allow", "_deny")))
 
 
 def split_name_words(name: str) -> list[str]:

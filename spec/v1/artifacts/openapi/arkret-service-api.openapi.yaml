@@ -954,211 +954,6 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    PsiBatchUnavailable:
-      description: The match batch is unknown, belongs to another device, or expired (error code psi_batch_unavailable).
-        Causes are intentionally merged and use the match-phase Class B shape. The pinned epoch is retained for
-        the full advertised completion TTL.
-      headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-            x-arkret-value-ownership:
-              class: external_literal
-              authority: https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/headers/Cache-Control/schema
-              values:
-              - no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum: &id001
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-            x-arkret-value-ownership:
-              class: numeric
-              authority: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/headers/Content-Length/schema
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/headers/Content-Length/schema
-              values: *id001
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/psi_batch_unavailable
-                  x-arkret-value-ownership:
-                    class: uri
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/content/application~1problem+json/schema/allOf/1/properties/type
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/content/application~1problem+json/schema/allOf/1/properties/type
-                    values:
-                    - https://arkret.org/problems/psi_batch_unavailable
-                status:
-                  const: 410
-                  x-arkret-value-ownership:
-                    class: numeric
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/content/application~1problem+json/schema/allOf/1/properties/status
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiBatchUnavailable/content/application~1problem+json/schema/allOf/1/properties/status
-                    values:
-                    - 410
-    PsiDuplicateConflict:
-      description: The device-scoped batch_id was reused with different canonical blind or match bytes (error code
-        duplicate_conflict). No evaluation is performed.
-      headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-            x-arkret-value-ownership:
-              class: external_literal
-              authority: https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/headers/Cache-Control/schema
-              values:
-              - no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum: &id002
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-            x-arkret-value-ownership:
-              class: numeric
-              authority: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/headers/Content-Length/schema
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/headers/Content-Length/schema
-              values: *id002
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/duplicate_conflict
-                  x-arkret-value-ownership:
-                    class: uri
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/content/application~1problem+json/schema/allOf/1/properties/type
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/content/application~1problem+json/schema/allOf/1/properties/type
-                    values:
-                    - https://arkret.org/problems/duplicate_conflict
-                status:
-                  const: 409
-                  x-arkret-value-ownership:
-                    class: numeric
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/content/application~1problem+json/schema/allOf/1/properties/status
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiDuplicateConflict/content/application~1problem+json/schema/allOf/1/properties/status
-                    values:
-                    - 409
-    PsiPolicyDenied:
-      description: Requester/batch-level policy denial (error code policy_denied). This is a PSI Class B failure
-        and uses the request phase's exact body bucket and advertised delay distribution; it contains no per-target
-        information.
-      headers:
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-            x-arkret-value-ownership:
-              class: external_literal
-              authority: https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/headers/Cache-Control/schema
-              values:
-              - no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum: &id003
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-            x-arkret-value-ownership:
-              class: numeric
-              authority: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/headers/Content-Length/schema
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/headers/Content-Length/schema
-              values: *id003
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/policy_denied
-                  x-arkret-value-ownership:
-                    class: uri
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/content/application~1problem+json/schema/allOf/1/properties/type
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/content/application~1problem+json/schema/allOf/1/properties/type
-                    values:
-                    - https://arkret.org/problems/policy_denied
-                status:
-                  const: 403
-                  x-arkret-value-ownership:
-                    class: numeric
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/content/application~1problem+json/schema/allOf/1/properties/status
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiPolicyDenied/content/application~1problem+json/schema/allOf/1/properties/status
-                    values:
-                    - 403
-    PsiQuotaExhausted:
-      description: PSI window quota exhausted (error code psi_quota_exhausted), returned only at first blind admission.
-        The body has the exact blind-phase Content-Length bucket and advertised delay distribution. Retry-After
-        is decimal seconds until quota-window roll, rounded up to a 300-second multiple with minimum 300. See discovery-directory.md
-        §6.4.
-      headers:
-        Retry-After:
-          description: Decimal seconds, a positive multiple of 300.
-          schema:
-            type: string
-            pattern: ^[1-9][0-9]*$
-        Cache-Control:
-          schema:
-            type: string
-            const: no-store, no-transform
-            x-arkret-value-ownership:
-              class: external_literal
-              authority: https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/headers/Cache-Control/schema
-              values:
-              - no-store, no-transform
-        Content-Length:
-          schema:
-            type: integer
-            enum: &id004
-            - 4096
-            - 16384
-            - 65536
-            - 262144
-            x-arkret-value-ownership:
-              class: numeric
-              authority: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/headers/Content-Length/schema
-              owner: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/headers/Content-Length/schema
-              values: *id004
-      content:
-        application/problem+json:
-          schema:
-            allOf:
-            - $ref: '#/components/schemas/PsiPaddedProblem'
-            - properties:
-                type:
-                  const: https://arkret.org/problems/psi_quota_exhausted
-                  x-arkret-value-ownership:
-                    class: uri
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/content/application~1problem+json/schema/allOf/1/properties/type
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/content/application~1problem+json/schema/allOf/1/properties/type
-                    values:
-                    - https://arkret.org/problems/psi_quota_exhausted
-                status:
-                  const: 429
-                  x-arkret-value-ownership:
-                    class: numeric
-                    authority: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/content/application~1problem+json/schema/allOf/1/properties/status
-                    owner: arkret-service-api.openapi.yaml#/components/responses/PsiQuotaExhausted/content/application~1problem+json/schema/allOf/1/properties/status
-                    values:
-                    - 429
     RateLimited:
       description: Rate limited.
       headers:
@@ -1392,7 +1187,7 @@ paths:
           co-located roles; the response describes exactly the selected role. Omission on a multi-role binding returns
           param_missing; an illegal or unavailable role returns param_invalid.
         schema:
-          $ref: '#/components/schemas/ServiceDescribe/properties/service_kind'
+          $ref: ../schemas/service-describe.schema.json#/properties/service_kind
       responses:
         '200':
           description: Service description
@@ -1631,14 +1426,14 @@ paths:
         required: true
         schema:
           type: string
-          enum: &id005
+          enum: &id001
           - station
           - identity_registry
           x-arkret-value-ownership:
             class: owned_symbol
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1root~1identity~1service-registrations/get/parameters/1/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1root~1identity~1service-registrations/get/parameters/1/schema
-            values: *id005
+            values: *id001
       - name: public_base_url
         in: query
         required: true
@@ -4089,7 +3884,7 @@ paths:
         required: false
         schema:
           type: string
-          enum: &id006
+          enum: &id002
           - pending_outgoing
           - pending_incoming
           - accepted
@@ -4099,7 +3894,7 @@ paths:
             class: owned_symbol
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1contacts/get/parameters/1/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1contacts/get/parameters/1/schema
-            values: *id006
+            values: *id002
       - name: cursor
         in: query
         required: false
@@ -5601,7 +5396,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EffectiveGrantSnapshot'
-  /_arkret/self/device_messages:
+  /_arkret/self/device-messages:
     post:
       operationId: ak.self.device_messages.command.send
       security:
@@ -5621,8 +5416,8 @@ paths:
           const: ak.self.device_messages.command.send.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/post/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/post/parameters/0/schema
             values:
             - ak.self.device_messages.command.send.v1
       - in: header
@@ -5661,8 +5456,8 @@ paths:
           const: ak.self.device_messages.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages/get/parameters/0/schema
             values:
             - ak.self.device_messages.read.list.v1
       - name: after
@@ -5686,7 +5481,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesGetResponseBody'
-  /_arkret/self/device_messages/ack:
+  /_arkret/self/device-messages/ack:
     post:
       operationId: ak.self.device_messages.command.ack
       parameters:
@@ -5699,8 +5494,8 @@ paths:
           const: ak.self.device_messages.command.ack.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device_messages~1ack/post/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1device-messages~1ack/post/parameters/0/schema
             values:
             - ak.self.device_messages.command.ack.v1
       security:
@@ -6799,13 +6594,13 @@ paths:
         description: Filter by key-backup class.
         schema:
           type: string
-          enum: &id007
+          enum: &id003
           - secret_storage
           x-arkret-value-ownership:
             class: owned_symbol
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/2/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/2/schema
-            values: *id007
+            values: *id003
       - in: query
         name: cursor
         required: false
@@ -8160,7 +7955,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
-  /_arkret/edge/applet/third_party/users:
+  /_arkret/edge/applet/third-party/users:
     get:
       operationId: ak.edge.applet.third_party_users.read.list
       security:
@@ -8177,8 +7972,8 @@ paths:
           const: ak.edge.applet.third_party_users.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1users/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1users/get/parameters/0/schema
             values:
             - ak.edge.applet.third_party_users.read.list.v1
       - in: query
@@ -8216,7 +8011,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyUserLookupResponseBody'
-  /_arkret/edge/applet/third_party/locations:
+  /_arkret/edge/applet/third-party/locations:
     get:
       operationId: ak.edge.applet.third_party_locations.read.list
       security:
@@ -8233,8 +8028,8 @@ paths:
           const: ak.edge.applet.third_party_locations.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third_party~1locations/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1edge~1applet~1third-party~1locations/get/parameters/0/schema
             values:
             - ak.edge.applet.third_party_locations.read.list.v1
       - in: query
@@ -8538,7 +8333,7 @@ paths:
         required: false
         schema:
           type: string
-          enum: &id008
+          enum: &id004
           - outbound
           - inbound
           - both
@@ -8546,8 +8341,8 @@ paths:
             class: owned_symbol
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1realms~1{realm_id}~1links/get/parameters/2/schema
-            values: *id008
-      - name: link_kind_allow
+            values: *id004
+      - name: allowed_link_kinds
         in: query
         required: false
         schema:
@@ -8847,7 +8642,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentRequestResponseBody'
-  /_arkret/self/account_data:
+  /_arkret/self/account-data:
     get:
       operationId: ak.self.account_data.read.list
       parameters:
@@ -8860,8 +8655,8 @@ paths:
           const: ak.self.account_data.read.list.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data/get/parameters/0/schema
             values:
             - ak.self.account_data.read.list.v1
       security:
@@ -8875,7 +8670,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDataList'
-  /_arkret/self/account_data/{account_data_key}:
+  /_arkret/self/account-data/{account_data_key}:
     get:
       operationId: ak.self.account_data.resource.get
       security:
@@ -8892,8 +8687,8 @@ paths:
           const: ak.self.account_data.resource.get.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/get/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/get/parameters/0/schema
             values:
             - ak.self.account_data.resource.get.v1
       - in: path
@@ -8924,8 +8719,8 @@ paths:
           const: ak.self.account_data.resource.replace.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/put/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/put/parameters/0/schema
             values:
             - ak.self.account_data.resource.replace.v1
       - in: path
@@ -8962,8 +8757,8 @@ paths:
           const: ak.self.account_data.resource.delete.v1
           x-arkret-value-ownership:
             class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account_data~1{account_data_key}/delete/parameters/0/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1account-data~1{account_data_key}/delete/parameters/0/schema
             values:
             - ak.self.account_data.resource.delete.v1
       - in: path
@@ -9619,7 +9414,7 @@ paths:
                   - detail
                   properties:
                     type:
-                      enum: &id009
+                      enum: &id005
                       - https://arkret.org/problems/duplicate_conflict
                       - https://arkret.org/problems/session_grant_replay_indeterminate
                       - https://arkret.org/problems/device_revocation_pending
@@ -9629,7 +9424,7 @@ paths:
                         class: uri
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
-                        values: *id009
+                        values: *id005
                     title:
                       type: string
                       minLength: 1
@@ -9717,14 +9512,14 @@ paths:
                       $ref: ../schemas/common-ids.schema.json#/$defs/session_grant_id
                     state:
                       type: string
-                      enum: &id010
+                      enum: &id006
                       - revoked
                       - superseded
                       x-arkret-value-ownership:
                         class: owned_symbol
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
-                        values: *id010
+                        values: *id006
                   additionalProperties: true
         '410':
           description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state
@@ -9886,14 +9681,14 @@ paths:
                 - detail
                 properties:
                   type:
-                    enum: &id011
+                    enum: &id007
                     - https://arkret.org/problems/duplicate_conflict
                     - https://arkret.org/problems/session_grant_replay_indeterminate
                     x-arkret-value-ownership:
                       class: uri
                       authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1revoke/post/responses/409/content/application~1problem+json/schema/properties/type
                       owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1revoke/post/responses/409/content/application~1problem+json/schema/properties/type
-                      values: *id011
+                      values: *id007
                   title:
                     type: string
                     minLength: 1
@@ -10009,7 +9804,7 @@ paths:
                   - detail
                   properties:
                     type:
-                      enum: &id012
+                      enum: &id008
                       - https://arkret.org/problems/duplicate_conflict
                       - https://arkret.org/problems/session_grant_replay_indeterminate
                       - https://arkret.org/problems/device_revocation_pending
@@ -10019,7 +9814,7 @@ paths:
                         class: uri
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/0/properties/type
-                        values: *id012
+                        values: *id008
                     title:
                       type: string
                       minLength: 1
@@ -10107,14 +9902,14 @@ paths:
                       $ref: ../schemas/common-ids.schema.json#/$defs/session_grant_id
                     state:
                       type: string
-                      enum: &id013
+                      enum: &id009
                       - revoked
                       - superseded
                       x-arkret-value-ownership:
                         class: owned_symbol
                         authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
                         owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1gate~1account~1session-grants~1refresh/post/responses/409/content/application~1problem+json/schema/oneOf/1/properties/state
-                        values: *id013
+                        values: *id009
                   additionalProperties: true
         '410':
           description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates

@@ -1607,8 +1607,9 @@
     "account_registration_verification_policy": {
       "type": "object",
       "properties": {
-        "required": {
+        "verification_required": {
           "type": "boolean",
+          "x-arkret-member-role": "obligation",
           "default": false
         },
         "code_digest": {
@@ -1620,8 +1621,9 @@
     "account_registration_invitation_policy": {
       "type": "object",
       "properties": {
-        "required": {
+        "invitation_required": {
           "type": "boolean",
+          "x-arkret-member-role": "obligation",
           "default": false
         },
         "token_digests": {
@@ -1663,8 +1665,9 @@
         "verification_code": {
           "$ref": "#/$defs/account_registration_verification_policy"
         },
-        "organization_allowlist": {
+        "allowed_organization_labels": {
           "type": "array",
+          "description": "Deployment-local account-admission organization labels. These are policy vocabulary, not Organization principal identifiers, DID control evidence, or membership assertions. Matching rules belong to the deployment admission policy and do not establish protocol identity or authority.",
           "items": {
             "$ref": "#/$defs/non_empty_string"
           },
@@ -1685,8 +1688,9 @@
         "verification_code": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "organization": {
-          "$ref": "#/$defs/non_empty_string"
+        "organization_label": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Deployment-local admission label compared against allowed_organization_labels. This untrusted label is not an Organization DID or proof of organization control, account ownership, or membership."
         },
         "invitation_token": {
           "$ref": "#/$defs/non_empty_string"

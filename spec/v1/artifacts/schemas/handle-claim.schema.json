@@ -49,8 +49,7 @@
               }
             },
             "organization_id": {
-              "type": "string",
-              "minLength": 1
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
             }
           },
           "additionalProperties": false

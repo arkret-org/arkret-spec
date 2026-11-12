@@ -95,7 +95,8 @@
         },
         "secret_id": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_.-]+$"
+          "pattern": "^[A-Za-z0-9_.-]+$",
+          "maxLength": 256
         },
         "secret_base64url": {
           "type": "string",

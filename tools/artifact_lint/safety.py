@@ -1460,7 +1460,7 @@ def check_device_messages_cursor_binding(lint: Lint) -> None:
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     operation = (
-        openapi.get("paths", {}).get("/_arkret/self/device_messages", {}).get("get", {})
+        openapi.get("paths", {}).get("/_arkret/self/device-messages", {}).get("get", {})
         if isinstance(openapi, dict)
         else {}
     )

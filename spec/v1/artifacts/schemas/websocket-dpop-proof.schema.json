@@ -109,7 +109,7 @@
         "htm": {
           "const": "ARKRET-WEBSOCKET-AUTH",
           "x-arkret-value-ownership": {
-            "class": "selector_grammar",
+            "class": "registered_literal",
             "authority": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
             "owner": "websocket-dpop-proof.schema.json#/$defs/claims/properties/htm",
             "values": [

@@ -137,14 +137,7 @@
       ],
       "properties": {
         "statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
         },
         "organization_id": {
           "$ref": "#/$defs/did_core_id"
@@ -173,24 +166,10 @@
           "$ref": "#/$defs/nullable_timestamp"
         },
         "supersedes_statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
         },
         "revokes_statement_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/organization_statement_handle"
         },
         "realm_commit_ref": {
           "$ref": "#/$defs/digest"

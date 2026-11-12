@@ -3,7 +3,7 @@ title: Transport Bindings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-16
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -73,7 +73,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ## 4. Canonical Operation IDs
 
-Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `ak.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
+Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。`operation_id` 的逐段词法、surface、kind/action 与版本遵守 [`api-conventions.md` §2.4](./api-conventions.md)；HTTP 路径／参数与非 HTTP binding 名称分别遵守其 §2.4.3／§2.4.4，不共享分隔符规则。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
 
 | Operation | 语义 |
 | --- | --- |
@@ -104,7 +104,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.self.authz.read.check.v1` | 检查 capability / policy 是否允许动作。 |
 | `ak.edge.applet.command.transaction.v1` | 向 Applet 推送事件批次。 |
 | `ak.edge.applet.read.describe.v1` | 查询 Applet profile、namespace 与限制。 |
-| `ak.self.device_messages.command.send.v1` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
+| `ak.self.device_messages.command.send.v1` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device-messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | E2EE 设备密钥发布、查询与领取。 |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 

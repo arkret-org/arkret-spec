@@ -59,7 +59,7 @@
         }
       ],
       "enforcement": "predicate+registry",
-      "enforcement_scope": "The predicate decides snake_case for every literal it is handed; deciding which enums are Arkret-owned is registry work and is not yet complete, so only registered non-snake literals are currently swept.",
+      "enforcement_scope": "All schema enum/const occurrences have exact-owner classification and literal grammar checks through semantic_naming; deciding that a semantic class and authority are appropriate remains an explicit human review boundary.",
       "exact_path_exceptions": []
     },
     {
@@ -76,7 +76,7 @@
         {
           "id": "service-operation-dto-mirror",
           "basis": "internal_structure",
-          "reason": "This schema mirrors OpenAPI PascalCase component names one-for-one.",
+          "reason": "This exact canonical public DTO catalog uses the PascalCase names consumed by OpenAPI schema components; OpenAPI references the catalog, not the other way around.",
           "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
         }
       ],

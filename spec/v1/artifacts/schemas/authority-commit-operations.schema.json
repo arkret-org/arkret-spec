@@ -1881,7 +1881,7 @@
       ],
       "properties": {
         "admission_id": {
-          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
           "format": "uuid"
         },
         "join_event_ref": {
@@ -1940,7 +1940,7 @@
       ],
       "properties": {
         "admission_id": {
-          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
           "format": "uuid"
         },
         "delegation_id": {
@@ -1977,7 +1977,7 @@
       ],
       "properties": {
         "admission_id": {
-          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "$ref": "./string-profiles.schema.json#/$defs/membership_admission_handle",
           "format": "uuid"
         },
         "delegation_id": {

@@ -36,14 +36,7 @@
           }
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "agent_id": {
           "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -91,14 +84,7 @@
           }
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "agent_id": {
           "$ref": "./event-payload.schema.json#/$defs/did_core_id"
@@ -285,14 +271,7 @@
           "$ref": "./event-payload.schema.json#/$defs/did_core_id"
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "proposed_action": {
           "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
@@ -368,14 +347,7 @@
           "$ref": "./event-payload.schema.json#/$defs/did_core_id"
         },
         "draft_id": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/agent_draft_handle"
         },
         "proposed_action": {
           "$ref": "./event-payload.schema.json#/$defs/non_empty_string"

@@ -318,9 +318,9 @@ grpc:
       Scan: ak.peer.committed_event.read.scan.v1
     SelfManagement:
       AppletAuthorityReadMaterial: ak.self.applet.authority.read.material.v1
-      Management_ReviewCommandRequest: ak.self.management_review.command.request.v1
-      Management_ReviewCommandDecide: ak.self.management_review.command.decide.v1
-      Management_ReviewReadStatus: ak.self.management_review.read.status.v1
+      ManagementReviewCommandRequest: ak.self.management_review.command.request.v1
+      ManagementReviewCommandDecide: ak.self.management_review.command.decide.v1
+      ManagementReviewReadStatus: ak.self.management_review.read.status.v1
       AppletConfigurationSubmit: ak.self.applet.configuration.command.submit.v1
       RealmActorReadMaterial: ak.self.realm_actor.read.material.v1
     PeerManagement:

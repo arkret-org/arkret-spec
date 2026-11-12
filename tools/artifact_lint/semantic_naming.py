@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import re
 import posixpath
+import math
+import json
 from typing import Any
 
 from .core import ARTIFACTS, ROOT, Lint, load_json, load_yaml, resolve_json_pointer
-from .naming import enumerate_schema_nodes, enumerate_schema_properties
+from .naming import PASCAL_CASE_RE, enumerate_schema_nodes, external_anchor_is_valid, SchemaReferenceContext
+from .naming_contracts import openapi_schema_positions
 
 ROLE_TAILS = {
     "request_body": "request_body", "response_body": "response_body",
@@ -29,10 +32,20 @@ MEMBER_PATTERNS = {
     "binary_encoding": r"[a-z][a-z0-9_]*_base64(?:url)?",
 }
 SNAKE = re.compile(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)*\Z")
-NAMESPACED = re.compile(r"ak\.[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*\Z")
+NAMESPACED = re.compile(r"ak\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*(?:\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*)*\Z")
 NONTERMINAL = {"pending", "prepared", "preparing", "unknown", "in_progress", "running"}
 ALIAS_ANNOTATIONS = {'title', 'description', '$comment', 'examples', 'default',
                      'deprecated', 'readOnly', 'writeOnly'}
+DECIMAL_TEXT = re.compile(r'(?:0|[1-9][0-9]*)\Z')
+VERSION_TEXT = re.compile(r'(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))*\Z|[0-9]{4}[a-z]\Z')
+URI_LITERAL = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+\Z")
+MEDIA_TOKEN = r"[!#$%&'*+.^_`|~0-9A-Za-z-]+"
+MEDIA_TYPE = re.compile(MEDIA_TOKEN + '/' + MEDIA_TOKEN
+                        + r'(?:[ \t]*;[ \t]*' + MEDIA_TOKEN + r'=(?:' + MEDIA_TOKEN + r'|"(?:[^"\\\r\n]|\\[^\r\n])*"))*\Z')
+# This is a reviewed schema-local protocol constant, not an external literal.
+SCHEMA_LOCAL_REGISTERED_LITERALS = {
+    'websocket-dpop-proof.schema.json#/$defs/claims/properties/htm': ['ARKRET-WEBSOCKET-AUTH'],
+}
 
 
 def settled_scope(node: dict) -> bool:
@@ -192,8 +205,15 @@ def openapi_component_alias_errors(components: dict) -> list[str]:
     return errors
 
 
+def openapi_component_name_errors(components: dict) -> list[str]:
+    return [f'OpenAPI schema component must use PascalCase with folded acronyms: {name}'
+            for name in components
+            if not isinstance(name, str) or not PASCAL_CASE_RE.fullmatch(name)
+            or re.search(r'[A-Z]{2,}', name)]
 
-def enum_errors(node: dict, owner: str | None = None) -> list[str]:
+
+
+def enum_errors(node: dict, owner: str | None = None, registered_values: list | None = None) -> list[str]:
     values = node.get("enum", [node["const"]] if "const" in node else [])
     if not values:
         return []
@@ -202,9 +222,11 @@ def enum_errors(node: dict, owner: str | None = None) -> list[str]:
         return ["every enum/const requires exact-owner value classification and authority"]
     if owner is not None and metadata['owner'] != owner:
         return ["enum authority cannot propagate to a different owner"]
-    if metadata["values"] != values:
+    if json.dumps(metadata["values"], sort_keys=True) != json.dumps(values, sort_keys=True):
         return ["enum authority is stale or expanded beyond its exact registered values"]
     kind, authority = metadata["class"], metadata["authority"]
+    if not isinstance(kind, str):
+        return ['unknown enum ownership class']
     if not isinstance(authority, str) or not authority:
         return ["enum authority is empty"]
     if kind == "owned_symbol" and any(v is not None and (not isinstance(v,str) or not SNAKE.fullmatch(v)) for v in values):
@@ -213,13 +235,69 @@ def enum_errors(node: dict, owner: str | None = None) -> list[str]:
         return ["Arkret namespaced symbols violate their registered grammar"]
     if kind == "numeric" and any(not isinstance(v,(int,float,bool)) and v is not None for v in values):
         return ["numeric literals must preserve their scalar type"]
-    if kind == "external_literal" and not re.fullmatch(r"https://[^\s#]+#\S+", authority):
+    if kind == 'numeric' and any(isinstance(v, float) and not math.isfinite(v) for v in values):
+        return ['numeric literals must be finite JSON scalars']
+    patterns = {'decimal_text': DECIMAL_TEXT, 'version_text': VERSION_TEXT,
+                'uri': URI_LITERAL, 'media_type': MEDIA_TYPE}
+    if kind in patterns and any(v is not None and (not isinstance(v, str) or not patterns[kind].fullmatch(v)) for v in values):
+        return [f'{kind} literal violates its scalar type or lexical grammar']
+    if kind == 'media_type' and any(isinstance(v, str) and any(ord(c) < 32 and c != '\t' or ord(c) == 127 for c in v) for v in values):
+        return ['media type literal contains a forbidden control character']
+    if kind == 'uri' and any(isinstance(v, str) and re.search(r'%(?![0-9A-Fa-f]{2})', v) for v in values):
+        return ['URI literal contains an invalid percent escape']
+    if kind == 'numeric_range':
+        for value in values:
+            if value is None:
+                continue
+            if not isinstance(value, str) or not re.fullmatch(r'(?:0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*)|\+)?', value):
+                return ['numeric range labels require canonical nonnegative decimal endpoints']
+            if '-' in value and int(value.split('-')[0]) >= int(value.split('-')[1]):
+                return ['numeric range endpoints must increase']
+    if kind == 'human_text' and any(v is not None and (not isinstance(v, str) or not v.strip()) for v in values):
+        return ['human text literals must be nonempty text']
+    if kind == 'structured_literal' and any(v is not None and not isinstance(v, (dict, list)) for v in values):
+        return ['structured literals must be arrays or objects']
+    if kind == 'selector_grammar' and any(v is not None and (not isinstance(v, str) or (v != '*' and not SNAKE.fullmatch(v))) for v in values):
+        return ['selector grammar terminals must be a snake_case kind or wildcard']
+    if kind == 'registered_literal' and (registered_values is None or json.dumps(values, sort_keys=True) != json.dumps(registered_values, sort_keys=True)):
+        return ['registered literal must equal the exact resolved authority values']
+    if kind == "external_literal" and not external_anchor_is_valid(authority):
         return ["external enum authority must be an exact HTTPS section anchor"]
-    if kind == 'symbol_or_media_type' and any(v is not None and (not isinstance(v,str) or not (SNAKE.fullmatch(v) or NAMESPACED.fullmatch(v) or re.fullmatch(r'[a-z][a-z0-9.+-]*/[^\s]+',v))) for v in values):
+    if kind == 'external_literal' and any(v is not None and (not isinstance(v, str) or not v) for v in values):
+        return ['external symbolic literals must preserve nonempty string values']
+    if kind == 'symbol_or_media_type' and any(v is not None and (not isinstance(v,str) or not (SNAKE.fullmatch(v) or NAMESPACED.fullmatch(v) or MEDIA_TYPE.fullmatch(v))) for v in values):
         return ['typed token union admits an unclassified literal']
-    if kind not in {"owned_symbol","namespaced_symbol","numeric","decimal_text","version_text","uri","media_type","external_literal","human_text","selector_grammar","structured_literal","symbol_or_media_type"}:
+    if kind not in {"owned_symbol","namespaced_symbol","numeric","decimal_text","version_text","uri","media_type","external_literal","human_text","selector_grammar","structured_literal","symbol_or_media_type","numeric_range","registered_literal"}:
         return ["unknown enum ownership class"]
     return []
+
+
+def registered_literal_values(node: dict, owner: str, path, document: dict, loader) -> list | None:
+    metadata = node.get('x-arkret-value-ownership', {})
+    if not isinstance(metadata, dict) or metadata.get('class') != 'registered_literal':
+        return None
+    authority = metadata.get('authority')
+    if not isinstance(authority, str) or '#' not in authority:
+        return None
+    if authority == owner:
+        return SCHEMA_LOCAL_REGISTERED_LITERALS.get(owner)
+    file_name, fragment = authority.split('#', 1)
+    target_path = (path.parent / file_name).resolve()
+    registry_root = (ARTIFACTS / 'registry').resolve()
+    if not file_name or not fragment.startswith('/') or not target_path.is_relative_to(registry_root):
+        return None
+    manifest = loader(ARTIFACTS / 'registry/registry-manifest.json')
+    canonical = {entry.get('file') for entry in manifest.get('registries', [])
+                 if isinstance(entry, dict) and entry.get('source_role') == 'canonical'} if isinstance(manifest, dict) else set()
+    if target_path.relative_to(ARTIFACTS.resolve()).as_posix() not in canonical:
+        return None
+    target = loader(target_path)
+    try:
+        target = resolve_json_pointer(target, '#' + fragment)
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+    # Scalar registry terminals never authorize a sibling row or an array.
+    return [target] if isinstance(target, (str, int, float, bool)) or target is None else None
 
 
 def capture_member_reference_errors(text: str) -> list[str]:
@@ -298,40 +376,72 @@ def check_semantic_naming(lint: Lint) -> None:
         if not isinstance(document,dict):
             continue
         if path.suffix == '.yaml':
+            for error in openapi_component_name_errors(document.get('components', {}).get('schemas', {})):
+                lint.fail(path, error)
             for error in http_problem_response_errors(document):
                 lint.fail(path, error)
             for error in openapi_component_alias_errors(document.get('components', {}).get('schemas', {})):
                 lint.fail(path, error)
-        def role_shape(node, seen=None, context_path=path, context_document=document):
+        try:
+            schema_nodes = list(openapi_schema_positions(document) if path.suffix == ".yaml" else
+                                enumerate_schema_nodes(path.name, document, reference_document=document))
+        except ValueError as error:
+            lint.fail(path, f"semantic schema positions cannot be enumerated: {error}")
+            continue
+        context_cache = {}
+        def role_context(context_document):
+            key = id(context_document)
+            if key not in context_cache:
+                roots = list(openapi_schema_positions(context_document, follow_references=False)) if "openapi" in context_document else None
+                resolver = SchemaReferenceContext(context_document, roots)
+                context_cache[key] = (resolver, {id(value): pointer for pointer, value in resolver.nodes.items()})
+            return context_cache[key]
+        def role_shape(node, seen=None, context_path=path, context_document=document, source_pointer=None):
             if not isinstance(node, dict):
                 return {}
             seen = set() if seen is None else seen
-            reference = node.get("$ref")
-            if not isinstance(reference, str) or reference in seen:
+            reference = node.get("$ref", node.get("$dynamicRef"))
+            if not isinstance(reference, str):
                 return node
-            seen.add(reference)
-            file_name, _, fragment = reference.partition("#")
-            if file_name.startswith("https://arkret.org/v1/schemas/"):
-                target_path = ARTIFACTS / "schemas" / file_name.rsplit("/", 1)[-1]
-            else:
-                target_path = (context_path.parent / file_name).resolve() if file_name else context_path
-            if not target_path.resolve().is_relative_to(ARTIFACTS.resolve()):
+            resolver, pointers = role_context(context_document)
+            source_pointer = pointers.get(id(node), "") if source_pointer is None else source_pointer
+            edge = (str(context_path), source_pointer, reference)
+            if edge in seen:
                 return node
-            target_document = context_document if target_path == context_path else load_json(lint, target_path)
-            target = target_document
-            if not isinstance(target, dict):
-                return node
+            seen.add(edge)
             try:
-                target = resolve_json_pointer(target, "#" + fragment)
-            except (KeyError, IndexError, TypeError, ValueError):
-                lint.fail(path, f"semantic role reference does not resolve: {reference}")
+                local = resolver.resolve(reference, source_pointer)
+            except ValueError as error:
+                lint.fail(path, f"semantic role reference does not resolve: {reference}: {error}")
                 return node
+            if local is not None:
+                target_pointer, target = local
+                target_path, target_document = context_path, context_document
+            else:
+                file_name, _, fragment = reference.partition("#")
+                if file_name.startswith("https://arkret.org/v1/schemas/"):
+                    target_path = ARTIFACTS / "schemas" / file_name.rsplit("/", 1)[-1]
+                else:
+                    target_path = (context_path.parent / file_name).resolve() if file_name else context_path
+                if not target_path.resolve().is_relative_to(ARTIFACTS.resolve()):
+                    return node
+                target_document = context_document if target_path == context_path else load_json(lint, target_path)
+                if not isinstance(target_document, dict):
+                    return node
+                try:
+                    local = role_context(target_document)[0].resolve("#" + fragment)
+                    if local is None:
+                        raise ValueError("target resource is unavailable")
+                    target_pointer, target = local
+                except (KeyError, IndexError, TypeError, ValueError) as error:
+                    lint.fail(path, f"semantic role reference does not resolve: {reference}: {error}")
+                    return node
             if not isinstance(target, dict):
                 return node
-            resolved = role_shape(target, seen, target_path, target_document)
+            resolved = role_shape(target, seen, target_path, target_document, target_pointer)
             return {**{key: value for key, value in resolved.items() if key != "x-arkret-name-role"},
-                    **{key: value for key, value in node.items() if key != "$ref"}}
-        for pointer,node in enumerate_schema_nodes(path.name,document):
+                    **{key: value for key, value in node.items() if key not in {"$ref", "$dynamicRef"}}}
+        for pointer,node in schema_nodes:
             if not isinstance(node,dict):
                 continue
             if pointer == '' and path.suffix == '.json':
@@ -346,11 +456,21 @@ def check_semantic_naming(lint: Lint) -> None:
             if pointer.startswith("/components/schemas/") and pointer.count("/") == 3:
                 for error in type_role_errors(pointer.rsplit("/",1)[-1],role_shape(node)):
                     lint.fail(path,f"{pointer}: {error}")
-            for error in enum_errors(node,path.name+'#'+pointer):
+            owner = path.name+'#'+pointer
+            registered = registered_literal_values(node, owner, path, document,
+                                                  lambda target: load_json(lint, target))
+            for error in enum_errors(node,owner,registered):
                 lint.fail(path,f"{pointer}: {error}")
-        for occurrence in enumerate_schema_properties(path.name,document):
-            for error in member_role_errors(occurrence.name,role_shape(occurrence.shape)):
-                lint.fail(path,f"{occurrence.pointer}: {error}")
+        for pointer, node in schema_nodes:
+            if not isinstance(node, dict) or not isinstance(node.get("properties"), dict):
+                continue
+            for name, shape in node["properties"].items():
+                if not isinstance(name, str):
+                    lint.fail(path, f"{pointer}/properties: property names must be strings")
+                    continue
+                member_pointer = pointer + "/properties/" + name.replace("~", "~0").replace("/", "~1")
+                for error in member_role_errors(name, role_shape(shape)):
+                    lint.fail(path, f"{member_pointer}: {error}")
 
 
 def check_protocol_member_contract(lint: Lint) -> None:

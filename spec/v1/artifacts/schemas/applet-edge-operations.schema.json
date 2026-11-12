@@ -119,8 +119,9 @@
         "value_kind"
       ],
       "properties": {
-        "required": {
-          "type": "boolean"
+        "field_required": {
+          "type": "boolean",
+          "x-arkret-member-role": "obligation"
         },
         "enum_values": {
           "type": "array",

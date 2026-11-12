@@ -619,7 +619,8 @@
           },
           "secret_id": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_.-]+$"
+            "pattern": "^[A-Za-z0-9_.-]+$",
+            "maxLength": 256
           },
           "root_context": {
             "$ref": "./content-encryption.schema.json#/$defs/root_context"

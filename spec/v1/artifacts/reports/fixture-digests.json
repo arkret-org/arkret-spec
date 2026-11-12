@@ -314,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-      "sha256": "deec4dbafc433c73dc9a68193e235ecf8e029dc55995601b5da54454998c8b33"
+      "sha256": "245b662ae6f044c79a7a2a4386e4f71394ff3f36aaa9c39156988e37487a88e9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",

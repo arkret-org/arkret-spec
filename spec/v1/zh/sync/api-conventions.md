@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-10
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -78,11 +78,13 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 ### 2.4 Operation ID kind/action taxonomy
 
-标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度前缀加固定末两段：
+标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度主题前缀、固定的 kind/action 与版本后缀：
 
 ```text
 ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 ```
+
+`<surface>` MUST 是 `self`、`gate`、`root`、`find`、`peer`、`open`、`edge` 之一；主题至少占一段，每段 MUST 使用 [`common-fields.md` 的 symbol segment 词法](../models/common-fields.md#2-类型记法)。唯一的根元数据 operation 是 `ak.server.read.describe.v1`，其唯一 HTTP binding 为 `GET /_arkret/describe`；其中 `server` 不是第八个 URL trust surface，URL trust surface 不得使用 `server`。
 
 `<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得为表达 transport binding 而采用只描述传输、不描述协议效果的纯 HTTP method 名称 `post` / `put` / `patch`。`get` / `delete` 作为 `resource` kind 下的 canonical action，描述的是读取 / 删除这一**协议效果**（其 HTTP method 由 `kind` 钉死，见下表），不在此限。
 
@@ -101,7 +103,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-HTTP method 不是 operation action 的来源。以 `ak.self.committed_event.read.scan.v1` 为例，其 HTTP binding 唯一为 `POST /_arkret/self/streams/scan`（`/_arkret/self/events` 是 `ak.self.events.command.submit` 的 binding，不是 scan 的），OpenAPI Operation Object 使用稳定、无版本的 endpoint identity `ak.self.events.read.scan` 作为 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation contract。
+HTTP method 不是 operation action 的来源。以 `ak.self.committed_event.read.scan.v1` 为例，其 HTTP binding 唯一为 `POST /_arkret/self/streams/scan`（`/_arkret/self/events` 是 `ak.self.events.command.submit.v1` 的 binding，不是 scan 的），OpenAPI Operation Object 使用稳定、无版本的 endpoint identity `ak.self.committed_event.read.scan` 作为 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation contract。
 
 ### 2.4.1 HTTP operation selector（normative）
 
@@ -175,7 +177,32 @@ ledger、缓存或补偿实现。上述内部实现只有在其可观察的 retr
 - 这对成员 MUST 放在实际发生副作用的 leaf effect 上（含 `effect_branches[].effect`），
   顶层 `branched` object MUST NOT 携带它们——否则一个分支的不可逆性会被错误推广到全部请求。
 
-**`viewer` action（术语定义）**：`ak.self.account.read.viewer.v1` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+**`viewer` action（术语定义）**：`ak.self.account.read.viewer.v1` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `read.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+
+### 2.4.3 HTTP 名称的词法与作用域（normative）
+
+<!-- rule_id: NC-HTTP-001 --> **HTTP binding 命名合同（normative）**：HTTP binding 的名称 MUST 按各自的语法层解释，不得把 JSON 字段、registry symbol、外部 URL 与 HTTP header 的规则互相套用：
+
+- **路径模板**：除唯一根元数据路径 `/_arkret/describe` 外，canonical Arkret 路径 MUST 使用 `/_arkret/<surface>/<resource...>`，其中 `<surface>` 使用 §2.4 的七值集合。字面 resource segment MUST 使用小写 kebab-case（`[a-z][a-z0-9]*(?:-[a-z0-9]+)*`）；模板参数 MUST 以 `{snake_case_name}` 表达。路径模板 MUST NOT 包含协议版本段、空段、尾 `/`、query、fragment、percent-encoded 字面替身或未登记 route alias。运行时参数值仍按各自 schema 校验和 URL percent encoding 规则编码，不受 resource segment 的 kebab-case 判据约束。
+- **末段动作**：只允许在路径末段使用 `<resource>:<action>`；两部分分别使用 kebab-case。该形态 MUST 对应 registry 中明确登记的 `POST` command、upload 或 exchange，表达对该资源或集合的协议动作。HTTP action 名不自动派生 `operation_id`，也不要求逐词相同：例如 `registrations:apply` 对应 `ak.edge.push.command.apply_registration.v1`；唯一映射仍由 canonical operation 行固定。
+- **path / query 参数**：参数名 MUST 使用与 JSON 字段相同的严格 snake_case 词法。每个路径占位符 MUST 恰好出现一次，并由每个绑定操作的必填 path 参数精确覆盖；不得多声明或少声明。query 中的许可／拒绝集合 MUST 使用 `allowed_`／`denied_` 前缀，包含编码为逗号分隔字符串的集合；不得使用 `*_allow`、`*_deny`、`allow_*`、`deny_*`、`permitted_*`、`forbidden_*`、`blocked_*` 或 `banned_*` 作为同义形态。
+- **HTTP header**：header 名 MUST 使用 HTTP ASCII token 语法，identity 按 HTTP 的不区分大小写规则比较；同一参数集合或响应中 MUST NOT 以不同大小写重复声明同一个 header。已有 `DPoP`、`MIMI-Room-URI`、`Source-Service-ID` 等名称保留其所属 HTTP 合同拼写，MUST NOT 按 JSON snake_case 或概念类型 PascalCase 改写。operation 层覆盖 path 层的 header 声明时 MUST 保留其 canonical 拼写。请求参数、响应 header 与 security scheme 的 header 声明遵守同一规则。
+- **HTTP operation identity**：每个 registry operation MUST 具有唯一登记的 method/path，OpenAPI `operationId` MUST 严格等于其去掉末尾 `.v1` 后的部分，并以该 exact method/path 绑定；不得通过参数占位符改名、宽松 namespace segment 或 HTTP method 别名生成第二个入口。OpenAPI Operation Object MUST 使用其规定的小写 method key 声明；current-v1 只使用 `get`、`head`、`post`、`put`、`patch`、`delete`、`options`、`trace`、`query` 这组 key，不使用 `additionalOperations` 绕过登记或引入未定义的 method。
+
+以上路径规则只约束 Arkret 自有 canonical HTTP operation binding。独立 transport profile 登记的连接 locator（例如 WebSocket binding 的 wss 连接地址）按该 profile 解释，不是另一个 HTTP operation route。OIDC discovery URL、W3C / IETF 文档 URL、raw 外部标准对象与外部协议自己拥有的 endpoint，继续遵守其所有者的词法；引用这些值不会把 Arkret 的 `/_arkret/*` 路径变成外部逐字例外。`device-messages`、`account-data` 与 `third-party` 均为 Arkret-owned resource segment，其对应 operation / JSON 词仍分别使用 `device_messages`、`account_data` 与 `third_party`。
+
+机器门禁为 `tools/artifact_lint/http_naming.py`；其遍历完整 operation registry 与 OpenAPI paths、path/query 参数、请求／响应 header 和 security scheme header，包括本地 `$ref` 引用，不扫描外部 URL 值来推断 Arkret 名称。
+
+### 2.4.4 非 HTTP binding 名称（normative）
+
+<!-- rule_id: NC-TRANSPORT-001 --> **非 HTTP transport 命名合同（normative）**：[`non-http-bindings.yaml`](../../artifacts/bindings/non-http-bindings.yaml) 中的 binding 名称 MUST 按所属 transport 的命名域校验，MUST NOT 机械复制 HTTP 路径或 JSON 字段的分隔符：
+
+- **gRPC**：`Service/Method` 中两部分各自 MUST 为 PascalCase，缩写大小写折叠同 [`common-fields.md` R4](../models/common-fields.md#201-全域命名判据normative)，不得含下划线或连续全大写缩写片段。例如 `SelfMls/ReconcileRecoveryScope` 使用 `Mls`，`SelfManagement/ManagementReviewCommandRequest` 不使用 `Management_ReviewCommandRequest`。每个 method MUST 指向其 canonical operation 行登记的 exact `operation_id`，不得按 method 名猜测操作或引入额外别名。
+- **Message Queue**：topic MUST 由一个或多个严格 snake_case segment 通过 `.` 连接；每段独立满足首字符为小写字母、无空段或尾下划线的约束。topic MUST 与 canonical operation 行中的 `mq` 字节相同，并指向同一 exact `operation_id`。
+- **SSE**：`frame_schemas.sse.event_types[]` 的 transport event label 同样使用逐段严格 snake_case 的点分形态，不得重复。这些 label 只是已登记 transport frame 的分派名，不是 Arkret durable Event kind，也不替代 payload 中的 exact `operation_id`。
+- **libp2p**：`suggested_protocols[]` 保留其独立协议标识语法 `/arkret/<kebab-name>/1.0.0`，不得重复。这里的 `1.0.0` 是候选 transport protocol identifier 的逐字组成部分，不是 HTTP URL version segment；MUST NOT 套用 §2.4.3 的 HTTP 路径模板规则删掉它或改成 `/_arkret/*`。新增协议标识仍须由其 binding profile 明确登记，不能从语法通过推导协议已受支持。
+
+机器门禁 `check_transport_naming` 遍历 operation registry 与非 HTTP binding 表中所有 service、method、topic、SSE event label 和 libp2p protocol identifier，并检查 registry 与 binding 表的双向精确对应。命名门禁不激活这些 transport，不意味着发布了非 HTTP conformance profile；启用与支持声明仍严格服从 [`transport-bindings.md` §6／§7](./transport-bindings.md)。
 
 ### 2.5 HTTP method 语义
 
@@ -187,7 +214,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ak.self.device_messages.command.send.v1` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack.v1` 触发。相反，`ak.self.keys.backups.resource.replace.v1`、`ak.self.account_data.resource.replace.v1` 和 `ak.self.agent.participation.resource.replace.v1` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
+因此，`ak.self.device_messages.command.send.v1` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device-messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack.v1` 触发。相反，`ak.self.keys.backups.resource.replace.v1`、`ak.self.account_data.resource.replace.v1` 和 `ak.self.agent.participation.resource.replace.v1` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
@@ -228,8 +255,8 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
     "methods": [
       {
         "method": "oidc",
-        "issuer": "https://auth.example.com",
-        "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+        "issuer_uri": "https://auth.example.com",
+        "openid_configuration_url": "https://auth.example.com/.well-known/openid-configuration",
         "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"kind": "account_handoff"}

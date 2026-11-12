@@ -13,7 +13,9 @@
     "emphasis",
     "hypothesis",
     "process",
+    "replaces",
     "status",
+    "supersedes",
     "thesis"
   ],
   "exact_exceptions": [
@@ -61,6 +63,16 @@
       "file": "view.schema.json",
       "pointer": "/$defs/collection_configuration/properties/item_order_by",
       "reason": "registered ordered collection clause grammar; item_order_by names the whole ordered clause"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/agent_key_authorize_payload/properties/supersedes",
+      "reason": "An exact operation-grammar operand: the complete observed prior Agent key authorization basis atomically superseded by this replacement. The verb describes the operation relation; it is not a plural domain noun or a reusable suffix exception."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/member_identity_update_payload/properties/replaces",
+      "reason": "An exact operation-grammar operand naming the prior immutable member identity assertion Events replaced for projection. The verb is the established replacement operator, not an object-collection plural or a basename exception."
     }
   ],
   "pagination_objects": [

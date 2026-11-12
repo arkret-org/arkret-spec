@@ -268,9 +268,7 @@
       "description": "Deployment/admin upper bound for subject-private invite/contact receive policies. Stations SHOULD expose this in describe so clients can show which user reachability preferences are capped by server policy."
     },
     "rate_limit_policy_id": {
-      "type": "string",
-      "pattern": "^(?!ak:)",
-      "minLength": 1,
+      "$ref": "./policy.schema.json#/properties/id",
       "description": "Identifier for a cacheable, verifiable rate-limit policy object with the same minimum fields as rate_limit_policy. See zh/sync/api-conventions.md §8."
     },
     "rate_limit_policy": {
@@ -557,7 +555,8 @@
           "verification_run_id": {
             "type": "string",
             "pattern": "^(?!ak:)",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 256
           },
           "artifact_digest": {
             "type": "string",

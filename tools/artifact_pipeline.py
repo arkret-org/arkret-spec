@@ -673,8 +673,28 @@ def classification_discipline_errors(
                 errors.append(f"{ref}.{required} must be a non-empty string")
         if row.get("dispatch_authority") != "external_standard":
             errors.append(f"{ref}.dispatch_authority must be external_standard")
-        if row.get("arkret_extensions_allowed") is not False:
-            errors.append(f"{ref}.arkret_extensions_allowed must be false")
+        profile_owner = (
+            row.get("schema_ref") == "schemas/service-operation-dtos.schema.json"
+            and row.get("json_pointer") == "/$defs/ServiceDidEndpoint/properties/type"
+        )
+        if profile_owner or row.get("arkret_extensions_allowed") is not False:
+            authority = "registry/contract-registry.json#/did_document_contract_registry/arkret_service_types/0/type"
+            if not (profile_owner and row.get("arkret_extensions_allowed") is True
+                    and row.get("external_standard") == "W3C DID Core"
+                    and row.get("extension_authority") == authority):
+                errors.append(f"{ref}: external type extensions require the exact registered DID service profile owner")
+            else:
+                try:
+                    node = resolve_json_pointer(schema_documents.get(row["schema_ref"], {}), row["json_pointer"])
+                    contract = json.loads(CONTRACT_REGISTRY_PATH.read_text(encoding="utf-8"))
+                    expected = resolve_json_pointer(contract, "/did_document_contract_registry/arkret_service_types/0/type")
+                except (KeyError, TypeError, ValueError):
+                    errors.append(f"{ref}: DID service profile authority must resolve")
+                else:
+                    if not isinstance(node, dict) or node.get("const") != expected or expected != "ArkretService":
+                        errors.append(f"{ref}: DID service profile type must equal its canonical registry value")
+        elif "extension_authority" in row:
+            errors.append(f"{ref}: extension authority without a closed registered profile")
         schema_ref = row.get("schema_ref")
         pointer = row.get("json_pointer")
         doc_ref = row.get("doc_ref")

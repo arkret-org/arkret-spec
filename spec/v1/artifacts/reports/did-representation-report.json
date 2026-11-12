@@ -1015,6 +1015,16 @@
       ]
     },
     {
+      "schema_path": "agent-operations.schema.json#/$defs/agent_participation_response_body/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "agent-operations.schema.json#/$defs/agent_projection/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -4547,6 +4557,16 @@
     {
       "schema_path": "grant-constraint.schema.json#/properties/trusted_claim_issuer_ids",
       "property_name": "trusted_claim_issuer_ids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "handle-claim.schema.json#/$defs/claim_variant/oneOf/1/properties/organization_id",
+      "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,

@@ -560,7 +560,8 @@
             {
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
-          ]
+          ],
+          "maxLength": 256
         },
         "key_digest": {
           "$ref": "#/$defs/digest"

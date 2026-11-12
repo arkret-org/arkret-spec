@@ -277,7 +277,7 @@
         },
         "handle_claim": {
           "$ref": "./handle-claim.schema.json",
-          "description": "Signed HandleClaim status view proving that handle resolves to invite_address.account_id. The receiver MUST verify exact handle_claim.claim.subject_account_id equality, status=verified, the signed as_of/fresh_until window, null revocation fields, core/status proofs, core expiry, issuer trust, visibility/audience policy, and that handle_claim.claim.handle equals handle."
+          "description": "Signed HandleClaim status view proving that handle resolves to invite_address.account_id. The receiver MUST verify exact handle_claim.claim.subject_account_id equality, status=verified, the signed evaluated_at/cache_expires_at window, null revocation fields, core/status proofs, core expiry, issuer trust, visibility/audience policy, and that handle_claim.claim.handle equals handle."
         },
         "resolved_by": {
           "$ref": "#/$defs/did_core_id",

@@ -131,14 +131,7 @@
       ],
       "properties": {
         "install_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./string-profiles.schema.json#/$defs/applet_install_handle"
         },
         "applet_id": {
           "$ref": "#/$defs/applet_id"

@@ -3,7 +3,7 @@ title: Query JSON Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-11-12
 ---
 
 ## 0. 规范语言
@@ -118,8 +118,7 @@ Relation Query 字段：
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_ref`: OPTIONAL，限制 relation 起点；使用与 Relation 相同的 typed object-reference string 或完整 ActorId object。
 - `target_ref`: OPTIONAL，限制 relation 终点；使用相同 `RelationEndpoint` union。Actor 匹配 MUST 包含 Station，不能只按 DID 匹配。`source_actor_id` / `source_realm_id` / `target_actor_id` / `target_realm_id` 不再是并行 wire 字段；所有端点只由 `source_ref` / `target_ref` 表达。
-- `source_type`: OPTIONAL，限制起点类型，例如 `strand`、`actor`、`realm`。业务分类应通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph type 表达；不要把 `card` / `room` 当作 canonical source type。
-- `target_type`: OPTIONAL，限制终点类型。
+- endpoint 的 kind 与 carrier 由 `source_ref` / `target_ref` 的闭合 `RelationEndpoint` union 决定，不另设 `source_type` / `target_type` wire 字段。业务分类通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph kind 表达；不得把 `card` / `room` 当作 canonical endpoint kind。
 - `depth`: OPTIONAL，关系展开深度；跨 Realm 规则见 `views.md` Lazy Link。
 
 Strand synthesis 与 discussion 的 relation 查询必须遵守有效 access 授权：

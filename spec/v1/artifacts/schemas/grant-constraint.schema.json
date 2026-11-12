@@ -17,6 +17,8 @@
     "constraint_id": {
       "type": "string",
       "pattern": "^(?!ak:)",
+      "minLength": 1,
+      "maxLength": 256,
       "description": "Optional stable identifier of this constraint within the grant; used for diagnostics and overrides."
     },
     "constraint_kind": {
@@ -510,7 +512,8 @@
       "items": {
         "type": "string",
         "pattern": "^(?!ak:)",
-        "minLength": 1
+        "minLength": 1,
+        "maxLength": 256
       },
       "uniqueItems": true
     },

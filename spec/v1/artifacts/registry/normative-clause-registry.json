@@ -129,7 +129,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:447fdfdcf9c644ba0d87a35e82d09aceefa5b8ae0eda4a69db9379a7e35898e1",
+      "section_digest": "sha256:9aa42828e91fc2125f546e1436cc73d3bde8c0f32faa20505f75527d052d28bc",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -144,7 +144,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:ba17ddf86004438656483d2677d8e421b07022613408d3e6572807feadab485a",
+      "section_digest": "sha256:1048f0665dba32ca6fbb74b4f2a62d77d4a8974dbd27d92e57ccba9b6339dc83",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -168,7 +168,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:fe1164d306a4a8607cc8f5003f031f63a36ab75bd26a6e894947d8ab05263f69",
+      "section_digest": "sha256:8ad15bdab812b235b139b157fb784d0412a679a6b6a19b09f53bed3d414f2793",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [

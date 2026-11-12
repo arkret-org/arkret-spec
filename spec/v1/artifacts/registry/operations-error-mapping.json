@@ -94,14 +94,14 @@
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.read.list.v1",
-      "http_alias": "GET /_arkret/edge/applet/third_party/locations",
+      "http_alias": "GET /_arkret/edge/applet/third-party/locations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface.",
       "codes": []
     },
     {
       "operation_id": "ak.edge.applet.third_party_users.read.list.v1",
-      "http_alias": "GET /_arkret/edge/applet/third_party/users",
+      "http_alias": "GET /_arkret/edge/applet/third-party/users",
       "operation_specific": [
         "not_found"
       ],
@@ -1048,14 +1048,14 @@
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
-      "http_alias": "GET /_arkret/self/account_data",
+      "http_alias": "GET /_arkret/self/account-data",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface.",
       "codes": []
     },
     {
       "operation_id": "ak.self.account_data.resource.delete.v1",
-      "http_alias": "DELETE /_arkret/self/account_data/{account_data_key}",
+      "http_alias": "DELETE /_arkret/self/account-data/{account_data_key}",
       "operation_specific": [
         "cas_conflict",
         "duplicate_conflict"
@@ -1065,7 +1065,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.get.v1",
-      "http_alias": "GET /_arkret/self/account_data/{account_data_key}",
+      "http_alias": "GET /_arkret/self/account-data/{account_data_key}",
       "operation_specific": [
         "not_found"
       ],
@@ -1074,7 +1074,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.replace.v1",
-      "http_alias": "PUT /_arkret/self/account_data/{account_data_key}",
+      "http_alias": "PUT /_arkret/self/account-data/{account_data_key}",
       "operation_specific": [
         "cas_conflict",
         "duplicate_conflict"
@@ -1609,14 +1609,14 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
-      "http_alias": "POST /_arkret/self/device_messages/ack",
+      "http_alias": "POST /_arkret/self/device-messages/ack",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to param_invalid (reason invalid_ack_token) and MUST NOT delete any queued message.",
       "codes": []
     },
     {
       "operation_id": "ak.self.device_messages.command.send.v1",
-      "http_alias": "POST /_arkret/self/device_messages",
+      "http_alias": "POST /_arkret/self/device-messages",
       "operation_specific": [
         "duplicate_conflict",
         "device_revocation_pending",
@@ -1627,7 +1627,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
-      "http_alias": "GET /_arkret/self/device_messages",
+      "http_alias": "GET /_arkret/self/device-messages",
       "operation_specific": [
         "invalid_cursor",
         "cursor_expired",

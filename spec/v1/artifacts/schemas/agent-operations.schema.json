@@ -671,7 +671,8 @@
             {
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
-          ]
+          ],
+          "maxLength": 256
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -1995,7 +1996,7 @@
       ],
       "properties": {
         "agent_id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "participation_entries": {
           "type": "array",
