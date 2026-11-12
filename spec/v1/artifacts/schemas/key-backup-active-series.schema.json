@@ -161,7 +161,8 @@
       "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
     },
     "recovery_ref": {
-      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+      "description": "Native selection-time accepted Recovery source. Must match current Recovery at selection admission; immutable thereafter. A later Recovery source advance without manager or recipient change does not invalidate this selected series or require a fresh series. Station independently verifies original selection authority and current manager/recipient validity."
     },
     "recipient_ref": {
       "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"

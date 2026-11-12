@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:dc05e396dc216fa2a27c051c1a368fa9b45de621180125b56986c2b2a6ae3ffe",
+  "contract_digest": "sha256:4c3e531e86ee775e08648cfd70adc376912e8cfbf2bc76bccf05c7c4a92c80fe",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -42997,7 +42997,8 @@
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
               },
               "recovery_ref": {
-                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+                "description": "Immutable selection-time Recovery source from the original accepted series record; this is not necessarily the current Recovery source used for new PUT auth_binding."
               },
               "recipient_ref": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -74947,7 +74948,8 @@
             "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
           },
           "recovery_ref": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+            "description": "Native selection-time accepted Recovery source. Must match current Recovery at selection admission; immutable thereafter. A later Recovery source advance without manager or recipient change does not invalidate this selected series or require a fresh series. Station independently verifies original selection authority and current manager/recipient validity."
           },
           "recipient_ref": {
             "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -77291,7 +77293,8 @@
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
               },
               "recovery_ref": {
-                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+                "description": "For a new native PUT, the locked current Recovery source supplied in bound next_prepare_input, not necessarily the immutable selection-time recovery_ref in the selected series. Original accepted packet references remain frozen."
               },
               "recipient_ref": {
                 "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
@@ -95549,7 +95552,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Optional authenticated public input supplied only for this request exactly selecting own Recovery and scoped native active series at one qualified current cut. pending must be null and Device/original authorization/generation, manager, recipient and series must all match. The Device echoes this object byte-for-byte; it cannot derive coordinates from nested current values. No private key or other control material is disclosed. Station alone independently validates full original recipient declaration, creation scope/external-ref privacy, exact Reset-to-Begin closure, native DID keyAgreement and series original. Device does not fetch these Events, replay DID/governance, or derive refs; event permission remains only its own exact Device authorization."
+            "description": "Optional authenticated public input supplied only for this request exactly selecting own Recovery and scoped native active series at one qualified current cut. pending must be null and Device/original authorization/generation, manager, recipient and series must all match. The Device echoes this object byte-for-byte; it cannot derive coordinates from nested current values. No private key or other control material is disclosed. Station alone independently validates full original recipient declaration, creation scope/external-ref privacy, exact Reset-to-Begin closure, native DID keyAgreement and series original. Device does not fetch these Events, replay DID/governance, or derive refs; event permission remains only its own exact Device authorization. auth_binding.recovery_ref is the current Recovery source, while accepted series.recovery_ref remains its independently verified selection-time source. Same-cut qualification does not require equality between these references; current manager and recipient must match and all other gates remain unchanged."
           }
         }
       }
@@ -117322,7 +117325,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:fd16773c737773ce0561f90a5d0f4e5fe5434a9c7624fc82d8624e57f105d213"
+      "digest": "sha256:21578146e70e5203b2b86ca5bde466389055f2e8a79e5ffe6bd52341a76a9cc3"
     },
     {
       "file": "derived-wire-field-removal-lock.json",

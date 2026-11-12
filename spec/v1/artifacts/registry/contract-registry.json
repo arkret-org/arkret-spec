@@ -25303,7 +25303,7 @@
         "missing_series_or_unknown_dependency": "no_prepare_input_and_existing_unavailable_or_dependency_missing",
         "private_keys_or_other_control_disclosure": false,
         "ref_sources": {
-          "auth_binding": "same_cut_Station_typed_next_prepare_input_only",
+          "auth_binding": "same_cut_Station_typed_next_prepare_input_only_recovery_ref_is_current_Recovery_source_not_historical_series_recovery_ref",
           "recipient_ref": "original_declaration_preserved_through_enable_toggles",
           "device_generation": "same_cut_own_exact_authorization_instance",
           "reset_begin_closure": "Station_internal_exact_original_only_no_Device_history_expansion"
@@ -25756,6 +25756,26 @@
         "native_challenge_schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge",
         "native_head_has_cursor_or_has_more": false,
         "old_page_and_challenge_are_aliases": false
+      },
+      "native_series_reference_roles": {
+        "new_selection_recovery_ref": "exact_locked_current_Recovery_source",
+        "accepted_series_recovery_ref": "immutable_original_selection_time_Recovery_source_independently_verified_with_original_Service_signature_and_then_authority",
+        "first_PUT_auth_binding_recovery_ref": "exact_locked_current_Recovery_source",
+        "series_recovery_ref_equals_current_required": false,
+        "same_cut": "current_joint_validity_check_not_equality_of_distinct_historical_writers",
+        "required_current_matches": [
+          "full_RealmActor",
+          "exact_effective_scope",
+          "current_manager_ref",
+          "current_recipient_ref",
+          "valid_selected_series",
+          "pending_null",
+          "all_existing_Device_generation_business_membership_MLS_Policy_quota_gates"
+        ],
+        "enabled_toggle_requires_fresh_series": false,
+        "Recovery_source_advance_without_manager_or_recipient_change_requires_fresh_series": false,
+        "manager_or_recipient_replacement_requires_fresh_series": true,
+        "historical_series_ref_rewritten": false
       }
     }
   },

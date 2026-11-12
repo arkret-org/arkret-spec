@@ -215,10 +215,13 @@ def admit_packet(envelope, current, pointer, author_public, existing=None):
             or envelope["encryption"]["recipient_key_ref"] != current["recipient"]["key_agreement_ref"]
             or any(envelope["auth_binding"][name] != current[name] for name in ["manager_ref", "recovery_ref", "recipient_ref"])):
         raise ValueError("native packet differs from its current authority cut")
+    # The accepted pointer retains selection-time Recovery provenance.
+    # Its original signature/authority is independently qualified by the caller.
+    # The new packet above must bind current Recovery; manager/recipient remain current.
     # Identity recovery.enabled is deliberately not a business-publication gate.
     if (series_key(envelope["actor_id"], scope) != series_key(pointer["actor_id"], pointer["effective_scope"])
             or envelope["series_id"] != pointer["active_series_id"]
-            or any(pointer[name] != current[name] for name in ["manager_ref", "recovery_ref", "recipient_ref"])):
+            or any(pointer[name] != current[name] for name in ["manager_ref", "recipient_ref"])):
         raise ValueError("native packet differs from the exact scope pointer")
     if existing is not None:
         if (envelope["series_id"] != existing["series_id"]
