@@ -187,6 +187,15 @@ Device PUT；后者仍执行完整 current install／consent／业务状态／sc
 设置 pointer、选择 recipient 或借普通 grant 替代 manager-maintenance 权威。
 首次 pointer version 为 1，后继只在同一 scope 做严格 version/CAS 和 previous_series_ids 校验。
 
+record.recovery_ref 冻结为该 series 被选择时的真实 Recovery 来源；接纳新 selection 时 MUST 等于锁内
+current Recovery 来源，接受后不随 Recovery current revision 改写。普通 recovery.set 的 enabled 切换，
+以及未替换 manager／recipient 的 Recovery 来源推进，MUST NOT 隐式要求重选 series。Station MUST 独立
+验证历史 series 原件、原签和选择时资格，并在当前锁内核同一 manager_ref、recipient_ref、exact scope、
+未退休的 selected series 及 pending=null；不能仅凭不等的 recovery_ref 拒绝仍有效的历史 selection。
+新 PUT 的 auth_binding.recovery_ref MUST 取本次 current Recovery 来源，而非复制历史 series.recovery_ref。
+同一 current cut 指本次一起核验各对象的当前有效性，不要求不同对象的历史写入 ref 相同；manager／
+recipient 真正替换后的 fresh-series 要求、当前 Device／generation／业务／MLS 等全部门保持不变。
+
 manager 可以先签选尚无 envelope 的新 series，故初次 PUT 不依赖一张尚不存在的备份回执。Device 必须读取本次
 exact scope 已接受的 pointer 与公共 recipient；未选、旧 manager／recipient 或缺少已验原件时保持不可用，不能从
 唯一可见 series、最大 sequence、到达顺序或默认配置猜测。首包 series_sequence=0；后继精确绑定同 scope 的直接

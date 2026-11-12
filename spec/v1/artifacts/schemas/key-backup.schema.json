@@ -1399,7 +1399,8 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "recovery_ref": {
-          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "For a new native PUT, the locked current Recovery source supplied in bound next_prepare_input, not necessarily the immutable selection-time recovery_ref in the selected series. Original accepted packet references remain frozen."
         },
         "recipient_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"

@@ -6598,7 +6598,8 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "recovery_ref": {
-          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "Immutable selection-time Recovery source from the original accepted series record; this is not necessarily the current Recovery source used for new PUT auth_binding."
         },
         "recipient_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"

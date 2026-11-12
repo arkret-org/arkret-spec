@@ -196,6 +196,56 @@ class RealmActorBackupContractTest(unittest.TestCase):
         self.assertEqual(result["ciphertext_digest"],packet["ciphertext_digest"])
         select_series(pointer,None,current,unb64(self.f["test_material"]["manager_public_base64url"]))
 
+    def test_recovery_source_advance_keeps_original_series_and_uses_current_packet_binding(self):
+        packet,current,pointer=self.inputs()
+        original_pointer=copy.deepcopy(pointer)
+        original_recipient=copy.deepcopy(current["recipient"])
+        manager_public=unb64(self.f["test_material"]["manager_public_base64url"])
+        current["recovery_enabled"]=False
+        current["recovery_ref"]={**committed(86,5),"stream_ref":copy.deepcopy(pointer["recovery_ref"]["stream_ref"])}
+        self.assertNotEqual(current["recovery_ref"],pointer["recovery_ref"])
+        store=ArchiveReference();before=copy.deepcopy(store.__dict__)
+        with self.assertRaises(ValueError):store.put(packet,current,pointer,self.public())
+        self.assertEqual(store.__dict__,before)
+        unsigned=unsigned_envelope(packet)
+        unsigned["auth_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
+        packet=seal(unsigned,self.f["plaintext"],unb64(current["recipient"]["public_key_base64url"]),
+            bytes.fromhex(self.f["test_material"]["ephemeral_private_hex"]),
+            bytes.fromhex(self.f["test_material"]["device_seed_hex"]))
+        self.assertEqual(open_backup(packet,self.private(),self.public()),self.f["plaintext"])
+        result=store.put(packet,current,pointer,self.public())
+        self.assertEqual(result["backup_id"],packet["backup_id"])
+        Ed25519PublicKey.from_public_bytes(manager_public).verify(
+            unb64(pointer["signature_proof"]["signature"]),series_bytes(pointer))
+        self.assertEqual(pointer,original_pointer)
+        self.assertEqual(current["recipient"],original_recipient)
+        # Historical validity is not permission to select a new record with stale refs.
+        with self.assertRaises(ValueError):select_series(pointer,None,current,manager_public)
+        fresh=copy.deepcopy(pointer);fresh["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
+        self.sign_pointer(fresh)
+        select_series(fresh,None,current,manager_public)
+
+    def test_historical_series_recovery_ref_does_not_relax_other_current_gates(self):
+        for field,value in [("manager_ref",committed(88,7)),("recipient_ref",committed(87,6)),
+                ("pending",{"begin_ref":committed(90,9)}),("device_generation",2),
+                ("owner_status","paused"),("governance_status","retired"),("actions",[])]:
+            packet,current,pointer=self.inputs()
+            current["recovery_ref"]={**committed(86,5),"stream_ref":copy.deepcopy(pointer["recovery_ref"]["stream_ref"])}
+            unsigned=unsigned_envelope(packet)
+            unsigned["auth_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
+            if field in {"manager_ref","recipient_ref"}:
+                value={**value,"stream_ref":copy.deepcopy(current[field]["stream_ref"])}
+            current[field]=value
+            if field in {"manager_ref","recipient_ref"}:
+                unsigned["auth_binding"][field]=copy.deepcopy(value)
+            packet=seal(unsigned,self.f["plaintext"],unb64(current["recipient"]["public_key_base64url"]),
+                bytes.fromhex(self.f["test_material"]["ephemeral_private_hex"]),
+                bytes.fromhex(self.f["test_material"]["device_seed_hex"]))
+            store=ArchiveReference();before=copy.deepcopy(store.__dict__)
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                store.put(packet,current,pointer,self.public())
+            self.assertEqual(store.__dict__,before)
+
     def test_pending_retired_wrong_scope_old_manager_and_wrong_epoch_are_zero_effects(self):
         for field,value in [("pending",{"begin_ref":committed(90,9)}),("owner_status","paused"),
                 ("governance_status","retired"),("device_generation",2),("device_id","different-device"),

@@ -599,6 +599,12 @@ PUT 仍核 current installation／consent／双业务状态／scope/action／MLS
 同 manager 的普通控制轮换／Device generation 变化不自动重置 scoped pointer 或归档密钥；Device 的业务资格
 仍按最新代次与原授权独立求值。manager.change 后新 manager 按 scope 明确选择 fresh series，不能继续旧
 manager 的新写权限。current pointer、其确认 basis 和 predecessor 不得跨 Circle 互作来源。
+series.record.recovery_ref 只冻结选择时的真实 Recovery 来源，新 selection 仍必须匹配锁内 current 来源。
+普通 recovery.set 切换 enabled 或不替换 manager／recipient 的 Recovery 来源推进，不改写已接受 series，
+也不要求 fresh series。新 PUT／next_prepare_input.auth_binding.recovery_ref 使用本次 current Recovery
+来源，可以不同于 series 的历史 recovery_ref。Station 独立验证原 selection 的签名与当时资格，再于同一
+current cut 核 manager_ref／recipient_ref 仍当前一致、exact scope／selected series 有效及 pending=null；
+不得把不同历史对象 ref 相等误作 same-cut。manager／recipient 替换、代次与全部业务门仍依原合同。
 
 **受限材料供给**：既有 material purpose=current 对原生 Device 仅开放本 actor 的公共 recovery 与 exact scope
 active-series 两种 selector，且 Device 必须仍 current、pending 为 null、元数据 scope 与请求一致。只有本次两项
