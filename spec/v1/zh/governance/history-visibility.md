@@ -124,6 +124,10 @@ Handoff 迁移公开 MLS state、accepted Commit Events、RealmCommits、pending
 
 服务运输account_device_historical_signer_fact MUST 与同一exact target的当前recipient Full Event可见性/读取授权门一致，保持原join position/history_access/Circle/retention/MLS/reference门。withheld/redacted/floor之外、未披露、未知target不能带fact/key/source坐标或其计数；peer整页fact对应原可见Full row的完整四坐标，缺/重/extra/sibling失败关闭。原fact同accepted Commit持久，披露受当前读取门限制；后来current device撤销不撤销原签名事实，也不恢复新admission资格。
 
+精确 Realm 创世成员原件只按 [server-trusted-results §5.6](../sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥)
+的封闭来源处理：当前成员经自己 Station 的 bound Full GET 独立验原 producer，所用原 fact 与接纳档案一致。
+该窄例外不降低普通 scan floor、不披露其它 pre-join 行或 PCR，不允许把任意 GET 或公开治理 bundle 当作历史签名来源。
+
 ### managed 首次 forward 私有来源例外
 
 [device-lifecycle §8.2.2.1](../crypto-media/device-lifecycle.md#8221-realm-actor-业务来源normative)允许已验本人 Device／原签 pair 的首次普通 Event 或完整 MLS 向当前 governor 携固定四个原 Service 签名创建原件、其原 accepted Commits 与恰两个必要 current identity result。该闭合 sibling 仅供独立来源核验与原子私有 audit；不属于群 history、replication、scan 或 snapshot，不新增通用 PCR 读取，不能因 membership、namespace、Applet 标签或历史 fact 命中而取材。成员披露继续只给既有最小 signer fact。

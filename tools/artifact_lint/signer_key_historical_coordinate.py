@@ -43,6 +43,44 @@ SELF_SUBMISSION_RULE = {'coordinate_source': 'frozen_complete_signed_request_eve
                      'grants_pcr_history_or_membership': False,
                      'changes_ordinary_received_floor': False,
                      'missing_or_conflicting_fact': 'existing_unavailable_without_current_query_fallback'}}
+MEMBER_GENESIS_RULE = {'operation_id': 'ak.self.committed_event.resource.get.v1',
+ 'carrier': 'authenticated_bound_full_committed_event_view_for_exact_realm_genesis',
+ 'realm_purposes': ['collaboration', 'direct_conversation'],
+ 'request_binding': 'same_persistently_bound_own_station_full_authenticated_recipient_and_request_epoch',
+ 'device_binding': 'original_actor_device_authorization_effective_scope_and_live_reader_instance',
+ 'current_disclosure': 'current_membership_and_existing_scope_device_authorization_gates',
+ 'checks': ['requested_event_id_equals_realm_id_derived_event_id',
+            'realm_create_kind_and_realm_genesis_scope',
+            'realm_stream_position_zero_no_predecessor_generation_zero',
+            'original_event_and_commit_content_ids_and_event_ref',
+            'station_verified_original_governance_and_accepted_source',
+            'original_committed_producer_fact_when_digest_present',
+            'independent_original_producer_signature_and_authorization'],
+ 'coordinate_copy': 'exact_original_event_id_commit_id_stream_ref_stream_position',
+ 'missing_or_conflicting_original': 'existing_unavailable_without_current_key_or_fact_backfill',
+ 'changes_stream_head_or_history_floor': False,
+ 'permits_other_pre_join_events_or_pcr': False,
+ 'permits_unbound_get_or_current_projection': False,
+ 'client_governance_discovery_required': False,
+ 'producer_verification_without_fact_digest': 'requires_independent_original_native_producer_authorization_and_signature_or_existing_unavailable',
+ 'client_governance_discovery_allowed': False,
+ 'public_bundle_only_source_allowed': False}
+MEMBER_GENESIS_SOURCE = 'ak.self.committed_event.resource.get.v1.exact_member_realm_genesis'
+MEMBER_GENESIS_NEGATIVES = {'member_genesis_advances_head_or_lowers_ordinary_floor',
+ 'member_genesis_changed_strategy_with_original_realm_id',
+ 'member_genesis_governance_only_without_original_producer_verification',
+ 'member_genesis_missing_conflicting_or_current_backfilled_fact',
+ 'member_genesis_no_digest_forged_producer_proof',
+ 'member_genesis_no_digest_only_self_consistency_without_original_authority',
+ 'member_genesis_non_member_or_revoked_membership',
+ 'member_genesis_pcr_or_other_pre_join_event',
+ 'member_genesis_predecessor_or_nonzero_generation',
+ 'member_genesis_inactive_or_expired_reader_response',
+ 'member_genesis_sibling_device_authorization_or_scope',
+ 'member_genesis_unbound_or_unsigned_get',
+ 'member_genesis_wrong_realm_kind_scope_or_position',
+ 'member_genesis_wrong_station_account_or_epoch'}
+MEMBER_GENESIS_FLOWS = {'late_join_member_verifies_exact_genesis_without_ordinary_scan_row', 'exact_genesis_verification_preserves_empty_pre_join_scan_and_current_head'}
 SELF_SUBMISSION_FLOWS = {'controller_human_agent_pcr_genesis_resolves_from_original_provision_delegation_transaction', 'human_pcr_self_submission_resolves_from_original_self_admission_without_scan', 'self_submission_checks_each_aggregate_slot_without_advancing_head_or_floor', 'historical_authorization_revoked_later_keeps_original_fact_without_current_authority'}
 
 NEGATIVE_CASES = {
@@ -151,9 +189,17 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
         if not isinstance(notes, str) or marker not in notes:
             lint.fail(CONTRACT, f"signer-key operation notes are missing {marker!r}")
 
+    genesis_operation = _find(registry.get("operations") if isinstance(registry, dict) else None, "operation_id", MEMBER_GENESIS_RULE["operation_id"])
+    genesis_notes = genesis_operation.get("notes") if isinstance(genesis_operation, dict) else None
+    for marker in ("Exact member Realm Genesis", "original producer verification", "ordinary history floors"):
+        if not isinstance(genesis_notes, str) or marker not in genesis_notes:
+            lint.fail(CONTRACT, f"member Genesis operation notes are missing {marker!r}")
+
     consumption = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {})
-    if consumption.get("historical_producer_coordinates") != "original_authorized_self_committed_event_view_or_bound_self_submission_exact_committed_event_ref":
-        lint.fail(CONTRACT, "historical source contract must retain stream rows and bound self submissions")
+    if consumption.get("historical_producer_coordinates") != 'original_authorized_self_committed_event_view_or_bound_self_submission_or_exact_member_realm_genesis_committed_event_ref':
+        lint.fail(CONTRACT, "historical source contract must retain stream rows, bound self submissions and exact member Genesis")
+    if consumption.get("member_genesis_historical_source") != MEMBER_GENESIS_RULE:
+        lint.fail(CONTRACT, "member Genesis source must preserve exact authenticated disclosure, producer verification and unchanged floor")
     if consumption.get("self_submission_historical_source") != SELF_SUBMISSION_RULE:
         lint.fail(CONTRACT, "self submission source must preserve exact binding, immutable authorization and restricted PCR rules")
 
@@ -177,8 +223,14 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
             "ak.self.committed_event.read.scan.v1.stream_scan_response_body.committed_events",
         ]:
             lint.fail(FIXTURE, "fixture must retain exactly the two existing committed_event_view carrier sources")
-        if fixture.get("construction_sources") != fixture.get("carrier_sources", []) + ["self_submit.frozen_signed_request_and_bound_accepted_outcome"]:
+        if fixture.get("construction_sources") != fixture.get("carrier_sources", []) + ["self_submit.frozen_signed_request_and_bound_accepted_outcome", MEMBER_GENESIS_SOURCE]:
             lint.fail(FIXTURE, "fixture must close coordinate construction over existing rows and bound self submissions")
+        if fixture.get("member_genesis_rule") != MEMBER_GENESIS_RULE:
+            lint.fail(FIXTURE, "member Genesis fixture must preserve exact authenticated disclosure, producer verification and unchanged floor")
+        if not MEMBER_GENESIS_NEGATIVES.issubset(set(fixture.get("negative_cases", []))):
+            lint.fail(FIXTURE, "member Genesis fixture is missing narrow-source negative cases")
+        if not MEMBER_GENESIS_FLOWS.issubset(set(fixture.get("positive_flows", []))):
+            lint.fail(FIXTURE, "member Genesis fixture is missing late-join and unchanged-floor flows")
         if fixture.get("self_submission_rule") != SELF_SUBMISSION_RULE:
             lint.fail(FIXTURE, "self submission fixture must preserve exact binding, immutable authorization and restricted PCR rules")
         if not SELF_SUBMISSION_FLOWS.issubset(set(fixture.get("positive_flows", []))):
@@ -200,7 +252,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
             lint.fail(FIXTURE, "fixture is missing historical signer resolution liveness flows")
 
     prose = {
-        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性", "本次 self 提交原件", "self 提交的 Human PCR 历史公钥", "同事务事实", "MUST NOT 推进"),
+        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性", "本次 self 提交原件", "精确 Realm 创世成员原件", "self 提交的 Human PCR 历史公钥", "同事务事实", "MUST NOT 推进"),
         SYNC_PROSE: ("realm_sync_entry.committed_events[]", "stream_scan_response_body.committed_events[]", "不得新增"),
         VECTOR_PROSE: (VECTOR_ID, "authorization_ref", "current-query 降级"),
     }

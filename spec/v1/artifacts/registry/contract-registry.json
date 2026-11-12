@@ -16841,7 +16841,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
-        "notes": "Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
+        "notes": "Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized. Exact member Realm Genesis is the narrow bound Full original source defined in server-trusted-results section 5.6; require current membership/Device disclosure and original producer verification, without changing ordinary history floors or permitting arbitrary GET, PCR or public-bundle-only historical sources.",
         "auth_requirements": {
           "managed_device_signature": {
             "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
@@ -17575,7 +17575,7 @@
         "http": "POST /_arkret/self/signer-keys/query",
         "grpc": "SelfSignerKeys/Resolve",
         "mq": "self.signer_keys.query.resolve",
-        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan committed_event_view, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_base64url after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged.",
+        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan committed_event_view, or from this invocation frozen complete signed self request Event paired with its bound accepted outcome original Commit under server-trusted-results section 2.1; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_base64url after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Self-submitted Human PCR history requires original same-Station self-admission, authenticated recipient fullAccount equal to actual Human producer fullAccount, exact target and complete immutable original historical authorization/proof. Controller Human Agent PCR genesis additionally requires original accepted provision, complete controllerAccount and original delegation frozen in that same transaction; never current-row backfill. No head/floor advancement or PCR history scan/membership is granted. Ordinary received visibility/floor remains unchanged. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact member Realm Genesis from authenticated bound own-Station Full GET is a narrow historical source; verify RealmID-derived target, original coordinates and producer authorization, preserve ordinary scan floors, and reject PCR, arbitrary GET/current projections or current-key fact backfill.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
@@ -22655,7 +22655,7 @@
       "new_operations": false,
       "authority_origin": "current_governance_station_original_commit_or_snapshot",
       "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
-      "historical_producer_coordinates": "original_authorized_self_committed_event_view_or_bound_self_submission_exact_committed_event_ref",
+      "historical_producer_coordinates": "original_authorized_self_committed_event_view_or_bound_self_submission_or_exact_member_realm_genesis_committed_event_ref",
       "failure": "existing_operation_refusal_or_unavailable_no_state_advancement",
       "self_submission_historical_source": {
         "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",
@@ -22766,6 +22766,35 @@
         "member_delivery": "existing_full_disclosure_minimal_historical_fact_only",
         "directory_or_current_query_expanded": false,
         "new_wire_role_session_pcr_read_or_authority_token": false
+      },
+      "member_genesis_historical_source": {
+        "operation_id": "ak.self.committed_event.resource.get.v1",
+        "carrier": "authenticated_bound_full_committed_event_view_for_exact_realm_genesis",
+        "realm_purposes": [
+          "collaboration",
+          "direct_conversation"
+        ],
+        "request_binding": "same_persistently_bound_own_station_full_authenticated_recipient_and_request_epoch",
+        "device_binding": "original_actor_device_authorization_effective_scope_and_live_reader_instance",
+        "current_disclosure": "current_membership_and_existing_scope_device_authorization_gates",
+        "checks": [
+          "requested_event_id_equals_realm_id_derived_event_id",
+          "realm_create_kind_and_realm_genesis_scope",
+          "realm_stream_position_zero_no_predecessor_generation_zero",
+          "original_event_and_commit_content_ids_and_event_ref",
+          "station_verified_original_governance_and_accepted_source",
+          "original_committed_producer_fact_when_digest_present",
+          "independent_original_producer_signature_and_authorization"
+        ],
+        "coordinate_copy": "exact_original_event_id_commit_id_stream_ref_stream_position",
+        "missing_or_conflicting_original": "existing_unavailable_without_current_key_or_fact_backfill",
+        "changes_stream_head_or_history_floor": false,
+        "permits_other_pre_join_events_or_pcr": false,
+        "permits_unbound_get_or_current_projection": false,
+        "client_governance_discovery_required": false,
+        "producer_verification_without_fact_digest": "requires_independent_original_native_producer_authorization_and_signature_or_existing_unavailable",
+        "client_governance_discovery_allowed": false,
+        "public_bundle_only_source_allowed": false
       }
     },
     "agent_authority_evidence_contract": {

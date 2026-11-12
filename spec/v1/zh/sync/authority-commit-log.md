@@ -263,7 +263,8 @@ exact 当前有效 join 和现有披露门；此字段不加入公开 `RealmAuth
 exact Realm／scope 绑定，再在安装 bootstrap 锚点的同一事务保管原创世 Event／Commit 和原 fact。
 该窄保管不重放 Genesis reducer、不推进／回退 head、不降低 history floor，也不取得其它 pre-join
 业务原件、PCR 历史或新写权限。精确创世读取仍重查 current membership 与披露门；普通客户端沿
-自己 Station 的既有原件／signer-key 入口独立验 producer，不能自行执行治理发现或使用裸 verified。
+自己 Station 的既有原件／signer-key 入口按 [server-trusted-results §5.6](./server-trusted-results.md#56-按次-current-与精确历史签名公钥)
+的精确创世成员来源独立验 producer，不能自行执行治理发现或使用裸 verified。
 
 ## 8. 治理 Station 更换
 

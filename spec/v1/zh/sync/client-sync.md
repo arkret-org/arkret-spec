@@ -172,6 +172,9 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 aggregate slot、完整账号/Station/会话与内容引用后可构造同一 exact target，且不得推进 head/floor、声明
 timeline 已读或强制扫描 PCR。受限 Human PCR historical key 查询遵守该文 §5.6 原 self-admission 与
 完整 immutable 历史事实规则；普通 stream row 的 floor、连续性与 MLS 验证不变。
+另一窄来源仅为该文 §5.6 的精确 Realm 创世成员原件：当前成员经自己 Station 的 bound Full GET，
+核 RealmID 派生目标、position0／无前驱／generation0和完整原件，再用完整 selector 独立验 producer。
+它不包含任意 GET／PCR／其它 pre-join 行，不改变普通 scan floor、head或 timeline 已读。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 

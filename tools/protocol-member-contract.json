@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:dd8882a9f4456027fd23f3af5626250391d515716a4b21ae38ea328723ac8dd2",
+  "contract_digest": "sha256:87eff1ca2f17c5b443096c5a41b5c7ce0043c6a4b4dd6caf595d0a08fab9910b",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -113236,7 +113236,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:8f0685c2f69cb5ebbb6eee25559c0bd0431640af8e38f8e2be349a55af9668dc"
+      "digest": "sha256:63ef6e970c554ecf262453624f81177ae16d82c3cc8ddde7a06ceb2ada88b855"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -113296,7 +113296,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:d75ddc6ddd3ae9c8a740156ab30d9a5eb05721094111e90f15a43c07132df82f"
+      "digest": "sha256:ba652410d56c5e6335533ea657bb106371e10ae4d2ca2aa86217a79cad62ba34"
     },
     {
       "file": "operation-clause-registry.json",
