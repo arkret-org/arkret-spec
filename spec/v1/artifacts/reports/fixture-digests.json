@@ -526,7 +526,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-      "sha256": "6a88a312cb8d41a89ac086a4be6b8adcbee9191765ca54ded53db16df95c2480"
+      "sha256": "59a8526a0e4839c7b445a7d593ca8d077a88e318e7afd629950e17263dc6e3b5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",

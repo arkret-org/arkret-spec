@@ -210,7 +210,7 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 `committed_event_ref{event_id,commit_id,stream_ref,stream_position}`，且 `stream_ref.realm_id` 必须等于请求
 `realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
-或因 key bytes 相同而合并授权代次。构造来源封闭为以下既有输入：已验证
+或因 key bytes 相同而合并授权代次。构造来源封闭为普通 row、本次 self 提交和下段精确创世成员原件三个分支。普通 row来自已验证
 `realm_sync_entry.committed_events[]` 或 `stream_scan_response_body.committed_events[]` 的 `committed_event_view{commit,event}`：客户端先验证
 该 row 所属认证 self 结果的原 RealmCommit generation／stream／position／predecessor，消费 Station 先验治理签名；
 普通客户端按 §2.1 消费该原件并核对 `commit.event_ref == event.event_id`，
@@ -219,6 +219,25 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 也不提供 predecessor 历史或推进 stream head 的依据。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
 `created_at`、SignerEvidenceRef 或本地曾见同 EventId 都不能补出坐标；current entry 的 source coordinate 只证明
 该 entry 自身来源，不外推给 value 内嵌 Event。
+
+**精确 Realm 创世成员原件（normative）**：上述封闭来源另包括自己的 Station 既有
+`ak.self.committed_event.resource.get.v1` 对 exact Realm Genesis 返回的已认证、请求绑定 Full
+`committed_event_view`，只适用于 Collaboration／Direct Conversation 的当前成员；不包括任一 PCR。
+该例外不接纳任意裸 GET：请求 EventId MUST 由请求 RealmId 派生，原 Event MUST 为该 Realm 的
+`ak.realm.create` kind与`realm_genesis` scope，原 Commit MUST 是同一 Realm stream 的 position0、无 predecessor、
+generation0；客户端 MUST 核 Event／Commit content ID、`event_ref` 及上述全部绑定，再逐字复制四坐标。
+认证结果 MUST 绑定持久接纳的自己 Station、完整当前 recipient 与原 request epoch；Realm Device 还 MUST
+绑定完整 Actor、DeviceId、原 authorization Event、effective scope 的 Realm 与仍有效的同一 reader instance。
+响应到达后的失效、过期、换端或 sibling Device 不得借此取得新权限。
+
+自己的 Station MUST 先按原接纳档案或 [authority-commit-log §7](./authority-commit-log.md#7-snapshot-与-join-bootstrap)
+成员 bootstrap 保管的原创世 Event／Commit／fact验证治理接纳
+与原 producer，逐次重查当前 membership、Device 与既有 scope 披露门，才可提供 exact Full原件和相同
+target 的 historical signer 结果。原 Commit 有 fact digest 时必须使用匹配的原 fact；缺失、冲突、未披露或
+仅有 current key／current projection 均返回既有 unavailable，禁止重建原事实。原 Commit 无 fact digest也不免除原 producer认证：必须有该producer类既有原生历史来源并实际验原授权与签名，否则返回既有 unavailable；shape／self-consistency通过不构成验签。客户端仍 MUST 用完整
+historical selector 独立验证 producer 签名和原授权，不得用公开 authority bundle、治理签名或裸 verified
+替代该验证，也不自行进行治理发现。此窄来源不推进／回退 stream head，不降低普通 history floor，
+不授予其它 pre-join Event 或 PCR 读取权；同一 `since_join` reader 的普通 `Before(1)` scan仍可合法为空。
 
 redacted／reference-locked row 即使暴露 EventId 或 Commit coordinate，也没有 producer envelope 可验，历史 signer
 状态仍为 unresolved。缺 exact target coordinate 时 MAY 在已知 stream 上用正式 per-stream scan 回填；只有裸

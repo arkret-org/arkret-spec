@@ -584,7 +584,7 @@
     },
     {
       "operation_id": "ak.self.committed_event.resource.get.v1",
-      "sha256": "sha256:31ac3646608a99062e89842a995128a8334ab4c1db2b4d8bfbc4910abd414424"
+      "sha256": "sha256:d00208254481be5070169518f765ed0f433c0218e979e3d339d93650c86fe9aa"
     },
     {
       "operation_id": "ak.self.committed_event.stream.subscribe.v1",
@@ -864,7 +864,7 @@
     },
     {
       "operation_id": "ak.self.signer_keys.read.resolve.v1",
-      "sha256": "sha256:6ec4e1776a98accd966bc5794a3f1e0ab6fbf232b3a1392d3fee315b5fa5679e"
+      "sha256": "sha256:ba1e64a4fa48c79a5a89c07a553639a2c7f5c5288fe19419f80b9f44a8faedf0"
     },
     {
       "operation_id": "ak.self.space.read.list.v1",

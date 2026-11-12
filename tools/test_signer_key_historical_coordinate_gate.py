@@ -85,6 +85,54 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
                 rule[key] = value
             self.assert_red(mutate, marker)
 
+    def test_member_genesis_rule_single_field_mutations(self) -> None:
+        for key in gate.MEMBER_GENESIS_RULE:
+            for target in (gate.CONTRACT, gate.FIXTURE):
+                with self.subTest(key=key, target=target.name):
+                    def mutate(docs, key=key, target=target):
+                        if target == gate.CONTRACT:
+                            rule = docs[target.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["member_genesis_historical_source"]
+                        else:
+                            rule = docs[target.resolve()]["member_genesis_rule"]
+                        rule[key] = None
+                    self.assert_red(mutate, "member Genesis")
+
+    def test_member_genesis_checks_cannot_be_dropped(self) -> None:
+        for check in gate.MEMBER_GENESIS_RULE["checks"]:
+            def mutate(docs, check=check):
+                docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["member_genesis_historical_source"]["checks"].remove(check)
+            with self.subTest(check=check):
+                self.assert_red(mutate, "member Genesis")
+
+    def test_member_genesis_cannot_generalize_to_any_get(self) -> None:
+        def mutate(docs):
+            values = docs[gate.FIXTURE.resolve()]["construction_sources"]
+            values[values.index(gate.MEMBER_GENESIS_SOURCE)] = "any_get_or_current_projection"
+        self.assert_red(mutate, "close coordinate construction")
+
+    def test_member_genesis_refusals_and_preserved_floor_are_required(self) -> None:
+        for case in sorted(gate.MEMBER_GENESIS_NEGATIVES):
+            def mutate(docs, case=case):
+                docs[gate.FIXTURE.resolve()]["negative_cases"].remove(case)
+            with self.subTest(case=case):
+                self.assert_red(mutate, "member Genesis fixture is missing")
+        for flow in sorted(gate.MEMBER_GENESIS_FLOWS):
+            def mutate(docs, flow=flow):
+                docs[gate.FIXTURE.resolve()]["positive_flows"].remove(flow)
+            with self.subTest(flow=flow):
+                self.assert_red(mutate, "unchanged-floor flows")
+
+    def test_member_genesis_operation_remains_bound_to_registered_get(self) -> None:
+        def mutate(docs):
+            rows = docs[gate.CONTRACT.resolve()]["operation_registry"]["operations"]
+            gate._find(rows, "operation_id", gate.MEMBER_GENESIS_RULE["operation_id"])["notes"] = "arbitrary GET"
+        self.assert_red(mutate, "member Genesis operation notes")
+
+    def test_member_genesis_normative_prose_is_required(self) -> None:
+        def mutate(texts):
+            texts[gate.SERVER_PROSE.resolve()] = texts[gate.SERVER_PROSE.resolve()].replace("精确 Realm 创世成员原件", "removed member source")
+        self.assert_red(marker="精确 Realm 创世成员原件", text_mutate=mutate)
+
     def test_complete_contract_passes(self) -> None:
         self.assertEqual(self.run_gate(), [])
 

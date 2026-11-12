@@ -486,7 +486,7 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
 `ak.vector.signer_key.historical_commit_coordinate.v1` MUST 证明：account subscribe 与 per-stream scan 的已验证
-`committed_event_view{commit,event}` 及本次冻结 self 提交 Event 与 bound accepted outcome 原 Commit 配对是封闭坐标来源；
+`committed_event_view{commit,event}` 及本次冻结 self 提交 Event 与 bound accepted outcome 原 Commit 配对，以及下述精确创世成员原件，是封闭坐标来源；
 self 提交 MUST 核对请求、分支、aggregate slot、内容引用及完整账号/Station/会话绑定，不能推进 head/floor
 或强制下载 PCR 历史。两个 historical selector 都携完整
 `committed_event_ref` 并拒绝裸 `event_id`。selector target 与 key `authorization_ref` 分别验证且允许不相等；
@@ -501,6 +501,12 @@ verified row 到达、没有后续 Account 帧且产品 fold 已有变化时，�
 的原 accepted provision/完整 controllerAccount/原 delegation 同事务事实及独立历史授权。错 slot、外来 Commit、
 sibling Account、foreign admission、非 Human actual producer、registration 早序缺授权、current row 补事实、
 缺授权四坐标、推进 head/floor、PCR history 读取前置与 current-query fallback 都必须零写拒绝。
+
+精确 Realm 创世成员来源继续归 `ak.vector.signer_key.historical_commit_coordinate.v1`：晚入组
+`since_join` 成员可以独立验证 exact Genesis，同时普通 pre-join scan保持为空、head/floor不变。
+错误 Realm／kind／scope／position／generation、sibling或失效 Device、非成员、PCR、其它 pre-join Event、
+原 fact缺失或 current backfill、仅治理签名而未独立验 producer均必须拒绝。fixture仅登记合同和反例计划，
+实际密码学及HTTP执行由消费者具名验收，不能用计划声明替代。
 
 ### 3.11 邀请
 
