@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d6c58bc2f0eb23602e103c4ff19e58dd6a4411edcec83a1dfd9157df2f6ee3c6",
+  "contract_digest": "sha256:dd8882a9f4456027fd23f3af5626250391d515716a4b21ae38ea328723ac8dd2",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -94126,6 +94126,10 @@
               "authority_bundle": {
                 "$ref": "./realm-authority-bundle.schema.json"
               },
+              "producer_signer_fact": {
+                "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact",
+                "description": "Original durable producer fact for authority_bundle.genesis_event only. Required exactly when its original genesis_commit carries producer_signer_fact_digest; the digest and original Event signature must verify. This member-only bootstrap disclosure does not extend ordinary stream floors or public authority bundles."
+              },
               "snapshot": {
                 "$ref": "./realm-state-snapshot.schema.json"
               },
@@ -94139,8 +94143,43 @@
               }
             },
             "additionalProperties": false,
-            "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO.",
-            "x-arkret-name-role": "response_body"
+            "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO. The original Genesis Event and Commit are retained with their exact original producer signer fact after independent verification, without replaying the Genesis reducer or changing any stream head or history floor. Missing original material is unavailable; current keys or reconstructed facts are not substitutes.",
+            "x-arkret-name-role": "response_body",
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "authority_bundle": {
+                      "properties": {
+                        "genesis_commit": {
+                          "required": [
+                            "producer_signer_fact_digest"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "genesis_commit"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "authority_bundle"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "producer_signer_fact"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "producer_signer_fact"
+                    ]
+                  }
+                }
+              }
+            ]
           }
         }
       }
@@ -113197,7 +113236,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:561eac920bf26f1d28c0a7d5790a6fa4953f494b5b890ba44bafe5d26c63494f"
+      "digest": "sha256:8f0685c2f69cb5ebbb6eee25559c0bd0431640af8e38f8e2be349a55af9668dc"
     },
     {
       "file": "derived-wire-field-removal-lock.json",

@@ -362,6 +362,10 @@
         "authority_bundle": {
           "$ref": "./realm-authority-bundle.schema.json"
         },
+        "producer_signer_fact": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact",
+          "description": "Original durable producer fact for authority_bundle.genesis_event only. Required exactly when its original genesis_commit carries producer_signer_fact_digest; the digest and original Event signature must verify. This member-only bootstrap disclosure does not extend ordinary stream floors or public authority bundles."
+        },
         "snapshot": {
           "$ref": "./realm-state-snapshot.schema.json"
         },
@@ -375,8 +379,43 @@
         }
       },
       "additionalProperties": false,
-      "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO.",
-      "x-arkret-name-role": "response_body"
+      "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO. The original Genesis Event and Commit are retained with their exact original producer signer fact after independent verification, without replaying the Genesis reducer or changing any stream head or history floor. Missing original material is unavailable; current keys or reconstructed facts are not substitutes.",
+      "x-arkret-name-role": "response_body",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "authority_bundle": {
+                "properties": {
+                  "genesis_commit": {
+                    "required": [
+                      "producer_signer_fact_digest"
+                    ]
+                  }
+                },
+                "required": [
+                  "genesis_commit"
+                ]
+              }
+            },
+            "required": [
+              "authority_bundle"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_signer_fact"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "producer_signer_fact"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

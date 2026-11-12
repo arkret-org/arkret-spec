@@ -4,6 +4,8 @@ import base64
 import json
 import re
 import unittest
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 from pathlib import Path
 from tools.artifact_lint.core import schema_assertions
 
@@ -17,6 +19,36 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_member_bootstrap_genesis_fact_presence_binds_original_commit(self):
+        schema = read("schemas/realm-join-intake.schema.json")
+        response = schema["$defs"]["peer_bootstrap_response_body"]
+        self.assertEqual(list(response["properties"]), [
+            "request_id", "authority_bundle", "producer_signer_fact", "snapshot", "visible_stream_heads",
+        ])
+        self.assertFalse(response["additionalProperties"])
+        self.assertEqual(response["properties"]["producer_signer_fact"]["$ref"],
+            "./authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact")
+        # Evaluate the actual schema's conditional presence rule separately
+        # from signatures and full carrier shape, which have other verifiers.
+        presence = Draft202012Validator({"allOf": response["allOf"]})
+        for digest, fact, valid in ((False, False, True), (False, True, False),
+                                     (True, False, False), (True, True, True)):
+            value = {"authority_bundle": {"genesis_commit": {}}}
+            if digest:
+                value["authority_bundle"]["genesis_commit"]["producer_signer_fact_digest"] = "sha256:" + "a" * 64
+            if fact:
+                value["producer_signer_fact"] = {}
+            with self.subTest(digest=digest, fact=fact):
+                self.assertEqual(presence.is_valid(value), valid)
+        documents = [json.loads(path.read_text(encoding="utf-8"))
+                     for path in (ARTIFACTS / "schemas").glob("*.json")]
+        registry = Registry().with_resources((item["$id"], Resource.from_contents(item))
+                                             for item in documents)
+        fact_shape = Draft202012Validator({"$ref": schema["$id"] +
+            "#/$defs/peer_bootstrap_response_body/properties/producer_signer_fact"}, registry=registry)
+        for invalid in (None, {}, {"producer_signer_fact_digest": "sha256:" + "a" * 64}):
+            self.assertFalse(fact_shape.is_valid(invalid))
+
     def test_pcr_station_binding_cases_replay_the_provenance_policy(self):
         # This is a semantic policy oracle, not a signature or storage verifier.
         # provenance_verified means the existing native verifier already succeeded.

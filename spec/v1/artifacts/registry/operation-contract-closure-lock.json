@@ -304,7 +304,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:153c6ad638d586735663ea324c5056d54f5408dd03b78fff53c8d546169d4a42"
+      "sha256": "sha256:cc0f778b28ade8f0803f44a3a31240729ec1cda39bd0c851d859bb027dc227b4"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",

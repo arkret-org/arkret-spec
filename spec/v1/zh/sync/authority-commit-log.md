@@ -253,6 +253,18 @@ Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.j
 
 不得默认从邀请人 Station、初始治理 Station 或 genesis 开始拉取全部 Event。历史范围必须同时受 `history_access`、join position、Circle membership、retention 和 MLS epoch 可读性限制。
 
+**创世原件的成员站保管（normative）**：既有 `ak.peer.realm_join.read.bootstrap.v1` 响应在
+`authority_bundle` 后携可选 `producer_signer_fact`，只对应 bundle 中的 exact Genesis Event／Commit。
+原 Genesis Commit 有 `producer_signer_fact_digest` 时 MUST 恰携治理方原耐久准入档案中的该 fact；
+无 digest 时 MUST 省略，禁止 null、额外或 sibling fact。缺原件／原 fact 返回既有不可用结果，
+不能以 current Device key、今日来源或重签代替。服务仍先核认证成员 Station、完整 AccountId、
+exact 当前有效 join 和现有披露门；此字段不加入公开 `RealmAuthorityBundle`，不开放 Human PCR。
+成员站 MUST 核原 Event／Commit content ID、治理链与签名、fact digest、历史 producer Ed 签名及
+exact Realm／scope 绑定，再在安装 bootstrap 锚点的同一事务保管原创世 Event／Commit 和原 fact。
+该窄保管不重放 Genesis reducer、不推进／回退 head、不降低 history floor，也不取得其它 pre-join
+业务原件、PCR 历史或新写权限。精确创世读取仍重查 current membership 与披露门；普通客户端沿
+自己 Station 的既有原件／signer-key 入口独立验 producer，不能自行执行治理发现或使用裸 verified。
+
 ## 8. 治理 Station 更换
 
 先按 §8.1 的 accepted 来源资格门排除 Human／用户管理的 Agent PCR 与未验证来源，再支持旧治理方在线的计划 handoff。controller 先提交 `ak.realm.governance_station.change` 到 Realm stream；旧方随后冻结所有 stream，生成包含每条 final head 的 Snapshot，并签署 `RealmAuthorityHandoff`。新方必须完成验证和导入后签署 acceptance。

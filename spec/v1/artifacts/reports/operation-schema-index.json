@@ -3029,6 +3029,7 @@
         "properties": [
           "request_id",
           "authority_bundle",
+          "producer_signer_fact",
           "snapshot",
           "visible_stream_heads"
         ],

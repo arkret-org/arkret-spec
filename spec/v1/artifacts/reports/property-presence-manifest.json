@@ -13,13 +13,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10478,
+    "total_properties": 10481,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2451,
+      "optional": 2452,
       "optional_defaulted": 46,
       "required": 7455,
-      "required_nullable": 308,
+      "required_nullable": 310,
       "tristate": 218
     },
     "tristate_occurrences": 218,
@@ -12090,7 +12090,10 @@
         "/$defs/peer_bootstrap_request_body/properties/membership_commit_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/realm_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/request_id": "required",
+        "/$defs/peer_bootstrap_response_body/allOf/0/if/properties/authority_bundle": "required_nullable",
+        "/$defs/peer_bootstrap_response_body/allOf/0/if/properties/authority_bundle/properties/genesis_commit": "required_nullable",
         "/$defs/peer_bootstrap_response_body/properties/authority_bundle": "required",
+        "/$defs/peer_bootstrap_response_body/properties/producer_signer_fact": "optional",
         "/$defs/peer_bootstrap_response_body/properties/request_id": "required",
         "/$defs/peer_bootstrap_response_body/properties/snapshot": "required",
         "/$defs/peer_bootstrap_response_body/properties/visible_stream_heads": "required",
@@ -12119,7 +12122,10 @@
         "/$defs/self_preview_response_body/properties/authority_bundle": "required",
         "/$defs/self_preview_response_body/properties/preview": "required",
         "/$defs/self_preview_response_body/properties/request_id": "required"
-      }
+      },
+      "conditionally_required": [
+        "/$defs/peer_bootstrap_response_body/properties/producer_signer_fact"
+      ]
     },
     "realm-link-operations.schema.json": {
       "schema_ids": [
