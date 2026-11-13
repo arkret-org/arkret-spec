@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:4c3e531e86ee775e08648cfd70adc376912e8cfbf2bc76bccf05c7c4a92c80fe",
+  "contract_digest": "sha256:fc4e50ad9d5477edc95386fd8cf333592a89dae12207275f749bf1a1c404663a",
   "encoding_profile_digest": "sha256:d9a9a4a9cf1583629233b88865281fedbbff316e6c0247656ee984b2362d8557",
   "schemas": [
     {
@@ -35066,12 +35066,14 @@
                   },
                   "source_event_ref": {
                     "$ref": "./common-ids.schema.json#/$defs/event_id",
-                    "x-arkret-preimage-commitment": "fixed_event"
+                    "x-arkret-preimage-commitment": "fixed_event",
+                    "description": "Exact authenticated immutable original Event, with independently verified Commit, producer and original group provenance. Not a materialized Message or current edit."
                   },
                   "content_path": {
                     "type": "string",
                     "pattern": "^(?:/(?:[^~/]|~[01])*)+$",
-                    "maxLength": 1024
+                    "maxLength": 1024,
+                    "description": "RFC6901 pointer rooted at source_event_ref. Ending at a registered encrypted envelope selects its 16-byte DEK. Descending through an envelope first authenticates and parses its registered plaintext with a separately authorized parent key; an authenticated encrypted_attachment descriptor selects its 32-byte DEK. Arrays use canonical nonnegative decimal indices, never append or leading zeros. No implicit parent-key disclosure, root fallback or current MLS state restoration. See content-history section 4 and media-and-blob section 3.0."
                   }
                 },
                 "additionalProperties": false
@@ -117325,7 +117327,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:21578146e70e5203b2b86ca5bde466389055f2e8a79e5ffe6bd52341a76a9cc3"
+      "digest": "sha256:9ab265fff9faa8f9cad19e35918c54bc43d7c86073a6412d79485bcee27adb23"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117469,7 +117471,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:f0e4377cd5e26cb51621f0df85132669c2f7c7ec8c486c418f07754eeefdebb4"
+      "digest": "sha256:324dc09643d044664967bd4599ff0a9a52d7321d547ffb72978f65c92e953f14"
     }
   ],
   "openapi": {

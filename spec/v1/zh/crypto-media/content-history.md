@@ -3,7 +3,7 @@ title: 可恢复内容加密与历史交付
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-09
+updated: 2026-11-13
 ---
 
 # 可恢复内容加密与历史交付
@@ -473,6 +473,12 @@ Open前拒绝错长、截断、非canonical、X25519低阶／全零shared secret
 plaintext仅为选定16／32-byte DEK或32-byte R。除完整且封闭epoch的全部内容均获授权外，只能发DEK，
 不得用“当前页全部允许”代替完整epoch证明。epoch_root须核closed_epoch_cut，开放epoch禁止整根交付。
 接收者核原作者、source Event／Commit、key承诺／root_ref及AEAD；共享者重签明文不是原历史。
+
+`content_key` selector 的 `content_path` 是以 `source_event_ref` 的已认证不可变原Event为根的RFC6901 JSON pointer，不是物化Message、当前编辑结果或Blob metadata的路径。仅允许选中已登记的完整encrypted envelope（正文／metadata等，16-byte DEK）或已认证ContentBlock内符合encrypted_attachment schema的完整descriptor（32-byte DEK）；对象容器、任意扩展字段或标量不得自行视为key槽。逐token解析；数组下标必须为canonical十进制（`0`或非零首位的数字，不接受`-`、负数或前导零）。缺路径、错误目标类型或未知profile MUST fail closed，不猜同名槽、不回退至整Event。
+
+若pointer终止于encrypted envelope，即选择该信封；若仍有后续token，MUST 先用另一项独立获授权的key验证该信封的原Context、key_commitment及AEAD，并按其已登记content_type解析明文，再在该位置继续解析后续token。例如 `/payload/encrypted_content` 选择正文DEK，`/payload/encrypted_metadata` 选择metadata DEK，`/payload/encrypted_content/attachments/0` 选择该正文解密后第一个附件的DEK；嵌套ContentBlock沿原 `parts`／数组位置继续。此解密视图仅用于定位，不改写原Event、EventId、producer proof、Context或AAD；重复JSON成员、不能按登记schema解释的明文或未认证父节点不得进入视图。
+
+所选附件DEK的接收流程以media-and-blob §3.0为准，不要求接收者同时持有R。正文／metadata单项DEK也直接验证原C_item的key_commitment并按§2解密，不以DEK充当R。所需父信封key可来自已合法持有的材料；若需新交付，每项仍必须独立满足原accepted request、exact recipient、scope／cut、TTL及当前读取／披露资格，不能混换请求。一个附件selector不隐含父正文或其它key的授权。缺依赖则保持未完成，不得扩大披露或另造未登记的独立descriptor载体。原Event／Commit、历史producer与公开group provenance验证始终独立必需，交付key不成为这些原件的替代权威。
 
 history-ready要求获准全部source的原件与grant已耐久且接收方逐件验证成功。只有membership、
 当前snapshot或“去找旧设备”不算完成。有权端可预备密封材料，授权生效前不得向目标披露；
