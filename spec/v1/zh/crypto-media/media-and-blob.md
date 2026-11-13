@@ -3,7 +3,7 @@ title: Media and Blob
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-11-13
 ---
 
 ## 0. 规范语言
@@ -175,9 +175,9 @@ salt／descriptor／密文，改变明文或加密参数的重新加密 MUST 创
 
 Producer 使用冻结的 authoring scope 与已验证 group provenance；接收端先验证承载 descriptor 的
 ContentBlock 与 enclosing Event。双方均按 §3 解析 exact winning
-MLS state、其 epoch、immutable genesis Event ref 和 effective scope，恢复获授权的该epoch专用内容根R。effective scope 使用 encryption-and-audit §5.1 的 closed 形态，必须与 enclosing Event
+MLS state、其 epoch、immutable genesis Event ref 和 effective scope。Producer MUST 恢复获授权的该epoch专用内容根R，按下式派生附件DEK；Receiver MUST 使用下述根派生或单项DEK接收路径。effective scope 使用 encryption-and-audit §5.1 的 closed 形态，必须与 enclosing Event
 及该 group provenance 逐字段匹配，不从下载 URL 或当前 UI 推断。historical epoch 不得替换为当前 epoch；
-拥有 ref、salt 或密文字节不授予历史读取或密钥恢复权。缺 state／secret、非 winning state、scope 不符、
+拥有 ref、salt 或密文字节不授予历史读取或密钥恢复权。缺已验证state、缺所选路径必需的key、非 winning state、scope 不符、
 非 canonical salt 或未授权时 MUST 在派生／解密前 fail closed，不使用其它 epoch、随机 key 或其它 label fallback。
 
 ```text
@@ -194,6 +194,13 @@ exporter-label-registry。Context 的逻辑字段顺序如上，实际 UTF-8 字
 proof-hash `key_ref` 解析到同一 group state 时 MUST 得到同一 Context 与 key，wire `key_ref` 不直接进入 KDF。
 32 bytes对应已登记AES-256-GCM／XChaCha20-Poly1305。producer使用content-history.md的原作者端点事实；descriptor新增required producer和key_commitment，后者为SHA256(UTF8("ak.content.key_commitment.v1\n") || Context || content_key)。两者进入原件认证和immutable AAD。指定DEK的历史grant必须有source_event_ref及content_path，不能用一个Event ID混淆正文与多个附件。
 
+Receiver 的两条合法key输入路径（normative）：
+
+- 根派生：已按content-history验证且获授权的该epoch专用R，按上式派生32-byte附件DEK；历史epoch_root交付仍须完整且封闭epoch的授权证明。
+- 单项DEK接收：先按content-history §4验证accepted request、原签grant、exact recipient、当前交付资格及HPKE header；按该章的source_event_ref＋content_path定位并认证原附件descriptor，HPKE open后仅接受恰好32-byte的指定DEK。此路径 MUST NOT 要求持有R、exporter_secret或旧MLS私态，也 MUST NOT 对收到的DEK再次执行根派生公式。无R本身不得使合法单项DEK失败；它不取消 §3 的公开group provenance、原件或授权检查。
+
+两条路径 MUST 重建同一原始Context，并在AEAD前核对descriptor的key_commitment；其后使用原descriptor的immutable AAD、nonce／分段规则、replay约束及BlobRef密文承诺。只改key输入来源，不重签、改写或重新加密原历史。单项DEK不解锁同Event其它正文、metadata、附件或缩略图，不恢复current MLS端点。缺原descriptor或其认证所需的合法正文key时保持未完成，不能从Blob metadata、grant签发者自报descriptor或当前UI补全。
+
 `blob_ref`、密文 digest、enclosing Event ID 和接受后的 Commit 不得进入 KDF：它们依赖密文，会造成循环。
 `content_key_salt` MUST 同时进入 §3.1／§3.3.3 的 immutable AAD。原 canonical `key_ref` 继续进入 AAD，
 所以等价 ref 的 key 相同不允许在加密后替换 descriptor 的 ref。完整 descriptor（包括 salt、ref、scheme、
@@ -203,6 +210,7 @@ Blob metadata 的最小 encryption 分类不携带这些字段，也不能作为
 
 字节级 KAT、Context 分离、ref 等价与失败关闭向量见
 `ak.vector.blob.content_key_derivation.v1`；此合同不修改非 MLS file-transfer 的独立 key_delivery。
+无R单项DEK、父正文依赖、exact source／path及原AEAD拒绝向量由 `ak.vector.crypto.content_history.v1` 的 `content-history-fixture.json` 承担；参考字节不替代原生授权、耐久交付或replay验收。
 
 ### 3.1 AEAD nonce uniqueness（normative）
 

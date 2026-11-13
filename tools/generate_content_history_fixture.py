@@ -20,6 +20,65 @@ VECTOR = "ak.vector.crypto.content_history.v1"
 SOURCE_VECTOR = "ak.vector.crypto.content_backup_source.v1"
 
 
+def attachment_receive_vector(coordinate, root, body_context, outer, signer, grant, recipient_public):
+    """Frozen primitive bytes with native original/state authority as external premises."""
+    from tools.artifact_lint.blob_content_key import exporter
+    descriptors, objects = [], []
+    for index in range(2):
+        context = {"effective_scope": coordinate["effective_scope"],
+                   "genesis_event_ref": coordinate["genesis_event_ref"], "epoch": coordinate["epoch"],
+                   "scheme": "ak.blob.whole_file_aead.v1",
+                   "encryption_algorithm": "mls_exporter_aead_aes_256_gcm",
+                   "content_key_salt": b64(bytes([170 + index]) * 32), "producer": body_context["producer"]}
+        key = exporter(root, context, "sha256")
+        plain = b"original attachment " + bytes([48 + index])
+        descriptor = {"encrypted": True, "scheme": context["scheme"],
+                      "encryption_algorithm": context["encryption_algorithm"],
+                      "key_ref": {"algorithm": "MLS", "group_state_ref": coordinate["group_state_ref"]},
+                      "content_key_salt": context["content_key_salt"], "nonce": b64((index + 1).to_bytes(12, "big")),
+                      "size_bytes": len(plain), "media_type": "text/plain", "producer": context["producer"],
+                      "key_commitment": key_commitment(key, context)}
+        header = {**{field: descriptor[field] for field in
+                     ("scheme", "key_ref", "content_key_salt", "nonce", "size_bytes", "media_type", "producer", "key_commitment")},
+                  "alg": context["encryption_algorithm"], "epoch": coordinate["epoch"],
+                  "purpose": "blob-attachment", "aead_profile": coordinate["cipher_suite"]}
+        associated = jcs(header)
+        ciphertext = AESGCM(key).encrypt((index + 1).to_bytes(12, "big"), plain, associated)
+        descriptor["blob_ref"] = "ak:blob:sha256:" + hashlib.sha256(ciphertext).hexdigest()
+        descriptors.append(descriptor)
+        objects.append({"context": context, "key_hex": key.hex(), "plaintext_hex": plain.hex(),
+                        "aad_hex": associated.hex(), "ciphertext_base64url": b64(ciphertext)})
+    block = {"kind": "ak.content.text", "body": "authorized parent body", "format": "plain", "attachments": descriptors}
+    context = {**body_context, "content_key_salt": b64(bytes([174]) * 32)}
+    body_key = content_key(root, context)
+    envelope = {"version": "1.0", "content_type": "application/vnd.arkret.message+json", "encryption_scheme": SCHEME,
+                "encryption_context": {"epoch": coordinate["epoch"], "group_state_ref": coordinate["group_state_ref"],
+                    "root_ref": context["root_ref"], "content_key_salt": context["content_key_salt"],
+                    "key_commitment": key_commitment(body_key, context),
+                    "protection": {"root_refs": [context["root_ref"]],
+                        "blob_refs": [d["blob_ref"] for d in descriptors],
+                        "backup_refs": ["ak:backup:019a0000-0000-7000-8000-000000000001"]}}}
+    envelope["ciphertext"] = b64(AESGCM(body_key).encrypt(bytes(12), jcs(block), aad(outer, envelope, context)))
+    original = {**outer, "payload": {"encrypted_content": envelope}}
+    digest = hashlib.sha256(jcs(original)).digest()
+    original["event_id"] = "ak:event:" + b64(b"\x01" + digest)
+    transcript = jcs({"original": original})
+    selected = copy.deepcopy(grant)
+    selected["history_cut"] = {**selected["history_cut"], "event_id": original["event_id"], "stream_position": 1}
+    selected["entries"] = []
+    for index, (path, key) in enumerate([
+            ("/payload/encrypted_content", body_key),
+            ("/payload/encrypted_content/attachments/0", bytes.fromhex(objects[0]["key_hex"]))]):
+        selector = {"kind": "content_key", "source_event_ref": original["event_id"], "content_path": path}
+        selected["entries"].append({"selector": selector, "sealed_key_base64url": b64(hpke_seal(
+            bytes([180 + index]) * 32, recipient_public, grant_header(selected, selector), key))})
+    return {"qualification": "Primitive Ed25519 over the explicitly named transcript, HPKE, pointer and AEAD bytes only. Native Event/Commit acceptance, source-at-cut, original producer/MLS authority, current read/disclose and durable nonce/replay are external obligations, not fixture booleans.",
+            "original": original, "primitive_transcript_hex": transcript.hex(),
+            "primitive_signature_base64url": b64(signer.sign(transcript)),
+            "parent_context": context, "parent_plaintext": block, "grant": selected, "objects": objects,
+            "expected_selected_path": "/payload/encrypted_content/attachments/0"}
+
+
 def backup_source_encoding(outer, producer, signer, method, body, metadata, plaintexts, service_method):
     """Actual primitive signatures and content IDs, without native admission claims."""
     event = copy.deepcopy(outer)
@@ -123,18 +182,21 @@ def build(include_sources=False):
     agent_source = backup_source_encoding(agent_outer, agent, agent_signer, agent['endpoint']['verification_method'],
         *source_envelopes(agent_outer, agent, 240), source_plaintexts, service_method)
     original = jcs({"outer_event": outer, "envelope": envelope})
+    source_event = {**outer, "payload": {"encrypted_content": envelope, "encrypted_metadata": metadata_envelope}}
+    source_event["event_id"] = "ak:event:" + b64(b"\x01" + hashlib.sha256(jcs(source_event)).digest())
     mnemonic = " ".join(["abandon"] * 23 + ["art"])
     recipient_secret, recipient_public = mnemonic_backup_key(mnemonic)
     cut = {"event_id": event_ref, "commit_id": "ak:realm_commit:" + b64(b"\x01" + bytes([0x43]) * 32),
            "stream_ref": coordinate["effective_scope"], "stream_position": 0}
     request_ref = "ak:event:" + b64(b"\x01" + bytes([0x42]) * 32)
     grant = {"recipient": context["producer"], "recipient_hpke_key_base64url": b64(recipient_public),
-             "recipient_key_event_ref": request_ref, "history_cut": cut,
+             "recipient_key_event_ref": request_ref,
+             "history_cut": {**cut, "event_id": source_event["event_id"], "stream_position": 1},
              "expires_at": "2026-11-08T00:15:00.000Z", "entries": []}
     hpke_cases = []
     for index, selected_key in enumerate((key, root)):
-        selector = {"kind": "content_key", "source_event_ref": event_ref, "content_path": "/payload"} if index == 0 else {
-            "kind": "epoch_root", "root_context": coordinate, "root_ref": context["root_ref"], "closed_epoch_cut": cut}
+        selector = {"kind": "content_key", "source_event_ref": source_event["event_id"], "content_path": "/payload/encrypted_content"} if index == 0 else {
+            "kind": "epoch_root", "root_context": coordinate, "root_ref": context["root_ref"], "closed_epoch_cut": grant["history_cut"]}
         info = grant_header(grant, selector)
         ephemeral = bytes([128 + index]) * 32
         sealed = hpke_seal(ephemeral, recipient_public, info, selected_key)
@@ -204,6 +266,7 @@ def build(include_sources=False):
                              "envelope": metadata_envelope},
             "kat": {"exporter_secret_hex": exporter_secret.hex(), "root_context": coordinate, "root_hex": root.hex(),
                     "content_context": context, "key_hex": key.hex(), "aad_hex": associated.hex(), "outer_event": outer,
+                    "source_event": source_event,
                     "envelope": envelope, "plaintext_hex": plaintext.hex(), "primitive_original_transcript_hex": original.hex(),
                     "signing_seed_hex": bytes(range(32)).hex(), "signature_base64url": b64(signer.sign(original)),
                     "original_digest": "sha256:" + hashlib.sha256(original).hexdigest()}}
@@ -218,6 +281,7 @@ def build(include_sources=False):
         'epoch': coordinate['epoch'], 'old_leaves': []}, preparation_cut)
     from tools.recovery_scope_cleanup import combination_fixture
     result['scope_retirement']['combination_boundaries'] = combination_fixture(result['scope_retirement'])
+    result['attachment_key_receive'] = attachment_receive_vector(coordinate, root, context, outer, signer, grant, recipient_public)
     if include_sources:
         result['content_backup_source_encoding'] = {'human': human_source, 'agent': agent_source}
     return result

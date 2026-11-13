@@ -19,6 +19,7 @@ from tools.generate_content_history_fixture import build
 from tools.content_history import verify_external_recovery_binding
 from tools.content_history import qualify_history_request, qualify_history_grant
 from tools.content_history import verify_preparation_resource
+from tools.history_key_receive import locate_key_target, attachment_dek, require_epoch_root_disclosure
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "spec/v1/artifacts"
@@ -173,6 +174,12 @@ class ContentHistoryContractTest(unittest.TestCase):
         labels = json.loads((ART / "registry/exporter-label-registry.json").read_text(encoding="utf-8"))["labels"]
         self.assertEqual(next(r for r in labels if r["label"] == "ak.content-v1")["parent_secret"], "ak.epoch-content-root-v1")
         self.assertFalse(contract["external_commit"]["membership_creation"])
+        receive = contract["history_key_receive"]
+        self.assertFalse(receive["selected_dek_requires_root"])
+        self.assertFalse(receive["selected_dek_rederived"])
+        self.assertFalse(receive["parent_key_implicit_authority"])
+        self.assertFalse(receive["current_mls_endpoint_restored"])
+        self.assertEqual(receive["epoch_root_delivery"], "complete_closed_epoch_and_all_content_authorized_only")
         self.assertFalse(contract["external_commit"]["intermediate_business_writes"])
         self.assertEqual(contract["external_commit"]["cleanup_authorization"], "current_recovery_replacement_exact_same_actor_inventory_only_without_admin_escalation")
         schema = json.loads((ART / "schemas/realm-genesis.schema.json").read_text(encoding="utf-8"))
@@ -198,12 +205,135 @@ class ContentHistoryContractTest(unittest.TestCase):
                "stream_ref": {"kind": "realm", "realm_id": k["root_context"]["effective_scope"]["realm_id"]}, "stream_position": 0}
         grant = copy.deepcopy(self.fixture["hpke_grant"]["grant"])
         self.validate("content-encryption.schema.json#/$defs/history_grant", grant)
+        def forbidden(*_):
+            raise AssertionError("body DEK selection does not require body plaintext")
+        kind, body = locate_key_target(k["source_event"], grant["entries"][0]["selector"], forbidden)
+        self.assertEqual(kind, "envelope")
+        self.assertEqual(body, k["envelope"])
         missing = copy.deepcopy(grant)
         del missing["entries"][0]["selector"]["content_path"]
         self.invalid("content-encryption.schema.json#/$defs/history_grant", missing)
         extra = copy.deepcopy(grant)
         extra["plaintext"] = "replacement archive"
         self.invalid("content-encryption.schema.json#/$defs/history_grant", extra)
+
+    def _received_attachment_material(self):
+        f = self.fixture["attachment_key_receive"]
+        g = f["grant"]
+        self.validate("content-encryption.schema.json#/$defs/history_grant", g)
+        request = {k: v for k, v in g.items() if k not in {"entries", "recipient_key_event_ref"}}
+        endpoint = g["recipient"]
+        qualify_history_grant(g, g["recipient_key_event_ref"], request, endpoint["actor_id"],
+                              endpoint["endpoint"], endpoint["authorization_event_ref"], endpoint,
+                              True, True, True, "2026-11-08T00:00:00.000Z", "2026-11-08T00:01:00.000Z")
+        original = f["original"]
+        preimage = {k: v for k, v in original.items() if k != "event_id"}
+        self.assertEqual(original["event_id"], "ak:event:" + b64(b"\x01" + hashlib.sha256(jcs(preimage)).digest()))
+        transcript = jcs({"original": original})
+        self.assertEqual(transcript.hex(), f["primitive_transcript_hex"])
+        signer = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.fixture["kat"]["signing_seed_hex"]))
+        signer.public_key().verify(unb64(f["primitive_signature_base64url"]), transcript)
+        keys = {}
+        for entry, expected_len in zip(g["entries"], (16, 32)):
+            self.assertEqual(entry["selector"]["kind"], "content_key")
+            sealed = unb64(entry["sealed_key_base64url"])
+            self.assertEqual(len(sealed), expected_len + 48)
+            keys[entry["selector"]["content_path"]] = hpke_open(
+                bytes.fromhex(self.fixture["hpke_grant"]["recipient_private_hex"]), sealed,
+                grant_header(g, entry["selector"]))
+        def open_parent(path, envelope):
+            key = keys[path]
+            context = f["parent_context"]
+            self.assertEqual(key_commitment(key, context), envelope["encryption_context"]["key_commitment"])
+            raw = AESGCM(key).decrypt(bytes(12), unb64(envelope["ciphertext"]), aad(original, envelope, context))
+            def unique(pairs):
+                value = {}
+                for name, item in pairs:
+                    if name in value:
+                        raise ValueError("duplicate plaintext member")
+                    value[name] = item
+                return value
+            block = json.loads(raw, object_pairs_hook=unique)
+            self.validate("message.schema.json#/$defs/content_block", block)
+            return block
+        return f, keys, open_parent
+
+    def test_selected_attachment_dek_without_root_opens_original_bytes(self):
+        f, keys, open_parent = self._received_attachment_material()
+        selector = f["grant"]["entries"][1]["selector"]
+        kind, descriptor = locate_key_target(f["original"], selector, open_parent)
+        self.assertEqual(kind, "attachment")
+        obj = f["objects"][0]
+        key = attachment_dek(keys[selector["content_path"]], descriptor, obj["context"])
+        ciphertext = unb64(obj["ciphertext_base64url"])
+        self.assertEqual(descriptor["blob_ref"], "ak:blob:sha256:" + hashlib.sha256(ciphertext).hexdigest())
+        self.assertEqual(AESGCM(key).decrypt(unb64(descriptor["nonce"]), ciphertext,
+                         bytes.fromhex(obj["aad_hex"])).hex(), obj["plaintext_hex"])
+        from tools.artifact_lint.blob_content_key import exporter
+        root = bytes.fromhex(self.fixture["kat"]["root_hex"])
+        self.assertEqual(exporter(root, obj["context"], "sha256"), key)
+        self.assertNotEqual(exporter(key, obj["context"], "sha256"), key)
+
+    def test_body_selector_stops_before_decrypt_and_missing_parent_key_fails(self):
+        f, keys, open_parent = self._received_attachment_material()
+        def forbidden(*_):
+            raise AssertionError("terminal envelope must not be opened to select its own key")
+        self.assertEqual(locate_key_target(f["original"], f["grant"]["entries"][0]["selector"], forbidden)[0], "envelope")
+        del keys["/payload/encrypted_content"]
+        with self.assertRaises(KeyError):
+            locate_key_target(f["original"], f["grant"]["entries"][1]["selector"], open_parent)
+
+    def test_selected_attachment_key_cannot_unlock_sibling_or_changed_context(self):
+        f, keys, open_parent = self._received_attachment_material()
+        selector = f["grant"]["entries"][1]["selector"]
+        _, descriptor = locate_key_target(f["original"], selector, open_parent)
+        key = keys[selector["content_path"]]
+        obj = f["objects"][0]
+        sibling = f["parent_plaintext"]["attachments"][1]
+        with self.assertRaises(ValueError): attachment_dek(key, sibling, f["objects"][1]["context"])
+        for material in (key[:16], bytes(32), key + b"x"):
+            with self.assertRaises(ValueError): attachment_dek(material, descriptor, obj["context"])
+        for field, value in (("epoch", "13"), ("effective_scope", {"kind": "realm", "realm_id": "foreign"}),
+                             ("genesis_event_ref", "foreign"), ("producer", f["grant"]["recipient_key_event_ref"])):
+            with self.assertRaises(ValueError): attachment_dek(key, descriptor, {**obj["context"], field: value})
+        changed = {**descriptor, "key_commitment": "sha256:" + "0" * 64}
+        with self.assertRaises(ValueError): attachment_dek(key, changed, obj["context"])
+
+    def test_attachment_selector_and_parent_ciphertext_cannot_be_substituted(self):
+        f, keys, open_parent = self._received_attachment_material()
+        entry = f["grant"]["entries"][1]
+        for field, value in (("content_path", "/payload/encrypted_content/attachments/1"),
+                             ("source_event_ref", f["grant"]["recipient_key_event_ref"])):
+            selector = {**entry["selector"], field: value}
+            with self.assertRaises(InvalidTag):
+                hpke_open(bytes.fromhex(self.fixture["hpke_grant"]["recipient_private_hex"]),
+                          unb64(entry["sealed_key_base64url"]), grant_header(f["grant"], selector))
+        changed = copy.deepcopy(f["original"])
+        changed["payload"]["encrypted_content"]["ciphertext"] = b64(bytes(32))
+        with self.assertRaises(InvalidTag): locate_key_target(changed, entry["selector"], open_parent)
+        for suffix in ("/attachments/01", "/attachments/-", "/attachments/2", "/attachments", "/body", "/missing"):
+            selector = {**entry["selector"], "content_path": "/payload/encrypted_content" + suffix}
+            with self.assertRaises(Exception): locate_key_target(f["original"], selector, open_parent)
+
+    def test_history_selected_key_does_not_relax_original_attachment_aead(self):
+        f, keys, open_parent = self._received_attachment_material()
+        obj = f["objects"][0]
+        selector = f["grant"]["entries"][1]["selector"]
+        _, descriptor = locate_key_target(f["original"], selector, open_parent)
+        key = attachment_dek(keys[selector["content_path"]], descriptor, obj["context"])
+        ciphertext, associated = unb64(obj["ciphertext_base64url"]), bytes.fromhex(obj["aad_hex"])
+        header = json.loads(associated)
+        for field, value in (("media_type", "application/octet-stream"), ("size_bytes", 0),
+                             ("key_ref", {"algorithm": "MLS", "group_state_ref": f["original"]["event_id"]})):
+            with self.assertRaises(InvalidTag):
+                AESGCM(key).decrypt(unb64(descriptor["nonce"]), ciphertext, jcs({**header, field: value}))
+        with self.assertRaises(InvalidTag):
+            AESGCM(key).decrypt(unb64(descriptor["nonce"]), bytes([ciphertext[0] ^ 1]) + ciphertext[1:], associated)
+
+    def test_open_or_partial_epoch_cannot_replace_dek_with_root(self):
+        require_epoch_root_disclosure(True, True)
+        for closed, complete in ((False, True), (True, False), (False, False)):
+            with self.assertRaises(ValueError): require_epoch_root_disclosure(closed, complete)
 
     def test_root_backup_forbids_live_state_and_dependency_omission(self):
         k = self.fixture["kat"]

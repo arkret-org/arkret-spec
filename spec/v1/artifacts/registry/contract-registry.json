@@ -26110,6 +26110,34 @@
       "manager_private_keys_in_Station": false,
       "restore_lane": "history_only_current_membership_scope_and_retention_gates",
       "new_public_R_API": false
+    },
+    "history_key_receive": {
+      "normative_ref": "zh/crypto-media/content-history.md#4-获授权后加入者",
+      "content_path_basis": "immutable_authenticated_source_Event_with_verified_plaintext_descent",
+      "terminal_envelope": "select_16_byte_DEK_without_opening_its_plaintext",
+      "terminal_attachment": "select_32_byte_DEK_of_authenticated_encrypted_attachment",
+      "plaintext_descent": "separately_authorized_parent_key_original_context_commitment_AEAD_and_registered_plaintext_schema",
+      "array_indices": "canonical_nonnegative_decimal_no_leading_zero_no_append",
+      "attachment_inputs": [
+        "authorized_epoch_R_derivation",
+        "authorized_selected_DEK_direct"
+      ],
+      "shared_checks": [
+        "original_Event_and_Commit",
+        "original_producer",
+        "exact_winning_public_group_provenance",
+        "current_read_and_disclose_at_delivery",
+        "exact_source_selector_and_scope_cut",
+        "original_descriptor",
+        "original_Context_and_key_commitment",
+        "original_immutable_AAD_nonce_replay_and_ciphertext_commitment"
+      ],
+      "parent_key_implicit_authority": false,
+      "missing_parent_or_descriptor": "incomplete_without_fallback_or_wider_disclosure",
+      "epoch_root_delivery": "complete_closed_epoch_and_all_content_authorized_only",
+      "selected_dek_requires_root": false,
+      "selected_dek_rederived": false,
+      "current_mls_endpoint_restored": false
     }
   }
 }

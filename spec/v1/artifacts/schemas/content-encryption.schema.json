@@ -301,12 +301,14 @@
             },
             "source_event_ref": {
               "$ref": "./common-ids.schema.json#/$defs/event_id",
-              "x-arkret-preimage-commitment": "fixed_event"
+              "x-arkret-preimage-commitment": "fixed_event",
+              "description": "Exact authenticated immutable original Event, with independently verified Commit, producer and original group provenance. Not a materialized Message or current edit."
             },
             "content_path": {
               "type": "string",
               "pattern": "^(?:/(?:[^~/]|~[01])*)+$",
-              "maxLength": 1024
+              "maxLength": 1024,
+              "description": "RFC6901 pointer rooted at source_event_ref. Ending at a registered encrypted envelope selects its 16-byte DEK. Descending through an envelope first authenticates and parses its registered plaintext with a separately authorized parent key; an authenticated encrypted_attachment descriptor selects its 32-byte DEK. Arrays use canonical nonnegative decimal indices, never append or leading zeros. No implicit parent-key disclosure, root fallback or current MLS state restoration. See content-history section 4 and media-and-blob section 3.0."
             }
           },
           "additionalProperties": false
