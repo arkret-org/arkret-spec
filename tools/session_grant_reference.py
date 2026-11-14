@@ -212,7 +212,7 @@ def sign_dpop(seed: bytes, secret: str, method: str, uri: str, issued: int, jti:
     key = Ed25519PrivateKey.from_private_bytes(seed)
     from cryptography.hazmat.primitives import serialization
     public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
-    header = {"alg": "EdDSA", "typ": "dpop+jwt", "jwk": {"crv": "Ed25519", "kty": "OKP", "x": b64u(public)}}
+    header = {"alg": "Ed25519", "typ": "dpop+jwt", "jwk": {"crv": "Ed25519", "kty": "OKP", "x": b64u(public)}}
     claims = {"htm": method, "htu": uri, "iat": issued, "jti": jti, "ath": ath(secret)}
     if nonce is not None:
         claims["nonce"] = nonce
@@ -228,7 +228,7 @@ def verify_dpop(proof: str, secret: str, metadata: dict[str, Any], method: str, 
             raise GrantError("invalid_dpop")
         header = json.loads(base64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)))
         claims = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
-        if header.get("typ") != "dpop+jwt" or header.get("alg") != "EdDSA":
+        if header.get("typ") != "dpop+jwt" or header.get("alg") != "Ed25519":
             raise GrantError("invalid_dpop_header")
         jwk, canonical = canonical_public_jwk(jcs_text(header.get("jwk")))
         public = Ed25519PublicKey.from_public_bytes(strict_base64url(jwk["x"], 32))

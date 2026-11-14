@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -303,6 +303,38 @@ class SessionGrantKatTests(unittest.TestCase):
     def test_dpop_golden_signature_verifies_without_credential_jwt(self):
         self.assertEqual(self._dpop(), self.fixture["dpop_kat"]["proof_jwt"])
         self._verify_dpop()
+        header_segment = self._dpop().split(".")[0]
+        header = json.loads(base64.urlsafe_b64decode(header_segment + "=" * (-len(header_segment) % 4)))
+        registry = checker.load_json(checker.ARTIFACTS / "registry/signature-alg-registry.json")
+        algorithm = next(row for row in registry["algorithms"]
+                         if row["canonical_id"] == "Ed25519" and row["status"] == "active")
+        self.assertEqual(header["alg"], algorithm["jose_algorithm"])
+
+    def _dpop_with_resigned_algorithm(self, algorithm):
+        header, payload, _ = self._dpop().split(".")
+        header = json.loads(base64.urlsafe_b64decode(header + "=" * (-len(header) % 4)))
+        header["alg"] = algorithm
+        encoded = base64.urlsafe_b64encode(jcs_text(header).encode()).rstrip(b"=").decode("ascii")
+        signing_input = (encoded + "." + payload).encode("ascii")
+        key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(self.fixture["dpop_kat"]["public_test_seed_hex"]))
+        signature = base64.urlsafe_b64encode(key.sign(signing_input)).rstrip(b"=").decode("ascii")
+        return signing_input.decode("ascii") + "." + signature
+
+    def test_dpop_rejects_resigned_alias_reserved_and_wrong_algorithms(self):
+        for algorithm in ("EdDSA", "ES256", "none", "ML-DSA-65"):
+            with self.subTest(algorithm=algorithm), self.assertRaisesRegex(GrantError, "invalid_dpop_header"):
+                self._verify_dpop(proof=self._dpop_with_resigned_algorithm(algorithm))
+        changed = copy.deepcopy(self.fixture)
+        changed["dpop_kat"]["proof_jwt"] = self._dpop_with_resigned_algorithm("EdDSA")
+        self.assertIn("DPoP positive: invalid_dpop_header", self._check(fixture=changed))
+
+    def test_dpop_active_algorithm_still_requires_the_real_signature(self):
+        header, payload, signature = self._dpop().split(".")
+        changed = bytearray(strict_base64url(signature, 64))
+        changed[0] ^= 1
+        signature = base64.urlsafe_b64encode(changed).rstrip(b"=").decode("ascii")
+        with self.assertRaisesRegex(GrantError, "invalid_dpop_signature"):
+            self._verify_dpop(proof=header + "." + payload + "." + signature)
 
     def test_dpop_wrong_secret_method_uri_nonce_and_key_fail(self):
         for kwargs, reason in (({"secret": secret_from_random(bytes([99]) * 32)}, "ath"),
