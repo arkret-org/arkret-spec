@@ -50,6 +50,7 @@ export interface SchemaRow {
   path: string; // dotted path, e.g. "payload.strand_id"
   name: string; // last segment, displayed as field name
   required: boolean;
+  requiredNames?: string[];
   type: string; // displayed type label (handles unions, arrays, etc.)
   description?: string;
   enumValues?: unknown[];
@@ -59,7 +60,7 @@ export interface SchemaRow {
   /** Children of object/array shapes; rendered as nested expandable rows. */
   children?: SchemaRow[];
   /** Composition kind, if this row represents a oneOf/anyOf/allOf branch. */
-  composition?: "oneOf" | "anyOf" | "allOf";
+  composition?: "oneOf" | "anyOf" | "allOf" | "if" | "then" | "else";
   /** Reference target, if the source schema used $ref. */
   ref?: string;
 }

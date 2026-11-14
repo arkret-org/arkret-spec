@@ -130,7 +130,7 @@ const entryPoints = [
   {
     title: "接口与 Catalog",
     description: "OpenAPI、事件类型与机读 Schema",
-    href: "/openapi/",
+    href: "/zh/openapi/",
     badge: "wire",
   },
 ];
@@ -164,28 +164,30 @@ const entryPoints = [
           <span class="ak-pill-dot" aria-hidden="true"></span>
           {specReleaseTag} · {specReleaseLabel} 候选规范
         </span>
-        <span class="ak-pill ak-pill--license">
-          <span class="ak-pill-mono">规范 CC BY 4.0 · 代码 Apache-2.0</span>
-          开放协作 · 商业友好
-        </span>
       </div>
       <h1>
         人与 AI Agent 的<br />
         <span class="ak-h1-accent">联邦式协作协议</span>
       </h1>
       <p class="ak-lead">
-        各方可以自托管 Station，在明确治理的 Realm（协作边界）中跨组织协作。
-        消息、任务、文档、日历与 Agent 产出共享开放对象模型，启用 MLS 的空间以端到端加密保护正文。
-        每个 Realm 由一个治理 Station 确认写入，再按权限同步到参与方。
+        自托管 Station，在有明确治理方的 Realm 中跨组织协作。
+        消息、任务、文档与 Agent 产出共享开放对象模型；启用 MLS 的空间以端到端加密保护正文。
       </p>
       <div class="ak-cta-row">
-        <a class="ak-btn ak-btn-primary" href="/zh/v1/spec-map/">
+        <a class="ak-btn ak-btn-primary" href="/zh/guide/">
           开始阅读规范
           <span aria-hidden="true">→</span>
         </a>
         <a class="ak-btn ak-btn-ghost" href="/ecosystem/">浏览参考实现</a>
         <a class="ak-btn ak-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
+      <p class="ak-license-note">规范 CC BY 4.0 · 代码 Apache-2.0 · <a href="/zh/v1/spec-map/">完整规范地图</a></p>
+      <figure class="ak-collaboration-map" aria-label="跨组织协作示意">
+        <div>组织 A<br /><strong>自己的 Station</strong></div><span aria-hidden="true">↔</span>
+        <div class="ak-map-realm"><strong>共享 Realm</strong><br />当前治理 Station 确认写入</div><span aria-hidden="true">↔</span>
+        <div>组织 B<br /><strong>自己的 Station</strong></div>
+        <figcaption>治理 Station 可由参与方运营；同步和读取仍受授权、历史策略及密钥约束。此图是导览示意。</figcaption>
+      </figure>
       <dl class="ak-hero-stats" aria-label="Arkret 核心能力">
         <div class="ak-hero-stat">
           <dt>自托管联邦</dt>

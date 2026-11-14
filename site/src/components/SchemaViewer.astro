@@ -2,6 +2,7 @@
 import { loadSchemaDocument, getSchemaEntry } from "~/lib/artifacts";
 import { walkSchema } from "~/lib/schema/walk";
 import type { JsonSchema, SchemaRow } from "~/lib/schema/types";
+import { specFileUrl } from "~/lib/site-meta";
 
 interface Props {
   /** Either a registered schema id (`ak.schema.space.v1`) or a file path
@@ -31,37 +32,23 @@ const root = walkSchema(doc as JsonSchema, {
   },
 });
 
-function render(row: SchemaRow, depth: number): string {
-  const open = depth < expand ? " open" : "";
-  const required = row.required ? '<span class="ak-required" title="required">*</span> ' : "";
+function render(row: SchemaRow, depth: number, conditional = false): string {
+  const branch = conditional || Boolean(row.composition && row.composition !== "allOf");
+  const open = depth < expand;
+  const required = row.required ? `<span class="ak-required" title="${branch ? "分支内的 required，不等于全局必填" : "当前对象中的 required"}">${branch ? "分支必填" : "必填"}</span> ` : "";
   const composition = row.composition ? `<em>${row.composition}</em> · ` : "";
   const ref = row.ref ? `<small> · $ref ${escapeHtml(row.ref)}</small>` : "";
-  const typeBadge = `<code>${escapeHtml(row.type)}</code>`;
-  const desc = row.description
-    ? `<div style="margin:.25rem 0; opacity:.85">${escapeHtml(row.description)}</div>`
-    : "";
-  const enums =
-    row.enumValues && row.enumValues.length
-      ? `<div><small>enum:</small> ${row.enumValues
-          .map((v) => `<code>${escapeHtml(JSON.stringify(v))}</code>`)
-          .join(" ")}</div>`
-      : "";
-  const format = row.format ? `<small> · format=${row.format}</small>` : "";
-  const pattern = row.pattern
-    ? `<div><small>pattern:</small> <code>${escapeHtml(row.pattern)}</code></div>`
-    : "";
-  const example =
-    row.example !== undefined
-      ? `<div><small>example:</small> <code>${escapeHtml(JSON.stringify(row.example))}</code></div>`
-      : "";
-
-  const summary = `${required}${composition}<strong>${escapeHtml(row.name)}</strong> · ${typeBadge}${format}${ref}`;
-
-  if (!row.children || row.children.length === 0) {
-    return `<div style="padding:.25rem 0">${summary}${desc}${enums}${pattern}${example}</div>`;
-  }
-  const inner = row.children.map((c) => render(c, depth + 1)).join("");
-  return `<details${open}><summary>${summary}</summary>${desc}${enums}${pattern}${example}<div>${inner}</div></details>`;
+  const desc = row.description ? `<p class="ak-schema-description">${escapeHtml(row.description)}</p>` : "";
+  const enums = row.enumValues?.length ? `<div><small>enum:</small> ${row.enumValues.map(value => `<code>${escapeHtml(JSON.stringify(value))}</code>`).join(" ")}</div>` : "";
+  const format = row.format ? `<small> · format=${escapeHtml(row.format)}</small>` : "";
+  const pattern = row.pattern ? `<div><small>pattern:</small> <code>${escapeHtml(row.pattern)}</code></div>` : "";
+  const example = row.example !== undefined ? `<div><small>example:</small> <code>${escapeHtml(JSON.stringify(row.example))}</code></div>` : "";
+  const requirements = row.requiredNames?.length ? `<p class="ak-schema-constraint">${branch ? "此分支" : "此对象"}的 required：<code>${row.requiredNames.map(escapeHtml).join(", ")}</code></p>` : "";
+  const attrs = `class="ak-schema-node" data-search="${escapeHtml([row.path,row.name,row.description,row.ref,...(row.requiredNames ?? [])].filter(Boolean).join(" ").toLowerCase())}" data-required="${Boolean(row.required || row.requiredNames?.length)}"`;
+  const summary = `${required}${composition}<strong>${escapeHtml(row.name)}</strong> · <code>${escapeHtml(row.type)}</code>${format}${ref}`;
+  const content = `${desc}${requirements}${enums}${pattern}${example}`;
+  if (!row.children?.length) return `<div ${attrs}><div>${summary}</div>${content}</div>`;
+  return `<details ${attrs} data-default-open="${open}"${open ? " open" : ""}><summary>${summary}</summary>${content}<div class="ak-schema-children">${row.children.map(child => render(child,depth+1,branch)).join("")}</div></details>`;
 }
 
 function escapeHtml(value: unknown): string {
@@ -77,18 +64,69 @@ const html = render(root, 0);
 const title = (doc as JsonSchema).title ?? schemaRef;
 ---
 
-<section class="ak-schema-viewer">
-  {
-    showHeader && (
-      <header class="ak-card" style="margin:0 0 .5rem 0">
-        <strong>{title}</strong>
-        <div>
-          <code>{schemaRef}</code>
-          <small> · file: <code>{file}</code></small>
-        </div>
-        {(doc as JsonSchema).description && <p>{(doc as JsonSchema).description}</p>}
-      </header>
-    )
-  }
-  <div set:html={html} />
+<section class="ak-schema-viewer" aria-label={`Schema ${schemaRef}`}>
+  {showHeader && <header class="ak-card" style="margin:0 0 .5rem 0"><strong>{title}</strong><div><code>{schemaRef}</code><small> · <code>{file}</code></small></div>{(doc as JsonSchema).description && <p>{(doc as JsonSchema).description}</p>}</header>}
+  <div class="ak-catalog-controls">
+    <label>搜索可视树中的字段、路径或说明<input type="search" data-field-query placeholder="例如 payload 或 required 字段名" /></label>
+    <label class="ak-check"><input type="checkbox" data-required-only />仅含 required 的节点</label>
+    <button type="button" data-expand>展开全部</button><button type="button" data-collapse>折叠全部</button><button type="button" data-reset>清除条件</button>
+  </div>
+  <p class="ak-schema-scope-note">必填标记属于当前 Schema 对象或分支。oneOf、anyOf、if / then / else 中的 required 不表示所有实例均必填。树状视图有递归深度限制；完整约束以 canonical 原件为准。</p>
+  <p role="status" data-schema-count></p><p data-schema-empty hidden>可视树中没有匹配项。清除条件或查看下面的完整 JSON。</p>
+  <div class="ak-schema-tree" set:html={html} />
+  <details class="ak-schema-raw"><summary>完整 JSON（格式化展示）</summary><button type="button" data-copy-json>复制完整 JSON</button><span role="status" data-copy-status></span><pre><code>{JSON.stringify(doc,null,2)}</code></pre></details>
+  <p><a href={specFileUrl(`artifacts/${file}`)}>查看 canonical 原件：<code>spec/v1/artifacts/{file}</code></a></p>
 </section>
+<script>
+function bootSchemaViewers() {
+  document.querySelectorAll<HTMLElement>('.ak-schema-viewer').forEach(root => {
+    if (root.dataset.ready) return; root.dataset.ready = 'true';
+    const input = root.querySelector<HTMLInputElement>('[data-field-query]')!;
+    const required = root.querySelector<HTMLInputElement>('[data-required-only]')!;
+    const nodes = Array.from(root.querySelectorAll<HTMLElement>('.ak-schema-node'));
+    const details = nodes.filter((node): node is HTMLDetailsElement => node instanceof HTMLDetailsElement);
+    const before = new Map(details.map(node => [node,node.open])); let wasActive = false;
+    const params = new URL(location.href).searchParams;input.value = params.get('field') ?? '';required.checked = params.get('required') === '1';
+    function apply() {
+      const query = input.value.trim().toLowerCase();const active = Boolean(query || required.checked);
+      if (active && !wasActive) details.forEach(node => before.set(node,node.open));
+      let count = 0;
+      for (const node of [...nodes].reverse()) {
+        const match = (!query || node.dataset.search!.includes(query)) && (!required.checked || node.dataset.required === 'true');
+        const descendant = node.querySelector('.ak-schema-node:not([hidden])');
+        node.hidden = !match && !descendant;
+        if (match) count++;
+        if (active && !node.hidden && node instanceof HTMLDetailsElement) node.open = true;
+      }
+      if (!active && wasActive) details.forEach(node => node.open = before.get(node) ?? false);
+      wasActive = active;
+      root.querySelector('[data-schema-count]')!.textContent = `${count} / ${nodes.length} 个可视节点匹配`;
+      (root.querySelector('[data-schema-empty]') as HTMLElement).hidden = count !== 0;
+      const url = new URL(location.href);query ? url.searchParams.set('field',input.value.trim()) : url.searchParams.delete('field');required.checked ? url.searchParams.set('required','1') : url.searchParams.delete('required');history.replaceState(history.state,'',url);
+    }
+    input.addEventListener('input',apply);required.addEventListener('change',apply);
+    root.querySelector('[data-reset]')!.addEventListener('click',() => {input.value='';required.checked=false;apply();input.focus();});
+    root.querySelector('[data-expand]')!.addEventListener('click',() => details.forEach(node => node.open = true));
+    root.querySelector('[data-collapse]')!.addEventListener('click',() => details.forEach(node => node.open = false));
+    root.querySelector('[data-copy-json]')!.addEventListener('click',async () => {
+      const status = root.querySelector('[data-copy-status]')!;
+      try { await navigator.clipboard.writeText(root.querySelector('.ak-schema-raw code')!.textContent!);status.textContent='已复制'; }
+      catch { status.textContent='复制不可用，请在完整 JSON 中选择文本后复制。'; }
+    });
+    apply();
+  });
+}
+bootSchemaViewers();document.addEventListener('astro:page-load',bootSchemaViewers);
+</script>
+<style is:global>
+.ak-schema-scope-note { font-size:.85rem;color:var(--sl-color-gray-2); }
+.ak-schema-node { margin:.4rem 0;padding:.35rem .5rem;border-inline-start:1px solid var(--sl-color-gray-5);overflow-wrap:anywhere;min-width:0; }
+.ak-schema-node > summary { cursor:pointer; }
+.ak-schema-children { padding-inline-start:.6rem; }
+.ak-schema-description,.ak-schema-constraint { margin:.35rem 0;font-size:.9rem; }
+.ak-required { font-size:.72rem;color:var(--sl-color-red-high);font-weight:700; }
+.ak-schema-tree [hidden],.ak-schema-viewer > [hidden] { display:none !important; }
+.ak-schema-raw { margin-top:1.5rem; }
+.ak-schema-raw pre { max-height:440px;overflow:auto; }
+.ak-schema-raw summary { cursor:pointer; }
+</style>

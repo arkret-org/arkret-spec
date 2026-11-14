@@ -13,7 +13,7 @@ const { id } = Astro.params as { id: string };
 ---
 
 <StarlightPage frontmatter={{ title: id }}>
-  <CatalogBreadcrumb label="Operations" href="/catalog/operations/" />
+  <CatalogBreadcrumb label="操作目录" href="/zh/catalog/operations/" />
   <OperationRef id={id} />
   <p>
     OpenAPI 中的 <code>operationId</code> 与本 ID 完全一致。打开

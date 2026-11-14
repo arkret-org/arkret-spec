@@ -32,3 +32,16 @@ const { label, href } = Astro.props;
     text-decoration: underline;
   }
 </style>
+
+<script>
+function preserveCatalogFilters() {
+  const params = new URL(location.href).searchParams;
+  document.querySelectorAll<HTMLAnchorElement>('.ak-breadcrumb a').forEach(link => {
+    const url = new URL(link.href);
+    for (const key of ['q','surface','class','transports']) { const value = params.get(key); if (value) url.searchParams.set(key,value); }
+    link.href = url.href;
+  });
+}
+preserveCatalogFilters();
+document.addEventListener('astro:page-load',preserveCatalogFilters);
+</script>

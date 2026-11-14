@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { catalogRedirects } from "./catalog-routes.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = resolve(here, "..");
@@ -32,3 +33,6 @@ const outFile = resolve(outDir, `contract-registry-${version}.json`);
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, readFileSync(source));
 console.log(`gen-public-catalog: wrote ${outFile} (byte-copy of ${source})`);
+
+// Netlify reads these rules before serving static redirect HTML.
+writeFileSync(resolve(siteRoot, "public/_redirects"), Object.entries(catalogRedirects()).map(([from,to]) => `${from} ${to} 301`).join("\n") + "\n");

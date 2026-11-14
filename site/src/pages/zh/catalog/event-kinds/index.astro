@@ -1,7 +1,7 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import EventKindTable from "~/components/EventKindTable.astro";
-import { catalogVersion, eventKinds } from "~/lib/artifacts";
+import { eventKinds } from "~/lib/artifacts";
 
 // Build the unique, sorted category list for the in-page jump nav. The
 // EventKindTable already supports a `category` filter, so we render one
@@ -20,15 +20,14 @@ function categoryLabel(name: string): string {
 }
 ---
 
-<StarlightPage frontmatter={{ title: "Event kinds" }}>
+<StarlightPage frontmatter={{ title: "事件类型" }}>
   <p>
     canonical: <code>spec/v1/artifacts/registry/contract-registry.json#event_kind_registry</code>
-    · catalog version <code>{catalogVersion}</code>
   </p>
   <p>所有 active <code>ak.*</code> Event.kind。点击任意条目进入详情页。</p>
 
-  <nav class="ak-category-jump" aria-label="Event categories">
-    <strong>Jump to category:</strong>
+  <nav class="ak-category-jump" aria-label="事件类别">
+    <strong>按类别定位：</strong>
     <ul>
       {
         categories.map((category) => (

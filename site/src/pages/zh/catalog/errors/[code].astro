@@ -13,7 +13,7 @@ const { code } = Astro.params as { code: string };
 ---
 
 <StarlightPage frontmatter={{ title: code }}>
-  <CatalogBreadcrumb label="Error codes" href="/catalog/errors/" />
+  <CatalogBreadcrumb label="错误码" href="/zh/catalog/errors/" />
   <ErrorCode code={code} />
   <CatalogSource
     entries={[

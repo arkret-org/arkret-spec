@@ -64,7 +64,7 @@
   --ak-border-strong: rgba(92, 48, 17, 0.24);
   --ak-fg: #18100c;
   --ak-fg-muted: #62564a;
-  --ak-fg-subtle: #867568;
+  --ak-fg-subtle: #786656;
   --ak-accent: #c3481e;
   --ak-accent-strong: #9a3b15;
   --ak-accent-2: #d6942f;
@@ -286,15 +286,9 @@ body.ak-marketing .ak-mono {
   line-height: 1.5;
 }
 .ak-nav .ak-nav-links a:hover,
-.ak-nav .ak-nav-links a[aria-current="page"],
+.ak-nav .ak-nav-links a[aria-current],
 .ak-nav .ak-nav-tools a:hover {
   color: var(--ak-fg);
-}
-.ak-nav-links span[aria-disabled="true"] {
-  cursor: default;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .ak-nav-tools {
@@ -303,17 +297,6 @@ body.ak-marketing .ak-mono {
   gap: 0.6rem;
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-.ak-soon {
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.05rem 0.4rem;
-  border-radius: 4px;
-  background: var(--ak-bg-elevated);
-  color: var(--ak-fg-muted);
-  border: 1px solid var(--ak-border);
 }
 
 /* ---------- Theme toggle ----------------------------------------------- */
@@ -367,7 +350,7 @@ body.ak-marketing .ak-mono {
 /* ---------- Hero -------------------------------------------------------- */
 
 .ak-hero {
-  padding: 6.5rem 0 4.5rem;
+  padding: 2rem 0 2.5rem;
   position: relative;
   overflow: hidden;
 }
@@ -412,7 +395,7 @@ body.ak-marketing .ak-mono {
 }
 
 .ak-hero h1 {
-  font-size: clamp(2.4rem, 5.4vw, 4.05rem);
+  font-size: clamp(2.2rem, 4.4vw, 3.2rem);
   line-height: 1.08;
   margin: 0 0 1.25rem;
   font-weight: 700;
@@ -430,8 +413,8 @@ body.ak-marketing .ak-mono {
 
 .ak-hero-brand {
   display: block;
-  width: clamp(108px, 11vw, 148px);
-  margin: 0 0 1.35rem;
+  width: 56px;
+  margin: 0 0 0.75rem;
   filter: drop-shadow(
     0 18px 34px color-mix(in srgb, #000 36%, transparent)
   );
@@ -444,18 +427,7 @@ body.ak-marketing .ak-mono {
 }
 
 .ak-hero h1 .ak-h1-accent {
-  background: linear-gradient(
-    115deg,
-    var(--ak-accent) 0%,
-    var(--ak-accent-2) 50%,
-    var(--ak-accent-strong) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  /* Subtle text-shadow lift so the gradient text reads as deliberate
-   * typography, not a render artifact, on light backgrounds. */
-  -webkit-text-fill-color: transparent;
+  color: var(--ak-accent);
 }
 
 .ak-hero p.ak-lead {
@@ -558,11 +530,7 @@ body.ak-marketing .ak-mono {
  * button text becomes invisible (text color === background). */
 body.ak-marketing a.ak-btn-primary,
 .ak-btn-primary {
-  background: linear-gradient(
-    135deg,
-    var(--ak-accent) 0%,
-    var(--ak-accent-2) 100%
-  );
+  background: var(--ak-accent);
   color: var(--ak-on-accent);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
@@ -570,11 +538,7 @@ body.ak-marketing a.ak-btn-primary,
 }
 body.ak-marketing a.ak-btn-primary:hover,
 .ak-btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    var(--ak-accent-strong) 0%,
-    var(--ak-accent-2) 100%
-  );
+  background: var(--ak-accent-strong);
   color: var(--ak-on-accent);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
@@ -1334,11 +1298,8 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
     /* Keep theme toggle visible even on small screens; hide GitHub label only. */
     gap: 0.4rem;
   }
-  .ak-nav-links li:nth-last-child(-n + 2) span[aria-disabled="true"] .ak-soon {
-    display: none;
-  }
   .ak-hero {
-    padding: 3.5rem 0 2.5rem;
+    padding: 1.25rem 0 2rem;
   }
   section.ak-section {
     padding: 3rem 0;
@@ -1359,4 +1320,31 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
   .ak-strand-rail {
     grid-template-columns: 1fr;
   }
+}
+
+.ak-license-note { margin: 1rem 0; font-size: .8rem; color: var(--ak-fg-muted); }
+.ak-collaboration-map { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1.4fr) auto minmax(0,1fr); align-items: center; gap: .6rem; max-width: 780px; margin: 1.5rem 0; font-size: .82rem; text-align: center; }
+.ak-collaboration-map > div { padding: .75rem .5rem; border: 1px solid var(--ak-border); border-radius: .6rem; background: var(--ak-bg-elevated); }
+.ak-collaboration-map .ak-map-realm { border-color: var(--ak-accent); }
+.ak-collaboration-map figcaption { grid-column: 1/-1; color: var(--ak-fg-muted); text-align: left; font-size: .75rem; }
+@media(max-width:600px) { .ak-collaboration-map { gap: .25rem; font-size: .72rem; } .ak-collaboration-map > div { padding: .6rem .25rem; } }
+
+.ak-section-menu { display: none; position: relative; }
+.ak-section-menu > summary { cursor: pointer; white-space: nowrap; padding: .5rem; border: 1px solid var(--ak-border); border-radius: 6px; color: var(--ak-fg); font-size: .85rem; }
+.ak-section-menu > ul { position: absolute; top: 100%; inset-inline-start: 0; z-index: 100; min-width: 170px; padding: .5rem; list-style: none; margin: .35rem 0 0; border: 1px solid var(--ak-border); border-radius: 8px; background: var(--ak-bg-nav); box-shadow: var(--ak-shadow-sm); }
+.ak-section-menu a { display: block; padding: .65rem; white-space: nowrap; color: var(--ak-fg-muted); }
+.ak-section-menu a[aria-current], .ak-section-menu a:hover { background: var(--ak-bg-elevated); color: var(--ak-fg); }
+.ak-section-menu summary:focus-visible, .ak-section-menu a:focus-visible { outline: 2px solid var(--ak-fg); outline-offset: 2px; }
+@media (max-width: 1050px) {
+  .ak-nav .ak-nav-links { display: none; }
+  .ak-nav .ak-section-menu { display: block; }
+  .ak-nav .ak-nav-row { display: flex; flex-wrap: nowrap; height: calc(var(--ak-nav-height) - 1px); padding-block: 0; gap: .6rem; }
+  .ak-nav .ak-nav-tools { margin-inline-start: auto; flex-shrink: 0; }
+}
+@media (max-width: 50rem) {
+  .ak-nav--docs .ak-nav-tools { margin-inline-end: 40px; }
+}
+@media (max-width: 480px) {
+  .ak-nav--docs .ak-brand > span:last-child { display: none; }
+  .ak-nav .ak-nav-row { padding-inline: 16px; }
 }

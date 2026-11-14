@@ -20,7 +20,7 @@ export const repoMain = `${repoUrl}/blob/main`;
 /** Returns a URL to a file under spec/v1/ on the canonical repo. */
 export function specFileUrl(relPath: string): string {
   const trimmed = relPath.replace(/^\.\//, "").replace(/^\/+/, "");
-  return `${repoMain}/${trimmed}`;
+  return `${repoMain}/spec/v1/${trimmed}`;
 }
 
 /**

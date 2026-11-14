@@ -1,0 +1,83 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import OperationTable from "~/components/OperationTable.astro";
+import { surfaceGroups, operations } from "~/lib/artifacts";
+import { specFileUrl } from "~/lib/site-meta";
+const classes = [...new Set(surfaceGroups.map(group => group.surface_class))];
+---
+<StarlightPage frontmatter={{title:"操作目录"}}>
+  <p>来源：<a href={specFileUrl("artifacts/registry/operation-registry.json")}><code>spec/v1/artifacts/registry/operation-registry.json</code></a>。目录按 canonical 工件生成；HTTP 交互式参考见 <a href="/zh/openapi/">OpenAPI</a>。</p>
+  <section class="ak-operations" data-total={operations.length}>
+    <div class="ak-catalog-controls">
+      <label>搜索标识、HTTP 路径或 surface<input type="search" data-query placeholder="例如 ak.self… 或 /_arkret/…" /></label>
+      <label>Surface<select data-surface><option value="">全部</option>{surfaceGroups.map(group => <option value={group.surface}>{group.surface}</option>)}</select></label>
+      <label>类别<select data-category><option value="">全部</option>{classes.map(value => <option value={value}>{value}</option>)}</select></label>
+      <label class="ak-check"><input type="checkbox" data-transports />显示 gRPC / MQ</label>
+      <button type="button" data-clear>清除条件</button>
+    </div>
+    <p role="status" class="ak-match-count">{operations.length} 个操作</p>
+    <p data-empty hidden>没有匹配的操作。可缩短关键字或清除 surface / 类别条件。</p>
+    {surfaceGroups.map(group => <details id={`surface-${group.surface}`} class="ak-operation-group" data-surface={group.surface} data-category={group.surface_class}>
+      <summary><code>{group.surface}</code><span>{group.surface_class} · {group.operations.length} 项</span></summary>
+      <div class="ak-operation-scroll"><OperationTable surface={group.surface} showHeading={false} /></div>
+    </details>)}
+  </section>
+</StarlightPage>
+<script>
+function bootOperationCatalog() {
+  const root = document.querySelector<HTMLElement>('.ak-operations');
+  if (!root || root.dataset.ready) return;
+  root.dataset.ready = 'true';
+  const input = root.querySelector<HTMLInputElement>('[data-query]')!;
+  const surface = root.querySelector<HTMLSelectElement>('select[data-surface]')!;
+  const category = root.querySelector<HTMLSelectElement>('[data-category]')!;
+  const transports = root.querySelector<HTMLInputElement>('[data-transports]')!;
+  const groups = Array.from(root.querySelectorAll<HTMLDetailsElement>('.ak-operation-group'));
+  const rows = Array.from(root.querySelectorAll<HTMLTableRowElement>('tr[data-operation]'));
+  groups.forEach(group => { if (group.id === decodeURIComponent(location.hash.slice(1))) group.open = true; });
+  const previous = new Map(groups.map(group => [group,group.open]));
+  let wasActive = false;
+  const initial = new URL(location.href).searchParams;
+  input.value = initial.get('q') ?? '';
+  surface.value = initial.get('surface') ?? '';
+  category.value = initial.get('class') ?? '';
+  transports.checked = initial.get('transports') === '1';
+  function apply() {
+    const query = input.value.trim().toLowerCase();
+    const active = Boolean(query || surface.value || category.value);
+    if (active && !wasActive) groups.forEach(group => previous.set(group,group.open));
+    let count = 0;
+    for (const group of groups) {
+      let matches = 0;
+      for (const row of Array.from(group.querySelectorAll<HTMLTableRowElement>('tr[data-operation]'))) {
+        row.hidden = !((!query || row.dataset.operation!.includes(query)) && (!surface.value || group.dataset.surface === surface.value) && (!category.value || group.dataset.category === category.value));
+        if (!row.hidden) { matches++; count++; }
+      }
+      group.hidden = matches === 0;
+      if (active && matches) group.open = true;
+      if (!active && wasActive) group.open = previous.get(group) ?? false;
+    }
+    wasActive = active;
+    root!.toggleAttribute('data-show-transports', transports.checked);
+    root!.querySelector('.ak-match-count')!.textContent = `${count} / ${root!.dataset.total} 个操作 · 条件保存在地址中，可直接分享`;
+    (root!.querySelector('[data-empty]') as HTMLElement).hidden = count !== 0;
+    const url = new URL(location.href);
+    for (const [key,value] of [['q',input.value.trim()],['surface',surface.value],['class',category.value],['transports',transports.checked ? '1' : '']]) value ? url.searchParams.set(key,value) : url.searchParams.delete(key);
+    history.replaceState(history.state,'',url);
+    for (const row of rows) {
+      const link = row.querySelector<HTMLAnchorElement>('a')!;
+      const target = new URL(link.href);
+      target.search = url.search;
+      link.href = target.href;
+    }
+  }
+  input.addEventListener('input',apply);
+  surface.addEventListener('change',apply);
+  category.addEventListener('change',apply);
+  transports.addEventListener('change',apply);
+  root.querySelector('[data-clear]')!.addEventListener('click',() => {input.value='';surface.value='';category.value='';transports.checked=false;apply();input.focus();});
+  apply();
+}
+bootOperationCatalog();
+document.addEventListener('astro:page-load',bootOperationCatalog);
+</script>

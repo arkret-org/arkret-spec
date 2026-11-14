@@ -64,6 +64,7 @@ function buildRow(
     name,
     required,
     type: typeLabel(resolved),
+    requiredNames: resolved.required,
     description,
     enumValues,
     format: resolved.format,
@@ -83,6 +84,15 @@ function buildRow(
           return r;
         })
       );
+    }
+  }
+
+  // Preserve conditional constraints as branches, never as global requirements.
+  for (const key of ["if", "then", "else"] as const) {
+    if (resolved[key] !== undefined) {
+      const branch = buildRow(`${path}.${key}`, key, resolved[key] as JsonSchema, false, ctx, depth + 1);
+      branch.composition = key;
+      row.children = (row.children ?? []).concat(branch);
     }
   }
 

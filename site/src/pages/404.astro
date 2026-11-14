@@ -36,9 +36,15 @@ import "../styles/spec.css";
       <p style="font-size:1.125rem;line-height:1.6;">
         请求的页面不存在 / Page not found.
       </p>
+      <form action="/zh/catalog/operations/" method="get" style="display:flex;gap:.6rem;flex-wrap:wrap;margin:1.5rem 0;">
+        <label for="missing-search">查找操作标识或 HTTP 路径</label>
+        <input id="missing-search" name="q" type="search" placeholder="operation_id 或 /_arkret/…" style="padding:.6rem;flex:1;min-width:200px;" />
+        <button type="submit" class="ak-btn ak-btn-primary">搜索目录</button>
+      </form>
+      <p><a href="/zh/guide/">阅读路径</a> · <a href="/zh/v1/spec-map/">规范地图与文档搜索</a> · <a href="/zh/catalog/schemas/">Schema 目录</a></p>
       <p style="margin-top:1.5rem;">
         <a href="/zh/v1/">回到中文规范首页</a> ·
-        <a href="/en/v1/">Back to English spec home</a>
+        <a href="/en/v1/">English overview</a>
       </p>
     </main>
   </body>

@@ -1,0 +1,27 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+const paths = [
+  { title: "理解核心模型", description: "先理解协作对象、权威和可见边界。", links: [
+    ["架构与信任边界", "overview/architecture"], ["Realm 与 Space", "models/realm-and-space"],
+    ["Strand 与 Message", "models/strand-and-message"], ["授权能力", "authz/capabilities"],
+  ] },
+  { title: "实现客户端", description: "从当前模型出发，再读同步、加密和机器接口。", links: [
+    ["当前模型", "overview/current-model"], ["客户端同步", "sync/client-sync"],
+    ["加密与审计", "crypto-media/encryption-and-audit"], ["工件消费指南", "guides/artifact-consumption"],
+  ] },
+  { title: "部署与运维", description: "确认服务边界、联邦策略和发布就绪条件。", links: [
+    ["主权部署", "sync/sovereign-deployment"], ["联邦", "sync/federation"],
+    ["服务接口", "sync/service-surface"], ["发布就绪条件", "overview/release-readiness"],
+  ] },
+];
+---
+<StarlightPage frontmatter={{title: "从这里开始", description: "按目标阅读 Arkret v1"}}>
+  <p class="guide-note">这是非规范导览。正式规则、主体资格和信任限制仍以各规范正文及 canonical 工件为准；短阅读路径不代替完整实现要求。</p>
+  <div class="guide-paths">
+    {paths.map(path => <section><h2>{path.title}</h2><p>{path.description}</p><ol>{path.links.map(([label,slug]) => <li><a href={`/zh/v1/${slug}/`}>{label}</a></li>)}</ol></section>)}
+  </div>
+  <h2>已有具体问题？</h2>
+  <p><a href="/zh/v1/spec-map/">完整规范地图</a>保留权威层级、推荐顺序与专家索引。页首的文档搜索可定位正文。</p>
+  <ul><li><a href="/zh/catalog/operations/">按 operation_id、HTTP 路径或 surface 找操作</a></li><li><a href="/zh/catalog/schemas/">检索 Schema 与 canonical JSON</a></li><li><a href="/zh/openapi/">OpenAPI 预览与原件</a></li><li><a href="/ecosystem/">参考实现与项目边界</a></li></ul>
+</StarlightPage>
+<style>.guide-note { padding:1rem;border-inline-start:3px solid var(--sl-color-text-accent);background:var(--sl-color-bg-nav); }.guide-paths { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem; }.guide-paths section { padding:1rem;border:1px solid var(--sl-color-gray-5);border-radius:.5rem; }.guide-paths h2 { margin-top:0;font-size:1.2rem; }@media(max-width:900px){.guide-paths{grid-template-columns:minmax(0,1fr);}}</style>

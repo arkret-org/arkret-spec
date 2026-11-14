@@ -5,6 +5,7 @@ import mdx from "@astrojs/mdx";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { readdirSync } from "node:fs";
+import { catalogRedirects } from "./scripts/catalog-routes.mjs";
 import remarkMermaid from "./plugins/remark-mermaid.mjs";
 import remarkRelMdLinks from "./plugins/remark-rel-md-links.mjs";
 
@@ -83,31 +84,9 @@ export default defineConfig({
   site: "https://arkret.org",
   trailingSlash: "always",
   redirects: {
-    // Locale roots have no normative prose entry; send visitors to the
-    // current spec version. /zh/ and /en/ would otherwise 404 because
-    // our content collection only exposes v1 docs (slug `<locale>/v1/...`).
     "/zh/": "/zh/v1/",
     "/en/": "/en/v1/",
-    // Starlight 0.39+ auto-prepends the active locale to any non-absolute
-    // sidebar link, so the Catalog/OpenAPI sidebar entries resolve to
-    // `/zh/catalog/…` and `/en/catalog/…` even though the underlying pages
-    // live at `/catalog/…` (locale-agnostic, generated from the artifact
-    // registry). Redirect the localized variants of the index pages
-    // (the only catalog URLs the sidebar emits) back to the canonical
-    // un-localized path. Detail pages like `/catalog/schemas/<id>/` are
-    // reached by clicking from the index and are not locale-prefixed.
-    "/zh/catalog/event-kinds/": "/catalog/event-kinds/",
-    "/zh/catalog/errors/": "/catalog/errors/",
-    "/zh/catalog/operations/": "/catalog/operations/",
-    "/zh/catalog/profiles/": "/catalog/profiles/",
-    "/zh/catalog/schemas/": "/catalog/schemas/",
-    "/zh/openapi/": "/openapi/",
-    "/en/catalog/event-kinds/": "/catalog/event-kinds/",
-    "/en/catalog/errors/": "/catalog/errors/",
-    "/en/catalog/operations/": "/catalog/operations/",
-    "/en/catalog/profiles/": "/catalog/profiles/",
-    "/en/catalog/schemas/": "/catalog/schemas/",
-    "/en/openapi/": "/openapi/",
+    ...catalogRedirects(),
   },
   vite: {
     server: {
@@ -250,9 +229,10 @@ document.addEventListener("astro:after-swap", boot);
       ],
       locales: {
         zh: { label: "简体中文", lang: "zh" },
-        en: { label: "English", lang: "en" },
+        en: { label: "English (overview)", lang: "en" },
       },
       sidebar: [
+        { label: "从这里开始 · 阅读路径", link: "/guide/" },
         {
           label: "v1",
           collapsed: false,
@@ -261,6 +241,7 @@ document.addEventListener("astro:after-swap", boot);
             // filename alphabetical. See planeItems() for the fallback rule.
             {
               label: "概览",
+              collapsed: true,
               items: planeItems("overview", [
                 "architecture",
                 "glossary",
@@ -271,6 +252,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "身份与组织",
+              collapsed: true,
               items: planeItems("identity", [
                 "identity-did",
                 "identity-handles",
@@ -282,6 +264,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "对象模型",
+              collapsed: true,
               items: planeItems("models", [
                 "overview",
                 "common-fields",
@@ -304,6 +287,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "授权与状态",
+              collapsed: true,
               items: planeItems("authz", [
                 "capabilities",
                 "constraint-schema",
@@ -313,6 +297,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "同步与服务",
+              collapsed: true,
               items: planeItems("sync", [
                 "operations-sync",
                 "client-sync",
@@ -328,6 +313,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "发现与目录",
+              collapsed: true,
               items: planeItems("discovery", [
                 "discovery-directory",
                 "object-addressing",
@@ -339,6 +325,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "加密与媒体",
+              collapsed: true,
               items: planeItems("crypto-media", [
                 "device-lifecycle",
                 "encryption-and-audit",
@@ -350,6 +337,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "扩展",
+              collapsed: true,
               items: planeItems("extensions", [
                 "applet-integration",
                 "applet-schema",
@@ -358,6 +346,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "治理",
+              collapsed: true,
               items: planeItems("governance", [
                 "join-policy",
                 "history-visibility",
@@ -365,9 +354,10 @@ document.addEventListener("astro:after-swap", boot);
                 "content-moderation",
               ]),
             },
-            { label: "安全", items: planeItems("security") },
+            { label: "安全", collapsed: true, items: planeItems("security") },
             {
               label: "一致性",
+              collapsed: true,
               items: planeItems("conformance", [
                 "normative-language",
                 "encoding",
@@ -382,6 +372,7 @@ document.addEventListener("astro:after-swap", boot);
             },
             {
               label: "实施指南",
+              collapsed: true,
               items: planeItems("guides", [
                 "artifact-consumption",
                 "reference-implementation-guide",
@@ -391,14 +382,15 @@ document.addEventListener("astro:after-swap", boot);
           ],
         },
         {
-          label: "Catalog",
+          label: "目录参考",
+          collapsed: true,
           collapsed: false,
           items: [
-            { label: "Event kinds", link: "/catalog/event-kinds/" },
-            { label: "Error codes", link: "/catalog/errors/" },
-            { label: "Operations", link: "/catalog/operations/" },
-            { label: "Profiles", link: "/catalog/profiles/" },
-            { label: "Schemas", link: "/catalog/schemas/" },
+            { label: "事件类型", link: "/catalog/event-kinds/" },
+            { label: "错误码", link: "/catalog/errors/" },
+            { label: "操作目录", link: "/catalog/operations/" },
+            { label: "一致性 Profiles", link: "/catalog/profiles/" },
+            { label: "Schema 目录", link: "/catalog/schemas/" },
             { label: "OpenAPI", link: "/openapi/" },
           ],
         },

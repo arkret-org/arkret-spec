@@ -1,106 +1,68 @@
 ---
 import { readOpenApiYaml } from "~/lib/artifacts";
-
-interface Props {
-  /** Initial layout. `modern` = three-column; `classic` = single column. */
-  layout?: "modern" | "classic";
-  /** Hide the "client snippets" panel for read-only viewing. */
-  hideClientButton?: boolean;
-}
-
+import { specFileUrl } from "~/lib/site-meta";
+interface Props { layout?: "modern" | "classic"; hideClientButton?: boolean; }
 const { layout = "modern", hideClientButton = false } = Astro.props;
-
-// Inline the OpenAPI YAML at build time so there is no runtime fetch and
-// so the page works on any host (including offline GitHub Pages mirrors).
 const yaml = readOpenApiYaml();
-
-// We mount Scalar programmatically via `Scalar.createApiReference(el, config)`
-// instead of the declarative `<script id="api-reference">` auto-mount.
-//
-// Why: the current Scalar standalone bundle treats the body of a
-// `#api-reference` script as the *raw OpenAPI document itself*, not as a
-// configuration object. Passing `{ spec: { content } }` or `{ content }` as
-// the body therefore parses that wrapper JSON as the spec — it has no
-// `paths`, so Scalar renders only an empty "Introduction" skeleton with no
-// operations. The programmatic API takes the spec via the `content` config
-// key explicitly, which is unambiguous.
-//
-// The spec is stashed in a `type="application/json"` island (a non-triggering
-// id, so the bundle does NOT try to auto-mount it) and read back at init.
-const baseConfig = {
-  layout,
-  hideClientButton,
-  hideDownloadButton: false,
-  theme: "default",
-};
+const config = { layout, hideClientButton, hideDownloadButton:false, hideDarkModeToggle:true, theme:"default", persistAuth:false, telemetry:false, agent:{disabled:true} };
 ---
-
-<div id="scalar-mount"></div>
-<script
-  is:inline
-  id="openapi-spec"
-  type="application/json"
-  set:html={JSON.stringify(yaml).replace(/<\/script/gi, "<\\/script")}
-></script>
-<script
-  is:inline
-  id="scalar-config"
-  type="application/json"
-  set:html={JSON.stringify(baseConfig).replace(/<\/script/gi, "<\\/script")}
-></script>
-<script
-  is:inline
-  type="module"
-  src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+<section class="ak-openapi-reference">
+  <div class="ak-openapi-fallback">
+    <a id="openapi-download" href={specFileUrl("artifacts/openapi/arkret-service-api.openapi.yaml")} download="arkret-service-api.openapi.yaml">下载完整 OpenAPI YAML</a>
+    <a href={specFileUrl("artifacts/openapi/arkret-service-api.openapi.yaml")}>查看 canonical 原件</a>
+    <button id="openapi-retry" type="button" hidden>重试交互式预览</button>
+    <p id="openapi-load-status" role="status">正在加载交互式预览；规范文件可独立下载。</p>
+  </div>
+  <div id="scalar-mount" aria-busy="true"></div>
+</section>
+<script is:inline id="openapi-spec" type="application/json" set:html={JSON.stringify(yaml).replace(/</g,"\\u003c")}></script>
+<script is:inline id="scalar-config" type="application/json" set:html={JSON.stringify(config)}></script>
 <script is:inline>
-  (function () {
-    function currentTheme() {
-      var stored;
-      try {
-        stored = localStorage.getItem("starlight-theme");
-      } catch (e) {
-        stored = null;
-      }
-      if (stored === "dark" || stored === "light") return stored;
-      var attr = document.documentElement.dataset.theme;
-      if (attr === "dark" || attr === "light") return attr;
-      return window.matchMedia("(prefers-color-scheme: light)").matches
-        ? "light"
-        : "dark";
-    }
-    function readJson(id) {
-      var el = document.getElementById(id);
-      try {
-        return JSON.parse((el && el.textContent) || "null");
-      } catch (e) {
-        return null;
-      }
-    }
-    function mount() {
-      // The bundle is a deferred module; poll until it exposes the global.
-      if (!window.Scalar || typeof window.Scalar.createApiReference !== "function") {
-        return window.setTimeout(mount, 30);
-      }
-      var content = readJson("openapi-spec");
-      var config = readJson("scalar-config") || {};
-      if (typeof content !== "string") return;
-      config.content = content;
-      config.darkMode = currentTheme() === "dark";
-      window.Scalar.createApiReference("#scalar-mount", config);
-    }
-    mount();
-
-    // Follow the site-wide dark/light toggle. Scalar reads `darkMode` once at
-    // boot, so the simplest correct behaviour is to reload on theme change.
-    window.addEventListener("storage", function (e) {
-      if (e.key === "starlight-theme") location.reload();
-    });
-  })();
-</script>
-
-<style>
-  /* Give Scalar room to lay out its three-column shell. */
-  :root {
-    --scalar-radius: 0.5rem;
+(function () {
+  const mount = document.getElementById('scalar-mount');
+  const status = document.getElementById('openapi-load-status');
+  const retry = document.getElementById('openapi-retry');
+  const download = document.getElementById('openapi-download');
+  const content = JSON.parse(document.getElementById('openapi-spec').textContent);
+  const config = JSON.parse(document.getElementById('scalar-config').textContent);
+  const blob = URL.createObjectURL(new Blob([content],{type:'application/yaml;charset=utf-8'}));
+  download.href = blob;
+  let instance, generation = 0, timer;
+  const theme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  function feedback(message,error) {
+    status.textContent = message; status.setAttribute('role',error ? 'alert' : 'status');
+    retry.hidden = !error; mount.setAttribute('aria-busy',error ? 'false' : 'true');
   }
-</style>
+  async function load() {
+    const serial = ++generation; clearTimeout(timer);
+    if (instance) { instance.destroy(); instance = null; }
+    mount.replaceChildren();
+    feedback('正在加载交互式预览；完整 YAML 已可下载。',false);
+    function fail() {
+      if (serial !== generation) return;
+      generation++; clearTimeout(timer);
+      if (instance) { instance.destroy(); instance = null; }
+      feedback('交互式资源暂不可用。规范仍在本页，可下载完整 YAML 或重试预览。',true);
+    }
+    timer = setTimeout(fail,30000);
+    try {
+      // ESM and updateConfiguration follow Scalar's documented browser API.
+      const url = new URL('https://cdn.jsdelivr.net/npm/@scalar/api-reference/esm.js');
+      if (serial > 1) url.searchParams.set('retry',String(serial));
+      const module = await import(url.href);
+      if (serial !== generation) return;
+      instance = module.createApiReference(mount,{...config,content,darkMode:theme() === 'dark',forceDarkModeState:theme(),onLoaded:() => {
+        if (serial !== generation) return;
+        clearTimeout(timer); status.textContent='交互式预览已就绪。';status.setAttribute('role','status');mount.setAttribute('aria-busy','false');retry.hidden=true;
+      }});
+    } catch { fail(); }
+  }
+  retry.addEventListener('click',load);
+  const observer = new MutationObserver(() => { if (instance) instance.updateConfiguration({...config,content,darkMode:theme() === 'dark',forceDarkModeState:theme()}); });
+  observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  function cleanup() { generation++;clearTimeout(timer);observer.disconnect();if(instance) instance.destroy();URL.revokeObjectURL(blob); }
+  document.addEventListener('astro:before-swap',cleanup,{once:true});window.addEventListener('pagehide',cleanup,{once:true});
+  load();
+})();
+</script>
+<style>.ak-openapi-fallback { display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;padding:1rem;border:1px solid var(--sl-color-gray-5);border-radius:.5rem; }.ak-openapi-fallback p { flex:1 1 100%;margin:0;font-size:.9rem; }.ak-openapi-fallback button { font:inherit;padding:.4rem .6rem;cursor:pointer; }</style>

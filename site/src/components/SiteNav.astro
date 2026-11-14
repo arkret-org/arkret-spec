@@ -16,27 +16,26 @@ export interface Props {
 
 const { variant = "marketing" } = Astro.props;
 
-type NavItem =
-  | { label: string; href: string; soon?: undefined }
-  | { label: string; href?: undefined; soon: true };
-
-const navItems: NavItem[] = [
-  { label: "Docs", href: "/zh/v1/spec-map/" },
-  { label: "OpenAPI", href: "/openapi/" },
-  { label: "Ecosystem", href: "/ecosystem/" },
-  { label: "Blog", soon: true },
-];
-
 const pathname = Astro.url.pathname;
-function isActive(href: string): boolean {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(href);
+const english = pathname.startsWith("/en/");
+const navItems = [
+  { label: english ? "Docs (Chinese)" : "规范", href: "/zh/guide/", section: "docs" },
+  { label: english ? "Catalog" : "目录参考", href: "/zh/catalog/operations/", section: "catalog" },
+  { label: "OpenAPI", href: "/zh/openapi/", section: "openapi" },
+  { label: english ? "Implementations" : "参考实现", href: "/ecosystem/", section: "ecosystem" },
+];
+function isActive(section: string): boolean {
+  if (section === "docs") return /^\/(zh|en)\/(v1|guide)(\/|$)/.test(pathname);
+  if (section === "catalog") return pathname.includes("/catalog/");
+  if (section === "openapi") return pathname.endsWith("/openapi/");
+  return pathname.startsWith("/ecosystem/");
 }
+
 ---
 
-<nav class={`ak-nav ak-nav--${variant}`} aria-label="Site">
+<nav class={`ak-nav ak-nav--${variant}`} aria-label={english ? "Site sections" : "网站分区"}>
   <div class="ak-shell ak-nav-row">
-    <a href="/" class="ak-brand">
+    <a href="/" class="ak-brand" aria-label={english ? "Arkret home" : "Arkret 首页"}>
       <span class="ak-brand-mark" aria-hidden="true">
         <img
           class="ak-brand-mark-image ak-brand-logo--light"
@@ -59,29 +58,27 @@ function isActive(href: string): boolean {
     </a>
     <ul class="ak-nav-links">
       {
-        navItems.map((item) =>
-          item.href === undefined ? (
-            <li>
-              <span aria-disabled="true">
-                {item.label}
-                <span class="ak-soon">soon</span>
-              </span>
-            </li>
-          ) : (
-            <li>
-              <a
-                href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-              >
-                {item.label}
-              </a>
-            </li>
-          ),
-        )
+        navItems.map((item) => (
+          <li><a href={item.href} aria-current={isActive(item.section) ? "true" : undefined}>{item.label}</a></li>
+        ))
       }
     </ul>
+    <details class="ak-section-menu">
+      <summary>{english ? "Sections" : "网站分区"}</summary>
+      <ul>{navItems.map(item => <li><a href={item.href} aria-current={isActive(item.section) ? "true" : undefined}>{item.label}</a></li>)}</ul>
+    </details>
     <div class="ak-nav-tools">
       <slot name="tools" />
     </div>
   </div>
 </nav>
+
+<script>
+function closeSectionMenus(event: KeyboardEvent | MouseEvent) {
+  document.querySelectorAll<HTMLDetailsElement>('.ak-section-menu[open]').forEach(menu => {
+    if (event instanceof KeyboardEvent && event.key === 'Escape') { menu.open=false;menu.querySelector('summary')?.focus(); }
+    else if (event instanceof MouseEvent && !menu.contains(event.target as Node)) menu.open=false;
+  });
+}
+document.addEventListener('keydown',closeSectionMenus);document.addEventListener('click',closeSectionMenus);
+</script>

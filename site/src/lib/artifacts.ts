@@ -114,7 +114,6 @@ function pickSchema<T = unknown>(name: string): T {
   return schemaFiles[key] as T;
 }
 
-const contractCatalog = pickRegistry<Record<string, unknown>>("contract-registry.json");
 const eventRegistry = pickRegistry<{ event_kinds: EventKind[] }>("event-kind-registry.json");
 const errorRegistry = pickRegistry<{ codes: ErrorCode[]; reason_codes?: ErrorCode[] }>("error-code-registry.json");
 const operationRegistry = pickRegistry<{
@@ -157,9 +156,6 @@ export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort(
 );
 
 export const profileMatrix = conformanceProfiles;
-
-export const catalogVersion: string =
-  (contractCatalog.version as string | undefined) ?? "unknown";
 
 // --- lookup helpers ----------------------------------------------------------
 

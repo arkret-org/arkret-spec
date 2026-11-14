@@ -6,8 +6,9 @@ interface Props {
   surfaceClass?: string;
   /** Filter to a specific surface (events_sync / blob_storage / mimi_interop / ...). */
   surface?: string;
+  showHeading?: boolean;
 }
-const { surfaceClass, surface } = Astro.props;
+const { surfaceClass, surface, showHeading = true } = Astro.props;
 
 const groups = surfaceGroups
   .filter((g) => (surfaceClass ? g.surface_class === surfaceClass : true))
@@ -17,33 +18,33 @@ const groups = surfaceGroups
 {
   groups.map((group) => (
     <section>
-      <h3>
+      {showHeading && <><h3>
         <code>{group.surface}</code>{" "}
         <small>· surface class {group.surface_class}</small>
       </h3>
-      <p>{surfaceClasses[group.surface_class]}</p>
+      <p>{surfaceClasses[group.surface_class]}</p></>}
       <table class="ak-table">
         <thead>
           <tr>
             <th>operation_id</th>
             <th>HTTP</th>
-            <th>gRPC</th>
-            <th>MQ</th>
+            <th class="ak-transport-column">gRPC</th>
+            <th class="ak-transport-column">MQ</th>
           </tr>
         </thead>
         <tbody>
           {group.operations.map((id) => {
             const op = getOperation(id)!;
             return (
-              <tr>
+              <tr data-operation={`${id} ${op.http} ${group.surface} ${group.surface_class}`.toLowerCase()}>
                 <td>
-                  <a href={`/catalog/operations/${encodeURIComponent(id)}/`}>
+                  <a href={`/zh/catalog/operations/${encodeURIComponent(id)}/`}>
                     <code>{id}</code>
                   </a>
                 </td>
                 <td><code>{op.http}</code></td>
-                <td><code>{op.grpc}</code></td>
-                <td><code>{op.mq}</code></td>
+                <td class="ak-transport-column"><code>{op.grpc}</code></td>
+                <td class="ak-transport-column"><code>{op.mq}</code></td>
               </tr>
             );
           })}

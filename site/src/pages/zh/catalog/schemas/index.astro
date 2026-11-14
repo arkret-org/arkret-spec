@@ -1,0 +1,39 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { schemaEntries } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Schema 目录" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/registry/schema-registry.json</code> +
+    <code>spec/v1/artifacts/schemas/*.schema.json</code>
+  </p>
+  <section class="ak-schema-index"><label>搜索 Schema 标识或文件名<input class="ak-schema-index-search" type="search" placeholder="schema_id 或 .schema.json" /></label><p role="status" data-index-count>{schemaEntries.length} 个 Schema</p>
+  <table class="ak-table">
+    <thead><tr><th>schema_id</th><th>file</th></tr></thead>
+    <tbody>
+      {
+        schemaEntries.map((row) => (
+          <tr data-schema-entry={`${row.schema_id} ${row.file}`.toLowerCase()}>
+            <td><a href={`/zh/catalog/schemas/${encodeURIComponent(row.schema_id)}/`}><code>{row.schema_id}</code></a></td>
+            <td><code>{row.file}</code></td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table></section>
+</StarlightPage>
+
+<script>
+function bootSchemaIndex() {
+  const root = document.querySelector<HTMLElement>('.ak-schema-index');if(!root || root.dataset.ready)return;root.dataset.ready='true';
+  const input = root.querySelector<HTMLInputElement>('input')!;const rows = Array.from(root.querySelectorAll<HTMLTableRowElement>('[data-schema-entry]'));
+  input.value = new URL(location.href).searchParams.get('q') ?? '';
+  const apply = () => {const q=input.value.trim().toLowerCase();let count=0;const url=new URL(location.href);q?url.searchParams.set('q',input.value.trim()):url.searchParams.delete('q');history.replaceState(history.state,'',url);
+    rows.forEach(row => {row.hidden=Boolean(q && !row.dataset.schemaEntry!.includes(q));if(!row.hidden)count++;const link=row.querySelector<HTMLAnchorElement>('a')!;const target=new URL(link.href);target.search=url.search;link.href=target.href;});
+    root.querySelector('[data-index-count]')!.textContent=`${count} / ${rows.length} 个 Schema${count ? '' : ' · 没有匹配项，可清除关键字'}`;
+  };input.addEventListener('input',apply);apply();
+}
+bootSchemaIndex();document.addEventListener('astro:page-load',bootSchemaIndex);
+</script>
+<style>.ak-schema-index-search { display:block;width:100%;padding:.6rem;margin-top:.4rem;background:var(--sl-color-bg);color:var(--sl-color-text);border:1px solid var(--sl-color-gray-4);border-radius:.4rem; }</style>

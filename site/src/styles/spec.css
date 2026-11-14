@@ -277,11 +277,6 @@ table.ak-table code {
   font-family: var(--ak-mono);
 }
 
-.ak-schema-viewer .ak-required {
-  color: #c53030;
-  font-weight: 700;
-}
-
 .ak-fixture {
   background: var(--sl-color-bg-nav);
   border: 1px solid var(--sl-color-gray-5);
@@ -299,3 +294,17 @@ table.ak-table code {
 .ak-fixture pre {
   margin-top: 0.5rem;
 }
+
+.ak-catalog-controls { display:flex; flex-wrap:wrap; align-items:end; gap:.8rem; padding:1rem; border:1px solid var(--sl-color-gray-5); border-radius:.5rem; background:var(--sl-color-bg-nav); }
+.ak-catalog-controls label { display:grid; gap:.35rem; flex:1 1 180px; min-width:0; font-size:.85rem; }
+.ak-catalog-controls input:not([type=checkbox]), .ak-catalog-controls select, .ak-catalog-controls button { min-height:40px; max-width:100%; padding:.4rem .6rem; border:1px solid var(--sl-color-gray-4); border-radius:.3rem; background:var(--sl-color-bg); color:var(--sl-color-text); font:inherit; }
+.ak-catalog-controls .ak-check { display:flex; align-items:center; flex:0 1 auto; min-height:40px; }
+.ak-catalog-controls button { cursor:pointer; }
+.ak-operation-group { margin:.6rem 0; border:1px solid var(--sl-color-gray-5); border-radius:.4rem; }
+.ak-operation-group > summary { display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; padding:.8rem; cursor:pointer; }
+.ak-operation-group > summary span { font-size:.8rem; color:var(--sl-color-gray-2); }
+.ak-operation-scroll { padding:0 .75rem .75rem; overflow-x:auto; }
+.ak-operations:not([data-show-transports]) .ak-transport-column { display:none; }
+.ak-match-count { font-size:.85rem; }
+.ak-operations [hidden] { display:none !important; }
+.ak-operation-scroll code { overflow-wrap:anywhere; }
