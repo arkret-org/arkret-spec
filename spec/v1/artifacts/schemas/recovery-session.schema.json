@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-session.schema.json",
   "title": "Arkret Recovery Session",
-  "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. Completion is owned by the bound RecoveryTransaction; see zh/identity/security-transactions.md §2 and zh/crypto-media/device-lifecycle.md §14.",
+  "description": "Closed immutable recovery-session authority basis and mutable verification/completion state. Completion belongs to one single-submit RecoveryTransaction; no public prepared reservation exists.",
   "$ref": "#/$defs/recovery_session_state",
   "$defs": {
     "did_url": {
@@ -138,18 +138,18 @@
         },
         "allowed_actions": {
           "type": "array",
-          "const": [
-            "ak.device.reanchor"
-          ],
-          "x-arkret-value-ownership": {
-            "class": "structured_literal",
-            "authority": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions",
-            "owner": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions",
-            "values": [
-              [
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "const": "ak.device.reanchor",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions/items",
+              "owner": "recovery-session.schema.json#/$defs/publication_authority_context/properties/allowed_actions/items",
+              "values": [
                 "ak.device.reanchor"
               ]
-            ]
+            }
           }
         }
       },
@@ -164,7 +164,7 @@
         "schema",
         "request_id",
         "recovery_session_id",
-        "session_grant_id",
+        "session_grant_ref",
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
@@ -201,14 +201,13 @@
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
         },
-        "session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "Exact recovery_session grant that created and owns this session."
+        "session_grant_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
         },
         "session_grant_cnf_jkt": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{43}$",
-          "description": "Exact cnf.jkt of session_grant_id. All subsequent recovery requests and proof transcripts must use the same DPoP key."
+          "description": "Exact cnf.jkt of session_grant_ref. All subsequent recovery requests and proof transcripts must use the same DPoP key."
         },
         "account_id": {
           "$ref": "#/$defs/account_id",
@@ -259,7 +258,7 @@
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id",
-          "description": "Unique durable RecoveryTransaction bound by CAS after verification. Absent until transaction create succeeds."
+          "description": "Unique successful RecoveryTransaction, bound atomically only when its two Events, Commit pair, device activation, generation advance and session consumption are accepted. No prepare-time reservation is exposed."
         },
         "rejection_reason_code": {
           "type": "string",
@@ -380,7 +379,7 @@
         "requesting_device_signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{86}$",
-          "description": "Ed25519 proof of possession, base64url without padding. Signs UTF8(ak.identity.recovery_device_possession.v1 plus LF) concatenated with JCS(recovery_device_possession_transcript); the authenticated grant supplies session_grant_id and session_grant_cnf_jkt."
+          "description": "Ed25519 proof of possession, base64url without padding. Signs UTF8(ak.identity.recovery_device_possession.v1 plus LF) concatenated with JCS(recovery_device_possession_transcript); the authenticated grant supplies session_grant_ref and session_grant_cnf_jkt."
         },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
@@ -667,7 +666,7 @@
         "schema",
         "kind",
         "request_id",
-        "session_grant_id",
+        "session_grant_ref",
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
@@ -709,8 +708,8 @@
         "request_id": {
           "$ref": "#/$defs/request_id"
         },
-        "session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        "session_grant_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
         },
         "session_grant_cnf_jkt": {
           "type": "string",
@@ -932,7 +931,7 @@
         "schema",
         "kind",
         "request_id",
-        "session_grant_id",
+        "session_grant_ref",
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
@@ -982,8 +981,8 @@
         "request_id": {
           "$ref": "#/$defs/request_id"
         },
-        "session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        "session_grant_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
         },
         "session_grant_cnf_jkt": {
           "type": "string",
@@ -1140,7 +1139,7 @@
       "required": [
         "schema",
         "request_id",
-        "session_grant_id",
+        "session_grant_ref",
         "session_grant_cnf_jkt",
         "account_id",
         "requesting_device_id",
@@ -1163,8 +1162,8 @@
           "$ref": "#/$defs/request_id",
           "description": "Client-stable idempotency identity. The server binds it to the presented recovery_session grant id, cnf.jkt and canonical create intent; same identity with different intent fails duplicate_conflict."
         },
-        "session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        "session_grant_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
         },
         "session_grant_cnf_jkt": {
           "type": "string",

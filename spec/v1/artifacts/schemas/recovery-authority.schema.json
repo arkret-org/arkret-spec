@@ -8,9 +8,6 @@
       "type": "integer",
       "minimum": 1
     },
-    "event_id": {
-      "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
@@ -38,46 +35,47 @@
     },
     "recovery_completion_grant_request_body": {
       "type": "object",
-      "description": "Closed request proving completed PCR recovery and the exact current replacement device generation. The Account Authority checks the committed re-anchor through its RealmCommit.",
       "required": [
-        "transaction_id",
-        "transaction_request_digest",
         "terminal_receipt",
-        "completion_attestation",
-        "device_authorization_event_id",
-        "new_model_generation_ref",
         "initial_session",
+        "accepted_device_possession_proof",
         "canonical_request_digest"
       ],
       "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "terminal_receipt": {
           "$ref": "./recovery-receipt.schema.json"
         },
-        "completion_attestation": {
-          "$ref": "#/$defs/recovery_completion_attestation"
-        },
-        "device_authorization_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "new_model_generation_ref": {
-          "$ref": "#/$defs/pcr_generation_ref"
-        },
         "initial_session": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent",
-          "description": "The Standard grant to issue after recovery. device_id MUST equal the attested replacement device and the RFC 7638 thumbprint of session_public_key MUST equal the Bound AccountHandoff and HTTP DPoP key."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent"
+        },
+        "accepted_device_possession_proof": {
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof"
+            },
+            {
+              "properties": {
+                "purpose": {
+                  "const": "recovery_completion_grant_issue",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body/properties/accepted_device_possession_proof/allOf/1/properties/purpose",
+                    "owner": "recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body/properties/accepted_device_possession_proof/allOf/1/properties/purpose",
+                    "values": [
+                      "recovery_completion_grant_issue"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
         },
         "canonical_request_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). The Bound AccountHandoff authorization and RFC 9449 HTTP DPoP proof authenticate the account and holder outside this closed business body."
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false,
+      "description": "Fresh Bound AccountHandoff and DPoP authenticate this request. The original owning Station supplies the exact successful completion through the existing authenticated deployment-internal channel; the caller supplies only its original signed receipt and the new holder intent/accepted-device proof. canonical_request_digest=SHA-256(JCS(this request with only canonical_request_digest omitted)), computed after the possession proof. The proof intent is SHA-256(JCS({receipt_digest,initial_session})), where receipt_digest hashes the full signed terminal_receipt. Completion issuance is unique by (issuer_id, operation, full AccountId, receipt.transaction_id).",
       "x-arkret-name-role": "request_body"
     },
     "receipt_id": {
@@ -85,12 +83,10 @@
     },
     "recovery_completion_attestation": {
       "type": "object",
-      "description": "Coordinator-signed proof created after one atomic recovery commit accepted the two producer-signed recovery Events, issued one PCR-stream RealmCommit for each of them, advanced the device generation, activated the replacement device, consumed the recovery session and completed the transaction. A RealmCommit accepts exactly one Event, so the two CommittedEventRef values MUST name two different Commits at consecutive positions n and n+1 of the same PCR Realm stream; their commit_id and their event_id MUST both differ.",
+      "description": "Owning-Station Ed25519 completion over JCS of all actual members except signature_proof. terminal_receipt_digest is SHA-256(JCS(full signed RecoveryReceipt)). It proves one logical atomic recovery accepted the two inline Event submissions, issued different consecutive Commits in the same PCR stream, activated the candidate, advanced generation and consumed the original session.",
       "required": [
         "schema",
         "transaction_id",
-        "transaction_request_digest",
-        "prepared_plan_digest",
         "account_id",
         "recovery_session_id",
         "terminal_receipt_id",
@@ -116,12 +112,6 @@
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
-        },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -172,7 +162,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "Base64URL signature over the closed completion projection, including reanchor_event_ref, device_authorization_event_ref and new_model_generation_ref."
+              "description": "Canonical Base64URL Ed25519 signature over RFC8785_JCS(the complete closed attestation with only signature_proof omitted). Schema identity, exact signed receipt digest and both real committed references are covered."
             }
           },
           "additionalProperties": false

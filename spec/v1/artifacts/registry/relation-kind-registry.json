@@ -7,7 +7,7 @@
     "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
     "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref). Circle is never a key component. truth_source shapes continue through their registered source current state and are never direct Relation writes.",
-    "The primary_conflict_domain is the unique relation current-state subject. create, update and tombstone carry that closed domain plus the domain's exact expected_revision; only one competing write can receive a RealmCommit. relation_kind, from_ref and to_ref are create-locked, so changing the domain requires an explicit tombstone followed by create (relation.md section 6)."
+    "The primary_conflict_domain is the unique relation current-state subject. create, update and tombstone carry that closed domain plus the domain's exact expected_commit_id; only one competing write can receive a RealmCommit. relation_kind, from_ref and to_ref are create-locked, so changing the domain requires an explicit tombstone followed by create (relation.md section 6)."
   ],
   "relation_kinds": [
     {

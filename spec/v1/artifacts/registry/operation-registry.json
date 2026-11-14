@@ -851,7 +851,7 @@
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/recovery-session-grants/issue",
-      "notes": "Issues the replacement device's first Standard grant after a PCR-policy RecoveryTransaction completes. The body carries the terminal device-attested receipt, coordinator attestation, PCR generation and InitialSessionGrantIntent; DID-root evidence is relevant only when that optional factor was enabled. If deployment policy permits reactivation and the original account is deactivated, this operation alone atomically authors the deactivated-to-active successor, restores the same account row, creates the publication outbox entry and issues the first new-generation grant. It never creates a replacement account or second PCR, and it never revives an old session, device or KeyPackage; policy denial or incomplete recovery returns account_deactivated with zero authoritative writes.",
+      "notes": "Fresh Bound AccountHandoff plus accepted replacement-device PoP binds the complete original receipt and new holder intent. The owning Station supplies its exact successful completion over the existing authenticated internal channel. Unique issuer completion by (issuer, operation, full AccountId, receipt.transaction_id); never upgrade an old recovery credential or share another service database.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -2143,7 +2143,7 @@
       "http": "DELETE /_arkret/self/account-data/{account_data_key}",
       "grpc": "SelfAccountData/Delete",
       "mq": "self.account_data.resource.delete",
-      "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private current state subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_revision is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
+      "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private current state subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_commit_id is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -2170,7 +2170,7 @@
       "http": "PUT /_arkret/self/account-data/{account_data_key}",
       "grpc": "SelfAccountData/Replace",
       "mq": "self.account_data.resource.replace",
-      "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+      "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_commit_id is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -2494,7 +2494,7 @@
         "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
         "first_revoke_acceptance_fences_future_writes": true
       },
-      "notes": "Before the first domain effect, the Station recomputes the canonical AppletRevokePlan and verifies every caller-signed capability revoke against the plan's grant_id, expected_revision, registration_epoch and reason_code. A plan mismatch or stale capability CAS produces no new domain effect and requires a new preview, user confirmation and signature. Exact response-loss retries replay the persisted signed bytes; neither client nor Station rewrites expected_revision."
+      "notes": "Before the first domain effect, the Station recomputes the canonical AppletRevokePlan and verifies every caller-signed capability revoke against the plan's grant_id, expected_commit_id, registration_epoch and reason_code. A plan mismatch or stale capability CAS produces no new domain effect and requires a new preview, user confirmation and signature. Exact response-loss retries replay the persisted signed bytes; neither client nor Station rewrites expected_commit_id."
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -2553,7 +2553,7 @@
         "kind": "none",
         "rationale": "query_only_recomputed_revoke_plan_from_one_durable_current_snapshot"
       },
-      "notes": "Each capability revoke intent atomically pairs an active Grant selected from the exact Applet install with that same capability_grant current state's expected_revision. The revision is a required canonical plan member covered by the caller-computed revoke_plan_digest and must be copied unchanged into the signed CapabilityRevokePayload. Grant ids, create Event ids, Realm heads, list digests and locally folded state are not revision carriers."
+      "notes": "Each capability revoke intent atomically pairs an active Grant selected from the exact Applet install with that same capability_grant current state's expected_commit_id. The revision is a required canonical plan member covered by the caller-computed revoke_plan_digest and must be copied unchanged into the signed CapabilityRevokePayload. Grant ids, create Event ids, Realm heads, list digests and locally folded state are not revision carriers."
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
@@ -2765,7 +2765,7 @@
       "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "grpc": "SelfCircle/MemberRemove",
       "mq": "self.circle.member.resource.delete",
-      "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed expected_revision guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
+      "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed whole-membership guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
@@ -2986,7 +2986,7 @@
       "http": "POST /_arkret/self/current-state/exact",
       "grpc": "SelfCurrentState/ReadExact",
       "mq": "self.current_state.query.exact",
-      "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply a null CAS only in the explicitly registered first-write branches; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated. Exact applet_registration selector includes AppletId and ServiceId within the request Realm. Only an authenticated administrator with current ak.realm.admin for that Realm may read this installation CAS basis; never_written requires complete accepted history. No cross-Realm search or public enumeration.",
+      "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply a null CAS only in the explicitly registered first-write branches; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_commit_id first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated. Exact applet_registration selector includes AppletId and ServiceId within the request Realm. Only an authenticated administrator with current ak.realm.admin for that Realm may read this installation CAS basis; never_written requires complete accepted history. No cross-Realm search or public enumeration.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
@@ -3857,7 +3857,7 @@
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "grpc": "SelfSecurityTransactions/Continue",
       "mq": "self.security_transaction.command.continue",
-      "notes": "Continues only the canonical next transaction step. Recovery's terminal step carries the replacement-device-signed recovery receipt; the current governance Station atomically validates both prepared producer Events, issues their two consecutive PCR-stream RealmCommits, advances device generation, activates the device and consumes the session. The client never supplies or signs either RealmCommit.",
+      "notes": "SecurityRotation local_commit only; resolve the resource and reject Recovery before side effects. The durable worker owns the irreversible Rotation prefix.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",
@@ -3874,7 +3874,7 @@
       "http": "POST /_arkret/self/security-transactions",
       "grpc": "SelfSecurityTransactions/Create",
       "mq": "self.security_transaction.command.create",
-      "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, the closed typed prepared_plan and prepared_plan_digest, all reserved public ids, and the initial resource before the first irreversible side effect. Recovery create also CAS-binds one already verified recovery session to this transaction. SecurityRotation create requires fresh high-risk action authentication judged by the Account Authority and binds authorizing_device_id to the authenticated session; it issues no AuthorizationLease. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
+      "notes": "Recovery accepts the sole complete signed RecoveryReceipt and atomically commits its two EventAdmissionSubmission slots. Rotation separately freezes its typed prepared plan. No Recovery prepare, outer terminal signature or plan digest exists.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",

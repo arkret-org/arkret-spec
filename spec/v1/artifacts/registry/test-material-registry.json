@@ -232,6 +232,63 @@
   ],
   "identity_examples": [
     {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/did"
+    },
+    {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#ak:device:019a0000-0000-7000-8000-000000000011",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_packet/signature_proof/verification_method"
+    },
+    {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/0/state/verificationMethod/1/id"
+    },
+    {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-0",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/0/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-1",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/1/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-2",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/2/state/verificationMethod/0/id"
+    },
+    {
       "value": "did:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9:server.example",
       "role": "derived_positive",
       "sources": [
@@ -291,9 +348,17 @@
       "sources": [
         "spec/v1/artifacts/fixtures/push-target-boundary-fixture.json",
         "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
-        "spec/v1/artifacts/fixtures/schema-validation-fixture.json"
+        "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ],
       "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/3/commitment/did"
+    },
+    {
+      "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
+      ]
     },
     {
       "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#update-key-1",
@@ -338,6 +403,30 @@
       ]
     },
     {
+      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/did"
+    },
+    {
+      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#arkret",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/service/0/id"
+    },
+    {
+      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#control-0",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/verificationMethod/0/id"
+    },
+    {
       "value": "did:webvh:QmaN34LdvfEc2DqRBjKNGAW7jbNJhjB5gSKpcsa8E1TbMg:witness-vector.example",
       "role": "deployment_like_example",
       "sources": [
@@ -366,6 +455,38 @@
       "sources": [
         "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
       ]
+    },
+    {
+      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/did"
+    },
+    {
+      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-0",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/0/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-1",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/1/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/2/state/verificationMethod/0/id"
     },
     {
       "value": "did:webvh:z2dmj",
@@ -582,6 +703,13 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:fixture.example#ak:device:019a0000-0000-7000-8000-000000000001",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
       ]
     },
     {
@@ -898,7 +1026,15 @@
         "spec/v1/artifacts/fixtures/contact-current-state-fixture.json",
         "spec/v1/artifacts/fixtures/contact-round-kat.json",
         "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/reaction-authority-order-fixture.json",
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationa:station.example#service-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/mimi-key-material-claim-fixture.json"
       ]
     },
     {
@@ -922,6 +1058,13 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/content-backup-source-fixture.json"
       ]
     },
     {
@@ -1064,133 +1207,6 @@
       "sources": [
         "spec/v1/zh/identity/identity-did.md"
       ]
-    },
-    {
-      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/did"
-    },
-    {
-      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-0",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/0/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-1",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/1/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:Qme86pZwRhKXoNtMTqdQYzFcXu6cMbosvpHqd6TarwopfH:applet.example:actors:bot#control-2",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/2/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:z6mkfixturestationa:station.example#service-1",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/mimi-key-material-claim-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixturestationexample:station.example#service-key-fixture",
-      "role": "test_material",
-      "sources": [
-        "spec/v1/artifacts/fixtures/content-backup-source-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/did"
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#content-backup",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/0/state/verificationMethod/1/id"
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#ak:device:019a0000-0000-7000-8000-000000000011",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_packet/signature_proof/verification_method"
-    },
-    {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/did"
-    },
-    {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#control-0",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#arkret",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/service/0/id"
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-0",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/0/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-1",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/1/state/verificationMethod/0/id"
-    },
-    {
-      "value": "did:webvh:QmNeYrZsfRc7rMmasMWDoLP2hSbzSK2pf867qHFc8mmcNC:applet.example:actors:bot#control-2",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-        "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/native_history/log_entries/2/state/verificationMethod/0/id"
     }
   ]
 }

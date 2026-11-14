@@ -49,7 +49,7 @@ Strand 顶层字段不承载额外模式或业务分类；默认入口由 track 
 - **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（current state `realm_set_default_strand`、`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：current state 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。
 - **Strand 侧只暴露派生标记。** Strand 投影（[`StrandView`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
 - **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ak.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`，见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ak.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ak.realm.set_default_strand`（risk medium，见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
-- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 current state 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `expected_revision null`；current state 为非初始态时该字段 MUST 提供并编译为 `expected_revision`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 current state 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `expected_commit_id null`；current state 为非初始态时该字段 MUST 提供并编译为 `expected_commit_id`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
 - **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`；或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm token""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
 
 ## 3. Strand Schema 与字段
@@ -152,7 +152,7 @@ Schema id: `ak.schema.strand.v1`
 ```
 - `strand_id`：必填。
 - `stage`：必填，必须是上面 8 值之一。
-- `expected_stage`：目标 stage current state 为初始态时 MAY 省略（等价 `expected_revision null`）；非初始态时 MUST 提供并编译为 current state `expected_revision` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
+- `expected_stage`：目标 stage current state 为初始态时 MAY 省略（等价 `expected_commit_id null`）；非初始态时 MUST 提供并编译为 current state `expected_commit_id` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
 
 **Payload 不携带 reason / note / explanation 字段**。stage 变更的"为什么"由人类讨论承担：
 
@@ -464,12 +464,12 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 | `watcher_actor_id` | yes | `did` | 订阅者 DID（current state key 之一）。默认 MUST 等于 envelope `actor_id`，admin 写他人需要 `ak.strand.watch.set.others`（见 §8.4）。 |
 | `level` | **yes** | `enum / null` | 期望写入的级别；`null` 等价于"清空 current state"（= `mentions_only` 默认行为）。`level=null` 时 `level_public` MUST 省略。 |
 | `level_public` | conditional | `boolean` | Opt-in publication；默认 `false`。仅在 `level` 为非 null 字符串值时允许出现；详见 §8.5。 |
-| `expected_value` | no | `null \| { level, level_public? }` | 编译为 current state `expected_revision` precondition（**whole-value compare**）；省略时等价 `expected_revision null`，仅允许首次写入，不允许绕过 CAS。 |
+| `expected_value` | no | `null \| { level, level_public? }` | 编译为 current state `expected_commit_id` precondition（**whole-value compare**）；省略时等价 `expected_commit_id null`，仅允许首次写入，不允许绕过 CAS。 |
 
 约束：
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
-- 同一 `(strand_id, watcher_actor_id)` current state 内的并发写入按标准 current-value projection 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §6](../authz/event-auth-state-resolution.md) 描述的 `expected_revision` precondition，**比较整个 current state value**（不是单字段）。例如 current state 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `expected_revision null`：只有 current state 尚未存在时通过；current state 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
+- 同一 `(strand_id, watcher_actor_id)` current state 内的并发写入按标准 current-value projection 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §6](../authz/event-auth-state-resolution.md) 描述的 `expected_commit_id` precondition，**比较整个 current state value**（不是单字段）。例如 current state 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `expected_commit_id null`：只有 current state 尚未存在时通过；current state 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
 - **current state 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ak.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
 - **精确前态读取**：`ak.self.strand.watch.read.current.v1`（`POST /_arkret/self/strands/watch/current`）只接受 closed `{realm_id,strand_id,watcher_actor_id}`，不列举 watcher。Account Station MUST 从经验证的 current governing Station 在同一次一致观察中核对 current tenure、Strand 的 Realm／effective scope、调用者在该 scope 的当前可读权、该 selector 的 durable typed current row 与对应 stream head。该操作仅供 `watcher_actor_id` 与当前认证的 effective ActorId 完整相等的本人使用；`.others` 写入能力不授予本读取。不可见／不存在／他人 selector 一律 `not_found` 且不得泄露其区别；current authority、membership、head 或 reducer row 未决时 MUST `revision_unavailable`，不能退回本地 Event、snapshot 缺项或旧缓存。
 - 成功响应只在两支中择一：`status=never_written` 表示在所报 `governance_generation` 与 exact `stream_head` 下，该 selector **从未有过 accepted watch 写入**，不携 revision/value；`status=current` 携完整 `current_strand_watch{selector,revision,value}`。已写入又以 `level:null` 清空时仍是 `current`，`value:null` 且 revision 必须存在；绝不能归为 `never_written`。请求和响应的 Realm、selector、effective stream 必须逐字对应。客户端只在经过 current governance 验证、且没有更高 generation 的结果覆盖时使用前态：`never_written` 才可省略 `expected_value`，`current` 必须按完整 value 发送（包括显式 `null` 与 `level_public`）。读后并发变更仍由提交时 whole-value CAS 拒绝；`failed_precondition` 后必须重读并请用户重新确认，不能改用默认值或自动重试覆盖。handoff 后旧 generation 的结果全部废止并重读。
@@ -951,7 +951,7 @@ canonical event log 不因此改变：全部历史 revision 仍保留在 revisio
 
 > 与撤回的交互：若 revision 与 redaction 同时存在，先按本节取 canonical revision，再按 §9.5 表「Message 撤回」行（redaction 优先）裁决可见性。
 
-**revise 不做编辑者间 CAS（normative）**：`message_revise_payload` 没有 `expected_revision`，这是有意语义：同一 chain 的并发编辑由治理 Station 串行为同一 stream 上的连续 position，position 较大的一条成为 canonical revision（本节第 1 条），较早的一条保留在 revision chain 中而不被拒绝。需要「基于过期前态的编辑必须失败」的产品语义不属于 v1 Message。
+**revise 不做编辑者间 CAS（normative）**：`message_revise_payload` 没有 `expected_commit_id`，这是有意语义：同一 chain 的并发编辑由治理 Station 串行为同一 stream 上的连续 position，position 较大的一条成为 canonical revision（本节第 1 条），较早的一条保留在 revision chain 中而不被拒绝。需要「基于过期前态的编辑必须失败」的产品语义不属于 v1 Message。
 
 **撤回是 Message 的终态（normative）**：`ak.message.redact` 被接纳后，该 Message 的 `ak:message:` 拼写 `object_redaction` 恰有一个 dot，`state=redacted` 且 `redaction_ref` 指向该 Event。此后以同一 `message_id` 为目标的 `ak.message.revise` 与第二条 `ak.message.redact` MUST 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝（与 [`common-fields.md` §5.2](./common-fields.md) 对终态对象 lifecycle 写入的拒绝同一惯用法）；因此 Message 主体上的 `object_redaction` 至多一个 dot。其它对象经 `ak.redaction` 写入的多 dot 语义不受影响。
 
@@ -981,7 +981,7 @@ canonical event log 不因此改变：全部历史 revision 仍保留在 revisio
 
 ### 9.8 表情回复（Reaction）
 
-Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 authority-ordered keyed set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`reaction-authority-order-fixture.json`](../../artifacts/fixtures/reaction-authority-order-fixture.json)。
+Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 active-only current。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`reaction-authority-order-fixture.json`](../../artifacts/fixtures/reaction-authority-order-fixture.json)。
 
 #### 9.8.1 事件与 payload
 
@@ -992,7 +992,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `target_ref` | yes | `ref:object` | 见 §9.8.2 target 范围。 | 被表态的对象。 |
-| `key` | yes | `string` | 1..128 chars。非 E2EE：单 Unicode emoji cluster（NFC 归一化）或 profile 注册的短 tag；E2EE：MUST 为 §2.9 的 keyed-HMAC routing tag，真实 emoji 在 `encrypted_payload`。 | 表情键 / 路由键；authority-ordered keyed set 成员键之一。 |
+| `key` | yes | `string` | 1..128 chars。非 E2EE：单 Unicode emoji cluster（NFC 归一化）或 profile 注册的短 tag；E2EE：MUST 为 §2.9 的 keyed-HMAC routing tag，真实 emoji 在 `encrypted_payload`。 | 表情键 / 路由键；active current 成员键之一。 |
 | `annotation` | no | `string` | E2EE 下 MUST 省略（随 `encrypted_payload` 一同加密）。 | 可选附注。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | E2EE Realm 下必填，承载真实 emoji 与 annotation；存在时外层明文 `key` MUST 为 routing tag、`annotation` MUST 省略。 | E2EE 载体。 |
 
@@ -1012,39 +1012,30 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 #### 9.8.3 Reaction 的 authority-order 收敛（authoritative）
 
-成员身份键为 `(actor_id, target_ref, key)`；本节为权威定义，[§9.5](#95-冲突与收敛规则) 表中的一行是其摘要：
+`message_reactions` MUST 使用专属 `commit-ordered projection`。业务键为 `(完整 actor_id,target_ref,外层 key,effective scope)`；target 与 scope 由 current selector／source_stream_ref 固定。current value 的唯一 closed shape 是 `{entries:[{actor_id,key,source},...]}`，只存 active add；`source` 复用完整 `CommittedEventRef` 四坐标，取该键最后一个尚未被 remove 覆盖的 accepted add。
 
-`ak.vector.reaction.authority_order_join.v1` 与 `reaction-authority-order-fixture.json` 固化本节 add/remove、同位置冲突、redaction、epoch 与 capability-revoke 行为。
+receiver MUST 从原签 Event、完整冻结前态与真实 covering Commit 通过已登记 `reaction_effective_entries` 派生整份 entries。`ak.reaction.add` 插入或替换自己的键，`ak.reaction.remove` 真实删除自己的键；不得修改其他 actor。新 remove 即使针对当前不存在的键也可在完整准入通过后接纳，保留真实新 revision，不能伪称 exact replay。空集合 MUST 为带真实整行 revision 的 `entries:[]`，不能变成 never_written 或省略。current 不存历史 dot、remove 墓碑、annotation、encrypted_payload 或 count/members 镜像。
 
-**本节与 current state projection 的分层（normative）**：`message_reactions` 的
-`domain reducer` 是 `keyed-set projection`——该取值属于
-[`common-fields.md` §2](./common-fields.md) 的封闭枚举，元素的稳定 tag 是
-[`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
-`<event_id>:<write_index>`；join 由 [`common-fields.md` §2](./common-fields.md) 定义。其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
-一个 `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
-是**往集合里加一条断言**，而不是 explicit revocation。完整断言集用于审计与从同一有效性基线重算；不能删除先前 add dot 来表示当前已移除。
+entries MUST 按 `UTF8(RFC8785_JCS(actor_id))` 再按 key 的 UTF-8 字节序排序，同 `(actor_id,key)` 不得出现两项。完整 ActorId 的 Station 分量参与身份。每项 source 的 stream MUST 等于外行 source_stream_ref，position 不晚于 row revision 和该 stream head；嵌套 source 只定位状态，不构造完整 committed_event_view、不作为历史 signer-key selector，也不授予 floor 以下原件读取权。
 
-断言的 `actor_id` 与极性（add 还是 remove）**不是元素字段**：二者从元素 dot 所指的 Event 的
-签名 envelope（`actor_id` 与 `kind`）读出。投影不拼装对象是因为
-[`event-and-patch.md` §2.4.2](./event-and-patch.md) 禁止在 projection 内拼装、改名或裁剪字段，
-而这两个事实已由签名 envelope 承载，无需复制进元素值。
+成员/count 是 active entries 按 key 的集合投影；reader 不需要先取旧 Event 才能算出它。原件可读时仍按原职责核 producer／来源；floor 前 active metadata 由治理 Snapshot 承诺并由消费 Station 核验，普通客户端不得被迫补不可见前史。
 
-current state 的 join 仍是 keyed-set projection 的 dot 集合并，满足交换律、结合律与幂等律；领域默认视图从完整 dot 集按已验证的 covering Commit position 折叠，不能把这个视图误作新的 typed current state model。
+**顺序与基线（normative）**：治理／有职责的消费 Station MUST 按同 stream 已验证连续 Commit 归约，并原子保存 current 与 checkpoint。完整 Snapshot cut C 必须与其 stream head 原子安装；position≤已覆盖 checkpoint 的旧输入只读／去重，不得再改 live current。下一连续 position 及 predecessor 验证成功才归约；更大 position 先缓冲补缺，不得跳过未知语义伪造连续性。同 position 不同有效 identity MUST 按既有 equivocation 失败关闭，不以 EventId、到达时间或墙钟选 winner。
 
-默认视图的成员判定式：对 `(完整 actor_id, target_ref, key, effective scope)` 只取已接受断言中覆盖 Commit `stream_position` 最大的一条；其 kind 为 `ak.reaction.add` 时该 actor 属于 `members[]`，为 `ak.reaction.remove` 时不属于。该键内所有断言 MUST 在同一 authority stream；相同 position 若对应不同 Event 或不同断言，属于 Commit 冲突，MUST fail closed，不能按 Event ID、到达顺序或墙钟破平。消费方缺失 stream 前缀时结果为 provisional，不得宣布收敛。producer 是否观察过先前断言不是当前 wire 可验证事实，不参与判定。
+partial baseline、缺页、preview、无可靠 checkpoint 或缺依赖时，MUST NOT 宣告完整空集合或清除全集合。普通客户端只安装自己 Station 的可信完整 typed row／Snapshot，不执行 current reducer；历史 scan／stream_history 展示重建不能回灌 live current 或推进其 checkpoint。旧 row／Snapshot 不得覆盖新 revision，current row 也不证明 timeline 或其他 selector 已完整读取。
 
-- **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
-- **add / remove**：提交顺序决定默认视图：较晚 accepted remove 隐藏先前 add；较晚 accepted add 重新显示该 actor；同时提交到治理 Station 的候选仍由先后签发的不同 Commit position 确定结果。审计视图保留全部断言，重复输入不重复计数。
-- **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 reaction set 条目。
-- **target redacted**：目标 Message 被 redact 后，默认视图 summary MUST NOT 暴露 reaction 成员；审计视图保留 reaction event 于 redaction stub 之下（与 [§9.5](#95-冲突与收敛规则) 撤回语义一致）。
-- **E2EE epoch**：routing tag 绑定当前 MLS epoch；同一真实 emoji 在不同 epoch 派生不同 tag，因此跨 epoch 不去重（见 §2.9 与 fixture `e2ee_epoch_rotation_breaks_dedup`）。
+**内容与隐私（normative）**：annotation／encrypted_payload 仍通过原 Event 的 history floor、当前 scope、redaction、moderation、历史 key 与 AEAD/AAD 合同读取，不经 current 复制。Snapshot 披露 Reaction metadata 仍 MUST 核 target 当前可见性／scope／撤回；旧消息在加入后被合法修订而当前可见时，active metadata 足以恢复 members/count，不要求旧反应原件。已删除 actor／旧 key 不永久留在 current。
 
-读侧投影暴露 `(target_ref, key, members[], count)` summary；E2EE 路由模式下 `key` 为 routing tag，客户端解密后替换为真实 emoji 再渲染。
+明文 key 保持原 canonical emoji／短 tag；E2EE key 保持原 routing tag，不跨 epoch/window 猜测去重。opaque metadata 只承诺已接受 routing cluster 状态，不证明真实 emoji 已解密或另一 actor 的 ciphertext 已经 AEAD 验证；即使以前认识同 tag，也不得把未验证密文标为 verified。MUST NOT 从 current 伪造原 Event/AAD、放开 floor 前原件或让服务器解密生成 emoji summary。
+
+**审计与容量（normative）**：原 add/remove Event／Commit 按原权限和 retention 保留，删除 current 历史不删除审计。最后操作为 add 当且仅当该键在 active map 中；完整前缀状态 `S_C` 接连续 suffix 与从创世顺序归约等价。这个证明依赖完整 cut/checkpoint，不声明任意 partial 集合并可交换，不需要 per-key 墓碑或新 GC 协议。current 规模随当前活跃完整业务键与已写 target 行增长，不随同键操作次数或已删除 key 数增长；不同 E2EE epoch/window 的活跃 tag 仍可增加规模，Realm 8MiB 最大披露准入预算完整保留。
+
+`ak.vector.reaction.authority_order_current.v1` 与 `reaction-authority-order-fixture.json` 固化 active-only、空行、顺序／缺口／重放、floor、撤回、E2EE 与授权行为。
 
 #### 9.8.4 授权与防滥用
 
-- Capability：`ak.reaction.add` / `ak.reaction.remove`（均 low risk_tier，admin 默认 bundle 给成员）。capability 撤销后，因果上位于 revoke checkpoint 之后的 add MUST 在 reducer 改状态前被拒（`capability_denied`）；revoke checkpoint 之前已接受的 reaction 保留在 authority-ordered keyed set（见 fixture `capability_revoked_blocks_subsequent_add`）。
-- **Self-scoped**：actor 的 add/remove 只影响**它自己**的 authority-ordered keyed set 成员；`ak.reaction.remove` 按 `(actor_id, target_ref, key)` 仅 tombstone 该 actor 自己的 add。v1 **不**定义"移除他人 reaction"的标准 action；清除他人滥用表态走 §9.8.5 的治理路径。
+- Capability：`ak.reaction.add` / `ak.reaction.remove`（均 low risk_tier，admin 默认 bundle 给成员）。capability 撤销后，因果上位于 revoke checkpoint 之后的 add MUST 在 reducer 改状态前被拒（`capability_denied`）；revoke checkpoint 之前已接受的 reaction 保留在 authority-ordered current（见 fixture `capability_revoked_blocks_subsequent_add`）。
+- **Self-scoped**：actor 的 add/remove 只影响**它自己**的 active current 成员；`ak.reaction.remove` 按 `(actor_id, target_ref, key)` 只删除该 actor 自己的 active add。v1 **不**定义"移除他人 reaction"的标准 action；清除他人滥用表态走 §9.8.5 的治理路径。
 - **限流**：Server MAY 对 `ak.reaction.add` 按 actor 限流；reducer MUST 把被限流事件归为 `rate_limited` / `quota_exceeded` / `quarantine` 之一，绝不可"接受后静默丢弃"（见 fixture `rate_limit_high_rate_reaction_burst`）。频率约束通过 `quota`(`constraint_subkind=rate`) constraint 表达。
 - **允许的 key 集合**：非 E2EE Realm MAY 通过 profile 把允许的 `key` 限定为注册 emoji 集合 / 短 tag 白名单；未命中白名单的 add 按 profile 声明 `deny` / `quarantine` 处理。E2EE Realm 下 server 看不到真实 emoji，key 集合策略只能在客户端 / 解密后 enforce。
 - **每 target / 每 actor 的去重 key 上限**：Realm/profile MAY 通过 `quota`(`constraint_subkind=resource`) 约束单 target 的 distinct key 数与单 actor 的 distinct key 数，防止表态轰炸。

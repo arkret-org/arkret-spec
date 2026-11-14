@@ -39,17 +39,17 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 238,
+    "total_schemas": 237,
     "by_consumer": {
       "declared_wire": 61,
       "event_kind": 7,
       "inbound": 56,
       "outbound": 68,
-      "prose": 107,
+      "prose": 104,
       "prose_only": 4,
-      "schema_reference": 171,
-      "startup_compile": 238,
-      "vectors": 113
+      "schema_reference": 170,
+      "startup_compile": 237,
+      "vectors": 112
     },
     "without_wire_consumer": 3,
     "explicit_prose_only": 4,
@@ -1324,7 +1324,6 @@
       "schema_id": "ak.schema.call_recording_artifact.v1",
       "file": "schemas/call-recording-artifact.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "fixture"
@@ -1596,7 +1595,6 @@
           "ak.schema.recovery_scope_cleanup_self_response_body.v1",
           "ak.schema.recovery_scope_cleanup_source.v1",
           "ak.schema.recovery_session.v1",
-          "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_selector.v1",
@@ -1939,18 +1937,14 @@
           "ak.schema.agent_authority_state_attestation.v1",
           "ak.schema.agent_authority_state_evidence.v1",
           "ak.schema.agent_producer_evidence.v1",
-          "ak.schema.applet_install_operations.v1",
           "ak.schema.approval_signature.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
           "ak.schema.controller_account_gate_attestation_issue_response_body.v1",
-          "ak.schema.current_principal_request.v1",
-          "ak.schema.current_principal_response_body.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.exact_current_state_read.v1",
-          "ak.schema.identity_resolution.v1",
           "ak.schema.keys_operations.v1",
           "ak.schema.realm_actor_create.v1",
           "ak.schema.realm_actor_material.v1",
@@ -4080,22 +4074,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.recovery_terminal_commit.v1",
-      "file": "schemas/security-transaction.schema.json",
-      "consumers": {
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "fragment": "#/$defs/recovery_terminal_commit"
-    },
-    {
       "schema_id": "ak.schema.registration_did_evidence.v1",
       "file": "schemas/registration-did-evidence.schema.json",
       "consumers": {
@@ -4257,7 +4235,6 @@
       "schema_id": "ak.schema.security_rotation_local_commit.v1",
       "file": "schemas/security-transaction.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
@@ -4265,7 +4242,6 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.security_transaction.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -4709,7 +4685,6 @@
           "ak.schema.recovery_scope_cleanup_self_response_body.v1",
           "ak.schema.recovery_scope_cleanup_source.v1",
           "ak.schema.recovery_session.v1",
-          "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.scope_retirement_delivery_attestation.v1",

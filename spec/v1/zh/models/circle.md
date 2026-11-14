@@ -126,7 +126,7 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 - Structural Relation / position current state 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position current state 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
 - 当参与端点分别落在同一 Realm 的两个不同 Circle，且没有 Realm-default 端点可作为共同公开侧时，这两个 scope 在 v1 中是**不可比较的并列 scope**。Reducer MUST NOT 选择任一 Circle 作为"更窄者"，MUST NOT 取并集，也 MUST NOT 自动把关系提升到 Realm-default。Structural Relation、position、parent、cascade 或任何会产生 target-side reverse projection 的事实 MUST `failed_precondition`(`reason=scope_incomparable`)。弱语义 reference 若 profile 显式允许，producer MUST 选择单一 source-side `scope_circle_id`，且 projection 对该 scope 外 caller 返回 `locked` / none，不得创建目标侧反向边或可枚举空洞。
 
-**Circle lifecycle 求值基线（normative）**：普通 Event 的 Circle 身份、active 授权实例与 scope 由当前治理 Station 在接纳事务内从已提交 typed state 解析，允许未知撤销的传播窗口；producer 不携带、也不得替换该授权状态。安全命令从 `expected_revision` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 current state。不得合并多个同 Realm RealmCommit 为权限 view。
+**Circle lifecycle 求值基线（normative）**：普通 Event 的 Circle 身份、active 授权实例与 scope 由当前治理 Station 在接纳事务内从已提交 typed state 解析，允许未知撤销的传播窗口；producer 不携带、也不得替换该授权状态。安全命令从 `expected_commit_id` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 current state。不得合并多个同 Realm RealmCommit 为权限 view。
 
 每条 accepted 普通消息都由其 Circle stream 的 RealmCommit 接纳并推进一个 position。分区的非 authority Station 只能耐久排队或转发，不能按缓存暂时接纳、更新共享 projection 或向成员 fanout；current governance Station 在接纳位置按 committed archive/tombstone 与授权状态裁决。缺必要依赖时保持 queued／retryable unavailable，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
 
@@ -165,7 +165,7 @@ Circle scope Event：
 Reducer 校验顺序(MUST):
 
 1. schema 校验 Event 必有 `scope_ref`，且 `scope_ref.realm_id == realm_id`。
-2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 authority-commit 基线中解析对应 Circle——普通 Event 用治理 Station 接纳时的 current authorization，state-changing Event 用领域 payload 的 `expected_revision`——校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
+2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 authority-commit 基线中解析对应 Circle——普通 Event 用治理 Station 接纳时的 current authorization，state-changing Event 用领域 payload 的 `expected_commit_id`——校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
 3. 从 payload/accepted target projection 派生预期 scope，与签名 `scope_ref` 逐字段比较。
 4. authorization、fanout、history 与 E2EE 只使用已验证的签名 `scope_ref`；对象 projection 可复制该值但不得反向覆盖 Event。
 
@@ -297,7 +297,7 @@ Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 tra
 
 - **省略**：不施加 CAS。合法性完全由本节 FSM transition guard 判定。这与
   [`strand-and-message.md` §2](./strand-and-message.md) 的 `expected_default_strand_id` 不同——
-  那里的 current state 是无 FSM guard 的 `current-value projection`，省略必须归一为 `expected_revision null`；这里的非法转移
+  那里的 current state 是无 FSM guard 的 `current-value projection`，省略必须归一为 `expected_commit_id null`；这里的非法转移
   已由 guard 拒绝，因此省略不会导致无条件覆盖。
 - **显式 `null`**：断言该 actor 当前在本 Circle **没有任何 membership 记录**，即这是首次写入。
   已存在任意 membership 时 reducer MUST `failed_precondition`。

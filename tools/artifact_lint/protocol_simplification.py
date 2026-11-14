@@ -49,7 +49,7 @@ class ConsentModel:
         peer = canonical(payload["peer"])
         old = self.current.get(peer)
         expected = {"state": "never_written"} if old is None else {
-            "state": "present", "revision": old["revision"]}
+            "state": "present", "commit_id": old["revision"]["commit_id"]}
         if payload["expected_current"] != expected:
             return "stale", None
         if not valid_permissions(payload["permissions"]):

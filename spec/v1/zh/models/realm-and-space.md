@@ -127,7 +127,7 @@ Schema id: `ak.schema.realm.v1`
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；仅具备交接资格的 materialized Realm 由连续 handoff chain 派生当前值；Direct Conversation 永久保持 genesis Station 与 generation 0。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
-| `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_commit`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
+| `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无有限上界来源本次签发 required-finite child 时的最大 TTL；finite parent 的原上界保持不变。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -301,7 +301,7 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
 
-上面第 3 条大体已被现有机制隐含——state-changing Event 的领域 payload 要 `expected_revision`、每条 Event 的授权由治理 Station 在接纳事务内解析，RealmCommit 链最终 root 在 genesis RealmCommit——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
+上面第 3 条大体已被现有机制隐含——state-changing Event 的领域 payload 要 `expected_commit_id`、每条 Event 的授权由治理 Station 在接纳事务内解析，RealmCommit 链最终 root 在 genesis RealmCommit——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
 
 **这条使 `realm_id` 自证。**一个恶意 join candidate 服务自造的"Realm S"时，其 genesis 内容不同 → `event_id` 不同 → `retype(event_id) ≠ S` → 首次接触即被拒。因此 invite、`join_candidates[]` 与 Directory 响应 **MUST NOT** 被要求携带 genesis digest 或 authority-root 值：自证不需要外部背书，也不引入对邀请者或 Directory 的新信任。拒绝时的对外语义复用 [`../sync/federation.md` §5.0](../sync/federation.md) 规则 4 的统一最小披露失败族。
 
@@ -373,12 +373,12 @@ Sidecar stream 的共同 position／事务。旧 `EventsSubmitBatchRequestBody` 
 
 **genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_actor_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted RealmCommit 下的 root-current state inclusion proof。
 
-Realm bootstrap event set 以 create 开始。创建时没有 accepted RealmCommit，因此下列两个**互斥封闭分支**内的 Event MAY 免 `expected_revision`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 使用同一句，两处 MUST 保持逐条一致）：
+Realm bootstrap event set 以 create 开始。创建时没有 accepted RealmCommit，因此下列两个**互斥封闭分支**内的 Event MAY 免 `expected_commit_id`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 使用同一句，两处 MUST 保持逐条一致）：
 
 - 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
-- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `expected_revision null`。`ak.strand.create` 平时由治理 Station 解析出既有授权实例后才被接纳；但该 exact unit 的四条 Event 在同一个接纳事务内各自获得连续的 RealmCommit，Strand 无法引用尚未签发的 RealmCommit，因此在且仅在该 unit 内免 basis。
+- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `expected_commit_id null`。`ak.strand.create` 平时由治理 Station 解析出既有授权实例后才被接纳；但该 exact unit 的四条 Event 在同一个接纳事务内各自获得连续的 RealmCommit，Strand 无法引用尚未签发的 RealmCommit，因此在且仅在该 unit 内免 basis。
 
-不在该列表内的 state-changing Event 一律要求 `expected_revision`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 state-changing Event 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 携带 basis。
+不在该列表内的 state-changing Event 一律要求 `expected_commit_id`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 state-changing Event 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 携带 basis。
 
 Authz 含义：
 
@@ -475,7 +475,7 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `member_state`，状态模型为 `commit-ordered projection`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member current state 的 genesis write，MUST 携带 `expected_revision null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
+`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `member_state`，状态模型为 `commit-ordered projection`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member current state 的 genesis write，MUST 携带 `expected_commit_id null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
 
 Invite 过期只推进 `invite_lifecycle`，不写共享 member current state。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member current state；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 

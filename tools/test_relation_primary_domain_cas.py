@@ -89,21 +89,25 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
         ):
             required = set(self.payloads["$defs"][name]["required"])
             self.assertTrue(
-                {"primary_conflict_domain", "expected_revision"} <= required, name
+                {"primary_conflict_domain", "expected_commit_id"} <= required, name
             )
 
         create_revision = self.payloads["$defs"]["relation_create_payload"][
             "properties"
-        ]["expected_revision"]
+        ]["expected_commit_id"]
         self.assertEqual(
             create_revision["oneOf"][1], {"type": "null"}
+        )
+        self.assertEqual(
+            create_revision["oneOf"][0],
+            {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"},
         )
 
     def test_create_has_one_closed_authoring_shape_and_one_rank_carrier(self) -> None:
         create = self.payloads["$defs"]["relation_create_payload"]
         self.assertEqual(
             sorted(create["properties"]),
-            ["expected_revision", "primary_conflict_domain", "relation"],
+            ["expected_commit_id", "primary_conflict_domain", "relation"],
         )
         self.assertNotIn("rank", create["properties"])
         self.assertEqual(

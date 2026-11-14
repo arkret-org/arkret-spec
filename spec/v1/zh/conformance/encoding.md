@@ -129,7 +129,7 @@ Event digest 只是 producer 可控内容的摘要：producer 要击败一个已
 「timeline 必须用此序」的义务。跨流展示序的唯一定义点是
 [`../sync/client-sync.md` §6](../sync/client-sync.md)——同流按 `stream_position`，跨流无 protocol 序。
 它 MUST NOT 决定授权、admission、finality、`stream_position`、`previous_commit_ref` 或任何不可逆副作用，也
-MUST NOT 从互斥候选中选出唯一 winner。需要单值语义的领域 MUST 使用已登记的 `expected_revision` compare-and-set
+MUST NOT 从互斥候选中选出唯一 winner。需要单值语义的领域 MUST 使用已登记的 `expected_commit_id` compare-and-set
 或该领域自己的 validator，不得把本节 comparator 包装成领域规则重新引入 winner。
 
 Conformance 入口是 `ak.vector.encoding.canonical_event_tie_break.v1`（见

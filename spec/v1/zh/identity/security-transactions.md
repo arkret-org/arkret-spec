@@ -16,178 +16,61 @@ Arkret v1 只定义两个 Station 内安全事务：`RecoveryTransaction` 与
 `authority-commit-log` §5.1 的登记式 Event 原子单元可以复用请求固定、事务内持久化、重放与恢复机制，
 但本资源仍是固定 durable workflow。已完成的不可逆步骤不会因后续失败整体回滚；不得将它加入 `atomic_unit_registry` 或执行 caller 自选原子步骤。
 
-## 1. 共享合同
+## 1. 两类资源与共同边界
 
-Human 的安全事务 coordinator、PCR current 接纳及设备终局均属完整 AccountId 的 owning Station TCB；不存在独立 Human PCR governor 或跨 governor recovery／rotation 协调分支。拆进程／拆库仍保证原终局、原子步骤与 exact replay，不创造第二个 writer，见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+Human coordinator、PCR接纳与设备终局属于完整 AccountId 的 owning Station，不存在独立Human PCR governor。部署拆进程/拆库必须保持公开原子终局与exact replay；不得共享Coauth/Coland数据库、私钥、配置或业务crate。内部journal/outbox/恢复属于既有部署私有通道，不新增公开RPC、role或通用Saga/Plan DSL。
 
-```text
-SecurityTransaction {
-  transaction_id,
-  kind,
-  account_id,
-  expires_at,
-  created_at,
-  request_digest,
-  prepared_plan,
-  prepared_plan_digest,
-  accepted_steps,
-  terminal_outcome
-}
-```
-
-`kind` 是 `recovery` 或 `security_rotation`。`terminal_outcome` 缺省表示事务仍活动；存在时其
-`result` 是 `completed | aborted | expired`，并且是终态 kind 的唯一真相源。coordinator 是否已经开始
-某一步、重试次数与 lease 只属于本地 durable step-attempt ledger 或运行遥测，不得序列化或持久化为协议
-phase/state。客户端是否需要设备签名必须由 `terminal_outcome` 缺省且
-`steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
-持久化为协议状态。
-
-顶层 `account_id` 唯一确定事务拥有者；本文所称 coordinator 是执行该事务的 Station service role，它就是
-`account_id.station_id`，wire 上不存在第二个可与之不一致的 coordinator 字段。该 Station 的 service core identity
-即 coordinator，不得指向任意外部协调者。部署可以把步骤执行拆为多个进程，但不得由此产生独立的公开 coordinator role。
-事务中的 Event 与备份对象的完整 `ActorId` MUST 等于该 `AccountId` 对应的 account actor；只比较
-只比较 `account_id.principal_id` 不足以验证归属，同一主体在另一 Station 的 Event、备份、PCR、设备与 session 均不得混入。
-
-`prepared_plan` 是按 kind/model 判别的 closed typed public plan，也是 intent 与 reserved material 的唯一
-canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
-`revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
-`prepared_plan_digest = SHA-256(RFC8785_JCS(prepared_plan))`，是 coordinator 对完整 plan canonical bytes
-重算并返回的固定 SHA-256、跨 Realm CAS 坐标；它不跟随 Blob 或 KDF 等其它 typed domain 的 digest suite。create request
-不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
-每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
-`EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。
-该 unit 的 operation 固定为 `ak.self.events.command.submit.v1`，request schema 固定为上述 DTO，destination 与 audience
-都从父 transaction 的 `account_id.station_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
-不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
-`accepted_steps[]` 的每项固定为 `{acceptor, accepted_at}`；数组位置按下述固定步骤表
-唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步重复记录。活动事务的下一步
-等于 `steps(kind)[accepted_steps.length]`；resource 不重复序列化该派生值。
-`acceptor` 是接受该步骤的稳定 participant identity，closed 为
-`{kind: principal, principal_id: DidCoreId} | {kind: device, device_id: DeviceId}`；服务 participant
-必须写入永久 Arkret core identity，不得写入 W3C 裸 DID、transport URI 或 mixed identifier string。
-`accepted_steps` 仅记录已接受的位置和参与者，不是效果证明。Recovery terminal 必须从 plan 的
-`terminal_receipt_id` 与实际 accepted Commit、completion result 核对；SecurityRotation 的
-`revoke` 必须核对 closed `revoke_command_outcome`，upload 必须核对 plan 中每个已持久上传的
-`new_backup_envelopes`，switch 必须核对 `active_series_unit` 的 accepted Commit 与 current pointer，
-erase 必须核对完整 durable erase confirmation，local commit 必须核对客户端签署的 terminal artifact。
-plan 中预留的 ID 或 digest 本身不证明效果已经执行。worker 只有在对应效果耐久完成且核对成功后，
-才能原子追加该步；重启时也必须从这些原始耐久结果重新核对，不得从预留字段合成 accepted step。
-
-共同不变量：
-
-1. 第一个不可逆副作用前固定 `transaction_id`；
-2. 在同一原子持久化中固定 canonical request bytes/digest、closed typed prepared plan/digest 和
-   全部公开 Event/object/series/ticket id；
-3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 result；
-4. 同 id + 不同 bytes 返回 `duplicate_conflict`；
-5. store 分别保存唯一 typed prepared plan/canonical bytes、首次 result 与每步实际完成的耐久结果，
-   不能只保存“见过 id”或用一个 ref 混淆 reserved/prepared/accepted；
-6. coordinator restart、response lost 与重试都从 transaction resource 续跑；
-7. 可按 id 权威查询，不由客户端猜进度；
-8. terminal 后禁止新增副作用；
-9. mnemonic、seed、device private key、plaintext keybag 与 MLS secret 不得进入服务端 transaction。
-
-默认 `expires_at - created_at` 最大 24 hours；进入任何已接受的不可逆远端步骤后，expiry 只停止
-新步骤并进入人工/自动 recovery，不得回滚已接受事实或复用 reserved id。
+`SecurityTransaction` 是 closed union：Recovery仅有已完成结果 `{transaction_id,kind:"recovery",account_id,created_at,recovery_receipt,completion_attestation}`；SecurityRotation保留 durable prepared_plan/digest、accepted_steps连续前缀与terminal_outcome。Recovery没有公开prepared/pending/readiness资源，也没有accepted_steps；确定性失败沿operation Problem，临时不可用保留exact重试。
 
 ### 1.1 标准操作面
 
-执行 Station 必须暴露同一套闭合资源操作：
-
-| operation | HTTP | body/outcome |
+| operation | HTTP | 精确职责 |
 | --- | --- | --- |
-| `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | `security-transaction.schema.json#/$defs/security_transaction_create_request_body` → `SecurityTransaction` |
-| `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
-| `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/security_transaction_continue_request_body` → `SecurityTransaction` |
+| `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | recovery分支只携 `{kind,recovery_receipt}`，一次完整原子提交；rotation分支冻结原typed plan |
+| `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | 取原Recovery完成结果/原Problem或Rotation进度；不以缓存猜终局 |
+| `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | 仅SecurityRotation的local_commit，拒绝Recovery且零副作用 |
 
-SecurityRotation `create` 只接受完整 typed plan，并且必须携带与当前高风险认证 session 中设备完全一致的
-`authorizing_device_id`；Recovery `create` 只接受 closed typed `recovery_intent`，
-typed prepared plan 一律由 coordinator 在 §2.1 的专用 prepare transaction 中派生，客户端不得提交一份已经填完的
-`prepared_plan`。两种 `create` 都必须在一个 durable transaction 中保存 canonical request
-bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
-Recovery create 还必须只接受属于同一 Station-local AccountId、已 verified 且尚未绑定其它 transaction 的
-recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
-不依赖 recovery session，而由 Account Authority 按部署的 recent login／WebAuthn／recovery key 等策略验证 fresh
-high-risk action authentication，将 `authorizing_device_id` 与认证 session 逐字核对，并在任何副作用前持久化到事务。
-不满足时返回 `reauthentication_required` 且零写入；该步骤不签发、不接受 `AuthorizationLease`。`continue` 的 `request_digest`、
-`prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
-`accepted_steps.length`，否则
-`duplicate_conflict` / `failed_precondition`；它不是提交任意步骤列表的接口。coordinator-owned prefix 只属于
-SecurityRotation 的 `revoke`、`upload_new_material`、`switch_authoritative_pointer`、`erase_old_material`——只能由
-durable transaction worker 自动执行与恢复；restart、response loss 或 retry 都从同一 resource 继续，客户端只能用
-`get` 观察，不能用 `continue` 驱动或重复执行这些步骤。Recovery 没有 coordinator-owned prefix：它的唯一 accepted step
-就是 client-attested 的 `commit_recovery_unit`。
+每个首次业务副作用前 MUST 固定 caller 分配的 transaction_id、完整 canonical请求与全部Event/object身份；同完整账号/ID同bytes精确重放，异bytes duplicate_conflict。mnemonic、seed、设备私钥、明文keybag和MLS secret不得进入资源。终态不得新增副作用。
 
-`continue` 只提交 client-attested terminal step，因此 request 必须携带 `client_attestation`。服务端必须先从 resource 的
-`kind` 与 `accepted_steps.length` 派生下一步：Recovery 只在 terminal index 0、SecurityRotation 只在 terminal index 4
-ready 时继续验证 CAS、reserved output 与 attestation；任何 coordinator-owned prefix、尚未 ready 的 terminal、错误 kind/step
-或越界 prefix 都返回 `failed_precondition`，不得产生副作用。通用 request schema 不携 `kind`，所以不得把 `{0,4}` 或 kind-specific
-maximum 写进 JSON Schema；无 attestation 的 POST 也不是 `get` 的 no-op 别名。
+SecurityRotation独立保留：完整typed prepared_plan、`prepared_plan_digest=SHA-256(JCS(prepared_plan))`、accepted_steps连续前缀及每步真实耐久效果。prepared_event_unit只用于Rotation，固定operation/request/route/audience的computed view；其request_digest按原已登记suite对exact JCS(request)计算。worker拥有revoke/upload/switch/erase四步，客户端只观察，不能用continue驱动。下一步只由kind与prefix长度推导，不增加phase/state/readiness字段。create需fresh高风险Account认证，冻结authorizing_device_id；continue只在local_commit就绪时核request/plan摘要、expected_accepted_step_count及唯一client_attestation。该outer signature仍绑定step、output_ref、transaction/request/plan及从artifact重算的digest；local_commit verifier在同一accepted PCR cut使用当前已授权设备key。任何不可逆步骤后expiry只能停新步骤并继续原恢复规则，不能回滚或换ID。
 
-只有 `commit_recovery_unit` 与 `local_commit` 可以作为 `client_attestation.step`，且其 `output_ref`
-必须等于 prepared plan 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
-typed `artifact`：前者是闭合 `ak.schema.recovery_terminal_commit.v1`，后者是
-`ak.schema.security_rotation_local_commit.v1`。RecoveryTerminalCommit 内的 recovery receipt 由 replacement device
-以同一冻结 device key 自行签发，服务端不得伪造、代签或返回带占位签名的 draft；local commit 同样由客户端从权威
-transaction resource 复制 `transaction_id`、`request_digest`、`prepared_plan_digest` 与 prepared plan 的
-`local_commit_digest`，再加入本地 `device_id` / `committed_at` 构造。两类 artifact 都是 caller-authored material，
-不需要也不存在第二个服务端 supply operation。wire 上不携 `attestation_digest`；外层 Ed25519 签名输入固定为
-`RFC8785_JCS({step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
-attestation_digest})`，其中投影成员 `attestation_digest := SHA-256(JCS(artifact))` 由签名方与 verifier
-各自从同载体 `artifact` 重算填入，不从 wire 读取；wire 上也不携字段名清单。coordinator 必须重算 artifact
-digest，验证 outer attestation；recovery 还必须验证 receipt 自己的
-device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。
-`client_attestation.signature_proof.verification_method` MUST 是当前 Account DID 加 `#<device_id>` 构成的
-canonical DID URL。verifier MUST 在同一 accepted PCR cut 解析该设备的当前授权签名 key、generation、
-revocation 与 pending 状态，核对 attestation 的签名设备与 typed artifact 中的设备逐字相同，
-并拒绝不属于该 Account 或当前未获授权的 key。仅有调用方自报的 DID URL 不构成授权。
-`get` 是 response loss、restart 与跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
-当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
-`terminal_outcome`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
-result 仍是成功终态的必要条件。
+## 2. RecoveryTransaction 单次提交
 
-旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
-完成投影只能由接受 `commit_recovery_unit` 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
-prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
+### 2.1 唯一完整原签意图
 
-## 2. RecoveryTransaction
+Recovery create MUST 只接受schema定义的完整 `RecoveryReceipt`。receipt按closed shape携transaction/receipt ID、完整Account、expires_at、recovery_session_id、原session_grant_ref/JKT、policy/version、trust_domain、replacement Device、identity model、previous/new generation、原proof_summary、`recovery_unit={predecessor_ref,events:[reanchor,authorize]}`和原本地恢复结果。两slot MUST 是已有EventAdmissionSubmission：完整producer Event及适用approval_signatures。不得丢弃原审批、注入任意步骤或把receipt proof替代独立producer proof。
 
-RecoveryTransaction 保留为账号恢复的单一原子事务，但客户端输入不再创建或携带 RealmCommit。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权，并在 terminal admission 内签发两笔连续 Commit。
+receipt是唯一canonical意图，不另携recovery_intent、prepared_plan、session snapshot digest或terminal outer wrapper。EventId直接来自两slot，不重复携镜像。客户端 MUST 先本地耐久保存完整冻结receipt与candidate私钥再发网络；未知结果不得改签、重加密、换Event、换transaction或恢复旧checkpoint。
 
-启用可恢复内容的账号在同一terminal权威事务内保留content-history §11.3的原生episode／fence意图，
-以原authorize Commit固定PCR cut；后台库存准备与客户端解密进度由该独立私密资源和原签检查点承接。
-不改写预签RecoveryReceipt或该identity transaction的completed终局，也不借旧recovery session续期或第二个prepare命令驱动内容恢复。
+producer Event先依现有规则构造和签名，只能用其已登记payload的预分配ID；不得依赖receipt摘要/签名或后发Commit。随后replacement key签receipt：`UTF8("ak.identity.recovery_receipt.signature.v1\n") || JCS(receipt excluding signature_proof)`，所有实际存在optional字段和原审批证据自动签入。`receipt_digest=sha256:lowercase_hex(SHA-256(JCS(full signed receipt)))`只在签后计算，不放回receipt。没有transaction_request_digest/prepared_plan_digest或未定义session摘要。
 
-### 2.1 create 同时完成专用 prepare，但不产生恢复效果
+receipt的completed_at仍是设备签署意图时间，不证明实际完成；本地backup/Welcome/outcome声明不证明普通群或PCR内容history-ready。
 
-create 请求固定 verified recovery session、replacement device、`previous_model_generation_ref` / `new_model_generation_ref`、预留 `terminal_receipt_id`、两条完整签名 Event，以及 `reanchor_commit_intent={realm_id,predecessor_ref,unit_event_digests}`。`predecessor_ref` MUST 等于当前 PCR stream head，digest 顺序 MUST 为 `[reanchor, authorize]`。
+### 2.2 资格、原子接纳与终局
 
-Station 在一个 durable prepare transaction 中重验 session、policy/proof snapshot、device PoP、generation CAS、当前治理 authority、stream head 与两条 Event；随后冻结 canonical request 和 prepared plan。prepare 不插入 Event、不生成 RealmCommit、不推进 generation、不激活设备、不消费 session。
+verifier MUST 从原已verified RecoverySession冻结的candidate key验receipt和两producer proof，不能先要求新key已在accepted设备目录。receipt/session/本次exact内省之间的完整Account/Station/PCR lineage、SessionGrantRef/JKT、policy/proof/context、candidate key/Device、generation、challenge及时间 MUST 逐项相等。签名method按原account binding和candidate overlay核验，不能从caller自报DID URL授权，也不要求基础policy恢复发布DID。
 
-### 2.2 唯一终态载体
+历史proof冻结不能替代首提交时当前policy显式撤销、session/grant有效性、Account允许恢复状态、generation/head与原授权payload digest等门。new generation MUST 为当前previous的checked successor；predecessor MUST 为原session允许的当前PCR head，不得自动把旧Event移到新head。
 
-唯一 client-attested step 仍为 `commit_recovery_unit`。其 artifact 是 closed `RecoveryTerminalCommit`，但该名称只表示“恢复事务的终态客户端载体”；wire 内容只有 replacement-device-signed `recovery_receipt`，不含 RealmCommit、authority signature 或预先计算的 commit id。
+owning Station MUST 在唯一安全接纳点以完整Account/transaction/session锁及generation/head CAS，验证完整原签和审批，然后逻辑原子地保存两Event、同PCR stream位置连续且不同的两RealmCommit、generation advance、replacement active state、session consumption/transaction绑定、outbox、完成结果与CompletionAttestation。公开边界上全部同时可见，任一步失败均无部分恢复效果。两Event各一Commit，不得共享commit_id。
 
-RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、previous/result generation、session/policy/proof snapshot、backup/welcome 结果与 authoring time。它在 authority admission 前生成，因此 MUST NOT 携 `reanchor_commit_id` 或 `CommittedEventRef`。outer client attestation 绑定该 exact receipt artifact。
+RecoverySession和该终局只有owning Station一个durable owner；Account Authority不得另建可写session副本。部署私有拆分不以共享数据库或跨库事务为前提，不得把未知内部状态当成功。启用内容恢复时，原authorize Commit同切点建立content-history §11.3的episode/fence意图；后续库存和客户端解密不改变该身份终态，也不借旧session续期。
 
-### 2.3 唯一原子提交与可观察性
+同ID的exact canonical signed receipt（包括signature bytes）只接受一次，返回相同Commit/C/receipt；只比较不含签名的业务字段不充分。未认证或无效签名不得替别人占ID。首次确定性领域失败可固定原请求/Problem以拒同ID换意图；临时依赖失败不制造accepted或永久失败终局。已完成原结果的读取先核当前reader资格，不重跑首次expiry/政策或改写历史；尚未accepted而原窗口过期仍拒绝。
 
-接受 terminal step 时，治理 Station 在同一数据库事务与同一 stream-head/generation CAS 下：
+### 2.3 Completion 原件与独立 Standard 签发
 
-1. 重验 transaction、session、plan、receipt、outer attestation 与两条 Event；
-2. 以 `[reanchor, authorize]` 顺序为 PCR stream 生成并签署**两笔 position 连续的 RealmCommit**，每条 Event 各一笔；
-3. 原子保存 Event、RealmCommit、stream head、generation advance、replacement device active state、session consumption 与 terminal result；
-4. 生成 `RecoveryCompletionAttestation`。
+CompletionAttestation保留原service Ed25519证明，签名输入为`JCS(complete attestation excluding signature_proof)`。它绑定完整已签receipt的terminal_receipt_digest、transaction/account/session/receipt/Device/generation、真实连续CommittedEventRef和actual completed_at；删除request/plan摘要。签发方必须为原account.station_id，不能凭caller公钥或裸accepted布尔成立。
 
-任一步失败都不得留下可见 Event、RealmCommit 或部分 generation state。成功后两条 Event 的 `CommittedEventRef` MUST 具有相同 `stream_ref`、**不同 `commit_id`** 与不同 `event_id`，`stream_position` 按上述顺序严格加一。一条 RealmCommit 恰好接纳一条 Event（[`realm-commit.schema.json`](../../artifacts/schemas/realm-commit.schema.json) 的 `event_ref` 与 `stream_position` 都是单值必填），因此「两条 Event 落在同一个 `commit_id` 上」不是一种可实现的形态：同一个 `commit_id` 就是同一个 `stream_position`。unit 的原子性是**事务级**的，由上述第 3 步的同事务 stream-head/generation CAS 保证，不由共享一笔 Commit 保证。
+`ak.gate.account.command.issue_recovery_completion_grant.v1` 只接受 `{terminal_receipt,initial_session,accepted_device_possession_proof,canonical_request_digest}`；事务、Account、Device及generation从receipt推导。C由Account Authority经同Station既有部署内认证通道向原Station一跳承运并独立核验，不要求客户端先拿到C，不能借此新增公开发现/operation或读取对方数据库。
 
-### 2.4 operation 与 grant 边界
+首次completion需fresh Bound AccountHandoff和HTTP DPoP。允许新短期holder key不同于原recovery grant，但原receipt/session的历史ref/JKT不变。原replacement identity key必须在current-device判定点对本次新holder作AcceptedDevicePossessionProof，purpose=`recovery_completion_grant_issue`，保留issue分支request/account-handoff字段和≤300秒窗口。`session_intent_digest=SHA-256(JCS({receipt_digest,initial_session}))`；proof签完整closed对象仅省signature；最后`canonical_request_digest=SHA-256(JCS(request excluding canonical_request_digest))`，无自引用。fresh handoff/HTTP DPoP/initial_session/proof holder JKT必须一致，Device/audience/current generation/revocation必须全部成立。
 
-`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`new_model_generation_ref` 与 `completed_at`。不再存在 `reanchor_commit_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
+issuer业务主键 MUST 为`(issuer_id,operation_id,完整AccountId,receipt.transaction_id)`，原fullsigned receipt摘要、首次成功请求bytes、允许的原账号deactivated→active和独立Standard outcome在其自身事务中原子固定。request_id不能被用来重发同一completion；资格未验不能占位，临时取材失败不永久占用。PCR事务与issuer事务分别完成，不共享Coauth/Coland数据库。
 
-### 2.5 幂等、竞争与失败终局
+exact replay重验fresh handoff同Account/同holder和当前replacement资格，返回相同U/ref；原body中的PoP窗口/旧handoff digest是已验历史，不与新handoff强行逐字匹配。原issuer链已expired/revoked/superseded沿既有session_grant_replay_*终态，不补发或重复reactivate。若原issuer成功但旧DPoP私钥丢失，AA账号已active，走普通accepted-device issue而非改写原transaction。
 
-同一 canonical terminal request 重放返回已保存的 receipt、两条 CommittedEventRef 与 completion attestation。相同 transaction id 的不同 bytes 返回 conflict。stream head、generation、session 或 policy 已改变时 fail closed，并且客户端必须创建新的 recovery session/transaction；服务不得改写旧 Event、把它们移到另一 RealmCommit、或由 inviter/旧治理 Station 代签。
+PCR成功而response丢失，即使旧recovery grant已到期、AA账号仍deactivated，仍可fresh认证并重交本地冻结receipt，让服务取原C完成原账号恢复；不得要求先Standard后GET C，不延长/升级旧recovery grant。已active且有Standard的用户可exact self GET。尚未accepted且旧session过期必须新恢复，历史C不授现在资格。
 
 ## 3. SecurityRotationTransaction
 

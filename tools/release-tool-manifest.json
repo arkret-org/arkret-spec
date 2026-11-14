@@ -38,6 +38,7 @@
       "approval_signature_kat",
       "key_backup_hardening_kat",
       "cursor_negative_fixture",
+      "commit_artifact_challenge_contract",
       "artifact_lint",
       "prose_lint",
       "public_type_semantics",
@@ -95,6 +96,11 @@
       "check_id": "authority_commit_protocol",
       "label": "authority commit protocol",
       "owner_script": "tools/test_authority_commit_protocol.py"
+    },
+    {
+      "check_id": "commit_artifact_challenge_contract",
+      "label": "Commit-only CAS, single recording artifact and backup challenge shapes",
+      "owner_script": "tools/test_commit_artifact_challenge_contract.py"
     },
     {
       "check_id": "contact_current_contract",

@@ -368,7 +368,7 @@ class AuthorWritableStateAxisTest(_Harness):
     """The third lifecycle carrier, and the price the section charges for it.
 
     ``sync/current-state.md`` section 2.1 said a stored lifecycle axis had
-    exactly two carriers and that one field name -- ``expected_revision`` --
+    exactly two carriers and that one field name -- ``expected_commit_id`` --
     decided which. The registry it described disagreed twice:
     ``ak.moderation.decision.lift`` carries that field and writes a keyed set,
     and ``view`` carries none while its ``state`` sits in ``allowed_paths``.

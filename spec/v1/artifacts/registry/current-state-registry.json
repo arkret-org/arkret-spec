@@ -62,7 +62,7 @@
           "models/strand-and-message.md §9.8.3",
           "models/strand-and-message.md §9.8.4"
         ],
-        "note": "Remove-wins folding and the anti-abuse rules both evaluate against the current reaction set."
+        "note": "The complete active actor/key/source map is the prior state for ordered add/delete and anti-abuse checks. A complete Snapshot and continuous stream checkpoint prevent old history from reentering current."
       }
     },
     {

@@ -149,7 +149,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
-  "expected_revision": null,
+  "expected_commit_id": null,
   "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://slack-bridge.example/applet",
   "claimed_profiles": [
@@ -260,7 +260,7 @@ preview **MUST** 枚举本Service与scope所有实际parent/child/member/widget�
 撤销该scope的parent/install即时fence该scope未来业务及群材料，不等待每个child或设备分别revoke；
 保留其它scope独立合法路径。密码学移除另经MLS，不抹除历史Account或已交付内容。
 
-registration current 在 Realm 内按 `(applet_id, service_id)` 独立定位。registration Event 的 scope_ref 与 current source_stream_ref **MUST** 为所属 Realm stream；Circle 安装也只在该 Realm stream 写登记，grants 的 resources 和实际 effect 仍严格受该 Circle effective_scope 限制。一个治理事务接纳登记与 scope grants，不从不同 Circle stream 的位置推导全局登记次序。管理员签名的 registration payload **MUST** 带 `expected_revision`：null 仅表示该 Service 从未登记，否则须等于该对的 current revision；它不进入 publisher package 或 registration_epoch。管理员通过原 exact current read 按该 selector 取前态，仍核目标 Realm 的 ak.realm.admin；缺项只能在完整历史证明下返回 never_written。首次并发登记或旧前态提交只有一个可接受，失败零写；exact 已接受请求重试恢复原结果。连续同 epoch 且全部安全绑定相同的重申保留原授权实例的起点，其它更新只关闭本 Service 的旧实例。实例连续性不等于 current revision 不变：每个新接受的登记 Event 都按 set 投影更新 current snapshot／source／revision；只有原 Event／原请求的 exact 重试复用原结果。
+registration current 在 Realm 内按 `(applet_id, service_id)` 独立定位。registration Event 的 scope_ref 与 current source_stream_ref **MUST** 为所属 Realm stream；Circle 安装也只在该 Realm stream 写登记，grants 的 resources 和实际 effect 仍严格受该 Circle effective_scope 限制。一个治理事务接纳登记与 scope grants，不从不同 Circle stream 的位置推导全局登记次序。管理员签名的 registration payload **MUST** 带 `expected_commit_id`：null 仅表示该 Service 从未登记，否则须等于该对的 current revision；它不进入 publisher package 或 registration_epoch。管理员通过原 exact current read 按该 selector 取前态，仍核目标 Realm 的 ak.realm.admin；缺项只能在完整历史证明下返回 never_written。首次并发登记或旧前态提交只有一个可接受，失败零写；exact 已接受请求重试恢复原结果。连续同 epoch 且全部安全绑定相同的重申保留原授权实例的起点，其它更新只关闭本 Service 的旧实例。实例连续性不等于 current revision 不变：每个新接受的登记 Event 都按 set 投影更新 current snapshot／source／revision；只有原 Event／原请求的 exact 重试复用原结果。
 
 同 Applet 新 Service **MUST** 验 package proof 的 controller_principal_id 与原已验证 Applet 发布者相同及其当前合法签名权；仅相同 AppletId、名称或取得数据库副本不能通过。新增 Service 不修改旧登记／epoch，也不继承旧安装或 grants。同 Service 更新若使其它 scope 的旧 epoch 业务失效，preview warnings **MUST** 明示该 Service 实际受影响的 scope；scope 独立重新授权，不得影响另一 Service。
 
@@ -380,7 +380,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.install.command.preview.v1` | self（管理员→Station） | `applet_package`; `authoring_request_basis`（唯一内嵌 caller-signed registration/grant Events） | 无 | `{plan}`（契约 `applet-install-authoring.schema.json`） | Station 重算 plan，不产生 managed authoring request；registration epoch evidence 只在 registration Event manifest，不属于 package digest / proof。 |
 | `ak.edge.applet.managed_actor.command.author.v1` | edge（客户端→Applet service） | `authoring_request` | 无 | `create_event` | 统一消费 `purpose=provision_bot\|provision_ghost`；返回一个 Service 原签创建 Event。 |
 | `ak.self.applet.command.install.v1` | self（管理员→Station） | `Idempotency-Key`; `applet_package`; `authoring_request_basis`; `plan_digest` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 只接纳 Service registration 与管理员原签 grants，不创建或复用 managed Actor。 |
-| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `service_id`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 从同一 durable current snapshot 枚举 exact revoke intents；每个 capability intent 必填同一 Grant 的 `expected_revision`，并进入 caller 自算的 `revoke_plan_digest`；见 §4b。 |
+| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `service_id`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 从同一 durable current snapshot 枚举 exact revoke intents；每个 capability intent 必填同一 Grant 的 `expected_commit_id`，并进入 caller 自算的 `revoke_plan_digest`；见 §4b。 |
 | `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `service_id`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs: AppletRevokeEffectRef[]?`; `rejected[]?` | 重算 plan 并逐项校验 signed revoke 的 exact revision；stale 必须重新 preview／确认／重签。Event effect 使用 `CommittedEventRef`；服务本地 effect 使用非 Event typed resource string；见 §4b。 |
 | `ak.self.applet.bot.command.preview.v1` | self（已安装 Applet Service→Station） | `path.applet_id`; `effective_scope`; `service_id`; `request_id` | `display_name` | `authoring_request` | 从 exact active install 派生 Service 创建授权，签发独立 Bot candidate；不消费安装隐含 Bot，契约见 `applet-bot-operations.schema.json`。 |
 | `ak.self.applet.ghost.command.preview.v1` | self（已安装 Applet service→Station） | `path.applet_id`; `effective_scope`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |

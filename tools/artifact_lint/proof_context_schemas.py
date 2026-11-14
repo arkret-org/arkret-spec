@@ -3219,6 +3219,14 @@ def check_result_write_contracts(lint: Lint) -> None:
                     lint, EVENT_KIND_REGISTRY, f"{where}.derived_members", derived_members
                 )
             projection = write.get("state_projection")
+            if write.get("state_family") == "message_reactions":
+                expected = {"kind": "set", "value_projection": {"kind": "object", "members": [
+                    {"name": "entries", "derivation": "reaction_effective_entries"},
+                ]}}
+                if kind not in {"ak.reaction.add", "ak.reaction.remove"} or projection != expected:
+                    lint.fail(EVENT_KIND_REGISTRY, f"{where} requires the complete receiver-derived active Reaction current")
+                if write.get("value_schema_ref") != "schemas/current-state.schema.json#/$defs/message_reactions_value":
+                    lint.fail(EVENT_KIND_REGISTRY, f"{where} must name the closed active Reaction value")
             if write.get("state_family") in {"call_roster", "call_moderation"}:
                 family = write["state_family"]
                 expected = {"kind": "set", "value_projection": {"kind": "object", "members": [
@@ -3822,7 +3830,7 @@ def check_pre_state_requirement_closure(lint: Lint) -> None:
     pass, and reading absence as a mismatch would make the very first invite
     unacceptable.
 
-    A revision compare is deliberately not expressible here. `expected_revision`
+    A revision compare is deliberately not expressible here. `expected_commit_id`
     on a shared-face payload is the typed `{commit_id, stream_position}` of the
     value the producer read; a stored-value precondition is this. Two mechanisms,
     two spellings, no overlap.
@@ -4332,9 +4340,9 @@ def check_author_writable_state_axis_contract(lint: Lint) -> None:
     ``sync/current-state.md`` section 2.1 used to say a stored lifecycle axis
     had exactly two registered carriers, and that the choice between them
     followed from one field name: *every family whose payload carries
-    ``expected_revision`` MUST take form 2, the rest take form 1*. Both halves
+    ``expected_commit_id`` MUST take form 2, the rest take form 1*. Both halves
     were wrong against the registry they described.
-    ``ak.moderation.decision.lift`` carries ``expected_revision`` and writes a
+    ``ak.moderation.decision.lift`` carries ``expected_commit_id`` and writes a
     keyed set -- neither form -- and ``view`` carries none while its ``state``
     is an author-written member inside ``allowed_paths``: a third carrier the
     binary said could not exist. Nothing failed, because no gate ever read the

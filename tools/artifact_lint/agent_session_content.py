@@ -216,7 +216,14 @@ def check_agent_session_content(lint: Lint) -> None:
     refresh = schemas['AgentSessionGrantRefreshRequestBody']
     if refresh.get('additionalProperties') is not False or {'requested_scope', 'agent_scope_request'} & set(refresh.get('properties', {})):
         lint.fail(registry_path, 'Agent refresh must remain a closed non-expanding rotation request')
-    refs = schemas['SessionGrantIntrospectGrant']['properties']['scope_details']['properties']['capability_grant_refs']
+    for name in ('SessionGrantIntrospectGrant', 'SessionGrantMetadata'):
+        scope = schemas.get(name, {}).get('properties', {}).get('scope_details', {})
+        if scope.get('$ref') != '#/$defs/SessionGrantScope':
+            lint.fail(registry_path, f'{name} must consume the canonical SessionGrantScope')
+    scope_details = schemas.get('SessionGrantScope', {})
+    refs = scope_details.get('properties', {}).get('capability_grant_refs', {})
+    if scope_details.get('additionalProperties') is not False or refs.get('type') != 'array':
+        lint.fail(registry_path, 'Agent scope details must retain a closed grant-reference array contract')
     if refs.get('minItems', 0) != 0:
         lint.fail(registry_path, 'Legitimate profile reading must not require a literal grant reference')
     profiles = load_json(lint, ARTIFACTS / 'profiles/conformance-profiles.json')

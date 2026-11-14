@@ -19,7 +19,7 @@ updated: 2026-10-18
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **state-changing Event precondition** 只表达 current state 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，也不携带任何 caller 自述的授权状态；其数据面约束由注册的 `refs`、领域 payload 的 `expected_revision` 与 deterministic projection 规则表达，授权依据由当前治理 Station 在接纳事务内从已提交 typed state 解析。
+- **state-changing Event precondition** 只表达 current state 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，也不携带任何 caller 自述的授权状态；其数据面约束由注册的 `refs`、领域 payload 的 `expected_commit_id` 与 deterministic projection 规则表达，授权依据由当前治理 Station 在接纳事务内从已提交 typed state 解析。
 - **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / Event / state-changing Event canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
@@ -462,7 +462,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
   覆盖、无法跨重放持久化的 effective depth。该 terminal child MUST NOT 再被任何下游 grant 的
   `issuer_authority_refs[]` 引用。
 - `authority_regrant_allowed=true` 时允许继续再授权，深度仍受 §10.1
-  `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
+  `max_authority_depth ≤ parent - 1` 与 §10.2 已接纳前态与深度上限 4 治理。
 
 **`authority_scope`（三值）**：取值 ∈ `{narrowing_only, same_scope, custom}`，reducer 校验规则：
 
@@ -475,7 +475,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 未注册的 `authority_scope` 值 MUST fail closed。v1 **没有** `scope_expansion_allowed` 开关：[`capabilities.md` §10.1](./capabilities.md) 的收窄不变量是无条件的，一个只允许取 `false` 的 wire boolean 不表达任何可行使语义，只会给 producer 一个可写错的字段。需要 scope 扩展语义的 profile MUST 注册 `authority_scope="custom"` 并自行定义上界来源。
 
 所有 `ak.capability.grant` 都必须携带非空、类型化的 `issuer_authority_refs[]`；因此不存在可选的
-“要求 parent ref”开关。grant ref 本身就是显式的上游 authority 边，供 §10.2 环检测与 §10.3
+“要求 parent ref”开关。grant ref 本身就是显式的上游 authority 边，供 §10.2 前态／深度与 §10.3
 撤销活性检查使用。
 
 ## 8. 配额 (Quota)
@@ -1338,14 +1338,11 @@ function matches_field_access(operation, constraint):
 - 缓存键、TTL 与失效语义以 §2.3 evaluation_class 表与 [`capabilities.md` §18.1](./capabilities.md) 的 `auth_state_digest` 绑定为准。
 - `external` 类约束 MUST NOT 缓存（见 §2.3 / §15.3）。
 
-#### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
+#### 18.1.1 Moderation cache 的派生依赖
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `moderation_state` current state”，从而决定该 current state 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+cache 依赖不是一个 producer constraint。reducer MUST 按 [capabilities §18.1](./capabilities.md) 的三类已登记语义计算 `D(g)`，并在该依赖 current 变化的同一事务内失效；不得以作者自报 hint 或缺省 false 放行。普通 action、subject 与 constraint 均无该依赖时，moderation 保持独立后置 deny/quarantine/review 层。
 
-- 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
-- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation current state）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
-- 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
-- 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_kind`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
+三项条件的来源是经过 schema/语义验证的 descriptor，不是扫描用户自由文本或执行字符串 DSL。未知 critical constraint 失败关闭；本地更保守失效可以存在，但不能形成第二份 wire 授权事实。
 
 ### 18.2 优化策略
 

@@ -274,7 +274,7 @@
     "max_authority_lifetime_ms": {
       "type": "integer",
       "minimum": 1,
-      "description": "Maximum fixed child-chain lifetime only for actions explicitly required to be finite by their risk/constraint contract. Defaults to 24 hours for those actions; first use freezes the bound and redelegation cannot renew it. It does not impose expiry on unbounded ordinary chat/read/organizer authorization.",
+      "description": "Maximum fixed child-chain lifetime only for actions explicitly required to be finite by their risk/constraint contract. Defaults to 24 hours for those actions. Each explicit finite root authorization uses the accepting RealmCommit.committed_at plus its effective lifetime; finite parent source windows cannot be renewed by redelegation. It does not impose expiry on unbounded ordinary chat/read/organizer authorization.",
       "default": 86400000
     },
     "retention_policy_id": {

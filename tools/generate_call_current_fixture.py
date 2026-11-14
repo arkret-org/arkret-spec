@@ -71,7 +71,7 @@ def project(prior, row, axis, index, issuer_key):
     delta = current['value']
     key = target(delta, axis)
     if delta['op'] in ('leave', 'restore_participant'):
-        if prior is None or delta['expected_revision'] != revision(prior['last_source']['source_commit']):
+        if prior is None or delta['expected_commit_id'] != prior['last_source']['source_commit']['commit_id']:
             raise ValueError('stale axis revision')
         if not any(target(e['value'], axis) == key for e in entries):
             raise ValueError('unknown target')
@@ -182,18 +182,18 @@ def build_fixture():
     append({'moderation_delta': remove(OTHER, 'ban')})
     append({'moderation_delta': {'op': 'restore_participant', 'actor_id': OTHER,
             'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
-            'expected_revision': revision(axes['moderation']['last_source']['source_commit'])}})
+            'expected_commit_id': revision(axes['moderation']['last_source']['source_commit'])['commit_id']}})
     append({'moderation_delta': remove(ACTOR, 'kick')})
     append({'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 3)}})
     for actor in (OTHER, ACTOR):
         append({'roster_delta': {'op': 'leave', 'actor_id': actor, 'device_id': DEVICE,
-                                'expected_revision': revision(axes['roster']['last_source']['source_commit'])}})
+                                'expected_commit_id': revision(axes['roster']['last_source']['source_commit'])['commit_id']}})
     append({'moderation_delta': remove(OTHER, 'ban'),
             'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 4)}})
     restore_event = event({'call_id': call_id, 'moderation_delta': {
         'op': 'restore_participant', 'actor_id': OTHER,
         'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
-        'expected_revision': revision(axes['moderation']['last_source']['source_commit']),
+        'expected_commit_id': revision(axes['moderation']['last_source']['source_commit'])['commit_id'],
     }}, 12)
     restore_core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': 12,
                     'previous_commit_ref': rows[-1]['commit']['commit_id'],

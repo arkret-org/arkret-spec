@@ -116,8 +116,6 @@
       "document": "spec/v1/zh/models/governance-objects.md",
       "schema_ref": "capability-grant.schema.json#",
       "external_field_mentions": [
-        "authority_event_ref",
-        "authority_generation",
         "constraint_kind",
         "created_at",
         "expires_at",
@@ -181,7 +179,6 @@
       "document": "spec/v1/zh/models/strand-and-message.md",
       "schema_ref": "event-payload.schema.json#/$defs/reaction_payload",
       "external_field_mentions": [
-        "actor_id",
         "effective_scope"
       ]
     },

@@ -126,9 +126,6 @@
     "challenge_id": {
       "$ref": "./keys-operations.schema.json#/$defs/keys_backups_unlock_challenge/properties/challenge_id"
     },
-    "nonce": {
-      "$ref": "./keys-operations.schema.json#/$defs/base64url"
-    },
     "subject_actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
@@ -278,7 +275,6 @@
       },
       "required": [
         "challenge_id",
-        "nonce",
         "account_id",
         "requesting_device_id"
       ],
@@ -369,11 +365,6 @@
           {
             "required": [
               "challenge_id"
-            ]
-          },
-          {
-            "required": [
-              "nonce"
             ]
           },
           {
@@ -495,7 +486,6 @@
         "recipient_ref",
         "purpose",
         "challenge_id",
-        "nonce",
         "requesting_device_id",
         "device_authorize_event_id",
         "device_generation",
@@ -579,7 +569,6 @@
         "recipient_ref",
         "purpose",
         "challenge_id",
-        "nonce",
         "envelope_digest"
       ],
       "not": {

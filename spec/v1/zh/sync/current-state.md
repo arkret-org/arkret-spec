@@ -103,7 +103,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `member_state`：以完整 `actor_id` 选择成员状态；
 - `agent_interaction`：以完整 `agent_account_id` 选择本 Realm 的 Agent 模式，value 为
   `{controller_account_id,interaction_mode}`，由 `ak.agent.interaction.set` 单一 whole-value writer 写入，
-  controller-only proof 与 expected_revision CAS 见 [Agent 交互](../models/agent-interaction.md)。
+  controller-only proof 与 expected_commit_id CAS 见 [Agent 交互](../models/agent-interaction.md)。
   Circle／Strand 消费父 Realm current，不注册局部覆盖；snapshot 缺项不是默认私人证明。
 
 `parent_membership` admission 同时把 current `realm_policy_bundle`、目标 Realm 内每个 source 对应的 active
@@ -158,7 +158,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `circle`、`morph`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
   封闭 schema；`relation` 以封闭的 `payload.primary_conflict_domain`（single-component
   `canonical_json` composite）选择一个可直接写关系域，值是带 event-derived RelationId 的完整 Relation。
-  create/update/tombstone 都写同一 domain subject并由 payload 的 exact `expected_revision` CAS；
+  create/update/tombstone 都写同一 domain subject并由 payload 的 exact `expected_commit_id` CAS；
   relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
   [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
   需要给 producer 取得该 exact revision 时，只能调用
@@ -198,7 +198,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `realm_history_access`：singleton，Realm history-access FSM 当前值（`since_join` / `all_history_for_current_members`）；
 - `identity_resolution`：singleton，Realm 当前 did resolution 的五成员 `resolution_projection`；genesis object 携带 `initial_resolution` 时由 `ak.realm.create` 条件初始化，此后只由 `ak.identity.resolution.update` 改写（见 [`../identity/identity-did.md` §4.2](../identity/identity-did.md)）；
 - `identity_accountability`：以 `(issuer principal, subject principal, 归一化 exact scope set)` 选择一条问责背书；第三个分量按 `ak.accountability_scope_set.v1` 摘要，因此 wire 上的单个字符串与它的单元素数组落在同一个 subject；它有两个写入方（独立的 `ak.identity.accountability_grant` 与 `ak.agent.provision` 的原子问责投影），见 [`../models/actor.md` §3.3.1](../models/actor.md)；
-- `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
+- `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_ref`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
 
   自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_state.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
@@ -221,20 +221,22 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。
 
-`revision` 是 closed `{commit_id, stream_position}`。`commit_id` MUST 指向最后改变该结果的 RealmCommit，
-`stream_position` MUST 等于该 commit 在所属 stream 的位置。每份 closed current state 还 MUST 携带
-`source_stream_ref`，逐字等于该 covering Commit 的 `stream_ref`；此成员是来源坐标的必填部分，不能由 selector、
-值或相同数字位置推测。`source_stream_ref` 不属于二元 `CurrentRevision`，既有 `expected_revision` CAS 仍逐字段比较
-`{commit_id, stream_position}`。时间戳、到达顺序与 EventId 均不得替代 revision。
+`revision` 是只读 closed `{commit_id, stream_position}`，指向最后改变该结果的 RealmCommit；
+每份结果还携带与该 Commit 逐字相等的 `source_stream_ref`。消费方 MUST 继续校验原 stream、
+position、head/floor、治理任期和 Commit identity；不能从 selector 或相同数字位置推测来源。
 
-领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
-逐字段相等时接纳；不相等返回 `failed_precondition` 且零写入。v1 的 Problem 响应不携带通用 current state：
-`detail`、`reason_detail`、未登记的 `current`／`current_state` 或任意扩展 bag 均不得冒充机器可读前态。
-调用者需要重写时，只能通过该 selector **已有且获授权**的 current 读取操作或 §3 的可见当前结果重新取得前态，
-核对 Realm、完整 selector、governance generation、stream head 与 revision，并重新确认后签发新 Event；
-没有已登记读取路径、读取未授权或结果缺席时必须停止，不能从错误字符串、旧缓存或 snapshot 缺项猜测 current，
-也不能自动用旧签名重试。重新读取是独立操作，不属于失败响应或同一接纳事务的返回值；提交时仍须重新检查 CAS。
-首次创建可使用该领域 schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
+领域写入的 exact-current CAS 只携 `expected_commit_id`；具名多目标 guard 使用
+`expected_control_commit_id` 等已登记名称，Consent 的 present 分支为 `expected_current.commit_id`。
+治理 Station MUST 在同一接纳事务锁定 exact selector 和当前 row，比较其 covering Commit ID；
+失配零写入 `failed_precondition`，仍独立执行权限、领域前态及所有其它 guard。相同 content-addressed
+Commit ID 已绑定同一 position，写条件不再重复位置。读侧 revision 仍保留二元坐标。
+首次 null 仅在该领域明确允许、且获授权 exact read 已证明 never-written 时合法；写后清空、tombstone、
+过滤缺行和未知都不能当首次。`expected_state_digest`、`expected_server_revision`、
+`expected_governance_generation` 及非此类型 guard 保持各自语义。
+
+Problem 不携通用 current。重写必须从该 selector 已登记且获授权的读取取得前态，核对完整账号/会话、
+Realm、selector、generation 与来源，再重新确认并签新 Event；不得修改旧签名、解析错误字符串或自动猜测前态。
+exact accepted Event replay 返回原 Commit，不重做当前 CAS，也不复活旧授权。
 
 **`expected_state_digest` 的摘要输入（normative）**：以 `expected_state_digest` 声明前态的 kind（`actor_profile`、
 Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单值 family）一律使用同一算法：
@@ -291,16 +293,16 @@ fold，`v` 取 **fold 的结果值**，算法不变：
 `ak.moderation.decision` 与 `ak.moderation.decision.lift` 都只能 `keyed_set_add`，
 当前效力由读侧折叠得出。MUST NOT 为了形式统一再存第二份权威 status。
 
-**`expected_revision` 不决定 value 形状。** 它要求的只是目标 typed result 存在可比较的 exact
+**`expected_commit_id` 不决定 value 形状。** 它要求的只是目标 typed result 存在可比较的 exact
 revision：scalar 状态轴、keyed set 与 body+status 组合对象都可以被它保护，也都可以不被它保护。
 `ak.moderation.decision.lift` 带着它却写 keyed set，`view` 不带它却有作者可写的 `state`，
 两者都合法。决定 body 与 status 是否必须同处一个 result 的是**原子不变量**：若一个逻辑对象的
 body 与 status 之间有必须原子保持的不变量，整对象 CAS MUST 绑定同一条 result revision，
 MUST NOT 拆成两份各自独立的权威副本。`capability_grant` 与 `consent` 取形态 2 是这个理由，
-不是因为它们的 payload 里出现了 `expected_revision` 这个字段名。
+不是因为它们的 payload 里出现了 `expected_commit_id` 这个字段名。
 
 无论取哪一形态，该 family MUST 逐项登记：每个 value 成员的来源与维护闭包、终态与禁止复活规则、
-准入 guards，以及 revision 的比较方式。这四项都 MUST NOT 由「payload 有没有 `expected_revision`」
+准入 guards，以及 revision 的比较方式。这四项都 MUST NOT 由「payload 有没有 `expected_commit_id`」
 二分推出。三种形态同样禁止把状态放在两处：一个 family 只有一个状态真源。
 
 该合同缺失时 MUST 视为失败，不得当作「该轴无约束」：读不到转换表的检查只能证明没有人检查过。
@@ -386,9 +388,20 @@ Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_state.read.exact.
 
 三项同时成立时，服务端才可返回 `complete_for_authorized_streams=true`。
 
-分页 cursor 必须绑定 `realm_id`、`governance_generation`、每个已覆盖 stream head 与最后一个稳定排序键。缺页、重复页、
-`governance_generation` 改变或任一 head 改变时，客户端 MUST 废止该基线并从当前 authority bundle 重新开始。Circle 与 Sidecar 的
-分页进度分别绑定各自 stream；不得借 Realm stream head 声明它们已完整。
+current baseline 的分页 MUST 绑定同一冻结 cut C：Realm、generation、完整调用者/endpoint、
+query/selector 范围、C 时获准 stream heads、floors 与同 cut typed rows，以及稳定排序进度和原到期时间。
+后续页 MUST 读取 C，不能只冻结 head 却读取 live rows。实时 head 正常增长本身 MUST NOT 废止 C；
+同一冻结实例自报不同 head/row cut、真实缺页、同页异字节、失权、治理任期切换或窗口不可得才按现有
+失效/不可用合同重建对应范围。exact duplicate 页幂等，不因正常网络重试重启。
+
+`complete_for_authorized_streams` 仅承诺 C 已声明范围全部安装至其冻结 heads，不承诺 C 之后全局最新；
+新增授权 stream 经原发现增量取得自己的完整基线。较新可信 current delta 可在分页时先到，旧页不得覆盖它。
+有职责的 Station 按连续 Commit 归约；普通客户端只安装可信 whole typed current/Snapshot，不执行领域 reducer。
+完整 current、checkpoint 与进度 MUST 原子耐久；历史 scan/stream_history 不得回灌 live current 或推进其 checkpoint。
+
+服务端在每次披露前核当前权限；普通客户端核固定账号/会话、来源及已知失权，不增加在线 DID/成员查询。
+失权原件整份拒绝，不改写原签 Snapshot；权限增加不偷加 C 的 rows。cursor 使用现有不可变句柄、TTL、
+原窗口保留及恢复规则，不延长租期，不新增 Snapshot 分页/chunk 或全局 position。
 
 Realm join bootstrap 默认从当前治理 Station 获取 authority bundle、获准 stream heads、committed Events 与 current
 results。邀请人服务器只转交邀请和当前 governance Station 定位证据；它不是 bootstrap 真相源，除非它恰好就是经验证的

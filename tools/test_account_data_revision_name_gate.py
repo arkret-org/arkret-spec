@@ -62,9 +62,9 @@ class AccountDataRevisionNameGateTest(unittest.TestCase):
     def test_old_alias_cannot_replace_canonical_property(self) -> None:
         def mutate(documents: dict) -> None:
             payload = documents[gate.EVENT_SCHEMA.resolve()]["$defs"]["account_data_set_payload"]
-            payload["properties"]["expected_revision"] = payload["properties"].pop("expected_server_revision")
+            payload["properties"]["expected_commit_id"] = payload["properties"].pop("expected_server_revision")
 
-        self.assert_red(mutate, "legacy expected_revision alias is forbidden")
+        self.assert_red(mutate, "legacy expected_commit_id alias is forbidden")
 
     def test_dual_fields_cannot_be_accepted(self) -> None:
         def mutate(documents: dict) -> None:
@@ -82,7 +82,7 @@ class AccountDataRevisionNameGateTest(unittest.TestCase):
     def test_agent_draft_guard_cannot_use_shared_name(self) -> None:
         def mutate(documents: dict) -> None:
             branch = documents[gate.EVENT_SCHEMA.resolve()]["$defs"]["account_data_set_payload"]["allOf"][0]
-            branch["if"]["properties"]["expected_revision"] = branch["if"]["properties"].pop(
+            branch["if"]["properties"]["expected_commit_id"] = branch["if"]["properties"].pop(
                 "expected_server_revision"
             )
 
@@ -91,14 +91,14 @@ class AccountDataRevisionNameGateTest(unittest.TestCase):
     def test_operation_schema_description_is_guarded(self) -> None:
         def mutate(documents: dict) -> None:
             schema = documents[gate.OPERATIONS_SCHEMA.resolve()]
-            schema["description"] = schema["description"].replace("expected_server_revision", "expected_revision")
+            schema["description"] = schema["description"].replace("expected_server_revision", "expected_commit_id")
 
         self.assert_red(mutate, "legacy field name")
 
     def test_private_effect_contract_is_guarded(self) -> None:
         def mutate(documents: dict) -> None:
             write = documents[gate.CONTRACT_REGISTRY.resolve()]["event_kind_registry"]["actor_private_contracts"]["event_writes"][gate.EVENT_KIND]
-            write["concurrency"]["precondition"] = "payload.expected_revision equals current"
+            write["concurrency"]["precondition"] = "payload.expected_commit_id equals current"
 
         self.assert_red(mutate, "private effect contract uses the shared revision field")
 
@@ -119,7 +119,7 @@ class AccountDataRevisionNameGateTest(unittest.TestCase):
             case = gate._find(
                 fixture["schema_validation_cases"], "name", "account_data_set_dual_revision_fields_rejected"
             )
-            case["instance"].pop("expected_revision")
+            case["instance"].pop("expected_commit_id")
 
         self.assert_red(mutate, "dual-field rejection case")
 

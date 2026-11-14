@@ -1237,39 +1237,22 @@
         }
       },
       "additionalProperties": false,
-      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is a keyed-set projection of the closed enum in models/common-fields.md section 2, whose join that section defines: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value.",
+      "description": "Complete active Reaction state for one target, reduced only in verified Commit order. Empty entries retain the real last revision. Original historical Events and remove actors are not part of current. Snapshot cut and stream checkpoints isolate old input. See models/strand-and-message.md section 9.8.3.",
       "x-arkret-name-role": "current_state"
     },
     "message_reactions_value": {
       "type": "object",
-      "description": "Closed value of the message_reactions current state: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because models/strand-and-message.md section 9.8.3 requires the audit view to rebuild them.",
+      "description": "The complete canonical active map for one target. Entries are unique on full actor_id and exact outer key, sorted by ActorId JCS UTF-8 bytes and then key UTF-8 bytes. A remove deletes its key; an empty array is an explicitly written empty value with a retained row revision. No historical assertion or remove tombstone is carried.",
       "required": [
-        "assertions"
+        "entries"
       ],
       "properties": {
-        "assertions": {
+        "entries": {
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/reaction_assertion_entry"
+            "$ref": "#/$defs/reaction_current_entry"
           }
-        }
-      },
-      "additionalProperties": false
-    },
-    "reaction_assertion_entry": {
-      "type": "object",
-      "description": "One asserted element of the message_reactions keyed set. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete reaction payload of that Event. The asserting actor and the polarity -- whether this is an add or a remove -- are deliberately NOT element fields: section 9.8.3 reads both from the signed envelope of the Event the dot names, because event-and-patch.md section 2.4.2 forbids a projection from assembling, renaming or trimming fields.",
-      "required": [
-        "tag_id",
-        "value"
-      ],
-      "properties": {
-        "tag_id": {
-          "$ref": "#/$defs/canonical_event_dot"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
         }
       },
       "additionalProperties": false
@@ -1710,7 +1693,7 @@
     },
     "current_capability_grant": {
       "type": "object",
-      "description": "Registered projection of one Capability Grant. The subject GrantId is derived by retyping the accepted ak.capability.grant Event id; the value is the complete projected grant, including reducer-inserted id and the registered derived members authority_depth / authority_root_refs (zh/authz/capabilities.md section 10).",
+      "description": "Registered projection of one Capability Grant. The subject GrantId is derived by retyping the accepted ak.capability.grant Event id; the value is the complete projected grant, including reducer-inserted id and the registered derived members authority_depth / authority_root_ref (zh/authz/capabilities.md section 10).",
       "required": [
         "selector",
         "source_stream_ref",
@@ -2055,7 +2038,35 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "artifact"
+              ],
+              "properties": {
+                "artifact": {
+                  "$ref": "./call-recording-artifact.schema.json"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "artifact"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "description": "Ready current contains one complete artifact only; start, stop and failure metadata keep their own closed non-artifact branch. Indexes are read-only artifact projections."
         }
       },
       "additionalProperties": false,
@@ -3736,7 +3747,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one moderated target. governance/content-moderation.md section 5.3 keys the set per target and folds several issuers' active records into one effective decision at read time. payload.expected_revision of ak.moderation.decision.lift names this result's revision, which is why the lift is stale-checkable without the set carrying a lifecycle axis.",
+      "description": "Registered projection of one moderated target. governance/content-moderation.md section 5.3 keys the set per target and folds several issuers' active records into one effective decision at read time. payload.expected_commit_id of ak.moderation.decision.lift names this result's revision, which is why the lift is stale-checkable without the set carrying a lifecycle axis.",
       "properties": {
         "selector": {
           "type": "object",
@@ -3987,7 +3998,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is {policy_id, value} for ordinary Policy/RecoveryPolicy, and {policy_id, expected_revision, value} for Agent/Applet management Policy with exact nullable CAS; value.schema selects the Policy or RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own. The separate ak.policy.rule Event kind that used to assert one rule at a time is deleted: it carried no policy_id, so its rule_id named nothing resolvable, and rule editing submits the whole authorized Policy document through ak.policy.set.",
+      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is {policy_id, value} for ordinary Policy/RecoveryPolicy, and {policy_id, expected_commit_id, value} for Agent/Applet management Policy with exact nullable CAS; value.schema selects the Policy or RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own. The separate ak.policy.rule Event kind that used to assert one rule at a time is deleted: it carried no policy_id, so its rule_id named nothing resolvable, and rule editing submits the whole authorized Policy document through ak.policy.set.",
       "properties": {
         "selector": {
           "type": "object",
@@ -6608,6 +6619,27 @@
       "additionalProperties": false,
       "x-arkret-name-role": "domain_value",
       "description": "Minimal typed public native series selection. Selector binds the full actor, exact scope and class; source stream/revision binds the accepted original. Do not expand the full signed record, previous_series_ids, record signature or Event payload to a Device. Station independently verifies and retains the original; Manager exact-source/inventory roles preserve complete originals."
+    },
+    "reaction_current_entry": {
+      "type": "object",
+      "description": "One active actor/key membership and its original accepted add source. This source does not construct a committed_event_view, authorize historical signer lookup or grant access below the caller history floor. The source stream equals the outer row stream and its position does not exceed the row revision/head. Metadata alone does not verify encrypted emoji or another actor's AEAD.",
+      "required": [
+        "actor_id",
+        "key",
+        "source"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "key": {
+          "$ref": "./event-payload.schema.json#/$defs/reaction_payload/properties/key"
+        },
+        "source": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

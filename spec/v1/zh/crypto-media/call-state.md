@@ -138,23 +138,23 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `state_transition` | `call_state` | `commit-ordered projection` | 领域状态 |
 | `focus` | `call_focus` | `commit-ordered projection` | register |
 | `recording_transition.to=stopped` | `call_recording_state` | `commit-ordered projection` | 捕获许可状态 |
-| `recording_transition.capture_metadata` | `call_recording_artifact` | stream-ordered reducer | `{status,details,expected_revision}` |
+| `recording_transition.capture_metadata` | `call_recording_artifact` | stream-ordered reducer | `{status,details,expected_commit_id}` |
 | `transcript_transition.to=stopped` | `call_transcript_state` | `commit-ordered projection` | 捕获许可状态 |
-| `transcript_transition.capture_metadata` | `call_transcript_artifact` | stream-ordered reducer | `{status,details,expected_revision}` |
+| `transcript_transition.capture_metadata` | `call_transcript_artifact` | stream-ordered reducer | `{status,details,expected_commit_id}` |
 | `moderation_delta` | `call_moderation` | `commit-ordered projection` | set |
 | `roster_delta` | `call_roster` | `commit-ordered projection` | set |
 | `mute_override`（v1 禁用） | `call_mute_override`（保留形状，无可接纳写入） | 不执行 | 单 leg register，不可当多 leg 集合 |
 
-所有状态与结果按所属 stream 的 RealmCommit 顺序确认。会覆盖现有结果的 Event 必须携带该领域 current state 的 `expected_revision`；竞争写至多一笔成功。result 不授予采集、密钥或读取权限。
+所有状态与结果按所属 stream 的 RealmCommit 顺序确认。会覆盖现有结果的 Event 必须携带该领域 current state 的 `expected_commit_id`；竞争写至多一笔成功。result 不授予采集、密钥或读取权限。
 
 **未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个准入 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个准入 delta（schema `anyOf`）。上表准入轴的每条 `state_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`mute_override` 在 schema 阶段拒绝，不能触发保留的 result-write 行。`recording_transition.capture_metadata` / `transcript_transition.capture_metadata` 各自额外产生 result current state write。完整 op 由 registry `state_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
 **捕获态按段切分**：录制 / 转写 current state 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 current state，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `call_recording_state` 或 `call_transcript_state`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 current state family。
 
-**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details,expected_revision}`；治理 Station按 stream 顺序执行并拒绝 stale revision，且不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。
+**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details,expected_commit_id}`；治理 Station按 stream 顺序执行并拒绝 stale revision，且不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。
 
 - `focus`：是 `call_focus` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
-- `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`op=join` 创建或更新该 participant；`op=leave` 携带同一 `actor_id/device_id` 与 roster `expected_revision`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
+- `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`op=join` 创建或更新该 participant；`op=leave` 携带同一 `actor_id/device_id` 与 roster `expected_commit_id`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
 - `roster_delta.participant` 的 `actor_id` MUST 为完整 ActorId，`account` 分支同时保留 exact `principal_id` 与 `station_id`；`device_id` MUST 为真实认证 DeviceId。join、leave、token outcome 和媒体续期 MUST 使用同一身份，不使用匿名 DID 或设备别名。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
 - participant_binding 直接签署完整 ActorId、真实 DeviceId 与本次媒体范围。refresh 从 accepted 活跃 roster 核对认证主体，不使用私有主体映射、subject_binding 回执或其摘要；具体生命周期见 media-service-binding §3.2。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
@@ -173,7 +173,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   出现并按本节四项校验。模式分支由包含 roster delta 的同一 accepted call-state basis
   决定，producer 不得自行声明第三个判据。
 - `mute_override`：v1 暂不开放主持人强制静音。`ak.call.state` 只要携带此字段（即使同时携带其它合法 delta）就 MUST 以 `schema_violation` 拒绝，零 Event／Commit／current state 写入；旧 call-only `call_mute_override` selector 与单 leg value 不得被解释为多 leg 集合。该保留形状不授权生产端写入。普通通话、自主 `mute_state{by=self}`、kick／ban／end-for-all 仍按各自合同接纳。
-- `moderation_delta.op=remove_participant`：以 `(call_id, actor_id, device_id?)` 作为稳定领域目标；`kick` MUST 含 `device_id`，`ban` MUST 省略它。`moderation_delta.op=restore_participant` 必须携带 moderation `expected_revision`，且只能恢复 actor 一致的 active ban，不能恢复 kick。
+- `moderation_delta.op=remove_participant`：以 `(call_id, actor_id, device_id?)` 作为稳定领域目标；`kick` MUST 含 `device_id`，`ban` MUST 省略它。`moderation_delta.op=restore_participant` 必须携带 moderation `expected_commit_id`，且只能恢复 actor 一致的 active ban，不能恢复 kick。
 
 高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音在 v1 失败关闭，不能用仅作用于客户端的信令冒充服务端媒体权限。
 
@@ -206,7 +206,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 - 停止必须引用确切当前安全 revision；相同前态竞争至多一个成功，失败不改变许可。
 - ready/failed 必须引用已确认 stop，先停止捕获才发布产物。缺 stop 或属于其它段的 stop 均不生效。
-- 结果独立按所属 stream 的 Commit 顺序与 `expected_revision` 更新；异值竞争不冻结其它段或主通话状态。
+- 结果独立按所属 stream 的 Commit 顺序与 `expected_commit_id` 更新；异值竞争不冻结其它段或主通话状态。
 - roster/moderation 更新在同一 authority commit 事务中原子执行；不能脱离该序列释放 token 或移除访问屏障。
 
 ### 4.3 完整有效 current 与接受来源（normative）
@@ -220,7 +220,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 及本次 accepted delta 计算完整后态；副本 MUST 按原 stream 顺序重建同一结果，不得重新接纳或重签来源。
 
 - `call_roster_effective_entries`：以 `(完整 ActorId,真实 DeviceId)` 为键，join 用本次原 join entry
-  替换同键旧 join，leave 仅删除同键 entry；未知目标、错身份及 stale `expected_revision` 按 §4.1 拒绝。
+  替换同键旧 join，leave 仅删除同键 entry；未知目标、错身份及 stale `expected_commit_id` 按 §4.1 拒绝。
   `entries` 只含尚未 leave 的最新 join，不保留被替换 join 或 leave 历史；有效 roster 上限仍为 1,000。
   moderation 不暗中改写 roster：是否允许媒体仍联合读取两个轴及其它当前门禁。
 - `call_moderation_effective_entries`：ban 以完整 ActorId 为键保留最新 remove；kick 以
@@ -253,7 +253,7 @@ source position 不晚于该轴 revision／enclosing head；同一来源 Commit 
 row `revision` MUST 精确等于 `last_source.source_commit` 的 `{commit_id,stream_position}`，
 `source_stream_ref` MUST 与它的 stream_ref 相等；last_source 必须实际写过本轴。leave/restore 即使令
 entries 变空，也 MUST 保留该最后来源并推进整轴 revision，不回退到最后幸存 join/ban。
-`expected_revision` 始终比较整个对应轴，不能比较某 entry 的旧 revision。两轴 revision 可以不同；
+`expected_commit_id` 始终比较整个对应轴，不能比较某 entry 的旧 revision。两轴 revision 可以不同；
 若一个 Event 同时更新两轴，原子可见并共享该 Commit，但 dot 下标各自不同。
 
 **完整性与读取**：普通读取复用完整内联、原治理签名的 Snapshot，经已持久绑定完整 AccountId 的自己
@@ -335,9 +335,9 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
   1. 作为加密 blob 上传到 Arkret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
   2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ak.call.record` 的 actor 发起。
   3. 加密 key MUST 由 Arkret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ak.rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
-  4. 入库后通过 `ak.call.state` 的 `recording_transition` 发布 lifecycle state，并在 `recording_transition.capture_metadata` 引用 content digest、duration、media type、retention policy、`recording_start_event_id` 与 artifact。
+  4. 入库后通过 `ak.call.state` 的 `recording_transition` 发布 lifecycle；ready 的 `capture_metadata` 仅携唯一完整 artifact，其他字段从该 artifact 派生。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
-- 录制结果 MUST 通过已注册的 `ak.call.state` 写入 `recording_transition`：`to` 为 `ready` / `failed` / `stopped`，与通话 `state_transition` 正交（见 §4.2）；需要结果事实时在 `recording_transition.capture_metadata` 中引用 `recording_start_event_id`。`to="ready"` 时，`recording_transition.capture_metadata.artifact` MUST 符合 [`call-recording-artifact.schema.json`](../../artifacts/schemas/call-recording-artifact.schema.json)，其 `schema` MUST 为 `ak.schema.call_recording_artifact.v1`；该 schema identity 已固定 recording artifact family，artifact 不携 `artifact_kind`。artifact 还 MUST 绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`、`blob_ref`、`content_digest`、`ciphertext_digest`、`duration_ms`、`media_type`、`encryption.exporter_label="ak.rtc-recording-key/v1"`、`encryption.context`、`retention`、`produced_by` 与 `recording_initiator_capability_ref`。capture metadata 中的 `content_digest` / `duration_ms` / `media_type` / `retention_policy_id` / `retention` 是便于投影和查询的镜像字段；若与 artifact 同名事实不一致，reducer / consumer MUST fail closed `schema_violation`。`to="failed"` 时 SHOULD 携带 `failure_reason_code`，MUST NOT 携带 backend 直出 URL、明文路径或明文片段。v1 不注册独立的 `ak.call.recording.result` 或 `ak.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
+- 录制结果 MUST 通过现有 `ak.call.state.recording_transition` 发布。`to="ready"` 的 `capture_metadata` MUST 是唯一 closed `{artifact}`，artifact MUST 符合 `call-recording-artifact.schema.json`。Realm/Call/recording_id、真实 start、原 init capability、produced_by、exporter label/context 和当前权限 MUST 与 accepted source 对齐。`blob_ref` 承诺 exact stored ciphertext bytes，MUST NOT 再携同原像 content_digest/ciphertext_digest；下载按该 ref 验字节，再独立执行 AEAD/AAD。duration/media_type/retention 等仅在 artifact 内，查询索引从其只读派生，外层镜像 MUST 拒绝。原 start 的 consent 事实和当前 retention/policy/legal-hold 门仍全部必需；ready 不得重开撤回同意。stopped 不要求产物，failed 保留原 failure 诊断而 MUST NOT 携 artifact、明文片段或 backend URL。v1 不注册独立 recording.result/stop kind。
 录制与转写的 `failure_reason_code` 共用封闭 core 集：`media_negotiation_timeout` / `permission_denied` / `backend_unavailable` / `media_source_unavailable` / `storage_failed` / `policy_revoked` / `consent_withdrawn` / `integrity_failed`。扩展值 MUST 使用 `x_` 前缀并匹配 `^x_[a-z0-9_]{1,62}$`；其它值 MUST `schema_violation`。
 
 - 转写需要 `ak.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
@@ -354,7 +354,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 
 ### 5.2 录制 / 转写 retention policy（normative）
 
-录制与转写 artifact 的保留期、删除触发、审计锁定与二次确认走对应 capture transition 的 `capture_metadata.retention`（schema 见 `call_recording_retention`）。规则：
+录制 ready 的保留/删除依据唯一为 `recording_transition.capture_metadata.artifact.retention` 及其 retention_policy_id；转写和未产物阶段仍走各自现有 capture_metadata.retention。两者均保留原删除、审计锁和二次同意义务。
 
 - **保留期**：`retention.retention_expires_at` 是协议固定的**最早**可删除时间；缺省时由 `retention_policy_id` 指向的 Realm retention policy 决定。写入时 MUST NOT 为过去时刻。
 - **删除触发**：`retention.deletion_trigger ∈ { retention_expiry, manual, realm_policy, participant_erasure }`。`participant_erasure` 对应某参与者发起 erasure 时对其媒体片段的级联删除（见 account erasure 流程）。实际删除尝试的触发事实写入 result artifact 的 `deletion_audit.trigger`（或转写后续定义的等价 artifact 字段）；该值 MUST 与 retention 的 `deletion_trigger` 一致，不得由 Blob 服务或媒体 backend 自行改写。
@@ -363,7 +363,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 - **客户端二次确认**:录制 / 转写进入捕获态只能由 `ak.call.recording.start` 完成；接受该 Event 前 MUST 取得用户的第二次显式同意，并将事实记入 `payload.capture_metadata.retention.consent_confirmed=true`。reducer MUST 原子验证该事实并写入独立 artifact current state，缺失或不为 true 时 MUST `failed_precondition` `reason_code="recording_consent_required"`；`ak.call.state` 不得提交 `to="recording"` / `to="transcribing"` 绕过 start gate。
 - **`consent_confirmed` 的保证类别（normative，诚实标注）**：`consent_confirmed=true` 是**流程性约束**，**不是**密码学同意证明——它由发起方客户端单方面置真，协议层无法强制其真实性。实现、UI、采购或合规文案 MUST NOT 把 `consent_confirmed=true` 表述为"已获得（被录制方的）密码学同意"或等价措辞，避免 false-positive 合规声明；该字段只表示"发起方声明已在本端取得用户二次确认"。
 - **per-participant consent acknowledgment（更强合规 profile，normative）**：每个被录制方设备签名的 consent acknowledgment，其 signing input MUST 覆盖 `(call_id, recording_artifact_ref 或 capture epoch, consenting_actor_id, consenting_device_id, consented_at)`，签名身份按 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md) 的设备验签公钥目录解析并 fail-closed 验证。`security_class=high-confidentiality` 或启用 attested / disclosed audit profile 的 Realm MUST 启用该门禁；其它 Realm MAY 启用。启用时，reducer MUST 对缺少任一当前被录制方有效 acknowledgment 的捕获态 `failed_precondition` `reason_code="recording_consent_required"`，且成员加入、设备切换或 capture epoch 改变后 MUST 重新取得 ack 后才能继续捕获。该签名集合是 `disclosed_policy` 之上的 `attested`-类强保证，可作为可审计同意证据。未启用该 profile 的部署仍只具备上一条的流程性保证，不得声称等价。
-- retention 字段是对应 `recording_transition.capture_metadata` / `transcript_transition.capture_metadata` 的子对象，与 §4.2 捕获态机正交；它只约束 artifact 生命周期，不改变通话主状态。
+- ready 录制的 retention 只位于唯一 artifact；未产物阶段及转写的原 retention 路径保持。保留期与捕获 FSM 正交，不新增写入权或第二份可写镜像。
 
 ## 6. P2P→SFU 升级（normative）
 

@@ -39,7 +39,7 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 `event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, semantic_refs?, payload, producer_proof`。
 
-`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`semantic_refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
+`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`semantic_refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_commit_id`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
 
 Event 不指向“上一个 Event”。producer 可能离线签名，且多个 producer 会并发；让 Event 绑定 head 会导致合法排队请求因其它写先提交而重签，MLS 请求甚至需要重建密码材料。最终顺序只能由接纳方分配。
 
@@ -105,7 +105,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 current state key、通用 CRDT、deterministic projection、rank、dot、通用 predicate 或 state-root DSL。
 
-默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义 `expected_revision`，其类型是 [`current-state.md`](./current-state.md) 的封闭 `revision`，即 `{commit_id, stream_position}` 二元组，比较是**逐字段相等**；它不是裸 Commit ID，也不是计数器。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
+默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义已登记的 `expected_commit_id`（具名多目标 guard 按各自名称），只与锁定 exact current row 的 covering Commit ID 相等比较。读侧 revision 仍为 `{commit_id, stream_position}`，Commit ID 的内容地址已唯一绑定 position；写条件不重复该坐标。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
 
 跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 

@@ -90,86 +90,6 @@
       }
     },
     {
-      "name": "recovery_commit_intent_has_two_ordered_distinct_digests",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": true,
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-        ]
-      }
-    },
-    {
-      "name": "recovery_commit_intent_rejects_zero_digests",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": false,
-      "first_expected_error": "contains:too short",
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": []
-      }
-    },
-    {
-      "name": "recovery_commit_intent_rejects_one_digest",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": false,
-      "first_expected_error": "contains:too short",
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ]
-      }
-    },
-    {
-      "name": "recovery_commit_intent_rejects_three_digests",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": false,
-      "first_expected_error": "contains:too long",
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
-        ]
-      }
-    },
-    {
-      "name": "recovery_commit_intent_rejects_duplicate_digests",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": false,
-      "first_expected_error": "contains:non-unique",
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-        ]
-      }
-    },
-    {
-      "name": "recovery_commit_intent_rejects_non_sha256_digest",
-      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
-      "expect_valid": false,
-      "first_expected_error": "contains:does not match",
-      "instance": {
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "unit_event_digests": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "blake3:2222222222222222222222222222222222222222222222222222222222222222"
-        ]
-      }
-    },
-    {
       "name": "revoke_terminal_accepts_exact_closed_result",
       "schema_ref": "schemas/security-transaction.schema.json#/$defs/revoke_command_outcome",
       "expect_valid": true,
@@ -200,6 +120,542 @@
       "instance": {
         "proposal_event_id": "ak:event:AWKDhmQTc5zyfilaLwPF3xnhoZAjxSha7Z-6grioN9aW",
         "covering_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      }
+    },
+    {
+      "name": "single_submit_recovery_receipt",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "expires_at": "2026-11-14T12:15:00.000Z",
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "session_grant_ref": {
+          "issuer_id": "ak:did_core:web:station.example",
+          "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+        },
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:single-submit-recovery",
+        "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "identity_model": "pcr_policy",
+        "recovery_authority_kind": "pcr_policy",
+        "previous_model_generation_ref": 1,
+        "new_model_generation_ref": 2,
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "recovery_unit": {
+          "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+          "events": [
+            {
+              "event": {
+                "kind": "ak.device.reanchor",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  },
+                  "recovery_authority_kind": "pcr_policy",
+                  "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                  "recovery_policy_version": 1,
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "previous_device_generation": 1,
+                  "new_device_generation": 2,
+                  "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                },
+                "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                }
+              }
+            },
+            {
+              "event": {
+                "kind": "ak.device.authorize",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                  "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                  "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "algorithms": [
+                    "Ed25519"
+                  ],
+                  "device_key_algorithm": "Ed25519",
+                  "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "authorization_binding_kind": "pcr_recovery",
+                  "authorized_generation_ref": 2,
+                  "not_before": "2026-11-14T12:00:00.000Z",
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                },
+                "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                }
+              }
+            }
+          ]
+        },
+        "unlocked_backups": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-11-14T12:00:00.000Z",
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "signature_proof": {
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature_algorithm": "Ed25519",
+          "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+        }
+      }
+    },
+    {
+      "name": "single_submit_recovery_result",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion",
+      "expect_valid": true,
+      "instance": {
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "kind": "recovery",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "created_at": "2026-11-14T12:00:00.000Z",
+        "recovery_receipt": {
+          "schema": "ak.schema.recovery_receipt.v1",
+          "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+          "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "expires_at": "2026-11-14T12:15:00.000Z",
+          "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+          "session_grant_ref": {
+            "issuer_id": "ak:did_core:web:station.example",
+            "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+          },
+          "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+          "policy_version": 1,
+          "trust_domain": "ak:trust_domain:single-submit-recovery",
+          "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "identity_model": "pcr_policy",
+          "recovery_authority_kind": "pcr_policy",
+          "previous_model_generation_ref": 1,
+          "new_model_generation_ref": 2,
+          "proof_summary": {
+            "kind": "recovery_unlock",
+            "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "recovery_unit": {
+            "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+            "events": [
+              {
+                "event": {
+                  "kind": "ak.device.reanchor",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                  "scope_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                  },
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    }
+                  },
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "payload": {
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    },
+                    "recovery_authority_kind": "pcr_policy",
+                    "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                    "recovery_policy_version": 1,
+                    "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                    "previous_device_generation": 1,
+                    "new_device_generation": 2,
+                    "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                  },
+                  "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                  "producer_proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                    "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                    "created_at": "2026-11-14T12:00:00.000Z",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                  }
+                }
+              },
+              {
+                "event": {
+                  "kind": "ak.device.authorize",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                  "scope_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                  },
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    }
+                  },
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "payload": {
+                    "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                    "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                    "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                    "algorithms": [
+                      "Ed25519"
+                    ],
+                    "device_key_algorithm": "Ed25519",
+                    "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "authorization_binding_kind": "pcr_recovery",
+                    "authorized_generation_ref": 2,
+                    "not_before": "2026-11-14T12:00:00.000Z",
+                    "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                    "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                  },
+                  "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                  "producer_proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                    "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                    "created_at": "2026-11-14T12:00:00.000Z",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                  }
+                }
+              }
+            ]
+          },
+          "unlocked_backups": [],
+          "welcome_count": 0,
+          "outcome": "completed",
+          "started_at": "2026-11-14T12:00:00.000Z",
+          "completed_at": "2026-11-14T12:00:00.000Z",
+          "signature_proof": {
+            "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+            "signature_algorithm": "Ed25519",
+            "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+          }
+        },
+        "completion_attestation": {
+          "schema": "ak.schema.recovery_completion_attestation.v1",
+          "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+          "terminal_receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+          "terminal_receipt_digest": "sha256:fc40ce224c4814987301d3c4fcfeedbf93340647a65005497031529b54691da2",
+          "replacement_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "new_model_generation_ref": 2,
+          "completed_at": "2026-11-14T12:00:00.000Z",
+          "reanchor_event_ref": {
+            "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+            "commit_id": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+            },
+            "stream_position": 10
+          },
+          "device_authorization_event_ref": {
+            "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+            "commit_id": "ak:realm_commit:ATXxcNDlAhbgZw0dEe0l8I-Xog_hy836G1T4IL7SvYMX",
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+            },
+            "stream_position": 11
+          },
+          "signature_proof": {
+            "verification_method": "did:web:station.example#service-1",
+            "signature_algorithm": "Ed25519",
+            "signature": "aWfuwpFkHJOIQlNpO2TJQfwmmgvSE6m_0qAOAvTTFplIPJ9GGub0HuSd49QwOLPuTtGVMp07M1DGZ3YtP6h3DA"
+          }
+        }
+      }
+    },
+    {
+      "name": "single_submit_recovery_completion_request",
+      "schema_ref": "schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body",
+      "expect_valid": true,
+      "instance": {
+        "terminal_receipt": {
+          "schema": "ak.schema.recovery_receipt.v1",
+          "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+          "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "expires_at": "2026-11-14T12:15:00.000Z",
+          "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+          "session_grant_ref": {
+            "issuer_id": "ak:did_core:web:station.example",
+            "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+          },
+          "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+          "policy_version": 1,
+          "trust_domain": "ak:trust_domain:single-submit-recovery",
+          "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "identity_model": "pcr_policy",
+          "recovery_authority_kind": "pcr_policy",
+          "previous_model_generation_ref": 1,
+          "new_model_generation_ref": 2,
+          "proof_summary": {
+            "kind": "recovery_unlock",
+            "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "recovery_unit": {
+            "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+            "events": [
+              {
+                "event": {
+                  "kind": "ak.device.reanchor",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                  "scope_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                  },
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    }
+                  },
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "payload": {
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    },
+                    "recovery_authority_kind": "pcr_policy",
+                    "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                    "recovery_policy_version": 1,
+                    "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                    "previous_device_generation": 1,
+                    "new_device_generation": 2,
+                    "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                  },
+                  "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                  "producer_proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                    "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                    "created_at": "2026-11-14T12:00:00.000Z",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                  }
+                }
+              },
+              {
+                "event": {
+                  "kind": "ak.device.authorize",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                  "scope_ref": {
+                    "kind": "realm",
+                    "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                  },
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                      "station_id": "ak:did_core:web:station.example"
+                    }
+                  },
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "payload": {
+                    "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                    "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                    "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                    "algorithms": [
+                      "Ed25519"
+                    ],
+                    "device_key_algorithm": "Ed25519",
+                    "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "authorization_binding_kind": "pcr_recovery",
+                    "authorized_generation_ref": 2,
+                    "not_before": "2026-11-14T12:00:00.000Z",
+                    "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                    "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                  },
+                  "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                  "producer_proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                    "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                    "created_at": "2026-11-14T12:00:00.000Z",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                  }
+                }
+              }
+            ]
+          },
+          "unlocked_backups": [],
+          "welcome_count": 0,
+          "outcome": "completed",
+          "started_at": "2026-11-14T12:00:00.000Z",
+          "completed_at": "2026-11-14T12:00:00.000Z",
+          "signature_proof": {
+            "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+            "signature_algorithm": "Ed25519",
+            "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+          }
+        },
+        "initial_session": {
+          "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
+          "audience_id": "ak:did_core:web:station.example"
+        },
+        "accepted_device_possession_proof": {
+          "context": "ak.session_grant_accepted_device_possession_proof.v1",
+          "purpose": "recovery_completion_grant_issue",
+          "request_id": "ak:request:019ba000-0000-7000-8000-000000000008",
+          "account_subject": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "account_handoff_grant_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "audience_id": "ak:did_core:web:station.example",
+          "holder_jkt": "lNnm0a7r26H94dQ2zarzrs_oaj0omklAjTtYQtyfrrA",
+          "session_intent_digest": "sha256:5da0a7b481b15763b05f57a5e3c1035e7ffe412fc7c92cb26e89081a49ccac0e",
+          "issued_at": "2026-11-14T12:00:00.000Z",
+          "expires_at": "2026-11-14T12:05:00.000Z",
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature": "RdBiZZCG4FAjyv4GUMRujGD-W0WcSz5ryzSVx__AGnPK30dLdeE2e9-s9UBq8Uk52jHZECNnu1fLHD3IWtavAg"
+        },
+        "canonical_request_digest": "sha256:6709ab8859bd56367bc4c2f90b99b4e594cc0cce0640dcbfa1011be0b555be3f"
+      }
+    },
+    {
+      "name": "single_submit_recovery_issuance_outcome",
+      "schema_ref": "schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_response_body",
+      "expect_valid": true,
+      "instance": {
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "issued_session": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "issuer_id": "ak:did_core:web:station.example",
+          "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+          "session_grant": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1-f4A",
+          "expires_at": "2026-11-14T13:00:00.000Z",
+          "session_grant_id": "ak:session_grant:019ba000-0000-7000-8000-000000000009",
+          "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
+          "audience_id": "ak:did_core:web:station.example",
+          "granted_scope": [
+            "ak.self.security_transaction.resource.get.v1"
+          ]
+        },
+        "issued_at": "2026-11-14T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "single_submit_recovery_native_commit_0",
+      "schema_ref": "schemas/realm-commit.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+        "governance_generation": "0",
+        "authority_ref": "ak:event:AYCX71FP4UsJFb_awPn4fPoR4mnMReVipMSAlst-C3z2",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+        },
+        "stream_position": 10,
+        "previous_commit_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+        "event_ref": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+        "committed_at": "2026-11-14T12:00:00.000Z",
+        "commit_id": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:web:station.example#service-1",
+          "signed_digest": "sha256:63db16feb90f1c906858b8eef59933b0875a616a6faeab5294db298130c7a0c4",
+          "created_at": "2026-11-14T12:00:00.000Z",
+          "signature": "rdbYnzrhL62zamuSrTqBguEgbb3bLsC3UC6q-Smr-NdmAiuJR7WtXBGX_89YQTU7zGbmu5sYF0ZSj7wGIYaPCg"
+        }
+      }
+    },
+    {
+      "name": "single_submit_recovery_native_commit_1",
+      "schema_ref": "schemas/realm-commit.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+        "governance_generation": "0",
+        "authority_ref": "ak:event:AYCX71FP4UsJFb_awPn4fPoR4mnMReVipMSAlst-C3z2",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+        },
+        "stream_position": 11,
+        "previous_commit_ref": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+        "event_ref": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+        "committed_at": "2026-11-14T12:00:00.000Z",
+        "commit_id": "ak:realm_commit:ATXxcNDlAhbgZw0dEe0l8I-Xog_hy836G1T4IL7SvYMX",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:web:station.example#service-1",
+          "signed_digest": "sha256:5fd127c2a2a55bc7ad63cf89f5e5b56dcf61c70486b5cb7acb9b58c698be9d81",
+          "created_at": "2026-11-14T12:00:00.000Z",
+          "signature": "5NLvv18hVqIKzXl_yXd6LnAs5bV7_Cggg3xXGwQaPlGGbcFH3FHNYT6dA7osB3ZxFmbKUcXb9H3lFgR25AxHDQ"
+        }
       }
     }
   ],
@@ -233,15 +689,9 @@
     "erase_is_only_worker_executed_and_has_no_public_self_operation",
     "exact_replay_returns_the_stored_outcome",
     "conflicting_replay_returns_duplicate_conflict",
-    "accepted_webvh_entry_resumes_the_same_reanchor_unit",
     "coordinator_owned_prefix_is_advanced_only_by_the_durable_worker",
     "continue_accepts_only_a_terminal_ready_client_attestation",
     "device_attestation_readiness_is_derived_from_canonical_next_step",
-    "recovery_create_freezes_two_signed_events_current_predecessor_and_ordered_digests_with_no_recovery_effect",
-    "recovery_authoritative_results_are_all_invisible_before_the_commit_and_all_visible_after",
-    "governance_station_issues_both_recovery_realm_commits_only_inside_commit_recovery_unit",
-    "recovery_stored_outcome_is_checked_before_consumed_session_refusal",
-    "only_the_atomic_generation_cas_winner_commits_a_reanchor_commit",
     "security_rotation_create_requires_fresh_high_risk_authentication_and_binds_the_authenticated_authorizing_device",
     "erase_rechecks_live_transaction_active_account_non_revoked_authorizing_device_current_pointer_and_generation",
     "authorization_lease_is_not_issued_or_accepted",
@@ -249,7 +699,15 @@
     "erased_series_never_becomes_active_again",
     "public_store_log_telemetry_and_crash_artifact_contain_no_secret_material",
     "accepted_revoke_proposal_has_exact_covering_commit_and_pending_without_outcome",
-    "accepted_or_rejected_revoke_outcome_is_atomic_with_step_or_abort_expiry"
+    "accepted_or_rejected_revoke_outcome_is_atomic_with_step_or_abort_expiry",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "Recovery is one exact signed receipt containing two EventAdmissionSubmission slots; it has no prepare plan or outer terminal signature.",
+    "Recovery success atomically creates distinct consecutive Commits, device/generation/session terminal and native content-recovery fence.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder."
   ],
   "rotation_cases": [
     {
@@ -385,194 +843,10 @@
       "reason_code": "failed_precondition"
     },
     {
-      "name": "continue_without_attestation_is_not_get_alias",
+      "name": "recovery_continue_is_not_a_submission_route",
       "transaction_kind": "recovery",
-      "accepted_step_count": 0,
-      "derived_next_step": "commit_recovery_unit",
-      "client_attestation_present": false,
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
-    },
-    {
-      "name": "recovery_prefix_zero_attested_terminal_continue",
-      "transaction_kind": "recovery",
-      "accepted_step_count": 0,
-      "derived_next_step": "commit_recovery_unit",
-      "client_attestation_step": "commit_recovery_unit",
-      "cas_matches": true,
-      "reserved_output_matches": true,
-      "expected": "accept_terminal_step"
-    },
-    {
-      "name": "recovery_has_no_coordinator_owned_prefix",
-      "transaction_kind": "recovery",
-      "accepted_step_count": 1,
-      "derived_next_step": null,
-      "client_attestation_step": "commit_recovery_unit",
-      "expected": "reject_without_side_effect",
-      "reason_code": "failed_precondition"
-    }
-  ],
-  "recovery_terminal_commit_cases": [
-    {
-      "name": "create_freezes_events_predecessor_and_ordered_digests",
-      "phase": "create",
-      "expected": "freeze_prepared_plan",
-      "frozen_plan_members": [
-        "binding.reanchor_event_id",
-        "binding.authorize_event_id",
-        "binding.terminal_receipt_id",
-        "reanchor_unit",
-        "reanchor_commit_intent",
-        "reanchor_commit_intent.predecessor_ref",
-        "reanchor_commit_intent.unit_event_digests"
-      ],
-      "committed_command_result_unit_event_digests": [
-        "reanchor_digest",
-        "authorize_digest"
-      ],
-      "observable_recovery_effects": []
-    },
-    {
-      "name": "byte_identical_create_replays_the_same_frozen_material",
-      "phase": "create",
-      "expected": "replay_stored_outcome",
-      "replayed_members": [
-        "request_digest",
-        "prepared_plan",
-        "prepared_plan_digest",
-        "binding.reanchor_event_id",
-        "binding.authorize_event_id",
-        "reanchor_unit",
-        "reanchor_commit_intent"
-      ]
-    },
-    {
-      "name": "same_transaction_id_with_different_intent_bytes",
-      "phase": "create",
-      "expected": "reject_without_side_effect",
-      "reason_code": "duplicate_conflict"
-    },
-    {
-      "name": "terminal_commit_is_one_atomic_commit",
-      "phase": "commit_recovery_unit",
-      "expected": "accept_terminal_step",
-      "invisible_before_commit": [
-        "accepted_reanchor_event",
-        "accepted_authorize_event",
-        "committed_reanchor_realm_commit",
-        "committed_authorize_realm_commit",
-        "advanced_device_generation",
-        "active_verified_replacement_device",
-        "consumed_recovery_session",
-        "completed_terminal_outcome"
-      ],
-      "visible_after_commit": [
-        "accepted_reanchor_event",
-        "accepted_authorize_event",
-        "committed_reanchor_realm_commit",
-        "committed_authorize_realm_commit",
-        "advanced_device_generation",
-        "active_verified_replacement_device",
-        "consumed_recovery_session",
-        "accepted_terminal_step",
-        "recovery_completion_attestation",
-        "completed_terminal_outcome"
-      ]
-    },
-    {
-      "name": "ordered_event_digests_differ_from_the_frozen_intent",
-      "phase": "commit_recovery_unit",
-      "expected": "reject_without_side_effect",
-      "reason_code": "failed_precondition"
-    },
-    {
-      "name": "swapped_event_digest_order_differs_from_the_frozen_plan",
-      "phase": "commit_recovery_unit",
-      "expected": "reject_without_side_effect",
-      "reason_code": "failed_precondition",
-      "frozen_order": [
-        "reanchor_digest",
-        "authorize_digest"
-      ],
-      "submitted_order": [
-        "authorize_digest",
-        "reanchor_digest"
-      ],
-      "zero_effects": [
-        "accepted_reanchor_event",
-        "accepted_authorize_event",
-        "committed_reanchor_realm_commit",
-        "committed_authorize_realm_commit",
-        "advanced_device_generation",
-        "active_verified_replacement_device",
-        "consumed_recovery_session",
-        "accepted_terminal_step",
-        "recovery_completion_attestation",
-        "completed_terminal_outcome"
-      ]
-    },
-    {
-      "name": "terminal_artifact_attempts_to_carry_realm_commit_material",
-      "phase": "commit_recovery_unit",
-      "forbidden_members": [
-        "realm_commit",
-        "realm_commit_id",
-        "authority_signature"
-      ],
-      "expected": "reject_without_side_effect",
-      "reason_code": "failed_precondition"
-    },
-    {
-      "name": "receipt_completed_at_later_than_the_linearized_commit_time",
-      "phase": "commit_recovery_unit",
-      "expected": "reject_without_side_effect",
-      "reason_code": "recovery_receipt_completed_at_after_commit",
-      "note": "The replacement device clock runs ahead, so the signed receipt claims a completed_at the Station has not reached. No skew allowance exists: the Station neither signs a future-dated completion attestation nor blocks until the claimed time.",
-      "zero_effects": [
-        "accepted_reanchor_event",
-        "accepted_authorize_event",
-        "committed_reanchor_realm_commit",
-        "committed_authorize_realm_commit",
-        "advanced_device_generation",
-        "active_verified_replacement_device",
-        "consumed_recovery_session",
-        "accepted_terminal_step",
-        "recovery_completion_attestation",
-        "completed_terminal_outcome"
-      ],
-      "retry_with_a_new_receipt": "accepted",
-      "retry_with_different_bytes_for_a_frozen_step_outcome": "duplicate_conflict"
-    },
-    {
-      "name": "raw_recovery_commit_without_a_completed_transaction",
-      "phase": "post_commit",
-      "attempted_paths": [
-        "ordinary_commit_submit",
-        "federation",
-        "history_replay"
-      ],
-      "expected": "reject_without_side_effect",
-      "expected_finality": "none"
-    },
-    {
-      "name": "terminal_response_lost_then_byte_identical_continue",
-      "phase": "post_commit",
-      "expected": "replay_stored_outcome",
-      "stored_outcome_checked_before_live_state_refusal": true,
-      "replayed_members": [
-        "terminal_outcome",
-        "terminal_outcome.receipt_id",
-        "terminal_outcome.completion_attestation"
-      ]
-    },
-    {
-      "name": "two_units_race_the_same_previous_generation",
-      "phase": "post_commit",
-      "expected": "single_atomic_cas_winner",
-      "loser_residue": [],
-      "winner_quarantined": false,
-      "rival_outcome": "generation_predecessor_conflict_or_terminal_aborted"
     }
   ],
   "equivalence_output": {
@@ -584,5 +858,625 @@
       "terminal_outcome"
     ],
     "minimum_independent_runners": 2
-  }
+  },
+  "single_submit_recovery_kat": {
+    "boundary": "Real Ed25519/Event/Commit and fresh completion-holder PoP bytes over explicit qualified inputs; not native DID/HTTP authentication or production storage.",
+    "identity_projection": {
+      "did": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net",
+      "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+      "source_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/3/commitment/did"
+    },
+    "receipt": {
+      "schema": "ak.schema.recovery_receipt.v1",
+      "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+      "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "expires_at": "2026-11-14T12:15:00.000Z",
+      "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+      "session_grant_ref": {
+        "issuer_id": "ak:did_core:web:station.example",
+        "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+      },
+      "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+      "policy_version": 1,
+      "trust_domain": "ak:trust_domain:single-submit-recovery",
+      "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+      "identity_model": "pcr_policy",
+      "recovery_authority_kind": "pcr_policy",
+      "previous_model_generation_ref": 1,
+      "new_model_generation_ref": 2,
+      "proof_summary": {
+        "kind": "recovery_unlock",
+        "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "recovery_unit": {
+        "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+        "events": [
+          {
+            "event": {
+              "kind": "ak.device.reanchor",
+              "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+              },
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              },
+              "created_at": "2026-11-14T12:00:00.000Z",
+              "payload": {
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "station_id": "ak:did_core:web:station.example"
+                },
+                "recovery_authority_kind": "pcr_policy",
+                "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                "recovery_policy_version": 1,
+                "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                "previous_device_generation": 1,
+                "new_device_generation": 2,
+                "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+              },
+              "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+              "producer_proof": {
+                "kind": "detached_jws",
+                "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+              }
+            }
+          },
+          {
+            "event": {
+              "kind": "ak.device.authorize",
+              "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+              },
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              },
+              "created_at": "2026-11-14T12:00:00.000Z",
+              "payload": {
+                "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                "algorithms": [
+                  "Ed25519"
+                ],
+                "device_key_algorithm": "Ed25519",
+                "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "authorization_binding_kind": "pcr_recovery",
+                "authorized_generation_ref": 2,
+                "not_before": "2026-11-14T12:00:00.000Z",
+                "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+              },
+              "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+              "producer_proof": {
+                "kind": "detached_jws",
+                "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+              }
+            }
+          }
+        ]
+      },
+      "unlocked_backups": [],
+      "welcome_count": 0,
+      "outcome": "completed",
+      "started_at": "2026-11-14T12:00:00.000Z",
+      "completed_at": "2026-11-14T12:00:00.000Z",
+      "signature_proof": {
+        "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+        "signature_algorithm": "Ed25519",
+        "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+      }
+    },
+    "receipt_digest": "sha256:fc40ce224c4814987301d3c4fcfeedbf93340647a65005497031529b54691da2",
+    "qualified_inputs": {
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+      "session_grant_ref": {
+        "issuer_id": "ak:did_core:web:station.example",
+        "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+      },
+      "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+      "policy_version": 1,
+      "trust_domain": "ak:trust_domain:single-submit-recovery",
+      "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+      "proof_summary": {
+        "kind": "recovery_unlock",
+        "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "previous_model_generation_ref": 1,
+      "candidate_public_key": "ebVWLo_mVPlAeLES6KmLp5AfhTrmlb7X4OORC60ElmQ",
+      "candidate_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+      "candidate_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+      "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+      "policy_active": true,
+      "session_verified": true,
+      "grant_active": true,
+      "session_consumed": false,
+      "current_reader_authorized": true,
+      "current_generation": 1,
+      "now": "2026-11-14T12:00:00.000Z",
+      "session_expires_at": "2026-11-14T12:15:00.000Z",
+      "grant_expires_at": "2026-11-14T12:15:00.000Z",
+      "candidate_already_authorized": false
+    },
+    "expected_outcome": {
+      "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+      "kind": "recovery",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "created_at": "2026-11-14T12:00:00.000Z",
+      "recovery_receipt": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "expires_at": "2026-11-14T12:15:00.000Z",
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "session_grant_ref": {
+          "issuer_id": "ak:did_core:web:station.example",
+          "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+        },
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:single-submit-recovery",
+        "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "identity_model": "pcr_policy",
+        "recovery_authority_kind": "pcr_policy",
+        "previous_model_generation_ref": 1,
+        "new_model_generation_ref": 2,
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "recovery_unit": {
+          "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+          "events": [
+            {
+              "event": {
+                "kind": "ak.device.reanchor",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  },
+                  "recovery_authority_kind": "pcr_policy",
+                  "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                  "recovery_policy_version": 1,
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "previous_device_generation": 1,
+                  "new_device_generation": 2,
+                  "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                },
+                "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                }
+              }
+            },
+            {
+              "event": {
+                "kind": "ak.device.authorize",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                  "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                  "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "algorithms": [
+                    "Ed25519"
+                  ],
+                  "device_key_algorithm": "Ed25519",
+                  "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "authorization_binding_kind": "pcr_recovery",
+                  "authorized_generation_ref": 2,
+                  "not_before": "2026-11-14T12:00:00.000Z",
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                },
+                "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                }
+              }
+            }
+          ]
+        },
+        "unlocked_backups": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-11-14T12:00:00.000Z",
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "signature_proof": {
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature_algorithm": "Ed25519",
+          "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+        }
+      },
+      "completion_attestation": {
+        "schema": "ak.schema.recovery_completion_attestation.v1",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "terminal_receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "terminal_receipt_digest": "sha256:fc40ce224c4814987301d3c4fcfeedbf93340647a65005497031529b54691da2",
+        "replacement_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "new_model_generation_ref": 2,
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "reanchor_event_ref": {
+          "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+          "commit_id": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+          },
+          "stream_position": 10
+        },
+        "device_authorization_event_ref": {
+          "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+          "commit_id": "ak:realm_commit:ATXxcNDlAhbgZw0dEe0l8I-Xog_hy836G1T4IL7SvYMX",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+          },
+          "stream_position": 11
+        },
+        "signature_proof": {
+          "verification_method": "did:web:station.example#service-1",
+          "signature_algorithm": "Ed25519",
+          "signature": "aWfuwpFkHJOIQlNpO2TJQfwmmgvSE6m_0qAOAvTTFplIPJ9GGub0HuSd49QwOLPuTtGVMp07M1DGZ3YtP6h3DA"
+        }
+      }
+    },
+    "native_commits": [
+      {
+        "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+        "governance_generation": "0",
+        "authority_ref": "ak:event:AYCX71FP4UsJFb_awPn4fPoR4mnMReVipMSAlst-C3z2",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+        },
+        "stream_position": 10,
+        "previous_commit_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+        "event_ref": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+        "committed_at": "2026-11-14T12:00:00.000Z",
+        "commit_id": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:web:station.example#service-1",
+          "signed_digest": "sha256:63db16feb90f1c906858b8eef59933b0875a616a6faeab5294db298130c7a0c4",
+          "created_at": "2026-11-14T12:00:00.000Z",
+          "signature": "rdbYnzrhL62zamuSrTqBguEgbb3bLsC3UC6q-Smr-NdmAiuJR7WtXBGX_89YQTU7zGbmu5sYF0ZSj7wGIYaPCg"
+        }
+      },
+      {
+        "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+        "governance_generation": "0",
+        "authority_ref": "ak:event:AYCX71FP4UsJFb_awPn4fPoR4mnMReVipMSAlst-C3z2",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+        },
+        "stream_position": 11,
+        "previous_commit_ref": "ak:realm_commit:AQQQd9aJY6UOdF2LQlRfok_f90NDKFk1w6piXfwpmaYH",
+        "event_ref": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+        "committed_at": "2026-11-14T12:00:00.000Z",
+        "commit_id": "ak:realm_commit:ATXxcNDlAhbgZw0dEe0l8I-Xog_hy836G1T4IL7SvYMX",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:web:station.example#service-1",
+          "signed_digest": "sha256:5fd127c2a2a55bc7ad63cf89f5e5b56dcf61c70486b5cb7acb9b58c698be9d81",
+          "created_at": "2026-11-14T12:00:00.000Z",
+          "signature": "5NLvv18hVqIKzXl_yXd6LnAs5bV7_Cggg3xXGwQaPlGGbcFH3FHNYT6dA7osB3ZxFmbKUcXb9H3lFgR25AxHDQ"
+        }
+      }
+    ],
+    "completion_request": {
+      "terminal_receipt": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "expires_at": "2026-11-14T12:15:00.000Z",
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "session_grant_ref": {
+          "issuer_id": "ak:did_core:web:station.example",
+          "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+        },
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:single-submit-recovery",
+        "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "identity_model": "pcr_policy",
+        "recovery_authority_kind": "pcr_policy",
+        "previous_model_generation_ref": 1,
+        "new_model_generation_ref": 2,
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "recovery_unit": {
+          "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+          "events": [
+            {
+              "event": {
+                "kind": "ak.device.reanchor",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  },
+                  "recovery_authority_kind": "pcr_policy",
+                  "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                  "recovery_policy_version": 1,
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "previous_device_generation": 1,
+                  "new_device_generation": 2,
+                  "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                },
+                "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                }
+              }
+            },
+            {
+              "event": {
+                "kind": "ak.device.authorize",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                  "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                  "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "algorithms": [
+                    "Ed25519"
+                  ],
+                  "device_key_algorithm": "Ed25519",
+                  "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "authorization_binding_kind": "pcr_recovery",
+                  "authorized_generation_ref": 2,
+                  "not_before": "2026-11-14T12:00:00.000Z",
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                },
+                "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                }
+              }
+            }
+          ]
+        },
+        "unlocked_backups": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-11-14T12:00:00.000Z",
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "signature_proof": {
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature_algorithm": "Ed25519",
+          "signature": "pxBkIU3nRQAyFpNWi8atMT_2rDknV9-skzBqYIqXFbywJ9khpKU8AERACpGGmjr8naKZA4x5ZfQtaKhbaxYHBw"
+        }
+      },
+      "initial_session": {
+        "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
+        "audience_id": "ak:did_core:web:station.example"
+      },
+      "accepted_device_possession_proof": {
+        "context": "ak.session_grant_accepted_device_possession_proof.v1",
+        "purpose": "recovery_completion_grant_issue",
+        "request_id": "ak:request:019ba000-0000-7000-8000-000000000008",
+        "account_subject": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "account_handoff_grant_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "audience_id": "ak:did_core:web:station.example",
+        "holder_jkt": "lNnm0a7r26H94dQ2zarzrs_oaj0omklAjTtYQtyfrrA",
+        "session_intent_digest": "sha256:5da0a7b481b15763b05f57a5e3c1035e7ffe412fc7c92cb26e89081a49ccac0e",
+        "issued_at": "2026-11-14T12:00:00.000Z",
+        "expires_at": "2026-11-14T12:05:00.000Z",
+        "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+        "signature": "RdBiZZCG4FAjyv4GUMRujGD-W0WcSz5ryzSVx__AGnPK30dLdeE2e9-s9UBq8Uk52jHZECNnu1fLHD3IWtavAg"
+      },
+      "canonical_request_digest": "sha256:6709ab8859bd56367bc4c2f90b99b4e594cc0cce0640dcbfa1011be0b555be3f"
+    },
+    "completion_qualified_inputs": {
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "issuer_id": "ak:did_core:web:station.example",
+      "audience_id": "ak:did_core:web:station.example",
+      "holder_jkt": "lNnm0a7r26H94dQ2zarzrs_oaj0omklAjTtYQtyfrrA",
+      "account_subject": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "handoff_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "authenticated_handoff": true,
+      "dpop_verified": true,
+      "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+      "current_generation": 2,
+      "current_device_active": true,
+      "account_state": "deactivated",
+      "allow_reactivation": true,
+      "now": "2026-11-14T12:00:00.000Z",
+      "candidate_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+      "candidate_public_key": "ebVWLo_mVPlAeLES6KmLp5AfhTrmlb7X4OORC60ElmQ",
+      "secret_entropy": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1-f4A"
+    },
+    "completion_expected_outcome": {
+      "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+      "issued_session": {
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "issuer_id": "ak:did_core:web:station.example",
+        "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "session_grant": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1-f4A",
+        "expires_at": "2026-11-14T13:00:00.000Z",
+        "session_grant_id": "ak:session_grant:019ba000-0000-7000-8000-000000000009",
+        "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
+        "audience_id": "ak:did_core:web:station.example",
+        "granted_scope": [
+          "ak.self.security_transaction.resource.get.v1"
+        ]
+      },
+      "issued_at": "2026-11-14T12:00:00.000Z"
+    }
+  },
+  "recovery_submit_cases": [
+    {
+      "name": "candidate_not_previously_authorized",
+      "expected": "atomic_completed"
+    },
+    {
+      "name": "same_signed_receipt_response_lost",
+      "expected": "same_outcome"
+    },
+    {
+      "name": "changed_signature_bytes_same_transaction",
+      "expected": "duplicate_conflict"
+    },
+    {
+      "name": "swapped_slots",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "wrong_candidate",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "wrong_session_grant_issuer",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "stale_head_or_generation",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "policy_revoked",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "expired_before_first_acceptance",
+      "expected": "reject_zero_effects"
+    },
+    {
+      "name": "deactivated_completion_response_lost",
+      "expected": "fresh_handoff_original_closure_no_recommit"
+    },
+    {
+      "name": "new_holder_without_identity_pop",
+      "expected": "reject_zero_issuance"
+    }
+  ]
 }

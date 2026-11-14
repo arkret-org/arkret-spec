@@ -397,7 +397,7 @@
     },
     {
       "schema": "capability-grant.schema.json",
-      "json_pointer": "/properties/authority_root_refs/items/oneOf/0/properties/authority_event_ref",
+      "json_pointer": "/properties/authority_root_ref/oneOf/0/properties/authority_event_ref",
       "field": "authority_event_ref",
       "classification": "complete_event_id"
     },
@@ -1248,24 +1248,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "recovery-authority.schema.json",
-      "json_pointer": "/$defs/recovery_completion_grant_request_body/properties/device_authorization_event_id",
-      "field": "device_authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-receipt.schema.json",
-      "json_pointer": "/properties/authorization_event_id",
-      "field": "authorization_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "recovery-receipt.schema.json",
-      "json_pointer": "/properties/reanchor_event_id",
-      "field": "reanchor_event_id",
-      "classification": "complete_event_id"
-    },
-    {
       "schema": "resource-selector.schema.json",
       "json_pointer": "/properties/event_id",
       "field": "event_id",
@@ -1276,24 +1258,6 @@
       "json_pointer": "/$defs/backup_rotation_binding/properties/active_series_event_id",
       "field": "active_series_event_id",
       "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/pcr_policy_recovery_binding/properties/authorize_event_id",
-      "field": "authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/pcr_policy_recovery_binding/properties/reanchor_event_id",
-      "field": "reanchor_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "security-transaction.schema.json",
-      "json_pointer": "/$defs/recovery_commit_intent/properties/unit_event_digests",
-      "field": "unit_event_digests",
-      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "security-transaction.schema.json",

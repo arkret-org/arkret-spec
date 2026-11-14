@@ -77,10 +77,18 @@ class ObjectTargetNamingTest(unittest.TestCase):
         value.pop('target_realm_id')
         self.assertFalse(self.validator('profile_realm_override_payload').is_valid(value))
         profile = self.payload('actor_profile_update_payload', 'actor_profile_id', {'display_name': 'Name'})
-        revision = {'commit_id': token('realm_commit'), 'stream_position': 1}
-        self.validator('actor_profile_update_payload').validate({**profile, 'expected_revision': revision})
-        self.assertFalse(self.validator('actor_profile_update_payload').is_valid(
-            {**profile, 'expected_revision': {**revision, 'stream_position': -1}}))
+        commit = json.loads((ART / 'fixtures/authority-commit-fixture.json').read_text(encoding='utf-8'))[
+            'independent_streams'][0]['commits'][1]
+        validator = self.validator('actor_profile_update_payload')
+        validator.validate({**profile, 'expected_commit_id': commit['commit_id']})
+        for invalid in (
+            {'commit_id': commit['commit_id'], 'stream_position': commit['stream_position']},
+            {'commit_id': commit['commit_id'], 'stream_position': -1},
+            {'commit_id': commit['commit_id']},
+            token('event'), 'sha256:' + 'a' * 64, None, 1,
+        ):
+            with self.subTest(expected_commit_id=invalid):
+                self.assertFalse(validator.is_valid({**profile, 'expected_commit_id': invalid}))
 
     def test_full_event_dispatch_uses_each_new_payload_shape(self):
         validator = Draft202012Validator({'$ref': 'https://arkret.org/v1/schemas/event-envelope.schema.json'},

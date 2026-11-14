@@ -84,8 +84,8 @@ def signature_fixture():
     applet = "ak:applet:0195be74-0000-7000-8000-000000000001"
     service = "ak:did_core:webvh:zAppletFixture"
     create = {"schema": "ak.schema.realm_actor_create.v1", "actor_id": actor(), "applet_id": applet, "service_id": service, "actor_role": "bot", "request_id": "A" * 22, "creation_scope": {"kind": "realm", "realm_id": token("realm")}, "registration_ref": token("event", 5), "creation_authorization_ref": token("grant", 6), "initial_resolution": resolution, "method_history_evidence": evidence, "control_method_kid": method, "expires_at": "2026-11-08T00:01:00.000Z"}
-    control = {"actor_id": actor(), "expected_revision": revision(), "next_resolution": resolution, "method_history_evidence": evidence, "next_control_method_kid": method}
-    manager = {"actor_id": actor(), "applet_id": applet, "expected_manager_revision": revision(), "expected_control_revision": revision(7, 4), "expected_device_generation_revision": revision(), "expected_generation": 1, "new_generation": 2, "new_service_id": "ak:did_core:webvh:zNewAppletFixture", "new_registration_ref": token("event", 8), "management_authorization_ref": token("grant", 9)}
+    control = {"actor_id": actor(), "expected_commit_id": revision()['commit_id'], "next_resolution": resolution, "method_history_evidence": evidence, "next_control_method_kid": method}
+    manager = {"actor_id": actor(), "applet_id": applet, "expected_manager_commit_id": revision()['commit_id'], "expected_control_commit_id": revision(7, 4)['commit_id'], "expected_device_generation_commit_id": revision()['commit_id'], "expected_generation": 1, "new_generation": 2, "new_service_id": "ak:did_core:webvh:zNewAppletFixture", "new_registration_ref": token("event", 8), "management_authorization_ref": token("grant", 9)}
     selector = {"kind": "realm_actor_recovery", "actor_id": actor()}
     request = {"actor_id": actor(), "purpose": "current", "request_nonce": "B" * 22, "selectors": [selector]}
     source = committed()
@@ -116,8 +116,8 @@ def signature_fixture():
     manager.update(next_resolution=target_resolution, method_history_evidence=target_evidence)
     recovery = {"applet_id": applet, "service_id": service, "payload_without_control_signature": {
         "target_actor_id": create["actor_id"], "request_id": "R" * 22, "manager_ref": committed(), "recovery_ref": committed(),
-        "expected_control_revision": revision(), "expected_owner_status_revision": revision(), "expected_governance_status_revision": revision(),
-        "expected_device_generation_revision": revision(), "expected_generation": 1, "new_generation": 2, "replaces_recovery_ref": None,
+        "expected_control_commit_id": revision()['commit_id'], "expected_owner_status_commit_id": revision()['commit_id'], "expected_governance_status_commit_id": revision()['commit_id'],
+        "expected_device_generation_commit_id": revision()['commit_id'], "expected_generation": 1, "new_generation": 2, "replaces_recovery_ref": None,
         "next_resolution": resolution, "method_history_evidence": {k: evidence[k] for k in ["log_entries", "witness_records"]}, "next_control_method_kid": method, "expires_at": create["expires_at"]}}
     hosts = [create, control, manager, material, recovery]
     refs = ["realm-actor.schema.json#/$defs/creation_transcript", "realm-actor.schema.json#/$defs/control_acceptance_transcript", "realm-actor.schema.json#/$defs/manager_acceptance_transcript", "realm-actor-material.schema.json#/$defs/realm_actor_material_signature_input"]
@@ -136,7 +136,7 @@ def signature_fixture():
 def device_possession_fixture():
     original = json.loads((ART / "fixtures/pcr-genesis-fixture.json").read_text(encoding="utf-8"))["device_possession"]["canonical_object"]
     names = "device_id device_public_key_did hpke_key algorithms device_key_algorithm authorized_by authorization_binding_kind authorized_generation_ref not_before expires_at scopes".split()
-    value = {"actor_id": actor(), **{k: original[k] for k in names}, "applet_id": "ak:applet:0195be74-0000-7000-8000-000000000001", "expected_control_revision": revision(), "expected_device_revision": None}
+    value = {"actor_id": actor(), **{k: original[k] for k in names}, "applet_id": "ak:applet:0195be74-0000-7000-8000-000000000001", "expected_control_commit_id": revision()['commit_id'], "expected_device_commit_id": None}
     value.update(authorized_by=actor()["realm_actor_id"]["principal_id"], authorization_binding_kind="realm_managed_delegation", expires_at="2026-10-20T00:00:00.000Z", scopes=[{"effective_scope": {"kind":"realm", "realm_id":token("realm")}, "actions":["ak.message.create"]}])
     context = "ak.device_authorize_realm_actor_possession_proof.v1"
     message = (context + "\n").encode() + canonical(value)

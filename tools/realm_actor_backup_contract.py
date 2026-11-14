@@ -340,8 +340,8 @@ def fixture():
     from tools.realm_actor_contract import signature_fixture
     transfer = copy.deepcopy(signature_fixture()["cases"][2]["unsigned_projection"])
     transfer.update(actor_id=subject, new_service_id="ak:did_core:web:new-manager.example", next_content_backup_recipient=next_recipient)
-    for name in ["expected_manager_revision","expected_control_revision","expected_device_generation_revision"]:
-        transfer[name] = {"commit_id":references["manager_ref"]["commit_id"],"stream_position":references["manager_ref"]["stream_position"]}
+    for name in ["expected_manager_commit_id","expected_control_commit_id","expected_device_generation_commit_id"]:
+        transfer[name] = references["manager_ref"]["commit_id"]
     admission = {"backup_id": packet["backup_id"], "envelope_digest": digest(packet), "ciphertext_digest": packet["ciphertext_digest"],
         "realm_actor_id": subject["realm_actor_id"], "effective_scope": scope, "device_id": device,
         "device_authorize_ref": sources["device_authorize_ref"], "device_generation": 1,
@@ -683,7 +683,7 @@ def admission_fixture(packet, current, recipient, history, device_seed, authoriz
         "authorized_generation_ref": 1, "not_before": "2026-11-07T00:00:00.000Z", "expires_at": "2026-11-09T00:00:00.000Z",
         "scopes": [{"effective_scope": current["effective_scope"], "actions": list(NATIVE_BACKUP_OPERATIONS if authorized_actions is None else authorized_actions)},
             {"effective_scope":{"kind":"circle","realm_id":actor["realm_actor_id"]["realm_id"],"circle_id":token("circle",89)},"actions":list(NATIVE_BACKUP_OPERATIONS)}], "applet_id": applet,
-        "expected_control_revision": {"commit_id":create_ref["commit_id"], "stream_position":0}, "expected_device_revision": None}
+        "expected_control_commit_id": create_ref["commit_id"], "expected_device_commit_id": None}
     possession = {"actor_id": actor, **authorize}
     possession_bytes = b"ak.device_authorize_realm_actor_possession_proof.v1\n"+canonical(possession)
     authorize["device_signature"] = b64(Ed25519PrivateKey.from_private_bytes(device_seed).sign(possession_bytes))

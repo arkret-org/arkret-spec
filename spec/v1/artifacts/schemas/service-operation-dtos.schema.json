@@ -179,7 +179,7 @@
       "$ref": "#/$defs/SignalSubmitResponseBody"
     },
     {
-      "$ref": "#/$defs/SignedSessionGrantClaims"
+      "$ref": "#/$defs/SessionGrantMetadata"
     },
     {
       "$ref": "#/$defs/CommittedEventView"
@@ -388,10 +388,10 @@
       "additionalProperties": false,
       "description": "Service-to-service Account Authority to Auth Server request that logs out the Auth-side session owning a ak.session.grant rotation chain.",
       "required": [
-        "grant_jwt"
+        "session_grant"
       ],
       "properties": {
-        "grant_jwt": {
+        "session_grant": {
           "type": "string",
           "description": "Session grant used to locate the Auth-side session and its rotation chain."
         },
@@ -1490,7 +1490,7 @@
         "state_digest": {
           "type": "string",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Digest of the complete effective-list snapshot. It MUST NOT be copied into expected_revision or otherwise treated as one grant's revision."
+          "description": "Digest of the complete effective-list snapshot. It MUST NOT be copied into expected_commit_id or otherwise treated as one grant's revision."
         },
         "evaluated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -3450,19 +3450,21 @@
     "SessionGrantIntrospectGrant": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Non-secret grant metadata returned to the validating Station. Never includes the grant JWT, refresh token, or session private key.",
+      "description": "Exact issuer-record metadata and revocation audit fields, returned only on the authenticated issuer channel. A management ID lookup never authorizes an exact credential.",
       "required": [
         "id",
         "issuer_id",
         "account_id",
         "audience_id",
         "scopes",
+        "not_before",
         "expires_at",
-        "revocation_ref",
+        "session_id",
         "session_public_key",
         "cnf_jkt",
         "credential_class",
-        "holder_binding"
+        "holder_binding",
+        "revocation_ref"
       ],
       "properties": {
         "id": {
@@ -3487,22 +3489,28 @@
             "type": "string"
           }
         },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "revoked_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "revocation_ref": {
-          "type": "string"
+        "session_id": {
+          "type": "string",
+          "pattern": "^(?!ak:)",
+          "minLength": 1,
+          "maxLength": 256
         },
         "session_public_key": {
           "type": "string",
-          "description": "Session signing key (JWK) for RFC 9421 PoP verification on /_arkret/self/* (api-conventions §3.2). Server-to-server only."
+          "format": "canonical-public-jwk-jcs",
+          "minLength": 1,
+          "description": "Supported public JWK encoded as its exact RFC 8785 JCS string. Private members are forbidden; its RFC 7638 thumbprint must equal cnf_jkt."
         },
         "cnf_jkt": {
           "type": "string",
-          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Station uses it to verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3). Server-to-server only."
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "RFC 7638 SHA-256 thumbprint of session_public_key; equality is verified by the issuer and resource consumer."
         },
         "credential_class": {
           "$ref": "#/$defs/SessionGrantCredentialClass"
@@ -3515,108 +3523,30 @@
           "$ref": "#/$defs/SessionGrantDeviceBinding",
           "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required only for standard human_device grants and forbidden for recovery candidate-device and Agent grants."
         },
-        "scope_details": {
-          "$ref": "#/$defs/SignedSessionGrantClaims/properties/scope_details",
-          "required": [
-            "controller_principal_id",
-            "agent_key_authorization_ref",
-            "realm_ids",
-            "strand_ids",
-            "resources",
-            "constraints",
-            "capability_grant_refs",
-            "policy_refs"
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "account_handoff",
+            "agent_key_proof"
           ],
-          "description": "Exact immutable Agent scope_details from this credential's issuer-ledger claims, returned only over authenticated introspection. Required for Agent runtime grants and forbidden for human and recovery grants; preserves resource, constraint and participation ceilings without client claim parsing. This ceiling is not a current content authorization source. Literal capability_grant_refs may be empty for legitimate membership, Direct or Sidecar reading. All actual profile/current/endpoint gates are revalidated at use.",
-          "properties": {
-            "controller_principal_id": {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            "agent_key_authorization_ref": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            },
-            "realm_ids": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              }
-            },
-            "strand_ids": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/strand_id"
-              }
-            },
-            "resources": {
-              "type": "object",
-              "required": [
-                "realm_ids",
-                "strand_ids"
-              ],
-              "properties": {
-                "realm_ids": {
-                  "type": "array",
-                  "uniqueItems": true,
-                  "items": {
-                    "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                  }
-                },
-                "strand_ids": {
-                  "type": "array",
-                  "uniqueItems": true,
-                  "items": {
-                    "$ref": "./agent-operations.schema.json#/$defs/strand_id"
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "constraints": {
-              "type": "object",
-              "required": [
-                "allowed_tracks",
-                "allowed_data_labels",
-                "allowed_endpoints"
-              ],
-              "properties": {
-                "allowed_tracks": {
-                  "$ref": "./grant-constraint.schema.json#/properties/allowed_tracks"
-                },
-                "allowed_data_labels": {
-                  "$ref": "./grant-constraint.schema.json#/properties/allowed_data_labels"
-                },
-                "allowed_endpoints": {
-                  "$ref": "./grant-constraint.schema.json#/properties/allowed_endpoints"
-                },
-                "allowed_strand_ids": {
-                  "$ref": "./grant-constraint.schema.json#/properties/allowed_strand_ids"
-                }
-              },
-              "additionalProperties": false
-            },
-            "capability_grant_refs": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Literal grants actually used at issuance only. An empty array is valid for registered non-grant read authority and MUST NOT be interpreted as no reading eligibility or replaced by synthetic grants."
-            },
-            "policy_refs": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "participations": {
-              "type": "array",
-              "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/agent_participation_view"
-              }
-            }
-          },
-          "additionalProperties": false
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/proof_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/proof_kind",
+            "values": [
+              "account_handoff",
+              "agent_key_proof"
+            ]
+          }
+        },
+        "scope_details": {
+          "$ref": "#/$defs/SessionGrantScope"
+        },
+        "revoked_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "revocation_ref": {
+          "type": "string"
         }
       },
       "allOf": [
@@ -3906,27 +3836,37 @@
     "SessionGrantIntrospectRequestBody": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Server-to-server session-grant introspection request. Exactly one of id / grant_jwt identifies the grant.",
+      "description": "Closed XOR of exact opaque credential authorization and authenticated management ID status. The exact branch requires audience_id and a bound issuer channel.",
       "oneOf": [
         {
           "required": [
             "id"
-          ]
+          ],
+          "not": {
+            "required": [
+              "session_grant"
+            ]
+          }
         },
         {
           "required": [
-            "grant_jwt"
-          ]
+            "session_grant",
+            "audience_id"
+          ],
+          "not": {
+            "required": [
+              "id"
+            ]
+          }
         }
       ],
       "properties": {
         "id": {
           "$ref": "./common-ids.schema.json#/$defs/session_grant_id",
-          "description": "Grant id. Mutually exclusive with grant_jwt."
+          "description": "Grant id. Mutually exclusive with session_grant."
         },
-        "grant_jwt": {
-          "type": "string",
-          "description": "The signed grant JWT to introspect. Mutually exclusive with id."
+        "session_grant": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_secret"
         },
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -3946,7 +3886,7 @@
             },
             "proof_jwt": {
               "type": "string",
-              "description": "JWS over ak.session_grant.introspection_proof.v1 claims (session_grant_id, grant_jwt_digest, audience, challenge, issued_at, expires_at)."
+              "description": "JWS over closed ak.session_grant.introspection_proof.v1 claims: context, session_grant_ref, session_grant_digest, audience_id, challenge, issued_at, expires_at. The digest is SHA-256 of the ASCII opaque credential; the complete ref binds its issuer and record."
             }
           }
         }
@@ -3957,6 +3897,7 @@
       "additionalProperties": false,
       "required": [
         "account_id",
+        "issuer_id",
         "session_grant",
         "expires_at",
         "session_grant_id",
@@ -3967,15 +3908,17 @@
       "properties": {
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact protocol account bound to this grant. Both components are signed; clients and resource services MUST NOT reconstruct either component from local state."
+          "description": "Exact account bound to the immutable issuer record. The authenticated response binds it; callers cannot reconstruct either component from another account or route."
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "device_id": {
           "type": "string",
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "session_grant": {
-          "type": "string",
-          "description": "Short-lived bearer/session grant bound to the requested principal, device and audience."
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_secret"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -4009,7 +3952,7 @@
     "AcceptedDevicePossessionProof": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session_grant_accepted_device_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Station MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization.",
+      "description": "Accepted-device Ed25519 possession proof shared by human SessionGrant issue and refresh. The signature covers utf8('ak.session_grant_accepted_device_possession_proof.v1\\n') followed by RFC 8785 JCS of this complete object with signature omitted. It is not a server challenge: freshness comes from the <=300 second signed window, the one-time account handoff or predecessor grant, the issuer request identity, and issuer-ledger exact replay. The origin Station MUST verify this proof with the durable current accepted-device key in the same linearization that evaluates current authorization. Recovery-completion issuance uses purpose=recovery_completion_grant_issue, the issue-side request/account-handoff fields, and session_intent_digest=SHA-256(JCS({receipt_digest,initial_session})). This fresh proof binds the accepted replacement identity key to the new handoff holder; it is not the removed recovery terminal outer attestation.",
       "required": [
         "context",
         "purpose",
@@ -4038,7 +3981,8 @@
         "purpose": {
           "enum": [
             "session_grant_issue",
-            "session_grant_refresh"
+            "session_grant_refresh",
+            "recovery_completion_grant_issue"
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
@@ -4046,7 +3990,8 @@
             "owner": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/properties/purpose",
             "values": [
               "session_grant_issue",
-              "session_grant_refresh"
+              "session_grant_refresh",
+              "recovery_completion_grant_issue"
             ]
           }
         },
@@ -4063,8 +4008,8 @@
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "SHA-256 digest of the exact opaque DPoP-bound account_handoff_grant presented in Authorization; the credential itself MUST NOT enter the proof or logs."
         },
-        "predecessor_session_grant_id": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        "predecessor_session_grant_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -4110,15 +4055,19 @@
           "if": {
             "properties": {
               "purpose": {
-                "const": "session_grant_issue",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
                   "authority": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/allOf/0/if/properties/purpose",
                   "owner": "service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof/allOf/0/if/properties/purpose",
                   "values": [
-                    "session_grant_issue"
+                    "session_grant_issue",
+                    "recovery_completion_grant_issue"
                   ]
-                }
+                },
+                "enum": [
+                  "session_grant_issue",
+                  "recovery_completion_grant_issue"
+                ]
               }
             },
             "required": [
@@ -4133,13 +4082,13 @@
             ],
             "not": {
               "required": [
-                "predecessor_session_grant_id"
+                "predecessor_session_grant_ref"
               ]
             }
           },
           "else": {
             "required": [
-              "predecessor_session_grant_id"
+              "predecessor_session_grant_ref"
             ],
             "not": {
               "anyOf": [
@@ -4217,15 +4166,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "grant_jwt",
+        "session_grant",
         "device_id",
         "accepted_device_possession_proof"
       ],
       "properties": {
-        "grant_jwt": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Near-expiry human DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
+        "session_grant": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_secret"
         },
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -4245,16 +4192,14 @@
       "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid. Rotation preserves the predecessor action/resource/constraint ceiling and accepts no requested_scope or agent_scope_request. Current authority is revalidated; scope additions or narrower recovery use a fresh AgentSessionGrantRequestBody with a new signed intent.",
       "additionalProperties": false,
       "required": [
-        "grant_jwt",
+        "session_grant",
         "principal_id",
         "agent_key_authorization_ref",
         "agent_session_refresh_proof"
       ],
       "properties": {
-        "grant_jwt": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Near-expiry Agent DPoP-bound SessionGrant presented as Authorization: DPoP plus a matching DPoP proof."
+        "session_grant": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_secret"
         },
         "audience_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -4587,223 +4532,6 @@
       },
       "additionalProperties": false
     },
-    "SignedSessionGrantClaims": {
-      "type": "object",
-      "description": "Canonical signed claims carried by an ak.session.grant JWT. Except for the fixed kind and derived jti, the closed issuance preimage fields are copied from these claims. credential_class and holder_binding are signed and jointly determine the authorization profile; recovery_session is never refreshable or upgradable and recovery completion issues a distinct standard credential. Verifiers MUST RFC 8785-canonicalize the complete claim-derived preimage, recompute SHA-256, prepend the active sha256 suite wire code, derive ak:session_grant:<44-char-token>, and require byte equality with jti. Changing either binding therefore changes the ID.",
-      "required": [
-        "kind",
-        "jti",
-        "issuer_id",
-        "issuance_nonce",
-        "account_id",
-        "session_public_key",
-        "audience_id",
-        "scopes",
-        "not_before",
-        "expires_at",
-        "session_id",
-        "credential_class",
-        "holder_binding"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "const": "ak.session.grant",
-          "x-arkret-value-ownership": {
-            "class": "namespaced_symbol",
-            "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/kind",
-            "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/kind",
-            "values": [
-              "ak.session.grant"
-            ]
-          }
-        },
-        "jti": {
-          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
-        },
-        "issuer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "issuance_nonce": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
-          "description": "Canonical unpadded Base64URL encoding of the issuer-generated 256-bit issuance nonce. Exact replay reuses the same nonce, issuance preimage, grant ID and JWT."
-        },
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact AccountId bound into this signed grant and its derived session_grant_id."
-        },
-        "session_public_key": {
-          "type": "string",
-          "format": "canonical-public-jwk-jcs",
-          "minLength": 1,
-          "description": "A supported public JWK serialized as its exact RFC 8785 JCS UTF-8 string. Producers MUST parse and canonicalize input before signing; consumers MUST reject strings whose parsed JWK re-serialization is not byte-identical. Private JWK members are forbidden."
-        },
-        "audience_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the resource service. HTTP origins are bound separately by DPoP htu and MUST NOT be used as the SessionGrant audience."
-        },
-        "scopes": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "not_before": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "session_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 256
-        },
-        "credential_class": {
-          "$ref": "#/$defs/SessionGrantCredentialClass"
-        },
-        "device_binding": {
-          "$ref": "#/$defs/SessionGrantDeviceBinding"
-        },
-        "holder_binding": {
-          "$ref": "./principal-operations.schema.json#/$defs/session_grant_holder_binding"
-        },
-        "proof_kind": {
-          "type": "string",
-          "enum": [
-            "account_handoff",
-            "agent_key_proof"
-          ],
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/proof_kind",
-            "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/proof_kind",
-            "values": [
-              "account_handoff",
-              "agent_key_proof"
-            ]
-          }
-        },
-        "scope_details": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "credential_class": {
-                "const": "recovery_session",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/if/properties/credential_class",
-                  "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/if/properties/credential_class",
-                  "values": [
-                    "recovery_session"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "credential_class"
-            ]
-          },
-          "then": {
-            "properties": {
-              "holder_binding": {
-                "properties": {
-                  "kind": {
-                    "const": "recovery_candidate_device",
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding/properties/kind",
-                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding/properties/kind",
-                      "values": [
-                        "recovery_candidate_device"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "holder_binding": {
-                "properties": {
-                  "kind": {
-                    "enum": [
-                      "human_device",
-                      "agent_runtime"
-                    ],
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding/properties/kind",
-                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding/properties/kind",
-                      "values": [
-                        "human_device",
-                        "agent_runtime"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "holder_binding": {
-                "properties": {
-                  "kind": {
-                    "const": "human_device",
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/1/if/properties/holder_binding/properties/kind",
-                      "owner": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/allOf/1/if/properties/holder_binding/properties/kind",
-                      "values": [
-                        "human_device"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "holder_binding"
-            ]
-          },
-          "then": {
-            "required": [
-              "device_binding"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "device_binding"
-              ]
-            }
-          }
-        }
-      ]
-    },
     "SessionGrantReplayExpiredProblemExtensions": {
       "type": "object",
       "description": "Closed RFC 9457 Problem Details extension members for session_grant_replay_expired. The named issuer-ledger record remains authoritative and no replacement grant is created under the same request identity.",
@@ -4978,6 +4706,400 @@
         }
       },
       "additionalProperties": false
+    },
+    "SessionGrantScope": {
+      "required": [
+        "controller_principal_id",
+        "agent_key_authorization_ref",
+        "realm_ids",
+        "strand_ids",
+        "resources",
+        "constraints",
+        "capability_grant_refs",
+        "policy_refs"
+      ],
+      "description": "Closed immutable Agent action/resource/constraint ceiling held by the sole issuer ledger. It is not a current membership or content-authorization proof.",
+      "properties": {
+        "controller_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "agent_key_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "realm_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "strand_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+          }
+        },
+        "resources": {
+          "type": "object",
+          "required": [
+            "realm_ids",
+            "strand_ids"
+          ],
+          "properties": {
+            "realm_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              }
+            },
+            "strand_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "constraints": {
+          "type": "object",
+          "required": [
+            "allowed_tracks",
+            "allowed_data_labels",
+            "allowed_endpoints"
+          ],
+          "properties": {
+            "allowed_tracks": {
+              "$ref": "./grant-constraint.schema.json#/properties/allowed_tracks"
+            },
+            "allowed_data_labels": {
+              "$ref": "./grant-constraint.schema.json#/properties/allowed_data_labels"
+            },
+            "allowed_endpoints": {
+              "$ref": "./grant-constraint.schema.json#/properties/allowed_endpoints"
+            },
+            "allowed_strand_ids": {
+              "$ref": "./grant-constraint.schema.json#/properties/allowed_strand_ids"
+            }
+          },
+          "additionalProperties": false
+        },
+        "capability_grant_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Literal grants actually used at issuance only. An empty array is valid for registered non-grant read authority and MUST NOT be interpreted as no reading eligibility or replaced by synthetic grants."
+        },
+        "policy_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "participations": {
+          "type": "array",
+          "items": {
+            "$ref": "./agent-operations.schema.json#/$defs/agent_participation_view"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SessionGrantMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Closed immutable non-secret SessionGrant issuer-record metadata. It is never parsed from the opaque credential and can be consumed only through the bound issuer exact-token result or its permitted freshness projection.",
+      "required": [
+        "id",
+        "issuer_id",
+        "account_id",
+        "audience_id",
+        "scopes",
+        "not_before",
+        "expires_at",
+        "session_id",
+        "session_public_key",
+        "cnf_jkt",
+        "credential_class",
+        "holder_binding"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "audience_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Stable did_core_id of the resource service this grant is valid for."
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^(?!ak:)",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "session_public_key": {
+          "type": "string",
+          "format": "canonical-public-jwk-jcs",
+          "minLength": 1,
+          "description": "Supported public JWK encoded as its exact RFC 8785 JCS string. Private members are forbidden; its RFC 7638 thumbprint must equal cnf_jkt."
+        },
+        "cnf_jkt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "RFC 7638 SHA-256 thumbprint of session_public_key; equality is verified by the issuer and resource consumer."
+        },
+        "credential_class": {
+          "$ref": "#/$defs/SessionGrantCredentialClass"
+        },
+        "holder_binding": {
+          "$ref": "./principal-operations.schema.json#/$defs/session_grant_holder_binding",
+          "description": "Required closed accepted human-device, recovery candidate-device, or Agent-runtime holder binding."
+        },
+        "device_binding": {
+          "$ref": "#/$defs/SessionGrantDeviceBinding",
+          "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required only for standard human_device grants and forbidden for recovery candidate-device and Agent grants."
+        },
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "account_handoff",
+            "agent_key_proof"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/properties/proof_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/properties/proof_kind",
+            "values": [
+              "account_handoff",
+              "agent_key_proof"
+            ]
+          }
+        },
+        "scope_details": {
+          "$ref": "#/$defs/SessionGrantScope"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "recovery_session",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/if/properties/credential_class",
+                  "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/if/properties/credential_class",
+                  "values": [
+                    "recovery_session"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "recovery_candidate_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/then/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/then/properties/holder_binding/properties/kind",
+                      "values": [
+                        "recovery_candidate_device"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "human_device",
+                      "agent_runtime"
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/else/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/0/else/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device",
+                        "agent_runtime"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "human_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/1/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/1/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "human_device"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id",
+              "device_binding"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "device_binding"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "recovery_candidate_device",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/2/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/2/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "recovery_candidate_device"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder_binding": {
+                "properties": {
+                  "kind": {
+                    "const": "agent_runtime",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/3/if/properties/holder_binding/properties/kind",
+                      "owner": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/allOf/3/if/properties/holder_binding/properties/kind",
+                      "values": [
+                        "agent_runtime"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "scope_details"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "device_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "device_binding"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "scope_details"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

@@ -2,16 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-receipt.schema.json",
   "title": "Arkret Recovery Receipt",
-  "description": "Replacement-device-signed terminal intent for one RecoveryTransaction. It binds the two exact producer Event ids, recovery session/policy/proof snapshot and resulting device generation expectation. It is signed before authority admission and therefore does not contain a RealmCommit id; successful completion is proven separately by the coordinator-signed recovery completion attestation and its CommittedEventRef values.",
+  "description": "Sole complete replacement-device-signed Recovery intent. The two original signed Event submissions and accepted PCR predecessor are inline. This receipt is signed before admission; only the paired authority completion proves two actual consecutive Commits and device activation. No prepared plan or outer terminal attestation exists.",
   "type": "object",
   "required": [
     "schema",
     "receipt_id",
     "transaction_id",
-    "transaction_request_digest",
-    "prepared_plan_digest",
     "account_id",
+    "expires_at",
     "recovery_session_id",
+    "session_grant_ref",
+    "session_grant_cnf_jkt",
     "policy_id",
     "policy_version",
     "trust_domain",
@@ -20,9 +21,8 @@
     "recovery_authority_kind",
     "previous_model_generation_ref",
     "new_model_generation_ref",
-    "authorization_event_id",
-    "reanchor_event_id",
     "proof_summary",
+    "recovery_unit",
     "unlocked_backups",
     "welcome_count",
     "outcome",
@@ -49,24 +49,26 @@
     "transaction_id": {
       "type": "string",
       "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "RecoveryTransaction that reserved this receipt id. It MUST equal the transaction whose binding.terminal_receipt_id is this receipt_id, which is what lets a verifier holding only the receipt resolve the authorizing transaction; binding.terminal_receipt_id alone is one-way. See zh/identity/security-transactions.md section 2."
-    },
-    "transaction_request_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Stable request_digest of the RecoveryTransaction. It is signed by the replacement device so the terminal attestation cannot be rebound to a different transaction plan even if an identifier is substituted."
-    },
-    "prepared_plan_digest": {
-      "$ref": "#/$defs/digest",
-      "description": "Digest of the closed typed prepared_plan stored by the RecoveryTransaction. It MUST equal transaction.prepared_plan_digest and is signed to prevent substituting different prepared bytes under the same reserved ids."
+      "description": "Caller-preallocated stable transaction identity. The complete canonical signed receipt, including this ID, is frozen before submission and cannot be replaced under this ID."
     },
     "account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
       "description": "Exact recovered AccountId. The replacement-device method proves only its principal projection; the accepted recovery session and device authorization independently bind this complete account, including station_id."
     },
+    "expires_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
     "recovery_session_id": {
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. A byte-identical resubmission of an already accepted receipt is idempotent and MUST return the stored receipt; only a SECOND, DIFFERENT receipt for the same session id and exact account is a conflict. Rejecting the byte-identical replay would make a lost response unrecoverable, which zh/identity/security-transactions.md section 1 invariants 3 and 4 forbid."
+    },
+    "session_grant_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/session_grant_ref"
+    },
+    "session_grant_cnf_jkt": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$"
     },
     "policy_id": {
       "type": "string",
@@ -121,14 +123,6 @@
       "minimum": 2,
       "description": "Accepted monotonic PCR device generation after completion."
     },
-    "authorization_event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "reanchor_event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
     "proof_summary": {
       "type": "object",
       "required": [
@@ -168,6 +162,80 @@
         }
       },
       "additionalProperties": false
+    },
+    "recovery_unit": {
+      "type": "object",
+      "required": [
+        "predecessor_ref",
+        "events"
+      ],
+      "properties": {
+        "predecessor_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                },
+                {
+                  "properties": {
+                    "event": {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.device.reanchor",
+                          "x-arkret-value-ownership": {
+                            "class": "namespaced_symbol",
+                            "authority": "recovery-receipt.schema.json#/properties/recovery_unit/properties/events/prefixItems/0/allOf/1/properties/event/properties/kind",
+                            "owner": "recovery-receipt.schema.json#/properties/recovery_unit/properties/events/prefixItems/0/allOf/1/properties/event/properties/kind",
+                            "values": [
+                              "ak.device.reanchor"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                },
+                {
+                  "properties": {
+                    "event": {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.device.authorize",
+                          "x-arkret-value-ownership": {
+                            "class": "namespaced_symbol",
+                            "authority": "recovery-receipt.schema.json#/properties/recovery_unit/properties/events/prefixItems/1/allOf/1/properties/event/properties/kind",
+                            "owner": "recovery-receipt.schema.json#/properties/recovery_unit/properties/events/prefixItems/1/allOf/1/properties/event/properties/kind",
+                            "values": [
+                              "ak.device.authorize"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exactly the two original EventAdmissionSubmission slots in reanchor/authorize order and their already accepted PCR predecessor. Original producer proofs and applicable approval_signatures are retained. Neither Event may depend on this receipt digest/signature or a future Commit."
     },
     "unlocked_backups": {
       "type": "array",
@@ -287,7 +355,7 @@
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "DID URL of the new_device_id device key frozen by the recovery session and authorized by the recovery unit of this same transaction. Receivers MUST resolve it through the principal control stream and verify that the paired completion attestation reports the accepted ak.device.authorize; service keys and unrelated fresh-device keys MUST NOT sign a recovery_receipt."
+          "description": "Exact replacement-device method bound to the original verified RecoverySession candidate. At first admission verify with that session-frozen key, not a current accepted-device lookup. After completion the original accepted authorization and completion proof independently bind the same key."
         },
         "signature_algorithm": {
           "type": "string",
