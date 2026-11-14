@@ -1382,6 +1382,72 @@
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/call_transcript_state_value",
           "notes": "capture_kind selects the target capture family (crypto-media/call-state.md section 5.1); the pending outcome result is created in the same atomic commit."
+        },
+        {
+          "state_family": "call_recording_artifact",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "recording"
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "status",
+                  "literal": "pending"
+                },
+                {
+                  "name": "details",
+                  "derivation": "call_capture_pending_details"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/current_call_recording_artifact/properties/value",
+          "notes": "call-state.md section 4.1: atomically create pending with capture permission. call_capture_pending_details copies payload.capture_metadata and attaches the accepted envelope EventID under recording_start_event_id or transcript_start_event_id selected by capture_kind. No producer-supplied self EventID is accepted."
+        },
+        {
+          "state_family": "call_transcript_artifact",
+          "state_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "transcript"
+          },
+          "state_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "status",
+                  "literal": "pending"
+                },
+                {
+                  "name": "details",
+                  "derivation": "call_capture_pending_details"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/current_call_transcript_artifact/properties/value",
+          "notes": "call-state.md section 4.1: atomically create pending with capture permission. call_capture_pending_details copies payload.capture_metadata and attaches the accepted envelope EventID under recording_start_event_id or transcript_start_event_id selected by capture_kind. No producer-supplied self EventID is accepted."
         }
       ],
       "id_source": "not_an_object_id",
@@ -1474,15 +1540,26 @@
           },
           "condition": {
             "kind": "field_present",
-            "field": "payload.recording_transition.result"
+            "field": "payload.recording_transition.expected_commit_id"
           },
           "state_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.recording_transition.result"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "status",
+                  "field": "payload.recording_transition.to"
+                },
+                {
+                  "name": "details",
+                  "field": "payload.recording_transition.capture_metadata"
+                }
+              ]
             }
           },
-          "notes": "ready/failed outcome published from stopped. It grants no capture, key or read authority. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte."
+          "notes": "call-state.md sections 4.1 and 5: only ready/failed carry required scalar expected_commit_id and CAS this artifact axis. Stop has no guard and writes only the terminal capture state. The receiver resolves the unique exact stop Event from native stopped revision and verifies its Call, segment, kind and source; existing failure/transcript stop metadata must equal that source. Current value is {status,details}, without a duplicate guard. Ready recording details contain only the full artifact.",
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/current_call_recording_artifact/properties/value"
         },
         {
           "state_family": "call_transcript_state",
@@ -1521,15 +1598,26 @@
           },
           "condition": {
             "kind": "field_present",
-            "field": "payload.transcript_transition.result"
+            "field": "payload.transcript_transition.expected_commit_id"
           },
           "state_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.transcript_transition.result"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "status",
+                  "field": "payload.transcript_transition.to"
+                },
+                {
+                  "name": "details",
+                  "field": "payload.transcript_transition.capture_metadata"
+                }
+              ]
             }
           },
-          "notes": "ready/failed transcript outcome published from stopped. It grants no capture, key or read authority. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte."
+          "notes": "call-state.md sections 4.1 and 5: only ready/failed carry required scalar expected_commit_id and CAS this artifact axis. Stop has no guard and writes only the terminal capture state. The receiver resolves the unique exact stop Event from native stopped revision and verifies its Call, segment, kind and source; existing failure/transcript stop metadata must equal that source. Current value is {status,details}, without a duplicate guard. Ready recording details contain only the full artifact.",
+          "value_schema_ref": "schemas/current-state.schema.json#/$defs/current_call_transcript_artifact/properties/value"
         },
         {
           "state_family": "call_moderation",

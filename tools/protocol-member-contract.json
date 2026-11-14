@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:056734c04d154088ac9aece1016f87b0c47f4fe56fc65c8128caf7a1d4d2d962",
+  "contract_digest": "sha256:8ff8db27d998ee268c66ea05c77f37628ea434ba7929d57aaa51148faa9f7f32",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -38380,7 +38380,7 @@
           },
           "current_call_recording_artifact": {
             "type": "object",
-            "description": "Published artifact current state of one recording segment (family call_recording_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
+            "description": "Complete recording result {status,details}; start creates pending, stopped leaves this result unchanged, ready/failed CAS this independent axis. The enclosing revision is the sole accepted position. Result metadata grants no capture, key or read authority.",
             "required": [
               "selector",
               "source_stream_ref",
@@ -38423,35 +38423,180 @@
                 "$ref": "#/$defs/revision"
               },
               "value": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "required": [
-                      "artifact"
-                    ],
-                    "properties": {
-                      "artifact": {
-                        "$ref": "./call-recording-artifact.schema.json"
-                      }
-                    },
-                    "additionalProperties": false
+                "type": "object",
+                "required": [
+                  "status",
+                  "details"
+                ],
+                "properties": {
+                  "status": {
+                    "$ref": "#/$defs/call_capture_result_status"
                   },
-                  {
-                    "allOf": [
+                  "details": {
+                    "oneOf": [
                       {
-                        "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
+                        "type": "object",
+                        "required": [
+                          "artifact"
+                        ],
+                        "properties": {
+                          "artifact": {
+                            "$ref": "./call-recording-artifact.schema.json"
+                          }
+                        },
+                        "additionalProperties": false
                       },
                       {
-                        "not": {
+                        "allOf": [
+                          {
+                            "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
+                          },
+                          {
+                            "not": {
+                              "required": [
+                                "artifact"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "description": "Ready current contains one complete artifact only; start, stop and failure metadata keep their own closed non-artifact branch. Indexes are read-only artifact projections."
+                  }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "ready",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/0/if/properties/status",
+                            "owner": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/0/if/properties/status",
+                            "values": [
+                              "ready"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "details": {
                           "required": [
                             "artifact"
+                          ],
+                          "properties": {
+                            "artifact": {
+                              "$ref": "./call-recording-artifact.schema.json"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "details": {
+                          "not": {
+                            "required": [
+                              "artifact"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "pending",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/1/if/properties/status",
+                            "owner": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/1/if/properties/status",
+                            "values": [
+                              "pending"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "details": {
+                          "required": [
+                            "retention",
+                            "recording_start_event_id"
+                          ],
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "recording_stop_event_id"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "failure_reason_code"
+                                ]
+                              }
+                            ]
+                          },
+                          "type": "object",
+                          "properties": {
+                            "retention": {
+                              "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata/properties/retention"
+                            },
+                            "recording_start_event_id": {
+                              "$ref": "./common-ids.schema.json#/$defs/event_id"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "failed",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/2/if/properties/status",
+                            "owner": "current-state.schema.json#/$defs/current_call_recording_artifact/properties/value/allOf/2/if/properties/status",
+                            "values": [
+                              "failed"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "details": {
+                          "required": [
+                            "recording_stop_event_id"
                           ]
                         }
                       }
-                    ]
+                    }
                   }
-                ],
-                "description": "Ready current contains one complete artifact only; start, stop and failure metadata keep their own closed non-artifact branch. Indexes are read-only artifact projections."
+                ]
               }
             },
             "additionalProperties": false,
@@ -38510,7 +38655,7 @@
           },
           "current_call_transcript_artifact": {
             "type": "object",
-            "description": "Published artifact current state of one transcript segment (family call_transcript_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
+            "description": "Complete transcript result {status,details}; start creates pending, stopped leaves this result unchanged, ready/failed CAS this independent axis. The enclosing revision is the sole accepted position. Result metadata grants no capture, key or read authority.",
             "required": [
               "selector",
               "source_stream_ref",
@@ -38553,7 +38698,97 @@
                 "$ref": "#/$defs/revision"
               },
               "value": {
-                "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/capture_metadata"
+                "type": "object",
+                "required": [
+                  "status",
+                  "details"
+                ],
+                "properties": {
+                  "status": {
+                    "$ref": "#/$defs/call_capture_result_status"
+                  },
+                  "details": {
+                    "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/capture_metadata"
+                  }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "properties": {
+                      "details": {
+                        "required": [
+                          "transcript_start_event_id"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "enum": [
+                            "ready",
+                            "failed"
+                          ],
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "current-state.schema.json#/$defs/current_call_transcript_artifact/properties/value/allOf/1/if/properties/status",
+                            "owner": "current-state.schema.json#/$defs/current_call_transcript_artifact/properties/value/allOf/1/if/properties/status",
+                            "values": [
+                              "ready",
+                              "failed"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "details": {
+                          "required": [
+                            "transcript_stop_event_id"
+                          ]
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "details": {
+                          "required": [
+                            "retention"
+                          ],
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "transcript_stop_event_id"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "failure_reason_code"
+                                ]
+                              }
+                            ]
+                          },
+                          "type": "object",
+                          "properties": {
+                            "retention": {
+                              "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/capture_metadata/properties/retention"
+                            },
+                            "transcript_start_event_id": {
+                              "$ref": "./common-ids.schema.json#/$defs/event_id"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  }
+                ]
               }
             },
             "additionalProperties": false,
@@ -43025,6 +43260,24 @@
               }
             },
             "additionalProperties": false
+          },
+          "call_capture_result_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ready",
+              "failed"
+            ],
+            "x-arkret-value-ownership": {
+              "class": "owned_symbol",
+              "authority": "current-state.schema.json#/$defs/call_capture_result_status",
+              "owner": "current-state.schema.json#/$defs/call_capture_result_status",
+              "values": [
+                "pending",
+                "ready",
+                "failed"
+              ]
+            }
           }
         }
       }
@@ -48276,8 +48529,15 @@
               "properties": {
                 "payload": {
                   "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload"
+                },
+                "authorization_ref": {
+                  "$ref": "./common-ids.schema.json#/$defs/grant_id",
+                  "description": "The exact signed positive grant selected for this capture action. It is not an existence hint or an owner fallback; native admission must actually discharge this grant path while retaining global refusals."
                 }
-              }
+              },
+              "required": [
+                "authorization_ref"
+              ]
             }
           },
           {
@@ -48304,7 +48564,104 @@
                 "payload": {
                   "$ref": "./event-payload.schema.json#/$defs/call_state_payload"
                 }
-              }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "payload": {
+                        "properties": {
+                          "recording_transition": {
+                            "properties": {
+                              "to": {
+                                "const": "ready",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/if/properties/payload/properties/recording_transition/properties/to",
+                                  "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/if/properties/payload/properties/recording_transition/properties/to",
+                                  "values": [
+                                    "ready"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "to"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "recording_transition"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "payload"
+                    ]
+                  },
+                  "then": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "actor_id": {
+                            "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                            "properties": {
+                              "kind": {
+                                "const": "service",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/0/properties/actor_id/properties/kind",
+                                  "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/0/properties/actor_id/properties/kind",
+                                  "values": [
+                                    "service"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "actor_id"
+                        ],
+                        "not": {
+                          "required": [
+                            "executed_by"
+                          ]
+                        }
+                      },
+                      {
+                        "properties": {
+                          "executed_by": {
+                            "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                            "properties": {
+                              "kind": {
+                                "const": "service",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/1/properties/executed_by/properties/kind",
+                                  "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/1/properties/executed_by/properties/kind",
+                                  "values": [
+                                    "service"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "executed_by"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -59511,6 +59868,10 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "expected_commit_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+                    "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
                   }
                 },
                 "additionalProperties": false,
@@ -59629,6 +59990,11 @@
                             ]
                           }
                         }
+                      },
+                      "not": {
+                        "required": [
+                          "expected_commit_id"
+                        ]
                       }
                     },
                     "else": {
@@ -59644,7 +60010,10 @@
                             ]
                           }
                         }
-                      }
+                      },
+                      "required": [
+                        "expected_commit_id"
+                      ]
                     }
                   }
                 ]
@@ -59732,6 +60101,10 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "expected_commit_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+                    "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
                   }
                 },
                 "additionalProperties": false,
@@ -59834,6 +60207,11 @@
                             ]
                           }
                         }
+                      },
+                      "not": {
+                        "required": [
+                          "expected_commit_id"
+                        ]
                       }
                     },
                     "else": {
@@ -59849,7 +60227,10 @@
                             ]
                           }
                         }
-                      }
+                      },
+                      "required": [
+                        "expected_commit_id"
+                      ]
                     }
                   }
                 ]
@@ -117093,7 +117474,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:82ac33bc317c87dc56e0c973cf34669c5be7a92983b68328574cf4634f03d99a"
+      "digest": "sha256:a32ee85f3a9c739452e23c4e8fce9fade696a2efc6d839b0425fda7849ee06d9"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117153,7 +117534,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:eaa49c4885893012078a9cece0944538c66fd16fa44356937cc7f0aba5e21035"
+      "digest": "sha256:f4e212473ca87b811f865533ffdbebaf220e0a8c9675f0e386be1f4260b87670"
     },
     {
       "file": "operation-clause-registry.json",

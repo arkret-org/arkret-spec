@@ -74,7 +74,7 @@ class CommitArtifactChallengeContract(unittest.TestCase):
             "created_at": "2026-11-14T00:00:00.000Z",
         }
         schema = schema_validator(SCHEMAS / "event-payload.schema.json", "#/$defs/call_state_payload/properties/recording_transition")
-        ready = {"recording_id": "recording-1", "from": "stopped", "to": "ready", "capture_metadata": {"artifact": artifact}}
+        ready = {"recording_id": "recording-1", "from": "stopped", "to": "ready", "expected_commit_id": COMMIT, "capture_metadata": {"artifact": artifact}}
         self.assertTrue(schema.is_valid(ready), list(schema.iter_errors(ready)))
         for name, value in (("duration_ms", 1), ("retention", artifact["retention"]), ("recording_start_event_id", artifact["recording_start_event_id"])):
             bad = copy.deepcopy(ready)

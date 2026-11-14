@@ -192,9 +192,10 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "crypto-media/call-state.md §7"
+          "crypto-media/call-state.md §4.1",
+          "crypto-media/call-state.md §5.2"
         ],
-        "note": "The summary's recording_state is mirrored from this projection and the reducer validates the summary against it."
+        "note": "The independent result current supplies the exact artifact-axis expected_commit_id prestate and retained production, retention and legal-hold obligations. Its value is {status,details}; no summary mirror or capture permission is derived from result readiness."
       }
     },
     {
@@ -214,9 +215,10 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "crypto-media/call-state.md §7"
+          "crypto-media/call-state.md §4.1",
+          "crypto-media/call-state.md §5.2"
         ],
-        "note": "The summary's transcript_state is mirrored from this projection and the reducer validates the summary against it."
+        "note": "The independent result current supplies the exact artifact-axis expected_commit_id prestate and retained production, retention and legal-hold obligations. Its value is {status,details}; no summary mirror or capture permission is derived from result readiness."
       }
     },
     {

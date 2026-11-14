@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "0e7682387500b7e7f79c4c85eb04cc799dd3d5b75fc62394461494481b70a220"
+      "sha256": "b46c3809adcfa41e7cdba35f71b195da471e399f16f59826d219dcd2a3ea0cb6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
@@ -502,7 +502,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "f24fed65256523a97aee002903207d178c52801c6985907ba1f70d416a096590"
+      "sha256": "21f710c28b2ed1f16f9490b3a8d0ed82d35b97c0e6ae08f2f0ac1306b9ff511a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",

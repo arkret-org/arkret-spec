@@ -922,7 +922,8 @@
           "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
           "audience_id": "ak:did_core:web:station.example",
           "granted_scope": [
-            "ak.self.security_transaction.resource.get.v1"
+            "ak.self.account.read.describe.v1",
+            "ak.self.committed_event.read.scan.v1"
           ]
         },
         "issued_at": "2026-11-14T12:00:00.000Z"
@@ -1025,15 +1026,8 @@
     "accepted_revoke_proposal_has_exact_covering_commit_and_pending_without_outcome",
     "accepted_or_rejected_revoke_outcome_is_atomic_with_step_or_abort_expiry",
     "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
     "Recovery is one exact signed receipt containing two EventAdmissionSubmission slots; it has no prepare plan or outer terminal signature.",
-    "Recovery success atomically creates distinct consecutive Commits, device/generation/session terminal and native content-recovery fence.",
-    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder."
+    "Recovery success atomically creates distinct consecutive Commits, device/generation/session terminal and native content-recovery fence."
   ],
   "rotation_cases": [
     {
@@ -1753,7 +1747,8 @@
         "session_public_key": "{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"rcFAEfgtHFbZVqpPnXPYhYNhpgYEhSXg0Ixjjcdd2Mc\"}",
         "audience_id": "ak:did_core:web:station.example",
         "granted_scope": [
-          "ak.self.security_transaction.resource.get.v1"
+          "ak.self.account.read.describe.v1",
+          "ak.self.committed_event.read.scan.v1"
         ]
       },
       "issued_at": "2026-11-14T12:00:00.000Z"
