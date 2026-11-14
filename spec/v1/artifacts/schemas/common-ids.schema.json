@@ -61,7 +61,8 @@
     },
     "session_grant_id": {
       "type": "string",
-      "pattern": "^ak:session_grant:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:session_grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Non-secret issuer-allocated UUIDv7 record ID. It is not content-addressed and never authorizes a credential. Portable references include issuer_id."
     },
     "account_status_record_id": {
       "type": "string",
@@ -279,6 +280,30 @@
           ]
         }
       ]
+    },
+    "session_grant_secret": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+      "minLength": 43,
+      "maxLength": 43,
+      "description": "Secret opaque SessionGrant: canonical unpadded Base64URL of exactly 32 CSPRNG octets. Consumers decode/reencode to require canonical pad bits. It has no JWT claims, prefix or embedded issuer."
+    },
+    "session_grant_ref": {
+      "type": "object",
+      "required": [
+        "issuer_id",
+        "id"
+      ],
+      "properties": {
+        "issuer_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "id": {
+          "$ref": "#/$defs/session_grant_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete non-secret portable identity of one immutable SessionGrant issuer record."
     }
   }
 }

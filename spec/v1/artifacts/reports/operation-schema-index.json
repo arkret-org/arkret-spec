@@ -750,23 +750,15 @@
         "schema_ref": "schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body",
         "schema_kind": "object",
         "required": [
-          "transaction_id",
-          "transaction_request_digest",
           "terminal_receipt",
-          "completion_attestation",
-          "device_authorization_event_id",
-          "new_model_generation_ref",
           "initial_session",
+          "accepted_device_possession_proof",
           "canonical_request_digest"
         ],
         "properties": [
-          "transaction_id",
-          "transaction_request_digest",
           "terminal_receipt",
-          "completion_attestation",
-          "device_authorization_event_id",
-          "new_model_generation_ref",
           "initial_session",
+          "accepted_device_possession_proof",
           "canonical_request_digest"
         ],
         "closed": true
@@ -881,6 +873,7 @@
         "schema_kind": "object",
         "required": [
           "account_id",
+          "issuer_id",
           "session_grant",
           "expires_at",
           "session_grant_id",
@@ -890,6 +883,7 @@
         ],
         "properties": [
           "account_id",
+          "issuer_id",
           "device_id",
           "session_grant",
           "expires_at",
@@ -1003,10 +997,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
         "schema_kind": "oneOf",
         "required": [
-          "grant_jwt"
+          "session_grant"
         ],
         "properties": [
-          "grant_jwt",
+          "session_grant",
           "audience_id",
           "device_id",
           "accepted_device_possession_proof",
@@ -1020,12 +1014,12 @@
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequestBody",
             "schema_kind": "object",
             "required": [
-              "grant_jwt",
+              "session_grant",
               "device_id",
               "accepted_device_possession_proof"
             ],
             "properties": [
-              "grant_jwt",
+              "session_grant",
               "audience_id",
               "device_id",
               "accepted_device_possession_proof"
@@ -1036,13 +1030,13 @@
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequestBody",
             "schema_kind": "object",
             "required": [
-              "grant_jwt",
+              "session_grant",
               "principal_id",
               "agent_key_authorization_ref",
               "agent_session_refresh_proof"
             ],
             "properties": [
-              "grant_jwt",
+              "session_grant",
               "audience_id",
               "principal_id",
               "agent_key_authorization_ref",
@@ -1057,6 +1051,7 @@
         "schema_kind": "object",
         "required": [
           "account_id",
+          "issuer_id",
           "session_grant",
           "expires_at",
           "session_grant_id",
@@ -1066,6 +1061,7 @@
         ],
         "properties": [
           "account_id",
+          "issuer_id",
           "device_id",
           "session_grant",
           "expires_at",
@@ -3476,7 +3472,7 @@
           "schema",
           "request_id",
           "recovery_session_id",
-          "session_grant_id",
+          "session_grant_ref",
           "session_grant_cnf_jkt",
           "account_id",
           "requesting_device_id",
@@ -3499,7 +3495,7 @@
           "schema",
           "request_id",
           "recovery_session_id",
-          "session_grant_id",
+          "session_grant_ref",
           "session_grant_cnf_jkt",
           "account_id",
           "requesting_device_id",
@@ -3561,7 +3557,7 @@
           "schema",
           "request_id",
           "recovery_session_id",
-          "session_grant_id",
+          "session_grant_ref",
           "session_grant_cnf_jkt",
           "account_id",
           "requesting_device_id",
@@ -3584,7 +3580,7 @@
           "schema",
           "request_id",
           "recovery_session_id",
-          "session_grant_id",
+          "session_grant_ref",
           "session_grant_cnf_jkt",
           "account_id",
           "requesting_device_id",
@@ -6880,7 +6876,6 @@
         "required": [
           "challenge_id",
           "challenge",
-          "nonce",
           "operation",
           "account_id",
           "backup_id",
@@ -6893,7 +6888,6 @@
         "properties": [
           "challenge_id",
           "challenge",
-          "nonce",
           "operation",
           "account_id",
           "backup_id",
@@ -6971,7 +6965,6 @@
         "required": [
           "challenge_id",
           "challenge",
-          "nonce",
           "operation",
           "backup_id",
           "audience",
@@ -6985,7 +6978,6 @@
         "properties": [
           "challenge_id",
           "challenge",
-          "nonce",
           "operation",
           "account_id",
           "backup_id",
@@ -7019,7 +7011,6 @@
             "required": [
               "challenge_id",
               "challenge",
-              "nonce",
               "operation",
               "account_id",
               "backup_id",
@@ -7035,7 +7026,6 @@
             "properties": [
               "challenge_id",
               "challenge",
-              "nonce",
               "operation",
               "account_id",
               "backup_id",
@@ -7059,7 +7049,6 @@
             "required": [
               "challenge_id",
               "challenge",
-              "nonce",
               "operation",
               "backup_id",
               "audience",
@@ -7081,7 +7070,6 @@
             "properties": [
               "challenge_id",
               "challenge",
-              "nonce",
               "operation",
               "backup_id",
               "audience",
@@ -8207,25 +8195,22 @@
       },
       "response": {
         "schema_ref": "schemas/security-transaction.schema.json",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "transaction_id",
           "kind",
           "account_id",
-          "expires_at",
-          "created_at",
-          "request_digest",
-          "prepared_plan",
-          "prepared_plan_digest",
-          "accepted_steps"
+          "created_at"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "account_id",
+          "created_at",
+          "recovery_receipt",
+          "completion_attestation",
           "authorizing_device_id",
           "expires_at",
-          "created_at",
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
@@ -8234,7 +8219,62 @@
           "revoke_command_outcome",
           "terminal_outcome"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_transaction",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps",
+              "revoke_proposal",
+              "revoke_command_outcome",
+              "terminal_outcome"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -8244,18 +8284,15 @@
         "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_transaction_create_request_body",
         "schema_kind": "oneOf",
         "required": [
-          "transaction_id",
-          "kind",
-          "account_id",
-          "expires_at"
+          "kind"
         ],
         "properties": [
-          "transaction_id",
           "kind",
+          "recovery_receipt",
+          "transaction_id",
           "account_id",
-          "expires_at",
-          "recovery_intent",
           "authorizing_device_id",
+          "expires_at",
           "prepared_plan"
         ],
         "closed": true,
@@ -8264,18 +8301,12 @@
             "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_create_request_body",
             "schema_kind": "object",
             "required": [
-              "transaction_id",
               "kind",
-              "account_id",
-              "expires_at",
-              "recovery_intent"
+              "recovery_receipt"
             ],
             "properties": [
-              "transaction_id",
               "kind",
-              "account_id",
-              "expires_at",
-              "recovery_intent"
+              "recovery_receipt"
             ],
             "closed": true
           },
@@ -8304,25 +8335,22 @@
       },
       "response": {
         "schema_ref": "schemas/security-transaction.schema.json",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "transaction_id",
           "kind",
           "account_id",
-          "expires_at",
-          "created_at",
-          "request_digest",
-          "prepared_plan",
-          "prepared_plan_digest",
-          "accepted_steps"
+          "created_at"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "account_id",
+          "created_at",
+          "recovery_receipt",
+          "completion_attestation",
           "authorizing_device_id",
           "expires_at",
-          "created_at",
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
@@ -8331,7 +8359,62 @@
           "revoke_command_outcome",
           "terminal_outcome"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_transaction",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps",
+              "revoke_proposal",
+              "revoke_command_outcome",
+              "terminal_outcome"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -8339,25 +8422,22 @@
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/security-transaction.schema.json",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "transaction_id",
           "kind",
           "account_id",
-          "expires_at",
-          "created_at",
-          "request_digest",
-          "prepared_plan",
-          "prepared_plan_digest",
-          "accepted_steps"
+          "created_at"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "account_id",
+          "created_at",
+          "recovery_receipt",
+          "completion_attestation",
           "authorizing_device_id",
           "expires_at",
-          "created_at",
           "request_digest",
           "prepared_plan",
           "prepared_plan_digest",
@@ -8366,7 +8446,62 @@
           "revoke_command_outcome",
           "terminal_outcome"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "created_at",
+              "recovery_receipt",
+              "completion_attestation"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_transaction",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "account_id",
+              "authorizing_device_id",
+              "expires_at",
+              "created_at",
+              "request_digest",
+              "prepared_plan",
+              "prepared_plan_digest",
+              "accepted_steps",
+              "revoke_proposal",
+              "revoke_command_outcome",
+              "terminal_outcome"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

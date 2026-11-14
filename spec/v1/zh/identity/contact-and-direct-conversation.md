@@ -70,7 +70,7 @@ Contact 路径**仍然不读写 Consent**（本节开头条与
 
 prepare **MUST** 冻结 operation/idempotency/phase、完整 request digest、exact peer、配置的 `trust_domain_id`、本方操作前态、新 `version`、适用的固定身份／round／scope、expiry 和 canonical unsigned bytes。客户端 **MUST** 解码并核对 exact kind／actor／peer／意图，仅追加原 holder proof。commit 去掉 holder proof 后 **MUST** 与 reservation bytes 逐字相同；源确认事务重查前态、slot、known closure 和当前授权。caller 不得选 root、改 draft 或自行分配第二 Event 身份。
 
-新操作 `version` 从 1 开始，覆盖 requested／accepted／rejected／scope.update／tombstone；新本方 Event 严格 current+1，非首次操作的 `predecessor_event_ref` 精确引用本方上一操作。首次操作省略 predecessor；后续必有。request／reject **MUST NOT** 携 future `contact_round_id`。首次尚未成立时省略 `initial_contact_round_id`；已固定后每个新操作及 source 证明 **MUST** 绑定真实固定值。首次 normal accepted 可以由本次请求确定 round，但不接受 caller 自选另一首次身份。PCR typed `expected_revision` 与 Commit position 保留独立职责，不能当方向 version。
+新操作 `version` 从 1 开始，覆盖 requested／accepted／rejected／scope.update／tombstone；新本方 Event 严格 current+1，非首次操作的 `predecessor_event_ref` 精确引用本方上一操作。首次操作省略 predecessor；后续必有。request／reject **MUST NOT** 携 future `contact_round_id`。首次尚未成立时省略 `initial_contact_round_id`；已固定后每个新操作及 source 证明 **MUST** 绑定真实固定值。首次 normal accepted 可以由本次请求确定 round，但不接受 caller 自选另一首次身份。PCR typed `expected_commit_id` 与 Commit position 保留独立职责，不能当方向 version。
 
 只有 exact Event 的真实 command unit committed 且全部 effects 原子安装后，source 才能固定 receipt／lineage、接受时刻、producer descriptor 和耐久投递。已保存 Event 但终局未明返回既有 `503 temporarily_unavailable`，不是永久 failed 或 accepted。客户端保持 operation/idempotency/phase 与原 signed bytes 查询／重试，不因 reservation 到期重新 author。human 既有 pending Control／确切 RealmCommit prepare/sign/submit 续跑不得等待 Contact accepted，否则形成循环等待。这个安全流程不进入普通聊天前置。
 
@@ -174,7 +174,7 @@ lineage 的签名时刻只定位 source assertion key，不充当未携带的 co
 原 holder 仍有当前授权；保留旧事实不等于允许它绕过当前撤销。
 
 该材料只在上述五类 Contact 历史 carrier 中补全原 producer 验签，不授权另一 Event、generic Control
-admission、DID 更新、governance-Station handoff 或普通消息新 live。必须保留原 Event bytes 与正常 `expected_revision`，不得改签 Event，
+admission、DID 更新、governance-Station handoff 或普通消息新 live。必须保留原 Event bytes 与正常 `expected_commit_id`，不得改签 Event，
 不得把普通消息或其它 Control Event 放进此例外。已签的 source
 receipt/lineage 同时绑定该 Event 与其 key，是此 carrier 的取材合同，不要求先有 Contact 或共同 Realm，
 不触发关系门控设备查询，也不扩张 `account_device` 历史响应分支的权限。同站与跨站均耐久保留完整原件，
@@ -361,7 +361,7 @@ controller-Agent founding material 的 `controller_binding_digest` MUST 为 acce
 四条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第四条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
 
 1. founder caller author `ak.realm.create`（envelope 省略 `realm_id`、`scope_ref` 为 `{"kind":"realm_genesis"}`，payload 省略 object id），完成 canonical preimage 后派生其 Event ID，并重类型得到 `realm_id`；
-2. 以该 `realm_id` author founder 自己的 `ak.member.state{join}`（§6.1 的 bootstrap no-basis shape，不携 `expected_revision`；founder 行在新 Realm 上天然不存在）；
+2. 以该 `realm_id` author founder 自己的 `ak.member.state{join}`（§6.1 的 bootstrap no-basis shape，不携 `expected_commit_id`；founder 行在新 Realm 上天然不存在）；
 3. author 另一 participant 的 `ak.member.state{join}`；controller/Agent 分支显式携带绑定第 2 条的 `agent_controller_binding`；
 4. author `ak.strand.create`（payload 不携 `strand_id`），由其 Event ID 重类型得到 `main_strand_id`；
 5. 四条全部由 founder 签名，按该 wire 顺序构成 exact ordered unit 一次提交；不存在 server-created draft、reserved Event ID 或第二次 authoring 机会；
@@ -500,7 +500,7 @@ unit 内没有任何一条 Event 指向它的前一条：Event 不携带 `domain
 提交形态。本段任一条件不成立 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝。
 
 四条的 authority-commit basis 形态是封闭的：`ak.realm.create` 用 genesis bootstrap shape；两条 `ak.member.state{join}` 与
-`ak.strand.create` 在**且仅在**该 exact unit 内使用 bootstrap no-basis shape（既不携 `expected_revision`，也不要求
+`ak.strand.create` 在**且仅在**该 exact unit 内使用 bootstrap no-basis shape（既不携 `expected_commit_id`，也不要求
 治理 Station 解析出既有授权实例），并叠加同批 staged authority-root proof。两者的免 basis 落点分别登记在
 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 与
 [`../authz/event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 的封闭列表。
@@ -849,7 +849,7 @@ Conformance **MUST** 覆盖：
 - founder 与 peer 位于同一 Station 与位于两台 Station 两种部署下，self 路径与 §5.6 peer 路径 **MUST** 得到相同 unit digest、相同四条 source RealmCommit、相同 authority-evidence 判定与相同 admission decision；
 - 幂等与崩溃恢复：同 `idempotency_key` 同 unit 的 exact retry 返回相同四条 byte-identical RealmCommit 且第四条 `committed_at` 不变，同 key 不同 unit 返回 `duplicate_conflict`；unit 提交、Commit 落库、outbox 入队与响应丢失各崩溃点重放同一 signed bytes 均恢复同一结果，且不产生第二组 Event 或第二套 finality；
 - §5.6 branch 的 dependency 不足 **MUST** 是 top-level 409 `dependency_missing` 加零写入，**MUST NOT** 出现只接受一或两条 Event 的 partial；
-- basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改用需要既有授权实例或 `expected_revision` 的形态也 **MUST** 被拒绝；
+- basis 形态：unit 内 `ak.member.state{join}` 与 `ak.strand.create` 的 no-basis shape 被接受；同一 no-basis `ak.strand.create` 出现在 founding unit 之外（普通 Realm、同 Realm 的后续 Strand 或单条提交）**MUST** 被 admission 拒绝，而 unit 内改用需要既有授权实例或 `expected_commit_id` 的形态也 **MUST** 被拒绝；
 - recontact current：多轮重新联系保留同一固定首次身份／founder／唯一私聊；跳过中间版本仍核本轮成立与 scope 实例，已知关闭不被旧响应覆盖，缺原件不得重置身份。
 - accepted-at 与 current gate 分离：source 在旧 current round 有效时 accepted 的 unit 延迟到撤回后才到 peer，peer 仍接受历史 identity 并按 current gate 投影 `suspended`；
 - 对方设备离线时 MLS 建立与发送成功；对方服务器不可达时 founder 仍可建 Realm、建立唯一 group 并发出真密文；

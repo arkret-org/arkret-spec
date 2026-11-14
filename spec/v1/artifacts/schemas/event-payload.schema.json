@@ -13,7 +13,7 @@
   "$defs": {
     "account_data_set_payload": {
       "type": "object",
-      "description": "Payload for ak.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone. Every key is a compare-and-set whole-value register per zh/models/account-data.md §5: expected_server_revision is the revision the writer believes is current (0 to create), and the accepted revision is expected_server_revision + 1. The object is closed: expected_revision is not an alias, and carrying both names is invalid before signature verification or storage.",
+      "description": "Payload for ak.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone. Every key is a compare-and-set whole-value register per zh/models/account-data.md §5: expected_server_revision is the revision the writer believes is current (0 to create), and the accepted revision is expected_server_revision + 1. The object is closed: expected_commit_id is not an alias, and carrying both names is invalid before signature verification or storage.",
       "required": [
         "key",
         "expected_server_revision"
@@ -123,7 +123,7 @@
         "expected_server_revision": {
           "type": "integer",
           "minimum": 0,
-          "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value. This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
+          "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value. This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s scalar expected_commit_id (RealmCommitId) and carries a different name so the two can never be compared against each other."
         },
         "source_pending_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -233,8 +233,8 @@
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         }
       },
       "additionalProperties": false
@@ -695,7 +695,7 @@
         },
         "supersedes": {
           "type": "array",
-          "description": "Exact complete signed active authorization basis at first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Each original accepted authorization Event identifies its immutable add dot; the verifier independently checks its covering RealmCommit, relevant typed current revision and current active set in the same confirmation transaction. No separate expected_revision wire member exists for this family. Omit exactly when the active set is empty; after revoke, reattach follows the registered fresh pairing and activation fence. Same-key reauthorization requires a current active key and names every old dot. Remove observed old-key typed results atomically and add one replacement; stale basis fails closed, and historical rows or prior pairing receipts never restore a revoked key.",
+          "description": "Exact complete signed active authorization basis at first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Each original accepted authorization Event identifies its immutable add dot; the verifier independently checks its covering RealmCommit, relevant typed current revision and current active set in the same confirmation transaction. No separate expected_commit_id wire member exists for this family. Omit exactly when the active set is empty; after revoke, reattach follows the registered fresh pairing and activation fence. Same-key reauthorization requires a current active key and names every old dot. Remove observed old-key typed results atomically and add one replacement; stale basis fails closed, and historical rows or prior pairing receipts never restore a revoked key.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
@@ -1304,7 +1304,7 @@
       "required": [
         "applet_id",
         "service_id",
-        "expected_revision",
+        "expected_commit_id",
         "controller_principal_id",
         "base_url",
         "claimed_profiles",
@@ -1329,16 +1329,16 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "DID of the service hosting the applet runtime."
         },
-        "expected_revision": {
+        "expected_commit_id": {
           "oneOf": [
             {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             },
             {
               "type": "null"
             }
           ],
-          "description": "Exact current revision for this Realm/Applet/Service. Null asserts never written. The installer Event signs this precondition; it is excluded from the publisher package, registration epoch and security-binding equality. Same-epoch reassertion preserves the accepted instance; another Service never replaces it."
+          "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
         },
         "controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -2250,16 +2250,33 @@
                 ]
               },
               "then": {
-                "required": [
-                  "capture_metadata"
-                ],
                 "properties": {
                   "capture_metadata": {
+                    "type": "object",
                     "required": [
-                      "recording_start_event_id",
-                      "retention",
                       "artifact"
-                    ]
+                    ],
+                    "properties": {
+                      "artifact": {
+                        "$ref": "./call-recording-artifact.schema.json",
+                        "description": "Canonical artifact metadata for recording_transition.to=ready. It binds the Arkret blob, recording exporter context, retention policy and deletion audit surface."
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "capture_metadata"
+                ]
+              },
+              "else": {
+                "properties": {
+                  "capture_metadata": {
+                    "not": {
+                      "required": [
+                        "artifact"
+                      ]
+                    }
                   }
                 }
               }
@@ -2269,7 +2286,6 @@
                 "properties": {
                   "to": {
                     "enum": [
-                      "ready",
                       "failed"
                     ],
                     "x-arkret-value-ownership": {
@@ -2277,7 +2293,6 @@
                       "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/allOf/1/if/properties/to",
                       "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/allOf/1/if/properties/to",
                       "values": [
-                        "ready",
                         "failed"
                       ]
                     }
@@ -2586,7 +2601,7 @@
                 "op",
                 "actor_id",
                 "device_id",
-                "expected_revision"
+                "expected_commit_id"
               ],
               "properties": {
                 "op": {
@@ -2606,9 +2621,9 @@
                 "device_id": {
                   "$ref": "#/$defs/device_id"
                 },
-                "expected_revision": {
-                  "$ref": "./current-state.schema.json#/$defs/revision",
-                  "description": "Exact current call-roster revision observed by the producer. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the current state carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
+                "expected_commit_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+                  "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
                 }
               },
               "additionalProperties": false
@@ -2719,7 +2734,7 @@
                 "actor_id",
                 "restored_by",
                 "restored_at",
-                "expected_revision"
+                "expected_commit_id"
               ],
               "properties": {
                 "op": {
@@ -2742,9 +2757,9 @@
                 "restored_at": {
                   "$ref": "#/$defs/timestamp"
                 },
-                "expected_revision": {
-                  "$ref": "./current-state.schema.json#/$defs/revision",
-                  "description": "Exact current revision of the entire Call moderation axis observed by the producer, independent of which actor is restored. It compares the same {commit_id, stream_position} as the typed current row, including an empty effective value's latest restore source. It is not a per-participant revision or a producer-chosen counter."
+                "expected_commit_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+                  "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
                 }
               },
               "additionalProperties": false
@@ -2853,7 +2868,7 @@
       "required": [
         "grant"
       ],
-      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. status, authority_depth and authority_root_refs are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel Station sidecar is permitted. issuer_authority_refs is signed semantic lineage and cannot carry expected_revision, auth_state_digest or a Station-local commit basis; current authority is checked by the governing Station at acceptance. The Event envelope proof is the sole durable issuer signature.",
+      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. status, authority_depth and authority_root_ref are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel Station sidecar is permitted. issuer_authority_refs is signed semantic lineage and cannot carry expected_commit_id, auth_state_digest or a Station-local commit basis; current authority is checked by the governing Station at acceptance. The Event envelope proof is the sole durable issuer signature.",
       "properties": {
         "grant": {
           "type": "object",
@@ -3024,15 +3039,15 @@
       "description": "ak.capability.relinquish — subject-only release of the actor own grant. The authority is the target grant subject's signature, never a capability: a narrowly-scoped holder that was never granted ak.capability.revoke must still be able to give up what it holds. The reducer target guard accepts actor == target.subject and nothing else, so this can never become an unauthorized revocation. Descendants of the released grant fail through their issuer_authority_refs at read time.",
       "required": [
         "grant_id",
-        "expected_revision"
+        "expected_commit_id"
       ],
       "properties": {
         "grant_id": {
           "$ref": "#/$defs/grant_id"
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision",
-          "description": "It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the current state carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
         },
         "reason": {
           "type": "string"
@@ -3044,15 +3059,15 @@
       "type": "object",
       "required": [
         "grant_id",
-        "expected_revision"
+        "expected_commit_id"
       ],
       "properties": {
         "grant_id": {
           "$ref": "#/$defs/grant_id"
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision",
-          "description": "It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the current state carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
         },
         "reason": {
           "type": "string"
@@ -4191,13 +4206,13 @@
           "$ref": "./common-ids.schema.json#/$defs/applet_id",
           "description": "Required only for realm_managed_delegation and forbidden otherwise. Exact owning Applet from accepted provision provenance. Each new business use independently requires the current active installation at its actual effective_scope and its original signed scope/action pair; creation provenance is not a global installation fence."
         },
-        "expected_control_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_control_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
-        "expected_device_revision": {
+        "expected_device_commit_id": {
           "oneOf": [
             {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             },
             {
               "type": "null"
@@ -4263,8 +4278,8 @@
               "expires_at",
               "scopes",
               "applet_id",
-              "expected_control_revision",
-              "expected_device_revision"
+              "expected_control_commit_id",
+              "expected_device_commit_id"
             ],
             "properties": {
               "expires_at": {
@@ -4299,12 +4314,12 @@
                 },
                 {
                   "required": [
-                    "expected_control_revision"
+                    "expected_control_commit_id"
                   ]
                 },
                 {
                   "required": [
-                    "expected_device_revision"
+                    "expected_device_commit_id"
                   ]
                 }
               ]
@@ -4386,7 +4401,7 @@
         "expected_server_revision": {
           "type": "integer",
           "minimum": 0,
-          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
+          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s scalar expected_commit_id (RealmCommitId) and carries a different name so the two can never be compared against each other."
         }
       },
       "additionalProperties": false
@@ -4428,7 +4443,7 @@
         "expected_server_revision": {
           "type": "integer",
           "minimum": 0,
-          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
+          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s scalar expected_commit_id (RealmCommitId) and carries a different name so the two can never be compared against each other."
         }
       },
       "additionalProperties": false
@@ -6993,11 +7008,11 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. The governance Station resolves decision_ref to the active decision for target_ref and applies the lift at exactly expected_revision.",
+      "description": "Payload for ak.moderation.decision.lift. The governance Station resolves decision_ref to the active decision for target_ref and applies the lift at exactly expected_commit_id.",
       "required": [
         "target_ref",
         "decision_ref",
-        "expected_revision"
+        "expected_commit_id"
       ],
       "properties": {
         "target_ref": {
@@ -7008,9 +7023,9 @@
           "$ref": "#/$defs/event_ref",
           "description": "Reference to the prior ak.moderation.decision Event whose committed tag is being removed."
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision",
-          "description": "Exact current moderation-target revision the producer observed. A different current revision rejects the Event as stale; exact retry remains idempotent. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the current state carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
         },
         "reason_code": {
           "type": "string",
@@ -8091,16 +8106,16 @@
           "type": "string",
           "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "expected_revision": {
+        "expected_commit_id": {
           "oneOf": [
             {
               "type": "null"
             },
             {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             }
           ],
-          "description": "Required exact nullable current revision for Agent and Applet governance Policy. Null requires authoritative never-written proof; every other policy family forbids this member."
+          "description": "Exact covering Commit ID of this current write target. Preserve the registered selector, current authority, null/never-written and acceptance-transaction checks; read-side revision retains its position."
         },
         "value": {
           "oneOf": [
@@ -8157,13 +8172,13 @@
       },
       "then": {
         "required": [
-          "expected_revision"
+          "expected_commit_id"
         ]
       },
       "else": {
         "not": {
           "required": [
-            "expected_revision"
+            "expected_commit_id"
           ]
         }
       }
@@ -8491,7 +8506,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The current state is a core authority-ordered keyed set of reaction assertions and both kinds project one keyed_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, authority-ordered keyed set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.8 for the plaintext-vs-encrypted policy.",
+      "description": "Signed input for ak.reaction.add and ak.reaction.remove. The receiver derives the complete active current map in accepted stream order: add inserts/replaces the actor/key and remove deletes it. Current metadata excludes annotation and ciphertext; those remain in historical Events under their original disclosure and AEAD rules. See models/strand-and-message.md section 9.8.",
       "required": [
         "target_ref",
         "key"
@@ -8529,7 +8544,7 @@
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_envelope",
-          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. The decrypted plaintext JSON MUST validate as #/$defs/reaction_encrypted_payload_plaintext. When present, outer plaintext `key` MUST be the routing tag and `annotation` MUST be omitted; service-side authority-ordered keyed set convergence still uses the outer routing key."
+          "description": "Encrypted canonical reaction key and optional annotation. Its plaintext follows the registered encrypted payload shape. The outer key is the routing tag; annotation is omitted outside. Accepted current uses only active public actor/key/source metadata and does not imply that this ciphertext was decrypted or verified."
         }
       },
       "additionalProperties": false
@@ -9152,7 +9167,7 @@
     },
     "realm_set_default_strand_payload": {
       "type": "object",
-      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a current state expected_revision precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts expected_revision null and is only valid while the current state is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
+      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a current state expected_commit_id precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts expected_commit_id null and is only valid while the current state is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
       "required": [
         "realm_id",
         "strand_id"
@@ -9173,7 +9188,7 @@
               "type": "null"
             }
           ],
-          "description": "Optimistic-concurrency guard compared as a whole value after absent and explicit null are normalized to null. The reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Omission therefore asserts expected_revision null and MUST fail once a default exists. Mismatch MUST be rejected (failed_precondition)."
+          "description": "Optimistic-concurrency guard compared as a whole value after absent and explicit null are normalized to null. The reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Omission therefore asserts expected_commit_id null and MUST fail once a default exists. Mismatch MUST be rejected (failed_precondition)."
         },
         "reason": {
           "type": "string"
@@ -9203,15 +9218,15 @@
     },
     "relation_create_payload": {
       "type": "object",
-      "description": "Create or replace the Relation current value at one registered primary conflict domain. primary_conflict_domain is the signed current-state subject and MUST exactly match payload.relation's registered relation_kind/from_ref/to_ref shape. payload.relation is the closed six-field relation_definition authoring region; its optional relation.rank is the only create-time rank carrier, and materialized Relation members are forbidden. expected_revision is null only when the domain has never been written; after a tombstone, a new event-derived RelationId MAY replace that tombstoned value only at its exact revision. An active current value cannot be replaced by create.",
+      "description": "Create or replace the Relation current value at one registered primary conflict domain. primary_conflict_domain is the signed current-state subject and MUST exactly match payload.relation's registered relation_kind/from_ref/to_ref shape. payload.relation is the closed six-field relation_definition authoring region; its optional relation.rank is the only create-time rank carrier, and materialized Relation members are forbidden. expected_commit_id is null only when the domain has never been written; after a tombstone, a new event-derived RelationId MAY replace that tombstoned value only at its exact revision. An active current value cannot be replaced by create.",
       "properties": {
         "primary_conflict_domain": {
           "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
         },
-        "expected_revision": {
+        "expected_commit_id": {
           "oneOf": [
             {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             },
             {
               "type": "null"
@@ -9225,7 +9240,7 @@
       "additionalProperties": false,
       "required": [
         "primary_conflict_domain",
-        "expected_revision",
+        "expected_commit_id",
         "relation"
       ]
     },
@@ -9234,18 +9249,18 @@
     },
     "relation_tombstone_payload": {
       "type": "object",
-      "description": "Payload for ak.relation.tombstone. primary_conflict_domain is the signed current-state subject; relation_id MUST equal the current value's id at that domain, and expected_revision MUST equal its exact revision. The transition is irreversible for that RelationId. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",
+      "description": "Payload for ak.relation.tombstone. primary_conflict_domain is the signed current-state subject; relation_id MUST equal the current value's id at that domain, and expected_commit_id MUST equal its exact revision. The transition is irreversible for that RelationId. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",
       "required": [
         "primary_conflict_domain",
-        "expected_revision",
+        "expected_commit_id",
         "relation_id"
       ],
       "properties": {
         "primary_conflict_domain": {
           "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "relation_id": {
           "$ref": "#/$defs/relation_id"
@@ -9260,10 +9275,10 @@
     },
     "relation_update_payload": {
       "type": "object",
-      "description": "Relation patch payload. primary_conflict_domain is the signed current-state subject; relation_id MUST equal the current value's id at that domain, and expected_revision MUST equal its exact revision. relation_kind/from_ref/to_ref are create-locked because they define the subject; changing them requires an explicit tombstone followed by create. effective_scope and every effective_scope.* descendant path remain reducer-managed.",
+      "description": "Relation patch payload. primary_conflict_domain is the signed current-state subject; relation_id MUST equal the current value's id at that domain, and expected_commit_id MUST equal its exact revision. relation_kind/from_ref/to_ref are create-locked because they define the subject; changing them requires an explicit tombstone followed by create. effective_scope and every effective_scope.* descendant path remain reducer-managed.",
       "required": [
         "primary_conflict_domain",
-        "expected_revision",
+        "expected_commit_id",
         "patch",
         "relation_id"
       ],
@@ -9271,8 +9286,8 @@
         "primary_conflict_domain": {
           "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "patch": {
           "allOf": [
@@ -11328,8 +11343,8 @@
             ]
           }
         },
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         }
       },
       "additionalProperties": false
@@ -11396,8 +11411,8 @@
         "expires_at",
         "scopes",
         "applet_id",
-        "expected_control_revision",
-        "expected_device_revision"
+        "expected_control_commit_id",
+        "expected_device_commit_id"
       ],
       "properties": {
         "actor_id": {
@@ -11459,13 +11474,13 @@
           "$ref": "./common-ids.schema.json#/$defs/applet_id",
           "description": "Exact owning Applet from accepted Realm actor identity; every authorized business scope independently requires its current active installation and grant."
         },
-        "expected_control_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_control_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
-        "expected_device_revision": {
+        "expected_device_commit_id": {
           "oneOf": [
             {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             },
             {
               "type": "null"
@@ -11562,7 +11577,7 @@
           "type": "object",
           "required": [
             "state",
-            "revision"
+            "commit_id"
           ],
           "properties": {
             "state": {
@@ -11576,8 +11591,8 @@
                 ]
               }
             },
-            "revision": {
-              "$ref": "./current-state.schema.json#/$defs/revision"
+            "commit_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
             }
           },
           "additionalProperties": false

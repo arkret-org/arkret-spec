@@ -631,7 +631,7 @@
         "rejected_for_missing_expected_revision": false,
         "later_legal_typed_event_overwrites_the_same_target": true
       },
-      "note": "a kind whose domain payload defines no CAS is not required to carry a generic one; demanding a universal expected_revision fails this case"
+      "note": "a kind whose domain payload defines no CAS is not required to carry a generic one; demanding a universal expected_commit_id fails this case"
     },
     {
       "name": "a_top_level_expected_revision_is_still_a_schema_violation",
@@ -666,7 +666,7 @@
         "top_level_code": "schema_violation",
         "writes_nothing": true
       },
-      "note": "scoping expected_revision to the domain payload does not readmit it at the envelope root"
+      "note": "scoping expected_commit_id to the domain payload does not readmit it at the envelope root"
     },
     {
       "name": "same_batch_uncommitted_projection_is_not_an_authorization_basis",

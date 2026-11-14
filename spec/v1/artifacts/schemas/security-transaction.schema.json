@@ -2,507 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
-  "description": "Closed Station-local durable RecoveryTransaction and SecurityRotationTransaction resource. The prepared plan is the sole canonical intent source; accepted outputs form a durable ordered prefix. account_id is the exact account owner; the coordinator role is account_id.station_id, the service core identity of the executing Station, and no separate coordinator field exists on wire. Every prepared Event and backup ActorId must equal this account actor.",
-  "type": "object",
-  "required": [
-    "transaction_id",
-    "kind",
-    "account_id",
-    "expires_at",
-    "created_at",
-    "request_digest",
-    "prepared_plan",
-    "prepared_plan_digest",
-    "accepted_steps"
-  ],
-  "properties": {
-    "transaction_id": {
-      "$ref": "#/$defs/transaction_id"
-    },
-    "kind": {
-      "type": "string",
-      "enum": [
-        "recovery",
-        "security_rotation"
-      ],
-      "x-arkret-value-ownership": {
-        "class": "owned_symbol",
-        "authority": "security-transaction.schema.json#/properties/kind",
-        "owner": "security-transaction.schema.json#/properties/kind",
-        "values": [
-          "recovery",
-          "security_rotation"
-        ]
-      }
-    },
-    "account_id": {
-      "$ref": "./common-ids.schema.json#/$defs/account_id",
-      "description": "Exact account owner. Its station_id is the coordinator: the service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
-    },
-    "authorizing_device_id": {
-      "$ref": "./common-ids.schema.json#/$defs/device_id",
-      "description": "SecurityRotation only. Exact device from the fresh high-risk authenticated create session. The coordinator binds it to that session and persists it before any side effect; the worker rechecks that the account and this device are still active immediately before old-material erasure."
-    },
-    "expires_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "created_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "request_digest": {
-      "$ref": "#/$defs/digest"
-    },
-    "prepared_plan": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/pcr_policy_recovery_plan"
-        },
-        {
-          "$ref": "#/$defs/security_rotation_plan"
-        }
-      ]
-    },
-    "prepared_plan_digest": {
-      "$ref": "#/$defs/sha256_digest",
-      "description": "SHA-256(RFC8785_JCS(prepared_plan)). Implementations MUST recompute it and persist both bytes and typed value before the first side effect. This cross-service CAS coordinate is fixed independently of any domain-selectable Blob or KDF digest suite."
-    },
-    "accepted_steps": {
-      "type": "array",
-      "maxItems": 5,
-      "items": {
-        "$ref": "#/$defs/accepted_step"
-      },
-      "description": "Durable accepted prefix. Entry i has the step kind at index i of the fixed order selected by kind; entries never carry a duplicate step label."
-    },
-    "revoke_proposal": {
-      "$ref": "#/$defs/revoke_proposal",
-      "description": "SecurityRotation only. Immutable exact PCR proposal Event/Commit binding, persisted when that accepted proposal becomes visible."
-    },
-    "revoke_command_outcome": {
-      "$ref": "#/$defs/revoke_command_outcome",
-      "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut.",
-      "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-    },
-    "terminal_outcome": {
-      "$ref": "#/$defs/terminal_outcome",
-      "x-arkret-outcome-scope": "security_transaction_execution"
-    }
-  },
-  "allOf": [
+  "description": "Closed union of immutable successful single-submit Recovery results and durable multi-step SecurityRotation resources. The two workflows share operation routing, not a prepared lifecycle.",
+  "oneOf": [
     {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "recovery",
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "security-transaction.schema.json#/allOf/0/if/properties/kind",
-              "owner": "security-transaction.schema.json#/allOf/0/if/properties/kind",
-              "values": [
-                "recovery"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "prepared_plan": {
-            "$ref": "#/$defs/pcr_policy_recovery_plan"
-          },
-          "accepted_steps": {
-            "$ref": "#/$defs/pcr_policy_accepted_steps"
-          }
-        },
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "authorizing_device_id"
-              ]
-            },
-            {
-              "required": [
-                "revoke_proposal"
-              ]
-            },
-            {
-              "required": [
-                "revoke_command_outcome"
-              ]
-            }
-          ]
-        },
-        "allOf": [
-          {
-            "$ref": "#/$defs/pcr_policy_progress_contract"
-          }
-        ]
-      },
-      "else": {
-        "required": [
-          "authorizing_device_id"
-        ],
-        "properties": {
-          "prepared_plan": {
-            "$ref": "#/$defs/security_rotation_plan"
-          },
-          "accepted_steps": {
-            "$ref": "#/$defs/security_rotation_accepted_steps"
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/$defs/security_rotation_progress_contract"
-          }
-        ]
-      }
+      "$ref": "#/$defs/recovery_transaction_completion"
     },
     {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "recovery",
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "security-transaction.schema.json#/allOf/1/if/properties/kind",
-              "owner": "security-transaction.schema.json#/allOf/1/if/properties/kind",
-              "values": [
-                "recovery"
-              ]
-            }
-          },
-          "terminal_outcome": {
-            "properties": {
-              "outcome": {
-                "const": "completed",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/1/if/properties/terminal_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/1/if/properties/terminal_outcome/properties/outcome",
-                  "values": [
-                    "completed"
-                  ]
-                },
-                "x-arkret-outcome-scope": "security_transaction_execution"
-              }
-            },
-            "required": [
-              "outcome"
-            ],
-            "x-arkret-outcome-scope": "security_transaction_execution"
-          }
-        },
-        "required": [
-          "kind",
-          "terminal_outcome"
-        ]
-      },
-      "then": {
-        "properties": {
-          "terminal_outcome": {
-            "required": [
-              "receipt_id",
-              "completion_attestation"
-            ],
-            "x-arkret-outcome-scope": "security_transaction_execution"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "security_rotation",
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "security-transaction.schema.json#/allOf/2/if/properties/kind",
-              "owner": "security-transaction.schema.json#/allOf/2/if/properties/kind",
-              "values": [
-                "security_rotation"
-              ]
-            }
-          },
-          "terminal_outcome": {
-            "properties": {
-              "outcome": {
-                "const": "completed",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/2/if/properties/terminal_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/2/if/properties/terminal_outcome/properties/outcome",
-                  "values": [
-                    "completed"
-                  ]
-                },
-                "x-arkret-outcome-scope": "security_transaction_execution"
-              }
-            },
-            "required": [
-              "outcome"
-            ],
-            "x-arkret-outcome-scope": "security_transaction_execution"
-          }
-        },
-        "required": [
-          "kind",
-          "terminal_outcome"
-        ]
-      },
-      "then": {
-        "properties": {
-          "terminal_outcome": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "receipt_id"
-                  ]
-                },
-                {
-                  "required": [
-                    "completion_attestation"
-                  ]
-                }
-              ]
-            },
-            "x-arkret-outcome-scope": "security_transaction_execution"
-          },
-          "revoke_command_outcome": {
-            "properties": {
-              "outcome": {
-                "const": "accepted",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/2/then/properties/revoke_command_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/2/then/properties/revoke_command_outcome/properties/outcome",
-                  "values": [
-                    "accepted"
-                  ]
-                },
-                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-              }
-            },
-            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-          }
-        },
-        "required": [
-          "revoke_command_outcome"
-        ]
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "revoke_command_outcome"
-        ]
-      },
-      "then": {
-        "required": [
-          "revoke_proposal"
-        ]
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "revoke_proposal",
-          "terminal_outcome"
-        ]
-      },
-      "then": {
-        "required": [
-          "revoke_command_outcome"
-        ]
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "terminal_outcome",
-          "revoke_proposal"
-        ],
-        "properties": {
-          "terminal_outcome": {
-            "properties": {
-              "outcome": {
-                "enum": [
-                  "aborted",
-                  "expired"
-                ],
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/5/if/properties/terminal_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/5/if/properties/terminal_outcome/properties/outcome",
-                  "values": [
-                    "aborted",
-                    "expired"
-                  ]
-                },
-                "x-arkret-outcome-scope": "security_transaction_execution"
-              }
-            },
-            "required": [
-              "outcome"
-            ],
-            "x-arkret-outcome-scope": "security_transaction_execution"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "revoke_command_outcome": {
-            "properties": {
-              "outcome": {
-                "const": "rejected",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/5/then/properties/revoke_command_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/5/then/properties/revoke_command_outcome/properties/outcome",
-                  "values": [
-                    "rejected"
-                  ]
-                },
-                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-              }
-            },
-            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "revoke_command_outcome"
-        ],
-        "properties": {
-          "revoke_command_outcome": {
-            "required": [
-              "outcome"
-            ],
-            "properties": {
-              "outcome": {
-                "const": "accepted",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/6/if/properties/revoke_command_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/6/if/properties/revoke_command_outcome/properties/outcome",
-                  "values": [
-                    "accepted"
-                  ]
-                },
-                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-              }
-            },
-            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "accepted_steps": {
-            "minItems": 1
-          }
-        }
-      },
-      "else": {
-        "if": {
-          "required": [
-            "revoke_command_outcome"
-          ]
-        },
-        "then": {
-          "required": [
-            "terminal_outcome"
-          ],
-          "properties": {
-            "accepted_steps": {
-              "maxItems": 0
-            },
-            "terminal_outcome": {
-              "required": [
-                "outcome"
-              ],
-              "properties": {
-                "outcome": {
-                  "enum": [
-                    "aborted",
-                    "expired"
-                  ],
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "security-transaction.schema.json#/allOf/6/else/then/properties/terminal_outcome/properties/outcome",
-                    "owner": "security-transaction.schema.json#/allOf/6/else/then/properties/terminal_outcome/properties/outcome",
-                    "values": [
-                      "aborted",
-                      "expired"
-                    ]
-                  },
-                  "x-arkret-outcome-scope": "security_transaction_execution"
-                }
-              },
-              "x-arkret-outcome-scope": "security_transaction_execution"
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "kind",
-          "accepted_steps"
-        ],
-        "properties": {
-          "kind": {
-            "const": "security_rotation",
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "security-transaction.schema.json#/allOf/7/if/properties/kind",
-              "owner": "security-transaction.schema.json#/allOf/7/if/properties/kind",
-              "values": [
-                "security_rotation"
-              ]
-            }
-          },
-          "accepted_steps": {
-            "minItems": 1
-          }
-        }
-      },
-      "then": {
-        "required": [
-          "revoke_command_outcome",
-          "revoke_proposal"
-        ],
-        "properties": {
-          "revoke_command_outcome": {
-            "properties": {
-              "outcome": {
-                "const": "accepted",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/allOf/7/then/properties/revoke_command_outcome/properties/outcome",
-                  "owner": "security-transaction.schema.json#/allOf/7/then/properties/revoke_command_outcome/properties/outcome",
-                  "values": [
-                    "accepted"
-                  ]
-                },
-                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-              }
-            },
-            "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
-          }
-        }
-      }
+      "$ref": "#/$defs/security_rotation_transaction"
     }
   ],
-  "additionalProperties": false,
   "$defs": {
     "revoke_command_outcome": {
       "type": "object",
@@ -743,45 +251,19 @@
       ],
       "properties": {
         "step": {
-          "allOf": [
-            {
-              "type": "string",
-              "enum": [
-                "commit_recovery_unit",
-                "local_commit"
-              ],
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step/allOf/0",
-                "owner": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step/allOf/0",
-                "values": [
-                  "commit_recovery_unit",
-                  "local_commit"
-                ]
-              }
-            },
-            {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/pcr_policy_recovery_step"
-                },
-                {
-                  "$ref": "#/$defs/security_rotation_step"
-                }
-              ]
-            }
-          ]
+          "const": "local_commit",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step",
+            "owner": "security-transaction.schema.json#/$defs/client_step_attestation/properties/step",
+            "values": [
+              "local_commit"
+            ]
+          }
         },
         "output_ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/receipt_id"
-            },
-            {
-              "$ref": "#/$defs/sha256_digest"
-            }
-          ],
-          "description": "Exact echo of prepared_plan.binding.terminal_receipt_id for commit_recovery_unit or prepared_plan.local_commit_digest for local_commit. The verifier MUST compare the value against the selected transaction's closed plan."
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Exact local_commit_digest reserved by the SecurityRotation plan. No receipt or Recovery output is accepted."
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
@@ -793,14 +275,7 @@
           "$ref": "#/$defs/sha256_digest"
         },
         "artifact": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/recovery_terminal_commit"
-            },
-            {
-              "$ref": "#/$defs/security_rotation_local_commit"
-            }
-          ]
+          "$ref": "#/$defs/security_rotation_local_commit"
         },
         "signature_proof": {
           "type": "object",
@@ -829,53 +304,19 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection. For commit_recovery_unit the artifact is the complete recovery receipt; this outer signature authenticates that receipt and never contains, signs or precomputes a RealmCommit."
+              "description": "Canonical Base64URL Ed25519 signature over RFC8785_JCS({step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}). attestation_digest is SHA-256(JCS(the same typed SecurityRotation local_commit artifact)); it is reconstructed, not a wire field. Recovery cannot use this wrapper."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Current accepted Device Ed25519 proof for the Rotation local_commit only. Its complete account/device/key/generation/revocation state is resolved at the same accepted PCR cut. The signature binds step, output_ref, transaction/request/plan and the exact typed local artifact digest."
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "step": {
-                "const": "commit_recovery_unit",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "security-transaction.schema.json#/$defs/client_step_attestation/allOf/0/if/properties/step",
-                  "owner": "security-transaction.schema.json#/$defs/client_step_attestation/allOf/0/if/properties/step",
-                  "values": [
-                    "commit_recovery_unit"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "step"
-            ]
-          },
-          "then": {
-            "properties": {
-              "artifact": {
-                "$ref": "#/$defs/recovery_terminal_commit"
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "artifact": {
-                "$ref": "#/$defs/security_rotation_local_commit"
-              }
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "SecurityRotation-only final local_commit signature. Recovery authenticates its single complete original receipt and never uses this wrapper."
     },
     "security_transaction_continue_request_body": {
       "type": "object",
-      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step; its client artifact carries only the recovery receipt, while the governance Station issues the two PCR-stream RealmCommits inside the atomic admission.",
+      "description": "SecurityRotation-only client local_commit terminal step, at the fixed ready prefix. Recovery has no continue or prepared resource. The server resolves the transaction kind and refuses Recovery before any side effect.",
       "required": [
         "request_digest",
         "prepared_plan_digest",
@@ -913,9 +354,6 @@
       ],
       "x-arkret-name-role": "request_body"
     },
-    "pcr_generation_ref": {
-      "$ref": "./recovery-authority.schema.json#/$defs/pcr_generation_ref"
-    },
     "event_id": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
     },
@@ -927,7 +365,7 @@
     },
     "prepared_event_unit": {
       "type": "object",
-      "description": "Exact typed Event submit request plus its suite-bearing canonical digest. Operation, request schema, destination and audience are fixed by this unit type and the parent account_id.station_id; canonical request bytes are RFC 8785 JCS(request), not a second wire input. A PCR recovery unit contains exactly reanchor plus replacement authorize for the same account-local lineage/session/sequenced revision guard. Both producer proofs use the same session-frozen replacement key resolved through the unit-local candidate possession overlay before mutation; they cannot be submitted or replayed outside the complete recovery unit. Current human DID or device-directory resolution cannot authorize either slot.",
+      "description": "SecurityRotation prepared Event unit only. Its exact typed request/canonical digest is frozen in the Rotation plan; caller-controlled operation/route/audience or arbitrary steps are forbidden.",
       "required": [
         "request",
         "request_digest"
@@ -946,25 +384,14 @@
     "receipt_id": {
       "$ref": "./erasure-receipt-operations.schema.json#/$defs/receipt_id"
     },
-    "realm_commit_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
-    },
     "recovery_create_request_body": {
       "type": "object",
-      "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events, the exact current PCR-stream predecessor and their ordered digests; it never supplies a finished prepared_plan or a RealmCommit. The Station derives the snapshots and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
       "required": [
-        "transaction_id",
         "kind",
-        "account_id",
-        "expires_at",
-        "recovery_intent"
+        "recovery_receipt"
       ],
       "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
         "kind": {
-          "type": "string",
           "const": "recovery",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
@@ -975,261 +402,13 @@
             ]
           }
         },
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "recovery_intent": {
-          "$ref": "#/$defs/pcr_policy_recovery_intent"
+        "recovery_receipt": {
+          "$ref": "./recovery-receipt.schema.json"
         }
       },
       "additionalProperties": false,
+      "description": "Single atomic Recovery submission. The full original signed receipt is the sole canonical intent and contains the two exact EventAdmissionSubmission slots plus accepted PCR predecessor. Same account/transaction with different complete canonical signed receipt is a conflict; the original result is byte-exact replayable.",
       "x-arkret-name-role": "request_body"
-    },
-    "pcr_policy_recovery_intent": {
-      "type": "object",
-      "description": "Caller-authored recovery intent fixing the verified recovery session, replacement device, generation CAS, terminal receipt id, two exact signed producer Events, current PCR stream head and their ordered digests. It contains no Station-signed RealmCommit.",
-      "required": [
-        "recovery_session_id",
-        "replacement_device_id",
-        "previous_model_generation_ref",
-        "new_model_generation_ref",
-        "terminal_receipt_id",
-        "reanchor_unit",
-        "reanchor_commit_intent"
-      ],
-      "properties": {
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "replacement_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "previous_model_generation_ref": {
-          "$ref": "#/$defs/pcr_generation_ref"
-        },
-        "new_model_generation_ref": {
-          "$ref": "#/$defs/pcr_generation_ref"
-        },
-        "terminal_receipt_id": {
-          "$ref": "#/$defs/receipt_id"
-        },
-        "reanchor_unit": {
-          "$ref": "#/$defs/prepared_event_unit"
-        },
-        "reanchor_commit_intent": {
-          "$ref": "#/$defs/recovery_commit_intent"
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_commit_intent": {
-      "type": "object",
-      "description": "Closed authority-commit expectation for the PCR stream. predecessor_ref is the exact current stream head and unit_event_digests fixes the two producer Events that the governance Station must commit atomically after all recovery checks succeed.",
-      "required": [
-        "realm_id",
-        "predecessor_ref",
-        "unit_event_digests"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "predecessor_ref": {
-          "$ref": "#/$defs/realm_commit_id",
-          "description": "Exact current RealmCommit id of the Principal Control Realm stream; genesis-null is invalid."
-        },
-        "unit_event_digests": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
-          },
-          "description": "Exactly [reanchor_digest, authorize_digest] in RealmCommit event order."
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_terminal_commit": {
-      "type": "object",
-      "description": "Sole client-attested terminal artifact of a RecoveryTransaction. It carries the exact replacement-device-signed recovery receipt. The governance Station validates it and the two prepared producer Events, then atomically issues their two consecutive PCR-stream RealmCommits; the client artifact never contains or signs either authority record.",
-      "required": [
-        "recovery_receipt"
-      ],
-      "properties": {
-        "recovery_receipt": {
-          "$ref": "./recovery-receipt.schema.json",
-          "description": "Complete replacement-device-signed recovery receipt binding the transaction, plan, both producer Event ids, generation CAS and recovery proof snapshot."
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_session_id": {
-      "$ref": "./key-backup-unlock-proof.schema.json#/$defs/recovery_session_id"
-    },
-    "pcr_policy_accepted_steps": {
-      "type": "array",
-      "maxItems": 1,
-      "items": {
-        "$ref": "#/$defs/accepted_step"
-      },
-      "description": "Accepted prefix for the canonical pcr_policy step order declared by pcr_policy_recovery_step. PCR-policy recovery has exactly one accepted step, the client-attested commit_recovery_unit terminal commit. The recovery unit stays transaction-private prepared material until that commit, so no coordinator-owned prefix entry exists."
-    },
-    "pcr_policy_progress_contract": {
-      "allOf": [
-        {
-          "if": {
-            "not": {
-              "required": [
-                "terminal_outcome"
-              ]
-            }
-          },
-          "then": {
-            "properties": {
-              "accepted_steps": {
-                "maxItems": 0
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "terminal_outcome": {
-                "properties": {
-                  "outcome": {
-                    "const": "completed",
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "security-transaction.schema.json#/$defs/pcr_policy_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
-                      "owner": "security-transaction.schema.json#/$defs/pcr_policy_progress_contract/allOf/1/if/properties/terminal_outcome/properties/outcome",
-                      "values": [
-                        "completed"
-                      ]
-                    },
-                    "x-arkret-outcome-scope": "security_transaction_execution"
-                  }
-                },
-                "required": [
-                  "outcome"
-                ],
-                "x-arkret-outcome-scope": "security_transaction_execution"
-              }
-            },
-            "required": [
-              "terminal_outcome"
-            ]
-          },
-          "then": {
-            "properties": {
-              "accepted_steps": {
-                "minItems": 1,
-                "maxItems": 1
-              }
-            }
-          }
-        }
-      ]
-    },
-    "pcr_policy_recovery_binding": {
-      "type": "object",
-      "description": "Reserved producer identities of one RecoveryTransaction. The replacement-device-signed Event ids and terminal receipt id are frozen before admission; the resulting RealmCommit is created only by the governance Station during the atomic terminal step.",
-      "required": [
-        "identity_model",
-        "recovery_session_id",
-        "replacement_device_id",
-        "reanchor_event_id",
-        "authorize_event_id",
-        "terminal_receipt_id"
-      ],
-      "properties": {
-        "identity_model": {
-          "const": "pcr_policy",
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "security-transaction.schema.json#/$defs/pcr_policy_recovery_binding/properties/identity_model",
-            "owner": "security-transaction.schema.json#/$defs/pcr_policy_recovery_binding/properties/identity_model",
-            "values": [
-              "pcr_policy"
-            ]
-          }
-        },
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "replacement_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "reanchor_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorize_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "terminal_receipt_id": {
-          "$ref": "#/$defs/receipt_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "pcr_policy_recovery_plan": {
-      "type": "object",
-      "description": "Station-derived closed plan frozen with the canonical request in a durable prepare transaction that produces no accepted Event, RealmCommit, generation advance, active device, consumed session or terminal result.",
-      "required": [
-        "binding",
-        "recovery_session_snapshot_digest",
-        "proof_digest",
-        "previous_model_generation_ref",
-        "new_model_generation_ref",
-        "reanchor_unit",
-        "reanchor_commit_intent"
-      ],
-      "properties": {
-        "binding": {
-          "$ref": "#/$defs/pcr_policy_recovery_binding"
-        },
-        "recovery_session_snapshot_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "proof_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "previous_model_generation_ref": {
-          "$ref": "#/$defs/pcr_generation_ref"
-        },
-        "new_model_generation_ref": {
-          "$ref": "#/$defs/pcr_generation_ref"
-        },
-        "reanchor_unit": {
-          "$ref": "#/$defs/prepared_event_unit"
-        },
-        "reanchor_commit_intent": {
-          "$ref": "#/$defs/recovery_commit_intent",
-          "description": "Exact caller-stated PCR stream head and ordered Event digests; it MUST equal the create request recovery_intent.reanchor_commit_intent byte for byte."
-        }
-      },
-      "additionalProperties": false
-    },
-    "pcr_policy_recovery_step": {
-      "type": "string",
-      "description": "The enum array order is the canonical PCR-policy recovery step order addressed by accepted_steps indexes. PCR-policy recovery has a single client-attested step at index 0: the Station prepare transaction that freezes the plan belongs to create, not to the accepted-step ledger, so no coordinator-owned prefix precedes the terminal commit.",
-      "enum": [
-        "commit_recovery_unit"
-      ],
-      "x-arkret-value-ownership": {
-        "class": "owned_symbol",
-        "authority": "security-transaction.schema.json#/$defs/pcr_policy_recovery_step",
-        "owner": "security-transaction.schema.json#/$defs/pcr_policy_recovery_step",
-        "values": [
-          "commit_recovery_unit"
-        ]
-      }
     },
     "security_rotation_accepted_steps": {
       "type": "array",
@@ -1237,7 +416,7 @@
       "items": {
         "$ref": "#/$defs/accepted_step"
       },
-      "description": "Accepted prefix for the canonical rotation step order declared by security_rotation_step."
+      "description": "Accepted prefix of the fixed Rotation order: revoke, upload_new_material, switch_authoritative_pointer, erase_old_material, local_commit. The prefix length determines the next step; no independent wire step enum exists."
     },
     "security_rotation_create_request_body": {
       "type": "object",
@@ -1421,29 +600,6 @@
         }
       ]
     },
-    "security_rotation_step": {
-      "type": "string",
-      "description": "The enum array order is the canonical security-rotation step order addressed by accepted_steps indexes.",
-      "enum": [
-        "revoke",
-        "upload_new_material",
-        "switch_authoritative_pointer",
-        "erase_old_material",
-        "local_commit"
-      ],
-      "x-arkret-value-ownership": {
-        "class": "owned_symbol",
-        "authority": "security-transaction.schema.json#/$defs/security_rotation_step",
-        "owner": "security-transaction.schema.json#/$defs/security_rotation_step",
-        "values": [
-          "revoke",
-          "upload_new_material",
-          "switch_authoritative_pointer",
-          "erase_old_material",
-          "local_commit"
-        ]
-      }
-    },
     "terminal_outcome": {
       "oneOf": [
         {
@@ -1541,6 +697,427 @@
     },
     "transaction_id": {
       "$ref": "./recovery-authority.schema.json#/$defs/transaction_id"
+    },
+    "security_rotation_transaction": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "kind",
+        "account_id",
+        "authorizing_device_id",
+        "expires_at",
+        "created_at",
+        "request_digest",
+        "prepared_plan",
+        "prepared_plan_digest",
+        "accepted_steps"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "kind": {
+          "const": "security_rotation",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/properties/kind",
+            "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/properties/kind",
+            "values": [
+              "security_rotation"
+            ]
+          }
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account owner. Its station_id is the coordinator: the service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
+        },
+        "authorizing_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id",
+          "description": "SecurityRotation only. Exact device from the fresh high-risk authenticated create session. The coordinator binds it to that session and persists it before any side effect; the worker rechecks that the account and this device are still active immediately before old-material erasure."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "prepared_plan": {
+          "$ref": "#/$defs/security_rotation_plan"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256(RFC8785_JCS(prepared_plan)). Implementations MUST recompute it and persist both bytes and typed value before the first side effect. This cross-service CAS coordinate is fixed independently of any domain-selectable Blob or KDF digest suite."
+        },
+        "accepted_steps": {
+          "$ref": "#/$defs/security_rotation_accepted_steps"
+        },
+        "revoke_proposal": {
+          "$ref": "#/$defs/revoke_proposal",
+          "description": "SecurityRotation only. Immutable exact PCR proposal Event/Commit binding, persisted when that accepted proposal becomes visible."
+        },
+        "revoke_command_outcome": {
+          "$ref": "#/$defs/revoke_command_outcome",
+          "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut.",
+          "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+        },
+        "terminal_outcome": {
+          "$ref": "#/$defs/terminal_outcome",
+          "x-arkret-outcome-scope": "security_transaction_execution"
+        }
+      },
+      "allOf": [
+        {
+          "required": [
+            "authorizing_device_id"
+          ],
+          "properties": {
+            "prepared_plan": {
+              "$ref": "#/$defs/security_rotation_plan"
+            },
+            "accepted_steps": {
+              "$ref": "#/$defs/security_rotation_accepted_steps"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/security_rotation_progress_contract"
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "security_rotation",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/if/properties/kind",
+                  "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/if/properties/kind",
+                  "values": [
+                    "security_rotation"
+                  ]
+                }
+              },
+              "terminal_outcome": {
+                "properties": {
+                  "outcome": {
+                    "const": "completed",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/if/properties/terminal_outcome/properties/outcome",
+                      "values": [
+                        "completed"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
+                  }
+                },
+                "required": [
+                  "outcome"
+                ],
+                "x-arkret-outcome-scope": "security_transaction_execution"
+              }
+            },
+            "required": [
+              "kind",
+              "terminal_outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "terminal_outcome": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "receipt_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "completion_attestation"
+                      ]
+                    }
+                  ]
+                },
+                "x-arkret-outcome-scope": "security_transaction_execution"
+              },
+              "revoke_command_outcome": {
+                "properties": {
+                  "outcome": {
+                    "const": "accepted",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/then/properties/revoke_command_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/1/then/properties/revoke_command_outcome/properties/outcome",
+                      "values": [
+                        "accepted"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+                  }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+              }
+            },
+            "required": [
+              "revoke_command_outcome"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "revoke_command_outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "revoke_proposal"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "revoke_proposal",
+              "terminal_outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "revoke_command_outcome"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "terminal_outcome",
+              "revoke_proposal"
+            ],
+            "properties": {
+              "terminal_outcome": {
+                "properties": {
+                  "outcome": {
+                    "enum": [
+                      "aborted",
+                      "expired"
+                    ],
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/4/if/properties/terminal_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/4/if/properties/terminal_outcome/properties/outcome",
+                      "values": [
+                        "aborted",
+                        "expired"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "security_transaction_execution"
+                  }
+                },
+                "required": [
+                  "outcome"
+                ],
+                "x-arkret-outcome-scope": "security_transaction_execution"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "revoke_command_outcome": {
+                "properties": {
+                  "outcome": {
+                    "const": "rejected",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/4/then/properties/revoke_command_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/4/then/properties/revoke_command_outcome/properties/outcome",
+                      "values": [
+                        "rejected"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+                  }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "revoke_command_outcome"
+            ],
+            "properties": {
+              "revoke_command_outcome": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "accepted",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/5/if/properties/revoke_command_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/5/if/properties/revoke_command_outcome/properties/outcome",
+                      "values": [
+                        "accepted"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+                  }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "accepted_steps": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "if": {
+              "required": [
+                "revoke_command_outcome"
+              ]
+            },
+            "then": {
+              "required": [
+                "terminal_outcome"
+              ],
+              "properties": {
+                "accepted_steps": {
+                  "maxItems": 0
+                },
+                "terminal_outcome": {
+                  "required": [
+                    "outcome"
+                  ],
+                  "properties": {
+                    "outcome": {
+                      "enum": [
+                        "aborted",
+                        "expired"
+                      ],
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/5/else/then/properties/terminal_outcome/properties/outcome",
+                        "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/5/else/then/properties/terminal_outcome/properties/outcome",
+                        "values": [
+                          "aborted",
+                          "expired"
+                        ]
+                      },
+                      "x-arkret-outcome-scope": "security_transaction_execution"
+                    }
+                  },
+                  "x-arkret-outcome-scope": "security_transaction_execution"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind",
+              "accepted_steps"
+            ],
+            "properties": {
+              "kind": {
+                "const": "security_rotation",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/6/if/properties/kind",
+                  "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/6/if/properties/kind",
+                  "values": [
+                    "security_rotation"
+                  ]
+                }
+              },
+              "accepted_steps": {
+                "minItems": 1
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "revoke_command_outcome",
+              "revoke_proposal"
+            ],
+            "properties": {
+              "revoke_command_outcome": {
+                "properties": {
+                  "outcome": {
+                    "const": "accepted",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/6/then/properties/revoke_command_outcome/properties/outcome",
+                      "owner": "security-transaction.schema.json#/$defs/security_rotation_transaction/allOf/6/then/properties/revoke_command_outcome/properties/outcome",
+                      "values": [
+                        "accepted"
+                      ]
+                    },
+                    "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+                  }
+                },
+                "x-arkret-outcome-scope": "device_revoke_command_admission_attempt"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "recovery_transaction_completion": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "kind",
+        "account_id",
+        "created_at",
+        "recovery_receipt",
+        "completion_attestation"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "kind": {
+          "const": "recovery",
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "security-transaction.schema.json#/$defs/recovery_transaction_completion/properties/kind",
+            "owner": "security-transaction.schema.json#/$defs/recovery_transaction_completion/properties/kind",
+            "values": [
+              "recovery"
+            ]
+          }
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "recovery_receipt": {
+          "$ref": "./recovery-receipt.schema.json"
+        },
+        "completion_attestation": {
+          "$ref": "./recovery-authority.schema.json#/$defs/recovery_completion_attestation"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable successful single-submit Recovery result. All members become visible with the same accepted Commit pair, generation/device/session terminal and native content-recovery fence. No pending/prepared Recovery resource exists; deterministic failures use the operation Problem and temporary unavailability remains retryable."
     }
   }
 }

@@ -1225,7 +1225,6 @@
       "required": [
         "challenge_id",
         "challenge",
-        "nonce",
         "operation",
         "account_id",
         "backup_id",
@@ -1243,12 +1242,9 @@
           "description": "Server-issued unique id of this challenge; echoed verbatim in the DELETE request body."
         },
         "challenge": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG challenge bytes (base64url, no padding)."
-        },
-        "nonce": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Exactly 32 CSPRNG octets encoded as canonical unpadded Base64URL. The service atomically binds and consumes this one unpredictable challenge with the complete existing operation context."
         },
         "operation": {
           "const": "ak.self.keys.backups.resource.delete.v1",
@@ -1640,7 +1636,6 @@
       "required": [
         "challenge_id",
         "challenge",
-        "nonce",
         "operation",
         "account_id",
         "backup_id",
@@ -1661,14 +1656,9 @@
           "description": "Server-issued single-use challenge identifier."
         },
         "challenge": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG challenge bytes (base64url, no padding).",
-          "minLength": 43,
-          "maxLength": 43
-        },
-        "nonce": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Exactly 32 CSPRNG octets encoded as canonical unpadded Base64URL. The service atomically binds and consumes this one unpredictable challenge with the complete existing operation context."
         },
         "operation": {
           "const": "ak.self.keys.backups.command.unlock.v1",
@@ -3339,7 +3329,6 @@
       "required": [
         "challenge_id",
         "challenge",
-        "nonce",
         "operation",
         "backup_id",
         "audience",
@@ -3366,14 +3355,9 @@
           "description": "Server-issued single-use challenge identifier."
         },
         "challenge": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG challenge bytes (base64url, no padding).",
-          "minLength": 43,
-          "maxLength": 43
-        },
-        "nonce": {
-          "$ref": "#/$defs/base64url",
-          "description": "Server-issued CSPRNG nonce bytes (base64url, no padding); distinct from challenge so the transcript binds two independent freshness values."
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Exactly 32 CSPRNG octets encoded as canonical unpadded Base64URL. The service atomically binds and consumes this one unpredictable challenge with the complete existing operation context."
         },
         "operation": {
           "const": "ak.self.keys.backups.command.unlock.v1",

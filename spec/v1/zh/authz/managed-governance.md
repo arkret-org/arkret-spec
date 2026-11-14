@@ -30,7 +30,7 @@ requester 的 actor_id 必须是当次真实认证请求人（安装／调用人
 完整权威 current 证明没有适用管理 Policy 时管理门为 allow；unknown、stale、fork、超时、私有缓存缺行与不完整分页
 **MUST NOT** 当作无配置。allow 只放行治理门，不生成业务能力、安装或加入事实。
 
-Agent／Applet 管理 Policy 的 `ak.policy.set` payload **MUST** 携精确 nullable `expected_revision`。
+Agent／Applet 管理 Policy 的 `ak.policy.set` payload **MUST** 携精确 nullable `expected_commit_id`。
 首次 `null` 只来自完整权威无记录证明；更新须命中当前 revision，Policy id 禁止换成另一族逃避 CAS。
 写入者通过 `ak.self.current_state.read.exact.v1` 的 `selector={kind:policy,policy_id}` 读取同 cut Policy typed current；
 仅当前有本 scope `ak.policy.set` 权限者可读 Agent／Applet Policy。真正不存在返回 exact `never_written`，无权或隐藏返回 not_found；不提供 Policy 枚举。

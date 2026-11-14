@@ -827,6 +827,59 @@ def check_mimi_room_binding_migration(lint: Lint) -> None:
         lint.fail(fixture_path, "MIMI migration rejected cases must have zero durable effects")
 
 
+def check_issuer_allocated_id_contract(
+    lint: Lint, path: Path, row: dict[str, Any], registry: dict[str, Any]
+) -> None:
+    """Bind the issuer-allocated wire ID to its immutable issuer record contract."""
+    expected_row = {
+        "kind": "session_grant",
+        "id_form": "issuer_allocated",
+        "wire_form": "ak:session_grant:<uuidv7>",
+        "identity_authority": "issuer_record",
+        "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
+        "storage_identity_key": ["issuer_id", "typed_id"],
+    }
+    for field, expected in expected_row.items():
+        if row.get(field) != expected:
+            lint.fail(path, f"issuer-allocated SessionGrant row {field} must equal {expected!r}")
+    if "genesis_event_kinds" in row:
+        lint.fail(path, "issuer-allocated SessionGrant must omit genesis_event_kinds")
+    contract = registry.get("issuer_record_identity_contract")
+    if not isinstance(contract, dict):
+        lint.fail(path, "issuer_record_identity_contract must be an object")
+        return
+    expected_contract = {
+        "applies_to_id_kinds": ["session_grant"],
+        "identity_key": ["issuer_id", "typed_id"],
+        "authority": "immutable_issuer_ledger_record",
+        "id_form": "issuer_allocated",
+        "identity_authority": "issuer_record",
+        "record_identity_fields": ["issuer_id", "id"],
+        "record_id_allocation": "issuer_atomic_unique_uuidv7",
+        "secret_bytes": 32,
+        "secret_encoding": "base64url_no_padding",
+        "secret_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_secret",
+        "credential_pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+        "reference_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_ref",
+        "metadata_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantMetadata",
+        "credential_lookup": "sha256(ASCII(exact_opaque_credential))_then_exact_secret_comparison",
+        "metadata_immutability": "binding_changes_allocate_a_new_id_and_secret_never_mutate_an_issued_record",
+        "conformance_suite": {
+            "vector_id": "ak.vector.auth.session_grant_issuer_record.v1",
+            "fixture": "session-grant-issuance-fixture.json",
+        },
+    }
+    for field, expected in expected_contract.items():
+        if contract.get(field) != expected:
+            lint.fail(path, f"issuer_record_identity_contract.{field} must equal {expected!r}")
+    for field in (
+        "preimage_fields", "digest_input", "domain_separator", "canonicalization",
+        "digest_suite_wire_code", "digest_suite_registry_ref", "token_layout",
+    ):
+        if field in contract:
+            lint.fail(path, f"issuer_record_identity_contract retains retired derivation field {field}")
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     check_ordinary_realm_bootstrap_carrier(lint)
     check_mimi_admission_guards(lint)
@@ -1059,6 +1112,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     }
     expected_wire_form_generation = {
         "producer_allocated": "ak:<kind>:<uuidv7>",
+        "issuer_allocated": "ak:<kind>:<uuidv7>",
         "event_derived": "ak:<kind>:<44-char-event-token>",
         "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>",
     }
@@ -1086,9 +1140,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     f"{kind} wire_form must be generated from id_form={id_form}: {expected_wire_form}",
                 )
 
-    # Bidirectional registry/schema guard: every token-derived kind must have
-    # an exact 44-character schema carrier somewhere, and no schema may retain
-    # an exact UUID carrier for that same typed kind. This closes the gap where
+    # Bidirectional registry/schema guard: each kind must have its exact physical
+    # carrier and must not retain the retired opposite carrier. This closes the gap where
     # registry generation was correct but an independently hand-written schema
     # still accepted the retired physical form.
     schema_patterns: set[str] = set()
@@ -1112,6 +1165,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if row.get("id_form") not in {
             "event_derived",
             "suite_tagged_full_digest",
+            "issuer_allocated",
         }:
             continue
         escaped_kind = re.escape(kind)
@@ -1120,10 +1174,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             rf"^ak:{escaped_kind}:[0-9a-f]{{8}}-[0-9a-f]{{4}}-7[0-9a-f]{{3}}-"
             rf"[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$"
         )
-        if token_pattern not in schema_patterns:
-            lint.fail(id_path, f"{kind} has no exact 44-character schema carrier")
-        if uuid_pattern in schema_patterns:
-            lint.fail(id_path, f"{kind} schema still carries the retired UUIDv7 form")
+        if row.get("id_form") == "issuer_allocated":
+            if uuid_pattern not in schema_patterns:
+                lint.fail(id_path, f"{kind} has no exact UUIDv7 schema carrier")
+            if token_pattern in schema_patterns:
+                lint.fail(id_path, f"{kind} schema still carries the retired 44-character digest form")
+        else:
+            if token_pattern not in schema_patterns:
+                lint.fail(id_path, f"{kind} has no exact 44-character schema carrier")
+            if uuid_pattern in schema_patterns:
+                lint.fail(id_path, f"{kind} schema still carries the retired UUIDv7 form")
 
     # zh/models/common-fields.md section 6.0: an event-derived Event may
     # retype its event_id into more than one *different* typed ID kind.  The
@@ -1186,6 +1246,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         id_form = row.get("id_form")
         authority = row.get("identity_authority")
         genesis_kinds = row.get("genesis_event_kinds")
+        if id_kind == "session_grant" or id_form == "issuer_allocated":
+            check_issuer_allocated_id_contract(lint, id_path, row, id_registry)
         if id_form == "event_derived" and id_kind == "event":
             if authority != "canonical_event_content" or genesis_kinds is not None:
                 lint.fail(id_path, "event must use canonical_event_content and omit genesis_event_kinds")
@@ -1273,6 +1335,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     expected = "ak:notification_projection:" + base64.urlsafe_b64encode(b"\x01" + digest).decode("ascii")
                     if answer.get("notification_id") != expected:
                         lint.fail(id_path, "notification projection KAT digest does not match")
+        elif id_form == "issuer_allocated":
+            # The issuer contract is checked above even if a row regresses to a
+            # different id_form; UUID shape alone never authenticates an issuer.
+            pass
         elif id_form == "producer_allocated":
             if authority != "producer_signature":
                 lint.fail(
@@ -1815,6 +1881,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             for row in (id_rows if isinstance(id_rows, list) else [])
             if isinstance(row, dict)
             and row.get("id_form") == "suite_tagged_full_digest"
+        },
+        "issuer_allocated_id_kinds": {
+            row.get("kind")
+            for row in (id_rows if isinstance(id_rows, list) else [])
+            if isinstance(row, dict) and row.get("id_form") == "issuer_allocated"
         },
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
@@ -2374,20 +2445,23 @@ def check_id_form_wire_schema_alignment(lint: Lint) -> None:
             ):
                 lint.fail(registry_path, f"suite-tagged {kind} schemas never require a 44-character token")
             report_inverted_id_form_payloads(lint, kind, "suite-tagged", matching)
-        elif id_form == "producer_allocated":
+        elif id_form in {"producer_allocated", "issuer_allocated"}:
+            label = "producer" if id_form == "producer_allocated" else "issuer"
             expected_wire = f"ak:{kind}:<uuidv7>"
             if wire_form != expected_wire:
-                lint.fail(registry_path, f"{kind} producer wire_form must equal {expected_wire!r}")
+                lint.fail(registry_path, f"{kind} {label} wire_form must equal {expected_wire!r}")
+            if not matching and id_form == "issuer_allocated":
+                lint.fail(registry_path, f"{kind} issuer-allocated ID has no schema regex")
             if matching and not any(
                 payload.startswith(PRODUCER_UUID_PAYLOAD_REGEX) for *_, payload in matching
             ):
-                lint.fail(registry_path, f"producer-allocated {kind} schemas never require UUIDv7")
+                lint.fail(registry_path, f"{label}-allocated {kind} schemas never require UUIDv7")
             for path, json_path, pattern, payload in matching:
                 if not payload.startswith(EVENT_TOKEN_PAYLOAD_REGEX):
                     continue
                 lint.fail(
                     path,
-                    f"{json_path} validates producer-allocated ak:{kind} with a 44-character "
+                    f"{json_path} validates {label}-allocated ak:{kind} with a 44-character "
                     f"token payload {payload!r} (carrier {pattern!r}); the canonical wire form is "
                     f"ak:{kind}:{PRODUCER_UUID_PAYLOAD_REGEX}",
                 )
@@ -3216,13 +3290,18 @@ def registry_canonical_payload_regex(lint: Lint, registry: dict[str, Any], path:
     The regexes are the registry's own ``event_token_pattern`` and
     ``uuid_pattern_producer_allocated``. Reading them here instead of restating
     them keeps the gate from drifting away from the artifact it enforces; the
-    module constants are held to the same registry text.
+    module constants are held to the same registry text. The issuer and producer
+    allocation authorities share only the UUIDv7 physical payload grammar.
     """
     canonical: dict[str, str] = {}
     declared = {
         "event_derived": ("event_token_pattern", EVENT_TOKEN_PAYLOAD_REGEX),
         "suite_tagged_full_digest": ("event_token_pattern", EVENT_TOKEN_PAYLOAD_REGEX),
         "producer_allocated": (
+            "uuid_pattern_producer_allocated",
+            PRODUCER_UUID_PAYLOAD_REGEX,
+        ),
+        "issuer_allocated": (
             "uuid_pattern_producer_allocated",
             PRODUCER_UUID_PAYLOAD_REGEX,
         ),

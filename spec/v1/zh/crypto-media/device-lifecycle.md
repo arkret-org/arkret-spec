@@ -217,7 +217,7 @@ Agent runtime 轮换沿用同一原子 successor／predecessor 规则，但其 e
 `AgentSessionGrantRefreshRequestBody` MUST 携带 `principal_id`（即 agent_id）、已接受的
 `agent_key_authorization_ref` 与 `agent_session_refresh_proof`，MUST NOT 携带 `device_id`；proof 的
 `verification_method` 与前两者组成 predecessor `AgentRuntime` holder 的精确三元组。刷新 intent digest
-覆盖 predecessor JWT digest、该三元组及 audience；Auth Server MUST 验证三元组与 predecessor grant 相等，
+覆盖 predecessor不透明凭据的ASCII字节摘要、该三元组及audience；Auth Server MUST 验证三元组与predecessor的权威issuer metadata相等，
 在同一当前 authority cut 再查 Agent lifecycle、当前 runtime key 授权、controller 与 grant 链状态，
 任一失效、换 key、授权 Event 被取代或 DPoP holder 不符均拒绝且零 successor／supersede 写入。
 - **不引入长期离线续期凭据**:本协议以「grant-binding key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
@@ -521,7 +521,7 @@ Arkret 推送通道通过最小唤醒信号减少向 push gateway / vendor 披�
 
 #### 5.6.2 注册与撤销
 
-- 目标 account-private effect 的 storage owner、唯一键、value projection、field maintenance、exact retry 与零副作用拒绝由 [`../models/actor-private-effects.md` §3.3](../models/actor-private-effects.md#33-push-route) 和 canonical `contract-registry.json` 共同闭合。其 composite unique key 是 `(payload.account_id, payload.device_id, payload.push_route)`，family 固定使用 `server_revision_cas`。每条 `ak.device.push_route` Event MUST 携 `expected_server_revision`：从未写入的 route 以 `0` 创建；接受方在同一原子事务比较当前 revision，相等时存储 `revision = expected_server_revision + 1`，不相等时返回 `cas_conflict` 且零写入。`expected_server_revision` 是 account-private merge 载体，不是 authority-commit precondition；该 Event MUST NOT 携共享 reducer `preconditions` / `expected_revision`，也不进入 shared Realm RealmCommit coverage。
+- 目标 account-private effect 的 storage owner、唯一键、value projection、field maintenance、exact retry 与零副作用拒绝由 [`../models/actor-private-effects.md` §3.3](../models/actor-private-effects.md#33-push-route) 和 canonical `contract-registry.json` 共同闭合。其 composite unique key 是 `(payload.account_id, payload.device_id, payload.push_route)`，family 固定使用 `server_revision_cas`。每条 `ak.device.push_route` Event MUST 携 `expected_server_revision`：从未写入的 route 以 `0` 创建；接受方在同一原子事务比较当前 revision，相等时存储 `revision = expected_server_revision + 1`，不相等时返回 `cas_conflict` 且零写入。`expected_server_revision` 是 account-private merge 载体，不是 authority-commit precondition；该 Event MUST NOT 携共享 reducer `preconditions` / `expected_commit_id`，也不进入 shared Realm RealmCommit coverage。
 - active 写入是闭合 whole-value：`(account_id, device_id, push_route, expected_server_revision, push_target_id, push_gateway_id, encryption_key, capabilities, expires_at?, updated_at?)`。`account_id` MUST 等于 Event `actor_id.account_id`，且 `push_target_id` MUST 等于该账号认证 session 的注册响应返回值；`push_gateway_id` MUST 是 canonical `did_core_id`，实现不得另收 `push_gateway_did`。active 形态 MUST 省略 `revoked`。
 - 撤销写入是互斥的闭合 tombstone：`(account_id, device_id, push_route, expected_server_revision, revoked=true, updated_at?)`。它 MUST 省略 `push_target_id`、`push_gateway_id`、`encryption_key`、`capabilities` 与 `expires_at`；撤销由 private effect unique key + revision 定址，不得为定位旧值而重传旧 `push_target_id` 或 provider 秘密。接受后 service / gateway MUST 立即停止接受旧伪名。
 - 轮换是对同一 current state 的下一条完整 active 写入，不是局部 patch：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时以当前 revision 和新注册响应的完整 active tuple 提交。create(revision 0) → rotate(revision 1) → revoke(revision 2) 三次成功写入后，current state revision 固定为 3；缺失 revision、stale retry 与同 revision sibling 均 fail closed。
@@ -1400,7 +1400,7 @@ MUST NOT 使用或等于 DID `versionId`；resolution current state 不随基础
 DID-root 只是在 recovery policy 中显式启用、可撤销的一种 proof kind。当前 DID root 本身不能
 re-anchor；method 不支持 history/pre-rotation 或 policy 未启用时必须拒绝。RecoveryTransaction 不包含
 DID publication；用户执行 resolution successor 时必须走独立 DID operation 发布流程，且其失败不得改变
-PCR recovery transaction 的 accepted-step ledger。
+PCR recovery transaction的已接受原子终局。
 
 **候选设备 key 的唯一承诺与 PoP（normative）**：create request 在 `requesting_device_id` 后必须携带
 `requesting_device_public_key_did` 与 `requesting_device_signature`，前者是无 fragment、规范编码的 Ed25519
@@ -1409,9 +1409,9 @@ PCR recovery transaction 的 accepted-step ledger。
 
 create-time PoP 的封闭对象由
 [`recovery-session.schema.json#/$defs/recovery_device_possession_transcript`](../../artifacts/schemas/recovery-session.schema.json#/$defs/recovery_device_possession_transcript)
-定义：`schema="ak.identity.recovery_device_possession.v1"`、`request_id`、`session_grant_id`、
+定义：`schema="ak.identity.recovery_device_possession.v1"`、`request_id`、`session_grant_ref`、
 `session_grant_cnf_jkt`、`account_id`、`requesting_device_id`、`requesting_device_public_key_did`、
-`trust_domain` 和条件式 `expected_recovery_policy_ref`。grant id/JKT 必须从认证本次请求的
+`trust_domain` 和条件式 `expected_recovery_policy_ref`。grant完整issuer ref/JKT必须从认证本次请求的
 `recovery_session` grant 取得，不能由未认证 body 指定；其它成员与 create request 逐字相同。
 `expected_recovery_policy_ref` 仅在请求提供时包含，不得将省略改为 null。签名原像为
 `UTF8("ak.identity.recovery_device_possession.v1\n") || JCS(上述对象)`，签名是 64 字节 Ed25519 signature
@@ -1449,7 +1449,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 
-设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced`；pending/rejected re-anchor 候选数目不改变 lifecycle，generation 的推进唯一遵循完整 unit 的 RealmCommit committed 结果；承载两条 recovery Event 的两笔连续 RealmCommit 只能由当前治理 Station 在 RecoveryTransaction 的 `commit_recovery_unit` 原子提交中签发，terminal completed 而缺少任一 RealmCommit、或任一 RealmCommit 已提交而 transaction 未 completed 都不是可观察状态。验证状态为 `verified | unresolved | stale`。**两维都是读侧折叠而非存储轴**：lifecycle 五值的封闭折叠输入与固定优先序见 §5.5.3，设备授权事实与 generation 的存储形态见 §5.5.1 / §5.5.4。两维 MUST 分开投影——此处「投影」指分别折叠、分别呈现，MUST NOT 读成分别存储——account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于治理 Station 在接纳事务中验证的 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 不要求 producer 先取得额外的新 RealmCommit basis，也不要求 origin Station 在线，但它自身必须由目标 stream 的 current governance Station 在解析授权实例、依赖与关闭集合后签发 covering RealmCommit，才成为 accepted。安全目标继续按其 state-changing Event/unit 的附加事务规则生效。历史资格按 event-auth-state-resolution 的精确授权实例与 committed 关闭边界判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
+设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced`；pending/rejected re-anchor 候选数目不改变 lifecycle，generation 的推进唯一遵循完整 unit 的 RealmCommit committed 结果；承载两条 recovery Event 的两笔连续 RealmCommit 只能由当前治理 Station 在 RecoveryTransaction 的 单次create原子提交中签发，terminal completed 而缺少任一 RealmCommit、或任一 RealmCommit 已提交而 transaction 未 completed 都不是可观察状态。验证状态为 `verified | unresolved | stale`。**两维都是读侧折叠而非存储轴**：lifecycle 五值的封闭折叠输入与固定优先序见 §5.5.3，设备授权事实与 generation 的存储形态见 §5.5.1 / §5.5.4。两维 MUST 分开投影——此处「投影」指分别折叠、分别呈现，MUST NOT 读成分别存储——account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于治理 Station 在接纳事务中验证的 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 不要求 producer 先取得额外的新 RealmCommit basis，也不要求 origin Station 在线，但它自身必须由目标 stream 的 current governance Station 在解析授权实例、依赖与关闭集合后签发 covering RealmCommit，才成为 accepted。安全目标继续按其 state-changing Event/unit 的附加事务规则生效。历史资格按 event-auth-state-resolution 的精确授权实例与 committed 关闭边界判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
 
 ### 14.2 Recovery UI requirements
 

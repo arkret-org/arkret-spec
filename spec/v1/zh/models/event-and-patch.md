@@ -41,7 +41,7 @@ Event Envelope 的顶层字段为：
 | `producer_proof` | 是 | 唯一 producer proof；是单个对象，不是数组 |
 
 Event 不携带 `producer_revision`、`hlc`、`domain_refs`、通用 `preconditions`、`commit_authorization_state`、
-`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；
+`commit_base`、`expected_commit_id`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；
 `previous_commit_ref` 只存在于治理 Station 在接纳时创建的 `RealmCommit`。
 
 ## 2. Event 提交与业务引用
@@ -86,7 +86,7 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 每个 Event kind 选择一个固定 typed reducer。治理 Station 按该 Event 所属 stream 的
 `RealmCommit.stream_position` 执行；Realm、不同 Circle、不同 Sidecar 之间没有总序。
 
-需要 compare-and-set 的领域在自身 payload 中定义 `expected_revision`，该值引用该 typed current row 最后
+需要 compare-and-set 的领域在自身 payload 中定义 `expected_commit_id`，该值引用该 typed current row 最后
 一次接受它的 Commit。协议不提供 current state key、通用 patch DSL、CRDT/deterministic projection rank 或 caller 指定的 state root。
 
 跨 stream 工作流必须使用已提交引用、幂等 saga 和明确补偿 Event，不得因为同一部署共用数据库就暴露
@@ -98,7 +98,7 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 
 ### 3.2 可变对象修订
 
-需要防覆盖的 payload 携带领域专属 `expected_revision`；比较值是该 typed row 的最后 Commit 修订。
+需要防覆盖的 payload 携带领域专属 `expected_commit_id`；比较值是该 typed row 的最后 Commit 修订。
 
 ## 4. 验证边界
 
@@ -179,14 +179,14 @@ Generic patch path MUST NOT 操作 reducer-managed 字段: `id`、`schema`、`re
 
 #### 4.3.1 Patch 冲突
 
-Patch 不使用 causal rank；默认按同 stream Commit 顺序应用，并在具体 payload 要求时使用 `expected_revision`。
+Patch 不使用 causal rank；默认按同 stream Commit 顺序应用，并在具体 payload 要求时使用 `expected_commit_id`。
 
 **原子性与声明的 pre-state（normative）**：同一个 `payload.patch` map 中的所有 path 变更属于该 Event 的
 **单次原子写入**。reducer MUST 先取得该 Event 声明的 pre-state，再验证全部 path grammar、schema transition、
 capability field constraint、redactable slot 限制与 reducer-managed path 限制，最后整体应用。任一检查失败时
 整个 patch MUST fail closed，MUST NOT 部分应用已经通过的 path。
 
-pre-state 的求值必须唯一且有界：携带 `expected_revision` 的 payload 以该 typed row 的最后 Commit 修订为准，
+pre-state 的求值必须唯一且有界：携带 `expected_commit_id` 的 payload 以该 typed row 的最后 Commit 修订为准，
 不一致时以 `failed_precondition` 拒绝；pre-state 无法唯一绑定——目标行不存在、解析出多于一个候选，或实现
 只能依据到达顺序、本地 current 快照、墙钟或 HLC 猜测——时 MUST 以 `schema_violation`、
 `reason_code=reducer_projection_failed` 拒绝，MUST NOT 落在一个未绑定的基线上应用。

@@ -16,7 +16,7 @@
   "cases": [
     {
       "name": "stale_cas_has_no_inline_current",
-      "given": "an authorized Event claims an expected_revision older than the frozen selector revision",
+      "given": "an authorized Event claims an expected_commit_id older than the frozen selector revision",
       "action": "submit the Event to the current governing Station",
       "decision": "reject",
       "reason": "failed_precondition",

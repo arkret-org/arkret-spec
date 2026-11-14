@@ -32,7 +32,7 @@ Event 提交入口，不能视为 lease-issue 的别名。旧 ordered-batch／ge
 不属于 active v1 conformance。此边界不取消安全轮换中备份擦除的高风险授权要求；其独立
 lease carrier／发行合同尚未闭合，不能借通用 Agent 发行面补空。
 
-需要并发保护的领域写入在 typed payload 中携带 `expected_revision`。排队期间 revision 变化时，治理
+需要并发保护的领域写入在 typed payload 中携带 `expected_commit_id`。排队期间 revision 变化时，治理
 Station 返回 `cas_conflict`，客户端必须获取新 current、要求用户确认语义变化，并生成新 Event。
 
 ## 3. 状态机

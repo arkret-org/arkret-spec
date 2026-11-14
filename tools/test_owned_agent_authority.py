@@ -40,7 +40,7 @@ class OwnedAgentAuthorityTest(unittest.TestCase):
         fixture = gate.load_json(gate.Lint(), gate.ARTIFACTS / 'fixtures/agent-participation-fixture.json')
         source = json.loads(fixture['owned_agent_authority_contract']['schema_cases'][0]['canonical_json'])['grant']
         body = {'policy_id': 'ak:policy:0198ff00-0000-7000-8000-000000000001',
-                'expected_revision': None,
+                'expected_commit_id': None,
                 'value': {'schema': 'ak.schema.policy.v1',
                           'id': 'ak:policy:0198ff00-0000-7000-8000-000000000001',
                           'realm_id': source['realm_id'], 'policy_kind': 'agent',
@@ -51,16 +51,18 @@ class OwnedAgentAuthorityTest(unittest.TestCase):
         validator = gate.schema_validator(gate.ARTIFACTS / 'schemas/event-payload.schema.json',
                                           '#/$defs/policy_set_state_payload')
         self.assertEqual(list(validator.iter_errors(body)), [])
-        body['expected_revision'] = {'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_position': 7}
+        body['expected_commit_id'] = 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4'
         self.assertEqual(list(validator.iter_errors(body)), [])
-        body['expected_revision'] = 7
+        body['expected_commit_id'] = {'commit_id': body['expected_commit_id'], 'stream_position': 7}
         self.assertTrue(list(validator.iter_errors(body)))
-        del body['expected_revision']
+        body['expected_commit_id'] = 7
+        self.assertTrue(list(validator.iter_errors(body)))
+        del body['expected_commit_id']
         self.assertTrue(list(validator.iter_errors(body)))
         body['value']['policy_kind'] = 'access'
         body['value']['rules'] = [{'rule_id': 'allow', 'kind': 'action', 'effect': 'allow', 'actions': ['ak.message.create']}]
         self.assertEqual(list(validator.iter_errors(body)), [])
-        body['expected_revision'] = None
+        body['expected_commit_id'] = None
         self.assertTrue(list(validator.iter_errors(body)))
 
     def test_agent_policy_cas_mutations_fail(self):
@@ -141,6 +143,28 @@ class AgentSessionContentTest(unittest.TestCase):
 
     def test_committed_source_scope_and_bootstrap_contract(self):
         self.assertEqual(self.run_gate(), [])
+
+    def test_session_metadata_and_introspection_share_one_scope_contract(self):
+        for owner in ('SessionGrantMetadata', 'SessionGrantIntrospectGrant'):
+            with self.subTest(owner=owner):
+                def mutate(name, doc):
+                    if name == 'service-operation-dtos.schema.json':
+                        doc['$defs'][owner]['properties']['scope_details'] = {
+                            'type': 'object', 'properties': {}
+                        }
+                self.assertTrue(self.run_gate(mutate))
+
+    def test_canonical_scope_cannot_require_a_literal_grant(self):
+        def mutate(name, doc):
+            if name == 'service-operation-dtos.schema.json':
+                doc['$defs']['SessionGrantScope']['properties']['capability_grant_refs']['minItems'] = 1
+        self.assertTrue(self.run_gate(mutate))
+
+    def test_missing_canonical_scope_fails_without_crashing(self):
+        def mutate(name, doc):
+            if name == 'service-operation-dtos.schema.json':
+                doc['$defs'].pop('SessionGrantScope')
+        self.assertTrue(self.run_gate(mutate))
 
     def test_participation_refusal_cannot_target_read_or_membership_write(self):
         for mode in ('read', 'implicit_read', 'membership_write', 'missing_path'):
@@ -260,7 +284,7 @@ class AgentSessionContentTest(unittest.TestCase):
         self.assertTrue(self.run_gate(mutate))
         def mutate_refs(name, doc):
             if name == 'service-operation-dtos.schema.json':
-                doc['$defs']['SessionGrantIntrospectGrant']['properties']['scope_details']['properties']['capability_grant_refs']['minItems'] = 1
+                doc['$defs']['SessionGrantScope']['properties']['capability_grant_refs']['minItems'] = 1
         self.assertTrue(self.run_gate(mutate_refs))
 
 

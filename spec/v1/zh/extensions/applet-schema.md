@@ -19,7 +19,7 @@ updated: 2026-07-02
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
-  "expected_revision": null,
+  "expected_commit_id": null,
   "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
   "base_url": "https://applet.example/applet",
   "claimed_profiles": [
@@ -74,7 +74,7 @@ updated: 2026-07-02
 
 唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_signature_policy`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
 
-- registration 的 `expected_revision` 是安装管理员签入 Event 的 Service 级 CAS 前态，不属于 package，也不进入 epoch transcript 或安全绑定等价比较；null 仅允许该 Service 从未登记。相同 Applet 的其它 Service 不提供此 revision。
+- registration 的 `expected_commit_id` 是安装管理员签入 Event 的 Service 级 CAS 前态，不属于 package，也不进入 epoch transcript 或安全绑定等价比较；null 仅允许该 Service 从未登记。相同 Applet 的其它 Service 不提供此 revision。
 - `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_signature_policy` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
 - `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh|did:key`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` 使用其合成稳定 version id。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
 - 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_signature_policy.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、两个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`authentication_kind` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。

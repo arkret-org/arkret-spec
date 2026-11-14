@@ -26,7 +26,7 @@ selector 为 `{kind:"agent_interaction",agent_account_id:<完整 AccountId>}`；
 | `agent_account_id` | yes | AccountId | 当前有效 Agent 的完整账号 |
 | `controller_account_id` | yes | AccountId | 当前已接纳 provisioning／accountability 的 controller |
 | `interaction_mode` | yes | enum(private, public) | 显式整体置换，不接受 null |
-| `expected_revision` | no | typed revision | 首次省略；已有记录必须逐字匹配 `{commit_id,stream_position}` |
+| `expected_commit_id` | no | `RealmCommitId` | 首次省略；已有记录必须逐字匹配 source revision.commit_id |
 
 模式是治理端可见的控制事实，payload MUST 为明文控制材料；不能藏入 Message 密文、Profile、Account Data
 或 participation selection。Event MUST 经现有 `ak.self.events.command.submit.v1` 提交到 Realm 当前治理

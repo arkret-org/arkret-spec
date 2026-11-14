@@ -19,6 +19,7 @@ from .owned_agent_authority import check_owned_agent_authority
 from .account_revision_stale import check_account_revision_stale
 from .cursor_wait_bindings import check_cursor_wait_bindings
 from .call_current import check_call_current
+from .grant_reaction import check_grant_reaction
 from .ice_credentials import check_ice_credentials
 from .push_target_boundary import check_push_target_boundary
 from .constraint_evaluation import check_constraint_evaluation
@@ -935,6 +936,7 @@ def main(argv: list[str] | None = None) -> int:
             ("mls_roster_client_roles", lambda: check_mls_roster_client_roles(lint)),
             ("governance_result_consumption_roles", lambda: check_governance_result_consumption_roles(lint)),
             ("call_current", lambda: check_call_current(lint)),
+            ("grant_reaction", lambda: check_grant_reaction(lint)),
             ("ice_credentials", lambda: check_ice_credentials(lint)),
             ("push_target_boundary", lambda: check_push_target_boundary(lint)),
             ("constraint_evaluation", lambda: check_constraint_evaluation(lint)),

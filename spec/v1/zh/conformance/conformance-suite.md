@@ -106,7 +106,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
   - 输入一条非状态变更的共享 Event，其 `authorization_ref` 在当前治理 Station 的已提交 typed state 中解析为有效授权实例；分别在无覆盖 Commit 与取得有效 Commit 两种情形下观测。
   - 期望输出：无 Commit 时不报告 accepted、不更新共享 current、不 fanout、不成为后续授权依据，只允许与 committed 可区分的本地排队或草稿显示；取得有效 Commit 后进入 `committed`。
 - `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1`
-  - 输入带有效领域 CAS 的 state-changing Event，及缺失／错误 basis 的负向样例；`expected_revision` 只在该 kind 的领域 payload 定义 CAS 时出现，Event 顶层携带它仍被拒。
+  - 输入带有效领域 CAS 的 state-changing Event，及缺失／错误 basis 的负向样例；`expected_commit_id` 只在该 kind 的领域 payload 定义 CAS 时出现，Event 顶层携带它仍被拒。
   - 期望输出：取得该 stream 上有效的 RealmCommit 后才进入 `committed`。判据是该 Commit 本身：验证方重算 Commit ID 并校验 `previous_commit_ref` 与 `stream_position` 链接，除此之外没有可供申诉的第二判据，因此缺少覆盖它的 Commit 时 MUST 保持本地 `queued` / `forwarding` 或明确失败，而不是自行判定已生效。
 - `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 state-changing Event，以及一组合法与非法的 genesis founding unit。
@@ -118,7 +118,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
   - 期望输出：三者各自以确定性失败或本地等待收口，依赖状态不变更，不存在“看起来合理就接受”的降级路径。
 - `ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1`
   - 输入等待中 Event 的 exact canonical bytes 重试，含陈旧 CAS 的一组。
-  - 期望输出：`semantic_refs[role=authorized_by]` 与领域 `expected_revision` 逐字保留，陈旧 CAS 重试仍确定性失败且不产生 Commit。
+  - 期望输出：`semantic_refs[role=authorized_by]` 与领域 `expected_commit_id` 逐字保留，陈旧 CAS 重试仍确定性失败且不产生 Commit。
 
 ### 4.3 Redaction 向量
 
@@ -143,15 +143,15 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
   - 只有 capability action registry 判为 carrier-backed 的 action 才可配置 approval requirement；命中未登记 carrier 的 `non_event_surface` action 必须在 grant／policy 写入时 `schema_violation`（reason=`approval_carrier_unregistered`）。合法 action 未满足 approval 时 MUST 走 require_review 类软拒绝（reason=`approval_required`），补齐该 action 的 registry 所指 carrier 后重试是唯一定义路径；v1 的实际 carrier 为 `EventAdmissionSubmission.approval_signatures[]`。
   - grant 层与 Realm 治理层两个要求 MUST 能分别拒绝；`ak.agent.action_approve` 的 controller 确认MUST NOT 替代任一层（[`../authz/constraint-schema.md` §9.2.6](../authz/constraint-schema.md)）。
 
-**Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.authority_expiry_commit.v1`、`ak.vector.capability.authority_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
+**Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.authority_lifetime.v1`、`ak.vector.capability.authority_order_depth.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
 
 规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 9 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
 - 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。runner MUST 覆盖 owner authority 的两个合法来源：(a) authority-root current state（`realm_authority_root`）的 current controller 凭同一 RealmCommit basis 下的 registered inclusion proof 取得 effective `ak.realm.owner`，其上界来自该 current state 的 `grant_authority_actions`；(b) 由此派生的可撤销 co-owner `ak.realm.owner` grant。负例 MUST 包含：以 `created_by`、membership 或 `realm_state.owner` 一类 projection mirror 回退充当上界来源，以及 controller 不匹配 / root current state 缺失（`realm_authority_controller_mismatch` / `realm_authority_root_missing`）。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
-- `authority_expiry_commit` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry authority commit，任何 widened expiry MUST 拒绝。
-- delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`authority_cycle`）。
-- `depends_on_moderation_state` 静态 lint：满足 capabilities.md §18.1 条件而缺少显式 `true` 的 grant MUST schema-fail。
+- `authority_lifetime`：root 的新明确批准按本次 committed_at+L 限制 required-finite child；finite parent 不延长，真实窗口空洞和 action/resource 错配 MUST 拒绝。
+- delegation 顺序与深度：parent MUST 是已接纳更早前态，同根／完整主体／当前存活／深度≤4；forward ref、失权或terminal parent MUST 拒绝，不设置通用查环阶段。
+- moderation 依赖：MUST 从 capabilities.md §18.1 的已登记语义派生并真实失效 cache；producer hint 不属于 wire，未知critical语义不得当无依赖。
 - freshness 风险表：高风险 `stale` / `unknown` MUST fail closed；中风险 `unknown` MUST fail closed；本地 pending tier 在 `unknown` 下 MUST 不对外同步。
 - 跨 grant 全局合并：任一命中 grant 的 deny / quarantine / require_review MUST 全局生效，runner MUST 覆盖"MUST NOT 逐 grant 独立求值后取任一 ALLOWED 即放行"的负向样例。
 

@@ -1,5 +1,5 @@
 {
-  "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
+  "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Permission/action lists do not count as Event evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
     "searched_sources": [
       "fixtures/*.json",
@@ -43,6 +43,11 @@
       "event_kind": "ak.morph.stage.set",
       "priority": "normal",
       "rationale": "Morph stage transition lacks a directly searchable vector."
+    },
+    {
+      "event_kind": "ak.morph.update",
+      "priority": "normal",
+      "rationale": "The earlier lexical scan counted required_capability_actions as Event evidence. Once permission lists are excluded, this existing kind has no directly searchable admission/vector evidence. This row records the preexisting coverage gap; it does not change the protocol or claim that the Event is covered."
     },
     {
       "event_kind": "ak.realm.plaintext_visible_services",

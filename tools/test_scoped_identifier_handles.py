@@ -107,7 +107,7 @@ PREEXISTING_BOUND_OWNERS = [
     ('key-backup.schema.json', '/properties/contents/items/properties/secret_id'),
     ('keys-operations.schema.json', '/$defs/signed_prekey/properties/key_id'),
     ('service-describe.schema.json', '/properties/verified_profiles/items/properties/verification_run_id'),
-    ('service-operation-dtos.schema.json', '/$defs/SignedSessionGrantClaims/properties/session_id'),
+    ('service-operation-dtos.schema.json', '/$defs/SessionGrantMetadata/properties/session_id'),
 ]
 
 PROFILE_NAMES = {"action_id":"realm_action_name", "admission_id":"membership_admission_handle", "approval_id":"agent_confirmation_handle", "draft_id":"agent_draft_handle", "focus_id":"media_focus_handle", "install_id":"applet_install_handle", "rejection_id":"agent_rejection_handle", "statement_id":"organization_statement_handle", "revokes_statement_id":"organization_statement_handle", "supersedes_statement_id":"organization_statement_handle"}

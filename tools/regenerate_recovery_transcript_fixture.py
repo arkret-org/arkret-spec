@@ -49,7 +49,7 @@ def common(kind: str) -> dict[str, object]:
             "station_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
         },
         "request_id": "ak:request:019b6a40-0000-7000-8000-000000000000",
-        "session_grant_id": "ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N",
+        "session_grant_ref": {"issuer_id": "ak:did_core:webvh:z6mkfixtureserviceexample", "id": "ak:session_grant:019b6a40-0000-7000-8000-000000000009"},
         "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "requesting_device_id": "ak:device:019b6a40-0000-7000-8000-000000000001",
         "requesting_device_public_key_did": "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP",

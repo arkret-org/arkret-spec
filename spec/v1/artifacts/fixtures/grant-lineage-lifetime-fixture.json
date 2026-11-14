@@ -1,0 +1,690 @@
+{
+  "profile": "ak.profile.station.v1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.capability.lineage_lifetime.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.capability.authority_lifetime.v1",
+    "ak.vector.capability.authority_order_depth.v1",
+    "ak.vector.capability.moderation_dependency.v1"
+  ],
+  "description": "Executable semantic inputs after independent source/authorization validation. Millisecond intervals and exact action/resource pairs test admission algebra, not production signatures or native DID authority.",
+  "cases": [
+    {
+      "name": "root_first_approval",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          0,
+          1000
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": true
+      }
+    },
+    {
+      "name": "root_new_approval_after_first_day",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          86400001,
+          86401001
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 86400001,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": true
+      }
+    },
+    {
+      "name": "root_new_approval_too_long",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          86400001,
+          172800002
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 86400001,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "finite_parent_equal_bound",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          10,
+          100
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                0,
+                100
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 10,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": true
+      }
+    },
+    {
+      "name": "finite_parent_not_extended",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          10,
+          101
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                0,
+                100
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 10,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "disjoint_windows_not_convex_hull",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          5,
+          25
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                0,
+                10
+              ],
+              [
+                20,
+                30
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "adjacent_windows_cover",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          5,
+          25
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                0,
+                10
+              ],
+              [
+                10,
+                30
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": true
+      }
+    },
+    {
+      "name": "resource_does_not_borrow",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          5,
+          25
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "y"
+              ]
+            ],
+            "windows": [
+              [
+                0,
+                100
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "unrestricted_chat_not_forced_to_renew",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          null,
+          null
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": false,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": true
+      }
+    },
+    {
+      "name": "required_finite_expiry_missing",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          null,
+          null
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 0,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "checked_deadline_overflow",
+      "operation": "window",
+      "input": {
+        "action": "broadcast",
+        "resource": "x",
+        "child": [
+          0,
+          100
+        ],
+        "sources": [
+          {
+            "rights": [
+              [
+                "broadcast",
+                "x"
+              ]
+            ],
+            "windows": [
+              [
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "finite_required": true,
+        "committed_at": 253402300799999,
+        "max_lifetime_ms": 86400000
+      },
+      "expected": {
+        "allowed": false
+      }
+    },
+    {
+      "name": "parent_precedes_child",
+      "operation": "lineage",
+      "input": {
+        "parents": [
+          {
+            "realm_id": "r",
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "alice",
+                "station_id": "station"
+              }
+            },
+            "current": true,
+            "created_position": 2,
+            "authority_depth": 1,
+            "authority_root_ref": {
+              "kind": "realm_root",
+              "realm_id": "r",
+              "authority_event_ref": "genesis",
+              "authority_generation": "0"
+            }
+          }
+        ],
+        "realm_id": "r",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "alice",
+            "station_id": "station"
+          }
+        },
+        "current_root": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        },
+        "child_position": 3
+      },
+      "expected": {
+        "authority_depth": 2,
+        "authority_root_ref": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        }
+      }
+    },
+    {
+      "name": "forward_reference",
+      "operation": "lineage",
+      "input": {
+        "parents": [
+          {
+            "realm_id": "r",
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "alice",
+                "station_id": "station"
+              }
+            },
+            "current": true,
+            "created_position": 3,
+            "authority_depth": 1,
+            "authority_root_ref": {
+              "kind": "realm_root",
+              "realm_id": "r",
+              "authority_event_ref": "genesis",
+              "authority_generation": "0"
+            }
+          }
+        ],
+        "realm_id": "r",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "alice",
+            "station_id": "station"
+          }
+        },
+        "current_root": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        },
+        "child_position": 3
+      },
+      "expected": {
+        "decision": "reject"
+      }
+    },
+    {
+      "name": "depth_five",
+      "operation": "lineage",
+      "input": {
+        "parents": [
+          {
+            "realm_id": "r",
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "alice",
+                "station_id": "station"
+              }
+            },
+            "current": true,
+            "created_position": 2,
+            "authority_depth": 4,
+            "authority_root_ref": {
+              "kind": "realm_root",
+              "realm_id": "r",
+              "authority_event_ref": "genesis",
+              "authority_generation": "0"
+            }
+          }
+        ],
+        "realm_id": "r",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "alice",
+            "station_id": "station"
+          }
+        },
+        "current_root": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        },
+        "child_position": 3
+      },
+      "expected": {
+        "decision": "reject"
+      }
+    },
+    {
+      "name": "revoked_parent",
+      "operation": "lineage",
+      "input": {
+        "parents": [
+          {
+            "realm_id": "r",
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "alice",
+                "station_id": "station"
+              }
+            },
+            "current": false,
+            "created_position": 2,
+            "authority_depth": 1,
+            "authority_root_ref": {
+              "kind": "realm_root",
+              "realm_id": "r",
+              "authority_event_ref": "genesis",
+              "authority_generation": "0"
+            }
+          }
+        ],
+        "realm_id": "r",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "alice",
+            "station_id": "station"
+          }
+        },
+        "current_root": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        },
+        "child_position": 3
+      },
+      "expected": {
+        "decision": "reject"
+      }
+    },
+    {
+      "name": "terminal_parent",
+      "operation": "lineage",
+      "input": {
+        "parents": [
+          {
+            "realm_id": "r",
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "alice",
+                "station_id": "station"
+              }
+            },
+            "current": true,
+            "created_position": 2,
+            "authority_depth": 1,
+            "authority_root_ref": {
+              "kind": "realm_root",
+              "realm_id": "r",
+              "authority_event_ref": "genesis",
+              "authority_generation": "0"
+            },
+            "terminal": true
+          }
+        ],
+        "realm_id": "r",
+        "issuer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "alice",
+            "station_id": "station"
+          }
+        },
+        "current_root": {
+          "kind": "realm_root",
+          "realm_id": "r",
+          "authority_event_ref": "genesis",
+          "authority_generation": "0"
+        },
+        "child_position": 3
+      },
+      "expected": {
+        "decision": "reject"
+      }
+    },
+    {
+      "name": "moderation_action_no_hint",
+      "operation": "dependency",
+      "input": {
+        "actions": [
+          "ak.moderation.decision"
+        ]
+      },
+      "expected": {
+        "depends": true
+      }
+    },
+    {
+      "name": "subject_registered_dependency",
+      "operation": "dependency",
+      "input": {
+        "actions": [],
+        "subject_dependencies": [
+          "moderation_state"
+        ]
+      },
+      "expected": {
+        "depends": true
+      }
+    },
+    {
+      "name": "constraint_registered_dependency",
+      "operation": "dependency",
+      "input": {
+        "actions": [],
+        "constraint_dependencies": [
+          "moderation_state"
+        ]
+      },
+      "expected": {
+        "depends": true
+      }
+    },
+    {
+      "name": "ordinary_grant_no_dependency",
+      "operation": "dependency",
+      "input": {
+        "actions": [
+          "ak.message.create"
+        ]
+      },
+      "expected": {
+        "depends": false
+      }
+    },
+    {
+      "name": "unknown_critical_semantics",
+      "operation": "dependency",
+      "input": {
+        "actions": [],
+        "known": false
+      },
+      "expected": {
+        "decision": "reject"
+      }
+    }
+  ]
+}

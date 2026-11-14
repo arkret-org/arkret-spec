@@ -1,4 +1,4 @@
-"""The signed PCR resolution CAS uses the shared typed revision carrier."""
+"""The signed PCR resolution CAS binds the exact Commit identity."""
 import copy
 import json
 import unittest
@@ -22,7 +22,7 @@ class PrincipalResolutionCasTests(unittest.TestCase):
 
     def payload(self):
         return {
-            'expected_revision': {'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_position': 3},
+            'expected_commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4',
             'next': {'did': 'did:web:alice.example', 'method_history_head': 'sha256:' + 'a' * 64, 'version_id': 'synthetic-jcs-sha256:' + 'a' * 64},
         }
 
@@ -32,16 +32,16 @@ class PrincipalResolutionCasTests(unittest.TestCase):
     def test_exact_shared_revision_and_next_are_required(self):
         value = self.payload()
         self.validator().validate(value)
-        self.assertEqual(list(self.schema['$defs']['principal_resolution_update_payload']['properties']), ['expected_revision', 'next'])
+        self.assertEqual(list(self.schema['$defs']['principal_resolution_update_payload']['properties']), ['expected_commit_id', 'next'])
         for key in value:
             changed = copy.deepcopy(value)
             del changed[key]
             self.assertFalse(self.validator().is_valid(changed))
 
-    def test_revision_rejects_null_counter_and_bare_commit(self):
-        for revision in [None, 3, self.payload()['expected_revision']['commit_id'], {'stream_position': 3}, {'commit_id': self.payload()['expected_revision']['commit_id']}, {'commit_id': self.payload()['expected_revision']['commit_id'], 'stream_position': -1}]:
+    def test_commit_guard_rejects_null_counter_and_legacy_tuple(self):
+        for revision in [None, 3, '', 'ak:event:' + 'A' * 44, {'stream_position': 3}, {'commit_id': self.payload()['expected_commit_id']}, {'commit_id': self.payload()['expected_commit_id'], 'stream_position': 3}]:
             value = self.payload()
-            value['expected_revision'] = revision
+            value['expected_commit_id'] = revision
             self.assertFalse(self.validator().is_valid(value), revision)
 
     def test_whole_value_guard_and_predecessor_echo_are_closed(self):
@@ -50,32 +50,32 @@ class PrincipalResolutionCasTests(unittest.TestCase):
             value[key] = {}
             self.assertFalse(self.validator().is_valid(value), key)
         value = self.payload()
-        value['expected_revision']['value'] = value['next']
+        value['expected_commit_id'] = {'commit_id': value['expected_commit_id'], 'value': value['next']}
         self.assertFalse(self.validator().is_valid(value))
 
     def test_envelope_guard_stays_forbidden(self):
         envelope = json.loads((ART / 'schemas/event-envelope.schema.json').read_text(encoding='utf-8'))
         self.assertFalse(envelope['additionalProperties'])
-        self.assertTrue({'expected_revision', 'preconditions'}.isdisjoint(envelope['properties']))
+        self.assertTrue({'expected_commit_id', 'preconditions'}.isdisjoint(envelope['properties']))
         entries = json.loads((ART / 'registry/forbidden-wire-fields.json').read_text(encoding='utf-8'))['entries']
         forbidden = {entry['id'] for entry in entries if entry.get('context') == 'producer_event_envelope_root'}
-        self.assertTrue({'expected_revision', 'preconditions'} <= forbidden)
+        self.assertTrue({'expected_commit_id', 'preconditions'} <= forbidden)
 
-    def test_signature_binds_both_revision_components(self):
+    def test_signature_binds_the_single_commit_identity(self):
         key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
         canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
         value = self.payload()
         signature = key.sign(canonical(value))
         key.public_key().verify(signature, canonical(value))
-        for field, replacement in [('commit_id', 'ak:realm_commit:' + 'A' * 44), ('stream_position', 4)]:
+        for replacement in ['ak:realm_commit:' + 'A' * 44, {'commit_id': value['expected_commit_id'], 'stream_position': 3}]:
             changed = copy.deepcopy(value)
-            changed['expected_revision'][field] = replacement
+            changed['expected_commit_id'] = replacement
             with self.assertRaises(InvalidSignature):
                 key.public_key().verify(signature, canonical(changed))
 
     def test_cursor_uses_accepted_commit_and_exact_lineage(self):
         cursor = self.schema['$defs']['principal_resolution_audit_evidence']['properties']['next_audit_cursor']['description']
-        for requirement in ['payload.expected_revision', 'accepted covering RealmCommit', 'Account PCR lineage', 'Commit event_ref']:
+        for requirement in ['payload.expected_commit_id', 'accepted covering RealmCommit', 'Account PCR lineage', 'Commit event_ref']:
             self.assertIn(requirement, cursor)
         self.assertNotIn('value.resolution_event_ref', cursor)
 

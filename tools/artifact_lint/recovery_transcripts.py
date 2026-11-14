@@ -37,7 +37,7 @@ COMMON_FIELDS = [
     "schema",
     "kind",
     "request_id",
-    "session_grant_id",
+    "session_grant_ref",
     "session_grant_cnf_jkt",
     "account_id",
     "requesting_device_id",

@@ -389,7 +389,7 @@
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+        "commit_id": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
@@ -397,7 +397,7 @@
         },
         "stream_position": 6,
         "previous_commit_ref": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E",
-        "event_ref": "ak:event:AQD9WJ0BAiR32XM7cbLlMyVcYhH_1GPk_aifqvVzLN1w",
+        "event_ref": "ak:event:ATDPy5tQHkd19emw87MvHBezZ2lEeCvzy8PxGca0sf5D",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
         "committed_at": "2026-09-20T00:00:00.006Z",
@@ -405,9 +405,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:56f3533ed2a940f1d3fdbed19ecb589fb8ba473056fcc12e87253de38fba6504",
+          "signed_digest": "sha256:d3e44067cc24345f47a6cc53bbee86365afa0f19b075fc7afa13a71ab418c1d3",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "YBm5PXmthEj7Iyg8hbh9y-etrWtHg627-ucqaL9RhTRhUfBg3kjvBRBnqqLUQbGcKF-jtL2V7W7Sxz24A36eBQ"
+          "signature": "lSfM3lXY603bnfABD4_W9rT5XqYo4eWaoPgyCatKq5jQLS0W5yNKcxKmwIbKXs86pQqU36EfLoNJNaPE2EGoAA"
         }
       },
       "event": {
@@ -438,32 +438,29 @@
             },
             "restored_by": "ak:did_core:web:alice.example",
             "restored_at": "2026-09-20T00:00:00.000Z",
-            "expected_revision": {
-              "commit_id": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E",
-              "stream_position": 5
-            }
+            "expected_commit_id": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E"
           }
         },
-        "event_id": "ak:event:AQD9WJ0BAiR32XM7cbLlMyVcYhH_1GPk_aifqvVzLN1w",
+        "event_id": "ak:event:ATDPy5tQHkd19emw87MvHBezZ2lEeCvzy8PxGca0sf5D",
         "producer_proof": {
           "kind": "detached_jws",
           "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
-          "event_digest": "sha256:00fd589d01022477d9733b71b2e533255c6211ffd463e4fda89faaf5732cdd70",
+          "event_digest": "sha256:30cfcb9b501e4775f5e9b0f3b32f1c17b3676944782bf3cbc3f119c6b4b1fe43",
           "created_at": "2026-09-20T00:00:00.006Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..QmbLeeU4S6IUoNdchlAETJEw_he5pqtTf83C9omGkVI-W1v_y4awjJbdJU6S1x-C-juKp1MCY1HvjSVrYZWTBw"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..A857scmwhfMbQWPZazqqClDMbFWjXZguYu42WTuBQ0rQwhxn9YsrsbRTPdb1NI0KSvCjoH4ifNTebIm9aBoPCw"
         }
       }
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+        "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 7,
-        "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+        "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
         "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -472,9 +469,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+          "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+          "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
         }
       },
       "event": {
@@ -523,14 +520,14 @@
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+        "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 8,
-        "previous_commit_ref": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+        "previous_commit_ref": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
         "event_ref": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -539,9 +536,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:ac627cc96c1616d7d7abdb10cb4cab97580961c70084ef2fc93fa32355a49f1d",
+          "signed_digest": "sha256:3fffe13e386790d2e8399ed1b10cae159fab16a7f4894517624940da0f6eb29e",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "y-OGYMcK8WbAU4kp6eU6Hv0Zv3ii4ci-ggiV87MC_T_C3AJNjpZ9rRzEj1rC2Kl-kedMjICMKei5e4Zq4Kk-Cw"
+          "signature": "0Ecyb1PVjNyFNidxpoDsws0Dp7iQrFIqfFfOmw0wcwScEfT7L-GUeP5U783p9nNLeFmQUDpOapP29EbfHcocAg"
         }
       },
       "event": {
@@ -600,15 +597,15 @@
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
+        "commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 9,
-        "previous_commit_ref": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
-        "event_ref": "ak:event:AZp56vPKHRjmmc9DTCHdV8pOkLkrSpuatH8vUgYriVjd",
+        "previous_commit_ref": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
+        "event_ref": "ak:event:ATAxIAfdzuXIQNDR0Thh3GGR2VlOJU_xuSZFsR30xtKu",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
         "committed_at": "2026-09-20T00:00:00.009Z",
@@ -616,9 +613,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:9e5189f980b81ec7c6f1fb1d5e9257de825b9cdeb970976b27a6c98f7877c9b0",
+          "signed_digest": "sha256:4af19ae7b28540d80822eceb51fc80f71b23b390b6e02d7ef4081612fb9dad18",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "Yucee047qLefJA_PWeaBs9UaaaVX-7Pj6IyWVp1gBhGoW52Xj9Lc61jTD_-HqIswY3onCwIGzJlw-NnCTp89DQ"
+          "signature": "4LY0VjpRIazUck6mOuRE6jtvKjAHcziCRShlxUf8YBXH9GoAp_1WLx4xWF5Sf4My8b2_Rb2HbTHv9oKpuAOACQ"
         }
       },
       "event": {
@@ -648,33 +645,30 @@
               }
             },
             "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
-            "expected_revision": {
-              "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
-              "stream_position": 8
-            }
+            "expected_commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X"
           }
         },
-        "event_id": "ak:event:AZp56vPKHRjmmc9DTCHdV8pOkLkrSpuatH8vUgYriVjd",
+        "event_id": "ak:event:ATAxIAfdzuXIQNDR0Thh3GGR2VlOJU_xuSZFsR30xtKu",
         "producer_proof": {
           "kind": "detached_jws",
           "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
-          "event_digest": "sha256:9a79eaf3ca1d18e699cf434c21dd57ca4e90b92b4a9b9ab47f2f52062b8958dd",
+          "event_digest": "sha256:30312007ddcee5c840d0d1d13861dc6191d9594e254ff1b92645b11df4c6d2ae",
           "created_at": "2026-09-20T00:00:00.009Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..aS5gQfmap5khW3FdJrMCYy_XHnP2YYFvPrvq3fDhOx2h-oYY2cPuYJFd17SHGDF98JhzZ_MePyQAUID_BEJDDQ"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..CAsa6zwXDSOQaUV73ng4fxOxDg7qaXcqdzHb5EPCZPqwLmaqlf-Jvjf1LOP8RRpKX2nsCyZuaVufK36MBDv4BQ"
         }
       }
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+        "commit_id": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 10,
-        "previous_commit_ref": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
-        "event_ref": "ak:event:AZHzFJDj1WVcurTLSkxMzS2GMVqUwOdIj8_RzVQ2NrHP",
+        "previous_commit_ref": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
+        "event_ref": "ak:event:AbmNaUkqdK5nLvYJSQMAPbjwqzGbk_r2DAYMw9e7_8Et",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
         "committed_at": "2026-09-20T00:00:00.010Z",
@@ -682,9 +676,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:bcb0008a467831ac36a7232aa6276f5e85a7a962ce4f325ba5162e5f521457c3",
+          "signed_digest": "sha256:e38fc88aedeb9a040fcb6e9768d913d2d64436929c6cc2f3fd5562f60ed277da",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "RYac5kiUMLhs07NUckscN0rnh5uIdso9P-4tX7i49j5BE3W-o5fM5h21k_g-XhyyS9rPbUqfCyJ2qizlDgznCA"
+          "signature": "_YJNGGBA7DbU3cYMcfERSPn4Fpj2Q57Bx4P9ItMAB0PknjtuLVLaPN8Al4WKlrYZvo7igU1bMRPPU2FqfBFGCA"
         }
       },
       "event": {
@@ -714,32 +708,29 @@
               }
             },
             "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
-            "expected_revision": {
-              "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
-              "stream_position": 9
-            }
+            "expected_commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr"
           }
         },
-        "event_id": "ak:event:AZHzFJDj1WVcurTLSkxMzS2GMVqUwOdIj8_RzVQ2NrHP",
+        "event_id": "ak:event:AbmNaUkqdK5nLvYJSQMAPbjwqzGbk_r2DAYMw9e7_8Et",
         "producer_proof": {
           "kind": "detached_jws",
           "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
-          "event_digest": "sha256:91f31490e3d5655cbab4cb4a4c4ccd2d86315a94c0e7488fcfd1cd543636b1cf",
+          "event_digest": "sha256:b98d69492a74ae672ef6094903003db8f0ab319b93faf60c060cc3d7bbffc12d",
           "created_at": "2026-09-20T00:00:00.010Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..lksLxn6NNi2mlP5dBUyzIjr5BvJAzu30Bra4z-5UyKMDyW5Lbk4dmFkW4tJWrXtFCkmrl6Wo2Ods37Uypp5gBw"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..u6Ykr085lUOoWAWZmu5oib78prJvL-7bs8RxpyBropfQU1y6IpwtYR3_49fQv1P1xjl5LhlxpyqSIWDbpQ25AQ"
         }
       }
     },
     {
       "commit": {
-        "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+        "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 11,
-        "previous_commit_ref": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+        "previous_commit_ref": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
         "event_ref": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -748,9 +739,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:4eca793802769def1d40d4a1daa8cde45f93a20136cc8dd101639944bff1ab10",
+          "signed_digest": "sha256:4225677a37614279903933e75294da247d9e18f178e7534d4ac6c8a656a487fe",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "GGgrwh2NvYUFZBrvo_Kc9hMB406Hws142qt29i3qvqdvbK2-SUGJAuxcVYJTIGPA0Mo1Y0WtjxBm484UkOm8DQ"
+          "signature": "LDsZdOBIzWRm5ddfJGnGQBLpTqWpq5eQ3hwYRwldndCMGsfOIpb7yfSnxVKUino3MnEwebD39OeY1AjFo_5QCA"
         }
       },
       "event": {
@@ -1757,7 +1748,7 @@
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AVJ8NQM1T-BQ9qQhLEWHJt3ZiKUk779Wb96pGc2Jq9w7",
+      "snapshot_id": "ak:realm_snapshot:AdeSWuQUvB-eFo7ZiYU9iS4LeamBml3NuiQRBvYzbCGG",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -1766,7 +1757,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+          "commit_id": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
           "stream_position": 6
         }
       ],
@@ -1994,15 +1985,15 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+            "commit_id": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
             "stream_position": 6
           },
           "value": {
             "entries": [],
             "last_source": {
-              "tag_id": "ak:event:AQD9WJ0BAiR32XM7cbLlMyVcYhH_1GPk_aifqvVzLN1w:6",
+              "tag_id": "ak:event:ATDPy5tQHkd19emw87MvHBezZ2lEeCvzy8PxGca0sf5D:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                "commit_id": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
@@ -2010,7 +2001,7 @@
                 },
                 "stream_position": 6,
                 "previous_commit_ref": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E",
-                "event_ref": "ak:event:AQD9WJ0BAiR32XM7cbLlMyVcYhH_1GPk_aifqvVzLN1w",
+                "event_ref": "ak:event:ATDPy5tQHkd19emw87MvHBezZ2lEeCvzy8PxGca0sf5D",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
                 "committed_at": "2026-09-20T00:00:00.006Z",
@@ -2018,9 +2009,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:56f3533ed2a940f1d3fdbed19ecb589fb8ba473056fcc12e87253de38fba6504",
+                  "signed_digest": "sha256:d3e44067cc24345f47a6cc53bbee86365afa0f19b075fc7afa13a71ab418c1d3",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "YBm5PXmthEj7Iyg8hbh9y-etrWtHg627-ucqaL9RhTRhUfBg3kjvBRBnqqLUQbGcKF-jtL2V7W7Sxz24A36eBQ"
+                  "signature": "lSfM3lXY603bnfABD4_W9rT5XqYo4eWaoPgyCatKq5jQLS0W5yNKcxKmwIbKXs86pQqU36EfLoNJNaPE2EGoAA"
                 }
               },
               "value": {
@@ -2034,10 +2025,7 @@
                 },
                 "restored_by": "ak:did_core:web:alice.example",
                 "restored_at": "2026-09-20T00:00:00.000Z",
-                "expected_revision": {
-                  "commit_id": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E",
-                  "stream_position": 5
-                }
+                "expected_commit_id": "ak:realm_commit:AZI6w5g9oVwhuUkQkB0gETO5lZ4blKMKwTnpjOkRO44E"
               }
             }
           }
@@ -2061,13 +2049,13 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:71755f02c2612d9b65d19abac04d61b7724fe50c529be370ecb01d4bd2845ef9",
+        "signed_digest": "sha256:6a8216605324fe2043b70a7c68944d3f625f7996bdf0fcbee69f22535804b6f5",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "81pRZGKlzMvF13kAH0wY-WQyZDauaf4hbfWjCnrzberYK4VHXRJwyDvWmNLR03GXurpUFnPa1vZqhy8egcy2Dg"
+        "signature": "gT5kqzBuzCwrWjrhoshVX6DayUjENbJXaAsflnimpVGDgHwa-RyEuZUrynHA6CwQnR5AsogSzpceCB3XxCe7Ag"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AW1ArxNIcRmQHxAfHgYmxMehyaZbxpyZ9pcXHuU4ugC-",
+      "snapshot_id": "ak:realm_snapshot:Ac7W9Us00piQkHKpPACHXcWoNvZss4ybS8-wcIHj1NM1",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -2076,7 +2064,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+          "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
           "stream_position": 7
         }
       ],
@@ -2304,7 +2292,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+            "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
             "stream_position": 7
           },
           "value": {
@@ -2312,14 +2300,14 @@
               {
                 "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 7,
-                  "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                  "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                   "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2328,9 +2316,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                    "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                    "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                   }
                 },
                 "value": {
@@ -2354,14 +2342,14 @@
             "last_source": {
               "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 7,
-                "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                 "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2370,9 +2358,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                  "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                  "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                 }
               },
               "value": {
@@ -2413,13 +2401,13 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:4909402faef6693fe649017b11b117f64b775710dc68e6bcece25079c909e9ef",
+        "signed_digest": "sha256:7f3ae2ed258cedb24438b02a23db6855c17977938be1763e8c4804470b67f83a",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "QBDce3N1xO3uxPghRwIEpD5Xzf9uMSqPqqnYrJ0_S0bl8NKEfp1xOW5f2ompVoNYfeh7Y6CW4GeaooXeeDBPCA"
+        "signature": "kPaYXeiQRo8WlvPLbOzA5EdXcmzsYiBVQaQKjM4BJjFWZC3NMAE-aS8DJWC8ngvB72QnQg7jkEjH5KxazV4UBQ"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AZ_F51fTEn9aW_LfQyDDnwVR8L5lkvcZ3mcJV1baIa0k",
+      "snapshot_id": "ak:realm_snapshot:AdPRmtLxAfiLGoPyW9qoqVCLUNiVAXs3tDA195ShfhBD",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -2428,7 +2416,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+          "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
           "stream_position": 8
         }
       ],
@@ -2479,7 +2467,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+            "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
             "stream_position": 8
           },
           "value": {
@@ -2487,14 +2475,14 @@
               {
                 "tag_id": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S:7",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+                  "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 8,
-                  "previous_commit_ref": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "previous_commit_ref": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "event_ref": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2503,9 +2491,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ac627cc96c1616d7d7abdb10cb4cab97580961c70084ef2fc93fa32355a49f1d",
+                    "signed_digest": "sha256:3fffe13e386790d2e8399ed1b10cae159fab16a7f4894517624940da0f6eb29e",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "y-OGYMcK8WbAU4kp6eU6Hv0Zv3ii4ci-ggiV87MC_T_C3AJNjpZ9rRzEj1rC2Kl-kedMjICMKei5e4Zq4Kk-Cw"
+                    "signature": "0Ecyb1PVjNyFNidxpoDsws0Dp7iQrFIqfFfOmw0wcwScEfT7L-GUeP5U783p9nNLeFmQUDpOapP29EbfHcocAg"
                   }
                 },
                 "value": {
@@ -2596,14 +2584,14 @@
             "last_source": {
               "tag_id": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S:7",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+                "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 8,
-                "previous_commit_ref": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                "previous_commit_ref": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                 "event_ref": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2612,9 +2600,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:ac627cc96c1616d7d7abdb10cb4cab97580961c70084ef2fc93fa32355a49f1d",
+                  "signed_digest": "sha256:3fffe13e386790d2e8399ed1b10cae159fab16a7f4894517624940da0f6eb29e",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "y-OGYMcK8WbAU4kp6eU6Hv0Zv3ii4ci-ggiV87MC_T_C3AJNjpZ9rRzEj1rC2Kl-kedMjICMKei5e4Zq4Kk-Cw"
+                  "signature": "0Ecyb1PVjNyFNidxpoDsws0Dp7iQrFIqfFfOmw0wcwScEfT7L-GUeP5U783p9nNLeFmQUDpOapP29EbfHcocAg"
                 }
               },
               "value": {
@@ -2656,7 +2644,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+            "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
             "stream_position": 7
           },
           "value": {
@@ -2664,14 +2652,14 @@
               {
                 "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 7,
-                  "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                  "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                   "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2680,9 +2668,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                    "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                    "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                   }
                 },
                 "value": {
@@ -2706,14 +2694,14 @@
             "last_source": {
               "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 7,
-                "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                 "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2722,9 +2710,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                  "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                  "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                 }
               },
               "value": {
@@ -2765,13 +2753,13 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:b2e4ab142d09477d59ee2277155aed1f3145321dcbe6b49c7b2ef1a741ad52c4",
+        "signed_digest": "sha256:555b3096ecba56102aad6780a453b1364ebf79b877cdb3d72b687ceb49bfa9ff",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "WbBxPb-CRvKKyIhsOnPaRU1ZEVCK0rfCESYOMFPhqzKw_-jdkUkM19xLyFQ8dnM2Ox8hyBD9-oc8-nSMmxZXCw"
+        "signature": "ttFP3LSZS-t8Xjq075xg5Qod6YxpSD9krlJN0lGFy3uguHZN2RlmIipc3de68QKbBiC7pUUuLg21QX8bg06UCg"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:ASQkTjQPDNV6KMtTn5P4EB90rIe_K-0mzYET3V62mAJQ",
+      "snapshot_id": "ak:realm_snapshot:AcIbiSOUoCaNMNWsA4TU_0_r_qDbPYeq3UetXgY2XbJg",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -2780,7 +2768,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
+          "commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
           "stream_position": 9
         }
       ],
@@ -2831,7 +2819,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
+            "commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
             "stream_position": 9
           },
           "value": {
@@ -2839,14 +2827,14 @@
               {
                 "tag_id": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S:7",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
+                  "commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 8,
-                  "previous_commit_ref": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "previous_commit_ref": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "event_ref": "ak:event:AWEjJ9beepHz0lA4JXPEcpiLRAVoU7AxASr3SH_w3A1S",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2855,9 +2843,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ac627cc96c1616d7d7abdb10cb4cab97580961c70084ef2fc93fa32355a49f1d",
+                    "signed_digest": "sha256:3fffe13e386790d2e8399ed1b10cae159fab16a7f4894517624940da0f6eb29e",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "y-OGYMcK8WbAU4kp6eU6Hv0Zv3ii4ci-ggiV87MC_T_C3AJNjpZ9rRzEj1rC2Kl-kedMjICMKei5e4Zq4Kk-Cw"
+                    "signature": "0Ecyb1PVjNyFNidxpoDsws0Dp7iQrFIqfFfOmw0wcwScEfT7L-GUeP5U783p9nNLeFmQUDpOapP29EbfHcocAg"
                   }
                 },
                 "value": {
@@ -2892,17 +2880,17 @@
               }
             ],
             "last_source": {
-              "tag_id": "ak:event:AZp56vPKHRjmmc9DTCHdV8pOkLkrSpuatH8vUgYriVjd:7",
+              "tag_id": "ak:event:ATAxIAfdzuXIQNDR0Thh3GGR2VlOJU_xuSZFsR30xtKu:7",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
+                "commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 9,
-                "previous_commit_ref": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
-                "event_ref": "ak:event:AZp56vPKHRjmmc9DTCHdV8pOkLkrSpuatH8vUgYriVjd",
+                "previous_commit_ref": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X",
+                "event_ref": "ak:event:ATAxIAfdzuXIQNDR0Thh3GGR2VlOJU_xuSZFsR30xtKu",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
                 "committed_at": "2026-09-20T00:00:00.009Z",
@@ -2910,9 +2898,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:9e5189f980b81ec7c6f1fb1d5e9257de825b9cdeb970976b27a6c98f7877c9b0",
+                  "signed_digest": "sha256:4af19ae7b28540d80822eceb51fc80f71b23b390b6e02d7ef4081612fb9dad18",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "Yucee047qLefJA_PWeaBs9UaaaVX-7Pj6IyWVp1gBhGoW52Xj9Lc61jTD_-HqIswY3onCwIGzJlw-NnCTp89DQ"
+                  "signature": "4LY0VjpRIazUck6mOuRE6jtvKjAHcziCRShlxUf8YBXH9GoAp_1WLx4xWF5Sf4My8b2_Rb2HbTHv9oKpuAOACQ"
                 }
               },
               "value": {
@@ -2925,10 +2913,7 @@
                   }
                 },
                 "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
-                "expected_revision": {
-                  "commit_id": "ak:realm_commit:AUx-6IzckwIvD0o3hGZfmBKneWOZYHEaE1NmfnaYzCCF",
-                  "stream_position": 8
-                }
+                "expected_commit_id": "ak:realm_commit:Af58nnzaT17OcH-v3c4hDTgDiNrGR5Mt9pIQXkHicr4X"
               }
             }
           }
@@ -2943,7 +2928,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+            "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
             "stream_position": 7
           },
           "value": {
@@ -2951,14 +2936,14 @@
               {
                 "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 7,
-                  "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                  "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                   "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -2967,9 +2952,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                    "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                    "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                   }
                 },
                 "value": {
@@ -2993,14 +2978,14 @@
             "last_source": {
               "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 7,
-                "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                 "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3009,9 +2994,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                  "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                  "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                 }
               },
               "value": {
@@ -3052,13 +3037,13 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:e685ffbee27ce173d31f64504a271db51ab47437ac8e0bc6abf0bad7ba903f9f",
+        "signed_digest": "sha256:1b6a0661423fe98db73dc2adb87e6f24042936d6772e8e76675f7cd136778b7b",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "jlxa3qv-rOWsjfGrwjPKklDv5bj71QvvCltuz47nimt1L12FBRRgdYL1faWyTSxaBwNeKr73XsUcrsptbzCfAw"
+        "signature": "39-naq8_07ePqRm5uGoqUOBmzm0eGMr2Tuagfp9KaJfs80EiXdzmX-yKZ5bTsGC1-13_XmKPDAmO72MtSOzlCg"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AZjcbZ1d3C9T4i1fycnFfFDTL8uHZMgInSOhmnTIqVID",
+      "snapshot_id": "ak:realm_snapshot:AfLFAAedWG3Qx_4Ib1sXceKcKEUi4Uvso46Lz69zZq3-",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -3067,7 +3052,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+          "commit_id": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
           "stream_position": 10
         }
       ],
@@ -3118,23 +3103,23 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+            "commit_id": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
             "stream_position": 10
           },
           "value": {
             "entries": [],
             "last_source": {
-              "tag_id": "ak:event:AZHzFJDj1WVcurTLSkxMzS2GMVqUwOdIj8_RzVQ2NrHP:7",
+              "tag_id": "ak:event:AbmNaUkqdK5nLvYJSQMAPbjwqzGbk_r2DAYMw9e7_8Et:7",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+                "commit_id": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 10,
-                "previous_commit_ref": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
-                "event_ref": "ak:event:AZHzFJDj1WVcurTLSkxMzS2GMVqUwOdIj8_RzVQ2NrHP",
+                "previous_commit_ref": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr",
+                "event_ref": "ak:event:AbmNaUkqdK5nLvYJSQMAPbjwqzGbk_r2DAYMw9e7_8Et",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
                 "committed_at": "2026-09-20T00:00:00.010Z",
@@ -3142,9 +3127,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:bcb0008a467831ac36a7232aa6276f5e85a7a962ce4f325ba5162e5f521457c3",
+                  "signed_digest": "sha256:e38fc88aedeb9a040fcb6e9768d913d2d64436929c6cc2f3fd5562f60ed277da",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "RYac5kiUMLhs07NUckscN0rnh5uIdso9P-4tX7i49j5BE3W-o5fM5h21k_g-XhyyS9rPbUqfCyJ2qizlDgznCA"
+                  "signature": "_YJNGGBA7DbU3cYMcfERSPn4Fpj2Q57Bx4P9ItMAB0PknjtuLVLaPN8Al4WKlrYZvo7igU1bMRPPU2FqfBFGCA"
                 }
               },
               "value": {
@@ -3157,10 +3142,7 @@
                   }
                 },
                 "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
-                "expected_revision": {
-                  "commit_id": "ak:realm_commit:AVCXWGtIDBxNGHiO_UfGxE3lWJBZeo3YCSaGSUaagwZj",
-                  "stream_position": 9
-                }
+                "expected_commit_id": "ak:realm_commit:ASQIWKk5Jd2lKj2Q40V7nSMkpFll5BA7Quly7OCHIbKr"
               }
             }
           }
@@ -3175,7 +3157,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+            "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
             "stream_position": 7
           },
           "value": {
@@ -3183,14 +3165,14 @@
               {
                 "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 7,
-                  "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                  "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                   "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3199,9 +3181,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                    "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                    "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                   }
                 },
                 "value": {
@@ -3225,14 +3207,14 @@
             "last_source": {
               "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 7,
-                "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                 "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3241,9 +3223,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                  "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                  "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                 }
               },
               "value": {
@@ -3284,13 +3266,13 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:49485461d1d7665bd042f6a85f7952b494f04d8801c08e4ee0a2e9b42ae5b5a2",
+        "signed_digest": "sha256:7ab52bfa53308d7cf9afd77cdd823ab1b70e152d10721459e3f9bcdd94875fdd",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "clCJmiP3xD22o5AOHy92LLqShP5KLDbIkZzfP79BR4EGRszj4joY3hHtkfCdFtei3SYnJCz8hBfLFmKr_77pDQ"
+        "signature": "bI-pw9B1iSD_PijT5ngvd5iFSK4qTGNMfRtaTz7GSiX8adANDW3Cdw7cUeQ95yP0ONW5Ao8wvYyLgoytYfa8AA"
       }
     },
     {
-      "snapshot_id": "ak:realm_snapshot:AW_pmoM213xMLhlvqghedcG4KpGk-iv8_2vwQXKwJSux",
+      "snapshot_id": "ak:realm_snapshot:AWxAZJ3ONJhfgdyhGR-mMROZLs4Lq1AEwCQbvvTouBO0",
       "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
       "governance_generation": "1",
       "visible_stream_heads": [
@@ -3299,7 +3281,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
-          "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+          "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
           "stream_position": 11
         }
       ],
@@ -3350,7 +3332,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+            "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
             "stream_position": 11
           },
           "value": {
@@ -3358,14 +3340,14 @@
               {
                 "tag_id": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD:7",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+                  "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 11,
-                  "previous_commit_ref": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+                  "previous_commit_ref": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
                   "event_ref": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3374,9 +3356,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:4eca793802769def1d40d4a1daa8cde45f93a20136cc8dd101639944bff1ab10",
+                    "signed_digest": "sha256:4225677a37614279903933e75294da247d9e18f178e7534d4ac6c8a656a487fe",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "GGgrwh2NvYUFZBrvo_Kc9hMB406Hws142qt29i3qvqdvbK2-SUGJAuxcVYJTIGPA0Mo1Y0WtjxBm484UkOm8DQ"
+                    "signature": "LDsZdOBIzWRm5ddfJGnGQBLpTqWpq5eQ3hwYRwldndCMGsfOIpb7yfSnxVKUino3MnEwebD39OeY1AjFo_5QCA"
                   }
                 },
                 "value": {
@@ -3413,14 +3395,14 @@
             "last_source": {
               "tag_id": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD:7",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+                "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 11,
-                "previous_commit_ref": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+                "previous_commit_ref": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
                 "event_ref": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3429,9 +3411,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:4eca793802769def1d40d4a1daa8cde45f93a20136cc8dd101639944bff1ab10",
+                  "signed_digest": "sha256:4225677a37614279903933e75294da247d9e18f178e7534d4ac6c8a656a487fe",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "GGgrwh2NvYUFZBrvo_Kc9hMB406Hws142qt29i3qvqdvbK2-SUGJAuxcVYJTIGPA0Mo1Y0WtjxBm484UkOm8DQ"
+                  "signature": "LDsZdOBIzWRm5ddfJGnGQBLpTqWpq5eQ3hwYRwldndCMGsfOIpb7yfSnxVKUino3MnEwebD39OeY1AjFo_5QCA"
                 }
               },
               "value": {
@@ -3473,7 +3455,7 @@
             "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
           },
           "revision": {
-            "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+            "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
             "stream_position": 11
           },
           "value": {
@@ -3481,14 +3463,14 @@
               {
                 "tag_id": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AdY4FjiJnFWVw0dIkQNKRU-Lxb7MklLEeMozAd993zDR",
+                  "commit_id": "ak:realm_commit:AWOAN0sJXREQPPM8a0ryMqGVSg86Q4pdq4Cdb7silNrS",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 7,
-                  "previous_commit_ref": "ak:realm_commit:AV-qwqYZ_IDslOyn9FUeDWRY-19l31rGuCyo8uk6tYzA",
+                  "previous_commit_ref": "ak:realm_commit:AfEeRdkUB0d56qu3Ptx41SqrPTM4O0tJXMf4cbrM9y1W",
                   "event_ref": "ak:event:AcmustpkfJJXEh_TXYdTK1GJS7rXfQLDV6VRBiQRhttX",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3497,9 +3479,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:ace25ef7f23d62833e4913f6dac925d2bcccc923fd9103fd5833a4be483fabc9",
+                    "signed_digest": "sha256:97a72c01a6f3fa486a8dca9bdcec9e7a2d9d5cd8f5ba357edb1d69293f567aeb",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "bxz-4O-mjRZ8PGccCI5KSuroFL5XzMFBzOQ_SjF9spNK1MsMJLA2h47CbU5Pz0gmIY2OUm3RCVwWKvd3m4S1AA"
+                    "signature": "Bu-Km-i44sJ2SU0sJJRXjASGtZ7VBqwEx-0cmzk4AfYXvdJQhtswYwhfGa8bo7L3f7YdC-ZRPZbbm-2q2nQ9Dw"
                   }
                 },
                 "value": {
@@ -3522,14 +3504,14 @@
               {
                 "tag_id": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD:6",
                 "source_commit": {
-                  "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+                  "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                   "stream_ref": {
                     "kind": "realm",
                     "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                   },
                   "stream_position": 11,
-                  "previous_commit_ref": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+                  "previous_commit_ref": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
                   "event_ref": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD",
                   "governance_generation": "1",
                   "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3538,9 +3520,9 @@
                     "context": "ak.realm_commit_signature.v1",
                     "signature_algorithm": "Ed25519",
                     "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                    "signed_digest": "sha256:4eca793802769def1d40d4a1daa8cde45f93a20136cc8dd101639944bff1ab10",
+                    "signed_digest": "sha256:4225677a37614279903933e75294da247d9e18f178e7534d4ac6c8a656a487fe",
                     "created_at": "2026-09-20T00:00:00.000Z",
-                    "signature": "GGgrwh2NvYUFZBrvo_Kc9hMB406Hws142qt29i3qvqdvbK2-SUGJAuxcVYJTIGPA0Mo1Y0WtjxBm484UkOm8DQ"
+                    "signature": "LDsZdOBIzWRm5ddfJGnGQBLpTqWpq5eQ3hwYRwldndCMGsfOIpb7yfSnxVKUino3MnEwebD39OeY1AjFo_5QCA"
                   }
                 },
                 "value": {
@@ -3563,14 +3545,14 @@
             "last_source": {
               "tag_id": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD:6",
               "source_commit": {
-                "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
+                "commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
                 "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
                 "stream_ref": {
                   "kind": "realm",
                   "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
                 },
                 "stream_position": 11,
-                "previous_commit_ref": "ak:realm_commit:AbPTdR_6TfVurIrbHn6M_COmab-dPu45lkuQadNsO1yC",
+                "previous_commit_ref": "ak:realm_commit:AfIPlNYGXPc-x9MbPaj7ImkMaxVtZ7DiBbN4tm2Q9S8r",
                 "event_ref": "ak:event:AdqaMxO9Y_3URpk_FSTV75p1H9jGlltVszyU1GCZhcJD",
                 "governance_generation": "1",
                 "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
@@ -3579,9 +3561,9 @@
                   "context": "ak.realm_commit_signature.v1",
                   "signature_algorithm": "Ed25519",
                   "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-                  "signed_digest": "sha256:4eca793802769def1d40d4a1daa8cde45f93a20136cc8dd101639944bff1ab10",
+                  "signed_digest": "sha256:4225677a37614279903933e75294da247d9e18f178e7534d4ac6c8a656a487fe",
                   "created_at": "2026-09-20T00:00:00.000Z",
-                  "signature": "GGgrwh2NvYUFZBrvo_Kc9hMB406Hws142qt29i3qvqdvbK2-SUGJAuxcVYJTIGPA0Mo1Y0WtjxBm484UkOm8DQ"
+                  "signature": "LDsZdOBIzWRm5ddfJGnGQBLpTqWpq5eQ3hwYRwldndCMGsfOIpb7yfSnxVKUino3MnEwebD39OeY1AjFo_5QCA"
                 }
               },
               "value": {
@@ -3621,9 +3603,9 @@
         "context": "ak.realm_snapshot_signature.v1",
         "signature_algorithm": "Ed25519",
         "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-        "signed_digest": "sha256:3f8033957726c2f3bc11d1fb887a6723b77b78dd0d909f570f46e825b7028b37",
+        "signed_digest": "sha256:b1a0537aef3ea8ab7610fff1575c467c7c14020569835ea1dc12c54a9962cc10",
         "created_at": "2026-09-20T00:00:00.000Z",
-        "signature": "joIO8ESm3BSBEXIVLDSKwD0zcBEyxbrCbvQPCYzkamTyS4HJ-6rFoax2CSYKXA13YIzKMi61C177HdOgyzGlCg"
+        "signature": "WWEQ0IqnuHVY7lElMnKLY5G9NVvlyNF6cW6z5XtAwWA_1w-Y22kRRIuvtswtElRQw6kYocLhsi9u8oAMu8GMDw"
       }
     }
   ],
@@ -3657,31 +3639,28 @@
             },
             "restored_by": "ak:did_core:web:alice.example",
             "restored_at": "2026-09-20T00:00:00.000Z",
-            "expected_revision": {
-              "commit_id": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
-              "stream_position": 11
-            }
+            "expected_commit_id": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6"
           }
         },
-        "event_id": "ak:event:AWrezyp6DPHJlHE5kgSY1NBAruHpU6HpQQOlsPpjVLEN",
+        "event_id": "ak:event:AQkp4oRTcpmgB4WyyrseNYj4awqbFj0TdLMh2LT10hCa",
         "producer_proof": {
           "kind": "detached_jws",
           "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
-          "event_digest": "sha256:6adecf2a7a0cf1c9947139920498d4d040aee1e953a1e94103a5b0fa6354b10d",
+          "event_digest": "sha256:0929e284537299a00785b2cabb1e3588f86b0a9b163d1374b321d8b4f5d2109a",
           "created_at": "2026-09-20T00:00:00.012Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..7lzFTg9LlTOHIg5fP1VGPZ1uxJ3GCdfTmzX-7aw9QCJO7hvYLUnNpi900Rg6zvHbnhyrW4cyOb0o6BbUEYeJCg"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..M2X405GR_b3ec2AnQQmvaGZr1iSjdMB4iDUhXyeb9abZgw0aP7z8v-l8NXOA7u0-JwIivx5KXr6jSYTxr0s5Dw"
         }
       },
       "commit": {
-        "commit_id": "ak:realm_commit:AZNhMGej46DrJAJlWa369KudvbNMIfjyhxMae5S_k5y_",
+        "commit_id": "ak:realm_commit:AWnCd0UHpg-byjRrnb2XAqqW1oBJNmqF9mtuR5PvVFv8",
         "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
         "stream_ref": {
           "kind": "realm",
           "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
         },
         "stream_position": 12,
-        "previous_commit_ref": "ak:realm_commit:AfZ3_EasT18PPV_AmYUba6mZJTaRWXEwN15KYwRqTMNB",
-        "event_ref": "ak:event:AWrezyp6DPHJlHE5kgSY1NBAruHpU6HpQQOlsPpjVLEN",
+        "previous_commit_ref": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
+        "event_ref": "ak:event:AQkp4oRTcpmgB4WyyrseNYj4awqbFj0TdLMh2LT10hCa",
         "governance_generation": "1",
         "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
         "committed_at": "2026-09-20T00:00:00.012Z",
@@ -3689,9 +3668,9 @@
           "context": "ak.realm_commit_signature.v1",
           "signature_algorithm": "Ed25519",
           "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
-          "signed_digest": "sha256:d3b9619ac36d76fbbbf667557129641cf18b2e454dcf36d3042ce4b90b647c63",
+          "signed_digest": "sha256:49f6c496c3d5b3da67e14d87a1022704f3e28e1e890d28a057078e7f7e44854f",
           "created_at": "2026-09-20T00:00:00.000Z",
-          "signature": "3DHuaGns9WXzuTNzUhvshUe2ceXq6s_GaKlki1Ukvbm08_JPV1F49cc6jZNpqevytBSpIt22CXTMx4IInSRIBw"
+          "signature": "S6h9XLhalvW36NGlOrhjlTIWwvf4KL5IS9C4chbo2Z6CuVfhlBa3qUU98I1EvJq4YLqhZccbrct15-KMk_nFAg"
         }
       }
     }

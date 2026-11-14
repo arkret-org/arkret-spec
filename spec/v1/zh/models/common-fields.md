@@ -98,6 +98,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - current state 状态模型字段统一使用 `domain reducer`，封闭取值为 `current-value projection`、`commit-ordered projection`、`keyed-set projection`、`counter`、`append-only projection`；执行域由 `execution=data|security` 明示，物理值形态由 `value_shape=register|set|counter|log` 明示。不得用 CAS、业务状态机或旧的 register 别名扩展状态模型；新增模型必须先完成合并/顺序语义、op schema、profile gate 与 conformance vector 闭包。
 
   **`keyed-set projection` 的 join（normative，本节是唯一真源）**：该模型的值是一个 **tagged 断言集**。每个元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot `<event_id>:<write_index>`，MUST NOT 退化为裸 `event_id`；元素值是产生它的那条已接纳 Event 的完整 payload，投影不拼装、改名或裁剪字段。join 是 **dot 集合并**，因此可交换、可结合、幂等，且与 `RealmCommit` 的执行顺序无关——同一 dot 重复投影是 no-op。**每条参与该 family 的 Event 都只能 `keyed_set_add`**：撤销语义 MUST 表达为「再加一条断言」而不是删除既有 dot，否则并发的 (add, remove) 会丢掉一侧，审计视图无法重建，且 `keyed_set_remove_observed` 只删冻结前态里存活的 dot，会把并发对静默收敛成单侧。`keyed_set_remove_observed` 与 `keyed_set_remove_dots` 只用于由**同一 writer** 显式指名、不承载并发断言语义的集合。**断言者与极性不是元素字段**：reader MUST 从 dot 所指 Event 的签名 envelope（`actor_id` 与 `kind`）读出，因为同一 family 的两个 kind 可能产生逐字节相同的 payload。集合之上的一切——排序 roster、remove-wins 折叠、计数、冲突视图——都是**读侧折叠**，MUST NOT 成为第二份存储状态或新的 `domain reducer` 取值。使用该模型的 family MUST 在自己的正文节里给出这些读侧折叠，并 MUST NOT 重新定义此处的 join。
+- **Reaction 的专属 current 归约（normative）**：`message_reactions` 使用 `commit-ordered projection`，不适用上面的 tagged assertion join。已登记 value derivation `reaction_effective_entries` 从完整冻结前态、原签 Event 与真实 covering Commit 产生全部 active `(actor_id,key,source)` entries：add 插入／替换，remove 删除，空行保留真实 revision。历史归审计 Event/Commit；原子 Snapshot cut／逐流 checkpoint 加连续 tail 防止旧 add 复活。它不是通用第六种模型，也不允许客户端或部分历史扫描任意 union 当前结果，完整规则见 [Strand §9.8.3](./strand-and-message.md#983-reaction-的-authority-order-收敛authoritative)。
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。**每个 active event kind MUST 在 `contract-registry.json#/event_kind_registry.event_kinds[]` 登记终段形态 `verb_form`**，取值为封闭三值 `base`（动词原形）/ `past_participle`（过去分词）/ `not_applicable`（终段是名词化 facet、状态名或外部标准专名，不表达动词）；`event-kind-registry.json` 的同名字段是该登记的生成投影，不是第二个真源。`verb_form: "past_participle"` MUST 同时携带非空 `verb_form_rationale`；`base` 与 `not_applicable` MUST NOT 携带该字段，伪造例外理由与漏登记同样不可接受。判据是语义而非拼写：`bound` 与 `withheld` 都是不规则过去分词，任何 `ed` / `en` 后缀扫描都会漏项，因此英文后缀启发式只能作为 review 提示，MUST NOT 充当 correctness gate。下表是同一登记的可读投影，一 kind 一行，由 artifact lint 与 registry 双向闭合：
 
   | kind | 过去分词形态的语义理由 |
@@ -803,7 +804,7 @@ ak:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 
 typed ID 的 token 构造 MUST 由
 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 中该 kind 的 `id_form`
-唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered），`event_derived` 使用
+唯一固定：`producer_allocated` 使用 UUIDv7（time-ordered）；`issuer_allocated` 使用 UUIDv7（time-ordered）并由 issuer record 原子分配，`event_derived` 使用
 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 定义的 33-octet suite-tagged 完整 digest token；
 `suite_tagged_full_digest` 同样使用 §4.0 的完整 uint8 digest-suite code 加 32-octet digest，但其 preimage 与
 authority 由 kind-specific registry contract 固定。Realm ID 属 `event_derived`：它使用
@@ -817,10 +818,7 @@ id_form，也不得把 Event、Realm 或 Event-derived typed ID 降级为 UUIDv7
 实现 MUST NOT 在各 schema / reducer 中另建一份手写分类。其中 `ak:call:` 与
 `ak:grant:` 是 `event_derived`，分别从 `ak.call.create` 与
 `ak.capability.grant` 的 Event ID 重类型化为相同 33-octet token。`ak:session_grant:` 则是
-`identity_authority="issuer_record"` 的 `suite_tagged_full_digest`：从 closed
-`ak.session_grant.issuance.v1` preimage 派生，并以 `(issuer_id, typed_id)` 作为 storage identity key；它
-不是 Event ID。其首字节是完整 digest-suite wire code，不得按 Realm 的“保留零 nibble + 低 4 位
-suite”解释；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
+`identity_authority="issuer_record"` 的 `issuer_allocated` UUIDv7：由 issuer 独立分配，并以 `(issuer_id, typed_id)` 作为 storage identity key；它是非秘密记录标识，与 opaque credential 的随机字节独立。跨部署只携 `{issuer_id,id}` SessionGrantRef；具体合同见 [`../identity/key-management.md` §6.1](../identity/key-management.md)。
 
 `notification_projection` 使用 `suite_tagged_full_digest` 与 `identity_authority="source_evidence"`，其 closed preimage、域分隔和 SHA-256 算法由 ID registry 的 `notification_projection_identity_contract` 及 [`read-receipts.md` §6.3](../discovery/read-receipts.md#63-notification-派生-projection) 固定。身份键为完整 typed ID；验证责任是校验原始源 Event、接受证据和 recipient context 后重算身份，不要求独立 producer genesis signature。此例外只适用于普通通知投影，不适用于 Agent approval 的 `notification` ID。
 

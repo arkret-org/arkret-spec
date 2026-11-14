@@ -68,11 +68,11 @@ def measure():
             break
         append('roster', {'op': 'leave', 'actor_id': members[0],
                          'device_id': compact['roster']['entries'][0]['value']['participant']['device_id'],
-                         'expected_revision': revision(compact['roster']['last_source']['source_commit'])})
+                         'expected_commit_id': revision(compact['roster']['last_source']['source_commit'])['commit_id']})
         append('roster', {'op': 'join', 'participant': participant(call_id, members[0], rounds + 100)})
         append('moderation', {'op': 'restore_participant', 'actor_id': banned,
                              'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
-                             'expected_revision': revision(compact['moderation']['last_source']['source_commit'])})
+                             'expected_commit_id': revision(compact['moderation']['last_source']['source_commit'])['commit_id']})
         ban()
     root = Path(__file__).resolve().parents[1]
     sources = {}

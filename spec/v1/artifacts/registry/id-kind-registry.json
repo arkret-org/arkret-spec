@@ -3,7 +3,8 @@
   "wire_form_generation": {
     "producer_allocated": "ak:<kind>:<uuidv7>",
     "event_derived": "ak:<kind>:<44-char-event-token>",
-    "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>"
+    "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>",
+    "issuer_allocated": "ak:<kind>:<uuidv7>"
   },
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
@@ -53,43 +54,23 @@
       "issuer_id",
       "typed_id"
     ],
-    "authority": "signed_immutable_issuer_record",
-    "schema": "ak.session_grant.issuance.v1",
-    "canonicalization": "json_jcs",
-    "digest_suite_registry_ref": "registry/digest-suite-registry.json#/suites/canonical_id=sha256",
-    "digest_suite_wire_code": 1,
-    "v1_suite_code_constraint": "The complete uint8 suite wire code is encoded unchanged, but v1 accepts only registered active codes whose high nibble is 0x0; this is not a Realm derivation-class nibble.",
-    "digest_input": "SHA-256(JCS(closed issuance_preimage))",
-    "token_layout": "digest_suite_wire_code || 32-byte digest",
-    "preimage_fields": [
-      "schema",
+    "authority": "immutable_issuer_ledger_record",
+    "id_form": "issuer_allocated",
+    "identity_authority": "issuer_record",
+    "record_identity_fields": [
       "issuer_id",
-      "issuance_nonce",
-      "account_id",
-      "session_public_key",
-      "audience_id",
-      "scopes",
-      "not_before",
-      "expires_at",
-      "session_id",
-      "credential_class",
-      "device_binding?",
-      "holder_binding",
-      "proof_kind?",
-      "scope_details?"
+      "id"
     ],
-    "closed_encoding": {
-      "issuance_nonce": "base64url_no_pad_exactly_32_octets",
-      "session_public_key": "supported_public_jwk_encoded_as_rfc8785_jcs_string",
-      "audience_id": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
-      "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
-      "timestamps": "utc_canonical_millisecond",
-      "optional_fields": "omit_when_absent_never_null",
-      "credential_binding": "credential_class is standard or recovery_session; holder_binding is required; device_binding is required only for standard human_device and forbidden for recovery_candidate_device and agent_runtime"
-    },
-    "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including credential_class and holder_binding; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so different credential classes or holder bindings cannot share one valid ID.",
+    "record_id_allocation": "issuer_atomic_unique_uuidv7",
+    "secret_bytes": 32,
+    "secret_encoding": "base64url_no_padding",
+    "secret_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_secret",
+    "credential_pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+    "reference_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_ref",
+    "metadata_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantMetadata",
+    "credential_lookup": "sha256(ASCII(exact_opaque_credential))_then_exact_secret_comparison",
+    "metadata_immutability": "binding_changes_allocate_a_new_id_and_secret_never_mutate_an_issued_record",
     "session_chain_rule": "session_id is independently allocated before first issuance, refresh inherits it, and it MUST NOT equal or derive from grant_id",
-    "device_id_rule": "No independent top-level device_id claim enters the preimage; standard human holder_binding and its complete device_binding carry accepted-device authority. Recovery candidate-device and Agent runtime holder bindings carry their own device_id and forbid device_binding.",
     "durable_replay": {
       "key": [
         "issuer_id",
@@ -737,9 +718,9 @@
       "kind": "session_grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:session_grant:<44-char-suite-tagged-full-digest-token>",
-      "description": "Short-lived signed SessionGrant credential ID derived from the Account Authority's closed immutable issuance record. JWT jti carries this typed ID; it is neither an Event ID nor an ak:grant capability ID.",
-      "id_form": "suite_tagged_full_digest",
+      "wire_form": "ak:session_grant:<uuidv7>",
+      "description": "Non-secret UUIDv7 identity of an immutable issuer ledger record. The separate random credential is sender-constrained and exact-introspected; this ID alone cannot authorize.",
+      "id_form": "issuer_allocated",
       "identity_authority": "issuer_record",
       "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
       "storage_identity_key": [

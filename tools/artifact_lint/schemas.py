@@ -569,7 +569,7 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 def check_security_transaction_schema_closure(lint: Lint) -> None:
-    """Require canonical transaction intent/progress and closed prepared material."""
+    """Require single-submit Recovery and unchanged durable Rotation material."""
     path = ARTIFACTS / "schemas" / "security-transaction.schema.json"
     data = load_json(lint, path)
     defs = data.get("$defs") if isinstance(data, dict) else None
@@ -578,10 +578,6 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
         return
 
     expected_orders = {
-        "pcr_policy_recovery": (
-            "pcr_policy",
-            ["commit_recovery_unit"],
-        ),
         "security_rotation": (
             "security_rotation",
             [
@@ -594,10 +590,6 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
         ),
     }
     for prefix, (accepted_prefix, expected) in expected_orders.items():
-        step_def = defs.get(f"{prefix}_step")
-        actual = step_def.get("enum") if isinstance(step_def, dict) else None
-        if actual != expected:
-            lint.fail(path, f"$defs/{prefix}_step must declare the canonical order {expected}")
         accepted = defs.get(f"{accepted_prefix}_accepted_steps")
         if not isinstance(accepted, dict):
             lint.fail(path, f"missing $defs/{accepted_prefix}_accepted_steps")
@@ -641,8 +633,9 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     if not isinstance(rotation_plan, dict) or rotation_plan.get("additionalProperties") is not False:
         lint.fail(path, "$defs/backup_rotation_plan must reject legacy material wrappers")
 
-    resource_required = data.get("required", [])
-    resource_properties = data.get("properties", {})
+    rotation_resource = defs.get("security_rotation_transaction", {})
+    resource_required = rotation_resource.get("required", [])
+    resource_properties = rotation_resource.get("properties", {})
     if any(value == "awaiting_device_attestation" for _, value, _ in walk_json(data)):
         lint.fail(path, "transaction schema must not serialize derived device-attestation readiness")
     for derived in ("binding", "next_required_step", "state"):
@@ -657,16 +650,6 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
             if derived in required or derived in properties:
                 lint.fail(path, f"$defs/{create_name} must not accept caller-supplied {derived}")
 
-    recovery_plan = defs.get("pcr_policy_recovery_plan")
-    recovery_required = recovery_plan.get("required", []) if isinstance(recovery_plan, dict) else []
-    recovery_properties = recovery_plan.get("properties", {}) if isinstance(recovery_plan, dict) else {}
-    if recovery_properties.get("binding") != {"$ref": "#/$defs/pcr_policy_recovery_binding"}:
-        lint.fail(path, "$defs/pcr_policy_recovery_plan must own its closed binding")
-    if "binding" not in recovery_required or "identity_model" in recovery_properties:
-        lint.fail(path, "PCR recovery identity_model must appear only inside prepared_plan.binding")
-    if "security_rotation_binding" in defs:
-        lint.fail(path, "top-level security_rotation_binding schema is a forbidden plan projection")
-
     prepared_unit = defs.get("prepared_event_unit")
     prepared_required = prepared_unit.get("required") if isinstance(prepared_unit, dict) else None
     prepared_properties = prepared_unit.get("properties") if isinstance(prepared_unit, dict) else None
@@ -676,88 +659,52 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     if not isinstance(prepared_properties, dict) or set(prepared_properties) != expected_prepared_fields:
         lint.fail(path, "$defs/prepared_event_unit must define only request and request_digest")
 
-    recovery_commit_intent = defs.get("recovery_commit_intent")
-    intent_properties = (
-        recovery_commit_intent.get("properties")
-        if isinstance(recovery_commit_intent, dict)
-        else None
-    )
-    unit_event_digests = (
-        intent_properties.get("unit_event_digests")
-        if isinstance(intent_properties, dict)
-        else None
-    )
-    if not isinstance(unit_event_digests, dict):
-        lint.fail(path, "$defs/recovery_commit_intent must define unit_event_digests")
-    else:
-        if unit_event_digests.get("minItems") != 2:
-            lint.fail(path, "$defs/recovery_commit_intent.unit_event_digests minItems must be 2")
-        if unit_event_digests.get("maxItems") != 2:
-            lint.fail(path, "$defs/recovery_commit_intent.unit_event_digests maxItems must be 2")
-        if unit_event_digests.get("uniqueItems") is not True:
-            lint.fail(path, "$defs/recovery_commit_intent.unit_event_digests must require distinct digests")
-        expected_digest_items = {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$",
-        }
-        if unit_event_digests.get("items") != expected_digest_items:
-            lint.fail(path, "$defs/recovery_commit_intent.unit_event_digests must contain only SHA-256 digests")
-        description = unit_event_digests.get("description")
-        if not isinstance(description, str) or "[reanchor_digest, authorize_digest]" not in description:
-            lint.fail(path, "$defs/recovery_commit_intent.unit_event_digests must declare the canonical order")
-
-    recovery_terminal = defs.get("recovery_terminal_commit")
-    terminal_required = recovery_terminal.get("required") if isinstance(recovery_terminal, dict) else None
-    terminal_properties = recovery_terminal.get("properties") if isinstance(recovery_terminal, dict) else None
-    receipt_only = {"recovery_receipt"}
-    if not isinstance(terminal_required, list) or set(terminal_required) != receipt_only:
-        lint.fail(path, "$defs/recovery_terminal_commit must require only recovery_receipt")
-    if not isinstance(terminal_properties, dict) or set(terminal_properties) != receipt_only:
-        lint.fail(path, "$defs/recovery_terminal_commit must define only recovery_receipt")
-    if not isinstance(recovery_terminal, dict) or recovery_terminal.get("additionalProperties") is not False:
-        lint.fail(path, "$defs/recovery_terminal_commit must reject RealmCommit and other extra material")
-
+    root_refs = data.get("oneOf")
+    if root_refs != [{"$ref": "#/$defs/recovery_transaction_completion"}, {"$ref": "#/$defs/security_rotation_transaction"}]:
+        lint.fail(path, "transaction must be the closed Recovery-result/Rotation union")
+    create = defs.get("recovery_create_request_body", {})
+    if set(create.get("properties", {})) != {"kind", "recovery_receipt"} or set(create.get("required", [])) != {"kind", "recovery_receipt"} or create.get("additionalProperties") is not False:
+        lint.fail(path, "Recovery create must contain only kind and the sole signed recovery_receipt")
+    if any(name.startswith("pcr_policy_") or name in {"recovery_terminal_commit", "recovery_commit_intent"} for name in defs):
+        lint.fail(path, "Recovery must not restore a prepared plan or outer terminal artifact")
+    result = defs.get("recovery_transaction_completion", {})
+    result_fields = {"transaction_id", "kind", "account_id", "created_at", "recovery_receipt", "completion_attestation"}
+    if set(result.get("properties", {})) != result_fields or set(result.get("required", [])) != result_fields or result.get("additionalProperties") is not False:
+        lint.fail(path, "Recovery result must contain the immutable receipt and real completion, never prepared state")
+    wrapper = defs.get("client_step_attestation", {})
+    if wrapper.get("properties", {}).get("step", {}).get("const") != "local_commit" or wrapper.get("properties", {}).get("artifact") != {"$ref": "#/$defs/security_rotation_local_commit"}:
+        lint.fail(path, "client_step_attestation must be Rotation local_commit only")
+    if wrapper.get("properties", {}).get("output_ref", {}).get("$ref") != "#/$defs/sha256_digest":
+        lint.fail(path, "Rotation attestation output_ref must be only the reserved SHA-256 local_commit digest")
+    receipt_path = ARTIFACTS / "schemas" / "recovery-receipt.schema.json"
+    receipt = load_json(lint, receipt_path)
+    if not isinstance(receipt, dict):
+        return
+    receipt_props = receipt.get("properties", {})
+    forbidden_receipt = {"transaction_request_digest", "prepared_plan_digest", "reanchor_event_id", "authorization_event_id", "recovery_session_snapshot_digest"}
+    if forbidden_receipt & set(receipt_props):
+        lint.fail(receipt_path, "RecoveryReceipt must not duplicate plan/request digests or inline Event IDs")
+    unit = receipt_props.get("recovery_unit", {})
+    events = unit.get("properties", {}).get("events", {})
+    if events.get("minItems") != 2 or events.get("maxItems") != 2 or events.get("items") is not False:
+        lint.fail(receipt_path, "Recovery unit must have exactly two closed ordered submission slots")
+    for slot, kind in zip(events.get("prefixItems", []), ["ak.device.reanchor", "ak.device.authorize"]):
+        parts = slot.get("allOf", [])
+        if len(parts) != 2 or parts[0] != {"$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"} or parts[1].get("properties", {}).get("event", {}).get("properties", {}).get("kind", {}).get("const") != kind:
+            lint.fail(receipt_path, "Recovery slot must preserve original EventAdmissionSubmission and its exact kind")
+    if len(events.get("prefixItems", [])) != 2:
+        lint.fail(receipt_path, "Recovery unit must define both submission slots")
+    if receipt_props.get("session_grant_ref", {}).get("$ref") != "./common-ids.schema.json#/$defs/session_grant_ref":
+        lint.fail(receipt_path, "RecoveryReceipt must authenticate the complete portable issuer grant reference")
     fixture_path = ARTIFACTS / "fixtures" / "security-transaction-resilience-fixture.json"
     fixture = load_json(lint, fixture_path)
-    schema_cases = fixture.get("schema_validation_cases") if isinstance(fixture, dict) else None
-    schema_case_names = {
-        case.get("name")
-        for case in schema_cases or []
-        if isinstance(case, dict) and isinstance(case.get("name"), str)
-    }
-    expected_digest_cases = {
-        "recovery_commit_intent_has_two_ordered_distinct_digests",
-        "recovery_commit_intent_rejects_zero_digests",
-        "recovery_commit_intent_rejects_one_digest",
-        "recovery_commit_intent_rejects_three_digests",
-        "recovery_commit_intent_rejects_duplicate_digests",
-        "recovery_commit_intent_rejects_non_sha256_digest",
-    }
-    if not expected_digest_cases.issubset(schema_case_names):
-        lint.fail(fixture_path, "recovery commit intent cardinality and digest mutation cases are incomplete")
-
-    terminal_cases = fixture.get("recovery_terminal_commit_cases") if isinstance(fixture, dict) else None
-    terminal_by_name = {
-        case.get("name"): case
-        for case in terminal_cases or []
-        if isinstance(case, dict) and isinstance(case.get("name"), str)
-    }
-    swapped = terminal_by_name.get("swapped_event_digest_order_differs_from_the_frozen_plan")
-    if not isinstance(swapped, dict) or swapped.get("frozen_order") != [
-        "reanchor_digest",
-        "authorize_digest",
-    ] or swapped.get("submitted_order") != [
-        "authorize_digest",
-        "reanchor_digest",
-    ]:
-        lint.fail(fixture_path, "recovery digest-order mismatch case must reverse the frozen canonical order")
-    forbidden = terminal_by_name.get("terminal_artifact_attempts_to_carry_realm_commit_material")
-    if not isinstance(forbidden, dict) or forbidden.get("forbidden_members") != [
-        "realm_commit",
-        "realm_commit_id",
-        "authority_signature",
-    ]:
-        lint.fail(fixture_path, "recovery terminal artifact case must reject every RealmCommit carrier")
+    if isinstance(fixture, dict):
+        from tools.recovery_commit_kat import check_fixture
+        for error in check_fixture(fixture):
+            lint.fail(fixture_path, error)
+        cases = {row.get("name") for row in fixture.get("schema_validation_cases", []) if isinstance(row, dict)}
+        if not {"single_submit_recovery_receipt", "single_submit_recovery_result"} <= cases:
+            lint.fail(fixture_path, "single-submit Recovery request/result schema cases are incomplete")
 
     security_transaction_continue_request_body = defs.get("security_transaction_continue_request_body")
     continue_required = security_transaction_continue_request_body.get("required", []) if isinstance(security_transaction_continue_request_body, dict) else []
@@ -2898,13 +2845,22 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
             "description"
         ]
     except (KeyError, TypeError):
+        completion = {}
         completion_properties = {}
         signature_description = ""
+    complete_projection = (
+        'the complete closed attestation with only signature_proof omitted' in signature_description
+        and completion.get('additionalProperties') is False
+        and set(completion.get('required', [])) == set(completion_properties)
+    )
     for field in ("reanchor_event_ref", "device_authorization_event_ref"):
-        if field not in completion_properties or field not in signature_description:
+        reference = completion_properties.get(field, {})
+        if not complete_projection or reference.get('allOf') != [
+            {'$ref': './authority-commit-operations.schema.json#/$defs/committed_event_ref'}
+        ]:
             lint.fail(
                 authority_path,
-                f"recovery completion attestation signature projection must bind {field}",
+                f"recovery completion attestation signature projection must bind {field} as a complete CommittedEventRef",
             )
     for removed_field in (
         "device_authorization_event_id",

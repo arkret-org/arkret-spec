@@ -256,10 +256,10 @@ Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 
 
 Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Arkret v1 不再有全局 winner 算法：
 
-- 普通数据采用 typed current 当前值（`current-value projection`）、OR-set、日志或分片计数器；当前值只由该 stream 上最后一个被接受的写入给出，需要防覆盖时用 `expected_revision` compare-and-set。接收站独立验证，未知撤销允许传播窗口。
+- 普通数据采用 typed current 当前值（`current-value projection`）、OR-set、日志或分片计数器；当前值只由该 stream 上最后一个被接受的写入给出，需要防覆盖时用 `expected_commit_id` compare-and-set。接收站独立验证，未知撤销允许传播窗口。
 - 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
 - RealmCommit 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
-- 普通 typed current 的当前值由该 stream 上最后一个被接受的写入给出，需要防覆盖时由 `expected_revision` compare-and-set 保护；安全状态不做无序 join，也不存在任意 current state reset。
+- 普通 typed current 的当前值由该 stream 上最后一个被接受的写入给出，需要防覆盖时由 `expected_commit_id` compare-and-set 保护；安全状态不做无序 join，也不存在任意 current state reset。
 
 ### 6.4 领域 current state
 
@@ -268,7 +268,7 @@ Matrix state event 没有显式的领域 current state。Arkret v1 为每个可�
 - closed `selector.kind` 与稳定领域身份字段；
 - 完整 typed value schema；
 - 最后修改它的 `{commit_id, stream_position}` revision；
-- 写入需要并发保护时使用的 typed `expected_revision`。
+- 写入需要并发保护时使用的 typed `expected_commit_id`。
 
 Receiver 不识别 selector kind 或 value branch 时 fail closed。扩展领域必须通过 schema/profile 显式 opt-in，不得退化为通用状态键或客户端自定义求值（规范见 [`sync/current-state.md`](../sync/current-state.md) 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
 

@@ -50,6 +50,13 @@ readable floor、authoring authority 或同步完成证据。获准 stream 的�
 
 Initial sync 可以分段返回，但只有在某 section 的 baseline 完成标志到达后，客户端才能把该 section 作为完整集合替换。增量到达早于 baseline 完成时必须按 revision/stream position合并，不能被较旧 baseline 覆盖。
 
+每个分页 current baseline MUST 使用同一冻结 cut 和逐 stream heads；live head 正常前进 MUST NOT
+导致重启。同一页 exact replay 幂等，混合 cut/同页异字节则失败。服务端保持同 cut rows 与当前披露门，
+普通客户端安装可信完整 typed rows 和 checkpoint，不从历史 Event 自建 current；已安装新 revision
+不得被旧 baseline 覆盖。新权限范围独立加载，真实失权/任期/窗口失效仅恢复对应 surface，保留其它
+Realm 进度、MLS 私态及 to-device ACK。Realm Snapshot 仍是完整内联对象，不由账号分页替代。
+
+
 账号全局 baseline 的封闭 channel 集合是
 `account_data_events / station_cas / device_lists / notifications / agent_draft_pending_intents` 五项。每个
 `account_baseline_segment` MUST 携同一个冻结窗口的 `snapshot_cursor`。只有某 channel 的末页已经交付，

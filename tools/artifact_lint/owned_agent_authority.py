@@ -92,13 +92,13 @@ def check_owned_agent_authority(lint: Lint) -> None:
             lint.fail(path, f'{kind} loses the owned Agent source or issuer-only withdrawal branch')
     grant = load_json(lint, ARTIFACTS / 'schemas/capability-grant.schema.json')
     payload = load_json(lint, ARTIFACTS / 'schemas/event-payload.schema.json')['$defs']['policy_set_state_payload']
-    if payload.get('then') != {'required': ['expected_revision']} or payload.get('else') != {'not': {'required': ['expected_revision']}}:
+    if payload.get('then') != {'required': ['expected_commit_id']} or payload.get('else') != {'not': {'required': ['expected_commit_id']}}:
         lint.fail(path, 'Agent Policy CAS must be required in its payload and forbidden for other families')
     condition = payload.get('if', {}).get('properties', {}).get('value', {})
     if condition.get('properties') != {'schema': {'const': 'ak.schema.policy.v1'}, 'policy_kind': {'enum': ['agent', 'applet']}} or set(condition.get('required', [])) != {'schema', 'policy_kind'}:
         lint.fail(path, 'Agent Policy CAS family discriminator drift')
-    if payload.get('properties', {}).get('expected_revision', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './current-state.schema.json#/$defs/revision'}]:
-        lint.fail(path, 'Agent Policy CAS must use the nullable exact typed current revision')
+    if payload.get('properties', {}).get('expected_commit_id', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './common-ids.schema.json#/$defs/realm_commit_id'}]:
+        lint.fail(path, 'Agent Policy CAS must use the nullable exact Commit ID')
     ref = grant['$defs']['owned_agent_authority_ref']
     fields = {'kind', 'realm_id', 'controller_account_id', 'controller_join_event_id', 'agent_join_event_id'}
     if set(ref.get('required', [])) != fields or set(ref['properties']) != fields or ref.get('additionalProperties') is not False:

@@ -53,7 +53,7 @@ Schema id: `ak.schema.relation.v1`
 
 `create.relation` MUST 是 closed `relation_definition`，且只可包含 `scope_circle_id`、`relation_kind`、`from_ref`、`to_ref`、`rank`、`fields`；其中后三个 identity 字段必填，`scope_circle_id`、`rank`、`fields` 可选。create-time rank 的唯一签名路径和唯一投影 consumer 是 `payload.relation.rank`；`payload.rank` 不存在并 MUST 以 `schema_violation` 拒绝。完整物化 Relation 的 `schema`、`realm_id`、`id`、`effective_scope`、`state`、`state_changed_at`、`created_by`、`created_at`、`updated_by`、`updated_at` 均由 Reducer 派生或维护，不得作为 authoring input 回流。
 
-`create.expected_revision` 是 `CurrentRevision | null`：domain 从未写入时必须为 `null`；当前值为 `tombstoned` 时可携其 exact revision 创建一个新的 event-derived RelationId；当前值仍为 `active` 时即使 revision 匹配也 MUST `failed_precondition`。`update` 与 `tombstone` 同时携 `relation_id` 和 exact `expected_revision`，Reducer MUST 验证 domain 当前值的 `id` 与 `relation_id` 相同且为 `active`。stale revision、错误 id、目标不存在／跨 Realm／已 tombstone 都 MUST `failed_precondition` 且零写入；exact replay 返回原 RealmCommit。
+`create.expected_commit_id` 是 `RealmCommitId | null`：domain 从未写入时必须为 `null`；当前值为 `tombstoned` 时可携其 exact revision 创建一个新的 event-derived RelationId；当前值仍为 `active` 时即使 revision 匹配也 MUST `failed_precondition`。`update` 与 `tombstone` 同时携 `relation_id` 和 exact `expected_commit_id`，Reducer MUST 验证 domain 当前值的 `id` 与 `relation_id` 相同且为 `active`。stale revision、错误 id、目标不存在／跨 Realm／已 tombstone 都 MUST `failed_precondition` 且零写入；exact replay 返回原 RealmCommit。
 
 `relation_kind`、`from_ref`、`to_ref` 共同决定主冲突域，create 后 MUST 锁定；`ak.relation.update` 只可 patch `scope_circle_id`、`rank`、`fields`，触及身份三字段或 `effective_scope` MUST `schema_violation`。改变 kind／端点不是 update 或 move：调用方先以旧 domain 的 exact revision tombstone，再以新 domain 的 current revision（从未写入则 `null`）create 新 RelationId。这是两个独立、可重试、用户可见的操作；协议不提供跨 domain 双 CAS、隐式搬迁或原子 move。
 
@@ -214,9 +214,9 @@ Realm 来自已验证 Event envelope；Circle 只参与 scope 与授权，不进
 
 ### 6.2 Create / update / tombstone
 
-三种写入都在治理 Station 的同一 authority-commit transaction 内先比较 payload 的 `expected_revision`，再原子写入 domain 当前值：
+三种写入都在治理 Station 的同一 authority-commit transaction 内先比较 payload 的 `expected_commit_id`，再原子写入 domain 当前值：
 
-- **create**：domain 从未写入时要求 `expected_revision = null`；若当前值已 tombstoned，要求携其 exact revision，成功后以本 create Event 派生新的 RelationId。当前值为 active 时不得用 create 覆盖；
+- **create**：domain 从未写入时要求 `expected_commit_id = null`；若当前值已 tombstoned，要求携其 exact revision，成功后以本 create Event 派生新的 RelationId。当前值为 active 时不得用 create 覆盖；
 - **update**：要求 non-null exact revision，且 `relation_id` 等于当前 value 的 id、state 为 active；只允许修改 `scope_circle_id`、`rank`、`fields`；
 - **tombstone**：要求 non-null exact revision，且 `relation_id` 等于当前 value 的 id、state 为 active；成功后保留同一 RelationId 与历史，把 state 单向置为 tombstoned。
 
@@ -226,7 +226,7 @@ revision 不匹配、current id 不匹配、非法 lifecycle 或 active domain �
 
 `relation_kind`、`from_ref`、`to_ref` 是 primary domain 身份，create 后锁定。改变任一字段必须是两个显式操作：先对旧 domain tombstone，再对新 domain create；两步分别携各自 current revision、分别授权、分别产生可见结果。协议故意不提供跨 domain 双 CAS、隐式搬迁或原子 move；第一步成功而第二步失败是这两次用户操作的正常中间态，调用方重读新 domain 后重签第二步。
 
-这一限制是 D1 简化的逆向门禁：若允许普通 update 改 domain，就必须同时删除旧 subject、写入新 subject并冻结两个前态，一条 `expected_revision` 无法闭合该事务，最终会重新引入被删除的多对象裁决机。实现 MUST NOT 用私有数据库锁、header 或未登记 payload 字段补出该语义。
+这一限制是 D1 简化的逆向门禁：若允许普通 update 改 domain，就必须同时删除旧 subject、写入新 subject并冻结两个前态，一条 `expected_commit_id` 无法闭合该事务，最终会重新引入被删除的多对象裁决机。实现 MUST NOT 用私有数据库锁、header 或未登记 payload 字段补出该语义。
 
 ### 6.4 历史、私密 scope 与 derived edge 保留边界
 

@@ -842,14 +842,6 @@
       "reason": "closed endpoint selector union: absolute service path or absolute HTTP(S) URL"
     },
     {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
-      "terminal_categories": [
-        "typed_object_id"
-      ],
-      "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
-    },
-    {
       "file": "current-state.schema.json",
       "pointer": "/$defs/device_authorization_value/properties/authorized_by",
       "terminal_categories": [

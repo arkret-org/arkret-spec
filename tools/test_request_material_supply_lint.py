@@ -119,9 +119,8 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         )
 
     def test_caller_signed_referenced_union_branches_are_client_local(self) -> None:
-        # A caller-signed identity selected inside a required oneOf remains
-        # caller-authored at the branch root. The continue artifact union uses
-        # this for both recovery_receipt and security_rotation_local_commit.
+        # Recovery's R and Rotation's local artifact remain caller-authored.
+        # Continue has only the Rotation artifact after the Recovery merge.
         errors = self._run()
         self.assertFalse(
             [
@@ -133,7 +132,7 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             errors,
         )
 
-    def test_terminal_output_echo_requires_both_prepared_plan_sources(self) -> None:
+    def test_rotation_terminal_output_echo_requires_its_returned_plan_source(self) -> None:
         def mutate(schema):
             schema["$defs"]["security_rotation_plan"]["properties"].pop(
                 "local_commit_digest"
@@ -149,21 +148,20 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             errors,
         )
 
-    def test_referenced_union_branches_retain_supply_requirements(self) -> None:
-        # client_attestation.artifact is a oneOf whose branches are all local
-        # $refs. An unsupplied required member added inside one referenced
-        # branch must make the union fail instead of collapsing it to one
-        # opaque caller-signed leaf.
+    def test_referenced_create_union_branches_retain_supply_requirements(self) -> None:
+        # The live create union references Recovery's single signed R and the
+        # independent Rotation create branch. A required server artifact in
+        # one branch cannot be hidden by the other caller-authored branch.
         def mutate(schema):
-            branch = schema["$defs"]["recovery_terminal_commit"]
+            branch = schema["$defs"]["security_rotation_create_request_body"]
             branch["required"].append("unregistered_attestation")
             branch["properties"]["unregistered_attestation"] = {"type": "object"}
 
         errors = self._run(json_mutations={SECURITY_TRANSACTION_PATH: mutate})
         self.assertTrue(
             any(
-                "ak.self.security_transaction.command.continue.v1" in error
-                and "client_attestation.artifact" in error
+                "ak.self.security_transaction.command.create.v1" in error
+                and "unregistered_attestation" in error
                 for error in errors
             ),
             errors,

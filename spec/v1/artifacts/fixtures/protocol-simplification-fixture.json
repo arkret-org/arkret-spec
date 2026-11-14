@@ -409,10 +409,7 @@
         },
         "expected_current": {
           "state": "present",
-          "revision": {
-            "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "stream_position": 12
-          }
+          "commit_id": "ak:realm_commit:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         "permissions": [
           {

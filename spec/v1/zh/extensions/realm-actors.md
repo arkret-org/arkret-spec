@@ -130,7 +130,7 @@ realm_control；revision 复用 `{commit_id,stream_position}`，来自原接受 
 
 create 的所有行、去重／配额／tuple 约束、原件、签署事实、Commit 和结果 **MUST** 同事务成功或全部不写。
 创建后没有 Device／Profile 行是合法未创建；identity／control／manager／双 gate／generation／recovery 缺项是错误，不能兜底初始化。
-expected_revision 只在 typed payload；target 行首写显式 null，后继精确比较原 row revision。
+expected_commit_id 只在 typed payload；target 行首写显式 null，后继精确比较原 row revision。
 治理任期变更不改已有 row 的原 revision。写入仍锁内检查最新 gates／撤销／manager，历史 revision 不构成当前 allow。
 
 新增纯派生：`realm_actor_accepted_event_ref` 是真实接受 Event／Commit 的四坐标；
@@ -146,14 +146,14 @@ writer condition 可精确读取 `envelope.actor_id.kind`；admission envelope_p
 Device 仍用原 DeviceId，authority key 为完整 RealmActorId＋DeviceId。
 `ak.device.authorize` 的新 binding 为 `realm_managed_delegation`，由 current 控制方法签 Event，
 Device 自己用 Ed25519 签 possession proof。authorized_by 必须等于 actor.realm_actor_id.principal_id。
-payload 的 `expected_control_revision` 与 `expected_device_revision`（仅首次为 null）均锁内 CAS；
+payload 的 `expected_control_commit_id` 与 `expected_device_commit_id`（仅首次为 null）均锁内 CAS；
 authorized_generation_ref 等于本主体当前 generation，不得由空目录、Service epoch、DID version 或首 Device 初始化。
 
 raw Device PoP 分域为 `ak.device_authorize_realm_actor_possession_proof.v1`，输入
 `UTF8(context + LF) || JCS(transcript)`。完整 transcript 是从 envelope 注入 actor_id，加 payload 的
 device_id、device_public_key_did、hpke_key、algorithms、device_key_algorithm、authorized_by、
 authorization_binding_kind、authorized_generation_ref、not_before、expires_at、scopes、applet_id、
-expected_control_revision、expected_device_revision。不得含签名、Event／Commit ID、recovery_session、
+expected_control_commit_id、expected_device_commit_id。不得含签名、Event／Commit ID、recovery_session、
 pairing challenge 或第二份主体字段。expires_at 必须有限非 null；非空 scope／action 配对全部属于同一 Realm。
 列表按既有 canonical 排序去重规则验原输入，不重排后验签。
 
@@ -215,7 +215,7 @@ envelope.applet_id 与 authorization_ref 逐字对应 candidate。candidate 不�
 
 control.update 保留旧有效方法签完整 Event；新方法用
 `ak.realm_actor_control_acceptance_signature.v1` 签
-actor_id、expected_revision、next_resolution、method_history_evidence、next_control_method_kid 的精确注入 transcript。
+actor_id、expected_commit_id、next_resolution、method_history_evidence、next_control_method_kid 的精确注入 transcript。
 旧方法批准、新方法 PoP、同 DID core 原生连续性缺一不可。顺序是持久化意图、DID 中保留有效旧方法并加入新方法、
 Realm 接受更新、最后移除旧方法；未知结果先恢复原结果再移除旧方法。
 同方法更新 DID 历史／locator 仍签新 PoP。没有旧有效 control 方法时 **MUST** 使用§10的已登记同身份恢复，不能借正常轮换跳过旧签。全部合法原生更新材料也丢失时保持不可用；本合同不提供 Ghost 外部映射重绑或原身份退役后复活。
@@ -236,7 +236,7 @@ sig 是 64-byte Ed25519 的 canonical base64url_no_pad。只删本族指定签�
 current control update 必须晚于旧 manager binding，新公钥不同于旧 binding 时冻结的控制公钥。
 比较真实公钥和原件，不只比较 fragment。旧 key 不得再作新命令签署者。
 
-payload 锁 expected_manager_revision、expected_control_revision、expected_device_generation_revision、
+payload 锁 expected_manager_commit_id、expected_control_commit_id、expected_device_generation_commit_id、
 expected_generation；new_generation 必须 old+1。new_service_id／new_registration_ref 绑定新 Service，
 management_authorization_ref 是治理方授予该新 Service、该完整 actor 的真实管理变更许可，仍验当前 review。
 新 Service 用 `ak.realm_actor_manager_acceptance_signature.v1` 签注入 actor_id／固定 applet_id 后，
@@ -430,7 +430,7 @@ schema 验证只证明结构；真实签名 KAT、跨字段接纳、事务效果
 
 `RecoveryIntent` 固定为 `{begin_ref,candidate_digest,manager_revision,control_revision,device_generation_ref}`：begin_ref 是原接受 begin 的完整 CommittedEventRef；candidate_digest 为该 Event payload 的 SHA256(JCS)，包含新方法签名；两项 revision 冻结 begin 前态，device_generation_ref 为 begin 产生的新代次。精确目标和原生计划从 begin_ref 对应不可变原件取得，不接受另一份未绑定的候选副本；begin_ref 在 Commit 定值后同事务写入，不进入自身签名原像。策略前态从该原件的 recovery_ref 追溯。
 
-新增 `ak.realm.actor.recovery.set`：有 `ak.realm.actor.manage` 的真实 Account Device，按既有精确主体资源和适用审批设置 enabled；payload 为 `target_actor_id, expected_recovery_revision, expected_manager_revision, enabled`。相同 enabled 的重写不产生新授权代次；精确重试只返回原结果。变更时未完成 intent 终结为 cancelled，不回滚已经产生的 generation fence 或已发布 DID 日志。
+新增 `ak.realm.actor.recovery.set`：有 `ak.realm.actor.manage` 的真实 Account Device，按既有精确主体资源和适用审批设置 enabled；payload 为 `target_actor_id, expected_recovery_commit_id, expected_manager_commit_id, enabled`。相同 enabled 的重写不产生新授权代次；精确重试只返回原结果。变更时未完成 intent 终结为 cancelled，不回滚已经产生的 generation fence 或已发布 DID 日志。
 
 这是预先登记的持续身份维护许可，不依赖业务 grant 到期续签。每次 reset 仍核 current manager、recovery.enabled 和 Service 本身当前有效身份，但不重复管理员审批。管理员可以提前禁用恢复；需要全面停止主体活动时使用独立 governance paused／retired。禁用恢复不等于强制撤销现有业务 Device，界面与协议必须明确区分。
 
@@ -448,7 +448,7 @@ WebVH 日志发布与 Station 接纳不是同一数据库事务。不能假装�
 
 begin payload 固定以下字段，所有 revision 均非 null，target_actor_id 必须 realm 分支：
 
-`target_actor_id, request_id, manager_ref, recovery_ref, expected_control_revision, expected_owner_status_revision, expected_governance_status_revision, expected_device_generation_revision, expected_generation, new_generation, replaces_recovery_ref, next_resolution, method_history_evidence, next_control_method_kid, expires_at, control_signature`。
+`target_actor_id, request_id, manager_ref, recovery_ref, expected_control_commit_id, expected_owner_status_commit_id, expected_governance_status_commit_id, expected_device_generation_commit_id, expected_generation, new_generation, replaces_recovery_ref, next_resolution, method_history_evidence, next_control_method_kid, expires_at, control_signature`。
 
 - request_id 使用至少 128-bit 随机值；去重域为完整 actor＋manager binding＋request_id。manager_ref／recovery_ref 是对应 current 来源的完整 CommittedEventRef，不把二字段 revision 猜成 EventId。
 - method_history_evidence 在 begin 中使用 closed `webvh_recovery_plan={log_entries,witness_records}`，不携带声称已发布验证成功的 evidence receipt；accepted 前缀的 witness 必须齐全，未接受后继的 witness 可在 finish 补齐，已携带的 witness 一律核验。finish 使用原有完整 `webvh_method_history_evidence`，两种载体不得互换。
@@ -464,7 +464,7 @@ pending 期间禁止 owner resume、control.update、manager.change、新 Device
 
 #### 10.3.2 reset：验证已发布原生证据并接纳新控制方法
 
-Applet 在 begin 已接受后发布／取得该精确 DID 后继及所需 witness，再由同一当前 manager Service 提交 control.reset。payload 固定 `target_actor_id, recovery_begin_ref, expected_recovery_revision, expected_manager_revision, expected_control_revision, expected_device_generation_revision, published_method_history_evidence`。
+Applet 在 begin 已接受后发布／取得该精确 DID 后继及所需 witness，再由同一当前 manager Service 提交 control.reset。payload 固定 `target_actor_id, recovery_begin_ref, expected_recovery_commit_id, expected_manager_commit_id, expected_control_commit_id, expected_device_generation_commit_id, published_method_history_evidence`。
 
 finish 必须匹配仍有效的唯一 pending，manager binding 不变、enabled=true、Realm 未终结、任一 gate 未 retired、owner 仍 paused、generation 等于 begin 接受后的值；新证据的日志前缀与终点逐字／摘要匹配 begin 目标，不能临时换新 key、locator 或日志分支。witness 材料可以在发布后补齐，但不能改变所批准日志。按既有 adapter 验完整 DID／currentness／witness；缺证据或未知状态保持 pending，不伪造成功。
 
@@ -543,7 +543,7 @@ recovery.set 将 enabled 设为相同值的新 Event 以 failed_precondition 拒
 
 registration_ref MUST 是接纳截点有效且经方法原生验证的 Applet Service 登记原件的完整 CommittedEventRef；registration_epoch MUST 绑定该登记，不能用业务安装有效性代替。verification_method 与 public_key_base64url MUST 来自该登记在 accepted_at 的真实 DID 历史，并验证原 Event producer proof。
 
-manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_revision；reset 的 manager_ref MUST 满足 expected_manager_revision。原生 active-series 的两引用 MUST 逐字匹配其 record.manager_ref／recovery_ref，并以 record.actor_id 绑定目标。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。身份恢复分支仍核 enabled／pending、原生恢复材料与原 gates／CAS；原生 series 分支不以 enabled 作 gate，pending 必须为空，owner／governance paused 及 identity recovery disabled 本身不阻断该维护，但任一 gate retired 或 Realm terminal 均拒绝，不授业务权限。缺失或不一致 MUST 拒绝且零副作用。
+manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_commit_id；reset 的 manager_ref MUST 满足 expected_manager_commit_id。原生 active-series 的两引用 MUST 逐字匹配其 record.manager_ref／recovery_ref，并以 record.actor_id 绑定目标。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。身份恢复分支仍核 enabled／pending、原生恢复材料与原 gates／CAS；原生 series 分支不以 enabled 作 gate，pending 必须为空，owner／governance paused 及 identity recovery disabled 本身不阻断该维护，但任一 gate retired 或 Realm terminal 均拒绝，不授业务权限。缺失或不一致 MUST 拒绝且零副作用。
 
 原 Event、fact、绑定 fact 摘要的 RealmCommit、恢复 current、generation／fence 及请求结果 MUST 在同一事务冻结。fact 不含自身 target Commit，不能形成摘要环。治理交接 MUST 按完整私有 signer inventory 移交这些原件；缺项或篡改 MUST 阻止导入激活。历史验签沿原接受治理链验证 Commit、fact 摘要及原 Service 签名，不重新要求当前安装、当前业务 grant 或当前管理者仍有效。
 

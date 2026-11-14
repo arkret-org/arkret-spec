@@ -231,6 +231,7 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
                 "event_derived": EVENT_TOKEN,
                 "suite_tagged_full_digest": EVENT_TOKEN,
                 "producer_allocated": PRODUCER_UUIDV7,
+                "issuer_allocated": PRODUCER_UUIDV7,
             },
         )
         self.assertEqual(list(lint.errors), [])

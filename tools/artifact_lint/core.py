@@ -390,6 +390,7 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    "reaction_effective_entries",
     "realm_actor_accepted_event_ref",
     "realm_actor_resolution_projection",
     "realm_actor_profile_id",
@@ -475,7 +476,7 @@ VALUE_PROJECTION_IDENTITY_SUBJECTS = {
 # live separately in VALUE_PROJECTION_DERIVATIONS and are commit-ordered.
 CELL_WRITE_DERIVATIONS = {
     "capability_authority_depth",
-    "capability_authority_root_refs",
+    "capability_authority_root_ref",
     "capability_status",
     "realm_authority_generation_successor",
     "realm_authority_event_ref",
@@ -1472,7 +1473,8 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
         candidate = rest[:44] if token_kind in known.get("event_derived_id_kinds", set()) or token_kind in known.get("digest_token_id_kinds", set()) else rest[:36]
         # encoding.md section 4: the construction is fixed per registry kind.
         # event_derived kinds carry a canonical 33-byte suite-tagged token;
-        # producer_allocated kinds stay UUIDv7.
+        # producer_allocated and issuer_allocated kinds use UUIDv7, with distinct
+        # authority contracts checked by the registry gate.
         if token_kind == "realm":
             if not EVENT_TOKEN_RE.fullmatch(candidate):
                 lint.fail(
@@ -1543,6 +1545,9 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
                     f"0x{token[0] & 0x0F:x} is not an active registered suite",
                 )
                 return
+        elif token_kind in known.get("issuer_allocated_id_kinds", set()):
+            if not UUID7_RE.fullmatch(candidate):
+                lint.fail(path, f"{json_path} has invalid ak:{token_kind}: issuer-allocated UUIDv7 reference")
         elif not UUID7_RE.fullmatch(candidate):
             lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")
         return

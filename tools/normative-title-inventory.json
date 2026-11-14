@@ -8,8 +8,8 @@
     },
     {
       "page": "authz/capabilities.md",
-      "heading": "10.2 Cycle detection（normative）",
-      "fragment": "102-cycle-detectionnormative"
+      "heading": "10.2 前态顺序与深度（normative）",
+      "fragment": "102-前态顺序与深度normative"
     },
     {
       "page": "authz/capabilities.md",
@@ -883,13 +883,13 @@
     },
     {
       "page": "identity/key-management.md",
-      "heading": "6.1 Issuance record 与 ID（normative）",
-      "fragment": "61-issuance-record-与-idnormative"
+      "heading": "6.1 凭据、记录身份与 metadata（normative）",
+      "fragment": "61-凭据记录身份与-metadatanormative"
     },
     {
       "page": "identity/key-management.md",
-      "heading": "6.2 签发、签名边界与 durable exact replay（normative）",
-      "fragment": "62-签发签名边界与-durable-exact-replaynormative"
+      "heading": "6.2 签发与 durable exact replay（normative）",
+      "fragment": "62-签发与-durable-exact-replaynormative"
     },
     {
       "page": "identity/key-management.md",

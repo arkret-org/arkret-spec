@@ -584,7 +584,7 @@ class ContentHistoryContractTest(unittest.TestCase):
                    "verification_method": "did:key:z6Mknew#device", "public_key_base64url": b64(signer.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)), "lifecycle": "active", "now": "2026-11-08T00:01:00.000Z"}
         source = {"subject_actor_id": actor, "reference": self.fixture["hpke_grant"]["grant"]["history_cut"], "protection": self.fixture["kat"]["envelope"]["encryption_context"]["protection"]}
         proof = {"schema": "ak.schema.key_backup_unlock_proof.v1", "kind": "current_device", "account_id": actor["account_id"], "requesting_device_id": current["device_id"],
-                 **{k: f["envelope"][k] for k in ("backup_id", "backup_kind", "series_id", "ciphertext_digest")}, "challenge_id": "A" * 22, "challenge": "A" * 43, "nonce": "B" * 43,
+                 **{k: f["envelope"][k] for k in ("backup_id", "backup_kind", "series_id", "ciphertext_digest")}, "challenge_id": "A" * 22, "challenge": "A" * 43,
                  "audience": "https://example.test", "service_id": actor["account_id"]["station_id"], "issued_at": "2026-11-08T00:00:00.000Z", "expires_at": "2026-11-08T00:04:00.000Z",
                  "content_history": {"source": source["reference"], "root_refs": source["protection"]["root_refs"]}, "signature_proof": {"verification_method": current["verification_method"], "signature_algorithm": "Ed25519"}}
         proof["signature_proof"]["signature"] = b64(signer.sign(jcs(proof)))
@@ -605,7 +605,7 @@ class ContentHistoryContractTest(unittest.TestCase):
 
     def test_history_intent_rejects_replay_wrong_source_and_expiry(self):
         proof, challenge, current, source = self._history_intent(); envelope = self.fixture["root_backup"]["envelope"]
-        for field, value in (("nonce", "C" * 43), ("ciphertext_digest", "sha256:" + "0" * 64), ("requesting_device_id", self.fixture["kat"]["content_context"]["producer"]["endpoint"]["device_id"])):
+        for field, value in (("challenge", "C" * 42 + "A"), ("ciphertext_digest", "sha256:" + "0" * 64), ("requesting_device_id", self.fixture["kat"]["content_context"]["producer"]["endpoint"]["device_id"])):
             altered = copy.deepcopy(proof); altered[field] = value
             with self.assertRaises(ValueError): authorize_history_read(altered, challenge, current, source, envelope)
         altered = copy.deepcopy(source); altered["protection"]["root_refs"] = []
@@ -661,7 +661,7 @@ class ContentHistoryContractTest(unittest.TestCase):
         with self.assertRaises(ValueError): authorize_history_read(proof, challenge, current, source, wrong)
         bad = copy.deepcopy(proof); del bad["custody_authorization_ref"]
         self.invalid("key-backup-unlock-proof.schema.json", bad)
-        bad = copy.deepcopy(proof); bad["kind"] = "recovery_session"; bad["recovery_session_id"] = "ak:recovery_session:019a0000-0000-7000-8000-000000000001"; bad.pop("challenge_id"); bad.pop("nonce")
+        bad = copy.deepcopy(proof); bad["kind"] = "recovery_session"; bad["recovery_session_id"] = "ak:recovery_session:019a0000-0000-7000-8000-000000000001"; bad.pop("challenge_id")
         self.invalid("key-backup-unlock-proof.schema.json", bad)
 
     def test_coverage_has_one_partition_and_detects_omission_or_duplicate_original(self):

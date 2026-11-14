@@ -214,7 +214,7 @@
             },
             {
               "id": "expected_revision_is_scoped_to_kinds_that_define_cas",
-              "requirement": "expected_revision is required exactly when the kind's domain payload defines CAS, is the {commit_id, stream_position} pair compared field by field, and is still a schema_violation at the Event envelope root.",
+              "requirement": "expected_commit_id is required exactly when the kind's domain payload defines CAS, is the {commit_id, stream_position} pair compared field by field, and is still a schema_violation at the Event envelope root.",
               "vectors": [
                 "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
               ]
@@ -401,14 +401,14 @@
             },
             {
               "id": "expected_revision_and_commit_requirements_survive_retry",
-              "requirement": "A retried state-changing Event still requires a covering RealmCommit and, where its kind defines CAS, the same expected_revision; waiting relaxes neither constraint.",
+              "requirement": "A retried state-changing Event still requires a covering RealmCommit and, where its kind defines CAS, the same expected_commit_id; waiting relaxes neither constraint.",
               "vectors": [
                 "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
               ]
             },
             {
               "id": "exact_retry_preserves_the_authorization_ref_and_the_cas",
-              "requirement": "An exact canonical-bytes retry carries semantic_refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, never rewrites a stale CAS to the current value, and still deterministically rejects a stale CAS without producing a Commit.",
+              "requirement": "An exact canonical-bytes retry carries semantic_refs[role=authorized_by] and the domain expected_commit_id verbatim, re-decides current authorization, never rewrites a stale CAS to the current value, and still deterministically rejects a stale CAS without producing a Commit.",
               "vectors": [
                 "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
               ]
@@ -1839,7 +1839,6 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.security_transaction.v1",
-        "ak.schema.recovery_terminal_commit.v1",
         "ak.schema.recovery_receipt.v1",
         "ak.schema.recovery_completion_attestation.v1",
         "ak.schema.key_backup.v1",

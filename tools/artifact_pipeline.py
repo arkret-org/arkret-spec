@@ -1394,6 +1394,10 @@ def cmd_check(_: argparse.Namespace) -> int:
         "sdk_conformance_claim": run_sdk_conformance_claim_check,
         "contact_round_kat": run_contact_round_kat_check,
         "contact_current_contract": run_contact_current_contract_check,
+        "commit_artifact_challenge_contract": lambda: subprocess.run(
+            [sys.executable, "-B", "-m", "unittest", "tools.test_commit_artifact_challenge_contract"],
+            cwd=ROOT,
+        ).returncode,
         "mimi_key_material_claim_contract": lambda: subprocess.run([sys.executable, "-B", "-m", "unittest", "tools.test_mimi_key_material_claim_contract"], cwd=ROOT).returncode,
         "published_did_registration_contract": lambda: subprocess.run([sys.executable, "-B", "-m", "unittest", "tools.test_published_did_registration_contract"], cwd=ROOT).returncode,
         "handle_claim_kat": run_handle_claim_kat_check,

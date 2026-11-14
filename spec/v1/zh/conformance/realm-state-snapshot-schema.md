@@ -71,11 +71,12 @@ join Commit，见 [`../governance/history-visibility.md` §3.1](../governance/hi
 请求者本来也不能经 scan 读到承载该 value 的 Event；(2) 该 Message 没有 `ak:message:` 拼写的 `object_redaction`
 row——已撤回 Message 只下发其 `object_redaction` row，原 payload 不得经 snapshot 恢复
 （[`../models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)）。其余 family 都是状态型，按
-membership 与 scope 可见性披露，不受 history floor 限制：Realm 共享状态向全部 joined 成员可见，floor 只约束
-内容历史。按 `snapshot_ref` 重取已签发 snapshot 时同样按请求者当前可读区间与当前撤回状态重验，已含不再可披露
+membership 与 scope 可见性披露，并保留各 family 自身的额外披露条件；状态行的 source revision 不要求位于 history floor 之后。
+`message_reactions` 还 MUST 满足目标 Message 当前可读且未撤回；不得利用该状态行绕过目标的 history floor、scope 或 redaction，亦不得披露受限 opaque tag 计数。
+按 `snapshot_ref` 重取已签发 snapshot 时同样按请求者当前可读区间、各 family 披露门与当前撤回状态重验，已含不再可披露
 `message_revision` row 的 snapshot 对该请求者不可用。接收方 MUST 接受「只有 `object_redaction`、没有
 `message_revision` row」的 Message，也 MUST NOT 把 floor 以下 Message row 的缺席当作缺口。
-从 snapshot 边界之后的逐 stream tail 继续运行同一 typed reducer，不得用 generic patch、
+承担归约职责的 Station 从 snapshot 边界之后的逐 stream tail 继续运行同一 typed reducer；普通客户端安装可信完整 typed current rows 与原子 checkpoint，再连续承接可信 current 更新，不新增领域归约职责。不得用 generic patch、
 current state merge 或 wall-clock last-write-wins 修补差异。`current_state_entries: []` 仅在该 cut
 确实没有可披露 current row 时合法；它不是要求另取 chunk 的占位符，也不能证明隐藏 row 不存在。
 

@@ -278,14 +278,14 @@
     },
     "principal_resolution_update_payload": {
       "type": "object",
-      "description": "Signed PCR resolution CAS payload. expected_revision is the exact accepted identity_resolution source revision in the full Account PCR; the old projection and method boundary are read from that source at the same transaction cut before independent method-native successor verification.",
+      "description": "Signed PCR resolution CAS payload. expected_commit_id is the exact accepted identity_resolution source revision in the full Account PCR; the old projection and method boundary are read from that source at the same transaction cut before independent method-native successor verification.",
       "required": [
-        "expected_revision",
+        "expected_commit_id",
         "next"
       ],
       "properties": {
-        "expected_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision"
+        "expected_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "next": {
           "$ref": "#/$defs/resolution_commitment"
@@ -402,7 +402,7 @@
           }
         }
       ],
-      "description": "One accepted post-genesis resolution successor Event. payload.expected_revision binds the exact covering Commit of its immediately preceding accepted resolution Event in the same full Account PCR lineage."
+      "description": "One accepted post-genesis resolution successor Event. payload.expected_commit_id binds the exact covering Commit of its immediately preceding accepted resolution Event in the same full Account PCR lineage."
     },
     "current_resolution_event": {
       "oneOf": [
@@ -596,7 +596,7 @@
         },
         "next_audit_cursor": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Present exactly when history_complete is false. Resolve payload.expected_revision of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown."
+          "description": "Present exactly when history_complete is false. Resolve payload.expected_commit_id of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown."
         },
         "method_history_evidence": {
           "$ref": "#/$defs/method_history_evidence"

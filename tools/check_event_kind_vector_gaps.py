@@ -16,6 +16,33 @@ def load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def json_evidence(value):
+    """Permission lists describe authority, not exercised Event evidence."""
+    if isinstance(value, dict):
+        result = {}
+        for name, child in value.items():
+            permission_list = (
+                name in {"actions", "permissions"}
+                or name.endswith("_actions")
+                or name.endswith("_permissions")
+            ) and isinstance(child, list)
+            if permission_list:
+                continue
+            if name == "canonical_json" and isinstance(child, str):
+                try:
+                    encoded = json.loads(child)
+                except json.JSONDecodeError:
+                    pass
+                else:
+                    if isinstance(encoded, (dict, list)):
+                        child = encoded
+            result[name] = json_evidence(child)
+        return result
+    if isinstance(value, list):
+        return [json_evidence(child) for child in value]
+    return value
+
+
 def evidence_text() -> str:
     paths = [
         *sorted((ARTIFACTS / "fixtures").glob("*.json")),
@@ -23,7 +50,11 @@ def evidence_text() -> str:
         ROOT / "spec" / "v1" / "zh" / "conformance" / "conformance-vectors.md",
         ARTIFACTS / "profiles" / "conformance-profiles.json",
     ]
-    return "\n".join(path.read_text(encoding="utf-8") for path in paths)
+    return "\n".join(
+        json.dumps(json_evidence(load(path)), ensure_ascii=False)
+        if path.suffix == ".json" else path.read_text(encoding="utf-8")
+        for path in paths
+    )
 
 
 def main() -> int:

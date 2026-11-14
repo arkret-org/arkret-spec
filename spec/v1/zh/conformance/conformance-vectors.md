@@ -91,7 +91,8 @@ result 都携必填 `source_stream_ref`，逐字等于 `revision.commit_id` 所�
 核对 head、floor 与可读 Commit 的 exact ID/position。缺 `source_stream_ref`、指向隐藏/外 Realm stream、
 指向另一条同 position stream、revision 超过其 head、同一完整 selector 重复、floor 集合不匹配，均 MUST
 整份拒绝且零新增 row/tail/cursor。合法 floor 前 row 由 exact 签名 snapshot 承诺，floor 后可读 row
-须与 covering Commit 逐字匹配；`CurrentRevision` 与 `expected_revision` 仍是二元 CAS。
+须与 covering Commit 逐字匹配；读侧 `CurrentRevision` 保留 `{commit_id, stream_position}`，
+写侧 `expected_commit_id` 仅携 exact covering Commit ID，在同一接纳事务中比较锁定的目标 current row。
 
 ### 5.15 PCR device_status 同 cut 终局
 
@@ -232,9 +233,9 @@ envelope `actor_id`、follow-up MUST 在登记白名单内、整个 unit 原子�
 
 `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1` MUST 证明：
 状态变更 Event 在其自身 stream 上出现有效 `RealmCommit` 接纳之前不得进入 `committed`；判定依据是该 Commit 本身，
-因为 v1 不提供可重算的共享状态根可供申诉。`expected_revision` 的适用范围是**该 kind 的领域 payload 定义了 CAS 时**
+因为 v1 不提供可重算的共享状态根可供申诉。`expected_commit_id` 的适用范围是**该 kind 的领域 payload 定义了 CAS 时**
 （见 [`../sync/authority-commit-log.md` §5](../sync/authority-commit-log.md#5-typed-reducer-与并发)），
-不是所有状态变更都必须携带通用 CAS；Event 顶层携带 `expected_revision` 仍 MUST `schema_violation`。
+不是所有状态变更都必须携带通用 CAS；Event 顶层携带 `expected_commit_id` 仍 MUST `schema_violation`。
 所携带的 `revision` 是 `{commit_id, stream_position}` 二元组，比较是逐字段相等，MUST NOT 退化成裸 Commit ID 或计数器。
 等待期间的可观测结果只能是本地的 `queued` / `forwarding` 或明确失败，协议不新增共享 pending 返回值。
 
@@ -252,7 +253,7 @@ producer proof 或 `RealmCommit` 签名无效、绑定错误 `governance_generat
 MUST NOT 降级为“签名可疑但内容看起来合理”的接受路径。
 
 `ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1` MUST 证明：
-以 exact 相同 canonical bytes 重试等待中的 Event 时，`semantic_refs[role=authorized_by]` 与领域 `expected_revision`
+以 exact 相同 canonical bytes 重试等待中的 Event 时，`semantic_refs[role=authorized_by]` 与领域 `expected_commit_id`
 MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 改写成当前值、也 MUST NOT 因为“已经试过一次”而跳过
 当前授权重判。陈旧 CAS 的重试仍 MUST 以确定性失败被拒，不产生 Commit。
 
@@ -390,7 +391,7 @@ MUST NOT 使该义务静默归零。
 ### 3.8 Event kind 与对象寻址
 
 `ak.vector.event_kind.realm_alias_single_carrier.v1` MUST 证明：Realm alias 意图恰由一个已登记 Event kind 承载；
-命名空间激活另行保证跨 Realm 的名称唯一；解析同时要求这两项事实；过期的 `expected_revision` 拒绝；
+命名空间激活另行保证跨 Realm 的名称唯一；解析同时要求这两项事实；过期的 `expected_commit_id` 拒绝；
 RealmId 的可读形态不依赖签发者。
 
 `ak.vector.view.terminal_state_patch.v1` MUST 证明：共享 View 的移除是把 `state` 置为 `tombstoned` 的
@@ -404,7 +405,7 @@ MUST 被 `view.schema.json` 拒绝。
 
 `ak.vector.relation.primary_domain_cas.v1` MUST 证明：每个直接写 Relation shape 只有一个
 `primary_conflict_domain` current-state subject；create/update/tombstone 都携 signed domain 与领域
-`expected_revision`，domain 不匹配、stale revision、错误 RelationId 与 active domain 上的重复 create 都零写入拒绝。
+`expected_commit_id`，domain 不匹配、stale revision、错误 RelationId 与 active domain 上的重复 create 都零写入拒绝。
 两个离线作者从同一 revision 竞争时至多一个取得 RealmCommit，反向提交顺序同样成立；exact replay 返回原 Commit。
 tombstone 后携其 revision 可创建新 event-derived RelationId。`relation_kind/from_ref/to_ref` create-lock，改变身份必须
 显式 tombstone + create，update 触及身份字段必须 `schema_violation`；派生 `contains` / `watches` 直接写入仍拒绝。
@@ -543,9 +544,7 @@ patch path 中的 TrackName 必须先与 active registry 集合比较，未登�
 
 `ak.vector.message.poll_reducer.v1` MUST 证明：只有已接纳的明文 Message ContentBlock 可成为 v1 正式 Poll 输入；加密消息带 `poll_response_heads[]` 零写入拒绝，解密后的 poll 形状不参与正式计票。完整 ActorId 与 Realm、Circle 分区保留全部 response；同一 authority stream 中最大 Commit position 选出唯一当前票。错指 poll、actor 或 scope 的明文 heads 零写入拒绝；到达排列、迟到 position、前缀缺口、作废以及可交换、可结合、幂等的副本并集，在当前票、选择项与计票上必须收敛。
 
-`ak.vector.reaction.authority_order_join.v1` MUST 证明：同一 actor、target、key、scope 的 add/remove 按同一 authority stream 的 Commit position 取最后一条断言，同时到达的候选不产生因果推断；同位置不同 Event fail closed；
-redaction 之后 reaction 默认视图不复活；跨 MLS epoch 的 reaction 仍绑定目标 Event 与 scope；
-capability revoke 之后该 actor 的新 reaction fail closed，既有 reaction 保留为历史事实。
+`ak.vector.reaction.authority_order_current.v1` MUST 证明：治理 Station 在同一 authority stream 的连续 Commit 顺序内对 exact actor、target、key、scope 归约 active entries；add 插入或替换其 source，remove 真正删除该 entry，最后一项删除后仍保留空值行与最后 revision。完整 Snapshot cut 原子安装 checkpoint，旧前缀不得回灌，tail 必须连续、重复幂等、gap 缓冲，partial current 不得证明空集。普通客户端只安装可信完整 typed current，不扫描历史重建；redaction 后不复活，跨 MLS epoch 不越 history floor 或要求补旧 epoch key，opaque tag 计数不冒充已验证 emoji。当前 capability 撤销后新 reaction 仍必须拒绝。
 
 `ak.vector.read_cursor.multi_device_merge.v1` MUST 证明：多设备阅读游标合并以同一 `CommitStreamRef` 上的
 `stream_position` 支配优先——占优的位置即使 HLC 更小也胜出；不同 stream 或同一 Event 的两个位置互不支配，才取 HLC

@@ -24,10 +24,7 @@
         {
           "event_kind": "ak.capability.revoke",
           "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf",
-          "expected_revision": {
-            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-            "stream_position": 41
-          },
+          "expected_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
           "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "reason_code": "operator_revocation"
         }
@@ -36,8 +33,8 @@
       "widget_token_refs": [],
       "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
-    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"widget_token_refs\":[]}",
-    "expected_revoke_plan_digest": "sha256:27c404f7ef424a89e47abfd88aad09c88a5973a6578e18cc918af004cfa5ea1c"
+    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"widget_token_refs\":[]}",
+    "expected_revoke_plan_digest": "sha256:71844cb15ed868eb935f3fcec90ef76cd28e268e7e17c76a2fd57149bfb854e8"
   },
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

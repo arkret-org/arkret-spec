@@ -2488,9 +2488,9 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
                 lint.fail(fixture_path, "preview plan KAT must carry one capability revoke intent")
             else:
                 intent = intents[0]
-                revision = intent.get("expected_revision") if isinstance(intent, dict) else None
-                if not isinstance(revision, dict) or set(revision) != {"commit_id", "stream_position"}:
-                    lint.fail(fixture_path, "capability revoke intent must carry one closed exact revision")
+                revision = intent.get("expected_commit_id") if isinstance(intent, dict) else None
+                if not isinstance(revision, str) or not revision.startswith("ak:realm_commit:"):
+                    lint.fail(fixture_path, "capability revoke intent must carry the exact current Commit ID")
             jcs = canonical_json(revoke_plan)
             if kat.get("revoke_plan_jcs") != jcs:
                 lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan_jcs must equal RFC 8785 JCS of revoke_plan")
@@ -2502,9 +2502,9 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
                 )
             if isinstance(revoke_plan.get("capability_revocations"), list):
                 changed = json.loads(json.dumps(revoke_plan))
-                changed["capability_revocations"][0]["expected_revision"]["stream_position"] += 1
+                changed["capability_revocations"][0]["expected_commit_id"] += "changed"
                 if canonical_json(changed) == jcs:
-                    lint.fail(fixture_path, "capability expected_revision must change canonical plan bytes")
+                    lint.fail(fixture_path, "capability expected_commit_id must change canonical plan bytes")
 
 
 def check_normative_clause_registry(lint: Lint) -> None:

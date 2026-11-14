@@ -234,8 +234,8 @@ Event 状态只区分本地 queued/forwarding 与 authority 的 committed/reject
 须已有获授权 exact Agent 身份来源，不能用 guessed AccountId 枚举私人参与。权限不足、不可见、外 Realm 与未知 selector
 统一返回 `not_found`，不得用 `never_written` 泄漏存在性；authority/current basis 暂时不可确认时返回
 `revision_unavailable`。snapshot omission、本地 raw Event 顺序、超时或旧 generation 都不证明 never-written。
-`never_written` 允许 Relation create 据此签 `expected_revision=null`，或 Agent mode 首写省略
-`expected_revision`／确认默认私人模式；Relation update/tombstone 与
+`never_written` 允许 Relation create 据此签 `expected_commit_id=null`，或 Agent mode 首写省略
+`expected_commit_id`／确认默认私人模式；Relation update/tombstone 与
 moderation lift 必须取得 `present`。任何 CAS 冲突都要求重新读取、重新确认并重签，不能静默复用旧 Event bytes。
 
 ### 5.4 明文与服务信任

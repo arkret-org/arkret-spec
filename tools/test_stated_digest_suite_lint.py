@@ -69,12 +69,14 @@ class StatedDigestSuiteLintTest(unittest.TestCase):
         errors = self._lint("principal-operations.schema.json", mutate)
         self.assertTrue(any("must not restore a Realm-selected" in error for error in errors), errors)
 
-    def test_prepared_plan_realm_suite_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["properties"]["prepared_plan_digest"]["$ref"] = "#/$defs/digest"
+    def test_rotation_prepared_plan_realm_suite_fails(self) -> None:
+        for owner in ('security_rotation_transaction', 'client_step_attestation'):
+            with self.subTest(owner=owner):
+                def mutate(schema) -> None:
+                    schema["$defs"][owner]["properties"]["prepared_plan_digest"]["$ref"] = "#/$defs/digest"
 
-        errors = self._lint("security-transaction.schema.json", mutate)
-        self.assertTrue(any("fixed sha256_digest" in error for error in errors), errors)
+                errors = self._lint("security-transaction.schema.json", mutate)
+                self.assertTrue(any("fixed sha256_digest" in error for error in errors), errors)
 
     def test_mls_blob_sha256_narrowing_fails(self) -> None:
         def mutate(schema) -> None:

@@ -123,8 +123,8 @@ Schema id: `ak.schema.policy.v1`
 `PolicyRule` 的完整 closed schema（`rule_id` / `kind` / `effect` 必填，`kind` enum、各 kind 的条件字段、`kind=extension` 的 `schema_ref` / `profile_ref` / `params`）由 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) 的 `policy_rule` `$def` 权威定义；本节字段表不重复展开 rule 内部结构。
 
 `ak.policy.set` 的 payload 通常只允许 required `{policy_id,value}`；唯一例外是 generic
-`policy_kind=agent`，其 payload 必须为 `{policy_id,expected_revision,value}`，required nullable
-`expected_revision` 的精确 CAS 与首次写证据按 [自有 Agent 授权 §3](../authz/owned-agent-authority.md)。
+`policy_kind=agent`，其 payload 必须为 `{policy_id,expected_commit_id,value}`，required nullable
+`expected_commit_id` 的精确 CAS 与首次写证据按 [自有 Agent 授权 §3](../authz/owned-agent-authority.md)。
 其它 kind/family 禁止该字段，Event 顶层仍禁止 revision。`value.schema` 直接由
 [`policy_set_state_payload`](../../artifacts/schemas/event-payload.schema.json) 的 `oneOf` 选择：
 `ak.schema.policy.v1` 使用 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) root，
@@ -173,7 +173,7 @@ Moderation policy（审核与治理决策流程）见 [`../governance/content-mo
 
 **投影与 selector（normative）**：`policy_action` 是 whole-value set family——`value` 整体替换上一版本，
 没有成员级 patch；当前值由同一流内的接受位置确定，[`../sync/current-state.md`](../sync/current-state.md)
-的通则适用，无需额外 `expected_revision`。payload 顶层的 `policy_id` / `action_id` closed XOR 是**两个命名空间，
+的通则适用，无需额外 `expected_commit_id`。payload 顶层的 `policy_id` / `action_id` closed XOR 是**两个命名空间，
 不是一个可合并的 subject**，因此 selector MUST 带标签地分成两支，且两支的 composite key 逐项封闭：
 
 | 分支 | 判据 | composite key | 主体 |
@@ -338,7 +338,7 @@ Schema id: `ak.schema.capability.v1`
 | `revoked_at` | no | `timestamp` | 同上，取该 Event envelope 的 `created_at`。 | 撤销时间。 |
 | `issuer_authority_refs` | yes | `array<object>` | MUST 非空。Realm root controller 签发时携带 `kind=realm_root` 的 authority-root current state / epoch / generation；再授权时携带 `kind=grant` 的 `ak:grant:` 父授权，不得指向 `ak:capability:`。 | 签发所依据的完整授权根或父授权边。 |
 | `authority_depth` | no | `integer` | **Reducer-derived**，见 [`../authz/capabilities.md` §10](../authz/capabilities.md)；`realm_root` ref 深度为 0，root controller 直发为 1。 | 距授权根的绝对跳数。 |
-| `authority_root_refs` | no | `array<object>` | **Reducer-derived**，同上；非单值，多亲与跨 Realm 派生可追溯到不同 root。 | 该授权可追溯到的全部授权根。 |
+| `authority_root_ref` | no | `object` | **Reducer-derived**，同上；所有父授权均在目标 Realm 且归约到同一当前授权根；owned_agent 为独立单一 terminal 根。 | 该授权唯一可追溯的授权根。 |
 
 ### 4.3 Capability 派生与 Realm 层级继承
 
@@ -395,7 +395,7 @@ Invite 是针对一个完整 AccountId 的定向邀请。它不携带可转发�
 
 接受／拒绝／撤销／到期的终态事务必须确认 slot 仍指向本邀请的创建 Event，然后显式 set null。释放后保留该 current head；它是可复用寄存器，不是 singleton-once-set，下一次合法 create 可以重新占位。旧邀请永远不能释放后继邀请的 slot。
 
-slot 保存逐字 `ak:event:` create_event_id；InviteId 与 EventId 虽共享 token，前缀不同，wire 上不可互换。不能把 create_event_id 当 expected_revision；shared-face CAS 的 expected_revision 始终为 `{commit_id, stream_position}`。签名 payload 的 invitee_account_id 是 slot subject 的唯一可派生来源；不能在 projection 中裁剪 ActorId 或隐式改名。
+slot 保存逐字 `ak:event:` create_event_id；InviteId 与 EventId 虽共享 token，前缀不同，wire 上不可互换。不能把 create_event_id 当 expected_commit_id；shared-face CAS 的 expected_commit_id 始终为该 typed row 最后接纳的 RealmCommit ID。签名 payload 的 invitee_account_id 是 slot subject 的唯一可派生来源；不能在 projection 中裁剪 ActorId 或隐式改名。
 
 接受还必须在相同事务中完成成员 leave→join；其它终态只改邀请并释放 slot，MUST NOT 合成成员 leave。Event、RealmCommit、全部登记 current 写和必要 outbox 要么一起成功，要么零写入。任何登记外成员写 MUST 以 reducer_projection_failed 原子拒绝。权限、额度或状态检查不得依赖 reducer 缓存或复制表作为权威。
 

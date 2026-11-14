@@ -1302,7 +1302,7 @@
           }
         }
       ],
-      "description": "The final slot is the genesis actor's explicit member.state join with expected_revision null; the Station verifies payload and actor bindings against slot 0."
+      "description": "The final slot is the genesis actor's explicit member.state join with expected_commit_id null; the Station verifies payload and actor bindings against slot 0."
     },
     "ordinary_realm_bootstrap_acceptance_outcome": {
       "type": "object",

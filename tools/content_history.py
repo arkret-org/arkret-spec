@@ -351,6 +351,8 @@ def authorize_history_read(proof, challenge, current, source, envelope):
 
     This verifies the real intent signature, not native DID/ledger provenance.
     """
+    if "nonce" in proof or "nonce" in challenge:
+        raise ValueError("backup challenges have one random value")
     if proof["kind"] != "current_device" or proof["account_id"] != current["actor_id"]["account_id"]:
         raise ValueError("not the current holder")
     if proof["requesting_device_id"] != current["device_id"] or current["authorized_generation"] != current["generation"]:
@@ -365,7 +367,7 @@ def authorize_history_read(proof, challenge, current, source, envelope):
         raise ValueError("challenge window too long")
     if proof["signature_proof"]["verification_method"] != current["verification_method"]:
         raise ValueError("wrong current signer")
-    for field in ("account_id", "requesting_device_id", "backup_id", "series_id", "ciphertext_digest", "challenge_id", "challenge", "nonce", "audience", "service_id", "content_history"):
+    for field in ("account_id", "requesting_device_id", "backup_id", "series_id", "ciphertext_digest", "challenge_id", "challenge", "audience", "service_id", "content_history"):
         if proof.get(field) != challenge.get(field):
             raise ValueError("challenge intent mismatch")
     for field in ("subject_actor_id", "custody_authorization_ref"):

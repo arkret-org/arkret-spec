@@ -241,7 +241,8 @@ def run_case(fixture, name):
         axis, pos = ('roster', 8) if name == 'stale_leave_revision' else ('moderation', 5)
         prior = axis_row(fixture['checkpoints'][pos - 1], axis)['value']
         event_row = copy.deepcopy(fixture['original_rows'][pos])
-        event_row['event']['payload'][axis + '_delta']['expected_revision']['stream_position'] -= 1
+        event_row['event']['payload'][axis + '_delta']['expected_commit_id'] = typed_id(
+            'realm_commit', {'fixture': 'wrong_call_axis_commit'})
         project(prior, event_row, axis, indices[axis], keys['issuer_public_key_b64u'])
         return 'accept'
     row = axis_row(snapshot, 'roster')

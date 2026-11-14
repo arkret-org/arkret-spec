@@ -41,7 +41,7 @@ Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请�
 - Realm、每个 Circle、每个 Sidecar 各自拥有独立 stream；不同 stream 不定义总序。
 - producer Event 不携带 predecessor、提交位置或治理方选择。
 - `previous_commit_ref` 只属于 `RealmCommit`，并且只可引用同 stream 的前一笔 Commit。
-- 需要排除陈旧意图的领域 Event 在 typed payload 中携带 `expected_revision`；新对象使用稳定领域 ID。
+- 需要排除陈旧意图的领域 Event 在 typed payload 中携带 `expected_commit_id`；新对象使用稳定领域 ID。
 - 一个 current-v1 实现必须支持全部 core reducer 语义，不能只支持某个可选择子集。
 
 协议语义变化必须修改 current candidate 的 canonical schema、registry、fixture 与 SDK；它不是 Realm 内的治理动作。

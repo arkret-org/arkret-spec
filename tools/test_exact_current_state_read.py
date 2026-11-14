@@ -55,7 +55,7 @@ class ExactCurrentStateReadTest(unittest.TestCase):
         self.assertTrue(list(validator.iter_errors(request)))
 
         request = json.loads(json.dumps(self.fixture["request"]))
-        request["expected_revision"] = None
+        request["expected_commit_id"] = None
         self.assertTrue(list(validator.iter_errors(request)))
 
     def test_moderation_never_written_is_not_a_schema_outcome(self):
