@@ -99,6 +99,20 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
             any("must bind device_authorization_event_ref" in error for error in errors), errors
         )
 
+    def test_completion_reference_must_be_required_and_complete(self) -> None:
+        for mode in ('optional', 'event_id_only'):
+            with self.subTest(mode=mode):
+                def mutate(schema) -> None:
+                    completion = schema['$defs']['recovery_completion_attestation']
+                    if mode == 'optional':
+                        completion['required'].remove('reanchor_event_ref')
+                    else:
+                        completion['properties']['reanchor_event_ref'] = {
+                            '$ref': './common-ids.schema.json#/$defs/event_id'
+                        }
+                errors = self._lint('recovery-authority.schema.json', mutate)
+                self.assertTrue(any('must bind reanchor_event_ref' in error for error in errors), errors)
+
 
 if __name__ == "__main__":
     unittest.main()

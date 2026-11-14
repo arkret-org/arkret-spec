@@ -79,7 +79,7 @@
       "account_data"
     ],
     "ak.self.account_data.resource.delete.v1": [
-      "expected_revision",
+      "expected_commit_id",
       "expected_server_revision"
     ],
     "ak.self.account_data.resource.get.v1": [
@@ -87,14 +87,14 @@
       "current_revision"
     ],
     "ak.self.account_data.resource.replace.v1": [
-      "expected_revision",
+      "expected_commit_id",
       "expected_server_revision"
     ],
     "ak.self.actor_private_events.command.submit.v1": [
       "push_route"
     ],
     "ak.self.applet.command.revoke.v1": [
-      "expected_revision",
+      "expected_commit_id",
       "registration_epoch"
     ],
     "ak.self.applet.revoke.command.preview.v1": [
@@ -107,9 +107,7 @@
     "ak.self.circle.member.command.add.v1": [
       "join_rule"
     ],
-    "ak.self.circle.member.resource.delete.v1": [
-      "expected_revision"
-    ],
+    "ak.self.circle.member.resource.delete.v1": [],
     "ak.self.committed_event.stream.subscribe.v1": [
       "rate_limited"
     ],
@@ -120,7 +118,7 @@
       "surface_kind"
     ],
     "ak.self.current_state.read.exact.v1": [
-      "expected_revision"
+      "expected_commit_id"
     ],
     "ak.self.device_messages.command.send.v1": [
       "device_message_id",

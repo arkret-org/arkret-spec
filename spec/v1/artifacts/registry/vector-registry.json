@@ -22,7 +22,7 @@
       "applies_to_fixtures": [
         "account-data-cas-convergence-fixture.json"
       ],
-      "description": "Account Data keys are server-versioned compare-and-set registers whose only signed Event CAS field is expected_server_revision: the noncanonical expected_revision alias and a payload carrying both names fail schema validation; a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
+      "description": "Account Data keys are server-versioned compare-and-set registers whose only signed Event CAS field is expected_server_revision: the noncanonical expected_commit_id alias and a payload carrying both names fail schema validation; a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
         "spec/v1/zh/models/account-data.md"
@@ -518,7 +518,7 @@
       "applies_to_fixtures": [
         "applet-revoke-saga-fixture.json"
       ],
-      "description": "Caller-signed Applet revoke plan binding, same-snapshot capability Grant value and exact revision, plan-digest coverage of expected_revision, stale preview and stale Event rejection with re-preview/reconfirmation/re-signing, durable pre-effect ledger bound to principal service and admin actor, exact replay, conflict rejection, non-skip partial outcomes, restart recovery, and first-accepted-event write fencing.",
+      "description": "Caller-signed Applet revoke plan binding, same-snapshot capability Grant value and exact revision, plan-digest coverage of expected_commit_id, stale preview and stale Event rejection with re-preview/reconfirmation/re-signing, durable pre-effect ledger bound to principal service and admin actor, exact replay, conflict rejection, non-skip partial outcomes, restart recovery, and first-accepted-event write fencing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json"
       ]
@@ -660,7 +660,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "An exact canonical-bytes retry of a waiting Event preserves semantic_refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, and still deterministically rejects a stale CAS without producing a Commit.",
+      "description": "An exact canonical-bytes retry of a waiting Event preserves semantic_refs[role=authorized_by] and the domain expected_commit_id verbatim, re-decides current authorization, and still deterministically rejects a stale CAS without producing a Commit.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -744,7 +744,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "A state-changing Event does not become committed until a valid RealmCommit on its own stream accepts it; expected_revision applies exactly when the kind's domain payload defines CAS, is the {commit_id, stream_position} pair compared field by field, and waiting is observable only as the local queued/forwarding results, never as a shared pending value.",
+      "description": "A state-changing Event does not become committed until a valid RealmCommit on its own stream accepts it; expected_commit_id applies exactly when the kind's domain payload defines CAS, is the scalar source Commit ID compared for exact equality, and waiting is observable only as the local queued/forwarding results, never as a shared pending value.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1281,29 +1281,33 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.authority_cycle.v1",
+      "vector_id": "ak.vector.capability.authority_order_depth.v1",
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
+        "protocol-edge-cases-fixture.json",
+        "grant-lineage-lifetime-fixture.json"
       ],
-      "description": "Delegation cycle rejection across direct, multi-hop, revoke/redelegate and atomic batch variants.",
+      "description": "Immutable accepted parent-before-child DAG, complete ActorId/current root agreement, terminal references and bounded depth; no generic cycle phase.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/artifacts/fixtures/grant-lineage-lifetime-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.capability.authority_expiry_commit.v1",
+      "vector_id": "ak.vector.capability.authority_lifetime.v1",
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
+        "protocol-edge-cases-fixture.json",
+        "grant-lineage-lifetime-fixture.json"
       ],
-      "description": "Capability authority expiry takes effect against the committed authority instance; an expired grant fails closed even when the caller presents a locally projected view.",
+      "description": "Per-acceptance finite TTL for unbounded sources, finite-parent bounds, exact action/resource and true interval-union coverage without first-use state.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/artifacts/fixtures/grant-lineage-lifetime-fixture.json"
       ]
     },
     {
@@ -1364,12 +1368,14 @@
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
+        "protocol-edge-cases-fixture.json",
+        "grant-lineage-lifetime-fixture.json"
       ],
-      "description": "Static depends_on_moderation_state requirement rejects missing or false declarations.",
+      "description": "Cache dependency derived from registered semantics; moderation actions and actual semantic dependencies invalidate without a producer hint.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/artifacts/fixtures/grant-lineage-lifetime-fixture.json"
       ]
     },
     {
@@ -1480,7 +1486,7 @@
       "applies_to_fixtures": [
         "circle-scope-fixture.json"
       ],
-      "description": "Signed Event scope_ref, projected effective_scope and Circle lifecycle admission: the producer signs the matching scope_ref, the reducer verifies it and materializes effective_scope only in read projections, and source-Station serializable ordering, archive and tombstone barriers, restore re-signing, expected_revision checks and rebind transitions all hold together with their negatives.",
+      "description": "Signed Event scope_ref, projected effective_scope and Circle lifecycle admission: the producer signs the matching scope_ref, the reducer verifies it and materializes effective_scope only in read projections, and source-Station serializable ordering, archive and tombstone barriers, restore re-signing, expected_commit_id checks and rebind transitions all hold together with their negatives.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
       ]
@@ -2631,7 +2637,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Realm alias intent is carried by exactly one registered Event kind; namespace activation separately enforces unique names across Realms. Resolution requires both facts, a stale expected_revision rejects, and RealmId chat does not depend on the issuer. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Realm alias intent is carried by exactly one registered Event kind; namespace activation separately enforces unique names across Realms. Resolution requires both facts, a stale expected_commit_id rejects, and RealmId chat does not depend on the issuer. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/discovery/object-addressing.md"
       ]
@@ -3970,7 +3976,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.reaction.authority_order_join.v1",
+      "vector_id": "ak.vector.reaction.authority_order_current.v1",
       "status": "active",
       "domain": "reaction",
       "applies_to_fixtures": [
@@ -4237,7 +4243,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Every directly writable Relation shape has one primary_conflict_domain current-state subject. create, update and tombstone carry the closed domain plus its exact expected_revision; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
+      "description": "Every directly writable Relation shape has one primary_conflict_domain current-state subject. create, update and tombstone carry the closed domain plus its exact expected_commit_id; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

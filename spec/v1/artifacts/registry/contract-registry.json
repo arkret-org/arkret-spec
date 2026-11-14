@@ -47,7 +47,7 @@
           "event_kind": "ak.member.state",
           "presence": "required",
           "condition": "subject_is_genesis_actor_and_membership_is_join",
-          "expected_revision": null
+          "expected_commit_id": null
         }
       ],
       "genesis_confirms_complete_unit": true
@@ -65,7 +65,7 @@
           "event_kind": "ak.member.state",
           "presence": "required",
           "condition": "subject_is_genesis_actor_and_membership_is_join",
-          "expected_revision": null
+          "expected_commit_id": null
         },
         {
           "event_kind": "ak.member.state",
@@ -465,7 +465,7 @@
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "sidecar_account_self_authored_proof": "Admitted only when Event actor_id is the account branch and its complete AccountId is the authenticated controller account. The reducer derives controller_account_id byte-for-byte from actor_id.account_id, uses (realm_id, controller_account_id) as the singleton key, and rejects the service actor branch with sidecar_create_denied before revealing existence. The same exact AccountId binds Sidecar membership, MLS genesis and participant authority; principal-only equality is forbidden.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
-      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_revision CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
+      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_commit_id CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
       "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md.",
       "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, immutable Applet provenance and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
       "realm_actor_control": "Current complete Realm actor controller method, exact private stream and immutable Applet binding. No Device or Service substitution, executed_by or envelope authorization_ref. Kind-specific CAS, status, installation and management permission checks remain required. Governance status uses its separate capability branch.",
@@ -1159,7 +1159,7 @@
         "verb_form": "base",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Actor-private account data update. The closed signed payload carries the integer expected_server_revision for server_revision_cas; expected_revision is the distinct shared-result revision type and is not an alias.",
+        "payload": "Actor-private account data update. The closed signed payload carries the integer expected_server_revision for server_revision_cas; expected_commit_id is the distinct shared-result source Commit ID and is not an alias.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
         "id_source": "not_an_object_id",
         "effect_ownership": {
@@ -1252,7 +1252,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "agent_controller_self_authored_proof",
-        "payload": "Controller-only per-Realm interaction mode with exact expected_revision CAS; plaintext control, never a membership, Account Data or private participation write. Circle and Strand inherit the Realm mode and only narrow ordinary permissions. Verified never-written defaults to private; unknown fails closed. Mode transitions do not change membership or Sidecar MLS participants. models/agent-interaction.md sections 1-5.",
+        "payload": "Controller-only per-Realm interaction mode with exact expected_commit_id CAS; plaintext control, never a membership, Account Data or private participation write. Circle and Strand inherit the Realm mode and only narrow ordinary permissions. Verified never-written defaults to private; unknown fails closed. Mode transitions do not change membership or Sidecar MLS participants. models/agent-interaction.md sections 1-5.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
         "id_source": "not_an_object_id",
         "state_writes": [
@@ -1284,7 +1284,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/agent_interaction_value",
-            "notes": "models/agent-interaction.md section 1. Realm is the source stream, not a subject component. Same-value writes still advance revision. CAS, exact current ownership and controller-only signing are atomic guards. expected_revision is never stored; no MLS or member writes occur. Current mode is independently checked at every shared Agent action admission."
+            "notes": "models/agent-interaction.md section 1. Realm is the source stream, not a subject component. Same-value writes still advance revision. CAS, exact current ownership and controller-only signing are atomic guards. expected_commit_id is never stored; no MLS or member writes occur. Current mode is independently checked at every shared Agent action admission."
           }
         ],
         "effect_ownership": {
@@ -1323,7 +1323,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/agent_key_value",
-            "notes": "identity/key-management.md section 3.6.1 fixes the order: the reducer MUST first project, for every payload.supersedes[] item, a remove of the observed canonical Event dot named by that item's authorized_event_ref on the OLD key subject, and only then add the new authorization. So this is write_index 0 and the add below is write_index 1. The subject moves per item, which is why the selector reads item.key_id while the add reads payload.key_id; payload.supersedes is the exact complete active authorization set at expected_revision, bounded at 256 items, so the loop is closed rather than open. Removing the exact observed dot rather than the whole observed set is what makes same-key re-authorization and replacement supersede provable from the signed RealmCommit without a service-private key table."
+            "notes": "identity/key-management.md section 3.6.1 fixes the order: the reducer MUST first project, for every payload.supersedes[] item, a remove of the observed canonical Event dot named by that item's authorized_event_ref on the OLD key subject, and only then add the new authorization. So this is write_index 0 and the add below is write_index 1. The subject moves per item, which is why the selector reads item.key_id while the add reads payload.key_id; payload.supersedes is the exact complete active authorization set at expected_commit_id, bounded at 256 items, so the loop is closed rather than open. Removing the exact observed dot rather than the whole observed set is what makes same-key re-authorization and replacement supersede provable from the signed RealmCommit without a service-private key table."
           },
           {
             "state_family": "agent_key",
@@ -1693,7 +1693,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
-            "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_revision is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream, including Circle installation intents. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
+            "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_commit_id is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream, including Circle installation intents. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
           }
         ]
       },
@@ -2094,8 +2094,8 @@
                 "derivation": "capability_authority_depth"
               },
               {
-                "name": "capability_authority_root_refs",
-                "derivation": "capability_authority_root_refs"
+                "name": "capability_authority_root_ref",
+                "derivation": "capability_authority_root_ref"
               },
               {
                 "name": "capability_status",
@@ -2103,7 +2103,7 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and every root or parent grant must belong to the target Realm. A derivation outside the closed set is a new normative reducer rule, not a registry edit. The owned_agent execution root derives depth=1 and roots=[the sole owned_agent ref]; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
+            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_ref are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and every root or parent grant must belong to the target Realm. A derivation outside the closed set is a new normative reducer rule, not a registry edit. The owned_agent execution root derives depth=1 and root_ref=the sole owned_agent ref; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
           }
         ],
         "id_source": "event_derived",
@@ -2156,7 +2156,7 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "authz/capabilities.md section 10.4: relinquish is the subject's own release and is deliberately not a revocation -- the reducer target guard accepts actor == target.subject and nothing else -- so it writes the updated_by / updated_at lifecycle pair that capability-grant.schema.json reserves for a non-revocation lifecycle update, and leaves revoked_by / revoked_at to ak.capability.revoke. The terminal status still separates the two, which is what keeps 'which authority closed this grant' answerable. Same expected_revision note as ak.capability.revoke."
+            "notes": "authz/capabilities.md section 10.4: relinquish is the subject's own release and is deliberately not a revocation -- the reducer target guard accepts actor == target.subject and nothing else -- so it writes the updated_by / updated_at lifecycle pair that capability-grant.schema.json reserves for a non-revocation lifecycle update, and leaves revoked_by / revoked_at to ak.capability.revoke. The terminal status still separates the two, which is what keeps 'which authority closed this grant' answerable. Same expected_commit_id note as ak.capability.revoke."
           }
         ],
         "id_source": "not_an_object_id",
@@ -2203,7 +2203,7 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. The owned_agent execution root derives depth=1 and roots=[the sole owned_agent ref]; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
+            "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_commit_id is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. The owned_agent execution root derives depth=1 and roots=[the sole owned_agent ref]; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
           }
         ],
         "id_source": "not_an_object_id",
@@ -3317,7 +3317,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Owner-authored CAS update of the exact Account PCR identity_resolution singleton. The closed signed payload is {expected_revision, next}; expected_revision is the exact {commit_id, stream_position} of the accepted resolution result. Admission reads the old projection at the same PCR cut and independently verifies a continuous method-native successor. No envelope precondition or whole-value guard is accepted.",
+        "payload": "Owner-authored CAS update of the exact Account PCR identity_resolution singleton. The closed signed payload is {expected_commit_id, next}; expected_commit_id is the exact source RealmCommit ID of the accepted resolution result. Admission reads the old projection at the same PCR cut and independently verifies a continuous method-native successor. No envelope precondition or whole-value guard is accepted.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
         "state_writes": [
           {
@@ -3352,7 +3352,7 @@
               }
             },
             "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
-            "notes": "identity-did.md section 4.2: the only post-genesis writer of identity_resolution. payload.expected_revision guards its accepted source Commit without copying its old value. The five-member projection takes did, method_history_head and version_id from payload.next, resolution_event_ref and updated_at from the carrying Event. A revision mismatch rejects the entire unit before any writes."
+            "notes": "identity-did.md section 4.2: the only post-genesis writer of identity_resolution. payload.expected_commit_id guards its accepted source Commit without copying its old value. The five-member projection takes did, method_history_head and version_id from payload.next, resolution_event_ref and updated_at from the carrying Event. A revision mismatch rejects the entire unit before any writes."
           }
         ],
         "id_source": "not_an_object_id",
@@ -4326,7 +4326,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/moderation_state_value",
-            "notes": "The lift is one more asserted element, not a removal. models/common-fields.md section 2 says every Event of a keyed-set family MUST keyed_set_add and that revocation MUST be expressed as another assertion, and reserves keyed_set_remove_observed / keyed_set_remove_dots for same-writer explicitly named sets that carry no concurrent assertion semantics -- which moderation_state is not, because content-moderation.md section 5.3 has several issuers' records active at once. Deleting the decision dot would drop one side of a concurrent (decision, lift) pair and leave the audit view unrebuildable. payload.decision_ref names which prior decision the fold must stop honouring; the reducer resolves it, the projection does not erase it. payload.expected_revision is a staleness guard on this result's revision; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
+            "notes": "The lift is one more asserted element, not a removal. models/common-fields.md section 2 says every Event of a keyed-set family MUST keyed_set_add and that revocation MUST be expressed as another assertion, and reserves keyed_set_remove_observed / keyed_set_remove_dots for same-writer explicitly named sets that carry no concurrent assertion semantics -- which moderation_state is not, because content-moderation.md section 5.3 has several issuers' records active at once. Deleting the decision dot would drop one side of a concurrent (decision, lift) pair and leave the audit view unrebuildable. payload.decision_ref names which prior decision the fold must stop honouring; the reducer resolves it, the projection does not erase it. payload.expected_commit_id is a staleness guard on this result's revision; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
           }
         ],
         "effect_ownership": {
@@ -4896,7 +4896,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Policy object set Applet governance policy has the same exact-CAS mandatory expected_revision rule as Agent governance policy; kind cannot be rebound to bypass it.",
+        "payload": "Policy object set Applet governance policy has the same exact-CAS mandatory expected_commit_id rule as Agent governance policy; kind cannot be rebound to bypass it.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
         "id_source": "reference",
         "state_writes": [
@@ -4913,7 +4913,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/policy_value",
-            "notes": "models/governance-objects.md section 3.2: the ordinary Policy and RecoveryPolicy payload is exactly {policy_id, value}; Agent management Policy families use exactly {policy_id, value, expected_revision}, with required nullable expected_revision under their registered CAS contract. expected_revision is not part of the projected Policy value. For each family, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
+            "notes": "models/governance-objects.md section 3.2: the ordinary Policy and RecoveryPolicy payload is exactly {policy_id, value}; Agent management Policy families use exactly {policy_id, value, expected_commit_id}, with required nullable expected_commit_id under their registered CAS contract. expected_commit_id is not part of the projected Policy value. For each family, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
           }
         ],
         "effect_ownership": {
@@ -5283,16 +5283,19 @@
               ]
             },
             "state_projection": {
-              "kind": "keyed_set_add",
-              "tag": {
-                "dot": true
-              },
-              "value": {
-                "field": "payload"
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "entries",
+                    "derivation": "reaction_effective_entries"
+                  }
+                ]
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/message_reactions_value",
-            "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
+            "notes": "models/strand-and-message.md section 9.8.3. The registered receiver derivation reaction_effective_entries computes the complete active map from frozen current, the signed Event and its actual Commit: add replaces its full actor/key, remove deletes it, and an empty row retains its true revision. Only verified contiguous stream input after a complete Snapshot/checkpoint can mutate current; history scans are read-only. The current carries no assertion history, remove tombstone, annotation or encrypted payload. Active accepted source metadata is not a historical read permit or a signer-key selector."
           }
         ],
         "id_source": "reference",
@@ -5319,16 +5322,19 @@
               ]
             },
             "state_projection": {
-              "kind": "keyed_set_add",
-              "tag": {
-                "dot": true
-              },
-              "value": {
-                "field": "payload"
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "entries",
+                    "derivation": "reaction_effective_entries"
+                  }
+                ]
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/message_reactions_value",
-            "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
+            "notes": "models/strand-and-message.md section 9.8.3. The registered receiver derivation reaction_effective_entries computes the complete active map from frozen current, the signed Event and its actual Commit: add replaces its full actor/key, remove deletes it, and an empty row retains its true revision. Only verified contiguous stream input after a complete Snapshot/checkpoint can mutate current; history scans are read-only. The current carries no assertion history, remove tombstone, annotation or encrypted payload. Active accepted source metadata is not a historical read permit or a signer-key selector."
           }
         ],
         "id_source": "reference",
@@ -7095,7 +7101,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_set_default_strand_value",
-            "notes": "models/strand-and-message.md section 2 names the family and the current-value projection and makes default_strand_id a single pointer whose current value is the last accepted write on the stream. The same section normalizes absent and explicit null to one null before a whole-value comparison, so the projected value is the one-member object carrying default_strand_id and the wire name payload.strand_id is renamed to it exactly here. payload.strand_id is required, so every accepted write sets a non-null pointer; the canonical explicit-null form is the family initial state, not an effect this kind can produce. The anti-dangling check and the expected_default_strand_id to expected_revision compilation are admission rules outside the projection grammar."
+            "notes": "models/strand-and-message.md section 2 names the family and the current-value projection and makes default_strand_id a single pointer whose current value is the last accepted write on the stream. The same section normalizes absent and explicit null to one null before a whole-value comparison, so the projected value is the one-member object carrying default_strand_id and the wire name payload.strand_id is renamed to it exactly here. payload.strand_id is required, so every accepted write sets a non-null pointer; the canonical explicit-null form is the family initial state, not an effect this kind can produce. The anti-dangling check and the expected_default_strand_id to expected_commit_id compilation are admission rules outside the projection grammar."
           }
         ],
         "id_source": "not_an_object_id",
@@ -7123,7 +7129,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
-            "notes": "models/realm-and-space.md section 2.6 says ak.realm.tombstone writes realm_tombstone as a commit-ordered projection that cannot be written twice, and requires successor_realm_id, which is carried in the value; the projection is the identity on the closed payload. Write-once is enforced by expected_revision admission, which the projection grammar cannot express."
+            "notes": "models/realm-and-space.md section 2.6 says ak.realm.tombstone writes realm_tombstone as a commit-ordered projection that cannot be written twice, and requires successor_realm_id, which is carried in the value; the projection is the identity on the closed payload. Write-once is enforced by expected_commit_id admission, which the projection grammar cannot express."
           }
         ],
         "id_source": "not_an_object_id",
@@ -7390,7 +7396,7 @@
         "admission_checks": [
           "payload.primary_conflict_domain MUST exactly equal the registered domain derived from payload.relation; truth_source shapes are rejected",
           "payload.relation MUST be the closed relation_definition authoring region; payload.relation.rank is the only create-time rank carrier, top-level payload.rank and materialized Relation members are rejected",
-          "payload.expected_revision MUST be null when the domain has never been written, or equal the exact current revision when the domain value is tombstoned; an active current value rejects create even at an exact revision",
+          "payload.expected_commit_id MUST be null when the domain has never been written, or equal the exact current revision when the domain value is tombstoned; an active current value rejects create even at an exact revision",
           "CAS mismatch and every semantic rejection produce zero current state writes and no RealmCommit; exact Event replay returns the original Commit"
         ],
         "id_source": "event_derived",
@@ -7414,7 +7420,7 @@
               }
             },
             "value_schema_ref": "schemas/relation.schema.json",
-            "notes": "zh/models/relation.md section 6. payload.primary_conflict_domain is the single domain subject and MUST match payload.relation's registered immutable identity fields. relation_id remains event-derived inside the value; the selector no longer uses it. expected_revision is an admission-only CAS guard and is not projected. A null revision is valid only for an unwritten domain; a tombstoned value may be replaced at its exact revision with a new event-derived RelationId, while an active value cannot be overwritten by create. payload.relation is relation_definition, so reducer-owned object members are derived here.",
+            "notes": "zh/models/relation.md section 6. payload.primary_conflict_domain is the single domain subject and MUST match payload.relation's registered immutable identity fields. relation_id remains event-derived inside the value; the selector no longer uses it. expected_commit_id is an admission-only CAS guard and is not projected. A null revision is valid only for an unwritten domain; a tombstoned value may be replaced at its exact revision with a new event-derived RelationId, while an active value cannot be overwritten by create. payload.relation is relation_definition, so reducer-owned object members are derived here.",
             "derived_members": [
               {
                 "name": "schema",
@@ -7458,11 +7464,11 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Irreversible Relation lifecycle transition. payload.primary_conflict_domain is the sole typed-result selector, payload.relation_id is the current value identity guard, and payload.expected_revision is the exact CAS guard. payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
+        "payload": "Irreversible Relation lifecycle transition. payload.primary_conflict_domain is the sole typed-result selector, payload.relation_id is the current value identity guard, and payload.expected_commit_id is the exact CAS guard. payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
         "admission_checks": [
           "payload.primary_conflict_domain MUST select the current relation value in this Realm; that value MUST be active and its id MUST equal payload.relation_id",
-          "payload.expected_revision MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit"
+          "payload.expected_commit_id MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit"
         ],
         "id_source": "reference",
         "state_writes": [
@@ -7527,7 +7533,7 @@
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
         "admission_checks": [
           "payload.primary_conflict_domain MUST select the current relation value in this Realm; that value MUST be active and its id MUST equal payload.relation_id",
-          "payload.expected_revision MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit",
+          "payload.expected_commit_id MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit",
           "relation_kind, from_ref and to_ref are create-locked primary-domain identity and MUST NOT appear in payload.patch"
         ],
         "id_source": "reference",
@@ -7575,7 +7581,7 @@
               "state"
             ],
             "value_schema_ref": "schemas/relation.schema.json",
-            "notes": "zh/models/relation.md sections 6.2-6.3. The three allowed paths are mutable metadata only. relation_kind, from_ref and to_ref define primary_conflict_domain and are create-locked; changing them requires an explicit tombstone on the old domain followed by create on the new domain, never a cross-domain patch or move. effective_scope remains reducer-managed. state is retained rather than patched and expected_revision is an admission-only CAS guard."
+            "notes": "zh/models/relation.md sections 6.2-6.3. The three allowed paths are mutable metadata only. relation_kind, from_ref and to_ref define primary_conflict_domain and are create-locked; changing them requires an explicit tombstone on the old domain followed by create on the new domain, never a cross-domain patch or move. effective_scope remains reducer-managed. state is retained rather than patched and expected_commit_id is an admission-only CAS guard."
           }
         ],
         "effect_ownership": {
@@ -11898,13 +11904,6 @@
         "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
       },
       {
-        "schema_id": "ak.schema.recovery_terminal_commit.v1",
-        "file": "schemas/security-transaction.schema.json",
-        "fragment": "#/$defs/recovery_terminal_commit",
-        "status": "active",
-        "description": "Closed terminal artifact of a RecoveryTransaction containing only the replacement-device-signed recovery receipt. It contains no RealmCommit, authority signature or precomputed commit id; the governance Station validates the receipt and both prepared producer Events, then issues their two consecutive PCR-stream RealmCommits inside the atomic commit_recovery_unit admission."
-      },
-      {
         "schema_id": "ak.schema.registration_did_evidence.v1",
         "file": "schemas/registration-did-evidence.schema.json",
         "status": "active",
@@ -11962,7 +11961,7 @@
         "schema_id": "ak.schema.security_transaction.v1",
         "file": "schemas/security-transaction.schema.json",
         "status": "active",
-        "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
+        "description": "Single-submit Recovery success or durable multi-step SecurityRotation resource."
       },
       {
         "schema_id": "ak.schema.service_describe.v1",
@@ -12290,7 +12289,8 @@
     "wire_form_generation": {
       "producer_allocated": "ak:<kind>:<uuidv7>",
       "event_derived": "ak:<kind>:<44-char-event-token>",
-      "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>"
+      "suite_tagged_full_digest": "ak:<kind>:<44-char-suite-tagged-full-digest-token>",
+      "issuer_allocated": "ak:<kind>:<uuidv7>"
     },
     "storage_rules": [
       "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form declared by each id_kind row.",
@@ -12340,43 +12340,23 @@
         "issuer_id",
         "typed_id"
       ],
-      "authority": "signed_immutable_issuer_record",
-      "schema": "ak.session_grant.issuance.v1",
-      "canonicalization": "json_jcs",
-      "digest_suite_registry_ref": "registry/digest-suite-registry.json#/suites/canonical_id=sha256",
-      "digest_suite_wire_code": 1,
-      "v1_suite_code_constraint": "The complete uint8 suite wire code is encoded unchanged, but v1 accepts only registered active codes whose high nibble is 0x0; this is not a Realm derivation-class nibble.",
-      "digest_input": "SHA-256(JCS(closed issuance_preimage))",
-      "token_layout": "digest_suite_wire_code || 32-byte digest",
-      "preimage_fields": [
-        "schema",
+      "authority": "immutable_issuer_ledger_record",
+      "id_form": "issuer_allocated",
+      "identity_authority": "issuer_record",
+      "record_identity_fields": [
         "issuer_id",
-        "issuance_nonce",
-        "account_id",
-        "session_public_key",
-        "audience_id",
-        "scopes",
-        "not_before",
-        "expires_at",
-        "session_id",
-        "credential_class",
-        "device_binding?",
-        "holder_binding",
-        "proof_kind?",
-        "scope_details?"
+        "id"
       ],
-      "closed_encoding": {
-        "issuance_nonce": "base64url_no_pad_exactly_32_octets",
-        "session_public_key": "supported_public_jwk_encoded_as_rfc8785_jcs_string",
-        "audience_id": "canonical_bare_resource_service_did; never an HTTP origin or endpoint URL",
-        "scopes": "protocol_bytewise_sorted_unique_after_authorization_intersection",
-        "timestamps": "utc_canonical_millisecond",
-        "optional_fields": "omit_when_absent_never_null",
-        "credential_binding": "credential_class is standard or recovery_session; holder_binding is required; device_binding is required only for standard human_device and forbidden for recovery_candidate_device and agent_runtime"
-      },
-      "signed_claim_binding": "Every preimage field except fixed schema is a signed JWT claim, including credential_class and holder_binding; kind is the fixed credential kind and jti is the derived typed ID. Verifiers MUST reconstruct the complete preimage from signed claims and recompute jti, so different credential classes or holder bindings cannot share one valid ID.",
+      "record_id_allocation": "issuer_atomic_unique_uuidv7",
+      "secret_bytes": 32,
+      "secret_encoding": "base64url_no_padding",
+      "secret_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_secret",
+      "credential_pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+      "reference_schema_ref": "schemas/common-ids.schema.json#/$defs/session_grant_ref",
+      "metadata_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantMetadata",
+      "credential_lookup": "sha256(ASCII(exact_opaque_credential))_then_exact_secret_comparison",
+      "metadata_immutability": "binding_changes_allocate_a_new_id_and_secret_never_mutate_an_issued_record",
       "session_chain_rule": "session_id is independently allocated before first issuance, refresh inherits it, and it MUST NOT equal or derive from grant_id",
-      "device_id_rule": "No independent top-level device_id claim enters the preimage; standard human holder_binding and its complete device_binding carry accepted-device authority. Recovery candidate-device and Agent runtime holder bindings carry their own device_id and forbid device_binding.",
       "durable_replay": {
         "key": [
           "issuer_id",
@@ -13024,9 +13004,9 @@
         "kind": "session_grant",
         "category": "authz",
         "status": "active",
-        "wire_form": "ak:session_grant:<44-char-suite-tagged-full-digest-token>",
-        "description": "Short-lived signed SessionGrant credential ID derived from the Account Authority's closed immutable issuance record. JWT jti carries this typed ID; it is neither an Event ID nor an ak:grant capability ID.",
-        "id_form": "suite_tagged_full_digest",
+        "wire_form": "ak:session_grant:<uuidv7>",
+        "description": "Non-secret UUIDv7 identity of an immutable issuer ledger record. The separate random credential is sender-constrained and exact-introspected; this ID alone cannot authorize.",
+        "id_form": "issuer_allocated",
         "identity_authority": "issuer_record",
         "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
         "storage_identity_key": [
@@ -14827,7 +14807,7 @@
         "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/recovery-session-grants/issue",
-        "notes": "Issues the replacement device's first Standard grant after a PCR-policy RecoveryTransaction completes. The body carries the terminal device-attested receipt, coordinator attestation, PCR generation and InitialSessionGrantIntent; DID-root evidence is relevant only when that optional factor was enabled. If deployment policy permits reactivation and the original account is deactivated, this operation alone atomically authors the deactivated-to-active successor, restores the same account row, creates the publication outbox entry and issues the first new-generation grant. It never creates a replacement account or second PCR, and it never revives an old session, device or KeyPackage; policy denial or incomplete recovery returns account_deactivated with zero authoritative writes.",
+        "notes": "Fresh Bound AccountHandoff plus accepted replacement-device PoP binds the complete original receipt and new holder intent. The owning Station supplies its exact successful completion over the existing authenticated internal channel. Unique issuer completion by (issuer, operation, full AccountId, receipt.transaction_id); never upgrade an old recovery credential or share another service database.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -16119,7 +16099,7 @@
         "http": "DELETE /_arkret/self/account-data/{account_data_key}",
         "grpc": "SelfAccountData/Delete",
         "mq": "self.account_data.resource.delete",
-        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private current state subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_revision is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
+        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private current state subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_commit_id is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -16146,7 +16126,7 @@
         "http": "PUT /_arkret/self/account-data/{account_data_key}",
         "grpc": "SelfAccountData/Replace",
         "mq": "self.account_data.resource.replace",
-        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_commit_id is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_revision_problem_extensions and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -16470,7 +16450,7 @@
           "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
           "first_revoke_acceptance_fences_future_writes": true
         },
-        "notes": "Before the first domain effect, the Station recomputes the canonical AppletRevokePlan and verifies every caller-signed capability revoke against the plan's grant_id, expected_revision, registration_epoch and reason_code. A plan mismatch or stale capability CAS produces no new domain effect and requires a new preview, user confirmation and signature. Exact response-loss retries replay the persisted signed bytes; neither client nor Station rewrites expected_revision."
+        "notes": "Before the first domain effect, the Station recomputes the canonical AppletRevokePlan and verifies every caller-signed capability revoke against the plan's grant_id, expected_commit_id, registration_epoch and reason_code. A plan mismatch or stale capability CAS produces no new domain effect and requires a new preview, user confirmation and signature. Exact response-loss retries replay the persisted signed bytes; neither client nor Station rewrites expected_commit_id."
       },
       {
         "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -16529,7 +16509,7 @@
           "kind": "none",
           "rationale": "query_only_recomputed_revoke_plan_from_one_durable_current_snapshot"
         },
-        "notes": "Each capability revoke intent atomically pairs an active Grant selected from the exact Applet install with that same capability_grant current state's expected_revision. The revision is a required canonical plan member covered by the caller-computed revoke_plan_digest and must be copied unchanged into the signed CapabilityRevokePayload. Grant ids, create Event ids, Realm heads, list digests and locally folded state are not revision carriers."
+        "notes": "Each capability revoke intent atomically pairs an active Grant selected from the exact Applet install with that same capability_grant current state's expected_commit_id. The revision is a required canonical plan member covered by the caller-computed revoke_plan_digest and must be copied unchanged into the signed CapabilityRevokePayload. Grant ids, create Event ids, Realm heads, list digests and locally folded state are not revision carriers."
       },
       {
         "operation_id": "ak.self.authz.grants.read.effective.v1",
@@ -16741,7 +16721,7 @@
         "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed expected_revision guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
+        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed whole-membership guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -16962,7 +16942,7 @@
         "http": "POST /_arkret/self/current-state/exact",
         "grpc": "SelfCurrentState/ReadExact",
         "mq": "self.current_state.query.exact",
-        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply a null CAS only in the explicitly registered first-write branches; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated. Exact applet_registration selector includes AppletId and ServiceId within the request Realm. Only an authenticated administrator with current ak.realm.admin for that Realm may read this installation CAS basis; never_written requires complete accepted history. No cross-Realm search or public enumeration.",
+        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply a null CAS only in the explicitly registered first-write branches; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_commit_id first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Exact policy selector is restricted to current scope-authorized ak.policy.set callers for Agent/Applet Policy CAS. A known exact Policy id with authoritative absence yields never_written; other private policy ids are not enumerated. Exact applet_registration selector includes AppletId and ServiceId within the request Realm. Only an authenticated administrator with current ak.realm.admin for that Realm may read this installation CAS basis; never_written requires complete accepted history. No cross-Realm search or public enumeration.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body",
@@ -17833,7 +17813,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the canonical next transaction step. Recovery's terminal step carries the replacement-device-signed recovery receipt; the current governance Station atomically validates both prepared producer Events, issues their two consecutive PCR-stream RealmCommits, advances device generation, activates the device and consumes the session. The client never supplies or signs either RealmCommit.",
+        "notes": "SecurityRotation local_commit only; resolve the resource and reject Recovery before side effects. The durable worker owns the irreversible Rotation prefix.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -17850,7 +17830,7 @@
         "http": "POST /_arkret/self/security-transactions",
         "grpc": "SelfSecurityTransactions/Create",
         "mq": "self.security_transaction.command.create",
-        "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, the closed typed prepared_plan and prepared_plan_digest, all reserved public ids, and the initial resource before the first irreversible side effect. Recovery create also CAS-binds one already verified recovery session to this transaction. SecurityRotation create requires fresh high-risk action authentication judged by the Account Authority and binds authorizing_device_id to the authenticated session; it issues no AuthorizationLease. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
+        "notes": "Recovery accepts the sole complete signed RecoveryReceipt and atomically commits its two EventAdmissionSubmission slots. Rotation separately freezes its typed prepared plan. No Recovery prepare, outer terminal signature or plan digest exists.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -23323,7 +23303,7 @@
       "No adapter exposes expand or core_to_did. Even when a method-specific suffix appears reversible, an isolated did_core_id cannot create resolution authority; the required did or did_url arrives through did-evidence-boundary-registry.json.",
       "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
       "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are Account-specific special admissions; Realm actors use their separately registered native predicates and never convert current DID control into generic human PCR authority.",
-      "A principal resolution update is admitted only in the exact full Account PCR. Its signed payload.expected_revision {commit_id, stream_position} MUST equal the accepted identity_resolution typed current source revision at the same cut. The old DID and method boundary come only from that accepted source value, never from caller echoes; a different revision rejects with zero writes.",
+      "A principal resolution update is admitted only in the exact full Account PCR. Its signed payload.expected_commit_id (RealmCommitId) MUST equal the accepted identity_resolution typed current source revision.commit_id at the same cut. The old DID and method boundary come only from that accepted source value, never from caller echoes; a different revision rejects with zero writes.",
       "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist.",
       "Realm actor control is a document-declared method distinct from active and committed native update keys. Native keys only sign WebVH logs. Same-identity recovery requires current manager Service, enabled Realm policy, verified pre-rotation continuation and new control PoP. Native update keys are never Realm actor Event or Device signers."
     ],
@@ -23361,7 +23341,7 @@
         "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
         "required_precondition": {
           "current state": "ak:result:identity_resolution:null",
-          "op": "expected_revision",
+          "op": "expected_commit_id",
           "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
           "cardinality": 1
         },
@@ -23397,7 +23377,7 @@
           "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
           "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
           "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-current state values; the segment never exceeds request history_depth items and never skips an intermediate Event",
-          "history_complete is true exactly when the segment reaches principal_genesis_event or the exclusive requested ancestor. Otherwise Present exactly when history_complete is false. Resolve payload.expected_revision of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown.",
+          "history_complete is true exactly when the segment reaches principal_genesis_event or the exclusive requested ancestor. Otherwise Present exactly when history_complete is false. Resolve payload.expected_commit_id of the oldest disclosed resolution Event (current when no predecessors are disclosed) to its exact accepted covering RealmCommit in this Account PCR lineage, then return that Commit event_ref. No envelope precondition, whole-value guard, payload echo or unrelated Commit supplies this predecessor. Omitted history is unknown.",
           "accepted_commit.realm_id == principal_control_realm_id and accepted_commit recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
           "the registered resolution reducer applied to current_resolution_event yields the response's current resolution projection and project(did) == principal_id",
           "method_history_evidence boundary and currentness validate under the adapter selected by that current resolution projection's did"
@@ -23836,7 +23816,7 @@
             "models/strand-and-message.md §9.8.3",
             "models/strand-and-message.md §9.8.4"
           ],
-          "note": "Remove-wins folding and the anti-abuse rules both evaluate against the current reaction set."
+          "note": "The complete active actor/key/source map is the prior state for ordered add/delete and anti-abuse checks. A complete Snapshot and continuous stream checkpoint prevent old history from reentering current."
         }
       },
       {
@@ -25089,7 +25069,7 @@
       "realm_actor_profile_id": "Create retype(EventId,actor_profile); update exact payload.target_ref after actor-local CAS.",
       "realm_actor_profile_value": "Create materializes the closed Realm actor profile; update applies allowed patch to frozen exact actor-local profile. No identity/handle/Agent rebinding.",
       "realm_actor_recovery_enabled": "Read enabled from locked target recovery prestate; never infer from installation or business grants.",
-      "realm_actor_recovery_pending": "After accepting recovery.begin, construct begin_ref from real Commit, candidate_digest=SHA256(JCS(payload)), manager_revision from exact manager_ref row, control_revision from expected_control_revision and device_generation_ref=new_generation.",
+      "realm_actor_recovery_pending": "After accepting recovery.begin, construct begin_ref from real Commit, candidate_digest=SHA256(JCS(payload)), manager_revision from exact manager_ref row, control_revision from the accepted source Commit selected by expected_control_commit_id and device_generation_ref=new_generation.",
       "realm_actor_recovered_control_method": "Exact next_control_method_kid of the accepted pending begin referenced by control.reset; no caller replacement.",
       "realm_actor_current_control_method": "Locked accepted target control_method_kid retained by manager.change; target native history must still authorize it.",
       "realm_actor_content_backup_recipient": "Create recovery.content_backup_recipient; manager.change next_content_backup_recipient; control.reset exact accepted pending begin replacement if present; otherwise retain locked original descriptor. Require exact original actor DID keyAgreement mapping at declaration. Never current-DID inference or enable-toggle injection.",
@@ -25227,7 +25207,7 @@
         "service_id",
         "effective_scope"
       ],
-      "registration_cas_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload/properties/expected_revision",
+      "registration_cas_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload/properties/expected_commit_id",
       "publisher": "immutable_verified_controller",
       "managed_did_hosting": "applet_arranged_independent_of_service_host_and_governor",
       "managed_webvh_portable": true,

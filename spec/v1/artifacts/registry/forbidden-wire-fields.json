@@ -5154,7 +5154,7 @@
       }
     },
     {
-      "id": "expected_revision",
+      "id": "expected_commit_id",
       "context": "producer_event_envelope_root",
       "since_revision": "2026-09-16",
       "rejection_level": "hard_reject",
@@ -5162,11 +5162,11 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Event envelope carries no expected_revision. The field is a typed payload member of the kinds that define it (see event-payload.schema.json and realm_bootstrap_registry.ordinary_collaboration.ordered_slots[].expected_revision); at envelope level it would be a caller-authored admission predicate.",
+      "notes": "The Event envelope carries no expected_commit_id. The field is a typed payload member of the kinds that define it (see event-payload.schema.json and realm_bootstrap_registry.ordinary_collaboration.ordered_slots[].expected_commit_id); at envelope level it would be a caller-authored admission predicate.",
       "match": {
         "kind": "field",
         "values": [
-          "expected_revision"
+          "expected_commit_id"
         ]
       }
     },

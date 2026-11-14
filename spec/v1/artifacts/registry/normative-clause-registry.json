@@ -58,7 +58,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:c65766fa2f7c6830270b6bbd75ce708bda32fc2d6c5fdf4cf7ad0420a1dd527c",
+      "section_digest": "sha256:2e7d362eff54dfaa072727d3b45268f1ea4688e65806af991d77fe6d90431035",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -168,7 +168,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:8ad15bdab812b235b139b157fb784d0412a679a6b6a19b09f53bed3d414f2793",
+      "section_digest": "sha256:e1ca4e066c253d70bb251fe57730d2637df69b1d41fb7b57e7abe6e4f2545357",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -212,12 +212,12 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:055846ad0c87acde24a780cd369511cef71027babb4d99e07604a503738ecd38",
-      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root current state's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Realm actor subject; every other narrowing rule stays effective. This is not general delegation.",
+      "section_digest": "sha256:525c43e5923429e243fe1e3373eb6047441fb4c4bc96f127ab51b820684a7bdd",
+      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; nonpreceding parent sources, excessive depth, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root current state's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid. The closed root current includes authority_event_ref: genesis create initially, replaced only by authority reset, retained across controller transfer and Station handoff. Root CAS digests include all four members. The managed Applet terminal relationship has one closed executor rebinding from parent Service to its accepted Realm actor subject; every other narrowing rule stays effective. This is not general delegation. Immutable parent sources strictly precede child creation, so the lineage is acyclic without DFS; all ordinary parents reduce to one current Realm root. Each explicit finite root authorization uses this acceptance time plus its effective lifetime; finite upstream windows cannot be extended, and action-resource coverage retains the union of its real source windows.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.capability.authority_cycle.v1",
-        "ak.vector.capability.authority_expiry_commit.v1",
+        "ak.vector.capability.authority_order_depth.v1",
+        "ak.vector.capability.authority_lifetime.v1",
         "ak.vector.capability.issuer_authority_bound.v1",
         "ak.vector.applet.managed_governance.v1"
       ]
@@ -227,7 +227,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#431-patch-冲突",
-      "section_digest": "sha256:71e154297b02194938a63a8a8b8d672f787d1589286e8919ad40450fcc3bf53e",
+      "section_digest": "sha256:9451dbfce0dc7ebb7c01368dc9768175ce1730041cb0f8fdf11fa682e9607096",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -240,7 +240,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:0dff2883a5bfd4df6c3739d39c9593a31eca3b2ae5733e889dc0a1257629baaf",
+      "section_digest": "sha256:a99de50c9426f827cb7fd9248f8aa3031c0345586a6aaa404dd4d6837a4c70c4",
       "requirement": "Call transitions retain their registered matrix, terminal absorption, exact replay and whole-axis CAS. Roster join/leave use complete ActorId and real DeviceId; account identity includes principal_id and station_id. Public participant_binding contains expires_at/issuer_kid/sig and signs the exact nine fields realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid. Refresh resolves the accepted active full actor/device/participant at a current cut and preserves historical issuer verification and independent permissions; anonymous aliases, private subject receipts and their digests are not protocol inputs. v1 continues to reject every mute_override write. Call roster/moderation current is the complete effective entries plus last_source, not accumulated history: leave/restore advance the whole-axis revision even when empty, restore preserves kick, exact full ActorId/device isolates targets, and each effective SFU binding retains its original issuer key. Ordinary reads are complete authority Snapshots with explicit context and omission trust limits.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -259,7 +259,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
-      "section_digest": "sha256:9381d195d17196af9b698d92c3029f551bf28d98c9459c36e0765181d4fbff4e",
+      "section_digest": "sha256:881798b64ce4b9f0dea73767ebbf522d98d54d2c9003cc2d654601709be207dc",
       "requirement": "Account Data keys are server-versioned compare-and-set registers with explicitly registered writer authority and holder self operations. An exact retry of an accepted Event returns its original outcome with zero writes, including after a later accepted write; a different Event with a stale revision MUST fail with cas_conflict. The revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -360,7 +360,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:655c7d917d82f95b9b7cc501b07ea819db2d853bb98b6e278ef44fa29f51fa47",
+      "section_digest": "sha256:4b747a948eeb95af4e7d4dd8c966e3d1b1abb6271ceef8401ce88010af04ce1b",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
@@ -410,7 +410,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:655c7d917d82f95b9b7cc501b07ea819db2d853bb98b6e278ef44fa29f51fa47",
+      "section_digest": "sha256:4b747a948eeb95af4e7d4dd8c966e3d1b1abb6271ceef8401ce88010af04ce1b",
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The structurally defined delegated producer branch remains unavailable to v1 Contact commands; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Coland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. V1 production acceptance must reject controller-device Agent Contact commands before reservation or Event admission, while ordinary human and Agent-runtime Contact paths remain available."
@@ -575,7 +575,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#104-revoke-与-relinquish-的分工normative",
-      "section_digest": "sha256:de52a54da4dad841652aabcf8b11e2c39c5fc2922db0fb13e69e53fcc29b1dba",
+      "section_digest": "sha256:2720c4439aeb0dd6b9f5a42169e47655434967f94f72c70f4949d07b6d014246",
       "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -710,7 +710,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#1-显式自有授权来源",
-      "section_digest": "sha256:1ab174ae4e316059637a6ba9fbddf9d7c9bff76515d10fa724b32edc3ee8e521",
+      "section_digest": "sha256:af2e3e2484b29ee3d696aa77e5af3b41b2b9b3650e2bc35d292854f144313be7",
       "requirement": "An explicit original-controller grant to an exact owned Agent needs no general grant action or parent regrant right; both membership generations and ownership are verified, the source is terminal and cannot be reentered by an Agent controller.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -736,7 +736,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#3-管理限制与默认值",
-      "section_digest": "sha256:718a438032c2eb0336c11c1a43b0ed256da2d2613f804d5bc1505ded32cc14bf",
+      "section_digest": "sha256:03da9dc1e524256fd4fe7bc4868b38483884027054c448e746da5f7095bd9658",
       "requirement": "The default Agent management gate permits member self-service only with verified current absence of restrictions; controller selectors cover current and future Agents and user grants cannot override effective bans. Agent Policy payloads require nullable exact current CAS; nonmanagement families forbid it and rebinding cannot bypass it. Join-only restrictions preserve existing participation.",
       "testability_grade": "vector",
       "evidence_refs": [

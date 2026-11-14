@@ -92,9 +92,12 @@ class CallActorIdentitySchemaTest(unittest.TestCase):
     def test_join_and_leave_use_complete_actor_and_real_device(self):
         join = {"op": "join", "participant": {"actor_id": self.actor, "device_id": self.device}}
         leave = {"op": "leave", "actor_id": self.actor, "device_id": self.device,
-                 "expected_revision": {"commit_id": "ak:realm_commit:" + "A" * 44, "stream_position": 3}}
+                 "expected_commit_id": "ak:realm_commit:" + "A" * 44}
         self.roster.validate(join)
         self.roster.validate(leave)
+        legacy = copy.deepcopy(leave)
+        legacy["expected_commit_id"] = {"commit_id": leave["expected_commit_id"], "stream_position": 3}
+        self.assertFalse(self.roster.is_valid(legacy))
         for value, owner in [(join, "participant"), (leave, None)]:
             invalid = copy.deepcopy(value)
             target = invalid[owner] if owner else invalid

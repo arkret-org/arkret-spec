@@ -349,7 +349,7 @@
       "expect_valid": false,
       "instance": {
         "key": "ak.preferences.v1",
-        "expected_revision": 0,
+        "expected_commit_id": 0,
         "body": "ciphertext:value"
       },
       "first_expected_error": "$: 'expected_server_revision' is a required property"
@@ -361,10 +361,10 @@
       "instance": {
         "key": "ak.preferences.v1",
         "expected_server_revision": 0,
-        "expected_revision": 0,
+        "expected_commit_id": 0,
         "body": "ciphertext:value"
       },
-      "first_expected_error": "$: Additional properties are not allowed ('expected_revision' was unexpected)"
+      "first_expected_error": "$: Additional properties are not allowed ('expected_commit_id' was unexpected)"
     },
     {
       "name": "account_data_set_missing_revision_rejected",

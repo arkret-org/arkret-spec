@@ -58,7 +58,7 @@
     "status",
     "issuer_authority_refs",
     "authority_depth",
-    "authority_root_refs"
+    "authority_root_ref"
   ],
   "properties": {
     "id": {
@@ -255,52 +255,47 @@
       "minimum": 1,
       "description": "Reducer-derived absolute distance from the authority root: a realm_root ref counts 0, so a root controller's grant is 1 and a member's re-grant is 2. Derived from the refs, never author-declared, so it cannot be misreported — which is what makes it safe to answer 'how far did this authority spread' with a single field instead of a recursive join. Taken at issuance and not recomputed on revocation; a later chain may be shorter than the recorded value, which is the conservative direction for a max_authority_depth decision. A dedicated terminal owned_agent source has depth 1 and cannot become a parent grant."
     },
-    "authority_root_refs": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "description": "Reducer-derived set of committed authority roots this grant ultimately descends from: direct realm_root refs plus the union of every parent grant's roots. Deduplicated on (realm_id, authority_event_ref, authority_generation) and sorted canonically by unsigned-byte order. For an owned_agent source the sole root is that exact owned_agent ref; it never confers Realm root-control authority.",
-      "items": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "kind",
-              "realm_id",
-              "authority_event_ref",
-              "authority_generation"
-            ],
-            "properties": {
-              "kind": {
-                "const": "realm_root",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "capability-grant.schema.json#/properties/authority_root_refs/items/oneOf/0/properties/kind",
-                  "owner": "capability-grant.schema.json#/properties/authority_root_refs/items/oneOf/0/properties/kind",
-                  "values": [
-                    "realm_root"
-                  ]
-                }
-              },
-              "realm_id": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              },
-              "authority_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
-              "authority_generation": {
-                "description": "The delegation generation of the root this grant descends from, carried verbatim from the realm_root ref. Part of the dedup key, because the same root at a different generation is a different authority.",
-                "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+    "authority_root_ref": {
+      "description": "The single immutable reducer-derived authority root. All ordinary current parents must have the same target-Realm root anchor and delegation generation. An owned_agent source copies its one terminal execution root and never confers Realm root control.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "authority_event_ref",
+            "authority_generation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_root",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "capability-grant.schema.json#/properties/authority_root_ref/oneOf/0/properties/kind",
+                "owner": "capability-grant.schema.json#/properties/authority_root_ref/oneOf/0/properties/kind",
+                "values": [
+                  "realm_root"
+                ]
               }
             },
-            "additionalProperties": false
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "authority_event_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "x-arkret-preimage-commitment": "fixed_event"
+            },
+            "authority_generation": {
+              "description": "The delegation generation of the root this grant descends from, carried verbatim from the realm_root ref. Part of the dedup key, because the same root at a different generation is a different authority.",
+              "$ref": "./decimal-integers.schema.json#/$defs/uint64_decimal"
+            }
           },
-          {
-            "$ref": "#/$defs/owned_agent_authority_ref"
-          }
-        ]
-      }
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/owned_agent_authority_ref"
+        }
+      ]
     }
   },
   "not": {
@@ -309,64 +304,6 @@
     ]
   },
   "allOf": [
-    {
-      "$comment": "Lint condition (2) from capabilities.md §18.1: grants whose actions[] include moderator-role actions MUST carry a constraint with depends_on_moderation_state=true. Conditions (1) and (3) (subject condition selector or constraints referencing moderation current state) are reducer-side lint and not enforced here.",
-      "if": {
-        "properties": {
-          "actions": {
-            "type": "array",
-            "contains": {
-              "type": "string",
-              "enum": [
-                "ak.moderation.decision",
-                "ak.moderation.decision.lift"
-              ],
-              "x-arkret-value-ownership": {
-                "class": "namespaced_symbol",
-                "authority": "capability-grant.schema.json#/allOf/0/if/properties/actions/contains",
-                "owner": "capability-grant.schema.json#/allOf/0/if/properties/actions/contains",
-                "values": [
-                  "ak.moderation.decision",
-                  "ak.moderation.decision.lift"
-                ]
-              }
-            }
-          }
-        },
-        "required": [
-          "actions"
-        ]
-      },
-      "then": {
-        "required": [
-          "constraints"
-        ],
-        "properties": {
-          "constraints": {
-            "type": "array",
-            "contains": {
-              "type": "object",
-              "required": [
-                "depends_on_moderation_state"
-              ],
-              "properties": {
-                "depends_on_moderation_state": {
-                  "const": true,
-                  "x-arkret-value-ownership": {
-                    "class": "numeric",
-                    "authority": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/depends_on_moderation_state",
-                    "owner": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/depends_on_moderation_state",
-                    "values": [
-                      true
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     {
       "if": {
         "properties": {
@@ -397,8 +334,8 @@
                 "const": "account",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "capability-grant.schema.json#/allOf/1/then/properties/issuer_id/properties/kind",
-                  "owner": "capability-grant.schema.json#/allOf/1/then/properties/issuer_id/properties/kind",
+                  "authority": "capability-grant.schema.json#/allOf/0/then/properties/issuer_id/properties/kind",
+                  "owner": "capability-grant.schema.json#/allOf/0/then/properties/issuer_id/properties/kind",
                   "values": [
                     "account"
                   ]
@@ -416,8 +353,8 @@
                 "const": "account",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "capability-grant.schema.json#/allOf/1/then/properties/subject/properties/kind",
-                  "owner": "capability-grant.schema.json#/allOf/1/then/properties/subject/properties/kind",
+                  "authority": "capability-grant.schema.json#/allOf/0/then/properties/subject/properties/kind",
+                  "owner": "capability-grant.schema.json#/allOf/0/then/properties/subject/properties/kind",
                   "values": [
                     "account"
                   ]
@@ -444,8 +381,8 @@
                   "const": "authority_control",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/constraint_kind",
-                    "owner": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/constraint_kind",
+                    "authority": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/constraint_kind",
+                    "owner": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/constraint_kind",
                     "values": [
                       "authority_control"
                     ]
@@ -455,8 +392,8 @@
                   "const": 0,
                   "x-arkret-value-ownership": {
                     "class": "numeric",
-                    "authority": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/max_authority_depth",
-                    "owner": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/max_authority_depth",
+                    "authority": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/max_authority_depth",
+                    "owner": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/max_authority_depth",
                     "values": [
                       0
                     ]
@@ -466,8 +403,8 @@
                   "const": false,
                   "x-arkret-value-ownership": {
                     "class": "numeric",
-                    "authority": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/authority_regrant_allowed",
-                    "owner": "capability-grant.schema.json#/allOf/1/then/properties/constraints/contains/properties/authority_regrant_allowed",
+                    "authority": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/authority_regrant_allowed",
+                    "owner": "capability-grant.schema.json#/allOf/0/then/properties/constraints/contains/properties/authority_regrant_allowed",
                     "values": [
                       false
                     ]
@@ -480,6 +417,27 @@
                 ]
               }
             }
+          },
+          "authority_root_ref": {
+            "$ref": "#/$defs/owned_agent_authority_ref"
+          },
+          "authority_depth": {
+            "const": 1,
+            "x-arkret-value-ownership": {
+              "class": "numeric",
+              "authority": "capability-grant.schema.json#/allOf/0/then/properties/authority_depth",
+              "owner": "capability-grant.schema.json#/allOf/0/then/properties/authority_depth",
+              "values": [
+                1
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "authority_root_ref": {
+            "$ref": "#/properties/authority_root_ref/oneOf/0"
           }
         }
       }

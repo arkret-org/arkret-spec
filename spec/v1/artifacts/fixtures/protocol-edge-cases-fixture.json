@@ -7,8 +7,8 @@
   "covers_vectors": [
     "ak.vector.capability.issuer_authority_bound.v1",
     "ak.vector.capability.validity_window.v1",
-    "ak.vector.capability.authority_expiry_commit.v1",
-    "ak.vector.capability.authority_cycle.v1",
+    "ak.vector.capability.authority_lifetime.v1",
+    "ak.vector.capability.authority_order_depth.v1",
     "ak.vector.capability.moderation_dependency.v1",
     "ak.vector.capability.freshness_risk_matrix.v1",
     "ak.vector.capability.global_decision_merge.v1",
@@ -69,45 +69,45 @@
       }
     },
     {
-      "name": "authority_expiry_commit",
-      "vector_id": "ak.vector.capability.authority_expiry_commit.v1",
+      "name": "authority_lifetime",
+      "vector_id": "ak.vector.capability.authority_lifetime.v1",
       "variants": [
-        "redelegate_same_bound",
-        "redelegate_shorter_bound",
-        "redelegate_widened_bound",
-        "fixed_commit_replay"
+        "root_new_approval_after_original_window",
+        "finite_parent_not_extended",
+        "disjoint_windows_not_convex_hull",
+        "action_resource_no_cartesian_product"
       ],
       "expected": {
         "widened_reason": "authority_expiry_widening",
-        "expiry_commit_rotated": false
+        "first_use_state": false
       }
     },
     {
-      "name": "authority_cycle",
-      "vector_id": "ak.vector.capability.authority_cycle.v1",
+      "name": "authority_order_depth",
+      "vector_id": "ak.vector.capability.authority_order_depth.v1",
       "variants": [
-        "direct_cycle",
-        "multi_hop_cycle",
-        "revoke_then_redelegate_cycle",
-        "same_batch_cycle"
+        "accepted_parent_before_child",
+        "forward_reference_rejected",
+        "depth_five_rejected",
+        "terminal_owned_agent_not_parent"
       ],
       "expected": {
-        "decision": "reject",
-        "reason_code": "authority_cycle",
-        "batch_atomic": true
+        "forward_or_depth": "reject",
+        "permitted_graph": "DAG"
       }
     },
     {
-      "name": "moderation_dependency_static_lint",
+      "name": "moderation_dependency_derived",
       "vector_id": "ak.vector.capability.moderation_dependency.v1",
       "variants": [
-        "required_true_present",
-        "required_true_missing",
-        "explicit_false"
+        "moderation_action_without_hint",
+        "registered_semantic_dependency",
+        "ordinary_grant_no_dependency",
+        "producer_hint_rejected"
       ],
       "expected": {
-        "missing_or_false": "schema_violation",
-        "present": "accept"
+        "derived_dependency_invalidates_cache": true,
+        "producer_hint": "schema_violation"
       }
     },
     {
@@ -679,14 +679,14 @@
       },
       "assertions": [
         "the only source of truth for directed invite live uniqueness is invite_live_target whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
-        "ak.invite.create carries expected_revision null for that current state and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no current state write",
+        "ak.invite.create carries expected_commit_id null for that current state and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no current state write",
         "the rejection Problem extensions are closed to reason_code, invite_id and create_event_id and MUST NOT be reported as cas_conflict",
         "two concurrent directed creates contend on the same current state so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
         "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
         "reaching expires_at does not release the slot; only a registered Event does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
         "a third-party invite whose revoke payload carries a forged invitee_account_id fails stored_field_matches_payload with reducer_projection_failed and releases no slot",
         "a directed invite whose terminal revoke omits invitee_account_id fails the same predicate, so a directed invite cannot leak a permanently claimed slot",
-        "the slot value is the literal ak:event: create_event_id; a release Event whose expected_revision carries the ak:invite: spelling is failed_precondition",
+        "the slot value is the literal ak:event: create_event_id; a release Event whose expected_commit_id carries the ak:invite: spelling is failed_precondition",
         "an effective unconsumed pending invite retries private delivery under its original invite_id without extending expiry, re-signing or releasing the slot",
         "an old terminal Event never clears a successor invite slot"
       ]

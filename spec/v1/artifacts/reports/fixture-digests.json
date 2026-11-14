@@ -6,7 +6,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
-      "sha256": "6f5eb5a77722c1a0b21730f3c8f3167860497f62158fe78359a77ea0f76b5406"
+      "sha256": "38111c11122d24726dab85446cfd12067cce9cfd403f934ca505753412999d13"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "42e8b660e56e8f310c51ccafdf4d03021b3220089ac5ce9eb1b7b5a5114a90a0"
+      "sha256": "e82cbb01a2819cdf0f55387bbd20e7aaffae2c93a09663e49ebf30b093826d93"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
-      "sha256": "a01e16f9a349988c668de2ecce98c546d76d5472c7b08bf6ace9d3a50c0d5f65"
+      "sha256": "8924d284dcad9eeca22660fe9cbe47097435a0b673f9c696d0e8f1501286df56"
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "a6f896cef50a0a5c84fed20ce20990e8e3417eecda34e3bf3f025994c43b5852"
+      "sha256": "35ae713e0f7edc39bec4699ba923fec57468a3ab3c33611220632dd3a37ec863"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "5291e7455154974db18246d3b16dc239385c2b4ffc562cea4ca5640ee222fd3a"
+      "sha256": "0e7682387500b7e7f79c4c85eb04cc799dd3d5b75fc62394461494481b70a220"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
@@ -122,7 +122,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "56b7d71c774233b6de9224cfdb3353e6b038a8936d129de1cf2244d357597c82"
+      "sha256": "9103fd23981f124ca2ea4a7ff063f71922f76daf4869147ea2fc6ab4f5300797"
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
@@ -166,7 +166,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/current-cas-failure-read-boundary-fixture.json",
-      "sha256": "8e3954235bddf6680e6e06d2bd2ef5fba01affa1fe9f2e114d50f5b487478763"
+      "sha256": "923c9c6695cff5abba85d1e40aa2f35244cdbae1c7c25cccc5ee1f97cab0c6e8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "86066da061a36449d87590b692a4891028127851c630b99780ce572a2a8388ab"
+      "sha256": "36c50c29d7bfadc462e9a43642812d56bb65bf90ce7ee0def0a4f0b18a2d42bb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -259,6 +259,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json",
       "sha256": "4736724019f2a1585c2fab32535fbb442729552ade5fe6f7dea12bc538d6c901"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/grant-lineage-lifetime-fixture.json",
+      "sha256": "310aa2beafe4d64a5d5e25b5515c43724bddc10163773e414911723b58cbf35f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/handle-claim-kat.json",
@@ -398,11 +402,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "6c055adf04ca7d14d21241268c2ae5aad3e8663ab86d740aea848765fb012e63"
+      "sha256": "ba0b4080bea82af84af06502bee48e02eb0ada7250c386c37062f6fea150ac80"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
-      "sha256": "4195bf1342454eb72be12569727cc8e29346617849ee434b0d32d1dd6156e097"
+      "sha256": "ace76bf2c5aa1147c9e2d8716c3955f382233a31d11ff2d557601c495293a67e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",
@@ -426,7 +430,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-authority-order-fixture.json",
-      "sha256": "f52c898e39ce268eaf716dd7f412c5d748c37a2920a793b3b47c54681041f6cd"
+      "sha256": "91bc9fab8181b63684334de257740566f8012dd4b14eeef6f4a7b3cf10e45f78"
     },
     {
       "path": "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json",
@@ -434,11 +438,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-      "sha256": "8e7552400f33ef3c650071b2657fc47374d0e71d428b8e10564c1d383eec967d"
+      "sha256": "607b9f60fe80ef4c8522f8ad898cf19a0b989aae82c7a31f4ab91f3b5f29ff55"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
-      "sha256": "016da306aff6a23c899f28f66f2d50dcc3de8b556b711816401e84a2914453fc"
+      "sha256": "281bab086944e655707350b554dab6551b81f421f62f981faeee412e7239c3c4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-invite-link-proof-kat-fixture.json",
@@ -454,7 +458,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "b83be3f7528c98202c359522a1780a1f23ee55235772eb1ae80bea35122c6c24"
+      "sha256": "56067a5138b0be1d5d58db8143846b0596a18235c52d6caa3c929dca9f0d0930"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -486,7 +490,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "a4b375e84c8d280cad0672303a0e7cd1bdee1228c7bf0928522a4af55b45887a"
+      "sha256": "f0f89aff6bd837511b86408a04dfcb86fb424cbba931bd9f3c0b77b4b85dc110"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
@@ -498,7 +502,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "c9ef0060979460e8b9c5e037c0e7a56c7eccf753a3b5f717b51c11a73409a188"
+      "sha256": "448f8d5aab86cae1ab969f09cd5e55e6d414429a1ed1d64569e1ccb274046bdb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
@@ -506,7 +510,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "04b3ad0ceaae356ea0e49228441c9508e7fe48ad7dcce10845322fde36671089"
+      "sha256": "5616abf437af9b819a59c8f607442290579ee590a8033cdf82b381590c78203e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json",

@@ -76,8 +76,8 @@ def check_account_data_revision_name(lint: Lint) -> None:
     properties = payload.get("properties", {})
     if required.count("expected_server_revision") != 1:
         _fail(lint, EVENT_SCHEMA, "signed payload must require expected_server_revision exactly once")
-    if "expected_revision" in required or "expected_revision" in properties:
-        _fail(lint, EVENT_SCHEMA, "legacy expected_revision alias is forbidden")
+    if "expected_commit_id" in required or "expected_commit_id" in properties:
+        _fail(lint, EVENT_SCHEMA, "legacy expected_commit_id alias is forbidden")
     if properties.get("expected_server_revision", {}).get("type") != "integer" or properties.get(
         "expected_server_revision", {}
     ).get("minimum") != 0:
@@ -85,7 +85,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
     if payload.get("additionalProperties") is not False:
         _fail(lint, EVENT_SCHEMA, "signed payload must remain closed so dual fields fail before verification")
     payload_text = " ".join(_all_strings(payload))
-    for marker in ("expected_server_revision", "expected_revision is not an alias", "shared face"):
+    for marker in ("expected_server_revision", "expected_commit_id is not an alias", "shared face"):
         if marker not in payload_text:
             _fail(lint, EVENT_SCHEMA, f"signed payload contract does not pin {marker!r}")
 
@@ -107,7 +107,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
     operation_schema_text = " ".join(_all_strings(operations_schema))
     if "expected_server_revision" not in operation_schema_text:
         _fail(lint, OPERATIONS_SCHEMA, "operation DTO descriptions omit expected_server_revision")
-    if "expected_revision" in operation_schema_text:
+    if "expected_commit_id" in operation_schema_text:
         _fail(lint, OPERATIONS_SCHEMA, "operation DTO descriptions retain the legacy field name")
 
     event_row = _find(contract.get("event_kind_registry", {}).get("event_kinds"), "event_kind", EVENT_KIND)
@@ -132,7 +132,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
     ):
         if marker not in private_text:
             _fail(lint, CONTRACT_REGISTRY, f"private effect contract omits {marker!r}")
-    if "payload.expected_revision" in private_text:
+    if "payload.expected_commit_id" in private_text:
         _fail(lint, CONTRACT_REGISTRY, "private effect contract uses the shared revision field")
 
     operation_rows = contract.get("operation_registry", {}).get("operations")
@@ -143,7 +143,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
             _fail(lint, CONTRACT_REGISTRY, f"{operation_id} does not close canonical use and alias rejection")
 
     key_rules = " ".join(_all_strings(key_registry.get("registry_rules", [])))
-    for marker in ("expected_server_revision", "shared typed expected_revision", "not an alias"):
+    for marker in ("expected_server_revision", "shared typed expected_commit_id", "not an alias"):
         if marker not in key_rules:
             _fail(lint, KEY_REGISTRY, f"registry rule does not separate {marker!r}")
 
@@ -155,7 +155,7 @@ def check_account_data_revision_name(lint: Lint) -> None:
 
     vector = _find(vector_registry.get("vectors"), "vector_id", VECTOR_ID)
     vector_text = " ".join(_all_strings(vector or {}))
-    for marker in ("expected_server_revision", "expected_revision alias", "both names"):
+    for marker in ("expected_server_revision", "expected_commit_id alias", "both names"):
         if marker not in vector_text:
             _fail(lint, VECTOR_REGISTRY, f"conformance vector does not cover {marker!r}")
 
@@ -173,11 +173,11 @@ def check_account_data_revision_name(lint: Lint) -> None:
     valid = by_name.get("account_data_set_expected_server_revision_valid", {}).get("instance", {})
     alias = by_name.get("account_data_set_expected_revision_alias_rejected", {}).get("instance", {})
     dual = by_name.get("account_data_set_dual_revision_fields_rejected", {}).get("instance", {})
-    if "expected_server_revision" not in valid or "expected_revision" in valid:
+    if "expected_server_revision" not in valid or "expected_commit_id" in valid:
         _fail(lint, FIXTURE, "canonical positive case does not use only expected_server_revision")
-    if "expected_revision" not in alias or "expected_server_revision" in alias:
-        _fail(lint, FIXTURE, "alias rejection case does not isolate expected_revision")
-    if not {"expected_server_revision", "expected_revision"}.issubset(dual):
+    if "expected_commit_id" not in alias or "expected_server_revision" in alias:
+        _fail(lint, FIXTURE, "alias rejection case does not isolate expected_commit_id")
+    if not {"expected_server_revision", "expected_commit_id"}.issubset(dual):
         _fail(lint, FIXTURE, "dual-field rejection case does not carry both names")
 
     account_text = ACCOUNT_DATA_PROSE.read_text(encoding="utf-8") if ACCOUNT_DATA_PROSE.is_file() else ""

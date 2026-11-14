@@ -38,7 +38,7 @@ class ConsentIntroductionSchemaTest(unittest.TestCase):
 
 def payload(entries, revision=None, peer=PEER):
     return {"peer": copy.deepcopy(peer), "permissions": copy.deepcopy(entries), "expected_current":
-            {"state": "never_written"} if revision is None else {"state": "present", "revision": revision}}
+            {"state": "never_written"} if revision is None else {"state": "present", "commit_id": revision["commit_id"]}}
 
 
 class ConsentPeerCurrentTest(unittest.TestCase):

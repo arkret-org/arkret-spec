@@ -61,6 +61,21 @@
       "spec_anchor": "spec/v1/zh/identity/key-management.md"
     },
     {
+      "exemption_id": "ak.exemption.sibling_digest.applet_install_operations_applet_capability_revoke_intent_registration_epoch.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/applet-install-operations.schema.json",
+        "json_path": "$.$defs.applet_capability_revoke_intent.properties",
+        "digest_field": "registration_epoch",
+        "content_addressed_refs": [
+          "expected_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the closed Applet installation security binding, retained across security-equivalent reassertions. expected_commit_id addresses the full RealmCommit of the selected grant current row, not those installation bytes.",
+      "spec_anchor": "spec/v1/zh/extensions/applet-schema.md"
+    },
+    {
       "exemption_id": "ak.exemption.sibling_digest.blob_content_key_commitment.v1",
       "status": "active",
       "kind": "distinct_preimage",
@@ -89,6 +104,84 @@
       },
       "preimage": "Digest of the bytes owned by this Blob metadata resource; thumbnail_blob_ref addresses separately derived thumbnail bytes",
       "spec_anchor": "spec/v1/zh/crypto-media/media-and-blob.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_cleanup_inventory_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/content-encryption.schema.json",
+        "json_path": "$.$defs.history_recovery.properties",
+        "digest_field": "cleanup_inventory_digest",
+        "content_addressed_refs": [
+          "inventory_blob_ref",
+          "cleanup_blob_ref"
+        ]
+      },
+      "preimage": "SHA-256 of UTF8(ak.content.cleanup_inventory.v1 followed by LF) concatenated with JCS(cleanup_inventory); Blob ref commits only raw JCS without the required domain prefix.",
+      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_coverage_head_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/content-encryption.schema.json",
+        "json_path": "$.$defs.history_recovery.properties",
+        "digest_field": "coverage_head_digest",
+        "content_addressed_refs": [
+          "inventory_blob_ref",
+          "cleanup_blob_ref"
+        ]
+      },
+      "preimage": "SHA-256 of the final deterministically chained coverage page for the original stream cut; not a digest of either inventory or cleanup Blob bytes.",
+      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.event_payload_actor_profile_update_payload_expected_state_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/event-payload.schema.json",
+        "json_path": "$.$defs.actor_profile_update_payload.properties",
+        "digest_field": "expected_state_digest",
+        "content_addressed_refs": [
+          "expected_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the complete prior profile value used by the separate patch/value integrity guard. expected_commit_id addresses its accepted covering RealmCommit including authority and stream metadata, not the profile value bytes.",
+      "spec_anchor": "spec/v1/zh/models/event-and-patch.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.event_payload_applet_registration_payload_registration_epoch.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/event-payload.schema.json",
+        "json_path": "$.$defs.applet_registration_payload.properties",
+        "digest_field": "registration_epoch",
+        "content_addressed_refs": [
+          "expected_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the closed Applet installation security binding that identifies a continuous installation instance. expected_commit_id addresses the prior accepted RealmCommit; security-equivalent reassertions can advance that Commit without changing registration_epoch.",
+      "spec_anchor": "spec/v1/zh/extensions/applet-schema.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.event_payload_device_authorize_payload_pairing_challenge_transcript_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/event-payload.schema.json",
+        "json_path": "$.$defs.device_authorize_payload.properties",
+        "digest_field": "pairing_challenge_transcript_digest",
+        "content_addressed_refs": [
+          "expected_control_commit_id",
+          "expected_device_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the exact frozen device pairing challenge transcript, including the requester and approval bindings. The two expected Commit IDs identify accepted control/device current rows, not that challenge transcript.",
+      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.handoff_historical_signer_facts.v1",
@@ -156,6 +249,74 @@
       },
       "preimage": "SHA-256 of RFC 8785 JCS over the complete ordered roster_record array independent of page boundaries; group_info_ref and ratchet_tree_ref each address a distinct raw RFC 9420 public material byte string from the accepted Genesis",
       "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.realm_actor_manager_acceptance_transcript_content_backup_handover_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-actor.schema.json",
+        "json_path": "$.$defs.manager_acceptance_transcript.properties",
+        "digest_field": "content_backup_handover_digest",
+        "content_addressed_refs": [
+          "expected_manager_commit_id",
+          "expected_control_commit_id",
+          "expected_device_generation_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the complete closed content-backup handover manifest for the new manager service. The expected Commit IDs address accepted manager/control/device-generation rows, not the transferred manifest bytes.",
+      "spec_anchor": "spec/v1/zh/extensions/realm-actors.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.realm_actor_manager_acceptance_transcript_content_backup_inventory_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-actor.schema.json",
+        "json_path": "$.$defs.manager_acceptance_transcript.properties",
+        "digest_field": "content_backup_inventory_digest",
+        "content_addressed_refs": [
+          "expected_manager_commit_id",
+          "expected_control_commit_id",
+          "expected_device_generation_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the exact RealmActor content backup inventory with archive revision and entries. The expected Commit IDs address manager/control/device-generation current rows and do not commit to this private inventory.",
+      "spec_anchor": "spec/v1/zh/extensions/realm-actors.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.realm_actor_manager_change_payload_content_backup_handover_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-actor.schema.json",
+        "json_path": "$.$defs.manager_change_payload.properties",
+        "digest_field": "content_backup_handover_digest",
+        "content_addressed_refs": [
+          "expected_manager_commit_id",
+          "expected_control_commit_id",
+          "expected_device_generation_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the complete closed content-backup handover manifest for the new manager service. The expected Commit IDs address accepted manager/control/device-generation rows, not the transferred manifest bytes.",
+      "spec_anchor": "spec/v1/zh/extensions/realm-actors.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.realm_actor_manager_change_payload_content_backup_inventory_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-actor.schema.json",
+        "json_path": "$.$defs.manager_change_payload.properties",
+        "digest_field": "content_backup_inventory_digest",
+        "content_addressed_refs": [
+          "expected_manager_commit_id",
+          "expected_control_commit_id",
+          "expected_device_generation_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of the exact RealmActor content backup inventory with archive revision and entries. The expected Commit IDs address manager/control/device-generation current rows and do not commit to this private inventory.",
+      "spec_anchor": "spec/v1/zh/extensions/realm-actors.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.realm_authority_handoff_final_stream_heads_digest.v1",
@@ -249,38 +410,6 @@
       },
       "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_coverage_head_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/content-encryption.schema.json",
-        "json_path": "$.$defs.history_recovery.properties",
-        "digest_field": "coverage_head_digest",
-        "content_addressed_refs": [
-          "inventory_blob_ref",
-          "cleanup_blob_ref"
-        ]
-      },
-      "preimage": "SHA-256 of the final deterministically chained coverage page for the original stream cut; not a digest of either inventory or cleanup Blob bytes.",
-      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.content_encryption_history_recovery_cleanup_inventory_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/content-encryption.schema.json",
-        "json_path": "$.$defs.history_recovery.properties",
-        "digest_field": "cleanup_inventory_digest",
-        "content_addressed_refs": [
-          "inventory_blob_ref",
-          "cleanup_blob_ref"
-        ]
-      },
-      "preimage": "SHA-256 of UTF8(ak.content.cleanup_inventory.v1 followed by LF) concatenated with JCS(cleanup_inventory); Blob ref commits only raw JCS without the required domain prefix.",
-      "spec_anchor": "spec/v1/zh/crypto-media/content-history.md"
     }
   ]
 }

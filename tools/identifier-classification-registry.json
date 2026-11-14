@@ -525,8 +525,8 @@
       "name": "session_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims/properties/session_id",
+      "occurrences": 2,
+      "example_path": "service-operation-dtos.schema.json#/$defs/SessionGrantMetadata/properties/session_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {

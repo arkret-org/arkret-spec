@@ -1470,6 +1470,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
         lint.fail(common_fields, "typed identifier prose must not require UUIDv7 for event-derived kinds")
     for required_rule in (
         "`producer_allocated` 使用 UUIDv7",
+        "`issuer_allocated` 使用 UUIDv7",
         "`event_derived` 使用",
         "33-octet suite-tagged 完整 digest token",
         "调用点 MUST NOT 自行选择",
@@ -1506,7 +1507,7 @@ _EVENT_DERIVED_UUID_WORDING = re.compile(
     flags=re.IGNORECASE,
 )
 _EVENT_DERIVED_UUID_PLACEHOLDER = re.compile(
-    r"ak:(?:actor_profile|audit_binding|audit_session|audit_release|call|circle|event|grant|invite|message|morph|realm|relation|session_grant|sidecar|space|strand|view):<uuid(?:v7)?>",
+    r"ak:(?:actor_profile|audit_binding|audit_session|audit_release|call|circle|event|grant|invite|message|morph|realm|relation|sidecar|space|strand|view):<uuid(?:v7)?>",
     flags=re.IGNORECASE,
 )
 _EVENT_DERIVED_SCOPE_UUID_NAME = re.compile(

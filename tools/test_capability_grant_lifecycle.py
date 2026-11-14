@@ -89,7 +89,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         grant = load(SCHEMAS / "capability-grant.schema.json")
         status = grant["properties"]["status"]
         self.assertEqual(status["enum"], ["active", "revoked", "relinquished"])
-        for member in ("status", "authority_depth", "authority_root_refs"):
+        for member in ("status", "authority_depth", "authority_root_ref"):
             with self.subTest(member=member):
                 self.assertIn(member, grant["required"])
 
@@ -101,7 +101,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
             "capability_grant_payload"
         ]["properties"]["grant"]
         self.assertFalse(body["additionalProperties"])
-        for member in ("status", "authority_depth", "authority_root_refs"):
+        for member in ("status", "authority_depth", "authority_root_ref"):
             with self.subTest(member=member):
                 self.assertNotIn(member, body["properties"])
 
@@ -119,7 +119,7 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         }
         self.assertEqual(set(by_kind), {"grant", "realm_root", "owned_agent"})
         forbidden = {
-            "expected_revision",
+            "expected_commit_id",
             "auth_state_digest",
             "governance_station_id",
             "basis",

@@ -473,7 +473,7 @@ MLS private bytes 保持端到端加密；Station 只处理公开 transition 和
 - `schema_violation`：closed schema、canonical encoding 或 typed ID 失败。
 - 目标不是验证后的 current authority：使用已登记的 authority bundle 验证失败面，不输出未登记的顶层码。
 - expected position/predecessor 与当前 stream head 不符：使用 `revision_stale`；领域 CAS 不符使用 `cas_conflict`。
-- `cas_conflict`：typed payload 的领域 `expected_revision` 不符。
+- `cas_conflict`：typed payload 的领域 `expected_commit_id` 不符。
 - `epoch_mismatch`：发送请求冻结的 MLS epoch／group-state／key-access revision 与已就绪的 current group 不符。
 - `duplicate_conflict`：相同幂等身份或内容 ID 对应不同 canonical bytes。
 - `temporarily_unavailable`：可安全 exact retry，且未产生 Commit。

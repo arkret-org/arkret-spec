@@ -20,28 +20,31 @@ class RealmActorContractTests(unittest.TestCase):
         fields = [x["field"].removeprefix("payload.") for x in selector["components"]]
         applet = "ak:applet:0195be74-0000-7000-8000-000000000001"
         current = {}
+        position = 0
 
         def accept(payload):
+            nonlocal position
             key = canonical([payload[f] for f in fields])
             prior = current.get(key)
-            if payload["expected_revision"] != (prior[0] if prior else None):
+            if payload["expected_commit_id"] != (prior[0] if prior else None):
                 return False
-            revision = max([r[0] for r in current.values()] or [0]) + 1
+            position += 1
+            revision = token("realm_commit", position)
             instance = prior[2] if prior and prior[1] == payload["registration_epoch"] else revision
             current[key] = (revision, payload["registration_epoch"], instance)
             return True
 
-        old = dict(applet_id=applet, service_id="ak:did_core:webvh:zOld", expected_revision=None, registration_epoch="old")
+        old = dict(applet_id=applet, service_id="ak:did_core:webvh:zOld", expected_commit_id=None, registration_epoch="old")
         new = dict(old, service_id="ak:did_core:webvh:zNew", registration_epoch="new")
         self.assertTrue(accept(old))
         saved = dict(current)
         self.assertTrue(accept(new))
         self.assertTrue(all(current[k][1:] == v[1:] for k, v in saved.items()))
         self.assertFalse(accept(dict(new, registration_epoch="racing-writer")))
-        self.assertTrue(accept(dict(old, expected_revision=1)))
+        self.assertTrue(accept(dict(old, expected_commit_id=token("realm_commit", 1))))
         self.assertEqual(2, len(current))
         self.assertTrue(all(current[k][1:] == v[1:] for k, v in saved.items()))
-        self.assertFalse(accept(dict(old, expected_revision=1)))
+        self.assertFalse(accept(dict(old, expected_commit_id=token("realm_commit", 1))))
 
     def test_registration_current_has_one_realm_stream_across_circle_installs(self):
         from jsonschema import Draft202012Validator
@@ -76,16 +79,17 @@ class RealmActorContractTests(unittest.TestCase):
 
     def test_registration_cas_is_signed_event_material_not_package_epoch(self):
         event = json.loads((ART / "schemas/event-payload.schema.json").read_text(encoding="utf-8"))["$defs"]["applet_registration_payload"]
-        self.assertIn("expected_revision", event["required"])
-        v = self.validator("event-payload", "#/$defs/applet_registration_payload/properties/expected_revision")
+        self.assertIn("expected_commit_id", event["required"])
+        v = self.validator("event-payload", "#/$defs/applet_registration_payload/properties/expected_commit_id")
         v.validate(None)
-        v.validate({"commit_id": token("realm_commit"), "stream_position": 1})
+        v.validate(token("realm_commit"))
         self.assertFalse(v.is_valid(1))
+        self.assertFalse(v.is_valid({"commit_id": token("realm_commit"), "stream_position": 1}))
         package = json.loads((ART / "schemas/applet-package.schema.json").read_text(encoding="utf-8"))
         epoch = json.loads((ART / "schemas/applet-registration-epoch-transcript.schema.json").read_text(encoding="utf-8"))
-        self.assertNotIn("expected_revision", package["properties"])
-        self.assertNotIn("expected_revision", epoch["$defs"]["derived_registration"]["properties"])
-        self.assertNotEqual(digest({"expected_revision": None}), digest({"expected_revision": {"commit_id": token("realm_commit"), "stream_position": 1}}))
+        self.assertNotIn("expected_commit_id", package["properties"])
+        self.assertNotIn("expected_commit_id", epoch["$defs"]["derived_registration"]["properties"])
+        self.assertNotEqual(digest({"expected_commit_id": None}), digest({"expected_commit_id": token("realm_commit")}))
 
     def test_managed_namespaces_cannot_reintroduce_host_ownership(self):
         validator = self.validator("applet-package", "#/$defs/applet_namespaces")
@@ -372,7 +376,7 @@ class RealmActorContractTests(unittest.TestCase):
     def test_ra_device_transcript_complete_fields_and_no_account_fallback(self):
         schema = json.loads((ART / "schemas/event-payload.schema.json").read_text(encoding="utf-8"))["$defs"]
         transcript = schema["device_authorize_realm_actor_possession_transcript"]
-        expected = "actor_id device_id device_public_key_did hpke_key algorithms device_key_algorithm authorized_by authorization_binding_kind authorized_generation_ref not_before expires_at scopes applet_id expected_control_revision expected_device_revision".split()
+        expected = "actor_id device_id device_public_key_did hpke_key algorithms device_key_algorithm authorized_by authorization_binding_kind authorized_generation_ref not_before expires_at scopes applet_id expected_control_commit_id expected_device_commit_id".split()
         self.assertEqual(list(transcript["properties"]), expected)
         self.assertEqual(transcript["required"], expected)
         self.assertFalse(transcript["additionalProperties"])
@@ -514,7 +518,7 @@ class RealmActorContractTests(unittest.TestCase):
         validator.validate(event)
         for change in [{"scope_ref":{"kind":"realm","realm_id":token("realm")}}, {"actor_id":actor()}, {"executed_by":actor()}]:
             self.assertFalse(validator.is_valid({**event,**change}))
-        event.update(kind="ak.realm.actor.devices.reset",actor_id=actor(),payload={"expected_revision":{"commit_id":token("realm_commit"),"stream_position":0},"expected_generation":1,"new_generation":2})
+        event.update(kind="ak.realm.actor.devices.reset",actor_id=actor(),payload={"expected_commit_id":token("realm_commit"),"expected_generation":1,"new_generation":2})
         event.pop("authorization_ref")
         validator.validate(event)
         self.assertFalse(validator.is_valid({**event,"authorization_ref":token("grant")}))

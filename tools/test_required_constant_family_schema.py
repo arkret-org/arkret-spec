@@ -112,9 +112,9 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             "pcr_policy",
         )
         self.assertEqual(
-            load("security-transaction.schema.json")["$defs"]
-            ["pcr_policy_recovery_binding"]["properties"]["identity_model"]["const"],
-            "pcr_policy",
+            load("recovery-authority.schema.json")["$defs"]
+            ["recovery_completion_attestation"]["properties"]["schema"]["const"],
+            "ak.schema.recovery_completion_attestation.v1",
         )
 
     def test_retired_pcd_wire_surfaces_cannot_return(self) -> None:

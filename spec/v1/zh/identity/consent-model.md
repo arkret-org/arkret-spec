@@ -30,7 +30,7 @@ current revision 与 value 同层，为封闭 `{commit_id,stream_position}`，�
 
 ### 3.1 `ak.consent.replace`
 
-唯一原生 writer 是 `ak.consent.replace`，closed payload 为 `event-payload.schema.json#/$defs/consent_replace_payload`：`peer,expected_current,permissions`。首次写签 `{state:"never_written"}`；已有 current 签 `{state:"present",revision:{commit_id,stream_position}}`。该前态必须从 §6.3.1 完整读取取得；不把 read proof 塞入 payload 或创建预约。
+唯一原生 writer 是 `ak.consent.replace`，closed payload 为 `event-payload.schema.json#/$defs/consent_replace_payload`：`peer,expected_current,permissions`。首次写签 `{state:"never_written"}`；已有 current 签 `{state:"present",commit_id:RealmCommitId}`。该前态必须从 §6.3.1 完整读取取得；不把 read proof 塞入 payload 或创建预约。
 
 接受方在 PCR 原有 serializable admission 事务内验证实际 holder PCR、用户原签、当前 root controller、authorization_ref／设备与完整 peer，再检查从未写入谓词或 exact revision，接受整份目标集合并签原 covering RealmCommit。同前态竞争至多接受一份，另一份 `failed_precondition`、零 Event／Commit／current／私有效果写入，必须重读并重新确认；不得自动 union、按时间合并、服务端补字段或重签。
 

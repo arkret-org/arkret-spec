@@ -1487,13 +1487,6 @@
       "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
-      "schema_id": "ak.schema.recovery_terminal_commit.v1",
-      "file": "schemas/security-transaction.schema.json",
-      "fragment": "#/$defs/recovery_terminal_commit",
-      "status": "active",
-      "description": "Closed terminal artifact of a RecoveryTransaction containing only the replacement-device-signed recovery receipt. It contains no RealmCommit, authority signature or precomputed commit id; the governance Station validates the receipt and both prepared producer Events, then issues their two consecutive PCR-stream RealmCommits inside the atomic commit_recovery_unit admission."
-    },
-    {
       "schema_id": "ak.schema.registration_did_evidence.v1",
       "file": "schemas/registration-did-evidence.schema.json",
       "status": "active",
@@ -1551,7 +1544,7 @@
       "schema_id": "ak.schema.security_transaction.v1",
       "file": "schemas/security-transaction.schema.json",
       "status": "active",
-      "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
+      "description": "Single-submit Recovery success or durable multi-step SecurityRotation resource."
     },
     {
       "schema_id": "ak.schema.service_describe.v1",

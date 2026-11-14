@@ -3001,21 +3001,12 @@
       "activation_condition": "Promote audit_capability_incomplete to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
-      "code": "authority_cycle",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A ak.capability.grant would close a cycle in the authority graph, traversed as a DFS over grant_id edges taken from issuer_authority_refs entries with kind=grant. realm_root refs are rooted terminals and contribute no edge. Reducer MUST reject the grant; evaluation MUST NOT recurse without terminating. See zh/authz/capabilities.md §10.",
-      "status": "active"
-    },
-    {
       "code": "authority_expiry_widening",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "For some action this grant claims, its effective window is wider than the refs that cover that action allow: it starts before the earliest effective_not_before among them, or ends after the latest effective_expires_at. The bound is evaluated per action, because a global min/max would let an action covered only by a late-window ref borrow an early one. See zh/authz/capabilities.md §10.",
+      "description": "For an exact action-resource pair this grant claims, its effective window exceeds the union of the real windows supplied by its covering issuer authority sources. Gaps cannot be filled by a convex hull or another action/resource. A new explicit finite root authorization uses its own accepting RealmCommit.committed_at plus effective L; finite upstream windows do not renew. See zh/authz/capabilities.md section 10.",
       "status": "active"
     },
     {
@@ -3773,7 +3764,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A ak.capability.revoke passed ordinary action authorization but failed the target guard: the actor is neither the target grant's issuer nor the current root controller of the target grant's own realm_id. Controlling some upstream root reachable through authority_root_refs is deliberately not enough â€” a co-owner or sibling MUST NOT be able to revoke an upstream or peer grant by holding ak.realm.owner. The rejection MUST NOT disclose whether the target exists or which Realm it belongs to.",
+      "description": "A ak.capability.revoke passed ordinary action authorization but failed the target guard: the actor is neither the target grant's issuer nor the current root controller of the target grant's own realm_id. Controlling some upstream root reachable through authority_root_ref is deliberately not enough â€” a co-owner or sibling MUST NOT be able to revoke an upstream or peer grant by holding ak.realm.owner. The rejection MUST NOT disclose whether the target exists or which Realm it belongs to.",
       "status": "reserved",
       "activation_condition": "Promote grant_revoke_not_authorized to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },

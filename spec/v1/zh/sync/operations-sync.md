@@ -26,7 +26,7 @@ see_also:
 
 ### 2.2 敏感 Event
 
-敏感操作通过 typed payload、required signer、current authz 和可选 `expected_revision` 表达。
+敏感操作通过 typed payload、required signer、current authz 和可选 `expected_commit_id` 表达。
 
 ### 2.3 actor-private 与 ephemeral 边界
 

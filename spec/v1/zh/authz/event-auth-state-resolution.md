@@ -38,7 +38,7 @@ Station 在该 stream 上给出的 `stream_position`：位置更大的已接纳�
 持有可用于排序的因果深度——生产者 Event 不携带前驱、basis 或 frontier，因此 MUST NOT 存在"深度更大者胜"
 这类判据，也 MUST NOT 用 HLC、`created_at`、actor id、本地接收顺序或数据库插入顺序选边。
 
-需要防覆盖的 kind 在 payload 定义 `expected_revision`，并按 compare-and-set 收敛：提交者带上它读到的
+需要防覆盖的 kind 在 payload 定义 `expected_commit_id`，并按 compare-and-set 收敛：提交者带上它读到的
 `CurrentRevision`，Station 在接纳位置比较该值，不匹配即以 `failed_precondition` 拒绝且零写入，客户端重读
 当前值后重新签发再试。并发写因此串行化为该 stream 上的一串位置，不产生需要用户合并的多头。
 
