@@ -101,18 +101,25 @@ REALM = typed_id('realm', {'fixture': 'call_current_realm'})
 STREAM = {'kind': 'realm', 'realm_id': REALM}
 
 
-def event(payload, position, kind='ak.call.state'):
+def event(payload, position, kind='ak.call.state', authorization_ref=None, service_producer=False):
     created_at = (datetime.fromisoformat(T.replace('Z', '+00:00')) + timedelta(milliseconds=position)).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
     body = {'kind': kind, 'realm_id': REALM, 'scope_ref': STREAM,
             'actor_id': ACTOR, 'created_at': created_at, 'payload': payload}
+    producer_vm = PRODUCER_VM
+    if service_producer:
+        body['executed_by'] = {'kind': 'service', 'service_id': 'ak:did_core:web:media.example'}
+        body['applet_id'] = 'ak:applet:01964137-0000-7000-8000-000000000007'
+        producer_vm = 'did:web:media.example#recording-key'
+    if authorization_ref is not None:
+        body['authorization_ref'] = authorization_ref
     digest = 'sha256:' + hashlib.sha256(jcs(body)).hexdigest()
     binding = {'context': 'ak.event_proof.v1', 'event_digest': digest, 'actor_id': ACTOR,
-               'verification_method': PRODUCER_VM, 'created_at': created_at}
+               'verification_method': producer_vm, 'created_at': created_at}
     signing_input = refresh_jws_input({'protected_header': {'alg': 'Ed25519'}}, jcs(binding))
     jws = signing_input.decode().split('.')[0] + '..' + b64u(
         Ed25519PrivateKey.from_private_bytes(KEY_B_SEED).sign(signing_input))
     return {**body, 'event_id': typed_id('event', body), 'producer_proof': {
-        'kind': 'detached_jws', 'verification_method': PRODUCER_VM,
+        'kind': 'detached_jws', 'verification_method': producer_vm,
         'event_digest': digest, 'created_at': created_at, 'jws': jws}}
 
 
@@ -122,6 +129,97 @@ def sign_snapshot(snapshot):
     value = {'snapshot_id': typed_id('realm_snapshot', unsigned), **unsigned}
     signature, _ = make_signature('ak.realm_snapshot_signature.v1', value, OLD_VM, KEY_A_SEED)
     return {**value, 'signature': signature}
+
+
+def capture_fixture(call_id, previous):
+    """Signed capture sources and whole currents, separate from roster fixtures."""
+    rows, checkpoints = [], []
+    axes = {}
+    start = None
+    root_ref = {'kind': 'realm_root', 'realm_id': REALM,
+                'authority_event_ref': typed_id('event', {'fixture': 'capture_authority'}),
+                'authority_generation': '1'}
+    grant_body = {'schema': 'ak.schema.capability.v1', 'realm_id': REALM,
+                  'issuer_id': ACTOR, 'subject': ACTOR,
+                  'actions': ['ak.call.record', 'ak.call.transcribe'],
+                  'resources': [{'kind': 'realm', 'realm_id': REALM}], 'constraints': [],
+                  'issued_at': T, 'issuer_authority_refs': [root_ref]}
+    grant_event = event({'grant': grant_body}, 19, 'ak.capability.grant')
+    grant_id = grant_event['event_id'].replace('ak:event:', 'ak:grant:')
+    grant_core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': 19,
+                  'previous_commit_ref': previous, 'event_ref': grant_event['event_id'],
+                  'governance_generation': '1', 'authority_ref': root_ref['authority_event_ref'],
+                  'committed_at': grant_event['created_at']}
+    grant_commit = {'commit_id': typed_id('realm_commit', grant_core), **grant_core}
+    grant_commit['signature'], _ = make_signature('ak.realm_commit_signature.v1', grant_commit, OLD_VM, KEY_A_SEED)
+    previous = grant_commit['commit_id']
+    grant_current = {**copy.deepcopy(grant_body), 'id': grant_id, 'authority_depth': 1,
+                     'authority_root_ref': root_ref, 'status': 'active'}
+    def append(payload, kind='ak.call.state'):
+        nonlocal previous, start
+        position = 20 + len(rows)
+        service_producer = payload.get('recording_transition', {}).get('to') == 'ready'
+        ev = event({'call_id': call_id, **payload}, position, kind, authorization_ref=grant_id if kind == 'ak.call.recording.start' or service_producer else None, service_producer=service_producer)
+        core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': position,
+                'previous_commit_ref': previous, 'event_ref': ev['event_id'],
+                'governance_generation': "1", 'authority_ref': typed_id('event', {'fixture': 'capture_authority'}),
+                'committed_at': ev['created_at']}
+        commit = {'commit_id': typed_id('realm_commit', core), **core}
+        commit['signature'], _ = make_signature('ak.realm_commit_signature.v1', commit, OLD_VM, KEY_A_SEED)
+        previous = commit['commit_id']
+        row = {'event': ev, 'commit': commit}
+        rows.append(row)
+        if kind == 'ak.call.recording.start':
+            start = ev['event_id']
+            capture = payload['capture_kind']
+            segment = payload['recording_id']
+            details = copy.deepcopy(payload['capture_metadata'])
+            details[capture + '_start_event_id'] = start
+            axes[(capture + '_state', segment)] = ('transcribing' if capture == 'transcript' else 'recording', commit)
+            axes[(capture + '_artifact', segment)] = ({'status': 'pending', 'details': details}, commit)
+        else:
+            capture = 'recording' if 'recording_transition' in payload else 'transcript'
+            transition = payload[capture + '_transition']
+            segment = transition['recording_id']
+            if transition['to'] == 'stopped':
+                axes[(capture + '_state', segment)] = ('stopped', commit)
+            else:
+                axes[(capture + '_artifact', segment)] = ({'status': transition['to'], 'details': copy.deepcopy(transition['capture_metadata'])}, commit)
+        currents = [{'selector': {'kind': 'call_' + family, 'call_id': call_id, 'recording_id': segment},
+                     'source_stream_ref': STREAM, 'revision': revision(c), 'value': copy.deepcopy(value)}
+                    for (family, segment), (value, c) in sorted(axes.items())]
+        checkpoints.append({'current_state_entries': currents, 'source_head': {'stream_ref': STREAM, **revision(commit)}})
+        return row
+    for capture in ('recording', 'transcript'):
+        segment = capture + '-segment'
+        opening = append({'recording_id': segment, 'recording_agent_id': 'ak:did_core:web:media.example',
+                          'capture_kind': capture, 'mode': 'audio', 'visible_notice': True,
+                          'capture_metadata': {'retention': {'consent_confirmed': True, 'retention_expires_at': '2027-09-20T00:00:00.000Z'}}},
+                         'ak.call.recording.start')
+        stopped = append({capture + '_transition': {'recording_id': segment, 'from': 'recording' if capture == 'recording' else 'transcribing', 'to': 'stopped'}})
+        details = {capture + '_start_event_id': opening['event']['event_id'], capture + '_stop_event_id': stopped['event']['event_id'],
+                   'failure_reason_code': 'storage_failed', 'retention': copy.deepcopy(opening['event']['payload']['capture_metadata']['retention'])}
+        append({capture + '_transition': {'recording_id': segment, 'from': 'stopped', 'to': 'failed',
+                'expected_commit_id': opening['commit']['commit_id'], 'capture_metadata': details}})
+        if capture == 'recording':
+            artifact = {'schema': 'ak.schema.call_recording_artifact.v1', 'realm_id': REALM, 'call_id': call_id,
+                'recording_id': segment, 'recording_start_event_id': opening['event']['event_id'],
+                'blob_ref': 'ak:blob:sha256:' + hashlib.sha256(b'encrypted capture fixture').hexdigest(),
+                'size_bytes': len(b'encrypted capture fixture'), 'duration_ms': 12, 'media_type': 'audio/ogg',
+                'encryption': {'encryption_algorithm': 'mls_exporter_aead_xchacha20poly1305',
+                    'exporter_label': 'ak.rtc-recording-key/v1', 'context': {'realm_id': REALM, 'call_id': call_id,
+                    'focus_id': 'fra-1', 'recording_id': segment, 'media_service_id': 'ak:did_core:web:media.example',
+                    'recording_start_event_id': opening['event']['event_id']}},
+                'retention': copy.deepcopy(opening['event']['payload']['capture_metadata']['retention']),
+                'produced_by': 'ak:did_core:web:media.example', 'recording_initiator_capability_ref': grant_id,
+                'created_at': rows[-1]['event']['created_at']}
+            append({'recording_transition': {'recording_id': segment, 'from': 'stopped', 'to': 'ready',
+                    'expected_commit_id': rows[-1]['commit']['commit_id'], 'capture_metadata': {'artifact': artifact}}})
+    return {'original_rows': rows, 'checkpoints': checkpoints,
+            'initiator_grant_source': {'event': grant_event, 'commit': grant_commit, 'current': grant_current},
+            'cases': ['start_atomic_pending', 'stop_does_not_publish_result', 'result_cas_uses_artifact_revision',
+                      'failed_then_ready_keeps_stopped', 'stale_result_guard_rejected', 'stop_guard_forbidden',
+                      'ready_metadata_is_artifact_only', 'no_result_guard_in_current', 'transcript_kind_isolation']}
 
 
 def build_fixture():
@@ -216,6 +314,7 @@ def build_fixture():
                                    'public_key_base64url': public_key(KEY_B_SEED)},
         'request_context': context, 'response_context': copy.deepcopy(context), 'write_indices': indices,
         'original_rows': rows, 'checkpoints': checkpoints, 'followup_rows': followup_rows,
+        'capture_transcripts': capture_fixture(call_id, rows[-1]['commit']['commit_id']),
         'cases': [
             {'name': name, 'vector_id': VECTOR, 'expected': outcome, **({'checkpoint': 7, 'omit_entry': 'non_last_source'} if name in ('omission_unsigned', 'omission_resigned_ordinary_trust_boundary', 'omission_resigned_complete_replica') else {})}
             for name, outcome in [

@@ -1182,8 +1182,15 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload"
+          },
+          "authorization_ref": {
+            "$ref": "./common-ids.schema.json#/$defs/grant_id",
+            "description": "The exact signed positive grant selected for this capture action. It is not an existence hint or an owner fallback; native admission must actually discharge this grant path while retaining global refusals."
           }
-        }
+        },
+        "required": [
+          "authorization_ref"
+        ]
       }
     },
     {
@@ -1210,7 +1217,104 @@
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/call_state_payload"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "payload": {
+                  "properties": {
+                    "recording_transition": {
+                      "properties": {
+                        "to": {
+                          "const": "ready",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/if/properties/payload/properties/recording_transition/properties/to",
+                            "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/if/properties/payload/properties/recording_transition/properties/to",
+                            "values": [
+                              "ready"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "to"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "recording_transition"
+                  ]
+                }
+              },
+              "required": [
+                "payload"
+              ]
+            },
+            "then": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "actor_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                      "properties": {
+                        "kind": {
+                          "const": "service",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/0/properties/actor_id/properties/kind",
+                            "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/0/properties/actor_id/properties/kind",
+                            "values": [
+                              "service"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "actor_id"
+                  ],
+                  "not": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                {
+                  "properties": {
+                    "executed_by": {
+                      "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                      "properties": {
+                        "kind": {
+                          "const": "service",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/1/properties/executed_by/properties/kind",
+                            "owner": "event-envelope.schema.json#/allOf/23/then/allOf/0/then/anyOf/1/properties/executed_by/properties/kind",
+                            "values": [
+                              "service"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "executed_by"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     {

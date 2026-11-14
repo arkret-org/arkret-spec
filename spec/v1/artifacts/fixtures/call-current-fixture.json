@@ -3675,6 +3675,1221 @@
       }
     }
   },
+  "capture_transcripts": {
+    "original_rows": [
+      {
+        "event": {
+          "kind": "ak.call.recording.start",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.020Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "recording_id": "recording-segment",
+            "recording_agent_id": "ak:did_core:web:media.example",
+            "capture_kind": "recording",
+            "mode": "audio",
+            "visible_notice": true,
+            "capture_metadata": {
+              "retention": {
+                "consent_confirmed": true,
+                "retention_expires_at": "2027-09-20T00:00:00.000Z"
+              }
+            }
+          },
+          "authorization_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+          "event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:9e730cf790ab109ccb3a363ccee1469f3abfc242086167faffb636a666d8b1dd",
+            "created_at": "2026-09-20T00:00:00.020Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..bPtrnVzdVymBAGgsgN44IDIhwGoXcIW8GcWUaKavV_PMxk4VEoMi0SzU0KcMg-4GmlVsHSS6OAtdjVkaK9oaBw"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 20,
+          "previous_commit_ref": "ak:realm_commit:Aex6YzCAvbqK4lsJ5MZKsg0Nu9U2dRHn6wu1KeRSDHgi",
+          "event_ref": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.020Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:a75f8ec4e8f5f428079186bf1a4d533255b033b71b89fd39131d0469623deba6",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "rfFIKuuDwU9p_YZNRWe2_PKWP5HjYQzuBxr3Sqtk3NtoIFDtAH_f8dN5wSTtbFX04ECK1mnTZ-RxbydMeLT4AA"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.state",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.021Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "recording_transition": {
+              "recording_id": "recording-segment",
+              "from": "recording",
+              "to": "stopped"
+            }
+          },
+          "event_id": "ak:event:AbKL_NKZoYtKGravvqLiZ-dbvBM-BL-nYgNBwjjlbAWY",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:b28bfcd299a18b4a1ab6afbea2e267e75bbc133e04bfa7620341c238e56c0598",
+            "created_at": "2026-09-20T00:00:00.021Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Hp6MnxDsQO0oC_ht2FVojMewxQj-zJrSGAZAgwBAp6-oSnq8AuqV0MFNOvCSdH6ymNHIVYtiXuic68YaX1Q1Dw"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 21,
+          "previous_commit_ref": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+          "event_ref": "ak:event:AbKL_NKZoYtKGravvqLiZ-dbvBM-BL-nYgNBwjjlbAWY",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.021Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:da8c64515f9372b75002915cee3ef8241206deea3787dcfa3479c2a19c7daa20",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "vX6F5WrQnGlBgUrBVXbwoW_HA-sOR8QfhgmxqsoUeAcbgHfqIt3m-OJdUfRUOllMOX25uvkxD3lORZhejpnvAA"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.state",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.022Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "recording_transition": {
+              "recording_id": "recording-segment",
+              "from": "stopped",
+              "to": "failed",
+              "expected_commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+              "capture_metadata": {
+                "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                "recording_stop_event_id": "ak:event:AbKL_NKZoYtKGravvqLiZ-dbvBM-BL-nYgNBwjjlbAWY",
+                "failure_reason_code": "storage_failed",
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                }
+              }
+            }
+          },
+          "event_id": "ak:event:AdeRU0wc8gl53wfNSU1NDphmpNDjZ5vld08mWJnuvxaj",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:d791534c1cf20979df07cd494d4d0e9866a4d0e3679be5774f265899eebf16a3",
+            "created_at": "2026-09-20T00:00:00.022Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..naAYBVFmtyeN_j87v1wyV8UZaJgc63idu79cYvTCJbfUbKufP_yBmqOoKKMEK-9kkd0hf1mLbkQsfUODGUj0CQ"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:AXybiKdImERdYThfyBTx9_mdxd-_t7s4sdqAox1MxHNb",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 22,
+          "previous_commit_ref": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+          "event_ref": "ak:event:AdeRU0wc8gl53wfNSU1NDphmpNDjZ5vld08mWJnuvxaj",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.022Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:9ca544ff702d0c033a034d7f859bc68cd4c8e41fbadef50894f303ffea2f48bb",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "NiRQjsIAF2DjipivWEAozrYTpr4MSJsXEKZS6rL31V4MFM04we51G112HSFBrrGVTo6WwkvxlmgTFyBFCcY6Cg"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.state",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.023Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "recording_transition": {
+              "recording_id": "recording-segment",
+              "from": "stopped",
+              "to": "ready",
+              "expected_commit_id": "ak:realm_commit:AXybiKdImERdYThfyBTx9_mdxd-_t7s4sdqAox1MxHNb",
+              "capture_metadata": {
+                "artifact": {
+                  "schema": "ak.schema.call_recording_artifact.v1",
+                  "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                  "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                  "recording_id": "recording-segment",
+                  "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                  "blob_ref": "ak:blob:sha256:f03531d6637acc5520349e0ba00a3f031edf809c0ab1f246a62ace3201f2fbb5",
+                  "size_bytes": 25,
+                  "duration_ms": 12,
+                  "media_type": "audio/ogg",
+                  "encryption": {
+                    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+                    "exporter_label": "ak.rtc-recording-key/v1",
+                    "context": {
+                      "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                      "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                      "focus_id": "fra-1",
+                      "recording_id": "recording-segment",
+                      "media_service_id": "ak:did_core:web:media.example",
+                      "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+                    }
+                  },
+                  "retention": {
+                    "consent_confirmed": true,
+                    "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                  },
+                  "produced_by": "ak:did_core:web:media.example",
+                  "recording_initiator_capability_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+                  "created_at": "2026-09-20T00:00:00.022Z"
+                }
+              }
+            }
+          },
+          "executed_by": {
+            "kind": "service",
+            "service_id": "ak:did_core:web:media.example"
+          },
+          "applet_id": "ak:applet:01964137-0000-7000-8000-000000000007",
+          "authorization_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+          "event_id": "ak:event:AVnV4BKXmZniN7SNt-g4Ip_BgmuktStq-26tXZjdZjly",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:media.example#recording-key",
+            "event_digest": "sha256:59d5e012979999e237b48db7e838229fc1826ba4b52b6afb6ead5d98dd663972",
+            "created_at": "2026-09-20T00:00:00.023Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..D1rQ65j_xFf2aGhgw-vavOWHa7tgH03NQwHQ3rIoF5JlGP26pl6kidV9dowjfkgNR3oHlVN8skrg4Y7HSFA6BQ"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 23,
+          "previous_commit_ref": "ak:realm_commit:AXybiKdImERdYThfyBTx9_mdxd-_t7s4sdqAox1MxHNb",
+          "event_ref": "ak:event:AVnV4BKXmZniN7SNt-g4Ip_BgmuktStq-26tXZjdZjly",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.023Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:204f00200de175d51fcb7ac9c7f4d8bb5ff16d2936a6fa099be301554a76cd1f",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "2iMq7GyaagotMckfj5WxBdLDyDtrewffu3pFpu0_6Fx9Wbo2sLKkMAy5lvXAwLxOl9nnTUr4sCbb5Of0POsfBg"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.recording.start",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.024Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "recording_id": "transcript-segment",
+            "recording_agent_id": "ak:did_core:web:media.example",
+            "capture_kind": "transcript",
+            "mode": "audio",
+            "visible_notice": true,
+            "capture_metadata": {
+              "retention": {
+                "consent_confirmed": true,
+                "retention_expires_at": "2027-09-20T00:00:00.000Z"
+              }
+            }
+          },
+          "authorization_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+          "event_id": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:7cd0e705bc72129de3e1f511d475d20735810c01b41b73f94f7ff068dfa76eb4",
+            "created_at": "2026-09-20T00:00:00.024Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..tuv8mEFwUsBUjkKY9A_Mj1f4Ru03nfZgwtFvjOCr0DtU-8iYFTzzt39K95Lxh_mBfs9WA9GJj6D1B1O_eS3oCQ"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 24,
+          "previous_commit_ref": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+          "event_ref": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.024Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:ed54ad586eb63e649b44ea266ce306d42ad3904ec6ee158df468a80bda15457f",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "FsKnqWwteNdp2pTtZp5zn0alsOc85gfKzXIURRmb1DAkgH1jL4LTEKRN8FYAUDdqPosFLYTqI5NR6ggFNJmvDw"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.state",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.025Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "transcript_transition": {
+              "recording_id": "transcript-segment",
+              "from": "transcribing",
+              "to": "stopped"
+            }
+          },
+          "event_id": "ak:event:ART6HgmgVajHsn-fQcPp4nSb_yp4xqvNAx_RgTAZxEIL",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:14fa1e09a055a8c7b27f9f41c3e9e2749bff2a78c6abcd031fd1813019c4420b",
+            "created_at": "2026-09-20T00:00:00.025Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Br2QnUFHX_93jYDQ9fo6ATbDfJ3eD3Q6O2z5oVmoQ0iYTrWN09jZA0USBll_rWI4qIeZ_bXkd0lPMuUi-VAfCQ"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:AaXFrslY6qqFPl_QxgggiVeBLXrMQDsEkDNDTU2mxGHL",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 25,
+          "previous_commit_ref": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+          "event_ref": "ak:event:ART6HgmgVajHsn-fQcPp4nSb_yp4xqvNAx_RgTAZxEIL",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.025Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:54b27c3a560b93cb3f6760a3adee6725789040dc5144a1d1be3fdadf14c4b655",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "tmuKRD6YBqyprPIemBoRMzaM85Vjnpec-uwhv0bH4vNv6bKHnHDOfwqhM_S7Lte4_8B4zubOU7_4EKIgdfTgBA"
+          }
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.call.state",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.026Z",
+          "payload": {
+            "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+            "transcript_transition": {
+              "recording_id": "transcript-segment",
+              "from": "stopped",
+              "to": "failed",
+              "expected_commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+              "capture_metadata": {
+                "transcript_start_event_id": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260",
+                "transcript_stop_event_id": "ak:event:ART6HgmgVajHsn-fQcPp4nSb_yp4xqvNAx_RgTAZxEIL",
+                "failure_reason_code": "storage_failed",
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                }
+              }
+            }
+          },
+          "event_id": "ak:event:AULYXcLcXbp04_2dvEG5FuzpWjmIyxA4WCWhTJ_IJAb6",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+            "event_digest": "sha256:42d85dc2dc5dba74e3fd9dbc41b916ece95a3988cb10385825a14c9fc82406fa",
+            "created_at": "2026-09-20T00:00:00.026Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..eSNXPIlJnMn2gEkBHdBTFBaiG_p0qMvLluBQ1mt8GK_ylNrMqcaaydS30I1RAkDnX-sQIQLhLgWWKIsP6kAnCw"
+          }
+        },
+        "commit": {
+          "commit_id": "ak:realm_commit:ATJzbJVWQYzC5Bx_GXkZ2m-s0AelkMSwEPNI6_cqiyFO",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "stream_position": 26,
+          "previous_commit_ref": "ak:realm_commit:AaXFrslY6qqFPl_QxgggiVeBLXrMQDsEkDNDTU2mxGHL",
+          "event_ref": "ak:event:AULYXcLcXbp04_2dvEG5FuzpWjmIyxA4WCWhTJ_IJAb6",
+          "governance_generation": "1",
+          "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "committed_at": "2026-09-20T00:00:00.026Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "signed_digest": "sha256:f459366cacee2341e599e4b17408018ff4d6372506ab6d7719234474f0e09bef",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "Ubu8biPVGRvTqwJWWGgNXQlnsOMktK73KsWVua-boPQq9VA4heifovat7vPZTJIoqzF_4aakUHxhK6B847igBQ"
+          }
+        }
+      }
+    ],
+    "checkpoints": [
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+              "stream_position": 20
+            },
+            "value": {
+              "status": "pending",
+              "details": {
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                },
+                "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+              "stream_position": 20
+            },
+            "value": "recording"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+          "stream_position": 20
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AXY8rXJp2nnjVnPbGNuU4-8nqt8VwKp6Up5JcArNnVFi",
+              "stream_position": 20
+            },
+            "value": {
+              "status": "pending",
+              "details": {
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                },
+                "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+          "stream_position": 21
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AXybiKdImERdYThfyBTx9_mdxd-_t7s4sdqAox1MxHNb",
+              "stream_position": 22
+            },
+            "value": {
+              "status": "failed",
+              "details": {
+                "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                "recording_stop_event_id": "ak:event:AbKL_NKZoYtKGravvqLiZ-dbvBM-BL-nYgNBwjjlbAWY",
+                "failure_reason_code": "storage_failed",
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:AXybiKdImERdYThfyBTx9_mdxd-_t7s4sdqAox1MxHNb",
+          "stream_position": 22
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+              "stream_position": 23
+            },
+            "value": {
+              "status": "ready",
+              "details": {
+                "artifact": {
+                  "schema": "ak.schema.call_recording_artifact.v1",
+                  "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                  "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                  "recording_id": "recording-segment",
+                  "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                  "blob_ref": "ak:blob:sha256:f03531d6637acc5520349e0ba00a3f031edf809c0ab1f246a62ace3201f2fbb5",
+                  "size_bytes": 25,
+                  "duration_ms": 12,
+                  "media_type": "audio/ogg",
+                  "encryption": {
+                    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+                    "exporter_label": "ak.rtc-recording-key/v1",
+                    "context": {
+                      "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                      "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                      "focus_id": "fra-1",
+                      "recording_id": "recording-segment",
+                      "media_service_id": "ak:did_core:web:media.example",
+                      "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+                    }
+                  },
+                  "retention": {
+                    "consent_confirmed": true,
+                    "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                  },
+                  "produced_by": "ak:did_core:web:media.example",
+                  "recording_initiator_capability_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+                  "created_at": "2026-09-20T00:00:00.022Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+          "stream_position": 23
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+              "stream_position": 23
+            },
+            "value": {
+              "status": "ready",
+              "details": {
+                "artifact": {
+                  "schema": "ak.schema.call_recording_artifact.v1",
+                  "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                  "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                  "recording_id": "recording-segment",
+                  "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                  "blob_ref": "ak:blob:sha256:f03531d6637acc5520349e0ba00a3f031edf809c0ab1f246a62ace3201f2fbb5",
+                  "size_bytes": 25,
+                  "duration_ms": 12,
+                  "media_type": "audio/ogg",
+                  "encryption": {
+                    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+                    "exporter_label": "ak.rtc-recording-key/v1",
+                    "context": {
+                      "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                      "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                      "focus_id": "fra-1",
+                      "recording_id": "recording-segment",
+                      "media_service_id": "ak:did_core:web:media.example",
+                      "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+                    }
+                  },
+                  "retention": {
+                    "consent_confirmed": true,
+                    "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                  },
+                  "produced_by": "ak:did_core:web:media.example",
+                  "recording_initiator_capability_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+                  "created_at": "2026-09-20T00:00:00.022Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+              "stream_position": 24
+            },
+            "value": {
+              "status": "pending",
+              "details": {
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                },
+                "transcript_start_event_id": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260"
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+              "stream_position": 24
+            },
+            "value": "transcribing"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+          "stream_position": 24
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+              "stream_position": 23
+            },
+            "value": {
+              "status": "ready",
+              "details": {
+                "artifact": {
+                  "schema": "ak.schema.call_recording_artifact.v1",
+                  "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                  "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                  "recording_id": "recording-segment",
+                  "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                  "blob_ref": "ak:blob:sha256:f03531d6637acc5520349e0ba00a3f031edf809c0ab1f246a62ace3201f2fbb5",
+                  "size_bytes": 25,
+                  "duration_ms": 12,
+                  "media_type": "audio/ogg",
+                  "encryption": {
+                    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+                    "exporter_label": "ak.rtc-recording-key/v1",
+                    "context": {
+                      "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                      "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                      "focus_id": "fra-1",
+                      "recording_id": "recording-segment",
+                      "media_service_id": "ak:did_core:web:media.example",
+                      "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+                    }
+                  },
+                  "retention": {
+                    "consent_confirmed": true,
+                    "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                  },
+                  "produced_by": "ak:did_core:web:media.example",
+                  "recording_initiator_capability_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+                  "created_at": "2026-09-20T00:00:00.022Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:ATPd_DRPq8pxh-DbgcJir50vIRdEPcO6r9MO8Zf7qxp7",
+              "stream_position": 24
+            },
+            "value": {
+              "status": "pending",
+              "details": {
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                },
+                "transcript_start_event_id": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260"
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AaXFrslY6qqFPl_QxgggiVeBLXrMQDsEkDNDTU2mxGHL",
+              "stream_position": 25
+            },
+            "value": "stopped"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:AaXFrslY6qqFPl_QxgggiVeBLXrMQDsEkDNDTU2mxGHL",
+          "stream_position": 25
+        }
+      },
+      {
+        "current_state_entries": [
+          {
+            "selector": {
+              "kind": "call_recording_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQBZipxOdJWdnDXToa7LbzABObqUnaRNsGslcOTQtLW0",
+              "stream_position": 23
+            },
+            "value": {
+              "status": "ready",
+              "details": {
+                "artifact": {
+                  "schema": "ak.schema.call_recording_artifact.v1",
+                  "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                  "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                  "recording_id": "recording-segment",
+                  "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd",
+                  "blob_ref": "ak:blob:sha256:f03531d6637acc5520349e0ba00a3f031edf809c0ab1f246a62ace3201f2fbb5",
+                  "size_bytes": 25,
+                  "duration_ms": 12,
+                  "media_type": "audio/ogg",
+                  "encryption": {
+                    "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+                    "exporter_label": "ak.rtc-recording-key/v1",
+                    "context": {
+                      "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                      "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+                      "focus_id": "fra-1",
+                      "recording_id": "recording-segment",
+                      "media_service_id": "ak:did_core:web:media.example",
+                      "recording_start_event_id": "ak:event:AZ5zDPeQqxCcyzo2PM7hRp86v8JCCGFn-v-2NqZm2LHd"
+                    }
+                  },
+                  "retention": {
+                    "consent_confirmed": true,
+                    "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                  },
+                  "produced_by": "ak:did_core:web:media.example",
+                  "recording_initiator_capability_ref": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+                  "created_at": "2026-09-20T00:00:00.022Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_recording_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "recording-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AQ8VxHWkgtRze8L9ECfNKPY78_aMS3e_sjB3kfFJB5iY",
+              "stream_position": 21
+            },
+            "value": "stopped"
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_artifact",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:ATJzbJVWQYzC5Bx_GXkZ2m-s0AelkMSwEPNI6_cqiyFO",
+              "stream_position": 26
+            },
+            "value": {
+              "status": "failed",
+              "details": {
+                "transcript_start_event_id": "ak:event:AXzQ5wW8chKd4-H1EdR10gc1gQwBtBtz-U9_8Gjfp260",
+                "transcript_stop_event_id": "ak:event:ART6HgmgVajHsn-fQcPp4nSb_yp4xqvNAx_RgTAZxEIL",
+                "failure_reason_code": "storage_failed",
+                "retention": {
+                  "consent_confirmed": true,
+                  "retention_expires_at": "2027-09-20T00:00:00.000Z"
+                }
+              }
+            }
+          },
+          {
+            "selector": {
+              "kind": "call_transcript_state",
+              "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+              "recording_id": "transcript-segment"
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AaXFrslY6qqFPl_QxgggiVeBLXrMQDsEkDNDTU2mxGHL",
+              "stream_position": 25
+            },
+            "value": "stopped"
+          }
+        ],
+        "source_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          },
+          "commit_id": "ak:realm_commit:ATJzbJVWQYzC5Bx_GXkZ2m-s0AelkMSwEPNI6_cqiyFO",
+          "stream_position": 26
+        }
+      }
+    ],
+    "initiator_grant_source": {
+      "event": {
+        "kind": "ak.capability.grant",
+        "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-09-20T00:00:00.019Z",
+        "payload": {
+          "grant": {
+            "schema": "ak.schema.capability.v1",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+            "issuer_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "subject": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "actions": [
+              "ak.call.record",
+              "ak.call.transcribe"
+            ],
+            "resources": [
+              {
+                "kind": "realm",
+                "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+              }
+            ],
+            "constraints": [],
+            "issued_at": "2026-09-20T00:00:00.000Z",
+            "issuer_authority_refs": [
+              {
+                "kind": "realm_root",
+                "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+                "authority_event_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+                "authority_generation": "1"
+              }
+            ]
+          }
+        },
+        "event_id": "ak:event:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+        "producer_proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "event_digest": "sha256:e0973e4a7d3ff4f6426818d170af06800a418d43e32c20c40d7ba1d2a61569ae",
+          "created_at": "2026-09-20T00:00:00.019Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..7ASObh4ZSPCs31GporyN4yV6E5QGAOMHLaVTuG4euUJguL2U_ovbN5KPAnj0l1yKnYY1EwYXsAio8_SnZjKpAw"
+        }
+      },
+      "commit": {
+        "commit_id": "ak:realm_commit:Aex6YzCAvbqK4lsJ5MZKsg0Nu9U2dRHn6wu1KeRSDHgi",
+        "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+        },
+        "stream_position": 19,
+        "previous_commit_ref": "ak:realm_commit:AXz5SGZaFKaMJWnaUqvZpkO22VysPLc53sfS0s5RED_6",
+        "event_ref": "ak:event:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+        "governance_generation": "1",
+        "authority_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+        "committed_at": "2026-09-20T00:00:00.019Z",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "signed_digest": "sha256:aff4938da6e369dec3f513eeb63cd7076c7d954bd0e29e060d6ce2f85051f6b8",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "signature": "MMMMNrf24iaIRbZgkH4U9wI6Iuw3uF-Vucpe_hGq9S-z5JQ7MYEEwFhUQ9AJ-kzdtzy62SpZOFVixG6avMYoAQ"
+        }
+      },
+      "current": {
+        "schema": "ak.schema.capability.v1",
+        "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+        "issuer_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "subject": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "actions": [
+          "ak.call.record",
+          "ak.call.transcribe"
+        ],
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+          }
+        ],
+        "constraints": [],
+        "issued_at": "2026-09-20T00:00:00.000Z",
+        "issuer_authority_refs": [
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+            "authority_event_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+            "authority_generation": "1"
+          }
+        ],
+        "id": "ak:grant:AeCXPkp9P_T2QmgY0XCvBoAKQY1D4ywgxA17odKmFWmu",
+        "authority_depth": 1,
+        "authority_root_ref": {
+          "kind": "realm_root",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+          "authority_event_ref": "ak:event:AUaXaB3ua8KXoh5BuHR1BG-1wwt3Gb8k9OM6EYovcdam",
+          "authority_generation": "1"
+        },
+        "status": "active"
+      }
+    },
+    "cases": [
+      "start_atomic_pending",
+      "stop_does_not_publish_result",
+      "result_cas_uses_artifact_revision",
+      "failed_then_ready_keeps_stopped",
+      "stale_result_guard_rejected",
+      "stop_guard_forbidden",
+      "ready_metadata_is_artifact_only",
+      "no_result_guard_in_current",
+      "transcript_kind_isolation"
+    ]
+  },
   "cases": [
     {
       "name": "complete_cold_recovery",

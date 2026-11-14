@@ -138,9 +138,9 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `state_transition` | `call_state` | `commit-ordered projection` | 领域状态 |
 | `focus` | `call_focus` | `commit-ordered projection` | register |
 | `recording_transition.to=stopped` | `call_recording_state` | `commit-ordered projection` | 捕获许可状态 |
-| `recording_transition.capture_metadata` | `call_recording_artifact` | stream-ordered reducer | `{status,details,expected_commit_id}` |
+| `recording_transition.capture_metadata` | `call_recording_artifact` | stream-ordered reducer | `{status,details}` |
 | `transcript_transition.to=stopped` | `call_transcript_state` | `commit-ordered projection` | 捕获许可状态 |
-| `transcript_transition.capture_metadata` | `call_transcript_artifact` | stream-ordered reducer | `{status,details,expected_commit_id}` |
+| `transcript_transition.capture_metadata` | `call_transcript_artifact` | stream-ordered reducer | `{status,details}` |
 | `moderation_delta` | `call_moderation` | `commit-ordered projection` | set |
 | `roster_delta` | `call_roster` | `commit-ordered projection` | set |
 | `mute_override`（v1 禁用） | `call_mute_override`（保留形状，无可接纳写入） | 不执行 | 单 leg register，不可当多 leg 集合 |
@@ -151,7 +151,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 **捕获态按段切分**：录制 / 转写 current state 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 current state，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `call_recording_state` 或 `call_transcript_state`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 current state family。
 
-**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details,expected_commit_id}`；治理 Station按 stream 顺序执行并拒绝 stale revision，且不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。
+**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布。治理 Station MUST 从同段 stopped current 的 revision 定位其唯一原生 RealmCommit 与 `event_ref`，独立验证原 stop Event 的 scope、call、段、capture kind、精确 from/to 和唯一确认结果；ready 录制不得另传 stop 镜像，failed 及转写已有 stop metadata MUST 与该原件相同。transition MUST 携带 scalar `expected_commit_id`，精确比较产物轴当前 revision；停止分支 MUST NOT 携带该字段。result 保存 `{status,details}`，status 为 pending/ready/failed，details 保留所属分支 metadata，写入 guard 不存入 value；唯一接受位置是外层 revision。治理 Station 按 stream 顺序执行并拒绝 stale revision，且结果不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。 `call_capture_pending_details` 的唯一定义是复制已接受 Start 的 `capture_metadata`，再由接收方按 `capture_kind` 附加完整原 EventID 至 `recording_start_event_id` 或 `transcript_start_event_id`；该字段不得签回 Start。停止不改写 pending 结果。已 ready 的产物不得被 failed 覆盖而抹去其保留/删除审计义务；ready 再写必须保持同一 Blob、加密 Context、原 start 和生产/authority 绑定，retention/audit 更新仍须通过既有具名权限与 hold 门。failed 可在精确 CAS 下重试为 ready。
 
 - `focus`：是 `call_focus` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
 - `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`op=join` 创建或更新该 participant；`op=leave` 携带同一 `actor_id/device_id` 与 roster `expected_commit_id`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
@@ -204,7 +204,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 **录制维度（与通话 state 正交，normative）**：`ak.call.recording.start` 创建一段 capturing 安全状态；唯一后继是 stopped，stopped 不可转回 capturing。新段使用新的 recording_id 并重新经过许可检查。`recording_transition` / `transcript_transition` 的 wire `from/to` 按 schema 的精确分支解释，ready/failed 的 `from=stopped` 是产物 provenance 前置，不是写安全状态。
 
-- 停止必须引用确切当前安全 revision；相同前态竞争至多一个成功，失败不改变许可。
+- 同一段不可重开，停止的 `from=recording` / `from=transcribing` 是充分的一次性前置条件；停止不携带冗余 revision，竞争停止至多一个成功，失败不改变许可。
 - ready/failed 必须引用已确认 stop，先停止捕获才发布产物。缺 stop 或属于其它段的 stop 均不生效。
 - 结果独立按所属 stream 的 Commit 顺序与 `expected_commit_id` 更新；异值竞争不冻结其它段或主通话状态。
 - roster/moderation 更新在同一 authority commit 事务中原子执行；不能脱离该序列释放 token 或移除访问屏障。
@@ -314,7 +314,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
   "payload": {
     "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
-    "recording_agent": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
+    "recording_agent_id": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
     "capture_kind": "recording",
     "mode": "audio_video",
     "visible_notice": true
@@ -333,11 +333,12 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - **Backend-generated recording 必经 Arkret blob pipeline**（参见 [`media-service-binding.md` §8.1](./media-service-binding.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Arkret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
-  2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ak.call.record` 的 actor 发起。
+  2. 普通 Blob 上传继续执行既有身份、ACL 与 quota 门，不引入录制专用上传字段，也不在上传时声称已验证录制许可。发布 ready 的签名 artifact MUST 携带 `recording_initiator_capability_ref`；治理 Station 在发布准入时独立核对真实原 start、发起 actor、该 grant 的原接受来源和持续 live 资格。原 Start 行动的审批、quota 与字段限制在真实 Start Event/Commit 的接受事务履行一次；ready 不重做原计费或要求为旧 Event 新造审批。发布时 MUST 以原 capture 事实与当前动态源重核该 grant 的 status、root/lineage、时窗、资源及 claim/device/Applet/session/policy 等持续限制；未知动态源 MUST 拒绝。ready 作者自己的当前 Event 则独立执行其完整授权、审批及 quota 门。未发布的 Blob 不因此授予录制、读取或解密权限。
   3. 加密 key MUST 由 Arkret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ak.rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
   4. 入库后通过 `ak.call.state` 的 `recording_transition` 发布 lifecycle；ready 的 `capture_metadata` 仅携唯一完整 artifact，其他字段从该 artifact 派生。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
-- 录制结果 MUST 通过现有 `ak.call.state.recording_transition` 发布。`to="ready"` 的 `capture_metadata` MUST 是唯一 closed `{artifact}`，artifact MUST 符合 `call-recording-artifact.schema.json`。Realm/Call/recording_id、真实 start、原 init capability、produced_by、exporter label/context 和当前权限 MUST 与 accepted source 对齐。`blob_ref` 承诺 exact stored ciphertext bytes，MUST NOT 再携同原像 content_digest/ciphertext_digest；下载按该 ref 验字节，再独立执行 AEAD/AAD。duration/media_type/retention 等仅在 artifact 内，查询索引从其只读派生，外层镜像 MUST 拒绝。原 start 的 consent 事实和当前 retention/policy/legal-hold 门仍全部必需；ready 不得重开撤回同意。stopped 不要求产物，failed 保留原 failure 诊断而 MUST NOT 携 artifact、明文片段或 backend URL。v1 不注册独立 recording.result/stop kind。
+- Start 的 envelope MUST 用既有 `authorization_ref` 签定实际选择的 GrantId，按 capture_kind 精确消费 `ak.call.record` 或 `ak.call.transcribe`；治理 Station MUST 实际履行这条正向路径，不能以 owner implicit 或另一个 grant 代替，所有其它当前 grant 的全局拒绝仍有效。其后产物只能引用该原 source，不能事后选择一个仅当时存在的 grant。真正开始捕获 MUST 以当前 `active` Call 为前态，并使用已 committed 的 focus；focus MUST 精确属于当前 Realm media descriptor，录制还 MUST 显式满足 `recording_supported=true`。scheduled/ringing 不提前创建捕获许可或 pending；转写仍使用其独立 capability/support 与 label 门，不以 recording_supported 冒替。
+- 录制结果 MUST 通过现有 `ak.call.state.recording_transition` 发布。`to="ready"` 的 `capture_metadata` MUST 是唯一 closed `{artifact}`，artifact MUST 符合 `call-recording-artifact.schema.json`。Realm/Call/recording_id、真实 start、原 init capability、produced_by、exporter label/context 和当前权限 MUST 与 accepted source 对齐。`blob_ref` 承诺 exact stored ciphertext bytes，MUST NOT 再携同原像 content_digest/ciphertext_digest；下载按该 ref 验字节，再独立执行 AEAD/AAD。duration/media_type/retention 等仅在 artifact 内，查询索引从其只读派生，外层镜像 MUST 拒绝。ready 原件 MUST 由原 recorder/current Media Service 真实签署，并使用现有已验证及保留的 `HistoricalProducerSignerFact::Service` 绑定当前 Event、Commit、fact digest、原签名和当前 installation/grant 门；仅声明 actor/executed_by 或放一个 producer_proof 字段不构成证据。该 Service 对完整 artifact/BlobRef 作签名责任承诺。ciphertext 可由既有合格 uploader 搬运，uploader 不必等于 producer，也不因此证明谁生产或加密；不得为重复身份门另造 Service 上传能力。原 start 的 consent 事实和当前 retention/policy/legal-hold 门仍全部必需；ready 不得重开撤回同意。stopped 不要求产物，failed 保留原 failure 诊断而 MUST NOT 携 artifact、明文片段或 backend URL。v1 不注册独立 recording.result/stop kind。
 录制与转写的 `failure_reason_code` 共用封闭 core 集：`media_negotiation_timeout` / `permission_denied` / `backend_unavailable` / `media_source_unavailable` / `storage_failed` / `policy_revoked` / `consent_withdrawn` / `integrity_failed`。扩展值 MUST 使用 `x_` 前缀并匹配 `^x_[a-z0-9_]{1,62}$`；其它值 MUST `schema_violation`。
 
 - 转写需要 `ak.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。

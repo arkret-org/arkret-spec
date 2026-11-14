@@ -352,6 +352,73 @@ def run_case(fixture, name):
     return validate_snapshot(snapshot, request, response, keys, **kwargs)
 
 
+def validate_capture_transcripts(fixture):
+    """Verify signed capture originals and independently fold the two axes."""
+    transcript = fixture['capture_transcripts']
+    states, results, starts, stops = {}, {}, {}, {}
+    grant = transcript['initiator_grant_source']
+    originals = [grant, *transcript['original_rows']]
+    for original in originals:
+        event, commit = original['event'], original['commit']
+        schema_validator(ARTIFACTS / 'schemas/event-envelope.schema.json', '').validate(event)
+        schema_validator(ARTIFACTS / 'schemas/realm-commit.schema.json', '').validate(commit)
+        kind = event['kind']
+        fragment = {'ak.capability.grant': 'capability_grant_payload',
+                    'ak.call.recording.start': 'call_recording_start_payload',
+                    'ak.call.state': 'call_state_payload'}[kind]
+        schema_validator(ARTIFACTS / 'schemas/event-payload.schema.json', '#/$defs/' + fragment).validate(event['payload'])
+        verify_producer(event, fixture['test_keys']['producer_public_key_b64u'])
+        verify_detached(commit, 'signature', fixture['test_keys']['governance_public_key_b64u'], 'ak.realm_commit_signature.v1')
+        if commit['event_ref'] != event['event_id'] or commit['stream_ref'] != event['scope_ref']:
+            raise ValueError('capture original scope or commit')
+    for index, original in enumerate(transcript['original_rows']):
+        event, commit = original['event'], original['commit']
+        payload = event['payload']
+        if event['kind'] == 'ak.call.recording.start':
+            kind, segment = payload['capture_kind'], payload['recording_id']
+            if any(key[1] == segment for key in states):
+                raise ValueError('capture segment reused')
+            key = (kind, segment)
+            starts[key] = event['event_id']
+            states[key] = ('recording' if kind == 'recording' else 'transcribing', commit)
+            details = copy.deepcopy(payload['capture_metadata'])
+            details[kind + '_start_event_id'] = event['event_id']
+            results[key] = ({'status': 'pending', 'details': details}, commit)
+        else:
+            kind = 'recording' if 'recording_transition' in payload else 'transcript'
+            transition = payload[kind + '_transition']
+            key = (kind, transition['recording_id'])
+            if transition['from'] != states[key][0]:
+                raise ValueError('capture permission predecessor')
+            if transition['to'] == 'stopped':
+                states[key] = ('stopped', commit)
+                stops[key] = event['event_id']
+            else:
+                if states[key][0] != 'stopped' or transition['expected_commit_id'] != results[key][1]['commit_id']:
+                    raise ValueError('capture result guard or stop')
+                details = transition['capture_metadata']
+                if kind == 'recording' and transition['to'] == 'ready':
+                    if details['artifact']['recording_start_event_id'] != starts[key] or details['artifact']['recording_id'] != key[1]:
+                        raise ValueError('recording artifact original start')
+                    if details['artifact']['recording_initiator_capability_ref'] != grant['event']['event_id'].replace('ak:event:', 'ak:grant:'):
+                        raise ValueError('recording initiator accepted grant')
+                elif details[kind + '_stop_event_id'] != stops[key]:
+                    raise ValueError('capture failure stop source')
+                results[key] = ({'status': transition['to'], 'details': details}, commit)
+        expected = []
+        for key in sorted(states):
+            kind, segment = key
+            for suffix, (value, source_commit) in (('state', states[key]), ('artifact', results[key])):
+                expected.append({'selector': {'kind': 'call_' + kind + '_' + suffix,
+                    'call_id': payload['call_id'], 'recording_id': segment}, 'source_stream_ref': commit['stream_ref'],
+                    'revision': revision(source_commit), 'value': value})
+        actual = transcript['checkpoints'][index]['current_state_entries']
+        if sorted(actual, key=lambda row: jcs(row['selector'])) != sorted(expected, key=lambda row: jcs(row['selector'])):
+            raise ValueError('capture two-axis current differs from signed originals')
+        for row in actual:
+            schema_validator(ARTIFACTS / 'schemas/current-state.schema.json', '').validate(row)
+
+
 def check_call_current(lint: Lint) -> None:
     fixture = load_json(lint, FIXTURE)
     try:
@@ -382,6 +449,7 @@ def check_call_current(lint: Lint) -> None:
             verify_detached(original['commit'], 'signature', fixture['test_keys']['governance_public_key_b64u'], 'ak.realm_commit_signature.v1')
         for snapshot in fixture['checkpoints']:
             schema_validator(ARTIFACTS / 'schemas/realm-state-snapshot.schema.json', '').validate(snapshot)
+        validate_capture_transcripts(fixture)
         for case in fixture['cases']:
             try:
                 actual = run_case(fixture, case['name'])

@@ -3373,6 +3373,10 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
     nested object carrying a ``schema`` discriminator.  This check discovers those
     objects across every fixture, resolves the discriminator through the generated
     schema registry (including its fragment), and validates the complete object.
+    A real parent Event supplies its canonical payload/property contract when
+    that contract fixes this same schema discriminator. This preserves closed
+    create bodies without pretending they already contain receiver-derived
+    fields. Unconstrained metadata and unparented objects keep full validation.
     Negative branches remain owned by explicit ``schema_validation_cases`` so their
     expected failure and first error stay testable.
     """
@@ -3387,10 +3391,70 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
         and isinstance(row.get("schema_id"), str)
         and isinstance(row.get("file"), str)
     }
+    contract = load_json(lint, ARTIFACTS / "registry" / "contract-registry.json")
+    event_payloads = {
+        row["event_kind"]: row["payload_schema_ref"]
+        for row in (contract.get("event_kind_registry", {}).get("event_kinds", []) if isinstance(contract, dict) else [])
+        if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
+        and isinstance(row.get("payload_schema_ref"), str)
+    }
+
+    def child_contract(owner: Path, reference: str | None, key: str) -> str | None:
+        """Resolve a typed parent property, without guessing from its schema ID."""
+        if reference is None:
+            return None
+        for _ in range(32):
+            path = resolve_artifact_schema_ref(lint, owner, reference)
+            if path is None:
+                return None
+            fragment = "#" + reference.split("#", 1)[1] if "#" in reference else "#"
+            try:
+                node = resolve_json_pointer(load_schema_document(lint, path), fragment)
+            except (KeyError, TypeError, ValueError):
+                return None
+            if not isinstance(node, dict):
+                return None
+            if "$ref" in node:
+                ref = node["$ref"]
+                if not isinstance(ref, str):
+                    return None
+                reference = ("schemas/" + path.name + ref if ref.startswith("#")
+                             else "schemas/" + ref.removeprefix("./"))
+                continue
+            if key in node.get("properties", {}):
+                escaped = key.replace("~", "~0").replace("/", "~1")
+                return "schemas/" + path.name + fragment + "/properties/" + escaped
+            return None
+        return None
+
+    def owns_discriminator(owner: Path, reference: str | None, schema_id: str) -> bool:
+        reference = child_contract(owner, reference, "schema")
+        for _ in range(32):
+            if reference is None:
+                return False
+            path = resolve_artifact_schema_ref(lint, owner, reference)
+            if path is None:
+                return False
+            fragment = "#" + reference.split("#", 1)[1] if "#" in reference else "#"
+            try:
+                node = resolve_json_pointer(load_schema_document(lint, path), fragment)
+            except (KeyError, TypeError, ValueError):
+                return False
+            if not isinstance(node, dict):
+                return False
+            if "$ref" not in node:
+                return node.get("const") == schema_id or node.get("enum") == [schema_id]
+            ref = node["$ref"]
+            if not isinstance(ref, str):
+                return False
+            reference = ("schemas/" + path.name + ref if ref.startswith("#")
+                         else "schemas/" + ref.removeprefix("./"))
+        return False
 
     negative_key_tokens = ("negative", "invalid", "malformed", "rejected", "tampered")
 
-    def visit(owner: Path, value: Any, pointer: str, negative: bool = False) -> None:
+    def visit(owner: Path, value: Any, pointer: str, negative: bool = False,
+              payload_contract: str | None = None) -> None:
         if isinstance(value, dict):
             local_negative = negative or value.get("expect_valid") is False
             schema_id = value.get("schema")
@@ -3401,9 +3465,12 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
                     lint,
                     owner,
                     pointer or "/",
-                    schema_ref,
+                    payload_contract if owns_discriminator(owner, payload_contract, schema_id) else schema_ref,
                     value,
                 )
+            event_kind = value.get("kind")
+            event_contract = event_payloads.get(event_kind) if isinstance(event_kind, str) else None
+            typed_event = isinstance(event_contract, str) and {"event_id", "actor_id", "scope_ref", "payload"}.issubset(value)
             for key, child in value.items():
                 key_negative = local_negative or any(token in key.lower() for token in negative_key_tokens)
                 if key == "input" and value.get("kind") == "canonical_json_digest":
@@ -3413,7 +3480,8 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
                     and key == "shared"
                 ):
                     key_negative = True
-                visit(owner, child, f"{pointer}/{key}", key_negative)
+                child_ref = event_contract if typed_event and key == "payload" else child_contract(owner, payload_contract, key)
+                visit(owner, child, f"{pointer}/{key}", key_negative, child_ref)
         elif isinstance(value, list):
             for index, child in enumerate(value):
                 visit(owner, child, f"{pointer}/{index}", negative)

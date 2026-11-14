@@ -390,6 +390,7 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    "call_capture_pending_details",
     "reaction_effective_entries",
     "realm_actor_accepted_event_ref",
     "realm_actor_resolution_projection",

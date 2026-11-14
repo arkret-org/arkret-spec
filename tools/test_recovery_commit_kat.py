@@ -2,16 +2,34 @@
 
 import copy
 import json
+from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 from cryptography.exceptions import InvalidSignature
 
 from tools.recovery_commit_kat import END, FIXTURE, admit, digest, issue_completion, make_completion_request, resign_receipt, specimen
+from tools import recovery_commit_kat
 
 
 class RecoveryCommitKatTests(unittest.TestCase):
     def setUp(self):
         self.receipt, self.qualified = specimen()
+
+    def test_regeneration_is_byte_exact_and_assertions_are_unique(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / FIXTURE.name
+            fixture.write_bytes(FIXTURE.read_bytes())
+            approval = 'approval-signature-kat-fixture.json'
+            (fixture.parent / approval).write_bytes((FIXTURE.parent / approval).read_bytes())
+            with patch.object(recovery_commit_kat, 'FIXTURE', fixture):
+                recovery_commit_kat.regenerate()
+                first = fixture.read_bytes()
+                recovery_commit_kat.regenerate()
+                self.assertEqual(first, fixture.read_bytes())
+                assertions = json.loads(first)['assertions']
+                self.assertEqual(len(assertions), len(set(assertions)))
 
     def reject(self, change_receipt=None, change_qualified=None, resign=True):
         receipt, qualified = copy.deepcopy(self.receipt), copy.deepcopy(self.qualified)
