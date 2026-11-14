@@ -1936,6 +1936,12 @@ paths:
   /_arkret/self/security-transactions/{transaction_id}:
     get:
       operationId: ak.self.security_transaction.resource.get
+      description: Authoritative durable resource query by transaction_id. Recovery returns its exact signed receipt
+        and CompletionAttestation; Rotation returns its prepared plan, accepted prefix and optional terminal result.
+        Ordinary self reads require current reader authority. The existing configured, authenticated Account Authority
+        channel may also read completed Recovery for its exact trusted issuer and original Account Station, without
+        requiring the expired historical recovery grant. It must reject Rotation, incomplete resources and another
+        issuer; this result grants no current authority. Never synthesize progress from an HTTP idempotency cache.
       security:
       - sessionGrantAuth: []
         dpopProof: []

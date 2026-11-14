@@ -157,6 +157,8 @@ def admit(receipt, qualified, ledger):
     unit = receipt['recovery_unit']
     if unit['predecessor_ref'] != qualified['predecessor_ref'] or len(unit['events']) != 2:
         raise ValueError('predecessor_or_cardinality')
+    if any('approval_signatures' in item for item in unit['events']):
+        raise ValueError('pcr_native_unit_has_no_generic_approval_carrier')
     events = [item['event'] for item in unit['events']]
     if [event['kind'] for event in events] != ['ak.device.reanchor', 'ak.device.authorize']:
         raise ValueError('slot_order')
@@ -314,6 +316,12 @@ def regenerate():
     fixture['single_submit_recovery_kat'] = {'boundary': 'Real Ed25519/Event/Commit and fresh completion-holder PoP bytes over explicit qualified inputs; not native DID/HTTP authentication or production storage.', 'identity_projection': {'did': METHOD_DID, 'principal_id': ACCOUNT['principal_id'], 'source_ref': 'spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/3/commitment/did'}, 'receipt': receipt, 'receipt_digest': digest(receipt), 'qualified_inputs': qualified, 'expected_outcome': outcome, 'native_commits': next(iter(native_ledger.values()))[2], 'completion_request': request, 'completion_qualified_inputs': fresh, 'completion_expected_outcome': issued}
     fixture['schema_validation_cases'] = [case for case in fixture['schema_validation_cases'] if 'recovery_commit_intent' not in case['name'] and not case['name'].startswith('single_submit')]
     fixture['schema_validation_cases'].append({'name': 'single_submit_recovery_receipt', 'schema_ref': 'schemas/recovery-receipt.schema.json', 'expect_valid': True, 'instance': receipt})
+    approval = json.loads((FIXTURE.parent / 'approval-signature-kat-fixture.json').read_text(encoding='utf-8'))['vectors'][0]['approval_signature']
+    for index in range(2):
+        inapplicable = copy.deepcopy(receipt)
+        inapplicable['recovery_unit']['events'][index]['approval_signatures'] = [copy.deepcopy(approval)]
+        resign_receipt(inapplicable)
+        fixture['schema_validation_cases'].append({'name': 'single_submit_inapplicable_generic_approval_' + str(index), 'schema_ref': 'schemas/recovery-receipt.schema.json', 'expect_valid': False, 'first_expected_error': "contains:should not be valid under {'required': ['approval_signatures']}", 'instance': inapplicable})
     fixture['schema_validation_cases'].append({'name': 'single_submit_recovery_result', 'schema_ref': 'schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion', 'expect_valid': True, 'instance': outcome})
     fixture['schema_validation_cases'].append({'name': 'single_submit_recovery_completion_request', 'schema_ref': 'schemas/recovery-authority.schema.json#/$defs/recovery_completion_grant_request_body', 'expect_valid': True, 'instance': request})
     fixture['schema_validation_cases'].append({'name': 'single_submit_recovery_issuance_outcome', 'schema_ref': 'schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_response_body', 'expect_valid': True, 'instance': issued})
