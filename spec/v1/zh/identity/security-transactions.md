@@ -38,11 +38,11 @@ SecurityRotation独立保留：完整typed prepared_plan、`prepared_plan_digest
 
 ### 2.1 唯一完整原签意图
 
-Recovery create MUST 只接受schema定义的完整 `RecoveryReceipt`。receipt按closed shape携transaction/receipt ID、完整Account、expires_at、recovery_session_id、原session_grant_ref/JKT、policy/version、trust_domain、replacement Device、identity model、previous/new generation、原proof_summary、`recovery_unit={predecessor_ref,events:[reanchor,authorize]}`和原本地恢复结果。两slot MUST 是已有EventAdmissionSubmission：完整producer Event及适用approval_signatures。不得丢弃原审批、注入任意步骤或把receipt proof替代独立producer proof。
+Recovery create MUST 只接受schema定义的完整 `RecoveryReceipt`。receipt按closed shape携transaction/receipt ID、完整Account、expires_at、recovery_session_id、原session_grant_ref/JKT、policy/version、trust_domain、replacement Device、identity model、previous/new generation、原proof_summary、`recovery_unit={predecessor_ref,events:[reanchor,authorize]}`和原本地恢复结果。两slot MUST 使用已有完整EventAdmissionSubmission。此固定PCR unit走原生恢复授权，不存在通用capability action或已登记approval carrier，因此两slot MUST NOT 携带 `approval_signatures`；收到时必须拒绝，不能先剥离再验R，也不得借用self-submit operation或增设通用审批AND层。原policy因子、device quorum、candidate PoP及独立producer proof仍全部验证，不得注入任意步骤或把receipt proof替代它们。
 
 receipt是唯一canonical意图，不另携recovery_intent、prepared_plan、session snapshot digest或terminal outer wrapper。EventId直接来自两slot，不重复携镜像。客户端 MUST 先本地耐久保存完整冻结receipt与candidate私钥再发网络；未知结果不得改签、重加密、换Event、换transaction或恢复旧checkpoint。
 
-producer Event先依现有规则构造和签名，只能用其已登记payload的预分配ID；不得依赖receipt摘要/签名或后发Commit。随后replacement key签receipt：`UTF8("ak.identity.recovery_receipt.signature.v1\n") || JCS(receipt excluding signature_proof)`，所有实际存在optional字段和原审批证据自动签入。`receipt_digest=sha256:lowercase_hex(SHA-256(JCS(full signed receipt)))`只在签后计算，不放回receipt。没有transaction_request_digest/prepared_plan_digest或未定义session摘要。
+producer Event先依现有规则构造和签名，只能用其已登记payload的预分配ID；不得依赖receipt摘要/签名或后发Commit。随后replacement key签receipt：`UTF8("ak.identity.recovery_receipt.signature.v1\n") || JCS(receipt excluding signature_proof)`，所有实际存在optional字段自动签入，不能预先删除提交成员。`receipt_digest=sha256:lowercase_hex(SHA-256(JCS(full signed receipt)))`只在签后计算，不放回receipt。没有transaction_request_digest/prepared_plan_digest或未定义session摘要。
 
 receipt的completed_at仍是设备签署意图时间，不证明实际完成；本地backup/Welcome/outcome声明不证明普通群或PCR内容history-ready。
 
@@ -52,7 +52,7 @@ verifier MUST 从原已verified RecoverySession冻结的candidate key验receipt�
 
 历史proof冻结不能替代首提交时当前policy显式撤销、session/grant有效性、Account允许恢复状态、generation/head与原授权payload digest等门。new generation MUST 为当前previous的checked successor；predecessor MUST 为原session允许的当前PCR head，不得自动把旧Event移到新head。
 
-owning Station MUST 在唯一安全接纳点以完整Account/transaction/session锁及generation/head CAS，验证完整原签和审批，然后逻辑原子地保存两Event、同PCR stream位置连续且不同的两RealmCommit、generation advance、replacement active state、session consumption/transaction绑定、outbox、完成结果与CompletionAttestation。公开边界上全部同时可见，任一步失败均无部分恢复效果。两Event各一Commit，不得共享commit_id。
+owning Station MUST 在唯一安全接纳点以完整Account/transaction/session锁及generation/head CAS，验证完整原签、原生恢复因子与candidate proof，然后逻辑原子地保存两Event、同PCR stream位置连续且不同的两RealmCommit、generation advance、replacement active state、session consumption/transaction绑定、outbox、完成结果与CompletionAttestation。公开边界上全部同时可见，任一步失败均无部分恢复效果。两Event各一Commit，不得共享commit_id。
 
 RecoverySession和该终局只有owning Station一个durable owner；Account Authority不得另建可写session副本。部署私有拆分不以共享数据库或跨库事务为前提，不得把未知内部状态当成功。启用内容恢复时，原authorize Commit同切点建立content-history §11.3的episode/fence意图；后续库存和客户端解密不改变该身份终态，也不借旧session续期。
 
@@ -64,11 +64,15 @@ CompletionAttestation保留原service Ed25519证明，签名输入为`JCS(comple
 
 `ak.gate.account.command.issue_recovery_completion_grant.v1` 只接受 `{terminal_receipt,initial_session,accepted_device_possession_proof,canonical_request_digest}`；事务、Account、Device及generation从receipt推导。C由Account Authority经同Station既有部署内认证通道向原Station一跳承运并独立核验，不要求客户端先拿到C，不能借此新增公开发现/operation或读取对方数据库。
 
+该承运 MUST 复用已登记的 `ak.self.security_transaction.resource.get.v1` 及其既有typed响应，不新增path、请求体或响应类型。此受限服务器读取只允许已配置并认证的Account Authority通道：从可信配置绑定的issuer MUST 等于原R的 `session_grant_ref.issuer_id`，完整Account的station MUST 为原Station，且资源 MUST 是已完成Recovery。Rotation、未完成资源或不符issuer MUST 拒绝，不能信任caller自报身份。AA收到R+C后 MUST 独立逐字核对完整Account、transaction、原full-signed receipt摘要和C原签；历史读取不要求旧recovery grant仍有效，也不替代下述fresh handoff、PoP和当前资格。普通self读取继续按当前reader资格执行。
+
 首次completion需fresh Bound AccountHandoff和HTTP DPoP。允许新短期holder key不同于原recovery grant，但原receipt/session的历史ref/JKT不变。原replacement identity key必须在current-device判定点对本次新holder作AcceptedDevicePossessionProof，purpose=`recovery_completion_grant_issue`，保留issue分支request/account-handoff字段和≤300秒窗口。`session_intent_digest=SHA-256(JCS({receipt_digest,initial_session}))`；proof签完整closed对象仅省signature；最后`canonical_request_digest=SHA-256(JCS(request excluding canonical_request_digest))`，无自引用。fresh handoff/HTTP DPoP/initial_session/proof holder JKT必须一致，Device/audience/current generation/revocation必须全部成立。
 
 issuer业务主键 MUST 为`(issuer_id,operation_id,完整AccountId,receipt.transaction_id)`，原fullsigned receipt摘要、首次成功请求bytes、允许的原账号deactivated→active和独立Standard outcome在其自身事务中原子固定。request_id不能被用来重发同一completion；资格未验不能占位，临时取材失败不永久占用。PCR事务与issuer事务分别完成，不共享Coauth/Coland数据库。
 
 exact replay重验fresh handoff同Account/同holder和当前replacement资格，返回相同U/ref；原body中的PoP窗口/旧handoff digest是已验历史，不与新handoff强行逐字匹配。原issuer链已expired/revoked/superseded沿既有session_grant_replay_*终态，不补发或重复reactivate。若原issuer成功但旧DPoP私钥丢失，AA账号已active，走普通accepted-device issue而非改写原transaction。
+
+客户端 MUST 在首次发送前耐久冻结完整completion请求，同holder重试保留原body并使用fresh外层DPoP和当前有效handoff；网络超时、404或普通鉴权失败不证明原请求未被接纳。若尚无成功结果而冻结PoP已过期，issuer MUST 在上述同一业务主键的串行接纳点先检查已接纳结果及未决issuer operation；已有成功按exact replay处理，无法解释的未决状态不得给出可重签判定。仅当确认没有已接纳结果、没有未决operation且原PoP的expires_at不晚于服务器当前时间时，才返回HTTP 401、type=`https://arkret.org/problems/reauthentication_required`及typed `reason_code=proof_invalid`。这个组合在本operation中专指原body已不能首次接纳；所有首次请求在取得同业务键接纳权后 MUST 重验PoP窗口及当前资格并将串行权保持至原子结果提交，确保先前在途旧请求不能在该否定判定之后迟到接纳。客户端仅凭这个精确组合并在本地CAS确认仍为同一冻结body后，才可保留原R、原业务键、initial_session和holder而重签新PoP／请求摘要；其它同码、reason、HTTP状态或detail文本不得触发替换。此否定判定不创建占位或授予当前权限，重新签发仍须全部fresh认证与资格检查。
 
 PCR成功而response丢失，即使旧recovery grant已到期、AA账号仍deactivated，仍可fresh认证并重交本地冻结receipt，让服务取原C完成原账号恢复；不得要求先Standard后GET C，不延长/升级旧recovery grant。已active且有Standard的用户可exact self GET。尚未accepted且旧session过期必须新恢复，历史C不授现在资格。
 

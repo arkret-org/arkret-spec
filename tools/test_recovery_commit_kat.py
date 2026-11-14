@@ -1,11 +1,12 @@
 """Adversarial cryptographic/semantic single-submit Recovery regressions."""
 
 import copy
+import json
 import unittest
 
 from cryptography.exceptions import InvalidSignature
 
-from tools.recovery_commit_kat import END, admit, digest, issue_completion, make_completion_request, resign_receipt, specimen
+from tools.recovery_commit_kat import END, FIXTURE, admit, digest, issue_completion, make_completion_request, resign_receipt, specimen
 
 
 class RecoveryCommitKatTests(unittest.TestCase):
@@ -110,6 +111,13 @@ class RecoveryCommitKatTests(unittest.TestCase):
 
     def test_changed_signed_event(self):
         self.reject(lambda r: r['recovery_unit']['events'][1]['event']['payload'].update(authorized_generation_ref=3))
+
+    def test_generic_approval_is_inapplicable_even_with_a_valid_receipt_signature(self):
+        approvals = json.loads((FIXTURE.parent / 'approval-signature-kat-fixture.json').read_text(encoding='utf-8'))
+        approval = approvals['vectors'][0]['approval_signature']
+        for index in range(2):
+            with self.subTest(slot=index):
+                self.reject(lambda r: r['recovery_unit']['events'][index].update(approval_signatures=[approval]))
 
 
 class RecoveryCompletionIssuerTests(unittest.TestCase):

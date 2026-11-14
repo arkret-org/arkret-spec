@@ -312,7 +312,7 @@
       "code": "reauthentication_required",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure.v1) requires fresh high-risk action authentication â€” recent login, WebAuthn, recovery key or a deployment equivalent â€” and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10.",
+      "description": "A high-risk self-service action (for example ak.gate.account.command.request_erasure.v1) requires fresh high-risk action authentication â€” recent login, WebAuthn, recovery key or a deployment equivalent â€” and the presented session does not satisfy the deployment policy. The caller MUST re-authenticate and retry with new request material; the strength of the required proof is deployment governance. See zh/identity/account-lifecycle.md section 8.1 and section 10. In ak.gate.account.command.issue_recovery_completion_grant.v1, HTTP 401 with the registered reason_code=proof_invalid has the exclusive same-business-key serialized expired-frozen-PoP denial semantics specified in zh/identity/security-transactions.md section 2.3; generic authentication failures must not emit that combination.",
       "type_uri": "https://arkret.org/problems/reauthentication_required",
       "title": "Reauthentication required",
       "status": "active"
@@ -4621,7 +4621,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `signature_invalid` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6.2.",
+      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `signature_invalid` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6.2. For issue_recovery_completion_grant only, paired with HTTP 401 reauthentication_required, it exclusively means the issuer has serialized against all first acceptances, found no accepted or unresolved operation and confirmed the exact frozen PoP expired; no old-body first acceptance may follow. It permits same-holder client CAS replacement of only the PoP and request digest, with fresh authentication still mandatory. Other proof or current-eligibility errors must not emit this combination. See zh/identity/security-transactions.md section 2.3.",
       "status": "active"
     },
     {

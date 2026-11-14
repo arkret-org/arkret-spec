@@ -200,6 +200,11 @@
                         }
                       }
                     }
+                  },
+                  "not": {
+                    "required": [
+                      "approval_signatures"
+                    ]
                   }
                 }
               ]
@@ -226,6 +231,11 @@
                         }
                       }
                     }
+                  },
+                  "not": {
+                    "required": [
+                      "approval_signatures"
+                    ]
                   }
                 }
               ]
@@ -235,7 +245,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exactly the two original EventAdmissionSubmission slots in reanchor/authorize order and their already accepted PCR predecessor. Original producer proofs and applicable approval_signatures are retained. Neither Event may depend on this receipt digest/signature or a future Commit."
+      "description": "Exactly the two complete native PCR EventAdmissionSubmission slots in reanchor/authorize order and their accepted predecessor. Generic approval_signatures are inapplicable and forbidden; receivers reject rather than strip them. Native recovery factors and candidate/producer proofs remain required. Neither Event may depend on this receipt digest/signature or a future Commit."
     },
     "unlocked_backups": {
       "type": "array",

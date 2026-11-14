@@ -943,7 +943,8 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json"
+        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ]
     },
     {
@@ -951,7 +952,8 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
-        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json"
+        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ]
     },
     {

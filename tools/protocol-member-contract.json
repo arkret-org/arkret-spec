@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:29798f16fcfad4295414093e6d2e5a2ee610c061c21b2b4d9881f8efafceeeb5",
+  "contract_digest": "sha256:056734c04d154088ac9aece1016f87b0c47f4fe56fc65c8128caf7a1d4d2d962",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -100458,6 +100458,11 @@
                               }
                             }
                           }
+                        },
+                        "not": {
+                          "required": [
+                            "approval_signatures"
+                          ]
                         }
                       }
                     ]
@@ -100484,6 +100489,11 @@
                               }
                             }
                           }
+                        },
+                        "not": {
+                          "required": [
+                            "approval_signatures"
+                          ]
                         }
                       }
                     ]
@@ -100493,7 +100503,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Exactly the two original EventAdmissionSubmission slots in reanchor/authorize order and their already accepted PCR predecessor. Original producer proofs and applicable approval_signatures are retained. Neither Event may depend on this receipt digest/signature or a future Commit."
+            "description": "Exactly the two complete native PCR EventAdmissionSubmission slots in reanchor/authorize order and their accepted predecessor. Generic approval_signatures are inapplicable and forbidden; receivers reject rather than strip them. Native recovery factors and candidate/producer proofs remain required. Neither Event may depend on this receipt digest/signature or a future Commit."
           },
           "unlocked_backups": {
             "type": "array",
@@ -117083,7 +117093,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:d3d18d5d874a20d784877764760dec0e59ecb98e5dabed807c34b9d7e4a651c5"
+      "digest": "sha256:82ac33bc317c87dc56e0c973cf34669c5be7a92983b68328574cf4634f03d99a"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117099,7 +117109,7 @@
     },
     {
       "file": "error-code-registry.json",
-      "digest": "sha256:f54fb768d571d82ad3dab96222394731c9f2efa400fffed127892ca7a9d75565"
+      "digest": "sha256:edbc2f02b897a4df0340fc3b2a71d6d1b62bf0a25bf0c009044613ebf224c41d"
     },
     {
       "file": "event-kind-vector-gap-registry.json",
@@ -117223,7 +117233,7 @@
     },
     {
       "file": "test-material-registry.json",
-      "digest": "sha256:c8ea0f87019cdd77c26a5795d2202e94699a541afbfc2d61d832b2c43bd48b29"
+      "digest": "sha256:a7fb36f08da8cffd8e57f77bc7855eb3733cd96794a1a364a017e481f4964570"
     },
     {
       "file": "vector-registry.json",
@@ -119834,6 +119844,7 @@
       "/_arkret/self/security-transactions/{transaction_id}": {
         "get": {
           "operationId": "ak.self.security_transaction.resource.get",
+          "description": "Authoritative durable resource query by transaction_id. Recovery returns its exact signed receipt and CompletionAttestation; Rotation returns its prepared plan, accepted prefix and optional terminal result. Ordinary self reads require current reader authority. The existing configured, authenticated Account Authority channel may also read completed Recovery for its exact trusted issuer and original Account Station, without requiring the expired historical recovery grant. It must reject Rotation, incomplete resources and another issuer; this result grants no current authority. Never synthesize progress from an HTTP idempotency cache.",
           "security": [
             {
               "sessionGrantAuth": [],

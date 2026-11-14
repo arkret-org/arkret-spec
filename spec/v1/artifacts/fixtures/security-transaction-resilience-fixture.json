@@ -251,6 +251,330 @@
       }
     },
     {
+      "name": "single_submit_inapplicable_generic_approval_0",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'required': ['approval_signatures']}",
+      "instance": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "expires_at": "2026-11-14T12:15:00.000Z",
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "session_grant_ref": {
+          "issuer_id": "ak:did_core:web:station.example",
+          "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+        },
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:single-submit-recovery",
+        "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "identity_model": "pcr_policy",
+        "recovery_authority_kind": "pcr_policy",
+        "previous_model_generation_ref": 1,
+        "new_model_generation_ref": 2,
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "recovery_unit": {
+          "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+          "events": [
+            {
+              "event": {
+                "kind": "ak.device.reanchor",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  },
+                  "recovery_authority_kind": "pcr_policy",
+                  "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                  "recovery_policy_version": 1,
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "previous_device_generation": 1,
+                  "new_device_generation": 2,
+                  "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                },
+                "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                }
+              },
+              "approval_signatures": [
+                {
+                  "input": {
+                    "approval_context": {
+                      "context_kind": "grant",
+                      "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+                    },
+                    "approval_target": {
+                      "target_kind": "event",
+                      "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+                    },
+                    "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+                    "operation": "ak.self.events.command.submit.v1",
+                    "action": "ak.strand.create",
+                    "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+                    "initiating_actor_id": {
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      },
+                      "kind": "account"
+                    },
+                    "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+                    "approved_at": "2026-08-06T00:10:00.000Z",
+                    "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+                  },
+                  "proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+                  }
+                }
+              ]
+            },
+            {
+              "event": {
+                "kind": "ak.device.authorize",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                  "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                  "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "algorithms": [
+                    "Ed25519"
+                  ],
+                  "device_key_algorithm": "Ed25519",
+                  "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "authorization_binding_kind": "pcr_recovery",
+                  "authorized_generation_ref": 2,
+                  "not_before": "2026-11-14T12:00:00.000Z",
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                },
+                "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                }
+              }
+            }
+          ]
+        },
+        "unlocked_backups": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-11-14T12:00:00.000Z",
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "signature_proof": {
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature_algorithm": "Ed25519",
+          "signature": "sTbx0w22JdL4--QSDZP59UrEHFaopZoL_y8t9vk8qZgfJOazNmz8vo1W1aRBw_BzwEjXMu_g11x63mYjTSJBBg"
+        }
+      }
+    },
+    {
+      "name": "single_submit_inapplicable_generic_approval_1",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'required': ['approval_signatures']}",
+      "instance": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019ba000-0000-7000-8000-000000000004",
+        "transaction_id": "ak:transaction:019ba000-0000-7000-8000-000000000005",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "expires_at": "2026-11-14T12:15:00.000Z",
+        "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+        "session_grant_ref": {
+          "issuer_id": "ak:did_core:web:station.example",
+          "id": "ak:session_grant:019ba000-0000-7000-8000-000000000006"
+        },
+        "session_grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:single-submit-recovery",
+        "new_device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+        "identity_model": "pcr_policy",
+        "recovery_authority_kind": "pcr_policy",
+        "previous_model_generation_ref": 1,
+        "new_model_generation_ref": 2,
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "recovery_unit": {
+          "predecessor_ref": "ak:realm_commit:AQKCaXpC3xLQezd38DS1veq8keww8KfBgMiGBtqljceL",
+          "events": [
+            {
+              "event": {
+                "kind": "ak.device.reanchor",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  },
+                  "recovery_authority_kind": "pcr_policy",
+                  "recovery_policy_id": "ak:policy:019ba000-0000-7000-8000-000000000003",
+                  "recovery_policy_version": 1,
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "previous_device_generation": 1,
+                  "new_device_generation": 2,
+                  "replacement_authorize_payload_digest": "sha256:31e942dec4dc5a56f8077b82078f83600fdbe3d7ae7bda4c5d241d86b3d809c1"
+                },
+                "event_id": "ak:event:AbbxQb1ycuvHZsLqaVGINXQoUUfkwe_qobPKW3L4lm0f",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:b6f141bd7272ebc766c2ea6951883574285147e4c1efeaa1b3ca5b72f8966d1f",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..F6Vex-rMY3kYZKUhdadzc0BviKkEHvmWdvK86Ac3G41TgmQc8fZOEWM3ufevjlGvxcRWsWn7x0ogTVXcCDzcBw"
+                }
+              }
+            },
+            {
+              "event": {
+                "kind": "ak.device.authorize",
+                "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h",
+                "scope_ref": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:AVZVWZCUjkVxNxZsXakd_C6wXEvJilHEThiUo7Prlc2h"
+                },
+                "actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:station.example"
+                  }
+                },
+                "created_at": "2026-11-14T12:00:00.000Z",
+                "payload": {
+                  "device_id": "ak:device:019ba000-0000-7000-8000-000000000001",
+                  "device_public_key_did": "did:key:z6MkneMkZqwqRiU5mJzSG3kDwzt9P8C59N4NGTfBLfSGE7c7",
+                  "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "algorithms": [
+                    "Ed25519"
+                  ],
+                  "device_key_algorithm": "Ed25519",
+                  "authorized_by": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                  "authorization_binding_kind": "pcr_recovery",
+                  "authorized_generation_ref": 2,
+                  "not_before": "2026-11-14T12:00:00.000Z",
+                  "recovery_session_id": "ak:recovery_session:019ba000-0000-7000-8000-000000000002",
+                  "device_signature": "2qmQy3pVXzCvUtMjBr6L4dFwBglgEZnWg5ch-lYbE3gYFCYaI8uKVDws_rgT-eBD7ZnBmNUejgyyYuZdSK8AAQ"
+                },
+                "event_id": "ak:event:AV4oD7i9X76qVx1hfd5r0A48rfJwx412Yff23oe0anS8",
+                "producer_proof": {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+                  "event_digest": "sha256:5e280fb8bd5fbeaa571d617dde6bd00e3cadf270c78d7661f7f6de87b46a74bc",
+                  "created_at": "2026-11-14T12:00:00.000Z",
+                  "jws": "eyJhbGciOiJFZDI1NTE5In0..cS0whCaptY00d_ofyKIvyddoRFGDRAkZ4YVE1IVvltW14wrs10xaf9ozN-kx2souRtS3ZNtQ2jJQ89pdxZ_7DA"
+                }
+              },
+              "approval_signatures": [
+                {
+                  "input": {
+                    "approval_context": {
+                      "context_kind": "grant",
+                      "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+                    },
+                    "approval_target": {
+                      "target_kind": "event",
+                      "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+                    },
+                    "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+                    "operation": "ak.self.events.command.submit.v1",
+                    "action": "ak.strand.create",
+                    "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+                    "initiating_actor_id": {
+                      "account_id": {
+                        "principal_id": "ak:did_core:webvh:z6mkfixture",
+                        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                      },
+                      "kind": "account"
+                    },
+                    "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+                    "approved_at": "2026-08-06T00:10:00.000Z",
+                    "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+                  },
+                  "proof": {
+                    "kind": "detached_jws",
+                    "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+                    "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "unlocked_backups": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-11-14T12:00:00.000Z",
+        "completed_at": "2026-11-14T12:00:00.000Z",
+        "signature_proof": {
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
+          "signature_algorithm": "Ed25519",
+          "signature": "HCl41QQ0stG2Zb4babZ8DWYgEt-50kcIxlUB6BeMsRdu8rcWWFSrFkJMX41TUB88yppBPjs2ztlKvxL-HOjdDw"
+        }
+      }
+    },
+    {
       "name": "single_submit_recovery_result",
       "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_transaction_completion",
       "expect_valid": true,
@@ -700,6 +1024,8 @@
     "public_store_log_telemetry_and_crash_artifact_contain_no_secret_material",
     "accepted_revoke_proposal_has_exact_covering_commit_and_pending_without_outcome",
     "accepted_or_rejected_revoke_outcome_is_atomic_with_step_or_abort_expiry",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
+    "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
     "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
     "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
     "The existing completion operation obtains the original success closure server-side and verifies a fresh accepted-device PoP for the new holder.",
