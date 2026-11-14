@@ -510,7 +510,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "5616abf437af9b819a59c8f607442290579ee590a8033cdf82b381590c78203e"
+      "sha256": "7f751e66313ea5f2681e417935150a33cdde09dab8636b0a29778fef52a9eb11"
     },
     {
       "path": "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json",
